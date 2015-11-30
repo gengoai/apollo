@@ -22,6 +22,8 @@
 package com.davidbracewell.apollo.learning;
 
 import lombok.NonNull;
+import org.apache.commons.math3.linear.OpenMapRealVector;
+import org.apache.commons.math3.linear.RealVector;
 
 import java.util.Collection;
 
@@ -76,5 +78,17 @@ public interface FeatureEncoder {
    * @return the number of encoded values.
    */
   int size();
+
+  default RealVector toVector(@NonNull Instance instance) {
+    RealVector vector = new OpenMapRealVector(size());
+    instance.forEach(feature -> {
+      int index = encode(feature.getName());
+      if (index != -1) {
+        vector.setEntry(index, feature.getValue());
+      }
+    });
+    return vector;
+  }
+
 
 }//END OF FeatureEncoder

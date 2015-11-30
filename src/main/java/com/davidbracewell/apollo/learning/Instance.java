@@ -28,6 +28,7 @@ import lombok.ToString;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 
 /**
  * The type Instance.
@@ -36,7 +37,7 @@ import java.util.Collection;
  */
 @EqualsAndHashCode
 @ToString
-public class Instance implements Serializable {
+public class Instance implements Serializable, Iterable<Feature> {
   private static final long serialVersionUID = 1L;
   private final ArrayList<Feature> features;
   private Object label;
@@ -60,6 +61,27 @@ public class Instance implements Serializable {
     this.features = new ArrayList<>(features);
     this.features.trimToSize();
     this.label = label;
+  }
+
+  /**
+   * Create instance.
+   *
+   * @param features the features
+   * @return the instance
+   */
+  public static Instance create(@NonNull Collection<Feature> features) {
+    return new Instance(features);
+  }
+
+  /**
+   * Create instance.
+   *
+   * @param features the features
+   * @param label    the label
+   * @return the instance
+   */
+  public static Instance create(@NonNull Collection<Feature> features, Object label) {
+    return new Instance(features, label);
   }
 
   /**
@@ -99,25 +121,8 @@ public class Instance implements Serializable {
     return label != null;
   }
 
-  /**
-   * Create instance.
-   *
-   * @param features the features
-   * @return the instance
-   */
-  public static Instance create(@NonNull Collection<Feature> features) {
-    return new Instance(features);
+  @Override
+  public Iterator<Feature> iterator() {
+    return this.features.iterator();
   }
-
-  /**
-   * Create instance.
-   *
-   * @param features the features
-   * @param label    the label
-   * @return the instance
-   */
-  public static Instance create(@NonNull Collection<Feature> features, Object label) {
-    return new Instance(features, label);
-  }
-
 }//END OF Instance

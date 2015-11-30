@@ -71,7 +71,6 @@ public interface Featurizer<T> extends SerializableFunction<T, Set<Feature>> {
     };
   }
 
-
   /**
    * Builder builder.
    *
@@ -94,6 +93,26 @@ public interface Featurizer<T> extends SerializableFunction<T, Set<Feature>> {
     return Featurizer.<T>builder().addAll(Arrays.asList(featurizers)).build();
   }
 
+  /**
+   * Extract instance.
+   *
+   * @param object the object
+   * @return the instance
+   */
+  default Instance extract(@NonNull T object) {
+    return Instance.create(apply(object));
+  }
+
+  /**
+   * Extract instance.
+   *
+   * @param object the object
+   * @param label  the label
+   * @return the instance
+   */
+  default Instance extract(@NonNull T object, Object label) {
+    return Instance.create(apply(object), label);
+  }
 
   /**
    * The type Builder.

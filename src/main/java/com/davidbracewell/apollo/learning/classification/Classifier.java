@@ -27,6 +27,7 @@ import com.davidbracewell.apollo.learning.Instance;
 import com.davidbracewell.collection.Index;
 import com.davidbracewell.io.resource.Resource;
 import lombok.NonNull;
+import org.apache.commons.math3.linear.RealVector;
 
 import java.io.Serializable;
 
@@ -57,6 +58,18 @@ public abstract class Classifier<T> implements Serializable {
   }
 
   /**
+   * Read model classifier.
+   *
+   * @param <T>           the type parameter
+   * @param modelResource the model resource
+   * @return the classifier
+   * @throws Exception the exception
+   */
+  public static <T> Classifier<T> readModel(@NonNull Resource modelResource) throws Exception {
+    return modelResource.readObject();
+  }
+
+  /**
    * Gets class labels.
    *
    * @return the class labels
@@ -80,7 +93,11 @@ public abstract class Classifier<T> implements Serializable {
    * @param instance the instance
    * @return the classifier result
    */
-  public abstract ClassifierResult classify(Instance instance);
+  public final ClassifierResult classify(@NonNull Instance instance) {
+    return classify(getFeatureEncoder().toVector(instance));
+  }
+
+  public abstract ClassifierResult classify(RealVector vector);
 
   /**
    * Classify classifier result.
@@ -89,19 +106,7 @@ public abstract class Classifier<T> implements Serializable {
    * @return the classifier result
    */
   public final ClassifierResult classify(@NonNull T input) {
-    return classify(Instance.create(featurizer.apply(input)));
-  }
-
-  /**
-   * Read model classifier.
-   *
-   * @param <T>           the type parameter
-   * @param modelResource the model resource
-   * @return the classifier
-   * @throws Exception the exception
-   */
-  public static <T> Classifier<T> readModel(@NonNull Resource modelResource) throws Exception {
-    return modelResource.readObject();
+    return classify(featurizer.extract(input));
   }
 
   /**

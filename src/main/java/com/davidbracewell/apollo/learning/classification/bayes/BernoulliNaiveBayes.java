@@ -23,9 +23,12 @@ package com.davidbracewell.apollo.learning.classification.bayes;
 
 import com.davidbracewell.apollo.learning.FeatureEncoder;
 import com.davidbracewell.apollo.learning.Featurizer;
-import com.davidbracewell.apollo.learning.Instance;
 import com.davidbracewell.apollo.learning.classification.ClassifierResult;
+import com.davidbracewell.collection.Counter;
+import com.davidbracewell.collection.Counters;
 import com.davidbracewell.collection.Index;
+import lombok.NonNull;
+import org.apache.commons.math3.linear.RealVector;
 import org.apache.commons.math3.util.FastMath;
 
 /**
@@ -46,23 +49,22 @@ public class BernoulliNaiveBayes<T> extends NaiveBayes<T> {
 
 
   @Override
-  public ClassifierResult classify(Instance instance) {
+  public ClassifierResult classify(@NonNull RealVector instance) {
     int numClasses = getClassLabels().size();
-    double[] probabilities = new double[numClasses];
-
+    Counter<String> distribution = Counters.newHashMapCounter();
     for (int i = 0; i < numClasses; i++) {
-      probabilities[i] = FastMath.log(priors[i]);
+      String label = getClassLabels().get(i);
+      distribution.set(label, FastMath.log(priors[i]));
       for (int f = 0; f < getFeatureEncoder().size(); f++) {
-        double value = instance.getValue(getFeatureEncoder().decode(f));
-        if (value != 0) {
-          probabilities[i] += FastMath.log(conditionals[f][i]);
+        if (instance.getEntry(f) != 0) {
+          distribution.increment(label, FastMath.log(conditionals[f][i]));
         } else {
-          probabilities[i] += FastMath.log(1 - conditionals[f][i]);
+          distribution.increment(label, FastMath.log(1 - conditionals[f][i]));
         }
       }
-      probabilities[i] = Math.exp(probabilities[i]);
+      distribution.set(label, Math.exp(distribution.get(label)));
     }
-    return null;
+    return new ClassifierResult(distribution);
   }
 
 

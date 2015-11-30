@@ -21,13 +21,19 @@
 
 package com.davidbracewell.apollo.learning;
 
-import com.davidbracewell.apollo.linalg.SparseVector;
+import com.davidbracewell.apollo.linalg.DynamicSparseVector;
+import com.davidbracewell.apollo.linalg.NamedVector;
 import com.davidbracewell.apollo.linalg.Vector;
+import com.davidbracewell.stream.MStream;
+import com.davidbracewell.stream.Streams;
 import lombok.NonNull;
 
 import java.util.Collection;
+import java.util.List;
 
 /**
+ * The interface Feature encoder.
+ *
  * @author David B. Bracewell
  */
 public interface FeatureEncoder {
@@ -79,8 +85,14 @@ public interface FeatureEncoder {
    */
   int size();
 
+  /**
+   * To vector vector.
+   *
+   * @param instance the instance
+   * @return the vector
+   */
   default Vector toVector(@NonNull Instance instance) {
-    SparseVector vector = new SparseVector(size());
+    DynamicSparseVector vector = new DynamicSparseVector(this::size);
     instance.forEach(feature -> {
       int index = encode(feature.getName());
       if (index != -1) {
@@ -88,6 +100,28 @@ public interface FeatureEncoder {
       }
     });
     return vector;
+  }
+
+  /**
+   * To vectors list.
+   *
+   * @param instances the instances
+   * @return the list
+   */
+  default List<NamedVector> toVectors(@NonNull Collection<Instance> instances) {
+    return toVectors(Streams.of(instances, false));
+  }
+
+  /**
+   * To vectors list.
+   *
+   * @param instances the instances
+   * @return the list
+   */
+  default List<NamedVector> toVectors(@NonNull MStream<Instance> instances) {
+    return instances
+      .map(instance -> new NamedVector(this.toVector(instance), instance.getLabel().toString()))
+      .collect();
   }
 
 

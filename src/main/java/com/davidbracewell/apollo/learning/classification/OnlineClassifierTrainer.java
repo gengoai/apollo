@@ -16,7 +16,7 @@ public interface OnlineClassifierTrainer<T> {
    * @param instanceSupplier the instance supplier
    * @return the classifier
    */
-  Classifier<T> train(Supplier<MStream<Instance>> instanceSupplier);
+  Classifier train(Supplier<MStream<Instance>> instanceSupplier);
 
 
 }//END OF OnlineClassifierTrainer

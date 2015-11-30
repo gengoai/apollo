@@ -39,6 +39,6 @@ public interface ClassifierLearner<T> {
    * @param instanceList the instance list
    * @return the classifier
    */
-  Classifier<T> train(List<Instance> instanceList);
+  Classifier train(List<Instance> instanceList);
 
 }//END OF ClassifierLearner

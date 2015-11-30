@@ -47,7 +47,7 @@ public interface Featurizer<T> extends SerializableFunction<T, Set<Feature>> {
       private static final long serialVersionUID = 1L;
 
       @Override
-      protected Set<String> extract(T t) {
+      protected Set<String> applyImpl(T t) {
         return function.apply(t);
       }
     };
@@ -65,7 +65,7 @@ public interface Featurizer<T> extends SerializableFunction<T, Set<Feature>> {
       private static final long serialVersionUID = 1L;
 
       @Override
-      protected Counter<String> extract(T t) {
+      protected Counter<String> applyImpl(T t) {
         return function.apply(t);
       }
     };

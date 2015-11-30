@@ -22,12 +22,11 @@
 package com.davidbracewell.apollo.learning.classification;
 
 import com.davidbracewell.apollo.learning.FeatureEncoder;
-import com.davidbracewell.apollo.learning.Featurizer;
 import com.davidbracewell.apollo.learning.Instance;
+import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.collection.Index;
 import com.davidbracewell.io.resource.Resource;
 import lombok.NonNull;
-import org.apache.commons.math3.linear.RealVector;
 
 import java.io.Serializable;
 import java.util.Collection;
@@ -35,38 +34,33 @@ import java.util.Collection;
 /**
  * The interface Classifier.
  *
- * @param <T> the type parameter
  * @author David B. Bracewell
  */
-public abstract class Classifier<T> implements Serializable {
+public abstract class Classifier implements Serializable {
   private static final long serialVersionUID = 1L;
 
   private final Index<String> classLabels;
   private final FeatureEncoder featureEncoder;
-  private final Featurizer<T> featurizer;
 
   /**
    * Instantiates a new Classifier.
    *
    * @param classLabels    the class labels
    * @param featureEncoder the feature encoder
-   * @param featurizer     the featurizer
    */
-  protected Classifier(Index<String> classLabels, FeatureEncoder featureEncoder, Featurizer<T> featurizer) {
+  protected Classifier(Index<String> classLabels, FeatureEncoder featureEncoder) {
     this.classLabels = classLabels;
     this.featureEncoder = featureEncoder;
-    this.featurizer = featurizer;
   }
 
   /**
    * Read model classifier.
    *
-   * @param <T>           the type parameter
    * @param modelResource the model resource
    * @return the classifier
    * @throws Exception the exception
    */
-  public static <T> Classifier<T> readModel(@NonNull Resource modelResource) throws Exception {
+  public static Classifier readModel(@NonNull Resource modelResource) throws Exception {
     return modelResource.readObject();
   }
 
@@ -133,17 +127,7 @@ public abstract class Classifier<T> implements Serializable {
    * @param vector the vector
    * @return the classifier result
    */
-  public abstract ClassifierResult classify(RealVector vector);
-
-  /**
-   * Classify classifier result.
-   *
-   * @param input the input
-   * @return the classifier result
-   */
-  public final ClassifierResult classify(@NonNull T input) {
-    return classify(getFeatureEncoder().toVector(featurizer.extract(input)));
-  }
+  public abstract ClassifierResult classify(Vector vector);
 
   /**
    * Write model.

@@ -34,10 +34,10 @@ public abstract class RealFeaturizer<T> implements Featurizer<T> {
 
   @Override
   public final Set<Feature> apply(T t) {
-    return extract(t).entries().stream().map(entry -> Feature.real(entry.getKey(), entry.getValue())).collect(Collectors.toSet());
+    return applyImpl(t).entries().stream().map(entry -> Feature.real(entry.getKey(), entry.getValue())).collect(Collectors.toSet());
   }
 
-  protected abstract Counter<String> extract(T t);
+  protected abstract Counter<String> applyImpl(T t);
 
 
 }//END OF RealFeaturizer

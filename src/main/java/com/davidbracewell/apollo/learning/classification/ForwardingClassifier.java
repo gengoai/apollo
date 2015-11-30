@@ -19,23 +19,12 @@
  * under the License.
  */
 
-package com.davidbracewell.apollo.learning;
-
-import java.util.Set;
-import java.util.stream.Collectors;
+package com.davidbracewell.apollo.learning.classification;
 
 /**
  * @author David B. Bracewell
  */
-public abstract class BinaryFeaturizer<T> implements Featurizer<T> {
-  private static final long serialVersionUID = 1L;
-
-  @Override
-  public final Set<Feature> apply(T t) {
-    return applyImpl(t).stream().map(name -> Feature.binary(name, true)).collect(Collectors.toSet());
-  }
-
-  protected abstract Set<String> applyImpl(T t);
+public class ForwardingClassifier<T> {
 
 
-}//END OF BinaryFeaturizer
+}//END OF FeaturizingClassifier

@@ -19,23 +19,27 @@
  * under the License.
  */
 
-package com.davidbracewell.apollo.learning;
+package com.davidbracewell.apollo.linalg;
 
-import java.util.Set;
-import java.util.stream.Collectors;
+import com.davidbracewell.function.SerializableIntSupplier;
+import lombok.NonNull;
 
 /**
  * @author David B. Bracewell
  */
-public abstract class BinaryFeaturizer<T> implements Featurizer<T> {
+public class DynamicSparseVector extends SparseVector {
   private static final long serialVersionUID = 1L;
+  private final SerializableIntSupplier dimensionSupplier;
 
-  @Override
-  public final Set<Feature> apply(T t) {
-    return applyImpl(t).stream().map(name -> Feature.binary(name, true)).collect(Collectors.toSet());
+  public DynamicSparseVector(@NonNull SerializableIntSupplier dimensionSupplier) {
+    super(0);
+    this.dimensionSupplier = dimensionSupplier;
   }
 
-  protected abstract Set<String> applyImpl(T t);
 
+  @Override
+  public int dimension() {
+    return dimensionSupplier.getAsInt();
+  }
 
-}//END OF BinaryFeaturizer
+}//END OF DynamicSparseVector

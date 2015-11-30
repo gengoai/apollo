@@ -22,14 +22,13 @@
 package com.davidbracewell.apollo.learning.classification.bayes;
 
 import com.davidbracewell.apollo.learning.FeatureEncoder;
-import com.davidbracewell.apollo.learning.Featurizer;
 import com.davidbracewell.apollo.learning.classification.Classifier;
 import com.davidbracewell.collection.Index;
 
 /**
  * @author David B. Bracewell
  */
-public abstract class NaiveBayes<T> extends Classifier<T> {
+public abstract class NaiveBayes extends Classifier {
   private static final long serialVersionUID = 1L;
   double[] priors;
   double[][] conditionals;
@@ -40,8 +39,8 @@ public abstract class NaiveBayes<T> extends Classifier<T> {
    * @param classLabels    the class labels
    * @param featureEncoder the feature encoder
    */
-  protected NaiveBayes(Index<String> classLabels, FeatureEncoder featureEncoder, Featurizer<T> featurizer) {
-    super(classLabels, featureEncoder, featurizer);
+  protected NaiveBayes(Index<String> classLabels, FeatureEncoder featureEncoder) {
+    super(classLabels, featureEncoder);
   }
 
 }//END OF NaiveBayes

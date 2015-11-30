@@ -81,6 +81,12 @@ public class SparseVector extends AbstractVector {
     return vector;
   }
 
+  /**
+   * Random gaussian vector.
+   *
+   * @param dimension the dimension
+   * @return the vector
+   */
   public static Vector randomGaussian(int dimension) {
     SparseVector v = new SparseVector(dimension);
     Random rnd = new Random();
@@ -213,10 +219,16 @@ public class SparseVector extends AbstractVector {
   private class SparseIterator implements Iterator<Vector.Entry>, Serializable {
 
     private static final long serialVersionUID = 1L;
+    /**
+     * The Index.
+     */
     int index = 0;
     private IntArrayList indexes = new IntArrayList();
 
 
+    /**
+     * Instantiates a new Sparse iterator.
+     */
     SparseIterator() {
       map.keys(indexes);
     }
@@ -247,10 +259,16 @@ public class SparseVector extends AbstractVector {
   private class OrderedSparseIterator implements Iterator<Vector.Entry>, Serializable {
 
     private static final long serialVersionUID = 1L;
+    /**
+     * The Index.
+     */
     int index = 0;
     private IntArrayList indexes = new IntArrayList();
 
 
+    /**
+     * Instantiates a new Ordered sparse iterator.
+     */
     OrderedSparseIterator() {
       map.keys(indexes);
       indexes.sort();

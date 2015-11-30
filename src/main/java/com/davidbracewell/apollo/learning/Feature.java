@@ -32,7 +32,7 @@ import java.io.Serializable;
  * @author David B. Bracewell
  */
 @Value
-public class Feature implements Serializable {
+public class Feature implements Serializable, Comparable<Feature> {
   private static final long serialVersionUID = 1L;
   private String name;
   private double value;
@@ -85,4 +85,8 @@ public class Feature implements Serializable {
   }
 
 
+  @Override
+  public int compareTo(Feature o) {
+    return o == null ? 1 : this.name.compareTo(o.name);
+  }
 }//END OF Feature

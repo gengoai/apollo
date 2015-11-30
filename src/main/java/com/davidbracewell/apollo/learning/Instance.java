@@ -26,7 +26,8 @@ import lombok.NonNull;
 import lombok.ToString;
 
 import java.io.Serializable;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.Collection;
 
 /**
  * The type Instance.
@@ -37,7 +38,7 @@ import java.util.Set;
 @ToString
 public class Instance implements Serializable {
   private static final long serialVersionUID = 1L;
-  private final Set<Feature> features;
+  private final ArrayList<Feature> features;
   private Object label;
 
   /**
@@ -45,8 +46,8 @@ public class Instance implements Serializable {
    *
    * @param features the features
    */
-  public Instance(@NonNull Set<Feature> features) {
-    this.features = features;
+  public Instance(@NonNull Collection<Feature> features) {
+    this(features, null);
   }
 
   /**
@@ -55,9 +56,20 @@ public class Instance implements Serializable {
    * @param features the features
    * @param label    the label
    */
-  public Instance(@NonNull Set<Feature> features, Object label) {
-    this.features = features;
+  public Instance(@NonNull Collection<Feature> features, Object label) {
+    this.features = new ArrayList<>(features);
+    this.features.trimToSize();
     this.label = label;
+  }
+
+  /**
+   * Gets value.
+   *
+   * @param feature the feature
+   * @return the value
+   */
+  public double getValue(@NonNull String feature) {
+    return features.stream().filter(f -> f.getName().equals(feature)).map(Feature::getValue).findFirst().orElse(0d);
   }
 
   /**
@@ -87,14 +99,13 @@ public class Instance implements Serializable {
     return label != null;
   }
 
-
   /**
    * Create instance.
    *
    * @param features the features
    * @return the instance
    */
-  public static Instance create(@NonNull Set<Feature> features) {
+  public static Instance create(@NonNull Collection<Feature> features) {
     return new Instance(features);
   }
 
@@ -105,7 +116,7 @@ public class Instance implements Serializable {
    * @param label    the label
    * @return the instance
    */
-  public static Instance create(@NonNull Set<Feature> features, Object label) {
+  public static Instance create(@NonNull Collection<Feature> features, Object label) {
     return new Instance(features, label);
   }
 

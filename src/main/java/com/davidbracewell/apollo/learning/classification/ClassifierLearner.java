@@ -19,26 +19,28 @@
  * under the License.
  */
 
-package com.davidbracewell.apollo.learning;
+package com.davidbracewell.apollo.learning.classification;
 
-import lombok.Builder;
-import lombok.Singular;
+import com.davidbracewell.apollo.learning.Instance;
+import com.davidbracewell.stream.MStream;
 
-import java.io.Serializable;
-import java.util.Set;
+import java.util.function.Supplier;
 
 /**
+ * The interface Classifier learner.
+ *
+ * @param <T> the type parameter
  * @author David B. Bracewell
  */
-@Builder
-public final class Featurizers<T> implements Serializable{
-  private static final long serialVersionUID = 1L;
+public interface ClassifierLearner<T> {
 
-  @Singular
-  private Set<Featurizer<T>> featurizers;
+  /**
+   * Train classifier.
+   *
+   * @param instanceSupplier the instance supplier
+   * @return the classifier
+   */
+  Classifier<T> train(Supplier<MStream<Instance>> instanceSupplier);
 
 
-
-
-
-}//END OF Featurizers
+}//END OF ClassifierLearner

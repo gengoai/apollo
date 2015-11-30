@@ -21,9 +21,9 @@
 
 package com.davidbracewell.apollo.learning;
 
+import com.davidbracewell.apollo.linalg.SparseVector;
+import com.davidbracewell.apollo.linalg.Vector;
 import lombok.NonNull;
-import org.apache.commons.math3.linear.OpenMapRealVector;
-import org.apache.commons.math3.linear.RealVector;
 
 import java.util.Collection;
 
@@ -79,12 +79,12 @@ public interface FeatureEncoder {
    */
   int size();
 
-  default RealVector toVector(@NonNull Instance instance) {
-    RealVector vector = new OpenMapRealVector(size());
+  default Vector toVector(@NonNull Instance instance) {
+    SparseVector vector = new SparseVector(size());
     instance.forEach(feature -> {
       int index = encode(feature.getName());
       if (index != -1) {
-        vector.setEntry(index, feature.getValue());
+        vector.set(index, feature.getValue());
       }
     });
     return vector;

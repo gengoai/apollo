@@ -50,12 +50,11 @@ public class BernoulliNaiveBayes<T> extends NaiveBayes<T> {
 
   @Override
   public ClassifierResult classify(@NonNull RealVector instance) {
-    int numClasses = getClassLabels().size();
     Counter<String> distribution = Counters.newHashMapCounter();
-    for (int i = 0; i < numClasses; i++) {
-      String label = getClassLabels().get(i);
+    for (int i = 0; i < numberOfLabels(); i++) {
+      String label = getLabels().get(i);
       distribution.set(label, FastMath.log(priors[i]));
-      for (int f = 0; f < getFeatureEncoder().size(); f++) {
+      for (int f = 0; f < numberOfFeatures(); f++) {
         if (instance.getEntry(f) != 0) {
           distribution.increment(label, FastMath.log(conditionals[f][i]));
         } else {

@@ -73,22 +73,44 @@ public class ClassifierResult implements Serializable {
    *
    * @return the string
    */
-  public String result() {
+  public String getResult() {
     return result;
   }
 
-  /**
-   * Confidence double.
-   *
-   * @return the double
-   */
-  public double confidence() {
-    return distribution.get(result);
-  }
 
   @Override
   public String toString() {
     return distribution.toString();
   }
+
+
+  /**
+   * Gets confidence.
+   *
+   * @return the confidence
+   */
+  public double getConfidence() {
+    return distribution.get(result);
+  }
+
+  /**
+   * Gets confidence.
+   *
+   * @param label the label
+   * @return the confidence
+   */
+  public double getConfidence(String label) {
+    return distribution.get(label);
+  }
+
+  /**
+   * Gets labels.
+   *
+   * @return the labels
+   */
+  public Set<String> getLabels() {
+    return distribution.items();
+  }
+
 
 }//END OF ClassifierResult

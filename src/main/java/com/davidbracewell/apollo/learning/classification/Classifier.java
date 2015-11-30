@@ -30,6 +30,7 @@ import lombok.NonNull;
 import org.apache.commons.math3.linear.RealVector;
 
 import java.io.Serializable;
+import java.util.Collection;
 
 /**
  * The interface Classifier.
@@ -74,7 +75,7 @@ public abstract class Classifier<T> implements Serializable {
    *
    * @return the class labels
    */
-  public Index<String> getClassLabels() {
+  public Index<String> getLabels() {
     return classLabels;
   }
 
@@ -87,6 +88,35 @@ public abstract class Classifier<T> implements Serializable {
     return featureEncoder;
   }
 
+
+  /**
+   * Number of labels int.
+   *
+   * @return the int
+   */
+  public int numberOfLabels() {
+    return classLabels.size();
+  }
+
+  /**
+   * Number of features int.
+   *
+   * @return the int
+   */
+  public int numberOfFeatures() {
+    return featureEncoder.size();
+  }
+
+
+  /**
+   * Features collection.
+   *
+   * @return the collection
+   */
+  public Collection<String> features() {
+    return featureEncoder.features();
+  }
+
   /**
    * Classify classifier result.
    *
@@ -97,6 +127,12 @@ public abstract class Classifier<T> implements Serializable {
     return classify(getFeatureEncoder().toVector(instance));
   }
 
+  /**
+   * Classify classifier result.
+   *
+   * @param vector the vector
+   * @return the classifier result
+   */
   public abstract ClassifierResult classify(RealVector vector);
 
   /**
@@ -106,7 +142,7 @@ public abstract class Classifier<T> implements Serializable {
    * @return the classifier result
    */
   public final ClassifierResult classify(@NonNull T input) {
-    return classify(featurizer.extract(input));
+    return classify(getFeatureEncoder().toVector(featurizer.extract(input)));
   }
 
   /**

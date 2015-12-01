@@ -19,7 +19,9 @@
  * under the License.
  */
 
-package com.davidbracewell.apollo.learning;
+package com.davidbracewell.apollo.ml;
+
+import com.davidbracewell.collection.Counter;
 
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -27,15 +29,15 @@ import java.util.stream.Collectors;
 /**
  * @author David B. Bracewell
  */
-public abstract class BinaryFeaturizer<T> implements Featurizer<T> {
+public abstract class RealFeaturizer<T> implements Featurizer<T> {
   private static final long serialVersionUID = 1L;
 
   @Override
   public final Set<Feature> apply(T t) {
-    return applyImpl(t).stream().map(name -> Feature.binary(name, true)).collect(Collectors.toSet());
+    return applyImpl(t).entries().stream().map(entry -> Feature.real(entry.getKey(), entry.getValue())).collect(Collectors.toSet());
   }
 
-  protected abstract Set<String> applyImpl(T t);
+  protected abstract Counter<String> applyImpl(T t);
 
 
-}//END OF BinaryFeaturizer
+}//END OF RealFeaturizer

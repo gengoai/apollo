@@ -19,10 +19,10 @@
  * under the License.
  */
 
-package com.davidbracewell.apollo.learning.classification;
+package com.davidbracewell.apollo.ml.classification;
 
-import com.davidbracewell.apollo.learning.FeatureEncoder;
-import com.davidbracewell.apollo.learning.Instance;
+import com.davidbracewell.apollo.ml.FeatureEncoder;
+import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.collection.Index;
 import com.davidbracewell.io.resource.Resource;

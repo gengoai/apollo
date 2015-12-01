@@ -19,13 +19,13 @@
  * under the License.
  */
 
-package com.davidbracewell.apollo.learning.classification.bayes;
+package com.davidbracewell.apollo.ml.classification.bayes;
 
-import com.davidbracewell.apollo.learning.FeatureEncoder;
-import com.davidbracewell.apollo.learning.Featurizer;
-import com.davidbracewell.apollo.learning.IndexFeatureEncoder;
-import com.davidbracewell.apollo.learning.classification.Classifier;
-import com.davidbracewell.apollo.learning.classification.ClassifierResult;
+import com.davidbracewell.apollo.ml.FeatureEncoder;
+import com.davidbracewell.apollo.ml.Featurizer;
+import com.davidbracewell.apollo.ml.IndexFeatureEncoder;
+import com.davidbracewell.apollo.ml.classification.Classifier;
+import com.davidbracewell.apollo.ml.classification.ClassifierResult;
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.collection.Counter;
 import com.davidbracewell.collection.Counters;
@@ -80,6 +80,8 @@ public class BernoulliNaiveBayes extends NaiveBayes {
   public static void main(String[] args) throws Exception {
     Featurizer<String> featurizer = Featurizer
       .binary(str -> str.chars().mapToObj(i -> new String(new char[]{(char) i})).collect(Collectors.toSet()));
+
+
     BernoulliNaiveBayesLearner<String> learner = new BernoulliNaiveBayesLearner<>(IndexFeatureEncoder::new);
 
     Resource dataFile = Resources.fromString(

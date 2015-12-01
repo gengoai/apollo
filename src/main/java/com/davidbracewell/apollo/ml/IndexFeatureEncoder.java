@@ -19,7 +19,7 @@
  * under the License.
  */
 
-package com.davidbracewell.apollo.learning;
+package com.davidbracewell.apollo.ml;
 
 import com.davidbracewell.collection.Index;
 import com.davidbracewell.collection.Indexes;

@@ -19,26 +19,28 @@
  * under the License.
  */
 
-package com.davidbracewell.apollo.learning.classification;
+package com.davidbracewell.apollo.ml.classification.bayes;
 
-import com.davidbracewell.apollo.learning.Instance;
-
-import java.util.List;
+import com.davidbracewell.apollo.ml.FeatureEncoder;
+import com.davidbracewell.apollo.ml.classification.Classifier;
+import com.davidbracewell.collection.Index;
 
 /**
- * The interface Classifier learner.
- *
- * @param <T> the type parameter
  * @author David B. Bracewell
  */
-public interface ClassifierLearner<T> {
+public abstract class NaiveBayes extends Classifier {
+  private static final long serialVersionUID = 1L;
+  double[] priors;
+  double[][] conditionals;
 
   /**
-   * Train classifier.
+   * Instantiates a new Classifier.
    *
-   * @param instanceList the instance list
-   * @return the classifier
+   * @param classLabels    the class labels
+   * @param featureEncoder the feature encoder
    */
-  Classifier train(List<Instance> instanceList);
+  protected NaiveBayes(Index<String> classLabels, FeatureEncoder featureEncoder) {
+    super(classLabels, featureEncoder);
+  }
 
-}//END OF ClassifierLearner
+}//END OF NaiveBayes

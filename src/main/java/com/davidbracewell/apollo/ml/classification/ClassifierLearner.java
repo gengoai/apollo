@@ -19,25 +19,26 @@
  * under the License.
  */
 
-package com.davidbracewell.apollo.learning;
+package com.davidbracewell.apollo.ml.classification;
 
-import com.davidbracewell.collection.Counter;
+import com.davidbracewell.apollo.ml.Instance;
 
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.List;
 
 /**
+ * The interface Classifier learner.
+ *
+ * @param <T> the type parameter
  * @author David B. Bracewell
  */
-public abstract class RealFeaturizer<T> implements Featurizer<T> {
-  private static final long serialVersionUID = 1L;
+public interface ClassifierLearner<T> {
 
-  @Override
-  public final Set<Feature> apply(T t) {
-    return applyImpl(t).entries().stream().map(entry -> Feature.real(entry.getKey(), entry.getValue())).collect(Collectors.toSet());
-  }
+  /**
+   * Train classifier.
+   *
+   * @param instanceList the instance list
+   * @return the classifier
+   */
+  Classifier train(List<Instance> instanceList);
 
-  protected abstract Counter<String> applyImpl(T t);
-
-
-}//END OF RealFeaturizer
+}//END OF ClassifierLearner

@@ -19,7 +19,7 @@
  * under the License.
  */
 
-package com.davidbracewell.apollo.learning.classification;
+package com.davidbracewell.apollo.ml.classification;
 
 import com.davidbracewell.collection.Counter;
 import com.davidbracewell.collection.Counters;

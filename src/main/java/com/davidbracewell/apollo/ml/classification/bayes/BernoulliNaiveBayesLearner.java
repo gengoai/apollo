@@ -1,9 +1,9 @@
-package com.davidbracewell.apollo.learning.classification.bayes;
+package com.davidbracewell.apollo.ml.classification.bayes;
 
-import com.davidbracewell.apollo.learning.FeatureEncoder;
-import com.davidbracewell.apollo.learning.Instance;
-import com.davidbracewell.apollo.learning.classification.ClassifierLearner;
-import com.davidbracewell.apollo.learning.classification.OnlineClassifierTrainer;
+import com.davidbracewell.apollo.ml.FeatureEncoder;
+import com.davidbracewell.apollo.ml.Instance;
+import com.davidbracewell.apollo.ml.classification.ClassifierLearner;
+import com.davidbracewell.apollo.ml.classification.OnlineClassifierTrainer;
 import com.davidbracewell.apollo.linalg.DynamicSparseVector;
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.collection.Collect;

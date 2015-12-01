@@ -1,6 +1,6 @@
-package com.davidbracewell.apollo.learning.classification;
+package com.davidbracewell.apollo.ml.classification;
 
-import com.davidbracewell.apollo.learning.Instance;
+import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.stream.MStream;
 
 import java.util.function.Supplier;

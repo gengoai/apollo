@@ -19,28 +19,12 @@
  * under the License.
  */
 
-package com.davidbracewell.apollo.learning.classification.bayes;
-
-import com.davidbracewell.apollo.learning.FeatureEncoder;
-import com.davidbracewell.apollo.learning.classification.Classifier;
-import com.davidbracewell.collection.Index;
+package com.davidbracewell.apollo.ml.classification;
 
 /**
  * @author David B. Bracewell
  */
-public abstract class NaiveBayes extends Classifier {
-  private static final long serialVersionUID = 1L;
-  double[] priors;
-  double[][] conditionals;
+public class ForwardingClassifier<T> {
 
-  /**
-   * Instantiates a new Classifier.
-   *
-   * @param classLabels    the class labels
-   * @param featureEncoder the feature encoder
-   */
-  protected NaiveBayes(Index<String> classLabels, FeatureEncoder featureEncoder) {
-    super(classLabels, featureEncoder);
-  }
 
-}//END OF NaiveBayes
+}//END OF FeaturizingClassifier

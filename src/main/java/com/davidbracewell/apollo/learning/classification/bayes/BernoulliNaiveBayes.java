@@ -30,12 +30,14 @@ import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.collection.Counter;
 import com.davidbracewell.collection.Counters;
 import com.davidbracewell.collection.Index;
+import com.davidbracewell.function.Unchecked;
+import com.davidbracewell.io.CSV;
+import com.davidbracewell.io.Resources;
+import com.davidbracewell.io.resource.Resource;
 import com.davidbracewell.stream.Streams;
-import com.google.common.collect.Lists;
 import lombok.NonNull;
 import org.apache.commons.math3.util.FastMath;
 
-import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -80,16 +82,22 @@ public class BernoulliNaiveBayes extends NaiveBayes {
       .binary(str -> str.chars().mapToObj(i -> new String(new char[]{(char) i})).collect(Collectors.toSet()));
     BernoulliNaiveBayesLearner<String> learner = new BernoulliNaiveBayesLearner<>(IndexFeatureEncoder::new);
 
-    List<String> data = Lists.newArrayList("ABBAD", "BAA", "A", "C", "AE", "B", "BE");
+    Resource dataFile = Resources.fromString(
+      "TRUE,abcdef\nFALSE,zyz\n"
+    );
+
 
     Classifier classifier = learner
-      .train(() -> Streams.of(data, false).map(str -> featurizer.extract(str, str.substring(0, 1))));
+      .train(Unchecked.supplier(
+        () -> Streams.of(CSV.builder().reader(dataFile).stream()).map(list -> featurizer.extract(list.get(1), list.get(0)))
+      ));
 
 
     System.out.println(classifier.getFeatureEncoder().features());
     System.out.println(classifier.getLabels());
 
-    data.forEach(datum -> System.out.println(datum + " => " + classifier.classify(featurizer.extract(datum))));
+    CSV.builder().reader(dataFile)
+      .forEach(datum -> System.out.println(datum + " => " + classifier.classify(featurizer.extract(datum.get(1)))));
 
 
   }

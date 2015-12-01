@@ -52,11 +52,6 @@ public class BernoulliNaiveBayesLearner<T> implements ClassifierLearner<T>, Onli
 
     Iterator<Instance> instanceIterator = instanceSupplier.get().iterator();
     double N = 0;
-    instanceSupplier.get().forEach(instance -> {
-      classLabels.add(instance.getLabel().toString());
-      featureEncoder.toVector(instance);
-    });
-
     DynamicSparseVector priors = new DynamicSparseVector(classLabels::size);
     List<DynamicSparseVector> conditionals = new ArrayList<>();
 

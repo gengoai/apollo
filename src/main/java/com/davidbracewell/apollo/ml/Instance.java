@@ -21,6 +21,7 @@
 
 package com.davidbracewell.apollo.ml;
 
+import com.davidbracewell.Copyable;
 import lombok.EqualsAndHashCode;
 import lombok.NonNull;
 import lombok.ToString;
@@ -29,6 +30,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.stream.Collectors;
 
 /**
  * The type Instance.
@@ -37,7 +39,7 @@ import java.util.Iterator;
  */
 @EqualsAndHashCode
 @ToString
-public class Instance implements Serializable, Iterable<Feature> {
+public class Instance implements Serializable, Iterable<Feature>, Copyable<Instance> {
   private static final long serialVersionUID = 1L;
   private final ArrayList<Feature> features;
   private Object label;
@@ -125,4 +127,10 @@ public class Instance implements Serializable, Iterable<Feature> {
   public Iterator<Feature> iterator() {
     return this.features.iterator();
   }
+
+  @Override
+  public Instance copy() {
+    return new Instance(features.stream().map(Feature::copy).collect(Collectors.toList()));
+  }
+
 }//END OF Instance

@@ -21,6 +21,7 @@
 
 package com.davidbracewell.apollo.ml;
 
+import com.davidbracewell.Copyable;
 import lombok.NonNull;
 import lombok.Value;
 
@@ -32,7 +33,7 @@ import java.io.Serializable;
  * @author David B. Bracewell
  */
 @Value
-public class Feature implements Serializable, Comparable<Feature> {
+public class Feature implements Serializable, Comparable<Feature>, Copyable<Feature> {
   private static final long serialVersionUID = 1L;
   private String name;
   private double value;
@@ -89,4 +90,10 @@ public class Feature implements Serializable, Comparable<Feature> {
   public int compareTo(Feature o) {
     return o == null ? 1 : this.name.compareTo(o.name);
   }
+
+  @Override
+  public Feature copy() {
+    return new Feature(name, value);
+  }
+
 }//END OF Feature

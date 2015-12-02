@@ -24,8 +24,11 @@ package com.davidbracewell.apollo.ml;
 import com.davidbracewell.apollo.linalg.DynamicSparseVector;
 import com.davidbracewell.apollo.linalg.NamedVector;
 import com.davidbracewell.apollo.linalg.Vector;
+import com.davidbracewell.reflection.Reflect;
+import com.davidbracewell.reflection.ReflectionException;
 import com.davidbracewell.stream.MStream;
 import com.davidbracewell.stream.Streams;
+import com.google.common.base.Throwables;
 import lombok.NonNull;
 
 import java.util.Collection;
@@ -122,6 +125,15 @@ public interface FeatureEncoder {
     return instances
       .map(instance -> new NamedVector(this.toVector(instance), instance.getLabel().toString()))
       .collect();
+  }
+
+
+  default FeatureEncoder createNew() {
+    try {
+      return Reflect.onClass(getClass()).create().get();
+    } catch (ReflectionException e) {
+      throw Throwables.propagate(e);
+    }
   }
 
 

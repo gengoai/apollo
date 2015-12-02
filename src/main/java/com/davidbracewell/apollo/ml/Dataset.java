@@ -21,9 +21,12 @@
 
 package com.davidbracewell.apollo.ml;
 
+import com.davidbracewell.Copyable;
+import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.stream.MStream;
 import com.davidbracewell.tuple.Tuple2;
 
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -31,7 +34,11 @@ import java.util.List;
  *
  * @author David B. Bracewell
  */
-public interface Dataset extends Iterable<Instance> {
+public interface Dataset extends Iterable<Instance>, Copyable<Dataset> {
+
+  static DatasetBuilder builder() {
+    return new DatasetBuilder();
+  }
 
   /**
    * Add.
@@ -39,6 +46,8 @@ public interface Dataset extends Iterable<Instance> {
    * @param instance the instance
    */
   void add(Instance instance);
+
+  void addAll(MStream<Instance> stream);
 
   /**
    * Add all.
@@ -64,6 +73,15 @@ public interface Dataset extends Iterable<Instance> {
   List<Tuple2<Dataset, Dataset>> fold(int numberOfFolds);
 
   /**
+   * Leave one out list.
+   *
+   * @return the list
+   */
+  default List<Tuple2<Dataset, Dataset>> leaveOneOut() {
+    return fold(size() - 1);
+  }
+
+  /**
    * Stream m stream.
    *
    * @return the m stream
@@ -86,7 +104,38 @@ public interface Dataset extends Iterable<Instance> {
 
   /**
    * Shuffle.
+   *
+   * @return the dataset
    */
-  void shuffle();
+  Dataset shuffle();
+
+  /**
+   * Size int.
+   *
+   * @return the int
+   */
+  int size();
+
+  @Override
+  default Iterator<Instance> iterator() {
+    return stream().iterator();
+  }
+
+  /**
+   * To vectors stream m stream.
+   *
+   * @return the m stream
+   */
+  default MStream<Vector> toVectorsStream() {
+    return stream().map(instance -> getFeatureEncoder().toVector(instance));
+  }
+
+  Dataset sample(int sampleSize);
+
+  enum Type {
+    Distributed,
+    InMemory,
+    OffHeap
+  }
 
 }//END OF Dataset

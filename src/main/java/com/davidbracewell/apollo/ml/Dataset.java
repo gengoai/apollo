@@ -22,8 +22,7 @@
 package com.davidbracewell.apollo.ml;
 
 import com.davidbracewell.Copyable;
-import com.davidbracewell.apollo.linalg.Vector;
-import com.davidbracewell.conversion.Val;
+import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.io.resource.Resource;
 import com.davidbracewell.io.structured.ElementType;
 import com.davidbracewell.io.structured.json.JSONReader;
@@ -42,15 +41,15 @@ import java.util.List;
  *
  * @author David B. Bracewell
  */
-public interface Dataset extends Iterable<Instance>, Copyable<Dataset> {
+public interface Dataset<T extends Example> extends Iterable<T>, Copyable<Dataset> {
 
   /**
    * Builder dataset builder.
    *
    * @return the dataset builder
    */
-  static DatasetBuilder builder() {
-    return new DatasetBuilder();
+  static <T extends Example> DatasetBuilder<T> builder() {
+    return new DatasetBuilder<>();
   }
 
   /**
@@ -58,21 +57,21 @@ public interface Dataset extends Iterable<Instance>, Copyable<Dataset> {
    *
    * @param instance the instance
    */
-  void add(Instance instance);
+  void add(T instance);
 
   /**
    * Add all.
    *
    * @param stream the stream
    */
-  void addAll(MStream<Instance> stream);
+  void addAll(MStream<T> stream);
 
   /**
    * Add all.
    *
    * @param instances the instances
    */
-  void addAll(Iterable<Instance> instances);
+  void addAll(Iterable<T> instances);
 
   /**
    * Split tuple 2.
@@ -80,7 +79,7 @@ public interface Dataset extends Iterable<Instance>, Copyable<Dataset> {
    * @param pctTrain the pct train
    * @return the tuple 2
    */
-  Tuple2<Dataset, Dataset> split(double pctTrain);
+  Tuple2<Dataset<T>, Dataset<T>> split(double pctTrain);
 
   /**
    * Fold list.
@@ -88,14 +87,14 @@ public interface Dataset extends Iterable<Instance>, Copyable<Dataset> {
    * @param numberOfFolds the number of folds
    * @return the list
    */
-  List<Tuple2<Dataset, Dataset>> fold(int numberOfFolds);
+  List<Tuple2<Dataset<T>, Dataset<T>>> fold(int numberOfFolds);
 
   /**
    * Leave one out list.
    *
    * @return the list
    */
-  default List<Tuple2<Dataset, Dataset>> leaveOneOut() {
+  default List<Tuple2<Dataset<T>, Dataset<T>>> leaveOneOut() {
     return fold(size() - 1);
   }
 
@@ -104,7 +103,7 @@ public interface Dataset extends Iterable<Instance>, Copyable<Dataset> {
    *
    * @return the m stream
    */
-  MStream<Instance> stream();
+  MStream<T> stream();
 
   /**
    * Gets feature encoder.
@@ -125,7 +124,7 @@ public interface Dataset extends Iterable<Instance>, Copyable<Dataset> {
    *
    * @return the dataset
    */
-  Dataset shuffle();
+  Dataset<T> shuffle();
 
   /**
    * Size int.
@@ -135,17 +134,8 @@ public interface Dataset extends Iterable<Instance>, Copyable<Dataset> {
   int size();
 
   @Override
-  default Iterator<Instance> iterator() {
+  default Iterator<T> iterator() {
     return stream().iterator();
-  }
-
-  /**
-   * To vectors stream m stream.
-   *
-   * @return the m stream
-   */
-  default MStream<Vector> toVectorsStream() {
-    return stream().map(instance -> getFeatureEncoder().toVector(instance));
   }
 
   /**
@@ -154,7 +144,7 @@ public interface Dataset extends Iterable<Instance>, Copyable<Dataset> {
    * @param sampleSize the sample size
    * @return the dataset
    */
-  Dataset sample(int sampleSize);
+  Dataset<T> sample(int sampleSize);
 
   /**
    * Write.
@@ -165,19 +155,13 @@ public interface Dataset extends Iterable<Instance>, Copyable<Dataset> {
   default void write(@NonNull Resource resource) throws IOException {
     try (JSONWriter writer = new JSONWriter(resource, true)) {
       writer.beginDocument();
-      for (Instance instance : this) {
-        writer.beginObject();
-        writer.writeKeyValue("label", instance.getLabel());
-        writer.beginObject("features");
-        for (Feature feature : instance) {
-          writer.writeKeyValue(feature.getName(), feature.getValue());
-        }
-        writer.endObject();
-        writer.endObject();
+      for (T instance : this) {
+        instance.write(writer);
       }
       writer.endDocument();
     }
   }
+
 
   /**
    * Read dataset.
@@ -186,23 +170,12 @@ public interface Dataset extends Iterable<Instance>, Copyable<Dataset> {
    * @return the dataset
    * @throws IOException the io exception
    */
-  default Dataset read(@NonNull Resource resource) throws IOException {
+  default Dataset<T> read(@NonNull Resource resource) throws IOException {
     try (JSONReader reader = new JSONReader(resource)) {
       reader.beginDocument();
-      List<Instance> batch = new LinkedList<>();
-
+      List<T> batch = new LinkedList<>();
       while (reader.peek() != ElementType.END_DOCUMENT) {
-        reader.beginObject();
-        String label = reader.nextKeyValue("label").getValue().asString();
-        List<Feature> features = new LinkedList<>();
-        reader.beginObject("features");
-        while (reader.peek() != ElementType.END_OBJECT) {
-          Tuple2<String, Val> kv = reader.nextKeyValue();
-          features.add(Feature.real(kv.getKey(), kv.getValue().asDoubleValue()));
-        }
-        reader.endObject();
-        reader.endObject();
-        batch.add(Instance.create(features, label));
+        batch.add(Cast.as(Example.read(reader)));
         if (batch.size() > 1000) {
           addAll(batch);
           batch.clear();

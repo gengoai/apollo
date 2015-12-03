@@ -33,6 +33,7 @@ import lombok.NonNull;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * The interface Feature encoder.
@@ -56,6 +57,16 @@ public interface FeatureEncoder {
    * @return the encoded value
    */
   int encode(@NonNull String feature);
+
+
+  /**
+   * Encode.
+   *
+   * @param featureSpace the feature space
+   */
+  default void encode(@NonNull Stream<String> featureSpace) {
+    featureSpace.forEach(this::encode);
+  }
 
   /**
    * The decoded feature values.
@@ -128,6 +139,11 @@ public interface FeatureEncoder {
   }
 
 
+  /**
+   * Create new feature encoder.
+   *
+   * @return the feature encoder
+   */
   default FeatureEncoder createNew() {
     try {
       return Reflect.onClass(getClass()).create().get();

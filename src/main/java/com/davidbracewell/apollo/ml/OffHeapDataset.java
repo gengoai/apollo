@@ -1,30 +1,25 @@
 package com.davidbracewell.apollo.ml;
 
 import com.davidbracewell.collection.Collect;
+import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.function.Unchecked;
-import com.davidbracewell.io.CSV;
 import com.davidbracewell.io.Resources;
 import com.davidbracewell.io.resource.Resource;
 import com.davidbracewell.stream.MStream;
 import com.davidbracewell.stream.Streams;
-import com.davidbracewell.string.CSVFormatter;
-import com.davidbracewell.string.StringUtils;
 import com.google.common.base.Throwables;
 import lombok.NonNull;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * @author David B. Bracewell
  */
-public class OffHeapDataset extends BaseDataset {
+public class OffHeapDataset<T extends Example> extends BaseDataset<T> {
 
   private final AtomicLong id = new AtomicLong();
-  private final CSVFormatter formatter = CSV.builder().formatter();
   private Resource outputResource = Resources.temporaryDirectory();
   private int size = 0;
 
@@ -33,9 +28,11 @@ public class OffHeapDataset extends BaseDataset {
   }
 
   @Override
-  public void add(Instance instance) {
-    try (BufferedWriter writer = new BufferedWriter(outputResource.getChild("part-" + id.incrementAndGet() + ".csv").writer())) {
-      writer.write(instanceToString(instance));
+  public void add(T instance) {
+    try (BufferedWriter writer = new BufferedWriter(outputResource.getChild("part-" + id.incrementAndGet() + ".json").writer())) {
+      getFeatureEncoder().encode(instance.getFeatureSpace());
+      getLabelEncoder().encode(instance.getLabelSpace());
+      writer.write(instance.asString());
       writer.newLine();
       size++;
     } catch (IOException e) {
@@ -44,10 +41,17 @@ public class OffHeapDataset extends BaseDataset {
   }
 
   @Override
-  public void addAll(@NonNull MStream<Instance> stream) {
-    try (BufferedWriter writer = new BufferedWriter(outputResource.getChild("part-" + id.incrementAndGet() + ".csv").writer())) {
-      for (Instance instance : Collect.asIterable(stream.iterator())) {
-        writer.write(instanceToString(instance));
+  public void addAll(@NonNull MStream<T> stream) {
+    addAll(Collect.asIterable(stream.iterator()));
+  }
+
+  @Override
+  public void addAll(Iterable<T> instances) {
+    try (BufferedWriter writer = new BufferedWriter(outputResource.getChild("part-" + id.incrementAndGet() + ".json").writer())) {
+      for (T instance : instances) {
+        getFeatureEncoder().encode(instance.getFeatureSpace());
+        getLabelEncoder().encode(instance.getLabelSpace());
+        writer.write(instance.asString());
         writer.newLine();
         size++;
       }
@@ -57,49 +61,16 @@ public class OffHeapDataset extends BaseDataset {
   }
 
   @Override
-  public void addAll(Iterable<Instance> instances) {
-    try (BufferedWriter writer = new BufferedWriter(outputResource.getChild("part-" + id.incrementAndGet() + ".csv").writer())) {
-      for (Instance instance : instances) {
-        writer.write(instanceToString(instance));
-        writer.newLine();
-        size++;
-      }
-    } catch (IOException e) {
-      throw Throwables.propagate(e);
-    }
-  }
-
-  private Instance stringToInstance(String line) {
-    List<String> in = StringUtils.split(line, ',');
-    String label = in.get(0);
-    List<Feature> features = new LinkedList<>();
-    for (int i = 1; i < in.size(); i += 2) {
-      features.add(Feature.real(in.get(i), Double.valueOf(in.get(i + 1))));
-    }
-    return Instance.create(features, label);
-  }
-
-  private String instanceToString(Instance instance) {
-    List<Object> output = new LinkedList<>();
-    output.add(instance.getLabel());
-    instance.forEach(f -> {
-      output.add(f.getName());
-      output.add(f.getValue());
-    });
-    return formatter.format(output);
-  }
-
-  @Override
-  public MStream<Instance> stream() {
+  public MStream<T> stream() {
     return Streams.of(
       outputResource.getChildren().stream()
         .flatMap(Unchecked.function(r -> r.readLines().stream()))
-        .map(this::stringToInstance)
+        .map(line -> Cast.as(Example.fromString(line)))
     );
   }
 
   @Override
-  public Dataset shuffle() {
+  public Dataset<T> shuffle() {
     return create(stream().shuffle(), getFeatureEncoder().createNew(), getLabelEncoder().createNew());
   }
 
@@ -109,8 +80,8 @@ public class OffHeapDataset extends BaseDataset {
   }
 
   @Override
-  protected Dataset create(@NonNull MStream<Instance> instances, @NonNull FeatureEncoder featureEncoder, @NonNull LabelEncoder labelEncoder) {
-    Dataset dataset = new OffHeapDataset(featureEncoder, labelEncoder);
+  protected Dataset<T> create(@NonNull MStream<T> instances, @NonNull FeatureEncoder featureEncoder, @NonNull LabelEncoder labelEncoder) {
+    Dataset<T> dataset = new OffHeapDataset<>(featureEncoder, labelEncoder);
     dataset.addAll(instances);
     return dataset;
   }

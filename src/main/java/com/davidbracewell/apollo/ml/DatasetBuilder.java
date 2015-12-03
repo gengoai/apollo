@@ -9,7 +9,7 @@ import lombok.experimental.Accessors;
  * @author David B. Bracewell
  */
 @Accessors(fluent = true)
-public class DatasetBuilder {
+public class DatasetBuilder<T extends Example> {
   @Setter(onParam = @_({@NonNull}))
   private Dataset.Type type = Dataset.Type.InMemory;
   @Setter(onParam = @_({@NonNull}))
@@ -17,18 +17,18 @@ public class DatasetBuilder {
   @Setter(onParam = @_({@NonNull}))
   private LabelEncoder labelEncoder = new DiscreteLabelEncoder();
   @Setter
-  private MStream<Instance> streamSource;
+  private MStream<T> streamSource;
 
 
-  public Dataset build() {
-    Dataset dataset;
+  public Dataset<T> build() {
+    Dataset<T> dataset;
     switch (type) {
       case Distributed:
       case OffHeap:
-        dataset = new OffHeapDataset(featureEncoder, labelEncoder);
+        dataset = new OffHeapDataset<>(featureEncoder, labelEncoder);
         break;
       default:
-        dataset = new InMemoryDataset(featureEncoder, labelEncoder);
+        dataset = new InMemoryDataset<>(featureEncoder, labelEncoder);
     }
 
     if (streamSource != null) {

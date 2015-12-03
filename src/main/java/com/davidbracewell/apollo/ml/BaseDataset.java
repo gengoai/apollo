@@ -1,5 +1,6 @@
 package com.davidbracewell.apollo.ml;
 
+import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.stream.MStream;
 import com.davidbracewell.tuple.Tuple2;
 import com.google.common.base.Preconditions;
@@ -12,7 +13,7 @@ import java.util.List;
 /**
  * @author David B. Bracewell
  */
-public abstract class BaseDataset implements Dataset, Serializable {
+public abstract class BaseDataset<T extends Example> implements Dataset<T>, Serializable {
 
   private final FeatureEncoder featureEncoder;
   private final LabelEncoder labelEncoder;
@@ -23,29 +24,29 @@ public abstract class BaseDataset implements Dataset, Serializable {
   }
 
   @Override
-  public void addAll(@NonNull MStream<Instance> stream) {
+  public void addAll(@NonNull MStream<T> stream) {
     stream.forEach(this::add);
   }
 
-  protected final Dataset create(@NonNull MStream<Instance> instances) {
+  protected final Dataset<T> create(@NonNull MStream<T> instances) {
     return create(instances, getFeatureEncoder().createNew(), getLabelEncoder().createNew());
   }
 
-  protected abstract Dataset create(@NonNull MStream<Instance> instances, @NonNull FeatureEncoder featureEncoder, @NonNull LabelEncoder labelEncoder);
+  protected abstract Dataset<T> create(@NonNull MStream<T> instances, @NonNull FeatureEncoder featureEncoder, @NonNull LabelEncoder labelEncoder);
 
-  protected MStream<Instance> slice(int start, int end) {
+  protected MStream<T> slice(int start, int end) {
     return stream().skip(Math.max(0, start - 1)).limit(end - start);
   }
 
   @Override
-  public void addAll(Iterable<Instance> instances) {
+  public void addAll(Iterable<T> instances) {
     if (instances != null) {
       instances.forEach(this::add);
     }
   }
 
   @Override
-  public Tuple2<Dataset, Dataset> split(double pctTrain) {
+  public Tuple2<Dataset<T>, Dataset<T>> split(double pctTrain) {
     int split = (int) Math.floor(pctTrain * size());
     return Tuple2.of(
       create(slice(0, split)),
@@ -54,19 +55,19 @@ public abstract class BaseDataset implements Dataset, Serializable {
   }
 
   @Override
-  public Dataset copy() {
-    return create(stream().map(Instance::copy));
+  public Dataset<T> copy() {
+    return create(stream().map(e -> Cast.as(e.copy())));
   }
 
   @Override
-  public List<Tuple2<Dataset, Dataset>> fold(int numberOfFolds) {
+  public List<Tuple2<Dataset<T>, Dataset<T>>> fold(int numberOfFolds) {
     Preconditions.checkArgument(numberOfFolds > 0, "Number of folds must be >= 0");
-    ArrayList<Tuple2<Dataset, Dataset>> folds = new ArrayList<>();
+    ArrayList<Tuple2<Dataset<T>, Dataset<T>>> folds = new ArrayList<>();
 
     int foldSize = size() / numberOfFolds;
     for (int i = 0; i < numberOfFolds; i++) {
-      MStream<Instance> train;
-      MStream<Instance> test;
+      MStream<T> train;
+      MStream<T> test;
       if (i == 0) {
         test = slice(0, foldSize);
         train = slice(foldSize, size());
@@ -88,7 +89,7 @@ public abstract class BaseDataset implements Dataset, Serializable {
   }
 
   @Override
-  public Dataset sample(int sampleSize) {
+  public Dataset<T> sample(int sampleSize) {
     return create(stream().sample(sampleSize));
   }
 

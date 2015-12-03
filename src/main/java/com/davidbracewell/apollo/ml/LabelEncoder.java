@@ -3,8 +3,10 @@ package com.davidbracewell.apollo.ml;
 import com.davidbracewell.reflection.Reflect;
 import com.davidbracewell.reflection.ReflectionException;
 import com.google.common.base.Throwables;
+import lombok.NonNull;
 
 import java.util.Collection;
+import java.util.stream.Stream;
 
 /**
  * @author David B. Bracewell
@@ -29,5 +31,8 @@ public interface LabelEncoder {
     }
   }
 
+  default void encode(@NonNull Stream<?> labelSpace) {
+    labelSpace.forEach(this::encode);
+  }
 
 }// END OF LabelEncoder

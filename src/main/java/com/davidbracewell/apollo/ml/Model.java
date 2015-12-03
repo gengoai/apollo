@@ -80,7 +80,7 @@ public abstract class Model implements Serializable {
    * @throws Exception the exception
    */
   public void writeModel(@NonNull Resource modelResource) throws Exception {
-    modelResource.writeObject(this);
+    modelResource.setIsCompressed(true).writeObject(this);
   }
 
 

@@ -44,6 +44,11 @@ import java.util.List;
  */
 public interface Dataset extends Iterable<Instance>, Copyable<Dataset> {
 
+  /**
+   * Builder dataset builder.
+   *
+   * @return the dataset builder
+   */
   static DatasetBuilder builder() {
     return new DatasetBuilder();
   }
@@ -55,6 +60,11 @@ public interface Dataset extends Iterable<Instance>, Copyable<Dataset> {
    */
   void add(Instance instance);
 
+  /**
+   * Add all.
+   *
+   * @param stream the stream
+   */
   void addAll(MStream<Instance> stream);
 
   /**
@@ -138,8 +148,20 @@ public interface Dataset extends Iterable<Instance>, Copyable<Dataset> {
     return stream().map(instance -> getFeatureEncoder().toVector(instance));
   }
 
+  /**
+   * Sample dataset.
+   *
+   * @param sampleSize the sample size
+   * @return the dataset
+   */
   Dataset sample(int sampleSize);
 
+  /**
+   * Write.
+   *
+   * @param resource the resource
+   * @throws IOException the io exception
+   */
   default void write(@NonNull Resource resource) throws IOException {
     try (JSONWriter writer = new JSONWriter(resource, true)) {
       writer.beginDocument();
@@ -157,6 +179,13 @@ public interface Dataset extends Iterable<Instance>, Copyable<Dataset> {
     }
   }
 
+  /**
+   * Read dataset.
+   *
+   * @param resource the resource
+   * @return the dataset
+   * @throws IOException the io exception
+   */
   default Dataset read(@NonNull Resource resource) throws IOException {
     try (JSONReader reader = new JSONReader(resource)) {
       reader.beginDocument();
@@ -185,9 +214,21 @@ public interface Dataset extends Iterable<Instance>, Copyable<Dataset> {
     return this;
   }
 
+  /**
+   * The enum Type.
+   */
   enum Type {
+    /**
+     * Distributed type.
+     */
     Distributed,
+    /**
+     * In memory type.
+     */
     InMemory,
+    /**
+     * Off heap type.
+     */
     OffHeap
   }
 

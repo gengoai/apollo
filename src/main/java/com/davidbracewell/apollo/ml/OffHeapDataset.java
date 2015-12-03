@@ -16,7 +16,6 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Random;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -101,11 +100,7 @@ public class OffHeapDataset extends BaseDataset {
 
   @Override
   public Dataset shuffle() {
-    Random random = new Random();
-    MStream<Instance> rStream = Streams.of(random.doubles(size()).boxed()).zip(stream())
-      .sortByKey(true)
-      .map((t, v) -> v);
-    return create(rStream, getFeatureEncoder().createNew(), getLabelEncoder().createNew());
+    return create(stream().shuffle(), getFeatureEncoder().createNew(), getLabelEncoder().createNew());
   }
 
   @Override

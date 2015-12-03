@@ -21,24 +21,22 @@
 
 package com.davidbracewell.apollo.ml.classification;
 
+import com.davidbracewell.apollo.ml.Dataset;
 import com.davidbracewell.apollo.ml.Instance;
-
-import java.util.List;
 
 /**
  * The interface Classifier learner.
  *
- * @param <T> the type parameter
  * @author David B. Bracewell
  */
-public interface ClassifierLearner<T> {
+public interface ClassifierLearner {
 
   /**
    * Train classifier.
    *
-   * @param instanceList the instance list
+   * @param dataset the dataset
    * @return the classifier
    */
-  Classifier train(List<Instance> instanceList);
+  Classifier train(Dataset<Instance> dataset);
 
 }//END OF ClassifierLearner

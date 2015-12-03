@@ -20,15 +20,15 @@ public class InMemoryDataset<T extends Example> extends BaseDataset<T> implement
 
   private final List<T> instances = new LinkedList<>();
 
-  public InMemoryDataset(@NonNull FeatureEncoder featureEncoder, @NonNull LabelEncoder labelEncoder) {
+  public InMemoryDataset(@NonNull Encoder featureEncoder, @NonNull Encoder labelEncoder) {
     super(featureEncoder, labelEncoder);
   }
 
   @Override
   public void add(T instance) {
     if (instance != null) {
-      getFeatureEncoder().encode(instance.getFeatureSpace());
-      getLabelEncoder().encode(instance.getLabelSpace());
+      featureEncoder().encode(instance.getFeatureSpace());
+      labelEncoder().encode(instance.getLabelSpace());
       instances.add(instance);
     }
   }
@@ -50,7 +50,7 @@ public class InMemoryDataset<T extends Example> extends BaseDataset<T> implement
   }
 
   @Override
-  protected Dataset<T> create(@NonNull MStream<T> instances, @NonNull FeatureEncoder featureEncoder, @NonNull LabelEncoder labelEncoder) {
+  protected Dataset<T> create(@NonNull MStream<T> instances, @NonNull Encoder featureEncoder, @NonNull Encoder labelEncoder) {
     Dataset<T> dataset = new InMemoryDataset<>(featureEncoder, labelEncoder);
     dataset.addAll(instances.collect());
     return dataset;

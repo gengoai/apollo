@@ -15,10 +15,10 @@ import java.util.List;
  */
 public abstract class BaseDataset<T extends Example> implements Dataset<T>, Serializable {
 
-  private final FeatureEncoder featureEncoder;
-  private final LabelEncoder labelEncoder;
+  private final Encoder featureEncoder;
+  private final Encoder labelEncoder;
 
-  protected BaseDataset(FeatureEncoder featureEncoder, LabelEncoder labelEncoder) {
+  protected BaseDataset(Encoder featureEncoder, Encoder labelEncoder) {
     this.featureEncoder = featureEncoder;
     this.labelEncoder = labelEncoder;
   }
@@ -29,10 +29,10 @@ public abstract class BaseDataset<T extends Example> implements Dataset<T>, Seri
   }
 
   protected final Dataset<T> create(@NonNull MStream<T> instances) {
-    return create(instances, getFeatureEncoder().createNew(), getLabelEncoder().createNew());
+    return create(instances, featureEncoder().createNew(), labelEncoder().createNew());
   }
 
-  protected abstract Dataset<T> create(@NonNull MStream<T> instances, @NonNull FeatureEncoder featureEncoder, @NonNull LabelEncoder labelEncoder);
+  protected abstract Dataset<T> create(@NonNull MStream<T> instances, @NonNull Encoder featureEncoder, @NonNull Encoder labelEncoder);
 
   protected MStream<T> slice(int start, int end) {
     return stream().skip(Math.max(0, start - 1)).limit(end - start);
@@ -94,12 +94,12 @@ public abstract class BaseDataset<T extends Example> implements Dataset<T>, Seri
   }
 
   @Override
-  public FeatureEncoder getFeatureEncoder() {
+  public Encoder featureEncoder() {
     return featureEncoder;
   }
 
   @Override
-  public LabelEncoder getLabelEncoder() {
+  public Encoder labelEncoder() {
     return labelEncoder;
   }
 

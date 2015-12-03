@@ -23,15 +23,15 @@ public class OffHeapDataset<T extends Example> extends BaseDataset<T> {
   private Resource outputResource = Resources.temporaryDirectory();
   private int size = 0;
 
-  protected OffHeapDataset(FeatureEncoder featureEncoder, LabelEncoder labelEncoder) {
+  protected OffHeapDataset(Encoder featureEncoder, Encoder labelEncoder) {
     super(featureEncoder, labelEncoder);
   }
 
   @Override
   public void add(T instance) {
     try (BufferedWriter writer = new BufferedWriter(outputResource.getChild("part-" + id.incrementAndGet() + ".json").writer())) {
-      getFeatureEncoder().encode(instance.getFeatureSpace());
-      getLabelEncoder().encode(instance.getLabelSpace());
+      featureEncoder().encode(instance.getFeatureSpace());
+      labelEncoder().encode(instance.getLabelSpace());
       writer.write(instance.asString());
       writer.newLine();
       size++;
@@ -49,8 +49,8 @@ public class OffHeapDataset<T extends Example> extends BaseDataset<T> {
   public void addAll(Iterable<T> instances) {
     try (BufferedWriter writer = new BufferedWriter(outputResource.getChild("part-" + id.incrementAndGet() + ".json").writer())) {
       for (T instance : instances) {
-        getFeatureEncoder().encode(instance.getFeatureSpace());
-        getLabelEncoder().encode(instance.getLabelSpace());
+        featureEncoder().encode(instance.getFeatureSpace());
+        labelEncoder().encode(instance.getLabelSpace());
         writer.write(instance.asString());
         writer.newLine();
         size++;
@@ -71,7 +71,7 @@ public class OffHeapDataset<T extends Example> extends BaseDataset<T> {
 
   @Override
   public Dataset<T> shuffle() {
-    return create(stream().shuffle(), getFeatureEncoder().createNew(), getLabelEncoder().createNew());
+    return create(stream().shuffle(), featureEncoder().createNew(), labelEncoder().createNew());
   }
 
   @Override
@@ -80,7 +80,7 @@ public class OffHeapDataset<T extends Example> extends BaseDataset<T> {
   }
 
   @Override
-  protected Dataset<T> create(@NonNull MStream<T> instances, @NonNull FeatureEncoder featureEncoder, @NonNull LabelEncoder labelEncoder) {
+  protected Dataset<T> create(@NonNull MStream<T> instances, @NonNull Encoder featureEncoder, @NonNull Encoder labelEncoder) {
     Dataset<T> dataset = new OffHeapDataset<>(featureEncoder, labelEncoder);
     dataset.addAll(instances);
     return dataset;

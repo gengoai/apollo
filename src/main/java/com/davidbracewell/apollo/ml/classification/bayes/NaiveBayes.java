@@ -21,9 +21,9 @@
 
 package com.davidbracewell.apollo.ml.classification.bayes;
 
-import com.davidbracewell.apollo.ml.FeatureEncoder;
+import com.davidbracewell.apollo.ml.Encoder;
+import com.davidbracewell.apollo.ml.IndexEncoder;
 import com.davidbracewell.apollo.ml.classification.Classifier;
-import com.davidbracewell.collection.Index;
 
 /**
  * @author David B. Bracewell
@@ -36,11 +36,11 @@ public abstract class NaiveBayes extends Classifier {
   /**
    * Instantiates a new Classifier.
    *
-   * @param classLabels    the class labels
+   * @param labelEncoder   the label encoder
    * @param featureEncoder the feature encoder
    */
-  protected NaiveBayes(Index<String> classLabels, FeatureEncoder featureEncoder) {
-    super(classLabels, featureEncoder);
+  protected NaiveBayes(IndexEncoder labelEncoder, Encoder featureEncoder) {
+    super(labelEncoder, featureEncoder);
   }
 
 }//END OF NaiveBayes

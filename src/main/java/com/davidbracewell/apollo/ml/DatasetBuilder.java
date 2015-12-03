@@ -13,9 +13,9 @@ public class DatasetBuilder<T extends Example> {
   @Setter(onParam = @_({@NonNull}))
   private Dataset.Type type = Dataset.Type.InMemory;
   @Setter(onParam = @_({@NonNull}))
-  private FeatureEncoder featureEncoder = new IndexFeatureEncoder();
+  private Encoder featureEncoder = new IndexEncoder();
   @Setter(onParam = @_({@NonNull}))
-  private LabelEncoder labelEncoder = new DiscreteLabelEncoder();
+  private Encoder labelEncoder = new IndexEncoder();
   @Setter
   private MStream<T> streamSource;
 

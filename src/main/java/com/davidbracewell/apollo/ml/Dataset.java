@@ -110,14 +110,14 @@ public interface Dataset<T extends Example> extends Iterable<T>, Copyable<Datase
    *
    * @return the feature encoder
    */
-  FeatureEncoder getFeatureEncoder();
+  Encoder featureEncoder();
 
   /**
    * Gets label encoder.
    *
    * @return the label encoder
    */
-  LabelEncoder getLabelEncoder();
+  Encoder labelEncoder();
 
   /**
    * Shuffle.

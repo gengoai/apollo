@@ -21,95 +21,46 @@
 
 package com.davidbracewell.apollo.ml.classification;
 
-import com.davidbracewell.apollo.ml.FeatureEncoder;
-import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.linalg.Vector;
-import com.davidbracewell.collection.Index;
-import com.davidbracewell.io.resource.Resource;
+import com.davidbracewell.apollo.ml.Encoder;
+import com.davidbracewell.apollo.ml.Featurizer;
+import com.davidbracewell.apollo.ml.Instance;
+import com.davidbracewell.apollo.ml.Model;
+import com.davidbracewell.conversion.Cast;
+import com.google.common.base.Preconditions;
 import lombok.NonNull;
-
-import java.io.Serializable;
-import java.util.Collection;
 
 /**
  * The interface Classifier.
  *
  * @author David B. Bracewell
  */
-public abstract class Classifier implements Serializable {
+public abstract class Classifier extends Model {
   private static final long serialVersionUID = 1L;
-
-  private final Index<String> classLabels;
-  private final FeatureEncoder featureEncoder;
+  private Featurizer featurizer;
 
   /**
    * Instantiates a new Classifier.
    *
-   * @param classLabels    the class labels
+   * @param labelEncoder   the label encoder
    * @param featureEncoder the feature encoder
    */
-  protected Classifier(Index<String> classLabels, FeatureEncoder featureEncoder) {
-    this.classLabels = classLabels;
-    this.featureEncoder = featureEncoder;
-  }
-
-  /**
-   * Read model classifier.
-   *
-   * @param modelResource the model resource
-   * @return the classifier
-   * @throws Exception the exception
-   */
-  public static Classifier readModel(@NonNull Resource modelResource) throws Exception {
-    return modelResource.readObject();
-  }
-
-  /**
-   * Gets class labels.
-   *
-   * @return the class labels
-   */
-  public Index<String> getLabels() {
-    return classLabels;
-  }
-
-  /**
-   * Gets feature encoder.
-   *
-   * @return the feature encoder
-   */
-  public FeatureEncoder getFeatureEncoder() {
-    return featureEncoder;
+  protected Classifier(Encoder labelEncoder, Encoder featureEncoder) {
+    super(labelEncoder, featureEncoder);
   }
 
 
   /**
-   * Number of labels int.
+   * Classifier result classifier result.
    *
-   * @return the int
+   * @param input the input
+   * @return the classifier result
    */
-  public int numberOfLabels() {
-    return classLabels.size();
+  public ClassifierResult classify(@NonNull Object input) {
+    Preconditions.checkNotNull(featurizer, "Featurizer has not been set on the classifier");
+    return classify(featurizer.extract(Cast.as(input)));
   }
 
-  /**
-   * Number of features int.
-   *
-   * @return the int
-   */
-  public int numberOfFeatures() {
-    return featureEncoder.size();
-  }
-
-
-  /**
-   * Features collection.
-   *
-   * @return the collection
-   */
-  public Collection<String> features() {
-    return featureEncoder.features();
-  }
 
   /**
    * Classify classifier result.
@@ -118,7 +69,7 @@ public abstract class Classifier implements Serializable {
    * @return the classifier result
    */
   public final ClassifierResult classify(@NonNull Instance instance) {
-    return classify(getFeatureEncoder().toVector(instance));
+    return classify(instance.toVector(featureEncoder()));
   }
 
   /**
@@ -130,13 +81,11 @@ public abstract class Classifier implements Serializable {
   public abstract ClassifierResult classify(Vector vector);
 
   /**
-   * Write model.
+   * Sets featurizer.
    *
-   * @param modelResource the model resource
-   * @throws Exception the exception
+   * @param featurizer the featurizer
    */
-  public final void writeModel(@NonNull Resource modelResource) throws Exception {
-    modelResource.writeObject(this);
+  public void setFeaturizer(Featurizer featurizer) {
+    this.featurizer = featurizer;
   }
-
 }//END OF Classifier

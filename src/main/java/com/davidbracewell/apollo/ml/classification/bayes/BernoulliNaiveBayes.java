@@ -21,24 +21,14 @@
 
 package com.davidbracewell.apollo.ml.classification.bayes;
 
-import com.davidbracewell.apollo.ml.FeatureEncoder;
-import com.davidbracewell.apollo.ml.Featurizer;
-import com.davidbracewell.apollo.ml.IndexFeatureEncoder;
-import com.davidbracewell.apollo.ml.classification.Classifier;
-import com.davidbracewell.apollo.ml.classification.ClassifierResult;
 import com.davidbracewell.apollo.linalg.Vector;
+import com.davidbracewell.apollo.ml.Encoder;
+import com.davidbracewell.apollo.ml.IndexEncoder;
+import com.davidbracewell.apollo.ml.classification.ClassifierResult;
 import com.davidbracewell.collection.Counter;
 import com.davidbracewell.collection.Counters;
-import com.davidbracewell.collection.Index;
-import com.davidbracewell.function.Unchecked;
-import com.davidbracewell.io.CSV;
-import com.davidbracewell.io.Resources;
-import com.davidbracewell.io.resource.Resource;
-import com.davidbracewell.stream.Streams;
 import lombok.NonNull;
 import org.apache.commons.math3.util.FastMath;
-
-import java.util.stream.Collectors;
 
 /**
  * @author David B. Bracewell
@@ -49,11 +39,10 @@ public class BernoulliNaiveBayes extends NaiveBayes {
   /**
    * Instantiates a new Classifier.
    *
-   * @param classLabels    the class labels
    * @param featureEncoder the feature encoder
    */
-  protected BernoulliNaiveBayes(Index<String> classLabels, FeatureEncoder featureEncoder) {
-    super(classLabels, featureEncoder);
+  protected BernoulliNaiveBayes(IndexEncoder labelEncoder, Encoder featureEncoder) {
+    super(labelEncoder, featureEncoder);
   }
 
 
@@ -61,7 +50,7 @@ public class BernoulliNaiveBayes extends NaiveBayes {
   public ClassifierResult classify(@NonNull Vector instance) {
     Counter<String> distribution = Counters.newHashMapCounter();
     for (int i = 0; i < numberOfLabels(); i++) {
-      String label = getLabels().get(i);
+      String label = labelEncoder().decode(i).toString();
       distribution.set(label, FastMath.log(priors[i]));
       for (int f = 0; f < numberOfFeatures(); f++) {
         if (instance.get(f) != 0) {
@@ -74,34 +63,6 @@ public class BernoulliNaiveBayes extends NaiveBayes {
     }
     distribution.divideBySum();
     return new ClassifierResult(distribution);
-  }
-
-
-  public static void main(String[] args) throws Exception {
-    Featurizer<String> featurizer = Featurizer
-      .binary(str -> str.chars().mapToObj(i -> new String(new char[]{(char) i})).collect(Collectors.toSet()));
-
-
-    BernoulliNaiveBayesLearner<String> learner = new BernoulliNaiveBayesLearner<>(IndexFeatureEncoder::new);
-
-    Resource dataFile = Resources.fromString(
-      "TRUE,abcdef\nFALSE,zyz\n"
-    );
-
-
-    Classifier classifier = learner
-      .train(Unchecked.supplier(
-        () -> Streams.of(CSV.builder().reader(dataFile).stream()).map(list -> featurizer.extract(list.get(1), list.get(0)))
-      ));
-
-
-    System.out.println(classifier.getFeatureEncoder().features());
-    System.out.println(classifier.getLabels());
-
-    CSV.builder().reader(dataFile)
-      .forEach(datum -> System.out.println(datum + " => " + classifier.classify(featurizer.extract(datum.get(1)))));
-
-
   }
 
 

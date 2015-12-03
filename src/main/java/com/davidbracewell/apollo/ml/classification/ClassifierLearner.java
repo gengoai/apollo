@@ -23,6 +23,11 @@ package com.davidbracewell.apollo.ml.classification;
 
 import com.davidbracewell.apollo.ml.Dataset;
 import com.davidbracewell.apollo.ml.Instance;
+import com.davidbracewell.reflection.BeanMap;
+import com.davidbracewell.reflection.Ignore;
+import lombok.NonNull;
+
+import java.util.Map;
 
 /**
  * The interface Classifier learner.
@@ -31,6 +36,10 @@ import com.davidbracewell.apollo.ml.Instance;
  */
 public interface ClassifierLearner {
 
+  static LearnerBuilder builder() {
+    return new LearnerBuilder();
+  }
+
   /**
    * Train classifier.
    *
@@ -38,5 +47,26 @@ public interface ClassifierLearner {
    * @return the classifier
    */
   Classifier train(Dataset<Instance> dataset);
+
+  @Ignore
+  default Map<String, ?> getParameters() {
+    return new BeanMap(this);
+  }
+
+  @Ignore
+  default void setParameters(@NonNull Map<String, Object> parameters) {
+    new BeanMap(this).putAll(parameters);
+  }
+
+  @Ignore
+  default void setParameter(String name, Object value) {
+    new BeanMap(this).put(name, value);
+  }
+
+  @Ignore
+  default Object getParameter(String name) {
+    return new BeanMap(this).get(name);
+  }
+
 
 }//END OF ClassifierLearner

@@ -28,9 +28,10 @@ public class BernoulliNaiveBayesLearner<T> implements ClassifierLearner {
 
   @Override
   public NaiveBayes train(@NonNull Dataset<Instance> dataset) {
-    NaiveBayes model = new BernoulliNaiveBayes(
+    NaiveBayes model = new NaiveBayes(
       Cast.as(dataset.labelEncoder()),
-      dataset.featureEncoder()
+      dataset.featureEncoder(),
+      NaiveBayes.ModelType.Bernoulli
     );
     model.labelEncoder();
     model.featureEncoder().freeze();

@@ -1,7 +1,5 @@
 package com.davidbracewell.apollo.ml;
 
-import com.davidbracewell.apollo.ml.classification.Classifier;
-import com.davidbracewell.apollo.ml.classification.bayes.BernoulliNaiveBayesLearner;
 import com.davidbracewell.collection.Collect;
 import com.davidbracewell.function.Unchecked;
 import com.davidbracewell.io.CSV;
@@ -12,7 +10,6 @@ import com.davidbracewell.stream.Streams;
 import com.davidbracewell.string.CSVFormatter;
 import com.davidbracewell.string.StringUtils;
 import com.google.common.base.Throwables;
-import com.google.common.util.concurrent.AtomicDouble;
 import lombok.NonNull;
 
 import java.io.BufferedWriter;
@@ -34,34 +31,6 @@ public class OffHeapDataset extends BaseDataset {
 
   protected OffHeapDataset(FeatureEncoder featureEncoder, LabelEncoder labelEncoder) {
     super(featureEncoder, labelEncoder);
-  }
-
-  public static void main(String[] args) {
-    Featurizer<String> featurizer = Featurizer.binary(InMemoryDataset::split);
-
-    Dataset dataset = Dataset
-      .builder()
-      .type(Type.OffHeap)
-      .streamSource(
-        Streams.range(0, 100).map((id) -> featurizer.extract(StringUtils.randomHexString(7), Math.random() > 0.5 ? "A" : "B"))
-      ).build()
-      .shuffle();
-
-    dataset.fold(10).forEach(split -> {
-
-      Classifier classifier = new BernoulliNaiveBayesLearner<>(() -> split.getV1().getFeatureEncoder())
-        .train(() -> split.getV1().stream());
-
-      AtomicDouble correct = new AtomicDouble(0);
-      split.getV2().stream().forEach(instance -> {
-        if (classifier.classify(instance).getResult().equals(instance.getLabel())) {
-          correct.addAndGet(1);
-        }
-      });
-      System.out.println("Test: " + (correct.doubleValue() / split.getV2().size()));
-
-    });
-
   }
 
   @Override

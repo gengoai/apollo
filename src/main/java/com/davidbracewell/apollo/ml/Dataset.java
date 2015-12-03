@@ -23,10 +23,18 @@ package com.davidbracewell.apollo.ml;
 
 import com.davidbracewell.Copyable;
 import com.davidbracewell.apollo.linalg.Vector;
+import com.davidbracewell.conversion.Val;
+import com.davidbracewell.io.resource.Resource;
+import com.davidbracewell.io.structured.ElementType;
+import com.davidbracewell.io.structured.json.JSONReader;
+import com.davidbracewell.io.structured.json.JSONWriter;
 import com.davidbracewell.stream.MStream;
 import com.davidbracewell.tuple.Tuple2;
+import lombok.NonNull;
 
+import java.io.IOException;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -131,6 +139,51 @@ public interface Dataset extends Iterable<Instance>, Copyable<Dataset> {
   }
 
   Dataset sample(int sampleSize);
+
+  default void write(@NonNull Resource resource) throws IOException {
+    try (JSONWriter writer = new JSONWriter(resource, true)) {
+      writer.beginDocument();
+      for (Instance instance : this) {
+        writer.beginObject();
+        writer.writeKeyValue("label", instance.getLabel());
+        writer.beginObject("features");
+        for (Feature feature : instance) {
+          writer.writeKeyValue(feature.getName(), feature.getValue());
+        }
+        writer.endObject();
+        writer.endObject();
+      }
+      writer.endDocument();
+    }
+  }
+
+  default Dataset read(@NonNull Resource resource) throws IOException {
+    try (JSONReader reader = new JSONReader(resource)) {
+      reader.beginDocument();
+      List<Instance> batch = new LinkedList<>();
+
+      while (reader.peek() != ElementType.END_DOCUMENT) {
+        reader.beginObject();
+        String label = reader.nextKeyValue("label").getValue().asString();
+        List<Feature> features = new LinkedList<>();
+        reader.beginObject("features");
+        while (reader.peek() != ElementType.END_OBJECT) {
+          Tuple2<String, Val> kv = reader.nextKeyValue();
+          features.add(Feature.real(kv.getKey(), kv.getValue().asDoubleValue()));
+        }
+        reader.endObject();
+        reader.endObject();
+        batch.add(Instance.create(features, label));
+        if (batch.size() > 1000) {
+          addAll(batch);
+          batch.clear();
+        }
+      }
+      addAll(batch);
+      reader.endDocument();
+    }
+    return this;
+  }
 
   enum Type {
     Distributed,

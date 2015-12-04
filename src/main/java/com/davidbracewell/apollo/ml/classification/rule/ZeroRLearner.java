@@ -10,10 +10,11 @@ import lombok.NonNull;
 /**
  * @author David B. Bracewell
  */
-public class ZeroRLearner implements ClassifierLearner {
+public class ZeroRLearner extends ClassifierLearner {
+  private static final long serialVersionUID = 1L;
 
   @Override
-  public Classifier train(@NonNull Dataset<Instance> dataset) {
+  public Classifier trainImpl(@NonNull Dataset<Instance> dataset) {
     ZeroR model = new ZeroR(dataset.labelEncoder(), dataset.featureEncoder());
     model.distribution.merge(
       dataset.stream()

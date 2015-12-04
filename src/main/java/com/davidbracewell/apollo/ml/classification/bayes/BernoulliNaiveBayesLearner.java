@@ -8,7 +8,6 @@ import com.davidbracewell.apollo.ml.classification.ClassifierLearner;
 import com.davidbracewell.collection.Collect;
 import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.function.SerializableIntSupplier;
-import lombok.NonNull;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -17,7 +16,8 @@ import java.util.List;
 /**
  * @author David B. Bracewell
  */
-public class BernoulliNaiveBayesLearner<T> implements ClassifierLearner {
+public class BernoulliNaiveBayesLearner<T> extends ClassifierLearner {
+  private static final long serialVersionUID = 1L;
 
   private List<DynamicSparseVector> ensureSize(List<DynamicSparseVector> list, int size, SerializableIntSupplier supplier) {
     while (list.size() <= size) {
@@ -27,14 +27,13 @@ public class BernoulliNaiveBayesLearner<T> implements ClassifierLearner {
   }
 
   @Override
-  public NaiveBayes train(@NonNull Dataset<Instance> dataset) {
+  public NaiveBayes trainImpl(Dataset<Instance> dataset) {
     NaiveBayes model = new NaiveBayes(
       Cast.as(dataset.labelEncoder()),
       dataset.featureEncoder(),
+      dataset.getPreprocessors().getModelProcessors(),
       NaiveBayes.ModelType.Bernoulli
     );
-    model.labelEncoder();
-    model.featureEncoder().freeze();
 
     Iterator<Instance> instanceIterator = dataset.iterator();
     double N = 0;
@@ -45,7 +44,7 @@ public class BernoulliNaiveBayesLearner<T> implements ClassifierLearner {
       Instance instance = instanceIterator.next();
       if (instance.hasLabel()) {
         N++;
-        int ci = (int) model.labelEncoder().encode(instance.getLabel().toString());
+        int ci = (int) model.getLabelEncoder().encode(instance.getLabel().toString());
         priors.increment(ci);
         Vector vector = instance.toVector(dataset.featureEncoder());
         for (Vector.Entry entry : Collect.asIterable(vector.nonZeroIterator())) {

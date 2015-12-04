@@ -23,6 +23,7 @@ package com.davidbracewell.apollo.ml;
 
 import com.davidbracewell.apollo.linalg.DynamicSparseVector;
 import com.davidbracewell.apollo.linalg.Vector;
+import com.davidbracewell.collection.Collect;
 import lombok.EqualsAndHashCode;
 import lombok.NonNull;
 import lombok.ToString;
@@ -132,13 +133,17 @@ public class Instance implements Example, Serializable, Iterable<Feature> {
 
   @Override
   public Instance copy() {
-    return new Instance(features.stream().map(Feature::copy).collect(Collectors.toList()));
+    return new Instance(features.stream().map(Feature::copy).collect(Collectors.toList()), label);
   }
 
 
   @Override
   public Stream<String> getFeatureSpace() {
     return features.stream().map(Feature::getName).distinct();
+  }
+
+  public Stream<Feature> stream() {
+    return Collect.from(this);
   }
 
   @Override

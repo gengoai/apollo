@@ -24,9 +24,11 @@ package com.davidbracewell.apollo.ml.classification.bayes;
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.Encoder;
 import com.davidbracewell.apollo.ml.IndexEncoder;
+import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.classification.Classifier;
 import com.davidbracewell.apollo.ml.classification.ClassifierLearner;
 import com.davidbracewell.apollo.ml.classification.ClassifierResult;
+import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.collection.Counter;
 import com.davidbracewell.collection.Counters;
 import lombok.NonNull;
@@ -60,9 +62,18 @@ public class NaiveBayes extends Classifier {
    * @param featureEncoder the feature encoder
    * @param modelType      the model type
    */
-  protected NaiveBayes(IndexEncoder labelEncoder, Encoder featureEncoder, ModelType modelType) {
-    super(labelEncoder, featureEncoder);
+  protected NaiveBayes(IndexEncoder labelEncoder, Encoder featureEncoder, PreprocessorList<Instance> preprocessors, ModelType modelType) {
+    super(labelEncoder, featureEncoder, preprocessors);
     this.modelType = modelType;
+  }
+
+  public static ClassifierLearner createLearner(@NonNull ModelType modelType) {
+    switch (modelType) {
+      case Bernoulli:
+        return new BernoulliNaiveBayesLearner<>();
+      default:
+        return null;
+    }
   }
 
   @Override
@@ -84,7 +95,7 @@ public class NaiveBayes extends Classifier {
   protected ClassifierResult bernoulli(Vector instance) {
     Counter<String> distribution = Counters.newHashMapCounter();
     for (int i = 0; i < numberOfLabels(); i++) {
-      String label = labelEncoder().decode(i).toString();
+      String label = getLabelEncoder().decode(i).toString();
       distribution.set(label, FastMath.log(priors[i]));
       for (int f = 0; f < numberOfFeatures(); f++) {
         if (instance.get(f) != 0) {
@@ -122,15 +133,6 @@ public class NaiveBayes extends Classifier {
      */
     Bernoulli;
 
-  }
-
-  public static ClassifierLearner createLearner(@NonNull ModelType modelType){
-    switch (modelType) {
-      case Bernoulli:
-        return new BernoulliNaiveBayesLearner<>();
-      default:
-        return null;
-    }
   }
 
 

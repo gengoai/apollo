@@ -6,6 +6,9 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 
 /**
+ * The type Dataset builder.
+ *
+ * @param <T> the type parameter
  * @author David B. Bracewell
  */
 @Accessors(fluent = true)
@@ -17,22 +20,27 @@ public class DatasetBuilder<T extends Example> {
   @Setter(onParam = @_({@NonNull}))
   private Encoder labelEncoder = new IndexEncoder();
   @Setter
-  private MStream<T> streamSource;
+  private MStream<T> source;
 
 
+  /**
+   * Build dataset.
+   *
+   * @return the dataset
+   */
   public Dataset<T> build() {
     Dataset<T> dataset;
     switch (type) {
       case Distributed:
       case OffHeap:
-        dataset = new OffHeapDataset<>(featureEncoder, labelEncoder);
+        dataset = new OffHeapDataset<>(featureEncoder, labelEncoder, null);
         break;
       default:
-        dataset = new InMemoryDataset<>(featureEncoder, labelEncoder);
+        dataset = new InMemoryDataset<>(featureEncoder, labelEncoder, null);
     }
 
-    if (streamSource != null) {
-      dataset.addAll(streamSource);
+    if (source != null) {
+      dataset.addAll(source);
     }
 
     return dataset;

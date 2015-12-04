@@ -1,5 +1,6 @@
 package com.davidbracewell.apollo.ml;
 
+import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.collection.Collect;
 import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.function.Unchecked;
@@ -17,40 +18,20 @@ import java.util.concurrent.atomic.AtomicLong;
 /**
  * @author David B. Bracewell
  */
-public class OffHeapDataset<T extends Example> extends BaseDataset<T> {
-
+public class OffHeapDataset<T extends Example> extends Dataset<T> {
+  private static final long serialVersionUID = 1L;
   private final AtomicLong id = new AtomicLong();
   private Resource outputResource = Resources.temporaryDirectory();
   private int size = 0;
 
-  protected OffHeapDataset(Encoder featureEncoder, Encoder labelEncoder) {
-    super(featureEncoder, labelEncoder);
+  protected OffHeapDataset(Encoder featureEncoder, Encoder labelEncoder, PreprocessorList<T> preprocessors) {
+    super(featureEncoder, labelEncoder, preprocessors);
   }
 
   @Override
-  public void add(T instance) {
+  protected void addAll(@NonNull MStream<T> instances) {
     try (BufferedWriter writer = new BufferedWriter(outputResource.getChild("part-" + id.incrementAndGet() + ".json").writer())) {
-      featureEncoder().encode(instance.getFeatureSpace());
-      labelEncoder().encode(instance.getLabelSpace());
-      writer.write(instance.asString());
-      writer.newLine();
-      size++;
-    } catch (IOException e) {
-      throw Throwables.propagate(e);
-    }
-  }
-
-  @Override
-  public void addAll(@NonNull MStream<T> stream) {
-    addAll(Collect.asIterable(stream.iterator()));
-  }
-
-  @Override
-  public void addAll(Iterable<T> instances) {
-    try (BufferedWriter writer = new BufferedWriter(outputResource.getChild("part-" + id.incrementAndGet() + ".json").writer())) {
-      for (T instance : instances) {
-        featureEncoder().encode(instance.getFeatureSpace());
-        labelEncoder().encode(instance.getLabelSpace());
+      for (T instance : Collect.asIterable(instances.iterator())) {
         writer.write(instance.asString());
         writer.newLine();
         size++;
@@ -71,7 +52,7 @@ public class OffHeapDataset<T extends Example> extends BaseDataset<T> {
 
   @Override
   public Dataset<T> shuffle() {
-    return create(stream().shuffle(), featureEncoder().createNew(), labelEncoder().createNew());
+    return create(stream().shuffle(), featureEncoder().createNew(), labelEncoder().createNew(), null);
   }
 
   @Override
@@ -80,8 +61,8 @@ public class OffHeapDataset<T extends Example> extends BaseDataset<T> {
   }
 
   @Override
-  protected Dataset<T> create(@NonNull MStream<T> instances, @NonNull Encoder featureEncoder, @NonNull Encoder labelEncoder) {
-    Dataset<T> dataset = new OffHeapDataset<>(featureEncoder, labelEncoder);
+  protected Dataset<T> create(@NonNull MStream<T> instances, @NonNull Encoder featureEncoder, @NonNull Encoder labelEncoder, PreprocessorList<T> preprocessors) {
+    Dataset<T> dataset = new OffHeapDataset<>(featureEncoder, labelEncoder, preprocessors);
     dataset.addAll(instances);
     return dataset;
   }

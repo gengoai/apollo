@@ -23,6 +23,7 @@ package com.davidbracewell.apollo.ml.classification;
 
 import com.davidbracewell.collection.Counter;
 import com.davidbracewell.collection.Counters;
+import com.davidbracewell.string.StringUtils;
 import lombok.EqualsAndHashCode;
 
 import java.io.Serializable;
@@ -47,7 +48,8 @@ public class ClassifierResult implements Serializable {
    */
   public ClassifierResult(Counter<String> distribution) {
     this.distribution = distribution;
-    this.result = distribution.max();
+    this.result = distribution.max() == null ? StringUtils.EMPTY : distribution.max();
+
   }
 
   /**

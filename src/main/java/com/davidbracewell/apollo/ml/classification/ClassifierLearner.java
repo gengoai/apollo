@@ -27,6 +27,7 @@ import com.davidbracewell.reflection.BeanMap;
 import com.davidbracewell.reflection.Ignore;
 import lombok.NonNull;
 
+import java.io.Serializable;
 import java.util.Map;
 
 /**
@@ -34,9 +35,15 @@ import java.util.Map;
  *
  * @author David B. Bracewell
  */
-public interface ClassifierLearner {
+public abstract class ClassifierLearner implements Serializable {
+  private static final long serialVersionUID = 1L;
 
-  static LearnerBuilder builder() {
+  /**
+   * Builder learner builder.
+   *
+   * @return the learner builder
+   */
+  public static LearnerBuilder builder() {
     return new LearnerBuilder();
   }
 
@@ -46,25 +53,53 @@ public interface ClassifierLearner {
    * @param dataset the dataset
    * @return the classifier
    */
-  Classifier train(Dataset<Instance> dataset);
+  public final Classifier train(@NonNull Dataset<Instance> dataset) {
+    Classifier classifier = trainImpl(dataset);
+    classifier.finishTraining();
+    return classifier;
+  }
 
+  protected abstract Classifier trainImpl(Dataset<Instance> dataset);
+
+  /**
+   * Gets parameters.
+   *
+   * @return the parameters
+   */
   @Ignore
-  default Map<String, ?> getParameters() {
+  public Map<String, ?> getParameters() {
     return new BeanMap(this);
   }
 
+  /**
+   * Sets parameters.
+   *
+   * @param parameters the parameters
+   */
   @Ignore
-  default void setParameters(@NonNull Map<String, Object> parameters) {
+  public void setParameters(@NonNull Map<String, Object> parameters) {
     new BeanMap(this).putAll(parameters);
   }
 
+  /**
+   * Sets parameter.
+   *
+   * @param name  the name
+   * @param value the value
+   */
   @Ignore
-  default void setParameter(String name, Object value) {
+  public void setParameter(String name, Object value) {
     new BeanMap(this).put(name, value);
   }
 
+  /**
+   * Gets parameter.
+   *
+   * @param name the name
+   * @return the parameter
+   */
   @Ignore
-  default Object getParameter(String name) {
+  public Object getParameter(String name) {
     return new BeanMap(this).get(name);
   }
 

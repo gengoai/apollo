@@ -4,6 +4,7 @@ import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.Encoder;
 import com.davidbracewell.apollo.ml.classification.Classifier;
 import com.davidbracewell.apollo.ml.classification.ClassifierResult;
+import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.collection.Counter;
 import com.davidbracewell.collection.Counters;
 
@@ -21,7 +22,7 @@ public class ZeroR extends Classifier {
    * @param featureEncoder the feature encoder
    */
   protected ZeroR(Encoder labelEncoder, Encoder featureEncoder) {
-    super(labelEncoder, featureEncoder);
+    super(labelEncoder, featureEncoder, PreprocessorList.empty());
   }
 
   @Override

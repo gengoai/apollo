@@ -22,56 +22,150 @@
 package com.davidbracewell.apollo.ml;
 
 import com.davidbracewell.Copyable;
+import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.io.resource.Resource;
 import com.davidbracewell.io.structured.ElementType;
 import com.davidbracewell.io.structured.json.JSONReader;
 import com.davidbracewell.io.structured.json.JSONWriter;
 import com.davidbracewell.stream.MStream;
+import com.davidbracewell.stream.Streams;
 import com.davidbracewell.tuple.Tuple2;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Iterators;
 import lombok.NonNull;
 
 import java.io.IOException;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
+import java.io.Serializable;
+import java.util.*;
 
 /**
  * The type Dataset.
  *
+ * @param <T> the type parameter
  * @author David B. Bracewell
  */
-public interface Dataset<T extends Example> extends Iterable<T>, Copyable<Dataset> {
+public abstract class Dataset<T extends Example> implements Iterable<T>, Copyable<Dataset>, Serializable {
+  private static final long serialVersionUID = 1L;
+
+  private final Encoder featureEncoder;
+  private final Encoder labelEncoder;
+  private volatile PreprocessorList<T> preprocessors;
+
+  /**
+   * Instantiates a new Dataset.
+   *
+   * @param featureEncoder the feature encoder
+   * @param labelEncoder   the label encoder
+   * @param preprocessors  the preprocessors
+   */
+  protected Dataset(Encoder featureEncoder, Encoder labelEncoder, PreprocessorList<T> preprocessors) {
+    this.featureEncoder = featureEncoder;
+    this.labelEncoder = labelEncoder;
+    this.preprocessors = preprocessors == null ? PreprocessorList.empty() : preprocessors;
+  }
 
   /**
    * Builder dataset builder.
    *
+   * @param <T> the type parameter
    * @return the dataset builder
    */
-  static <T extends Example> DatasetBuilder<T> builder() {
+  public static <T extends Example> DatasetBuilder<T> builder() {
     return new DatasetBuilder<>();
   }
 
+
+  public final boolean isPreprocessed() {
+    return !preprocessors.isEmpty();
+  }
+
+  public void preprocess(@NonNull PreprocessorList<T> preprocessors) {
+    Preconditions.checkState(!isPreprocessed(), "Dataset has already been preprocessed");
+    this.preprocessors = preprocessors;
+    if (!this.preprocessors.isFinished()) {
+      this.preprocessors.visit(this.rawIterator());
+      this.preprocessors.finish();
+    }
+  }
+
+  @Override
+  public final Iterator<T> iterator() {
+    return Iterators.transform(rawIterator(), e -> {
+      e = preprocessors.apply(e);
+      labelEncoder.encode(e.getLabelSpace());
+      featureEncoder.encode(e.getFeatureSpace());
+      return e;
+    });
+  }
+
   /**
-   * Add.
+   * Raw iterator iterator.
    *
-   * @param instance the instance
+   * @return the iterator
    */
-  void add(T instance);
+  protected Iterator<T> rawIterator() {
+    return stream().iterator();
+  }
+
+  /**
+   * Create dataset.
+   *
+   * @param instances the instances
+   * @return the dataset
+   */
+  protected final Dataset<T> create(MStream<T> instances) {
+    return create(instances, featureEncoder().createNew(), labelEncoder().createNew(), preprocessors);
+  }
+
+  /**
+   * Create dataset.
+   *
+   * @param instances      the instances
+   * @param featureEncoder the feature encoder
+   * @param labelEncoder   the label encoder
+   * @param preprocessors  the preprocessors
+   * @return the dataset
+   */
+  protected abstract Dataset<T> create(MStream<T> instances, Encoder featureEncoder, Encoder labelEncoder, PreprocessorList<T> preprocessors);
+
+  /**
+   * Slice m stream.
+   *
+   * @param start the start
+   * @param end   the end
+   * @return the m stream
+   */
+  protected MStream<T> slice(int start, int end) {
+    return stream().skip(Math.max(0, start - 1)).limit(end - start);
+  }
+
+
+  /**
+   * Gets preprocessors.
+   *
+   * @return the preprocessors
+   */
+  public final PreprocessorList<T> getPreprocessors() {
+    return preprocessors;
+  }
 
   /**
    * Add all.
    *
    * @param stream the stream
    */
-  void addAll(MStream<T> stream);
+  protected abstract void addAll(MStream<T> stream);
 
   /**
    * Add all.
    *
    * @param instances the instances
    */
-  void addAll(Iterable<T> instances);
+  protected void addAll(@NonNull Collection<T> instances) {
+    addAll(Streams.of(instances, false));
+  }
+
 
   /**
    * Split tuple 2.
@@ -79,7 +173,18 @@ public interface Dataset<T extends Example> extends Iterable<T>, Copyable<Datase
    * @param pctTrain the pct train
    * @return the tuple 2
    */
-  Tuple2<Dataset<T>, Dataset<T>> split(double pctTrain);
+  public Tuple2<Dataset<T>, Dataset<T>> split(double pctTrain) {
+    int split = (int) Math.floor(pctTrain * size());
+    return Tuple2.of(
+      create(slice(0, split)),
+      create(slice(split, size()))
+    );
+  }
+
+  @Override
+  public Dataset<T> copy() {
+    return create(stream().map(e -> Cast.as(e.copy())));
+  }
 
   /**
    * Fold list.
@@ -87,55 +192,32 @@ public interface Dataset<T extends Example> extends Iterable<T>, Copyable<Datase
    * @param numberOfFolds the number of folds
    * @return the list
    */
-  List<Tuple2<Dataset<T>, Dataset<T>>> fold(int numberOfFolds);
+  public List<Tuple2<Dataset<T>, Dataset<T>>> fold(int numberOfFolds) {
+    Preconditions.checkArgument(numberOfFolds > 0, "Number of folds must be >= 0");
+    ArrayList<Tuple2<Dataset<T>, Dataset<T>>> folds = new ArrayList<>();
 
-  /**
-   * Leave one out list.
-   *
-   * @return the list
-   */
-  default List<Tuple2<Dataset<T>, Dataset<T>>> leaveOneOut() {
-    return fold(size() - 1);
-  }
+    int foldSize = size() / numberOfFolds;
+    for (int i = 0; i < numberOfFolds; i++) {
+      MStream<T> train;
+      MStream<T> test;
+      if (i == 0) {
+        test = slice(0, foldSize);
+        train = slice(foldSize, size());
+      } else if (i == numberOfFolds - 1) {
+        test = slice(size() - foldSize, size());
+        train = slice(0, size() - foldSize);
+      } else {
+        train = slice(0, foldSize * i).union(slice(foldSize * i + foldSize, size()));
+        test = slice(foldSize * i, foldSize * i + foldSize);
+      }
 
-  /**
-   * Stream m stream.
-   *
-   * @return the m stream
-   */
-  MStream<T> stream();
+      folds.add(
+        Tuple2.of(create(train), create(test))
+      );
+    }
 
-  /**
-   * Gets feature encoder.
-   *
-   * @return the feature encoder
-   */
-  Encoder featureEncoder();
-
-  /**
-   * Gets label encoder.
-   *
-   * @return the label encoder
-   */
-  Encoder labelEncoder();
-
-  /**
-   * Shuffle.
-   *
-   * @return the dataset
-   */
-  Dataset<T> shuffle();
-
-  /**
-   * Size int.
-   *
-   * @return the int
-   */
-  int size();
-
-  @Override
-  default Iterator<T> iterator() {
-    return stream().iterator();
+    folds.trimToSize();
+    return folds;
   }
 
   /**
@@ -144,7 +226,58 @@ public interface Dataset<T extends Example> extends Iterable<T>, Copyable<Datase
    * @param sampleSize the sample size
    * @return the dataset
    */
-  Dataset<T> sample(int sampleSize);
+  public Dataset<T> sample(int sampleSize) {
+    return create(stream().sample(sampleSize));
+  }
+
+  /**
+   * Feature encoder encoder.
+   *
+   * @return the encoder
+   */
+  public Encoder featureEncoder() {
+    return featureEncoder;
+  }
+
+  /**
+   * Label encoder encoder.
+   *
+   * @return the encoder
+   */
+  public Encoder labelEncoder() {
+    return labelEncoder;
+  }
+
+
+  /**
+   * Leave one out list.
+   *
+   * @return the list
+   */
+  public final List<Tuple2<Dataset<T>, Dataset<T>>> leaveOneOut() {
+    return fold(size() - 1);
+  }
+
+  /**
+   * Stream m stream.
+   *
+   * @return the m stream
+   */
+  public abstract MStream<T> stream();
+
+  /**
+   * Shuffle.
+   *
+   * @return the dataset
+   */
+  public abstract Dataset<T> shuffle();
+
+  /**
+   * Size int.
+   *
+   * @return the int
+   */
+  public abstract int size();
 
   /**
    * Write.
@@ -152,7 +285,7 @@ public interface Dataset<T extends Example> extends Iterable<T>, Copyable<Datase
    * @param resource the resource
    * @throws IOException the io exception
    */
-  default void write(@NonNull Resource resource) throws IOException {
+  public void write(@NonNull Resource resource) throws IOException {
     try (JSONWriter writer = new JSONWriter(resource, true)) {
       writer.beginDocument();
       for (T instance : this) {
@@ -170,7 +303,7 @@ public interface Dataset<T extends Example> extends Iterable<T>, Copyable<Datase
    * @return the dataset
    * @throws IOException the io exception
    */
-  default Dataset<T> read(@NonNull Resource resource) throws IOException {
+  public Dataset<T> read(@NonNull Resource resource) throws IOException {
     try (JSONReader reader = new JSONReader(resource)) {
       reader.beginDocument();
       List<T> batch = new LinkedList<>();

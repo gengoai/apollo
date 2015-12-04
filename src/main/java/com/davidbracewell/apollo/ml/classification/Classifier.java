@@ -26,6 +26,7 @@ import com.davidbracewell.apollo.ml.Encoder;
 import com.davidbracewell.apollo.ml.Featurizer;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.Model;
+import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.conversion.Cast;
 import com.google.common.base.Preconditions;
 import lombok.NonNull;
@@ -37,6 +38,7 @@ import lombok.NonNull;
  */
 public abstract class Classifier extends Model {
   private static final long serialVersionUID = 1L;
+  private final PreprocessorList<Instance> preprocessors;
   private Featurizer featurizer;
 
   /**
@@ -45,10 +47,16 @@ public abstract class Classifier extends Model {
    * @param labelEncoder   the label encoder
    * @param featureEncoder the feature encoder
    */
-  protected Classifier(Encoder labelEncoder, Encoder featureEncoder) {
+  protected Classifier(Encoder labelEncoder, Encoder featureEncoder, @NonNull PreprocessorList<Instance> preprocessors) {
     super(labelEncoder, featureEncoder);
+    this.preprocessors = preprocessors;
   }
 
+  protected void finishTraining() {
+    getLabelEncoder().freeze();
+    getFeatureEncoder().freeze();
+    preprocessors.trimToSize(getFeatureEncoder());
+  }
 
   /**
    * Classifier result classifier result.
@@ -69,7 +77,7 @@ public abstract class Classifier extends Model {
    * @return the classifier result
    */
   public final ClassifierResult classify(@NonNull Instance instance) {
-    return classify(instance.toVector(featureEncoder()));
+    return classify(preprocessors.apply(instance).toVector(getFeatureEncoder()));
   }
 
   /**

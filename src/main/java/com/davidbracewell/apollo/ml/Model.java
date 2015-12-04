@@ -1,5 +1,6 @@
 package com.davidbracewell.apollo.ml;
 
+import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.io.resource.Resource;
 import lombok.NonNull;
 
@@ -60,7 +61,7 @@ public abstract class Model implements Serializable {
    *
    * @return the label encoder
    */
-  public Encoder labelEncoder() {
+  public Encoder getLabelEncoder() {
     return labelEncoder;
   }
 
@@ -69,7 +70,7 @@ public abstract class Model implements Serializable {
    *
    * @return the feature encoder
    */
-  public Encoder featureEncoder() {
+  public Encoder getFeatureEncoder() {
     return featureEncoder;
   }
 

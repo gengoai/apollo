@@ -10,11 +10,13 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
+ * An encoder backed by an <code>Index</code> allowing a finite number of objects to be mapped to double values.
+ *
  * @author David B. Bracewell
  */
 public class IndexEncoder implements Encoder, Serializable {
   private static final long serialVersionUID = 1L;
-  private volatile Index<String> index = Indexes.newConcurrentIndex();
+  private volatile Index<Object> index = Indexes.newConcurrentIndex();
   private volatile AtomicBoolean frozen = new AtomicBoolean(false);
 
   @Override

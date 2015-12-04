@@ -27,17 +27,26 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
+ * A binary featurizer extracts features as a <code>Counter</code> of feature names.
+ *
+ * @param <T> the input type parameter
  * @author David B. Bracewell
  */
 public abstract class RealFeaturizer<T> implements Featurizer<T> {
   private static final long serialVersionUID = 1L;
 
   @Override
-  public final Set<Feature> apply(T t) {
-    return applyImpl(t).entries().stream().map(entry -> Feature.real(entry.getKey(), entry.getValue())).collect(Collectors.toSet());
+  public final Set<Feature> apply(T input) {
+    return applyImpl(input).entries().stream().map(entry -> Feature.real(entry.getKey(), entry.getValue())).collect(Collectors.toSet());
   }
 
-  protected abstract Counter<String> applyImpl(T t);
+  /**
+   * Extracts features as a Counter.
+   *
+   * @param input the input to process
+   * @return the counter
+   */
+  protected abstract Counter<String> applyImpl(T input);
 
 
 }//END OF RealFeaturizer

@@ -25,6 +25,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
+ * A binary featurizer extracts feature names and assigns them the value of TRUE, i.e. 1.0
+ *
+ * @param <T> the input type parameter
  * @author David B. Bracewell
  */
 public abstract class BinaryFeaturizer<T> implements Featurizer<T> {
@@ -32,10 +35,17 @@ public abstract class BinaryFeaturizer<T> implements Featurizer<T> {
 
   @Override
   public final Set<Feature> apply(T t) {
-    return applyImpl(t).stream().map(name -> Feature.binary(name, true)).collect(Collectors.toSet());
+    return applyImpl(t).stream().map(Feature::TRUE).collect(Collectors.toSet());
   }
 
-  protected abstract Set<String> applyImpl(T t);
+  /**
+   * Simplifies the creation of binary features by allowing child classes to only have to return a set of features
+   * names. Note that the values for all features are assumed to be TRUE, i.e. 1.0
+   *
+   * @param input the input to process
+   * @return the set of feature names
+   */
+  protected abstract Set<String> applyImpl(T input);
 
 
 }//END OF BinaryFeaturizer

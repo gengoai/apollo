@@ -2,6 +2,8 @@ package com.davidbracewell.apollo.ml;
 
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.collection.Collect;
+import com.davidbracewell.collection.Interner;
+import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.stream.MStream;
 import com.davidbracewell.stream.Streams;
 import lombok.EqualsAndHashCode;
@@ -19,6 +21,7 @@ import java.util.List;
 @ToString
 public class InMemoryDataset<T extends Example> extends Dataset<T> {
 
+  private static final Interner<String> interner = new Interner<>();
   private final List<T> instances = new LinkedList<>();
 
   public InMemoryDataset(Encoder featureEncoder, Encoder labelEncoder, PreprocessorList<T> preprocessors) {
@@ -28,10 +31,9 @@ public class InMemoryDataset<T extends Example> extends Dataset<T> {
   @Override
   protected void addAll(@NonNull MStream<T> stream) {
     for (T instance : Collect.asIterable(stream.iterator())) {
-      instances.add(instance);
+      instances.add(Cast.as(instance.intern(interner)));
     }
   }
-
 
   @Override
   public int size() {

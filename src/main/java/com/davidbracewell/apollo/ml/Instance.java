@@ -24,6 +24,7 @@ package com.davidbracewell.apollo.ml;
 import com.davidbracewell.apollo.linalg.DynamicSparseVector;
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.collection.Collect;
+import com.davidbracewell.collection.Interner;
 import lombok.EqualsAndHashCode;
 import lombok.NonNull;
 import lombok.ToString;
@@ -136,7 +137,6 @@ public class Instance implements Example, Serializable, Iterable<Feature> {
     return new Instance(features.stream().map(Feature::copy).collect(Collectors.toList()), label);
   }
 
-
   @Override
   public Stream<String> getFeatureSpace() {
     return features.stream().map(Feature::getName).distinct();
@@ -154,16 +154,27 @@ public class Instance implements Example, Serializable, Iterable<Feature> {
     return Stream.of(label);
   }
 
-
   public Vector toVector(@NonNull Encoder featureEncoder) {
     DynamicSparseVector vector = new DynamicSparseVector(featureEncoder::size);
     features.forEach(f -> {
       int fi = (int) featureEncoder.encode(f.getName());
       if (fi != -1) {
-        vector.set(fi, f.getValue());
+        if (featureEncoder instanceof HashingEncoder) {
+          vector.set(fi, 1.0);
+        } else {
+          vector.set(fi, f.getValue());
+        }
       }
     });
     return vector;
+  }
+
+  @Override
+  public Instance intern(Interner<String> interner) {
+    return Instance.create(
+      features.stream().map(f -> Feature.real(interner.intern(f.getName()), f.getValue())).collect(Collectors.toList()),
+      label
+    );
   }
 
 }//END OF Instance

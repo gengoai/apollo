@@ -7,69 +7,75 @@ import java.util.stream.DoubleStream;
 import java.util.stream.Stream;
 
 /**
- * The interface Encoder.
+ * <p> Encoders are responsible for encoding and decoding objects into double values. Encoders are used to create vector
+ * representations of features. </p>
  *
  * @author David B. Bracewell
  */
 public interface Encoder {
 
   /**
-   * Encode double stream.
+   * Encodes a stream of objects returning a double stream containing the encoded values.
    *
-   * @param stream the stream
-   * @return the double stream
+   * @param stream the stream to encode
+   * @return the stream of encoded values
    */
   default DoubleStream encode(@NonNull Stream<?> stream) {
     return stream.mapToDouble(this::encode);
   }
 
   /**
-   * Encode double.
+   * Encodes a single object returning its encoded value
    *
    * @param object the object
-   * @return the double
+   * @return the encoded value
    */
   double encode(Object object);
 
   /**
-   * Decode object.
+   * Decodes an object given the encoded value
    *
-   * @param value the value
-   * @return the object
+   * @param value the encoded value
+   * @return the object mapped to the encoded value
    */
   Object decode(double value);
 
   /**
-   * Freeze.
+   * Freezes the encoder restricting new objects from being mapped to values.
    */
   void freeze();
 
   /**
-   * Un freeze.
+   * Unfreezes the encoder allowing new objects to be mapped to values.
    */
   void unFreeze();
 
   /**
-   * Is frozen boolean.
+   * Is the encoder currently frozen?
    *
-   * @return the boolean
+   * @return True if frozen
    */
   boolean isFrozen();
 
   /**
-   * Size int.
+   * The number of items that have mappings
    *
-   * @return the int
+   * @return the number of items that have mappings
    */
   int size();
 
   /**
-   * Values list.
+   * The values that have been encoded
    *
-   * @return the list
+   * @return the list of values tha have been encoded
    */
   List<Object> values();
 
+  /**
+   * Creates new encoder of the same type as this one.
+   *
+   * @return the encoder
+   */
   Encoder createNew();
 
 }// END OF Encoder

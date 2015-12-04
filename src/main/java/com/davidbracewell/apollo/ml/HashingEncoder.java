@@ -1,6 +1,5 @@
 package com.davidbracewell.apollo.ml;
 
-import com.davidbracewell.conversion.Cast;
 import com.google.common.base.Preconditions;
 import lombok.NonNull;
 
@@ -9,23 +8,33 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * An encoder that expects to encode Numbers to values. If non-numbers are given, and
- * <code>IllegalArgumentException</code> is thrown.
+ * <p>An encoder that hashes features names allowing for the feature space to be reduced to a predetermined number of
+ * features.</p>
  *
  * @author David B. Bracewell
  */
-public class RealEncoder implements Encoder, Serializable {
+public class HashingEncoder implements Encoder, Serializable {
   private static final long serialVersionUID = 1L;
+  private final int numberOfFeatures;
+
+  /**
+   * Instantiates a new Hashing encoder.
+   *
+   * @param numberOfFeatures the number of features
+   */
+  public HashingEncoder(int numberOfFeatures) {
+    Preconditions.checkArgument(numberOfFeatures > 0, "Must allow at least one feature.");
+    this.numberOfFeatures = numberOfFeatures;
+  }
 
   @Override
   public double encode(@NonNull Object object) {
-    Preconditions.checkArgument(object instanceof Number, object.getClass() + " is not a valid Number");
-    return Cast.<Number>as(object).doubleValue();
+    return (object.hashCode() & 0x7fffffff) % numberOfFeatures;
   }
 
   @Override
   public Object decode(double value) {
-    return value;
+    return null;
   }
 
   @Override
@@ -45,7 +54,7 @@ public class RealEncoder implements Encoder, Serializable {
 
   @Override
   public int size() {
-    return 0;
+    return numberOfFeatures;
   }
 
   @Override
@@ -55,7 +64,7 @@ public class RealEncoder implements Encoder, Serializable {
 
   @Override
   public Encoder createNew() {
-    return new RealEncoder();
+    return new HashingEncoder(numberOfFeatures);
   }
 
-}// END OF RealEncoder
+}// END OF HashingEncoder

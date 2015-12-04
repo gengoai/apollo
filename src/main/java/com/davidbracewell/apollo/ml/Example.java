@@ -1,6 +1,7 @@
 package com.davidbracewell.apollo.ml;
 
 import com.davidbracewell.Copyable;
+import com.davidbracewell.collection.Interner;
 import com.davidbracewell.io.Resources;
 import com.davidbracewell.io.resource.Resource;
 import com.davidbracewell.io.structured.json.JSONReader;
@@ -56,5 +57,7 @@ public interface Example extends Copyable<Example> {
       throw Throwables.propagate(e);
     }
   }
+
+  Example intern(Interner<String> interner);
 
 }//END OF Example

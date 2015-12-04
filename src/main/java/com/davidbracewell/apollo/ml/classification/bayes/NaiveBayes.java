@@ -26,7 +26,6 @@ import com.davidbracewell.apollo.ml.Encoder;
 import com.davidbracewell.apollo.ml.IndexEncoder;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.classification.Classifier;
-import com.davidbracewell.apollo.ml.classification.ClassifierLearner;
 import com.davidbracewell.apollo.ml.classification.ClassifierResult;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.collection.Counter;
@@ -60,6 +59,7 @@ public class NaiveBayes extends Classifier {
    *
    * @param labelEncoder   the label encoder
    * @param featureEncoder the feature encoder
+   * @param preprocessors  the preprocessors
    * @param modelType      the model type
    */
   protected NaiveBayes(IndexEncoder labelEncoder, Encoder featureEncoder, PreprocessorList<Instance> preprocessors, ModelType modelType) {
@@ -67,32 +67,17 @@ public class NaiveBayes extends Classifier {
     this.modelType = modelType;
   }
 
-  public static ClassifierLearner createLearner(@NonNull ModelType modelType) {
-    switch (modelType) {
-      case Bernoulli:
-        return new BernoulliNaiveBayesLearner<>();
-      default:
-        return null;
-    }
+  /**
+   * Gets model type.
+   *
+   * @return the model type
+   */
+  public ModelType getModelType() {
+    return modelType;
   }
 
   @Override
   public ClassifierResult classify(@NonNull Vector instance) {
-    switch (modelType) {
-      case Bernoulli:
-        return bernoulli(instance);
-      default:
-        return null;
-    }
-  }
-
-  /**
-   * Bernoulli classifier result.
-   *
-   * @param instance the instance
-   * @return the classifier result
-   */
-  protected ClassifierResult bernoulli(Vector instance) {
     Counter<String> distribution = Counters.newHashMapCounter();
     for (int i = 0; i < numberOfLabels(); i++) {
       String label = getLabelEncoder().decode(i).toString();
@@ -110,15 +95,6 @@ public class NaiveBayes extends Classifier {
     return new ClassifierResult(distribution);
   }
 
-  /**
-   * Multinomial classifier result.
-   *
-   * @param instance the instance
-   * @return the classifier result
-   */
-  protected ClassifierResult multinomial(Vector instance) {
-    return null;
-  }
 
   /**
    * The enum Model type.

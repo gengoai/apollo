@@ -13,6 +13,7 @@ import lombok.ToString;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Random;
 
 /**
  * @author David B. Bracewell
@@ -36,6 +37,11 @@ public class InMemoryDataset<T extends Example> extends Dataset<T> {
   }
 
   @Override
+  protected MStream<T> slice(int start, int end) {
+    return Streams.of(instances.subList(start, end).stream());
+  }
+
+  @Override
   public int size() {
     return instances.size();
   }
@@ -46,8 +52,8 @@ public class InMemoryDataset<T extends Example> extends Dataset<T> {
   }
 
   @Override
-  public Dataset<T> shuffle() {
-    Collections.shuffle(instances);
+  public Dataset<T> shuffle(@NonNull Random random) {
+    Collections.shuffle(instances, random);
     return this;
   }
 

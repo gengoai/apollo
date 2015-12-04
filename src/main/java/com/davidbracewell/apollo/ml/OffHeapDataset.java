@@ -13,6 +13,7 @@ import lombok.NonNull;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.util.Random;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -32,7 +33,7 @@ public class OffHeapDataset<T extends Example> extends Dataset<T> {
   protected void addAll(@NonNull MStream<T> instances) {
     try (BufferedWriter writer = new BufferedWriter(outputResource.getChild("part-" + id.incrementAndGet() + ".json").writer())) {
       for (T instance : Collect.asIterable(instances.iterator())) {
-        writer.write(instance.asString());
+        writer.write(instance.toJson());
         writer.newLine();
         size++;
       }
@@ -46,12 +47,12 @@ public class OffHeapDataset<T extends Example> extends Dataset<T> {
     return Streams.of(
       outputResource.getChildren().stream()
         .flatMap(Unchecked.function(r -> r.readLines().stream()))
-        .map(line -> Cast.as(Example.fromString(line)))
+        .map(line -> Cast.as(Example.fromJson(line)))
     );
   }
 
   @Override
-  public Dataset<T> shuffle() {
+  public Dataset<T> shuffle(@NonNull Random random) {
     return create(stream().shuffle(), featureEncoder().createNew(), labelEncoder().createNew(), null);
   }
 

@@ -30,7 +30,6 @@ import com.davidbracewell.io.structured.json.JSONReader;
 import com.davidbracewell.io.structured.json.JSONWriter;
 import com.davidbracewell.stream.MStream;
 import com.davidbracewell.stream.Streams;
-import com.davidbracewell.tuple.Tuple2;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterators;
 import lombok.NonNull;
@@ -75,11 +74,29 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
     return new DatasetBuilder<>();
   }
 
+  public static DatasetBuilder<Instance> classification() {
+    return new DatasetBuilder<>();
+  }
 
+  public static DatasetBuilder<Instance> regression() {
+    return new DatasetBuilder<Instance>().labelEncoder(new RealEncoder());
+  }
+
+
+  /**
+   * Is preprocessed boolean.
+   *
+   * @return the boolean
+   */
   public final boolean isPreprocessed() {
     return !preprocessors.isEmpty();
   }
 
+  /**
+   * Preprocess.
+   *
+   * @param preprocessors the preprocessors
+   */
   public void preprocess(@NonNull PreprocessorList<T> preprocessors) {
     Preconditions.checkState(!isPreprocessed(), "Dataset has already been preprocessed");
     this.preprocessors = preprocessors;
@@ -137,7 +154,7 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
    * @return the m stream
    */
   protected MStream<T> slice(int start, int end) {
-    return stream().skip(Math.max(0, start - 1)).limit(end - start);
+    return stream().skip(start).limit(end - start);
   }
 
 
@@ -173,12 +190,15 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
    * @param pctTrain the pct train
    * @return the tuple 2
    */
-  public Tuple2<Dataset<T>, Dataset<T>> split(double pctTrain) {
+  public TrainTestSet<T> split(double pctTrain) {
     int split = (int) Math.floor(pctTrain * size());
-    return Tuple2.of(
+    TrainTestSet<T> set = new TrainTestSet<>();
+    set.add(TrainTest.of(
       create(slice(0, split)),
       create(slice(split, size()))
-    );
+    ));
+    set.trimToSize();
+    return set;
   }
 
   @Override
@@ -192,9 +212,9 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
    * @param numberOfFolds the number of folds
    * @return the list
    */
-  public List<Tuple2<Dataset<T>, Dataset<T>>> fold(int numberOfFolds) {
+  public TrainTestSet<T> fold(int numberOfFolds) {
     Preconditions.checkArgument(numberOfFolds > 0, "Number of folds must be >= 0");
-    ArrayList<Tuple2<Dataset<T>, Dataset<T>>> folds = new ArrayList<>();
+    TrainTestSet<T> folds = new TrainTestSet<>();
 
     int foldSize = size() / numberOfFolds;
     for (int i = 0; i < numberOfFolds; i++) {
@@ -212,7 +232,7 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
       }
 
       folds.add(
-        Tuple2.of(create(train), create(test))
+        TrainTest.of(create(train), create(test))
       );
     }
 
@@ -254,7 +274,7 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
    *
    * @return the list
    */
-  public final List<Tuple2<Dataset<T>, Dataset<T>>> leaveOneOut() {
+  public final TrainTestSet<T> leaveOneOut() {
     return fold(size() - 1);
   }
 
@@ -270,7 +290,11 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
    *
    * @return the dataset
    */
-  public abstract Dataset<T> shuffle();
+  public final Dataset<T> shuffle() {
+    return shuffle(new Random());
+  }
+
+  public abstract Dataset<T> shuffle(Random random);
 
   /**
    * Size int.

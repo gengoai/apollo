@@ -79,6 +79,13 @@ public class ClassifierResult implements Serializable {
     return result;
   }
 
+  public boolean resultIs(Object gold) {
+    if (gold == null) {
+      return false;
+    }
+    return result.equals(gold.toString());
+  }
+
 
   @Override
   public String toString() {

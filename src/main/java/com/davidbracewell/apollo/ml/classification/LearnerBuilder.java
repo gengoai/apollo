@@ -29,7 +29,6 @@ public class LearnerBuilder {
     return this;
   }
 
-
   public <T extends ClassifierLearner> T build() {
     Preconditions.checkNotNull(learnerClass, "Learner was not set");
     try {

@@ -19,6 +19,10 @@ public class TFIDFTransform implements TransformProcessor<Instance>, Serializabl
   private volatile Counter<String> documentFrequencies = Counters.newConcurrentCounter();
   private volatile AtomicDouble totalDocs = new AtomicDouble();
 
+  public TFIDFTransform() {
+    this(".*");
+  }
+
   public TFIDFTransform(String featureNamePattern) {
     this.pattern = Pattern.compile(featureNamePattern);
   }

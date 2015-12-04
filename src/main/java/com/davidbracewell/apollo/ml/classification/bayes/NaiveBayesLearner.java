@@ -69,8 +69,10 @@ public class NaiveBayesLearner extends ClassifierLearner {
     model.conditionals = new double[dataset.featureEncoder().size()][model.numberOfLabels()];
 
     for (int f = 0; f < dataset.featureEncoder().size(); f++) {
-      for (int i = 0; i < model.numberOfLabels(); i++) {
-        model.conditionals[f][i] = (conditionals.get(f).get(i) + 1) / (priors.get(i) + 2);
+      if (conditionals.size() > f) {
+        for (int i = 0; i < model.numberOfLabels(); i++) {
+          model.conditionals[f][i] = (conditionals.get(f).get(i) + 1) / (priors.get(i) + 2);
+        }
       }
     }
 
@@ -116,8 +118,10 @@ public class NaiveBayesLearner extends ClassifierLearner {
 
     double V = dataset.featureEncoder().size();
     for (int f = 0; f < dataset.featureEncoder().size(); f++) {
-      for (int i = 0; i < model.numberOfLabels(); i++) {
-        model.conditionals[f][i] = (conditionals.get(f).get(i) + 1) / (labelTotals.get(i) + V);
+      if (conditionals.size() > f) {
+        for (int i = 0; i < model.numberOfLabels(); i++) {
+          model.conditionals[f][i] = (conditionals.get(f).get(i) + 1) / (labelTotals.get(i) + V);
+        }
       }
     }
 

@@ -52,9 +52,9 @@ public abstract class Classifier extends Model {
     this.preprocessors = preprocessors;
   }
 
+  @Override
   protected void finishTraining() {
-    getLabelEncoder().freeze();
-    getFeatureEncoder().freeze();
+    super.finishTraining(); //Call super to freeze encoders
     preprocessors.trimToSize(getFeatureEncoder());
   }
 
@@ -64,6 +64,7 @@ public abstract class Classifier extends Model {
    * @param input the input
    * @return the classifier result
    */
+  @SuppressWarnings("unchecked")
   public ClassifierResult classify(@NonNull Object input) {
     Preconditions.checkNotNull(featurizer, "Featurizer has not been set on the classifier");
     return classify(featurizer.extract(Cast.as(input)));
@@ -96,4 +97,5 @@ public abstract class Classifier extends Model {
   public void setFeaturizer(Featurizer featurizer) {
     this.featurizer = featurizer;
   }
+
 }//END OF Classifier

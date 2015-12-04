@@ -104,4 +104,8 @@ public abstract class ClassifierLearner implements Serializable {
   }
 
 
+  public void reset() {
+
+  }
+
 }//END OF ClassifierLearner

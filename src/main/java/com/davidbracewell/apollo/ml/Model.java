@@ -1,6 +1,5 @@
 package com.davidbracewell.apollo.ml;
 
-import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.io.resource.Resource;
 import lombok.NonNull;
 
@@ -82,6 +81,14 @@ public abstract class Model implements Serializable {
    */
   public void writeModel(@NonNull Resource modelResource) throws Exception {
     modelResource.setIsCompressed(true).writeObject(this);
+  }
+
+  /**
+   * Finish training.
+   */
+  protected void finishTraining() {
+    getLabelEncoder().freeze();
+    getFeatureEncoder().freeze();
   }
 
 

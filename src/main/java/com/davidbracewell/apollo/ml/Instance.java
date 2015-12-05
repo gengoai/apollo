@@ -30,10 +30,7 @@ import lombok.NonNull;
 import lombok.ToString;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -198,6 +195,11 @@ public class Instance implements Example, Serializable, Iterable<Feature> {
       features.stream().map(f -> Feature.real(interner.intern(f.getName()), f.getValue())).collect(Collectors.toList()),
       label
     );
+  }
+
+  @Override
+  public List<Instance> asInstances() {
+    return Collections.singletonList(this);
   }
 
 }//END OF Instance

@@ -80,5 +80,9 @@ public class Sequence implements Example, Serializable {
     return new SequenceIterator(this);
   }
 
+  @Override
+  public List<Instance> asInstances() {
+    return sequence;
+  }
 
 }// END OF Sequence

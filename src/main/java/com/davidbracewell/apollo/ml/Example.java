@@ -12,6 +12,7 @@ import com.google.common.base.Throwables;
 import lombok.NonNull;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.stream.Stream;
 
 /**
@@ -104,5 +105,9 @@ public interface Example extends Copyable<Example> {
    * @return the example
    */
   Example intern(Interner<String> interner);
+
+
+  List<Instance> asInstances();
+
 
 }//END OF Example

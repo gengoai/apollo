@@ -1,4 +1,4 @@
-package com.davidbracewell.apollo.ml.classification;
+package com.davidbracewell.apollo.ml;
 
 import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.reflection.BeanMap;
@@ -17,19 +17,19 @@ import java.util.Map;
  * @author David B. Bracewell
  */
 @Accessors(fluent = true)
-public class LearnerBuilder {
+public class LearnerBuilder<T extends Example, M extends Model> {
   @Setter(onParam = @_({@NonNull}))
-  private Class<? extends ClassifierLearner> learnerClass;
+  private Class<? extends Learner<T, M>> learnerClass;
   @Setter(onParam = @_({@NonNull}))
   private Map<String, Object> parameters = new HashMap<>();
 
 
-  public LearnerBuilder parameter(String name, Object value) {
+  public LearnerBuilder<T,M> parameter(String name, Object value) {
     parameters.put(name, value);
     return this;
   }
 
-  public <T extends ClassifierLearner> T build() {
+  public <R extends Learner<T,M>> R build() {
     Preconditions.checkNotNull(learnerClass, "Learner was not set");
     try {
       BeanMap beanMap = new BeanMap(Reflect.onClass(learnerClass).create().get());

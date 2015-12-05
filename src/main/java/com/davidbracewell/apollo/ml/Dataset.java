@@ -39,7 +39,8 @@ import java.io.Serializable;
 import java.util.*;
 
 /**
- * The type Dataset.
+ * <p>A dataset is a collection of examples which can be used for training and evaluating models. Implementations of
+ * dataset may store examples in memory, off heap, or distributed using Spark.</p>
  *
  * @param <T> the type parameter
  * @author David B. Bracewell
@@ -65,37 +66,49 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
   }
 
   /**
-   * Builder dataset builder.
+   * Creates a generic dataset builder which defaults to an <code>IndexEncoder</code> for the labels and features.
    *
-   * @param <T> the type parameter
+   * @param <T> the type of example the dataset contains.
    * @return the dataset builder
    */
   public static <T extends Example> DatasetBuilder<T> builder() {
     return new DatasetBuilder<>();
   }
 
+  /**
+   * Creates a dataset builder with an <code>IndexEncoder</code> for the class labels as is required for classification
+   * problems.
+   *
+   * @return the dataset builder
+   */
   public static DatasetBuilder<Instance> classification() {
     return new DatasetBuilder<>();
   }
 
+  /**
+   * Creates a dataset builder with a <code>RealEncoder</code> for the class labels as is required for regression
+   * problems.
+   *
+   * @return the dataset builder
+   */
   public static DatasetBuilder<Instance> regression() {
     return new DatasetBuilder<Instance>().labelEncoder(new RealEncoder());
   }
 
-
   /**
-   * Is preprocessed boolean.
+   * Has the dataset been preprocessed?
    *
-   * @return the boolean
+   * @return True the dataset has been preprocessed
    */
   public final boolean isPreprocessed() {
     return !preprocessors.isEmpty();
   }
 
   /**
-   * Preprocess.
+   * Preprocess the dataset with the given set of preprocessors. An <code>IllegalStateException</code> is thrown if the
+   * dataset has already been processed.
    *
-   * @param preprocessors the preprocessors
+   * @param preprocessors the preprocessors to use.
    */
   public void preprocess(@NonNull PreprocessorList<T> preprocessors) {
     Preconditions.checkState(!isPreprocessed(), "Dataset has already been preprocessed");
@@ -117,7 +130,7 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
   }
 
   /**
-   * Raw iterator iterator.
+   * Raw un processed iterator.
    *
    * @return the iterator
    */
@@ -126,19 +139,21 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
   }
 
   /**
-   * Create dataset.
+   * Creates a new dataset from the given stream of instances creating a new feature and label encoder from this dataset
+   * and a copy this dataset's preprocessors.
    *
-   * @param instances the instances
+   * @param instances the stream of instances
    * @return the dataset
    */
   protected final Dataset<T> create(MStream<T> instances) {
-    return create(instances, featureEncoder().createNew(), labelEncoder().createNew(), preprocessors);
+    return create(instances, getFeatureEncoder().createNew(), getLabelEncoder().createNew(), preprocessors);
   }
 
   /**
-   * Create dataset.
+   * Creates a new dataset from the given stream of instances using the given feature and label encoder and
+   * preprocessors.
    *
-   * @param instances      the instances
+   * @param instances      the stream of instances
    * @param featureEncoder the feature encoder
    * @param labelEncoder   the label encoder
    * @param preprocessors  the preprocessors
@@ -147,7 +162,7 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
   protected abstract Dataset<T> create(MStream<T> instances, Encoder featureEncoder, Encoder labelEncoder, PreprocessorList<T> preprocessors);
 
   /**
-   * Slice m stream.
+   * Slices the dataset int a sub stream
    *
    * @param start the start
    * @param end   the end
@@ -159,7 +174,7 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
 
 
   /**
-   * Gets preprocessors.
+   * Gets the preprocessors.
    *
    * @return the preprocessors
    */
@@ -168,14 +183,14 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
   }
 
   /**
-   * Add all.
+   * Adds all the examples in the stream to the dataset.
    *
    * @param stream the stream
    */
   protected abstract void addAll(MStream<T> stream);
 
   /**
-   * Add all.
+   * Add all the examples in the collection to the dataset
    *
    * @param instances the instances
    */
@@ -185,12 +200,13 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
 
 
   /**
-   * Split tuple 2.
+   * Split the dataset into a train and test split.
    *
-   * @param pctTrain the pct train
-   * @return the tuple 2
+   * @param pctTrain the percentage of the dataset to use for training
+   * @return A TestTrainSet of one TestTrain item
    */
   public TrainTestSet<T> split(double pctTrain) {
+    Preconditions.checkArgument(pctTrain > 0 && pctTrain < 1, "Percentage should be between 0 and 1");
     int split = (int) Math.floor(pctTrain * size());
     TrainTestSet<T> set = new TrainTestSet<>();
     set.add(TrainTest.of(
@@ -207,10 +223,10 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
   }
 
   /**
-   * Fold list.
+   * Creates folds for cross-validation
    *
    * @param numberOfFolds the number of folds
-   * @return the list
+   * @return the TrainTestSet made of the number of folds
    */
   public TrainTestSet<T> fold(int numberOfFolds) {
     Preconditions.checkArgument(numberOfFolds > 0, "Number of folds must be >= 0");
@@ -241,52 +257,53 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
   }
 
   /**
-   * Sample dataset.
+   * Samples the dataset creating a new dataset of the given sample size.
    *
    * @param sampleSize the sample size
    * @return the dataset
    */
   public Dataset<T> sample(int sampleSize) {
-    return create(stream().sample(sampleSize));
+    Preconditions.checkArgument(sampleSize > 0, "Sample size must be > 0");
+    return create(stream().sample(sampleSize).map(e -> Cast.as(e.copy())));
   }
 
   /**
-   * Feature encoder encoder.
+   * Gets the feature encoder.
    *
    * @return the encoder
    */
-  public Encoder featureEncoder() {
+  public Encoder getFeatureEncoder() {
     return featureEncoder;
   }
 
   /**
-   * Label encoder encoder.
+   * Gets the label encoder.
    *
    * @return the encoder
    */
-  public Encoder labelEncoder() {
+  public Encoder getLabelEncoder() {
     return labelEncoder;
   }
 
 
   /**
-   * Leave one out list.
+   * Creates a leave-one-out TrainTestSet
    *
-   * @return the list
+   * @return the TrainTestSet
    */
   public final TrainTestSet<T> leaveOneOut() {
     return fold(size() - 1);
   }
 
   /**
-   * Stream m stream.
+   * Creates a stream of the instances
    *
-   * @return the m stream
+   * @return the stream
    */
   public abstract MStream<T> stream();
 
   /**
-   * Shuffle.
+   * Shuffles the dataset creating a new dataset.
    *
    * @return the dataset
    */
@@ -294,20 +311,26 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
     return shuffle(new Random());
   }
 
+  /**
+   * Shuffles the dataset creating a new one with the given random number generator.
+   *
+   * @param random the random number generator
+   * @return the dataset
+   */
   public abstract Dataset<T> shuffle(Random random);
 
   /**
-   * Size int.
+   * The number of examples in the dataset
    *
-   * @return the int
+   * @return the number of examples in the dataset
    */
   public abstract int size();
 
   /**
-   * Write.
+   * Writes the dataset to the given resource in JSON format.
    *
    * @param resource the resource
-   * @throws IOException the io exception
+   * @throws IOException Something went wrong writing the dataset
    */
   public void write(@NonNull Resource resource) throws IOException {
     try (JSONWriter writer = new JSONWriter(resource, true)) {
@@ -321,13 +344,13 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
 
 
   /**
-   * Read dataset.
+   * Reads the dataset from the given resource.
    *
-   * @param resource the resource
-   * @return the dataset
-   * @throws IOException the io exception
+   * @param resource the resource to read from
+   * @return this dataset
+   * @throws IOException Something went wrong reading.
    */
-  public Dataset<T> read(@NonNull Resource resource) throws IOException {
+  Dataset<T> read(@NonNull Resource resource) throws IOException {
     try (JSONReader reader = new JSONReader(resource)) {
       reader.beginDocument();
       List<T> batch = new LinkedList<>();
@@ -345,7 +368,7 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
   }
 
   /**
-   * The enum Type.
+   * The dataset type.
    */
   enum Type {
     /**

@@ -13,18 +13,34 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
+ * The type Example serializer.
+ *
  * @author David B. Bracewell
  */
 final class ExampleSerializer {
 
+  /**
+   * Write.
+   *
+   * @param writer  the writer
+   * @param example the example
+   * @throws IOException the io exception
+   */
   static void write(@NonNull JSONWriter writer, @NonNull Example example) throws IOException {
     if (example instanceof Instance) {
       InstanceSerializer.write(writer, Cast.<Instance>as(example));
     }
   }
 
+  /**
+   * Read example.
+   *
+   * @param reader the reader
+   * @return the example
+   * @throws IOException the io exception
+   */
   static Example read(@NonNull JSONReader reader) throws IOException {
-    if (reader.peek() == ElementType.NAME || reader.peek() == ElementType.BEGIN_OBJECT) {
+    if (reader.peek() == ElementType.BEGIN_OBJECT) {
       return InstanceSerializer.read(reader);
     }
     return null;
@@ -32,6 +48,13 @@ final class ExampleSerializer {
 
 
   private interface InstanceSerializer {
+    /**
+     * Write.
+     *
+     * @param writer   the writer
+     * @param instance the instance
+     * @throws IOException the io exception
+     */
     static void write(JSONWriter writer, Instance instance) throws IOException {
       writer.beginObject();
       writer.writeKeyValue("label", instance.getLabel());
@@ -43,6 +66,13 @@ final class ExampleSerializer {
       writer.endObject();
     }
 
+    /**
+     * Read instance.
+     *
+     * @param reader the reader
+     * @return the instance
+     * @throws IOException the io exception
+     */
     static Instance read(JSONReader reader) throws IOException {
       Object label;
       List<Feature> features = new LinkedList<>();

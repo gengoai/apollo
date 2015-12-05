@@ -10,12 +10,12 @@ import lombok.EqualsAndHashCode;
 import lombok.NonNull;
 import lombok.ToString;
 
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 /**
+ * The type In memory dataset.
+ *
+ * @param <T> the type parameter
  * @author David B. Bracewell
  */
 @EqualsAndHashCode(callSuper = false)
@@ -25,12 +25,25 @@ public class InMemoryDataset<T extends Example> extends Dataset<T> {
   private static final Interner<String> interner = new Interner<>();
   private final List<T> instances = new LinkedList<>();
 
+  /**
+   * Instantiates a new In memory dataset.
+   *
+   * @param featureEncoder the feature encoder
+   * @param labelEncoder   the label encoder
+   * @param preprocessors  the preprocessors
+   */
   public InMemoryDataset(Encoder featureEncoder, Encoder labelEncoder, PreprocessorList<T> preprocessors) {
     super(featureEncoder, labelEncoder, preprocessors);
   }
 
+
   @Override
-  protected void addAll(@NonNull MStream<T> stream) {
+  public void addAll(@NonNull Collection<T> instances) {
+    super.addAll(instances);
+  }
+
+  @Override
+  public void addAll(@NonNull MStream<T> stream) {
     for (T instance : Collect.asIterable(stream.iterator())) {
       instances.add(Cast.as(instance.intern(interner)));
     }
@@ -63,6 +76,5 @@ public class InMemoryDataset<T extends Example> extends Dataset<T> {
     dataset.addAll(instances);
     return dataset;
   }
-
 
 }// END OF InMemoryDataset

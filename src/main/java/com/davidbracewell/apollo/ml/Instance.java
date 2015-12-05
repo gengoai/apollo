@@ -33,6 +33,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -90,6 +91,17 @@ public class Instance implements Example, Serializable, Iterable<Feature> {
     return new Instance(features, label);
   }
 
+
+  /**
+   * Gets features by prefix.
+   *
+   * @param prefix the prefix
+   * @return the features by prefix
+   */
+  public List<Feature> getFeaturesByPrefix(@NonNull String prefix) {
+    return features.stream().filter(f -> f.getName().startsWith(prefix)).collect(Collectors.toList());
+  }
+
   /**
    * Gets value.
    *
@@ -142,6 +154,11 @@ public class Instance implements Example, Serializable, Iterable<Feature> {
     return features.stream().map(Feature::getName).distinct();
   }
 
+  /**
+   * Stream stream.
+   *
+   * @return the stream
+   */
   public Stream<Feature> stream() {
     return Collect.from(this);
   }
@@ -154,6 +171,12 @@ public class Instance implements Example, Serializable, Iterable<Feature> {
     return Stream.of(label);
   }
 
+  /**
+   * To vector vector.
+   *
+   * @param featureEncoder the feature encoder
+   * @return the vector
+   */
   public Vector toVector(@NonNull Encoder featureEncoder) {
     DynamicSparseVector vector = new DynamicSparseVector(featureEncoder::size);
     features.forEach(f -> {

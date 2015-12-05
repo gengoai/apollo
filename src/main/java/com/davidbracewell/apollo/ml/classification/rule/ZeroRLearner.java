@@ -15,7 +15,7 @@ public class ZeroRLearner extends ClassifierLearner {
 
   @Override
   public Classifier trainImpl(@NonNull Dataset<Instance> dataset) {
-    ZeroR model = new ZeroR(dataset.labelEncoder(), dataset.featureEncoder());
+    ZeroR model = new ZeroR(dataset.getLabelEncoder(), dataset.getFeatureEncoder());
     model.distribution.merge(
       dataset.stream()
         .filter(Instance::hasLabel)
@@ -24,6 +24,11 @@ public class ZeroRLearner extends ClassifierLearner {
         .countByValue()
     );
     return model;
+  }
+
+  @Override
+  public void reset() {
+
   }
 
 }// END OF ZeroRLearner

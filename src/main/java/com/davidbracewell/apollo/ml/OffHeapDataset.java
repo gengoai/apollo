@@ -47,13 +47,13 @@ public class OffHeapDataset<T extends Example> extends Dataset<T> {
     return Streams.of(
       outputResource.getChildren().stream()
         .flatMap(Unchecked.function(r -> r.readLines().stream()))
-        .map(line -> Cast.as(Example.fromJson(line)))
+        .map(Unchecked.function(line -> Cast.as(Example.fromJson(line))))
     );
   }
 
   @Override
   public Dataset<T> shuffle(@NonNull Random random) {
-    return create(stream().shuffle(), featureEncoder().createNew(), labelEncoder().createNew(), null);
+    return create(stream().shuffle(), getFeatureEncoder().createNew(), getLabelEncoder().createNew(), null);
   }
 
   @Override

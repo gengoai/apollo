@@ -39,10 +39,15 @@ public class NaiveBayesLearner extends ClassifierLearner {
     throw new IllegalStateException(modelType + " is invalid");
   }
 
+  @Override
+  public void reset() {
+
+  }
+
   protected NaiveBayes bernoulli(Dataset<Instance> dataset) {
     NaiveBayes model = new NaiveBayes(
-      Cast.as(dataset.labelEncoder()),
-      dataset.featureEncoder(),
+      Cast.as(dataset.getLabelEncoder()),
+      dataset.getFeatureEncoder(),
       dataset.getPreprocessors().getModelProcessors(),
       NaiveBayes.ModelType.Bernoulli
     );
@@ -58,7 +63,7 @@ public class NaiveBayesLearner extends ClassifierLearner {
         N++;
         int ci = (int) model.getLabelEncoder().encode(instance.getLabel().toString());
         priors.increment(ci);
-        Vector vector = instance.toVector(dataset.featureEncoder());
+        Vector vector = instance.toVector(dataset.getFeatureEncoder());
         for (Vector.Entry entry : Collect.asIterable(vector.nonZeroIterator())) {
           ensureSize(conditionals, entry.index, model::numberOfLabels).get(entry.index).increment(ci);
         }
@@ -66,9 +71,9 @@ public class NaiveBayesLearner extends ClassifierLearner {
     }
 
     model.priors = new double[model.numberOfLabels()];
-    model.conditionals = new double[dataset.featureEncoder().size()][model.numberOfLabels()];
+    model.conditionals = new double[dataset.getFeatureEncoder().size()][model.numberOfLabels()];
 
-    for (int f = 0; f < dataset.featureEncoder().size(); f++) {
+    for (int f = 0; f < dataset.getFeatureEncoder().size(); f++) {
       if (conditionals.size() > f) {
         for (int i = 0; i < model.numberOfLabels(); i++) {
           model.conditionals[f][i] = (conditionals.get(f).get(i) + 1) / (priors.get(i) + 2);
@@ -85,8 +90,8 @@ public class NaiveBayesLearner extends ClassifierLearner {
 
   protected NaiveBayes multinomial(Dataset<Instance> dataset) {
     NaiveBayes model = new NaiveBayes(
-      Cast.as(dataset.labelEncoder()),
-      dataset.featureEncoder(),
+      Cast.as(dataset.getLabelEncoder()),
+      dataset.getFeatureEncoder(),
       dataset.getPreprocessors().getModelProcessors(),
       NaiveBayes.ModelType.Bernoulli
     );
@@ -103,7 +108,7 @@ public class NaiveBayesLearner extends ClassifierLearner {
         N++;
         int ci = (int) model.getLabelEncoder().encode(instance.getLabel().toString());
         priors.increment(ci);
-        Vector vector = instance.toVector(dataset.featureEncoder());
+        Vector vector = instance.toVector(dataset.getFeatureEncoder());
         for (Vector.Entry entry : Collect.asIterable(vector.nonZeroIterator())) {
           ensureSize(conditionals, entry.index, model::numberOfLabels)
             .get(entry.index)
@@ -114,10 +119,10 @@ public class NaiveBayesLearner extends ClassifierLearner {
     }
 
     model.priors = new double[model.numberOfLabels()];
-    model.conditionals = new double[dataset.featureEncoder().size()][model.numberOfLabels()];
+    model.conditionals = new double[dataset.getFeatureEncoder().size()][model.numberOfLabels()];
 
-    double V = dataset.featureEncoder().size();
-    for (int f = 0; f < dataset.featureEncoder().size(); f++) {
+    double V = dataset.getFeatureEncoder().size();
+    for (int f = 0; f < dataset.getFeatureEncoder().size(); f++) {
       if (conditionals.size() > f) {
         for (int i = 0; i < model.numberOfLabels(); i++) {
           model.conditionals[f][i] = (conditionals.get(f).get(i) + 1) / (labelTotals.get(i) + V);

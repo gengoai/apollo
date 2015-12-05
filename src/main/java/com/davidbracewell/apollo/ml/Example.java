@@ -15,28 +15,32 @@ import java.io.IOException;
 import java.util.stream.Stream;
 
 /**
- * The interface Example.
+ * <p>Generic interface for representing a label and set of features. Classification and Regression problems use the
+ * <code>Instance</code> specialization and Sequence Labeling Problems use the <code>Sequence</code>
+ * specialization.</p>
  */
 public interface Example extends Copyable<Example> {
 
   /**
-   * Read example.
+   * Reads an example from a JSONReader. Only useful for reading examples written by a dataset.
    *
    * @param reader the reader
    * @return the example
-   * @throws IOException the io exception
+   * @throws IOException Something went wrong reading.
    */
   static Example read(@NonNull JSONReader reader) throws IOException {
     return ExampleSerializer.read(reader);
   }
 
   /**
-   * From string example.
+   * Wraps reading an example from a JSON string as written by the write method. Useful for Datasets that keep examples
+   * on disk or other places where serialization is required.
    *
-   * @param input the input
+   * @param input the input string
    * @return the example
+   * @throws IOException Something went wrong converting the string into an example
    */
-  static Example fromJson(String input) {
+  static Example fromJson(String input) throws IOException {
     Preconditions.checkArgument(!StringUtils.isNullOrBlank(input), "Cannot create example from null or empty string.");
     Resource r = Resources.fromString(input);
     Example rval = null;
@@ -44,38 +48,36 @@ public interface Example extends Copyable<Example> {
       reader.beginDocument();
       rval = read(reader);
       reader.endDocument();
-    } catch (Exception e) {
-      throw Throwables.propagate(e);
     }
     return rval;
   }
 
   /**
-   * Write.
+   * Writes the example out to the given JSONWriter. Used by Datasets.
    *
    * @param writer the writer
-   * @throws IOException the io exception
+   * @throws IOException Something went wrong writing
    */
   default void write(@NonNull JSONWriter writer) throws IOException {
     ExampleSerializer.write(writer, this);
   }
 
   /**
-   * Gets feature space.
+   * Gets the feature space of the example. The feature space is the set of distinct feature names in the example.
    *
    * @return the feature space
    */
   Stream<String> getFeatureSpace();
 
   /**
-   * Gets label space.
+   * Gets the label space.
    *
    * @return the label space
    */
   Stream<Object> getLabelSpace();
 
   /**
-   * As string string.
+   * Converts the example to a String encoded in JSON
    *
    * @return the string
    */
@@ -89,14 +91,14 @@ public interface Example extends Copyable<Example> {
       throw Throwables.propagate(e);
     }
     try {
-      return r.readToString().trim().replaceFirst("^\\[", "").replaceFirst("\\]$", "");
+      return r.readToString().trim();
     } catch (IOException e) {
       throw Throwables.propagate(e);
     }
   }
 
   /**
-   * Intern example.
+   * Interns the feature space returning a new example whose feature names are interned.
    *
    * @param interner the interner
    * @return the example

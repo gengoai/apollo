@@ -168,6 +168,10 @@ public class Instance implements Example, Serializable, Iterable<Feature> {
     return Stream.of(label);
   }
 
+  public List<Feature> getFeatures() {
+    return features;
+  }
+
   /**
    * To vector vector.
    *

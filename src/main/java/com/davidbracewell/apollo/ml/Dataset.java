@@ -37,6 +37,7 @@ import lombok.NonNull;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * <p>A dataset is a collection of examples which can be used for training and evaluating models. Implementations of
@@ -117,6 +118,13 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
       this.preprocessors.visit(this.rawIterator());
       this.preprocessors.finish();
     }
+  }
+
+  public void encode() {
+    forEach(e -> {
+      labelEncoder.encode(e.getLabelSpace());
+      featureEncoder.encode(e.getFeatureSpace());
+    });
   }
 
   @Override

@@ -13,7 +13,8 @@ import lombok.ToString;
 import java.util.*;
 
 /**
- * The type In memory dataset.
+ * <p>A Dataset that stores all examples in memory. Feature names are interned to conserve memory. In addition, methods
+ * for adding examples are public.</p>
  *
  * @param <T> the type parameter
  * @author David B. Bracewell
@@ -36,6 +37,16 @@ public class InMemoryDataset<T extends Example> extends Dataset<T> {
     super(featureEncoder, labelEncoder, preprocessors);
   }
 
+  /**
+   * Adds an example
+   *
+   * @param example the example
+   */
+  public void add(T example) {
+    if (example != null) {
+      instances.add(example);
+    }
+  }
 
   @Override
   public void addAll(@NonNull Collection<T> instances) {

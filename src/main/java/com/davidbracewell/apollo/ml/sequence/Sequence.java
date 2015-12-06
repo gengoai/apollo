@@ -6,6 +6,7 @@ import com.davidbracewell.collection.Interner;
 import lombok.NonNull;
 
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -76,13 +77,22 @@ public class Sequence implements Example, Serializable {
    *
    * @return the sequence iterator
    */
-  public SequenceIterator iterator() {
-    return new SequenceIterator(this);
+  public ContextualIterator<Instance> iterator() {
+    return new ContextualIterator<>(
+      asInstances(),
+      i -> Instance.create(Collections.emptyList(), "****START****"),
+      i -> Instance.create(Collections.emptyList(), "****END****")
+    );
   }
 
   @Override
   public List<Instance> asInstances() {
     return sequence;
+  }
+
+  @Override
+  public String toString() {
+    return sequence.toString();
   }
 
 }// END OF Sequence

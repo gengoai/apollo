@@ -33,10 +33,8 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
- * <p>
- * A featurizer converts an input into a one or more <code>Feature</code>s which have a name and a value.
- * Specific implementations may implement the generic featurizer interface or specialize the Binary or Real featurizers.
- * </p>
+ * <p> A featurizer converts an input into a one or more <code>Feature</code>s which have a name and a value. Specific
+ * implementations may implement the generic featurizer interface or specialize the Binary or Real featurizers. </p>
  *
  * @param <INPUT> the type of the input being converted into features
  * @author David B. Bracewell
@@ -124,7 +122,7 @@ public interface Featurizer<INPUT> extends SerializableFunction<INPUT, Set<Featu
     private final Set<Featurizer<? super T>> featurizers = new LinkedHashSet<>();
 
     /**
-     * Adds teh featurizer to the builder
+     * Adds the featurizer to the builder
      *
      * @param featurizer the featurizer to add
      * @return the builder

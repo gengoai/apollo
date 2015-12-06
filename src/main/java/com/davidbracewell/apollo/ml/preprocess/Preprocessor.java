@@ -26,7 +26,9 @@ public interface Preprocessor<T extends Example> {
    */
   T process(T example);
 
-
+  /**
+   * Finish.
+   */
   void finish();
 
   /**
@@ -41,7 +43,11 @@ public interface Preprocessor<T extends Example> {
    */
   void reset();
 
-
+  /**
+   * Trim to size.
+   *
+   * @param encoder the encoder
+   */
   void trimToSize(Encoder encoder);
 
 

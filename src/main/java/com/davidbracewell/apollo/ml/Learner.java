@@ -43,7 +43,7 @@ public abstract class Learner<T extends Example, M extends Model> implements Ser
    * @param dataset the dataset
    * @return the classifier
    */
-  public final M train(@NonNull Dataset<T> dataset) {
+  public M train(@NonNull Dataset<T> dataset) {
     M model = trainImpl(dataset);
     model.finishTraining();
     return model;

@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 /**
  * @author David B. Bracewell
  */
-public class TFIDFTransform implements TransformProcessor<Instance>, Serializable {
+public class TFIDFTransform implements TransformProcessor<Instance>, InstancePreprocessor, Serializable {
   private final Pattern pattern;
   private volatile Counter<String> documentFrequencies = Counters.newConcurrentCounter();
   private volatile AtomicDouble totalDocs = new AtomicDouble();

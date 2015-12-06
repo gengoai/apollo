@@ -3,7 +3,6 @@ package com.davidbracewell.apollo.ml;
 import lombok.NonNull;
 
 import java.util.List;
-import java.util.stream.DoubleStream;
 import java.util.stream.Stream;
 
 /**
@@ -20,8 +19,8 @@ public interface Encoder {
    * @param stream the stream to encode
    * @return the stream of encoded values
    */
-  default DoubleStream encode(@NonNull Stream<?> stream) {
-    return stream.mapToDouble(this::encode);
+  default void encode(@NonNull Stream<?> stream) {
+    stream.forEach(this::encode);
   }
 
   /**

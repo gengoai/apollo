@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 /**
  * @author David B. Bracewell
  */
-public class CountFilter implements FilterProcessor<Instance>, Serializable {
+public class CountFilter implements FilterProcessor<Instance>, InstancePreprocessor, Serializable {
   private static final long serialVersionUID = 1L;
   private final SerializableDoublePredicate filter;
   private volatile Counter<String> counter = Counters.newConcurrentCounter();

@@ -28,7 +28,7 @@ import lombok.Value;
 import java.io.Serializable;
 
 /**
- * The type Feature.
+ * <p>A feature is made up of a name and double value.</p>
  *
  * @author David B. Bracewell
  */
@@ -44,20 +44,9 @@ public class Feature implements Serializable, Comparable<Feature>, Copyable<Feat
   }
 
   /**
-   * Boolean feature feature.
+   * Creates a binary feature with the value of TRUE (1.0)
    *
-   * @param name  the name
-   * @param value the value
-   * @return the feature
-   */
-  public static Feature binary(@NonNull String name, boolean value) {
-    return new Feature(name, value ? 1.0 : 0.0);
-  }
-
-  /**
-   * True feature.
-   *
-   * @param name the name
+   * @param name the feature name
    * @return the feature
    */
   public static Feature TRUE(@NonNull String name) {
@@ -65,9 +54,9 @@ public class Feature implements Serializable, Comparable<Feature>, Copyable<Feat
   }
 
   /**
-   * False feature.
+   * Creates a binary feature with the value of FALSE (0.0)
    *
-   * @param name the name
+   * @param name the feature name
    * @return the feature
    */
   public static Feature FALSE(@NonNull String name) {
@@ -75,16 +64,15 @@ public class Feature implements Serializable, Comparable<Feature>, Copyable<Feat
   }
 
   /**
-   * Real feature feature.
+   * Creates a real valued feature with the given name and value.
    *
-   * @param name  the name
-   * @param value the value
+   * @param name  the feature name
+   * @param value the feature value
    * @return the feature
    */
   public static Feature real(@NonNull String name, double value) {
     return new Feature(name, value);
   }
-
 
   @Override
   public int compareTo(Feature o) {

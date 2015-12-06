@@ -5,15 +5,13 @@ import com.davidbracewell.apollo.ml.Encoder;
 import com.davidbracewell.apollo.ml.classification.Classifier;
 import com.davidbracewell.apollo.ml.classification.ClassifierResult;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
-import com.davidbracewell.collection.Counter;
-import com.davidbracewell.collection.Counters;
 
 /**
  * @author David B. Bracewell
  */
 public class ZeroR extends Classifier {
 
-  final Counter<String> distribution = Counters.newHashMapCounter();
+  double[] distribution;
 
   /**
    * Instantiates a new Classifier.
@@ -27,7 +25,7 @@ public class ZeroR extends Classifier {
 
   @Override
   public ClassifierResult classify(Vector vector) {
-    return new ClassifierResult(Counters.newHashMapCounter(distribution));
+    return new ClassifierResult(distribution, getLabelEncoder());
   }
 
 }// END OF ZeroR

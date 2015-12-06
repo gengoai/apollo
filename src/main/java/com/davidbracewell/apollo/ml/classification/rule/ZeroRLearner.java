@@ -7,6 +7,8 @@ import com.davidbracewell.apollo.ml.classification.ClassifierLearner;
 import com.davidbracewell.conversion.Cast;
 import lombok.NonNull;
 
+import java.util.Map;
+
 /**
  * @author David B. Bracewell
  */
@@ -16,13 +18,14 @@ public class ZeroRLearner extends ClassifierLearner {
   @Override
   public Classifier trainImpl(@NonNull Dataset<Instance> dataset) {
     ZeroR model = new ZeroR(dataset.getLabelEncoder(), dataset.getFeatureEncoder());
-    model.distribution.merge(
-      dataset.stream()
-        .filter(Instance::hasLabel)
-        .map(Instance::getLabel)
-        .map(Cast::<String>as)
-        .countByValue()
-    );
+    Map<String, Long> m = dataset.stream()
+      .filter(Instance::hasLabel)
+      .map(Instance::getLabel)
+      .map(Cast::<String>as)
+      .countByValue();
+
+    model.distribution = new double[model.numberOfLabels()];
+    m.forEach((label, value) -> model.distribution[(int) model.getLabelEncoder().encode(label)] = value);
     return model;
   }
 

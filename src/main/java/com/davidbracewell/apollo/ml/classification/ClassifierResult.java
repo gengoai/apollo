@@ -21,14 +21,13 @@
 
 package com.davidbracewell.apollo.ml.classification;
 
-import com.davidbracewell.collection.Counter;
-import com.davidbracewell.collection.Counters;
-import com.davidbracewell.string.StringUtils;
+import com.davidbracewell.apollo.ml.Encoder;
+import com.davidbracewell.conversion.Cast;
 import lombok.EqualsAndHashCode;
 
 import java.io.Serializable;
-import java.util.Map;
-import java.util.Set;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * The type Classifier result.
@@ -38,18 +37,27 @@ import java.util.Set;
 @EqualsAndHashCode
 public class ClassifierResult implements Serializable {
   private static final long serialVersionUID = 1L;
-  private final Counter<String> distribution;
-  private final String result;
+  private final double[] distribution;
+  private final int resultIndex;
+  private final Encoder labelEncoder;
 
   /**
    * Instantiates a new Classifier result.
    *
    * @param distribution the distribution
    */
-  public ClassifierResult(Counter<String> distribution) {
+  public ClassifierResult(double[] distribution, Encoder labelEncoder) {
     this.distribution = distribution;
-    this.result = distribution.max() == null ? StringUtils.EMPTY : distribution.max();
-
+    double max = distribution[0];
+    int maxI = 0;
+    for (int i = 1; i < distribution.length; i++) {
+      if (distribution[i] > max) {
+        max = distribution[i];
+        maxI = i;
+      }
+    }
+    this.resultIndex = maxI;
+    this.labelEncoder = labelEncoder;
   }
 
   /**
@@ -57,17 +65,8 @@ public class ClassifierResult implements Serializable {
    *
    * @return the set
    */
-  public Set<Map.Entry<String, Double>> distribution() {
-    return distribution.entries();
-  }
-
-  /**
-   * As counter counter.
-   *
-   * @return the counter
-   */
-  public Counter<String> asCounter() {
-    return Counters.newHashMapCounter(distribution);
+  public double[] distribution() {
+    return distribution;
   }
 
   /**
@@ -76,20 +75,20 @@ public class ClassifierResult implements Serializable {
    * @return the string
    */
   public String getResult() {
-    return result;
+    return labelEncoder.decode(resultIndex).toString();
   }
 
   public boolean resultIs(Object gold) {
     if (gold == null) {
       return false;
     }
-    return result.equals(gold.toString());
+    return getResult().equals(gold.toString());
   }
 
 
   @Override
   public String toString() {
-    return distribution.toString();
+    return Arrays.toString(distribution);
   }
 
 
@@ -99,7 +98,7 @@ public class ClassifierResult implements Serializable {
    * @return the confidence
    */
   public double getConfidence() {
-    return distribution.get(result);
+    return distribution[resultIndex];
   }
 
   /**
@@ -109,7 +108,11 @@ public class ClassifierResult implements Serializable {
    * @return the confidence
    */
   public double getConfidence(String label) {
-    return distribution.get(label);
+    return distribution[(int) labelEncoder.encode(label)];
+  }
+
+  public String getLabel(int index) {
+    return labelEncoder.decode(index).toString();
   }
 
   /**
@@ -117,8 +120,8 @@ public class ClassifierResult implements Serializable {
    *
    * @return the labels
    */
-  public Set<String> getLabels() {
-    return distribution.items();
+  public List<String> getLabels() {
+    return Cast.cast(labelEncoder.values());
   }
 
 

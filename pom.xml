@@ -75,6 +75,11 @@
             <artifactId>mahout-collections</artifactId>
             <version>1.0</version>
         </dependency>
+        <dependency>
+            <groupId>com.github.vinhkhuc</groupId>
+            <artifactId>jcrfsuite</artifactId>
+            <version>0.6</version>
+        </dependency>
     </dependencies>
     <profiles>
         <profile>

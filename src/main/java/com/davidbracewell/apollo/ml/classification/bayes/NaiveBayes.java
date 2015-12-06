@@ -21,6 +21,7 @@
 
 package com.davidbracewell.apollo.ml.classification.bayes;
 
+import com.davidbracewell.apollo.linalg.DenseVector;
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.Encoder;
 import com.davidbracewell.apollo.ml.IndexEncoder;
@@ -28,8 +29,6 @@ import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.classification.Classifier;
 import com.davidbracewell.apollo.ml.classification.ClassifierResult;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
-import com.davidbracewell.collection.Counter;
-import com.davidbracewell.collection.Counters;
 import lombok.NonNull;
 import org.apache.commons.math3.util.FastMath;
 
@@ -78,21 +77,21 @@ public class NaiveBayes extends Classifier {
 
   @Override
   public ClassifierResult classify(@NonNull Vector instance) {
-    Counter<String> distribution = Counters.newHashMapCounter();
+    DenseVector distribution = new DenseVector(numberOfLabels());
+
     for (int i = 0; i < numberOfLabels(); i++) {
-      String label = getLabelEncoder().decode(i).toString();
-      distribution.set(label, FastMath.log(priors[i]));
+      distribution.set(i, FastMath.log(priors[i]));
       for (int f = 0; f < numberOfFeatures(); f++) {
         if (instance.get(f) != 0) {
-          distribution.increment(label, FastMath.log(conditionals[f][i]));
+          distribution.increment(i, FastMath.log(conditionals[f][i]));
         } else {
-          distribution.increment(label, FastMath.log(1 - conditionals[f][i]));
+          distribution.increment(i, FastMath.log(1 - conditionals[f][i]));
         }
       }
-      distribution.set(label, Math.exp(distribution.get(label)));
+      distribution.set(i, Math.exp(distribution.get(i)));
     }
-    distribution.divideBySum();
-    return new ClassifierResult(distribution);
+    distribution.mapDivideSelf(distribution.sum());
+    return new ClassifierResult(distribution.toArray(), getLabelEncoder());
   }
 
 

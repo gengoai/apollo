@@ -30,9 +30,9 @@ public class LabelingResult implements Serializable {
    */
   public String getLabel(int index) {
     if (index < 0) {
-      return "****START****";
+      return Sequence.BOS;
     } else if (index >= labels.length) {
-      return "****END****";
+      return Sequence.EOS;
     }
     return labels[index];
   }

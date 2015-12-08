@@ -22,11 +22,14 @@
 package com.davidbracewell.apollo.linalg;
 
 import com.davidbracewell.Copyable;
+import com.davidbracewell.collection.Collect;
 import com.davidbracewell.collection.EnhancedDoubleStatistics;
+import lombok.NonNull;
 import lombok.Value;
 
 import java.io.Serializable;
 import java.util.Iterator;
+import java.util.function.Consumer;
 import java.util.function.DoubleBinaryOperator;
 import java.util.function.DoubleUnaryOperator;
 
@@ -313,8 +316,7 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
   Vector multiplySelf(Vector rhs);
 
   /**
-   * Creates an <code>Iterator</code> over non-zero values in the vector. The order is optimized based on the
-   * underlying
+   * Creates an <code>Iterator</code> over non-zero values in the vector. The order is optimized based on the underlying
    * structure.
    *
    * @return An iterator over non-zero values in the vector.
@@ -416,6 +418,10 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
    * @return The new vector of the given dimension
    */
   Vector redim(int newDimension);
+
+  default void forEachSparse(@NonNull Consumer<Vector.Entry> consumer) {
+    Collect.from(nonZeroIterator()).forEach(consumer);
+  }
 
   @Value
   class Entry implements Serializable {

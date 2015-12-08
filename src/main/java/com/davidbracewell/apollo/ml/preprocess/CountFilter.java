@@ -7,7 +7,6 @@ import com.davidbracewell.function.SerializableDoublePredicate;
 import lombok.NonNull;
 
 import java.io.Serializable;
-import java.util.stream.Collectors;
 
 /**
  * @author David B. Bracewell
@@ -30,10 +29,8 @@ public class CountFilter implements FilterProcessor<Instance>, InstancePreproces
 
   @Override
   public Instance process(@NonNull Instance example) {
-    return Instance.create(
-      example.stream().filter(f -> counter.contains(f.getName())).collect(Collectors.toList()),
-      example.getLabel()
-    );
+    example.getFeatures().removeIf(f -> !counter.contains(f.getName()));
+    return example;
   }
 
   @Override

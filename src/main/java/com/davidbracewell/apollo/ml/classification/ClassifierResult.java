@@ -115,6 +115,11 @@ public class ClassifierResult implements Serializable {
     return labelEncoder.decode(index).toString();
   }
 
+
+  public int getEncodedResult() {
+    return resultIndex;
+  }
+
   /**
    * Gets labels.
    *

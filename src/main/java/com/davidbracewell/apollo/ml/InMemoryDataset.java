@@ -44,8 +44,19 @@ public class InMemoryDataset<T extends Example> extends Dataset<T> {
    */
   public void add(T example) {
     if (example != null) {
+      getLabelEncoder().encode(example.getLabelSpace());
       instances.add(example);
     }
+  }
+
+  @Override
+  public void close() {
+    instances.clear();
+  }
+
+  @Override
+  protected Iterator<T> rawIterator() {
+    return instances.iterator();
   }
 
   @Override
@@ -56,6 +67,7 @@ public class InMemoryDataset<T extends Example> extends Dataset<T> {
   @Override
   public void addAll(@NonNull MStream<T> stream) {
     for (T instance : Collect.asIterable(stream.iterator())) {
+      getLabelEncoder().encode(instance.getLabelSpace());
       instances.add(Cast.as(instance.intern(interner)));
     }
   }

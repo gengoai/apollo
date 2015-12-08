@@ -31,23 +31,18 @@ public class BeamDecoder implements Decoder {
   @Override
   public LabelingResult decode(@NonNull SequenceLabeler labeler, @NonNull Sequence sequence) {
     ContextualIterator<Instance> iterator = sequence.iterator();
-    if (iterator.hasNext()) {
-      MinMaxPriorityQueue<DecoderState> queue = initMatrix(labeler, iterator.next());
-      while (iterator.hasNext()) {
-        iterator.next();
-        queue = fillMatrix(queue, labeler, iterator);
-      }
-      LabelingResult result = new LabelingResult(sequence.size());
-      DecoderState last = queue.remove();
-      while (last != null) {
-        result.setLabel(last.index, last.tag, last.stateProbability);
-        last = last.previousState;
-      }
-
-      return result;
+    MinMaxPriorityQueue<DecoderState> queue = initMatrix(labeler, iterator.next());
+    while (iterator.hasNext()) {
+      iterator.next();
+      queue = fillMatrix(queue, labeler, iterator);
     }
-
-    return new LabelingResult(0);
+    LabelingResult result = new LabelingResult(sequence.size());
+    DecoderState last = queue.remove();
+    while (last != null) {
+      result.setLabel(last.index, last.tag, last.stateProbability);
+      last = last.previousState;
+    }
+    return result;
   }
 
   private MinMaxPriorityQueue<DecoderState> initMatrix(SequenceLabeler model, Instance instance) {

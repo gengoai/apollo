@@ -39,7 +39,7 @@ public class TransitionFeatures implements Serializable {
     for (int[] template : featureTemplates) {
       StringBuilder builder = new StringBuilder();
       for (int element : template) {
-        appendTo(builder, "T[" + element + "]=" + iterator.getContext(element).getLabel().toString());
+        appendTo(builder, "T[" + element + "]=" + iterator.getContextLabel(element).orElse(Sequence.BOS));
       }
       if (builder.length() > 0) {
         features.add(Feature.TRUE(builder.toString()));
@@ -69,7 +69,7 @@ public class TransitionFeatures implements Serializable {
       state = state.previousState;
     }
     if (state == null) {
-      return "****START****";
+      return Sequence.BOS;
     }
     return state.tag;
   }

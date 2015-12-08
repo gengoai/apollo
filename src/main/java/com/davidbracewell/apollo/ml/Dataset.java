@@ -37,7 +37,6 @@ import lombok.NonNull;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * <p>A dataset is a collection of examples which can be used for training and evaluating models. Implementations of
@@ -111,30 +110,34 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
    *
    * @param preprocessors the preprocessors to use.
    */
-  public void preprocess(@NonNull PreprocessorList<T> preprocessors) {
+  public Dataset<T> preprocess(@NonNull PreprocessorList<T> preprocessors) {
     Preconditions.checkState(!isPreprocessed(), "Dataset has already been preprocessed");
     this.preprocessors = preprocessors;
     if (!this.preprocessors.isFinished()) {
       this.preprocessors.visit(this.rawIterator());
       this.preprocessors.finish();
     }
+    return this;
   }
 
-  public void encode() {
-    forEach(e -> {
-      labelEncoder.encode(e.getLabelSpace());
-      featureEncoder.encode(e.getFeatureSpace());
+  public Dataset<T> encode() {
+    iterator().forEachRemaining(e -> {
     });
+    return this;
   }
 
   @Override
   public final Iterator<T> iterator() {
     return Iterators.transform(rawIterator(), e -> {
-      e = preprocessors.apply(e);
+      e = preprocessors.apply(Cast.as(e.copy()));
       labelEncoder.encode(e.getLabelSpace());
       featureEncoder.encode(e.getFeatureSpace());
       return e;
     });
+  }
+
+  public void close() {
+
   }
 
   /**

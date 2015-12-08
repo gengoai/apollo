@@ -1,97 +1,133 @@
 package com.davidbracewell.apollo.ml.sequence;
 
+import java.io.Serializable;
 import java.util.Iterator;
-import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.function.IntFunction;
+import java.util.Optional;
 
 /**
+ * The type Ctxt iterator.
+ *
+ * @param <T> the type parameter
  * @author David B. Bracewell
  */
-public class ContextualIterator<T> implements Iterator<T> {
-  private final List<T> list;
-  private final IntFunction<T> startOfGenerator;
-  private final IntFunction<T> endOfGenerator;
+public abstract class ContextualIterator<T> implements Iterator<T>, Serializable {
+  private static final long serialVersionUID = 1L;
   private int index = -1;
 
-  public ContextualIterator(List<T> list, IntFunction<T> startOfGenerator, IntFunction<T> endOfGenerator) {
-    this.list = list;
-    this.startOfGenerator = startOfGenerator;
-    this.endOfGenerator = endOfGenerator;
-  }
+  /**
+   * Size int.
+   *
+   * @return the int
+   */
+  protected abstract int size();
 
-  public ContextualIterator(int index, List<T> list, IntFunction<T> startOfGenerator, IntFunction<T> endOfGenerator) {
-    this.list = list;
-    this.index = index - 1;
-    this.startOfGenerator = startOfGenerator;
-    this.endOfGenerator = endOfGenerator;
+  /**
+   * Gets context at.
+   *
+   * @param index the index
+   * @return the context at
+   */
+  protected abstract Optional<T> getContextAt(int index);
+
+  /**
+   * Gets label at.
+   *
+   * @param index the index
+   * @return the label at
+   */
+  protected abstract Optional<String> getLabelAt(int index);
+
+
+  /**
+   * Index int.
+   *
+   * @return the int
+   */
+  public int getIndex() {
+    return index;
   }
 
 
   @Override
   public boolean hasNext() {
-    return (index + 1) < list.size();
+    return (index + 1) < size();
   }
 
+  /**
+   * Next boolean.
+   *
+   * @return the boolean
+   */
   @Override
   public T next() {
-    if ((index + 1) >= list.size()) {
-      throw new NoSuchElementException();
-    }
     index++;
-    return list.get(index);
-  }
-
-  public boolean hasPrevious(int n) {
-    return index - Math.abs(n) >= 0;
-  }
-
-  public boolean hasNext(int n) {
-    return index + Math.abs(n) < list.size();
+    return getContext(0).orElseThrow(NoSuchElementException::new);
   }
 
   /**
-   * Gets previous.
+   * Gets current.
    *
-   * @param n the n
-   * @return the previous
+   * @return the current
    */
-  public T getPrevious(int n) {
-    return getContext(-Math.abs(n));
+  public T getCurrent() {
+    return getContextAt(index).orElseThrow(NoSuchElementException::new);
   }
 
   /**
-   * Gets next.
+   * Gets label.
    *
-   * @param n the n
-   * @return the next
+   * @return the label
    */
-  public T getNext(int n) {
-    return getContext(Math.abs(n));
+  public String getLabel() {
+    return getLabelAt(index).orElseThrow(NoSuchElementException::new);
   }
 
   /**
    * Gets context.
    *
-   * @param context the context
+   * @param relative the relative
    * @return the context
    */
-  protected T getContext(int context) {
-    int realIndex = index + context;
-    if (realIndex < 0) {
-      return startOfGenerator.apply(-context);
-    } else if (realIndex > list.size()) {
-      return endOfGenerator.apply(realIndex - list.size());
-    }
-    return list.get(realIndex);
+  public Optional<T> getContext(int relative) {
+    return getContextAt(index + relative);
   }
 
-  public T getCurrent() {
-    return list.get(index);
+  /**
+   * Gets context label.
+   *
+   * @param relative the relative
+   * @return the context label
+   */
+  public Optional<String> getContextLabel(int relative) {
+    return getLabelAt(index + relative);
   }
 
-  public int getIndex() {
-    return index;
+  public Optional<String> getPreviousLabel(int relative) {
+    return getContextLabel(-Math.abs(relative));
   }
+
+  public Optional<String> getNextLabel(int relative) {
+    return getContextLabel(Math.abs(relative));
+  }
+
+  public Optional<T> getPrevious(int relative) {
+    return getContext(-Math.abs(relative));
+  }
+
+  public Optional<T> getNext(int relative) {
+    return getContext(Math.abs(relative));
+  }
+
+  /**
+   * Has context boolean.
+   *
+   * @param relative the relative
+   * @return the boolean
+   */
+  public boolean hasContext(int relative) {
+    return getLabelAt(index + relative).isPresent();
+  }
+
 
 }// END OF ContextualIterator

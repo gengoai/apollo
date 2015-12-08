@@ -31,7 +31,6 @@ public class CRFTrainer extends SequenceLabelerLearner {
       }
       trainer.append(seq, lables, 0);
     });
-
     trainer.select("lbfgs", "crf1d");
     trainer.set("max_iterations", "50");
 

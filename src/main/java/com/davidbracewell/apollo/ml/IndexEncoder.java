@@ -16,18 +16,14 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class IndexEncoder implements Encoder, Serializable {
   private static final long serialVersionUID = 1L;
-  private volatile Index<Object> index = Indexes.newConcurrentIndex();
+  private volatile Index<Object> index = Indexes.newIndex();
   private volatile AtomicBoolean frozen = new AtomicBoolean(false);
 
   @Override
   public double encode(@NonNull Object object) {
     String str = object.toString();
-    if (!index.contains(str) && !frozen.get()) {
-      synchronized (this) {
-        if (!index.contains(str)) {
-          index.add(str);
-        }
-      }
+    if (!frozen.get()) {
+      return index.add(str);
     }
     return index.indexOf(str);
   }

@@ -14,7 +14,6 @@ import java.util.Iterator;
  */
 public class StructuredPerceptron extends SequenceLabeler {
   Vector[] weights;
-  Vector biases;
 
   /**
    * Instantiates a new Model.
@@ -31,10 +30,6 @@ public class StructuredPerceptron extends SequenceLabeler {
   public ClassifierResult estimateInstance(Instance instance) {
     Vector v = instance.toVector(getFeatureEncoder());
     double[] distribution = new double[numberOfLabels()];
-    for (int i = 0; i < numberOfLabels(); i++) {
-      distribution[i] = biases.get(i);
-    }
-
     double max = 0;
     for (Iterator<Vector.Entry> iterator = v.nonZeroIterator(); iterator.hasNext(); ) {
       Vector.Entry de = iterator.next();
@@ -44,17 +39,9 @@ public class StructuredPerceptron extends SequenceLabeler {
       }
     }
 
-//    double normal = 0;
-//    for (int ci = 0; ci < numberOfLabels(); ci++) {
-//      distribution[ci] = Math.exp(distribution[ci] / max);
-//      normal += distribution[ci];
-//    }
-//
-//    for (int ci = 0; ci < numberOfLabels(); ci++) {
-//      distribution[ci] /= normal;
-//    }
-//
-
+    for (int ci = 0; ci < numberOfLabels(); ci++) {
+      distribution[ci] = distribution[ci] / max;
+    }
     return new ClassifierResult(distribution, getLabelEncoder());
   }
 

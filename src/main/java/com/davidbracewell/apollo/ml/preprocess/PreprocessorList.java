@@ -118,7 +118,7 @@ public class PreprocessorList<T extends Example> implements Iterable<Preprocesso
     if (isEmpty()) {
       return example;
     }
-    T transformed = Cast.as(example.copy());
+    T transformed = Cast.as(example);
     for (Preprocessor<T> preprocessor : preprocessors) {
       transformed = preprocessor.process(transformed);
     }

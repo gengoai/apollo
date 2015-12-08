@@ -6,8 +6,8 @@ import com.davidbracewell.collection.Interner;
 import lombok.NonNull;
 
 import java.io.Serializable;
-import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -17,6 +17,10 @@ import java.util.stream.Stream;
  * @author David B. Bracewell
  */
 public class Sequence implements Example, Serializable {
+
+  public static final String BOS = "****START****";
+  public static final String EOS = "****END****";
+
   private static final long serialVersionUID = 1L;
   private final List<Instance> sequence;
 
@@ -78,11 +82,7 @@ public class Sequence implements Example, Serializable {
    * @return the sequence iterator
    */
   public ContextualIterator<Instance> iterator() {
-    return new ContextualIterator<>(
-      asInstances(),
-      i -> Instance.create(Collections.emptyList(), "****START****"),
-      i -> Instance.create(Collections.emptyList(), "****END****")
-    );
+    return new SequenceIterator();
   }
 
   @Override
@@ -94,5 +94,32 @@ public class Sequence implements Example, Serializable {
   public String toString() {
     return sequence.toString();
   }
+
+
+  private class SequenceIterator extends ContextualIterator<Instance> {
+    private static final long serialVersionUID = 1L;
+
+    @Override
+    protected int size() {
+      return Sequence.this.size();
+    }
+
+    @Override
+    protected Optional<Instance> getContextAt(int index) {
+      if (index < size() && index >= 0) {
+        return Optional.of(get(index));
+      }
+      return Optional.empty();
+    }
+
+    @Override
+    protected Optional<String> getLabelAt(int index) {
+      if (index < size() && index >= 0) {
+        return Optional.of(get(index).getLabel()).map(Object::toString);
+      }
+      return Optional.empty();
+    }
+  }
+
 
 }// END OF Sequence

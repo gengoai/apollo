@@ -423,6 +423,11 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
     Collect.from(nonZeroIterator()).forEach(consumer);
   }
 
+  default void forEachOrderedSparse(@NonNull Consumer<Vector.Entry> consumer) {
+    Collect.from(orderedNonZeroIterator()).forEach(consumer);
+  }
+
+
   @Value
   class Entry implements Serializable {
     private static final long serialVersionUID = 1L;

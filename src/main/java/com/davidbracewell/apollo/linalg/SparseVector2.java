@@ -21,8 +21,10 @@
 
 package com.davidbracewell.apollo.linalg;
 
+import com.carrotsearch.hppcrt.cursors.IntCursor;
 import com.carrotsearch.hppcrt.cursors.IntDoubleCursor;
 import com.carrotsearch.hppcrt.maps.IntDoubleHashMap;
+import com.davidbracewell.collection.Collect;
 import com.google.common.base.Preconditions;
 
 import java.io.Serializable;
@@ -215,31 +217,23 @@ public class SparseVector2 extends AbstractVector {
     /**
      * The Index.
      */
-    int index = 0;
-    private int[] indexes = map.keys;
-    private double[] values = map.values;
+    private IntDoubleHashMap.EntryIterator keys = map.iterator();
 
 
     @Override
     public boolean hasNext() {
-      return index < indexes.length;
+      return keys.hasNext();
     }
 
     @Override
     public Entry next() {
-      if (index >= indexes.length) {
+      if (!keys.hasNext()) {
         throw new NoSuchElementException();
       }
-      int ii = indexes[index];
-      Entry de = new Entry(ii, values[index]);
-      index++;
-      return de;
+      IntDoubleCursor cursor = keys.next();
+      return new Entry(cursor.key, cursor.value);
     }
 
-    @Override
-    public void remove() {
-      throw new UnsupportedOperationException();
-    }
   }//END OF SparseIterator
 
   private class OrderedSparseIterator implements Iterator<Entry>, Serializable {
@@ -249,30 +243,35 @@ public class SparseVector2 extends AbstractVector {
      * The Index.
      */
     int index = 0;
-    private int[] indexes = map.keys;
-    private double[] values = map.values;
+    private int[] keys;
 
 
     /**
      * Instantiates a new Ordered sparse iterator.
      */
     OrderedSparseIterator() {
-      Arrays.sort(indexes);
+      keys = new int[map.size()];
+      int index = 0;
+      for( IntDoubleCursor c : Collect.asIterable(map.iterator())){
+        keys[index] = c.key;
+        index++;
+      }
+      Arrays.sort(keys);
     }
 
 
     @Override
     public boolean hasNext() {
-      return index < indexes.length;
+      return index < keys.length;
     }
 
     @Override
     public Entry next() {
-      if (index >= indexes.length) {
+      if (index >= keys.length) {
         throw new NoSuchElementException();
       }
-      int ii = indexes[index];
-      Entry de = new Entry(ii, values[index]);
+      int ii = keys[index];
+      Entry de = new Entry(ii, map.get(ii));
       index++;
       return de;
     }

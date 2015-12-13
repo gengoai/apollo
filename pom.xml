@@ -65,11 +65,11 @@
             <version>1.16.6</version>
             <scope>provided</scope>
         </dependency>
-        <!--<dependency>-->
-            <!--<groupId>com.carrotsearch</groupId>-->
-            <!--<artifactId>hppc</artifactId>-->
-            <!--<version>0.7.1</version>-->
-        <!--</dependency>-->
+        <dependency>
+            <groupId>de.bwaldvogel</groupId>
+            <artifactId>liblinear</artifactId>
+            <version>1.94</version>
+        </dependency>
         <dependency>
             <groupId>com.github.vsonnier</groupId>
             <artifactId>hppcrt</artifactId>

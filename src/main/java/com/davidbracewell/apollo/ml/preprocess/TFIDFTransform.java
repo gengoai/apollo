@@ -8,6 +8,7 @@ import com.davidbracewell.collection.Counters;
 import com.google.common.util.concurrent.AtomicDouble;
 
 import java.io.Serializable;
+import java.util.Objects;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -38,19 +39,24 @@ public class TFIDFTransform implements TransformProcessor<Instance>, InstancePre
     return Instance.create(
       example.stream().map(f -> {
           if (pattern.asPredicate().test(f.getName())) {
-            return Feature.real(f.getName(),
-              f.getValue() *
-                Math.log(totalDocs.doubleValue() / (documentFrequencies.get(f.getName()) + 1)));
+            double value = f.getValue() * Math.log((totalDocs.doubleValue() + 1) / (documentFrequencies.get(f.getName()) + 1));
+            if (value != 0) {
+              return Feature.real(f.getName(), value);
+            }
+            return null;
           }
           return f;
         }
-      ).collect(Collectors.toList()),
+      )
+        .filter(Objects::nonNull)
+        .collect(Collectors.toList()),
       example.getLabel()
     );
   }
 
   @Override
   public void finish() {
+
   }
 
   @Override

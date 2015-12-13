@@ -8,7 +8,9 @@ import com.davidbracewell.apollo.ml.classification.ClassifierLearner;
 import com.davidbracewell.collection.Collect;
 import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.function.SerializableIntSupplier;
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -19,6 +21,8 @@ import java.util.List;
  */
 public class NaiveBayesLearner extends ClassifierLearner {
   private static final long serialVersionUID = 1L;
+  @Getter
+  @Setter(onParam = @_({@NonNull}))
   private volatile NaiveBayes.ModelType modelType = NaiveBayes.ModelType.Bernoulli;
 
   private List<DynamicSparseVector> ensureSize(List<DynamicSparseVector> list, int size, SerializableIntSupplier supplier) {
@@ -137,12 +141,4 @@ public class NaiveBayesLearner extends ClassifierLearner {
     return model;
   }
 
-
-  public NaiveBayes.ModelType getModelType() {
-    return modelType;
-  }
-
-  public void setModelType(@NonNull NaiveBayes.ModelType modelType) {
-    this.modelType = modelType;
-  }
 }// END OF NaiveBayesLearner

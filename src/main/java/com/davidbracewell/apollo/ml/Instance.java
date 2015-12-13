@@ -170,13 +170,17 @@ public class Instance implements Example, Serializable, Iterable<Feature> {
     return features;
   }
 
+  public FeatureVector toVector(@NonNull Encoder featureEncoder) {
+    return toVector(featureEncoder, null);
+  }
+
   /**
    * To vector vector.
    *
    * @param featureEncoder the feature encoder
    * @return the vector
    */
-  public FeatureVector toVector(@NonNull Encoder featureEncoder) {
+  public FeatureVector toVector(@NonNull Encoder featureEncoder, Encoder labelEncoder) {
     FeatureVector vector = new FeatureVector(featureEncoder);
     features.forEach(f -> {
       int fi = (int) featureEncoder.encode(f.getName());
@@ -188,6 +192,9 @@ public class Instance implements Example, Serializable, Iterable<Feature> {
         }
       }
     });
+    if (labelEncoder != null && label != null) {
+      vector.setLabel(labelEncoder.encode(label));
+    }
     return vector;
   }
 

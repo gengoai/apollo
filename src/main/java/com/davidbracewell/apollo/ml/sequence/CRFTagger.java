@@ -1,6 +1,7 @@
 package com.davidbracewell.apollo.ml.sequence;
 
 import com.davidbracewell.apollo.ml.Encoder;
+import com.davidbracewell.apollo.ml.Feature;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.classification.ClassifierResult;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
@@ -12,6 +13,7 @@ import third_party.org.chokkan.crfsuite.Attribute;
 import third_party.org.chokkan.crfsuite.Item;
 import third_party.org.chokkan.crfsuite.ItemSequence;
 
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -60,7 +62,7 @@ public class CRFTagger extends SequenceLabeler {
   }
 
   @Override
-  public ClassifierResult estimateInstance(Instance instance) {
+  public double[] estimate(Iterator<Feature> observation, Iterator<String> transitions) {
     return null;
   }
 

@@ -2,7 +2,7 @@ package com.davidbracewell.apollo.ml.sequence;
 
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.classification.ClassifierResult;
-import com.davidbracewell.collection.Collect;
+import com.davidbracewell.collection.LRUMap;
 
 import java.io.Serializable;
 
@@ -17,14 +17,11 @@ public class WindowDecoder implements Decoder, Serializable {
     LabelingResult result = new LabelingResult(sequence.size());
     DecoderState state = null;
     for (ContextualIterator<Instance> iterator = sequence.iterator(); iterator.hasNext(); ) {
-      Instance instance = iterator.next();
-      Instance ti = Instance.create(
-        Collect.union(
-          instance.getFeatures(),
-          labeler.getTransitionFeatures().extract(state)
-        )
+      double[] results = labeler.estimate(
+        iterator.next().getFeatures().iterator(),
+        labeler.getTransitionFeatures().extract(state)
       );
-      ClassifierResult cr = labeler.estimateInstance(ti);
+      ClassifierResult cr = new ClassifierResult(results, labeler.getLabelEncoder());
       result.setLabel(iterator.getIndex(), cr);
       state = new DecoderState(
         state,

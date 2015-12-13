@@ -13,6 +13,8 @@ import java.util.stream.Stream;
  */
 public interface Encoder {
 
+  double get(Object object);
+
   /**
    * Encodes a stream of objects returning a double stream containing the encoded values.
    *

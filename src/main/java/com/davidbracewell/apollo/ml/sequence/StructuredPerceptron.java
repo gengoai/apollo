@@ -2,17 +2,21 @@ package com.davidbracewell.apollo.ml.sequence;
 
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.Encoder;
-import com.davidbracewell.apollo.ml.Instance;
-import com.davidbracewell.apollo.ml.classification.ClassifierResult;
+import com.davidbracewell.apollo.ml.Feature;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
+import com.davidbracewell.collection.LRUMap;
+import com.google.common.base.Stopwatch;
+import com.google.common.primitives.Floats;
 import lombok.NonNull;
 
 import java.util.Iterator;
+import java.util.Map;
 
 /**
  * @author David B. Bracewell
  */
 public class StructuredPerceptron extends SequenceLabeler {
+  final int numberOfClasses;
   Vector[] weights;
 
   /**
@@ -24,25 +28,32 @@ public class StructuredPerceptron extends SequenceLabeler {
    */
   public StructuredPerceptron(@NonNull Encoder labelEncoder, @NonNull Encoder featureEncoder, PreprocessorList<Sequence> preprocessors, TransitionFeatures transitionFeatures) {
     super(labelEncoder, featureEncoder, preprocessors, transitionFeatures);
+    this.numberOfClasses = labelEncoder.size();
   }
 
   @Override
-  public ClassifierResult estimateInstance(Instance instance) {
-    Vector v = instance.toVector(getFeatureEncoder());
-    double[] distribution = new double[numberOfLabels()];
-    double max = 0;
-    for (Iterator<Vector.Entry> iterator = v.nonZeroIterator(); iterator.hasNext(); ) {
-      Vector.Entry de = iterator.next();
-      for (int ci = 0; ci < numberOfLabels(); ci++) {
-        distribution[ci] = weights[ci].get(de.index) * de.value;
-        max = Math.max(max, distribution[ci]);
+  public double[] estimate(Iterator<Feature> observation, Iterator<String> transitions) {
+    double[] distribution = new double[numberOfClasses];
+    while (observation.hasNext()) {
+      Feature feature = observation.next();
+      int index = (int) getFeatureEncoder().encode(feature.getName());
+      if (index != -1) {
+        for (int ci = 0; ci < numberOfClasses; ci++) {
+          distribution[ci] += weights[ci].get(index);
+        }
       }
     }
 
-    for (int ci = 0; ci < numberOfLabels(); ci++) {
-      distribution[ci] = distribution[ci] / max;
+    while (transitions.hasNext()) {
+      int index = (int) getFeatureEncoder().encode(transitions.next());
+      if (index != -1) {
+        for (int ci = 0; ci < numberOfClasses; ci++) {
+          distribution[ci] += weights[ci].get(index);
+        }
+      }
     }
-    return new ClassifierResult(distribution, getLabelEncoder());
+
+    return distribution;
   }
 
 }// END OF StructuredPerceptron

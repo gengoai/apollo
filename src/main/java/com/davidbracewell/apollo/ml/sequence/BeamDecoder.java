@@ -1,8 +1,6 @@
 package com.davidbracewell.apollo.ml.sequence;
 
 import com.davidbracewell.apollo.ml.Instance;
-import com.davidbracewell.apollo.ml.classification.ClassifierResult;
-import com.davidbracewell.collection.Collect;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.MinMaxPriorityQueue;
 import com.google.common.collect.Ordering;
@@ -19,63 +17,60 @@ import java.util.List;
 public class BeamDecoder implements Decoder {
   private int beamSize;
 
+  /**
+   * Instantiates a new Beam decoder.
+   */
   public BeamDecoder() {
     this(3);
   }
 
+  /**
+   * Instantiates a new Beam decoder.
+   *
+   * @param beamSize the beam size
+   */
   public BeamDecoder(int beamSize) {
     Preconditions.checkArgument(beamSize > 0, "Beam size must be > 0.");
     this.beamSize = beamSize;
   }
 
   @Override
-  public LabelingResult decode(@NonNull SequenceLabeler labeler, @NonNull Sequence sequence) {
-    ContextualIterator<Instance> iterator = sequence.iterator();
-    MinMaxPriorityQueue<DecoderState> queue = initMatrix(labeler, iterator.next());
-    while (iterator.hasNext()) {
-      iterator.next();
-      queue = fillMatrix(queue, labeler, iterator);
+  public LabelingResult decode(@NonNull SequenceLabeler model, @NonNull Sequence sequence) {
+    if (sequence.size() == 0) {
+      return new LabelingResult(0);
     }
-    LabelingResult result = new LabelingResult(sequence.size());
-    DecoderState last = queue.remove();
-    while (last != null) {
-      result.setLabel(last.index, last.tag, last.stateProbability);
-      last = last.previousState;
-    }
-    return result;
-  }
-
-  private MinMaxPriorityQueue<DecoderState> initMatrix(SequenceLabeler model, Instance instance) {
-    ClassifierResult result = model.estimateInstance(instance);
     MinMaxPriorityQueue<DecoderState> queue = MinMaxPriorityQueue
       .orderedBy(Ordering.natural().reverse())
       .maximumSize(beamSize)
       .create();
-
-    model.getLabelEncoder().values().forEach(label ->
-      queue.add(new DecoderState(result.getConfidence(label.toString()), label.toString()))
-    );
-    return queue;
-  }
-
-  private MinMaxPriorityQueue<DecoderState> fillMatrix(MinMaxPriorityQueue<DecoderState> queue, SequenceLabeler model, ContextualIterator<Instance> iterator) {
+    queue.add(new DecoderState(0, null));
     List<DecoderState> newStates = new LinkedList<>();
-    while (!queue.isEmpty()) {
-      DecoderState state = queue.remove();
-      Instance instance = iterator.getCurrent();
-      Instance ti = Instance.create(
-        Collect.union(
-          instance.getFeatures(),
+    ContextualIterator<Instance> iterator = sequence.iterator();
+    while (iterator.hasNext()) {
+      iterator.next();
+      newStates.clear();
+      while (!queue.isEmpty()) {
+        DecoderState state = queue.remove();
+        double[] result = model.estimate(
+          iterator.getCurrent().getFeatures().iterator(),
           model.getTransitionFeatures().extract(state)
-        )
-      );
-      ClassifierResult result = model.estimateInstance(ti);
-      model.getLabelEncoder().values().forEach(label ->
-        newStates.add(new DecoderState(state, result.getConfidence(label.toString()), label.toString()))
-      );
+        );
+        for (int i = 0; i < result.length; i++) {
+          String label = model.getLabelEncoder().decode(i).toString();
+          newStates.add(new DecoderState(state, result[i], label));
+        }
+      }
+      queue.addAll(newStates);
     }
-    queue.addAll(newStates);
-    return queue;
+
+    LabelingResult result = new LabelingResult(sequence.size());
+    DecoderState last = queue.remove();
+    while (last != null && last.tag != null) {
+      result.setLabel(last.index - 1, last.tag, last.stateProbability);
+      last = last.previousState;
+    }
+    queue.clear();
+    return result;
   }
 
   /**

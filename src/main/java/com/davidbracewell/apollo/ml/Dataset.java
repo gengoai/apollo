@@ -23,6 +23,7 @@ package com.davidbracewell.apollo.ml;
 
 import com.davidbracewell.Copyable;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
+import com.davidbracewell.apollo.ml.sequence.FeatureVectorSequence;
 import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.io.resource.Resource;
 import com.davidbracewell.io.structured.ElementType;
@@ -37,6 +38,7 @@ import lombok.NonNull;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * <p>A dataset is a collection of examples which can be used for training and evaluating models. Implementations of
@@ -117,7 +119,9 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
       this.preprocessors.visit(this.rawIterator());
       this.preprocessors.finish();
     }
-    return this;
+    return create(
+      stream().map(e -> preprocessors.apply(Cast.as(e.copy())))
+    );
   }
 
   public Dataset<T> encode() {
@@ -129,7 +133,6 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
   @Override
   public final Iterator<T> iterator() {
     return Iterators.transform(rawIterator(), e -> {
-      e = preprocessors.apply(Cast.as(e.copy()));
       labelEncoder.encode(e.getLabelSpace());
       featureEncoder.encode(e.getFeatureSpace());
       return e;
@@ -376,6 +379,31 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
       reader.endDocument();
     }
     return this;
+  }
+
+
+  List<FeatureVector> asFeatureVectors() {
+    encode();
+    List<FeatureVector> list = stream()
+      .flatMap(e -> e.asInstances().stream().map(ii -> ii.toVector(featureEncoder)).collect(Collectors.toList()))
+      .collect();
+    close();
+    return list;
+  }
+
+  List<FeatureVectorSequence> asFeatureVectorSequences() {
+    encode();
+    List<FeatureVectorSequence> list = stream()
+      .map(e -> {
+        FeatureVectorSequence fvs = new FeatureVectorSequence();
+        for (Instance ii : e.asInstances()) {
+          fvs.add(ii.toVector(featureEncoder));
+        }
+        return fvs;
+      })
+      .collect();
+    close();
+    return list;
   }
 
   /**

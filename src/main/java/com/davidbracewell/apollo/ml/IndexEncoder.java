@@ -20,6 +20,11 @@ public class IndexEncoder implements Encoder, Serializable {
   private volatile AtomicBoolean frozen = new AtomicBoolean(false);
 
   @Override
+  public double get(Object object) {
+    return index.indexOf(object);
+  }
+
+  @Override
   public double encode(@NonNull Object object) {
     String str = object.toString();
     if (!frozen.get()) {

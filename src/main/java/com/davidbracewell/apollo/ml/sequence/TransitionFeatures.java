@@ -1,13 +1,14 @@
 package com.davidbracewell.apollo.ml.sequence;
 
-import com.davidbracewell.apollo.ml.Feature;
 import com.davidbracewell.apollo.ml.Instance;
+import com.davidbracewell.collection.Interner;
 import com.davidbracewell.string.StringUtils;
 import com.google.common.base.Preconditions;
 
 import java.io.Serializable;
-import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 /**
  * @author David B. Bracewell
@@ -15,6 +16,7 @@ import java.util.List;
 public class TransitionFeatures implements Serializable {
   public static final TransitionFeatures FIRST_ORDER = new TransitionFeatures("-1");
   public static final TransitionFeatures SECOND_ORDER = new TransitionFeatures("-2,-1");
+  private static final Interner<String> INTERNER = new Interner<>();
   private final int[][] featureTemplates;
   private int historySize;
 
@@ -34,32 +36,55 @@ public class TransitionFeatures implements Serializable {
     return historySize;
   }
 
-  public List<Feature> extract(ContextualIterator<Instance> iterator) {
-    List<Feature> features = new ArrayList<>();
-    for (int[] template : featureTemplates) {
-      StringBuilder builder = new StringBuilder();
-      for (int element : template) {
-        appendTo(builder, "T[" + element + "]=" + iterator.getContextLabel(element).orElse(Sequence.BOS));
+
+  public Iterator<String> extract(final ContextualIterator<Instance> iterator) {
+    return new Iterator<String>() {
+      int templateIndex = -1;
+
+      @Override
+      public boolean hasNext() {
+        return templateIndex + 1 < featureTemplates.length;
       }
-      if (builder.length() > 0) {
-        features.add(Feature.TRUE(builder.toString()));
+
+      @Override
+      public String next() {
+        templateIndex++;
+        if (templateIndex >= featureTemplates.length) {
+          throw new NoSuchElementException();
+        }
+        int[] template = featureTemplates[templateIndex];
+        StringBuilder builder = new StringBuilder();
+        for (int element : template) {
+          appendTo(builder, "T[" + element + "]=" + iterator.getContextLabel(element).orElse(Sequence.BOS));
+        }
+        return INTERNER.intern(builder.toString());
       }
-    }
-    return features;
+    };
   }
 
-  public List<Feature> extract(LabelingResult result, int index) {
-    List<Feature> features = new ArrayList<>();
-    for (int[] template : featureTemplates) {
-      StringBuilder builder = new StringBuilder();
-      for (int element : template) {
-        appendTo(builder, "T[" + element + "]=" + result.getLabel(index + element));
+  public Iterator<String> extract(final LabelingResult result, final int index) {
+    return new Iterator<String>() {
+      int templateIndex = -1;
+
+      @Override
+      public boolean hasNext() {
+        return templateIndex + 1 < featureTemplates.length;
       }
-      if (builder.length() > 0) {
-        features.add(Feature.TRUE(builder.toString()));
+
+      @Override
+      public String next() {
+        templateIndex++;
+        if (templateIndex >= featureTemplates.length) {
+          throw new NoSuchElementException();
+        }
+        int[] template = featureTemplates[templateIndex];
+        StringBuilder builder = new StringBuilder();
+        for (int element : template) {
+          appendTo(builder, "T[" + element + "]=" + result.getLabel(index + element));
+        }
+        return INTERNER.intern(builder.toString());
       }
-    }
-    return features;
+    };
   }
 
   private String label(DecoderState state, int back) {
@@ -68,24 +93,68 @@ public class TransitionFeatures implements Serializable {
       back--;
       state = state.previousState;
     }
-    if (state == null) {
+    if (state == null || state.tag == null) {
       return Sequence.BOS;
     }
     return state.tag;
   }
 
-  public List<Feature> extract(DecoderState prevState) {
-    List<Feature> features = new ArrayList<>();
-    for (int[] template : featureTemplates) {
-      StringBuilder builder = new StringBuilder();
-      for (int element : template) {
-        appendTo(builder, "T[" + element + "]=" + label(prevState, element));
-      }
-      if (builder.length() > 0) {
-        features.add(Feature.TRUE(builder.toString()));
-      }
+  private String label(DecoderRow state, int back) {
+    back = state.size() - Math.abs(back) - 1;
+    if(back < 0 ){
+      return Sequence.BOS;
     }
-    return features;
+    return state.getLabel(back);
+  }
+
+  public Iterator<String> extract(final DecoderRow row) {
+    return new Iterator<String>() {
+      int templateIndex = -1;
+
+      @Override
+      public boolean hasNext() {
+        return templateIndex + 1 < featureTemplates.length;
+      }
+
+      @Override
+      public String next() {
+        templateIndex++;
+        if (templateIndex >= featureTemplates.length) {
+          throw new NoSuchElementException();
+        }
+        int[] template = featureTemplates[templateIndex];
+        StringBuilder builder = new StringBuilder();
+        for (int element : template) {
+          appendTo(builder, "T[" + element + "]=" + label(row, element));
+        }
+        return INTERNER.intern(builder.toString());
+      }
+    };
+  }
+
+  public Iterator<String> extract(final DecoderState prevState) {
+    return new Iterator<String>() {
+      int templateIndex = -1;
+
+      @Override
+      public boolean hasNext() {
+        return templateIndex + 1 < featureTemplates.length;
+      }
+
+      @Override
+      public String next() {
+        templateIndex++;
+        if (templateIndex >= featureTemplates.length) {
+          throw new NoSuchElementException();
+        }
+        int[] template = featureTemplates[templateIndex];
+        StringBuilder builder = new StringBuilder();
+        for (int element : template) {
+          appendTo(builder, "T[" + element + "]=" + label(prevState, element));
+        }
+        return INTERNER.intern(builder.toString());
+      }
+    };
   }
 
 

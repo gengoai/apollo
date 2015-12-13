@@ -1,17 +1,18 @@
 package com.davidbracewell.apollo.ml.sequence;
 
-import com.davidbracewell.apollo.linalg.DynamicSparseVector;
-import com.davidbracewell.apollo.linalg.SparseVector;
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.Dataset;
-import com.davidbracewell.apollo.ml.Encoder;
 import com.davidbracewell.apollo.ml.Feature;
+import com.davidbracewell.apollo.ml.FeatureVector;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.collection.Collect;
 import com.davidbracewell.logging.Logger;
 import com.google.common.base.Stopwatch;
+import com.google.common.collect.Lists;
 
 import java.text.DecimalFormat;
+import java.util.HashMap;
+import java.util.List;
 
 /**
  * The type Structured perceptron learner.
@@ -20,32 +21,29 @@ import java.text.DecimalFormat;
  */
 public class StructuredPerceptronLearner extends SequenceLabelerLearner {
   private static final Logger log = Logger.getLogger(StructuredPerceptronLearner.class);
-  private TransitionFeatures transitionFeatures = TransitionFeatures.FIRST_ORDER;
   private int maxIterations = 10;
   private double tolerance = 0.00001;
   private Vector[] cWeights;
 
+
   @Override
   protected SequenceLabeler trainImpl(Dataset<Sequence> dataset) {
 
-    StructuredPerceptron perception = new StructuredPerceptron(
+    StructuredPerceptron model = new StructuredPerceptron(
       dataset.getLabelEncoder(),
       dataset.getFeatureEncoder(),
       dataset.getPreprocessors(),
       transitionFeatures
     );
-    perception.setDecoder(getDecoder());
+    model.setDecoder(getDecoder());
 
+    int nC = model.numberOfLabels();
 
-    final Encoder lblEncoder = dataset.getLabelEncoder();
-
-    int nC = perception.numberOfLabels();
-    perception.weights = new SparseVector[nC];
-
-    cWeights = new DynamicSparseVector[nC];
+    model.weights = new Vector[nC];
+    cWeights = new Vector[nC];
     for (int i = 0; i < nC; i++) {
-      perception.weights[i] = new DynamicSparseVector(perception::numberOfFeatures);
-      cWeights[i] = new DynamicSparseVector(perception::numberOfFeatures);
+      model.weights[i] = new FeatureVector(model.getFeatureEncoder());
+      cWeights[i] = new FeatureVector(model.getFeatureEncoder());
     }
 
 
@@ -53,56 +51,59 @@ public class StructuredPerceptronLearner extends SequenceLabelerLearner {
     double oldError = 0;
     final DecimalFormat formatter = new DecimalFormat("###.00%");
 
+    List<Sequence> sequenceList = Lists.newLinkedList(Collect.asIterable(dataset.iterator()));
     int c = 1;
-    Vector[] counts = new Vector[nC];
-    for (int i = 0; i < nC; i++) {
-      counts[i] = new DynamicSparseVector(perception.getFeatureEncoder()::size);
-    }
     for (int itr = 0; itr < maxIterations; itr++) {
       Stopwatch sw = Stopwatch.createStarted();
+
       double count = 0;
       double correct = 0;
 
-      for (Sequence sequence : dataset) {
-        for (int i = 0; i < nC; i++) {
-          counts[i].zero();
-        }
+      for (Sequence sequence : sequenceList) {
 
-        LabelingResult lblResult = perception.label(sequence);
+        LabelingResult lblResult = model.label(sequence);
+
+        double diff = 0;
         for (ContextualIterator<Instance> iterator = sequence.iterator(); iterator.hasNext(); ) {
           count++;
-          Instance instance = iterator.next();
-          int y = (int) perception.getLabelEncoder().encode(instance.getLabel());
-          int yHat = (int) perception.getLabelEncoder().encode(lblResult.getLabel(iterator.getIndex()));
-          if (y != yHat) {
-            for (Feature feature : instance) {
-              int fid = (int) perception.getFeatureEncoder().encode(feature.getName());
-              counts[yHat].decrement(fid);
-              counts[y].increment(fid);
-            }
-            for (Feature feature : transitionFeatures.extract(lblResult, iterator.getIndex())) {
-              int fid = (int) perception.getFeatureEncoder().encode(feature.getName());
-              counts[yHat].decrement(fid);
-            }
-            for (Feature feature : transitionFeatures.extract(iterator)) {
-              int fid = (int) perception.getFeatureEncoder().encode(feature.getName());
-              counts[y].increment(fid);
-            }
+          if (!iterator.next().getLabel().equals(lblResult.getLabel(iterator.getIndex()))) {
+            diff++;
           } else {
             correct++;
           }
         }
 
-        for (int i = 0; i < nC; i++) {
-          for (Vector.Entry entry : Collect.asIterable(counts[i].nonZeroIterator())) {
-            cWeights[i].increment(entry.index, c);
-            perception.weights[i].increment(entry.index, entry.getValue());
+
+        if (diff > 0) {
+          for (ContextualIterator<Instance> iterator = sequence.iterator(); iterator.hasNext(); ) {
+            Instance instance = iterator.next();
+            int y = (int) model.getLabelEncoder().encode(instance.getLabel());
+            int yHat = (int) model.getLabelEncoder().encode(lblResult.getLabel(iterator.getIndex()));
+            if (y != yHat) {
+              for (Feature feature : instance) {
+                int fid = (int) model.getFeatureEncoder().encode(feature.getName());
+                model.weights[yHat].decrement(fid);
+                model.weights[y].increment(fid);
+                cWeights[yHat].decrement(fid);
+                cWeights[y].increment(fid);
+              }
+              for (String feature : Collect.asIterable(transitionFeatures.extract(lblResult, iterator.getIndex()))) {
+                int fid = (int) model.getFeatureEncoder().encode(feature);
+                model.weights[yHat].decrement(fid);
+                cWeights[yHat].decrement(fid);
+              }
+              for (String feature : Collect.asIterable(transitionFeatures.extract(iterator))) {
+                int fid = (int) model.getFeatureEncoder().encode(feature);
+                model.weights[y].increment(fid);
+                cWeights[y].increment(fid);
+              }
+            }
           }
+
+          c++;
         }
-        c++;
 
       }
-
 
       sw.stop();
       log.info("iteration={0} accuracy={1} ({2}/{3}) [completed in {4}]", itr + 1, formatter.format(correct / count), correct, count, sw);
@@ -118,16 +119,18 @@ public class StructuredPerceptronLearner extends SequenceLabelerLearner {
 
       oldOldError = oldError;
       oldError = error;
-      dataset.shuffle();
+
+//      Collections.shuffle(sequenceList);
+//      dataset.shuffle();
     }
 
     final double C = c;
     for (int ci = 0; ci < nC; ci++) {
-      Vector v = perception.weights[ci];
+      Vector v = model.weights[ci];
       cWeights[ci].forEachSparse(entry -> v.decrement(entry.index, entry.value / C));
     }
 
-    return perception;
+    return model;
   }
 
   @Override
@@ -174,22 +177,5 @@ public class StructuredPerceptronLearner extends SequenceLabelerLearner {
     this.tolerance = tolerance;
   }
 
-  /**
-   * Gets transition features.
-   *
-   * @return the transition features
-   */
-  public TransitionFeatures getTransitionFeatures() {
-    return transitionFeatures;
-  }
-
-  /**
-   * Sets transition features.
-   *
-   * @param transitionFeatures the transition features
-   */
-  public void setTransitionFeatures(TransitionFeatures transitionFeatures) {
-    this.transitionFeatures = transitionFeatures;
-  }
 
 }// END OF StructuredPerceptronLearner

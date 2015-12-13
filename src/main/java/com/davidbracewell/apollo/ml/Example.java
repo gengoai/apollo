@@ -12,6 +12,7 @@ import com.google.common.base.Throwables;
 import lombok.NonNull;
 
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -44,7 +45,7 @@ public interface Example extends Copyable<Example> {
   static Example fromJson(String input) throws IOException {
     Preconditions.checkArgument(!StringUtils.isNullOrBlank(input), "Cannot create example from null or empty string.");
     Resource r = Resources.fromString(input);
-    Example rval = null;
+    Example rval;
     try (JSONReader reader = new JSONReader(r)) {
       reader.beginDocument();
       rval = read(reader);
@@ -107,7 +108,11 @@ public interface Example extends Copyable<Example> {
   Example intern(Interner<String> interner);
 
 
+  /**
+   * Returns the example as a list of instances
+   *
+   * @return The example as a list of instances
+   */
   List<Instance> asInstances();
-
 
 }//END OF Example

@@ -28,6 +28,11 @@ public class HashingEncoder implements Encoder, Serializable {
   }
 
   @Override
+  public double get(Object object) {
+    return encode(object);
+  }
+
+  @Override
   public double encode(@NonNull Object object) {
     return (object.hashCode() & 0x7fffffff) % numberOfFeatures;
   }

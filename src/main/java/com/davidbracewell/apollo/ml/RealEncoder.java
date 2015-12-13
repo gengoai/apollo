@@ -18,6 +18,11 @@ public class RealEncoder implements Encoder, Serializable {
   private static final long serialVersionUID = 1L;
 
   @Override
+  public double get(Object object) {
+    return encode(object);
+  }
+
+  @Override
   public double encode(@NonNull Object object) {
     Preconditions.checkArgument(object instanceof Number, object.getClass() + " is not a valid Number");
     return Cast.<Number>as(object).doubleValue();

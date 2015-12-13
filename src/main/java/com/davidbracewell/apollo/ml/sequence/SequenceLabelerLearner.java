@@ -7,8 +7,8 @@ import com.davidbracewell.apollo.ml.Learner;
  */
 public abstract class SequenceLabelerLearner extends Learner<Sequence, SequenceLabeler> {
   private static final long serialVersionUID = 1L;
-  public Decoder decoder;
-
+  protected Decoder decoder;
+  protected TransitionFeatures transitionFeatures = TransitionFeatures.FIRST_ORDER;
 
   public Decoder getDecoder() {
     return decoder;
@@ -16,5 +16,13 @@ public abstract class SequenceLabelerLearner extends Learner<Sequence, SequenceL
 
   public void setDecoder(Decoder decoder) {
     this.decoder = decoder;
+  }
+
+  public TransitionFeatures getTransitionFeatures() {
+    return transitionFeatures;
+  }
+
+  public void setTransitionFeatures(TransitionFeatures transitionFeatures) {
+    this.transitionFeatures = transitionFeatures;
   }
 }// END OF SequenceLabelerLearner

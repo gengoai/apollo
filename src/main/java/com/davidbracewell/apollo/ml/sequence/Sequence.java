@@ -1,11 +1,13 @@
 package com.davidbracewell.apollo.ml.sequence;
 
+import com.davidbracewell.apollo.ml.Encoder;
 import com.davidbracewell.apollo.ml.Example;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.collection.Interner;
 import lombok.NonNull;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -16,13 +18,13 @@ import java.util.stream.Stream;
  *
  * @author David B. Bracewell
  */
-public class Sequence implements Example, Serializable {
+public class Sequence implements Example, Serializable, Iterable<Instance> {
 
   public static final String BOS = "****START****";
   public static final String EOS = "****END****";
 
   private static final long serialVersionUID = 1L;
-  private final List<Instance> sequence;
+  private final ArrayList<Instance> sequence;
 
   /**
    * Instantiates a new Sequence.
@@ -30,7 +32,8 @@ public class Sequence implements Example, Serializable {
    * @param sequence the sequence
    */
   public Sequence(@NonNull List<Instance> sequence) {
-    this.sequence = sequence;
+    this.sequence = new ArrayList<>(sequence);
+    this.sequence.trimToSize();
   }
 
   @Override
@@ -93,6 +96,13 @@ public class Sequence implements Example, Serializable {
   @Override
   public String toString() {
     return sequence.toString();
+  }
+
+
+  public FeatureVectorSequence vectorize(@NonNull Encoder featureEncoder) {
+    FeatureVectorSequence fvs = new FeatureVectorSequence();
+    sequence.forEach(i -> fvs.add(i.toVector(featureEncoder)));
+    return fvs;
   }
 
 

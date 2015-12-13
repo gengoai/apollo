@@ -21,25 +21,25 @@
 
 package com.davidbracewell.apollo.linalg;
 
+import com.carrotsearch.hppcrt.cursors.IntDoubleCursor;
+import com.carrotsearch.hppcrt.maps.IntDoubleHashMap;
 import com.google.common.base.Preconditions;
-import org.apache.mahout.math.function.IntDoubleProcedure;
-import org.apache.mahout.math.list.IntArrayList;
-import org.apache.mahout.math.map.OpenIntDoubleHashMap;
 
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Random;
+import java.util.function.Consumer;
 
 /**
  * A sparse vector implementation backed by a map
  *
  * @author David B. Bracewell
  */
-public class SparseVector extends AbstractVector {
+public class SparseVector2 extends AbstractVector {
   private static final long serialVersionUID = 1L;
-  private final OpenIntDoubleHashMap map;
+  private final IntDoubleHashMap map;
   private final int dimension;
 
   /**
@@ -47,10 +47,10 @@ public class SparseVector extends AbstractVector {
    *
    * @param dimension the dimension of the new vector
    */
-  public SparseVector(int dimension) {
+  public SparseVector2(int dimension) {
     Preconditions.checkArgument(dimension >= 0, "Dimension must be non-negative.");
     this.dimension = dimension;
-    this.map = new OpenIntDoubleHashMap();
+    this.map = new IntDoubleHashMap();
   }
 
   /**
@@ -58,11 +58,11 @@ public class SparseVector extends AbstractVector {
    *
    * @param vector The vector to copy from
    */
-  public SparseVector(Vector vector) {
+  public SparseVector2(Vector vector) {
     this.dimension = Preconditions.checkNotNull(vector.dimension());
-    this.map = new OpenIntDoubleHashMap(vector.size());
-    for (Iterator<Vector.Entry> itr = vector.nonZeroIterator(); itr.hasNext(); ) {
-      Vector.Entry de = itr.next();
+    this.map = new IntDoubleHashMap(vector.size());
+    for (Iterator<Entry> itr = vector.nonZeroIterator(); itr.hasNext(); ) {
+      Entry de = itr.next();
       this.map.put(de.index, de.value);
     }
   }
@@ -74,7 +74,7 @@ public class SparseVector extends AbstractVector {
    * @return a new <code>SparseVector</code> whose values are 1.
    */
   public static Vector ones(int dimension) {
-    SparseVector vector = new SparseVector(dimension);
+    SparseVector2 vector = new SparseVector2(dimension);
     for (int i = 0; i < dimension; i++) {
       vector.map.put(i, 1.0);
     }
@@ -88,7 +88,7 @@ public class SparseVector extends AbstractVector {
    * @return the vector
    */
   public static Vector randomGaussian(int dimension) {
-    SparseVector v = new SparseVector(dimension);
+    SparseVector2 v = new SparseVector2(dimension);
     Random rnd = new Random();
     for (int i = 0; i < dimension; i++) {
       v.set(i, rnd.nextGaussian());
@@ -103,17 +103,17 @@ public class SparseVector extends AbstractVector {
    * @return a new <code>SparseVector</code> whose values are 0.
    */
   public static Vector zeros(int dimension) {
-    return new SparseVector(dimension);
+    return new SparseVector2(dimension);
   }
 
   @Override
   public void compress() {
-    map.trimToSize();
+
   }
 
   @Override
   public Vector copy() {
-    return new SparseVector(this);
+    return new SparseVector2(this);
   }
 
   @Override
@@ -133,7 +133,7 @@ public class SparseVector extends AbstractVector {
 
   @Override
   public Vector increment(int index, double amount) {
-    map.adjustOrPutValue(index, amount, amount);
+    map.putOrAdd(index, amount, amount);
     return this;
   }
 
@@ -143,19 +143,19 @@ public class SparseVector extends AbstractVector {
   }
 
   @Override
-  public Iterator<Vector.Entry> nonZeroIterator() {
+  public Iterator<Entry> nonZeroIterator() {
     return new SparseIterator();
   }
 
   @Override
-  public Iterator<Vector.Entry> orderedNonZeroIterator() {
+  public Iterator<Entry> orderedNonZeroIterator() {
     return new OrderedSparseIterator();
   }
 
   @Override
   public Vector set(int index, double value) {
     if (value == 0) {
-      map.removeKey(index);
+      map.remove(index);
     } else {
       map.put(index, value);
     }
@@ -172,7 +172,7 @@ public class SparseVector extends AbstractVector {
     Preconditions.checkPositionIndex(from, dimension());
     Preconditions.checkPositionIndex(to, dimension() + 1);
     Preconditions.checkState(to > from, "To index must be > from index");
-    SparseVector v = new SparseVector((to - from));
+    SparseVector2 v = new SparseVector2((to - from));
     for (int i = from; i < to; i++) {
       v.set(i, get(i));
     }
@@ -182,19 +182,15 @@ public class SparseVector extends AbstractVector {
   @Override
   public double[] toArray() {
     final double[] d = new double[dimension()];
-    map.forEachPair(new IntDoubleProcedure() {
-      @Override
-      public boolean apply(int first, double second) {
-        d[first] = second;
-        return true;
-      }
+    map.forEach((Consumer<IntDoubleCursor>) intDoubleCursor -> {
+      d[intDoubleCursor.key] = intDoubleCursor.value;
     });
     return d;
   }
 
   @Override
   public String toString() {
-    return Arrays.toString(map.values().elements());
+    return map.toString();
   }
 
   @Override
@@ -205,44 +201,37 @@ public class SparseVector extends AbstractVector {
 
   @Override
   public Vector redim(int newDimension) {
-    Vector v = new SparseVector(newDimension);
-    for (Iterator<Vector.Entry> itr = nonZeroIterator(); itr.hasNext(); ) {
-      Vector.Entry de = itr.next();
+    Vector v = new SparseVector2(newDimension);
+    for (Iterator<Entry> itr = nonZeroIterator(); itr.hasNext(); ) {
+      Entry de = itr.next();
       v.set(de.index, de.value);
     }
     return v;
   }
 
-  private class SparseIterator implements Iterator<Vector.Entry>, Serializable {
+  private class SparseIterator implements Iterator<Entry>, Serializable {
 
     private static final long serialVersionUID = 1L;
     /**
      * The Index.
      */
     int index = 0;
-    private IntArrayList indexes = new IntArrayList();
-
-
-    /**
-     * Instantiates a new Sparse iterator.
-     */
-    SparseIterator() {
-      map.keys(indexes);
-    }
+    private int[] indexes = map.keys;
+    private double[] values = map.values;
 
 
     @Override
     public boolean hasNext() {
-      return index < indexes.size();
+      return index < indexes.length;
     }
 
     @Override
-    public Vector.Entry next() {
-      if (index >= indexes.size()) {
+    public Entry next() {
+      if (index >= indexes.length) {
         throw new NoSuchElementException();
       }
-      int ii = indexes.get(index);
-      Vector.Entry de = new Vector.Entry(ii, map.get(ii));
+      int ii = indexes[index];
+      Entry de = new Entry(ii, values[index]);
       index++;
       return de;
     }
@@ -253,37 +242,37 @@ public class SparseVector extends AbstractVector {
     }
   }//END OF SparseIterator
 
-  private class OrderedSparseIterator implements Iterator<Vector.Entry>, Serializable {
+  private class OrderedSparseIterator implements Iterator<Entry>, Serializable {
 
     private static final long serialVersionUID = 1L;
     /**
      * The Index.
      */
     int index = 0;
-    private IntArrayList indexes = new IntArrayList();
+    private int[] indexes = map.keys;
+    private double[] values = map.values;
 
 
     /**
      * Instantiates a new Ordered sparse iterator.
      */
     OrderedSparseIterator() {
-      map.keys(indexes);
-      indexes.sort();
+      Arrays.sort(indexes);
     }
 
 
     @Override
     public boolean hasNext() {
-      return index < indexes.size();
+      return index < indexes.length;
     }
 
     @Override
-    public Vector.Entry next() {
-      if (index >= indexes.size()) {
+    public Entry next() {
+      if (index >= indexes.length) {
         throw new NoSuchElementException();
       }
-      int ii = indexes.get(index);
-      Vector.Entry de = new Vector.Entry(ii, map.get(ii));
+      int ii = indexes[index];
+      Entry de = new Entry(ii, values[index]);
       index++;
       return de;
     }

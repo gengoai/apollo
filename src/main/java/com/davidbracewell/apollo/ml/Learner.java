@@ -22,16 +22,28 @@ public abstract class Learner<T extends Example, M extends Model> implements Ser
   /**
    * Builder learner builder.
    *
+   * @param <T> the type parameter
+   * @param <M> the type parameter
    * @return the learner builder
    */
   public static <T extends Example, M extends Model> LearnerBuilder<T, M> builder() {
     return new LearnerBuilder<>();
   }
 
+  /**
+   * Classification learner builder.
+   *
+   * @return the learner builder
+   */
   public static LearnerBuilder<Instance, Classifier> classification() {
     return new LearnerBuilder<>();
   }
 
+  /**
+   * Sequence labeling learner builder.
+   *
+   * @return the learner builder
+   */
   public static LearnerBuilder<Sequence, SequenceLabeler> sequenceLabeling() {
     return new LearnerBuilder<>();
   }

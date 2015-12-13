@@ -103,18 +103,42 @@ public abstract class ContextualIterator<T> implements Iterator<T>, Serializable
     return getLabelAt(index + relative);
   }
 
+  /**
+   * Gets previous label.
+   *
+   * @param relative the relative
+   * @return the previous label
+   */
   public Optional<String> getPreviousLabel(int relative) {
     return getContextLabel(-Math.abs(relative));
   }
 
+  /**
+   * Gets next label.
+   *
+   * @param relative the relative
+   * @return the next label
+   */
   public Optional<String> getNextLabel(int relative) {
     return getContextLabel(Math.abs(relative));
   }
 
+  /**
+   * Gets previous.
+   *
+   * @param relative the relative
+   * @return the previous
+   */
   public Optional<T> getPrevious(int relative) {
     return getContext(-Math.abs(relative));
   }
 
+  /**
+   * Gets next.
+   *
+   * @param relative the relative
+   * @return the next
+   */
   public Optional<T> getNext(int relative) {
     return getContext(Math.abs(relative));
   }

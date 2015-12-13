@@ -21,8 +21,6 @@
 
 package com.davidbracewell.apollo.ml;
 
-import com.davidbracewell.apollo.linalg.DynamicSparseVector;
-import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.collection.Collect;
 import com.davidbracewell.collection.Interner;
 import lombok.EqualsAndHashCode;
@@ -178,8 +176,8 @@ public class Instance implements Example, Serializable, Iterable<Feature> {
    * @param featureEncoder the feature encoder
    * @return the vector
    */
-  public Vector toVector(@NonNull Encoder featureEncoder) {
-    DynamicSparseVector vector = new DynamicSparseVector(featureEncoder::size);
+  public FeatureVector toVector(@NonNull Encoder featureEncoder) {
+    FeatureVector vector = new FeatureVector(featureEncoder);
     features.forEach(f -> {
       int fi = (int) featureEncoder.encode(f.getName());
       if (fi != -1) {

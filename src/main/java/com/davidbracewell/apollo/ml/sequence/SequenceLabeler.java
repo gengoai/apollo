@@ -1,11 +1,14 @@
 package com.davidbracewell.apollo.ml.sequence;
 
 import com.davidbracewell.apollo.ml.Encoder;
+import com.davidbracewell.apollo.ml.Feature;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.Model;
 import com.davidbracewell.apollo.ml.classification.ClassifierResult;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import lombok.NonNull;
+
+import java.util.Iterator;
 
 /**
  * The type Sequence labeler.
@@ -67,15 +70,9 @@ public abstract class SequenceLabeler extends Model {
     this.decoder = decoder;
   }
 
-  /**
-   * Estimate instance classifier result.
-   *
-   * @param instance the instance
-   * @return the classifier result
-   */
-  public abstract ClassifierResult estimateInstance(Instance instance);
+  public abstract double[] estimate(Iterator<Feature> observation, Iterator<String> transitions);
 
-//  /**
+  //  /**
 //   * Sets featurizer.
 //   *
 //   * @param featurizer the featurizer

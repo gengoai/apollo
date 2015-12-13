@@ -65,12 +65,13 @@ final class ExampleSerializer {
     }
 
     static Sequence read(JSONReader reader) throws IOException {
-      List<Instance> instances = new ArrayList<>();
+      ArrayList<Instance> instances = new ArrayList<>();
       reader.beginArray();
       while (reader.peek() != ElementType.END_ARRAY) {
         instances.add(InstanceSerializer.read(reader));
       }
       reader.endArray();
+      instances.trimToSize();
       return new Sequence(instances);
     }
 

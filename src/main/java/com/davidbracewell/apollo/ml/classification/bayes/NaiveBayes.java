@@ -77,10 +77,20 @@ public class NaiveBayes extends Classifier {
 
   @Override
   public ClassifierResult classify(@NonNull Vector instance) {
-    DenseVector distribution = new DenseVector(numberOfLabels());
+    switch (modelType) {
+      case Bernoulli:
+        return bernoulli(instance);
+      case Multinomial:
+        return multinomial(instance);
+      case Complementary:
+        return complementary(instance);
+    }
+    throw new IllegalStateException(modelType + " is not valid");
+  }
 
+  private ClassifierResult bernoulli(Vector instance) {
+    DenseVector distribution = new DenseVector(priors);
     for (int i = 0; i < numberOfLabels(); i++) {
-      distribution.set(i, FastMath.log(priors[i]));
       for (int f = 0; f < numberOfFeatures(); f++) {
         if (instance.get(f) != 0) {
           distribution.increment(i, FastMath.log(conditionals[f][i]));
@@ -88,9 +98,34 @@ public class NaiveBayes extends Classifier {
           distribution.increment(i, FastMath.log(1 - conditionals[f][i]));
         }
       }
-      distribution.set(i, Math.exp(distribution.get(i)));
     }
     distribution.mapDivideSelf(distribution.sum());
+    distribution.mapSelf(d -> 1.0 - d);
+    return new ClassifierResult(distribution.toArray(), getLabelEncoder());
+  }
+
+  private ClassifierResult multinomial(Vector instance) {
+    DenseVector distribution = new DenseVector(priors);
+    instance.forEachSparse(entry -> {
+      for (int i = 0; i < numberOfLabels(); i++) {
+        distribution.increment(i, entry.getValue() * conditionals[entry.getIndex()][i]);
+      }
+    });
+    distribution.mapDivideSelf(distribution.sum());
+    distribution.mapSelf(d -> 1.0 - d);
+    return new ClassifierResult(distribution.toArray(), getLabelEncoder());
+  }
+
+
+  private ClassifierResult complementary(Vector instance) {
+    DenseVector distribution = new DenseVector(priors);
+    instance.forEachSparse(entry -> {
+      for (int i = 0; i < numberOfLabels(); i++) {
+        distribution.decrement(i, entry.getValue() * conditionals[entry.getIndex()][i]);
+      }
+    });
+    distribution.mapDivideSelf(distribution.sum());
+    distribution.mapSelf(d -> 1.0 - d);
     return new ClassifierResult(distribution.toArray(), getLabelEncoder());
   }
 
@@ -106,7 +141,9 @@ public class NaiveBayes extends Classifier {
     /**
      * Bernoulli model type.
      */
-    Bernoulli;
+    Bernoulli,
+
+    Complementary
 
   }
 

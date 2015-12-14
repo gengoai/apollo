@@ -19,9 +19,11 @@
  * under the License.
  */
 
-package com.davidbracewell.apollo.ml.preprocess;
+package com.davidbracewell.apollo.ml.preprocess.filter;
 
 import com.davidbracewell.apollo.ml.Instance;
+import com.davidbracewell.apollo.ml.preprocess.FilterProcessor;
+import com.davidbracewell.apollo.ml.preprocess.InstancePreprocessor;
 
 import java.io.Serializable;
 import java.util.HashSet;
@@ -32,11 +34,11 @@ import java.util.stream.Collectors;
 /**
  * @author David B. Bracewell
  */
-public class RemoveFilter implements FilterProcessor<Instance>, InstancePreprocessor, Serializable {
+public class NameFilter implements FilterProcessor<Instance>, InstancePreprocessor, Serializable {
   private static final long serialVersionUID = 1L;
   private final Set<Pattern> patterns = new HashSet<>();
 
-  public RemoveFilter(String... patterns) {
+  public NameFilter(String... patterns) {
     for (String pattern : patterns) {
       this.patterns.add(Pattern.compile(pattern));
     }

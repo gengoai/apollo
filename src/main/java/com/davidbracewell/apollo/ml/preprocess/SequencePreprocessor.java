@@ -2,6 +2,7 @@ package com.davidbracewell.apollo.ml.preprocess;
 
 import com.davidbracewell.apollo.ml.Encoder;
 import com.davidbracewell.apollo.ml.Instance;
+import com.davidbracewell.apollo.ml.preprocess.Preprocessor;
 import com.davidbracewell.apollo.ml.sequence.Sequence;
 import lombok.NonNull;
 

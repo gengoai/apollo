@@ -406,6 +406,10 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
     return list;
   }
 
+  public List<T> take(int n) {
+    return stream().take(n);
+  }
+
   /**
    * The dataset type.
    */

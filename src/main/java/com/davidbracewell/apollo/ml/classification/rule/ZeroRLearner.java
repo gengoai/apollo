@@ -4,7 +4,6 @@ import com.davidbracewell.apollo.ml.Dataset;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.classification.Classifier;
 import com.davidbracewell.apollo.ml.classification.ClassifierLearner;
-import com.davidbracewell.conversion.Cast;
 import lombok.NonNull;
 
 import java.util.Map;
@@ -21,7 +20,7 @@ public class ZeroRLearner extends ClassifierLearner {
     Map<String, Long> m = dataset.stream()
       .filter(Instance::hasLabel)
       .map(Instance::getLabel)
-      .map(Cast::<String>as)
+      .map(Object::toString)
       .countByValue();
 
     model.distribution = new double[model.numberOfLabels()];

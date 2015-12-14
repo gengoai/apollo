@@ -53,14 +53,8 @@ public class Feature implements Serializable, Comparable<Feature>, Copyable<Feat
     return new Feature(name, 1.0);
   }
 
-  /**
-   * Creates a binary feature with the value of FALSE (0.0)
-   *
-   * @param name the feature name
-   * @return the feature
-   */
-  public static Feature FALSE(@NonNull String name) {
-    return new Feature(name, 0.0);
+  public static Feature TRUE(@NonNull String featureName, @NonNull String featureComponent) {
+    return new Feature(featureName + "=" + featureComponent, 1.0);
   }
 
   /**

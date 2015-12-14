@@ -27,6 +27,7 @@ import com.davidbracewell.apollo.ml.Featurizer;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.Model;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
+import com.davidbracewell.collection.MultiCounter;
 import com.davidbracewell.conversion.Cast;
 import com.google.common.base.Preconditions;
 import lombok.NonNull;
@@ -46,6 +47,7 @@ public abstract class Classifier extends Model {
    *
    * @param labelEncoder   the label encoder
    * @param featureEncoder the feature encoder
+   * @param preprocessors  the preprocessors
    */
   protected Classifier(Encoder labelEncoder, Encoder featureEncoder, @NonNull PreprocessorList<Instance> preprocessors) {
     super(labelEncoder, featureEncoder);
@@ -96,6 +98,15 @@ public abstract class Classifier extends Model {
    */
   public void setFeaturizer(Featurizer featurizer) {
     this.featurizer = featurizer;
+  }
+
+  /**
+   * Gets model parameters.
+   *
+   * @return the model parameters
+   */
+  public MultiCounter<String, String> getModelParameters() {
+    throw new UnsupportedOperationException();
   }
 
 }//END OF Classifier

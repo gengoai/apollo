@@ -29,6 +29,8 @@ import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.classification.Classifier;
 import com.davidbracewell.apollo.ml.classification.ClassifierResult;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
+import com.davidbracewell.collection.MultiCounter;
+import com.davidbracewell.collection.MultiCounters;
 import lombok.NonNull;
 import org.apache.commons.math3.util.FastMath;
 
@@ -116,7 +118,6 @@ public class NaiveBayes extends Classifier {
     return new ClassifierResult(distribution.toArray(), getLabelEncoder());
   }
 
-
   private ClassifierResult complementary(Vector instance) {
     DenseVector distribution = new DenseVector(priors);
     instance.forEachSparse(entry -> {
@@ -129,6 +130,17 @@ public class NaiveBayes extends Classifier {
     return new ClassifierResult(distribution.toArray(), getLabelEncoder());
   }
 
+  @Override
+  public MultiCounter<String, String> getModelParameters() {
+    MultiCounter<String, String> weights = MultiCounters.newHashMapMultiCounter();
+    for (int fi = 0; fi < numberOfFeatures(); fi++) {
+      String featureName = getFeatureEncoder().decode(fi).toString();
+      for (int ci = 0; ci < numberOfLabels(); ci++) {
+        weights.set(featureName, getLabelEncoder().decode(ci).toString(), conditionals[fi][ci]);
+      }
+    }
+    return weights;
+  }
 
   /**
    * The enum Model type.
@@ -142,10 +154,9 @@ public class NaiveBayes extends Classifier {
      * Bernoulli model type.
      */
     Bernoulli,
-
+    /**
+     * Complementary model type.
+     */
     Complementary
-
   }
-
-
 }//END OF NaiveBayes

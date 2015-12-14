@@ -3,7 +3,6 @@ package com.davidbracewell.apollo.ml.preprocess.transform;
 import com.davidbracewell.apollo.ml.Feature;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.preprocess.InstancePreprocessor;
-import com.davidbracewell.apollo.ml.preprocess.TransformProcessor;
 import com.davidbracewell.string.StringUtils;
 import lombok.NonNull;
 

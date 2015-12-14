@@ -1,7 +1,6 @@
 package com.davidbracewell.apollo.ml.preprocess.filter;
 
 import com.davidbracewell.apollo.ml.Instance;
-import com.davidbracewell.apollo.ml.preprocess.FilterProcessor;
 import com.davidbracewell.apollo.ml.preprocess.InstancePreprocessor;
 import com.davidbracewell.function.SerializableDoublePredicate;
 
@@ -12,6 +11,8 @@ import java.util.stream.Collectors;
  * @author David B. Bracewell
  */
 public class ValueFilter implements FilterProcessor<Instance>, InstancePreprocessor, Serializable {
+  public static final ValueFilter FINITE = new ValueFilter(Double::isFinite);
+
   private static final long serialVersionUID = 1L;
   private final SerializableDoublePredicate predicate;
 
@@ -41,4 +42,10 @@ public class ValueFilter implements FilterProcessor<Instance>, InstancePreproces
   public void reset() {
 
   }
+
+  @Override
+  public boolean trainOnly() {
+    return false;
+  }
+
 }// END OF ValueFilter

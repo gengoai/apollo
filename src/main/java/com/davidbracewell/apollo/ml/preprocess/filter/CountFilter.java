@@ -1,7 +1,6 @@
 package com.davidbracewell.apollo.ml.preprocess.filter;
 
 import com.davidbracewell.apollo.ml.Instance;
-import com.davidbracewell.apollo.ml.preprocess.FilterProcessor;
 import com.davidbracewell.apollo.ml.preprocess.InstancePreprocessor;
 import com.davidbracewell.collection.Counter;
 import com.davidbracewell.collection.Counters;

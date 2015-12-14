@@ -22,7 +22,6 @@
 package com.davidbracewell.apollo.ml.preprocess.filter;
 
 import com.davidbracewell.apollo.ml.Instance;
-import com.davidbracewell.apollo.ml.preprocess.FilterProcessor;
 import com.davidbracewell.apollo.ml.preprocess.InstancePreprocessor;
 
 import java.io.Serializable;

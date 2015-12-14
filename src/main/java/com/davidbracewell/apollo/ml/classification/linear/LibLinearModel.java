@@ -27,6 +27,8 @@ import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.classification.Classifier;
 import com.davidbracewell.apollo.ml.classification.ClassifierResult;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
+import com.davidbracewell.collection.MultiCounter;
+import com.davidbracewell.collection.MultiCounters;
 import com.google.common.collect.Lists;
 import de.bwaldvogel.liblinear.Feature;
 import de.bwaldvogel.liblinear.FeatureNode;
@@ -58,7 +60,7 @@ public class LibLinearModel extends Classifier {
     List<Vector.Entry> entries = Lists.newArrayList(vector.orderedNonZeroIterator());
     Feature[] feature = new Feature[entries.size()];
     for (int i = 0; i < entries.size(); i++) {
-      feature[i] = new FeatureNode(entries.get(i).index+1, entries.get(i).value);
+      feature[i] = new FeatureNode(entries.get(i).index + 1, entries.get(i).value);
     }
     return feature;
   }
@@ -80,6 +82,29 @@ public class LibLinearModel extends Classifier {
     }
 
     return new ClassifierResult(prime, getLabelEncoder());
+  }
+
+  @Override
+  public MultiCounter<String, String> getModelParameters() {
+    double[] modelWeights = model.getFeatureWeights();
+    int[] labels = model.getLabels();
+    MultiCounter<String, String> weights = MultiCounters.newHashMapMultiCounter();
+
+    int nrClass = model.getNrClass() - 1;
+    for (int i = 0, index = 0; i < model.getNrFeature(); i++, index += nrClass) {
+      String featureName = getFeatureEncoder().decode(i).toString();
+      for (int j = 0; j < nrClass; j++) {
+        weights.set(featureName, getLabelEncoder().decode(labels[j]).toString(), modelWeights[j + index]);
+      }
+    }
+
+    if (modelWeights.length > (nrClass * model.getNrFeature())) {
+      for (int j = modelWeights.length - nrClass, ci = 0; j < modelWeights.length; j++, ci++) {
+        weights.set("**BIAS**", getLabelEncoder().decode(labels[ci]).toString(), modelWeights[j]);
+      }
+    }
+
+    return weights;
   }
 
 }//END OF LibLinearModel

@@ -25,6 +25,7 @@ import com.davidbracewell.apollo.ml.Dataset;
 import com.davidbracewell.apollo.ml.FeatureVector;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.function.SerializableSupplier;
+import com.davidbracewell.stream.MStream;
 import lombok.NonNull;
 
 import java.util.stream.IntStream;
@@ -43,30 +44,32 @@ public class OneVsRestLearner extends ClassifierLearner {
   @Override
   protected Classifier trainImpl(Dataset<Instance> dataset) {
     OneVsRestClassifier model = new OneVsRestClassifier(
-      dataset.getLabelEncoder(),
-      dataset.getFeatureEncoder(),
+      dataset.getEncoderPair(),
       dataset.getPreprocessors()
     );
+
     model.classifiers = IntStream.range(0, dataset.getLabelEncoder().size())
       .parallel()
       .mapToObj(i -> {
           BinaryClassifierLearner bcl = learnerSupplier.get();
           bcl.reset();
-          return bcl.trainFromSupplier(dataset.stream().map(instance -> {
-              FeatureVector vector = instance.toVector(dataset.getFeatureEncoder());
-              if (dataset.getLabelEncoder().encode(instance.getLabel()) == i) {
-                vector.setLabel(1);
-              } else {
-                vector.setLabel(0);
-              }
-              return vector;
-            }).collect(),
-            dataset.getLabelEncoder(),
-            dataset.getFeatureEncoder(),
+          SerializableSupplier<MStream<FeatureVector>> supplier = () -> dataset.stream().map(instance -> {
+            FeatureVector vector = instance.toVector(dataset.getEncoderPair());
+            if (dataset.getLabelEncoder().encode(instance.getLabel()) == i) {
+              vector.setLabel(1);
+            } else {
+              vector.setLabel(0);
+            }
+            return vector;
+          });
+          return bcl.trainFromStream(
+            supplier,
+            dataset.getEncoderPair(),
             dataset.getPreprocessors()
           );
         }
       ).toArray(Classifier[]::new);
+
     return model;
   }
 

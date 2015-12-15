@@ -22,10 +22,7 @@
 package com.davidbracewell.apollo.ml.classification;
 
 import com.davidbracewell.apollo.linalg.Vector;
-import com.davidbracewell.apollo.ml.Encoder;
-import com.davidbracewell.apollo.ml.Featurizer;
-import com.davidbracewell.apollo.ml.Instance;
-import com.davidbracewell.apollo.ml.Model;
+import com.davidbracewell.apollo.ml.*;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.collection.MultiCounter;
 import com.davidbracewell.conversion.Cast;
@@ -45,18 +42,19 @@ public abstract class Classifier extends Model {
   /**
    * Instantiates a new Classifier.
    *
-   * @param labelEncoder   the label encoder
-   * @param featureEncoder the feature encoder
-   * @param preprocessors  the preprocessors
+   * @param encoderPair   the encoder pair
+   * @param preprocessors the preprocessors
    */
-  protected Classifier(Encoder labelEncoder, Encoder featureEncoder, @NonNull PreprocessorList<Instance> preprocessors) {
-    super(labelEncoder, featureEncoder);
-    this.preprocessors = preprocessors;
+  protected Classifier(EncoderPair encoderPair, @NonNull PreprocessorList<Instance> preprocessors) {
+    super(encoderPair);
+    Preconditions.checkArgument(encoderPair.getLabelEncoder() instanceof IndexEncoder, "Classifiers only allow IndexEncoders for labels.");
+    this.preprocessors = preprocessors.getModelProcessors();
   }
+
 
   @Override
   protected void finishTraining() {
-    super.finishTraining(); //Call super to freeze encoders
+    super.finishTraining();
     preprocessors.trimToSize(getFeatureEncoder());
   }
 
@@ -80,7 +78,7 @@ public abstract class Classifier extends Model {
    * @return the classifier result
    */
   public final ClassifierResult classify(@NonNull Instance instance) {
-    return classify(preprocessors.apply(instance).toVector(getFeatureEncoder()));
+    return classify(preprocessors.apply(instance).toVector(getEncoderPair()));
   }
 
   /**
@@ -108,5 +106,10 @@ public abstract class Classifier extends Model {
   public MultiCounter<String, String> getModelParameters() {
     throw new UnsupportedOperationException();
   }
+
+  protected ClassifierResult createResult(double[] distribution) {
+    return new ClassifierResult(distribution, getLabelEncoder());
+  }
+
 
 }//END OF Classifier

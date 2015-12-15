@@ -1,5 +1,7 @@
 package com.davidbracewell.apollo.ml;
 
+import lombok.EqualsAndHashCode;
+
 import java.io.Serializable;
 
 /**
@@ -7,7 +9,8 @@ import java.io.Serializable;
  *
  * @author David B. Bracewell
  */
-public class EncoderPair implements Serializable {
+@EqualsAndHashCode(callSuper = false)
+public final class EncoderPair implements Serializable {
   private final Encoder labelEncoder;
   private final Encoder featureEncoder;
 
@@ -20,6 +23,14 @@ public class EncoderPair implements Serializable {
   public EncoderPair(Encoder labelEncoder, Encoder featureEncoder) {
     this.labelEncoder = labelEncoder;
     this.featureEncoder = featureEncoder;
+  }
+
+  public <T extends Example> T encode(T example) {
+    if (example != null) {
+      labelEncoder.encode(example.getLabelSpace());
+      featureEncoder.encode(example.getFeatureSpace());
+    }
+    return example;
   }
 
   /**
@@ -97,4 +108,13 @@ public class EncoderPair implements Serializable {
   public Encoder getFeatureEncoder() {
     return featureEncoder;
   }
+
+  /**
+   * Freeze.
+   */
+  public void freeze() {
+    this.labelEncoder.freeze();
+    this.featureEncoder.freeze();
+  }
+
 }// END OF EncoderPair

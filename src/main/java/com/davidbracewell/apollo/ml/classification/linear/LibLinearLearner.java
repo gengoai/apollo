@@ -44,9 +44,8 @@ public class LibLinearLearner extends ClassifierLearner {
   @Override
   protected LibLinearModel trainImpl(Dataset<Instance> dataset) {
     LibLinearModel model = new LibLinearModel(
-      dataset.getLabelEncoder(),
-      dataset.getFeatureEncoder(),
-      dataset.getPreprocessors().getModelProcessors()
+      dataset.getEncoderPair(),
+      dataset.getPreprocessors()
     );
 
     Problem problem = new Problem();
@@ -55,7 +54,7 @@ public class LibLinearLearner extends ClassifierLearner {
     problem.y = new double[problem.l];
     int index = 0;
     for (Iterator<Instance> iitr = dataset.iterator(); iitr.hasNext(); index++) {
-      FeatureVector vector = iitr.next().toVector(dataset.getFeatureEncoder(), dataset.getLabelEncoder());
+      FeatureVector vector = iitr.next().toVector(dataset.getEncoderPair());
       problem.x[index] = LibLinearModel.toFeature(vector);
       problem.y[index] = vector.getLabel();
     }

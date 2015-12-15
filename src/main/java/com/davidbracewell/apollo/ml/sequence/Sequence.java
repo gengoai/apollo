@@ -1,6 +1,5 @@
 package com.davidbracewell.apollo.ml.sequence;
 
-import com.davidbracewell.apollo.ml.Encoder;
 import com.davidbracewell.apollo.ml.Example;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.collection.Interner;
@@ -96,13 +95,6 @@ public class Sequence implements Example, Serializable, Iterable<Instance> {
   @Override
   public String toString() {
     return sequence.toString();
-  }
-
-
-  public FeatureVectorSequence vectorize(@NonNull Encoder featureEncoder) {
-    FeatureVectorSequence fvs = new FeatureVectorSequence();
-    sequence.forEach(i -> fvs.add(i.toVector(featureEncoder)));
-    return fvs;
   }
 
 

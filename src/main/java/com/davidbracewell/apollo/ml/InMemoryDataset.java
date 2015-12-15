@@ -84,7 +84,7 @@ public class InMemoryDataset<T extends Example> extends Dataset<T> {
 
   @Override
   public MStream<T> stream() {
-    return Streams.of(instances, false);
+    return Streams.of(instances, false).map(getEncoderPair()::encode);
   }
 
   @Override

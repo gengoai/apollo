@@ -22,7 +22,7 @@
 package com.davidbracewell.apollo.ml.classification.linear;
 
 import com.davidbracewell.apollo.linalg.Vector;
-import com.davidbracewell.apollo.ml.Encoder;
+import com.davidbracewell.apollo.ml.EncoderPair;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.classification.Classifier;
 import com.davidbracewell.apollo.ml.classification.ClassifierResult;
@@ -39,23 +39,33 @@ import lombok.NonNull;
 import java.util.List;
 
 /**
+ * The type Lib linear model.
+ *
  * @author David B. Bracewell
  */
 public class LibLinearModel extends Classifier {
   private static final long serialVersionUID = 1L;
+  /**
+   * The Model.
+   */
   Model model;
 
   /**
    * Instantiates a new Classifier.
    *
-   * @param labelEncoder   the label encoder
-   * @param featureEncoder the feature encoder
-   * @param preprocessors
+   * @param encoderPair   the encoder pair
+   * @param preprocessors the preprocessors
    */
-  protected LibLinearModel(Encoder labelEncoder, Encoder featureEncoder, @NonNull PreprocessorList<Instance> preprocessors) {
-    super(labelEncoder, featureEncoder, preprocessors);
+  protected LibLinearModel(@NonNull EncoderPair encoderPair, @NonNull PreprocessorList<Instance> preprocessors) {
+    super(encoderPair, preprocessors);
   }
 
+  /**
+   * To feature feature [ ].
+   *
+   * @param vector the vector
+   * @return the feature [ ]
+   */
   public static Feature[] toFeature(Vector vector) {
     List<Vector.Entry> entries = Lists.newArrayList(vector.orderedNonZeroIterator());
     Feature[] feature = new Feature[entries.size()];
@@ -81,7 +91,7 @@ public class LibLinearModel extends Classifier {
       prime[labels[i]] = p[i];
     }
 
-    return new ClassifierResult(prime, getLabelEncoder());
+    return createResult(prime);
   }
 
   @Override

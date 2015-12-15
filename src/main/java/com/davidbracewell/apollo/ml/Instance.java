@@ -166,35 +166,35 @@ public class Instance implements Example, Serializable, Iterable<Feature> {
     return Stream.of(label);
   }
 
+  /**
+   * Gets features.
+   *
+   * @return the features
+   */
   public List<Feature> getFeatures() {
     return features;
-  }
-
-  public FeatureVector toVector(@NonNull Encoder featureEncoder) {
-    return toVector(featureEncoder, null);
   }
 
   /**
    * To vector vector.
    *
-   * @param featureEncoder the feature encoder
+   * @param encoderPair the encoder pair
    * @return the vector
    */
-  public FeatureVector toVector(@NonNull Encoder featureEncoder, Encoder labelEncoder) {
-    FeatureVector vector = new FeatureVector(featureEncoder);
+  public FeatureVector toVector(@NonNull EncoderPair encoderPair) {
+    FeatureVector vector = new FeatureVector(encoderPair.getFeatureEncoder());
+    boolean isHash = encoderPair.getFeatureEncoder() instanceof HashingEncoder;
     features.forEach(f -> {
-      int fi = (int) featureEncoder.encode(f.getName());
+      int fi = (int) encoderPair.encodeFeature(f.getName());
       if (fi != -1) {
-        if (featureEncoder instanceof HashingEncoder) {
+        if (isHash) {
           vector.set(fi, 1.0);
         } else {
           vector.set(fi, f.getValue());
         }
       }
     });
-    if (labelEncoder != null && label != null) {
-      vector.setLabel(labelEncoder.encode(label));
-    }
+    vector.setLabel(encoderPair.encodeLabel(label));
     return vector;
   }
 

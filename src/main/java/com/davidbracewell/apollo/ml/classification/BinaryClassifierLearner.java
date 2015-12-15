@@ -22,19 +22,22 @@
 package com.davidbracewell.apollo.ml.classification;
 
 import com.davidbracewell.apollo.ml.Dataset;
-import com.davidbracewell.apollo.ml.Encoder;
+import com.davidbracewell.apollo.ml.EncoderPair;
 import com.davidbracewell.apollo.ml.FeatureVector;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.conversion.Cast;
+import com.davidbracewell.function.SerializableSupplier;
 import com.davidbracewell.reflection.Reflect;
 import com.davidbracewell.reflection.ReflectionException;
+import com.davidbracewell.stream.MStream;
 import com.google.common.base.Throwables;
 
-import java.util.List;
 import java.util.Map;
 
 /**
+ * The type Binary classifier learner.
+ *
  * @author David B. Bracewell
  */
 public abstract class BinaryClassifierLearner extends ClassifierLearner {
@@ -42,12 +45,33 @@ public abstract class BinaryClassifierLearner extends ClassifierLearner {
 
   @Override
   protected Classifier trainImpl(Dataset<Instance> dataset) {
-    return trainFromSupplier(dataset.asFeatureVectors(), dataset.getLabelEncoder(), dataset.getFeatureEncoder(), dataset.getPreprocessors());
+    return trainFromStream(
+      () -> dataset.stream().map(i -> i.toVector(dataset.getEncoderPair())),
+      dataset.getEncoderPair(),
+      dataset.getPreprocessors()
+    );
   }
 
-  protected abstract Classifier trainFromSupplier(List<FeatureVector> vectors, Encoder labelEncoder, Encoder featureEncoder, PreprocessorList<Instance> preprocessors);
+  /**
+   * Train from supplier classifier.
+   *
+   * @param supplier      the supplier
+   * @param encoderPair   the encoder pair
+   * @param preprocessors the preprocessors
+   * @return the classifier
+   */
+  protected abstract Classifier trainFromStream(
+    SerializableSupplier<MStream<FeatureVector>> supplier,
+    EncoderPair encoderPair,
+    PreprocessorList<Instance> preprocessors
+  );
 
 
+  /**
+   * One vs rest classifier learner.
+   *
+   * @return the classifier learner
+   */
   public final ClassifierLearner oneVsRest() {
     final Map<String, Object> parameters = Cast.as(getParameters());
     final Class<? extends BinaryClassifierLearner> clazz = this.getClass();

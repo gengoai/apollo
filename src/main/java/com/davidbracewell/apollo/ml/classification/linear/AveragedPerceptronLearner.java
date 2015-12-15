@@ -23,13 +23,16 @@ package com.davidbracewell.apollo.ml.classification.linear;
 
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.Encoder;
+import com.davidbracewell.apollo.ml.EncoderPair;
 import com.davidbracewell.apollo.ml.FeatureVector;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.classification.BinaryClassifierLearner;
 import com.davidbracewell.apollo.ml.classification.Classifier;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.collection.Collect;
+import com.davidbracewell.function.SerializableSupplier;
 import com.davidbracewell.logging.Logger;
+import com.davidbracewell.stream.MStream;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -40,8 +43,8 @@ import java.util.List;
  * @author David B. Bracewell
  */
 public class AveragedPerceptronLearner extends BinaryClassifierLearner {
-  private static Logger log = Logger.getLogger(AveragedPerceptronLearner.class);
   private static final long serialVersionUID = 1L;
+  private static Logger log = Logger.getLogger(AveragedPerceptronLearner.class);
   private int maxIterations;
   private double learningRate;
   private Vector totalWeights;
@@ -62,10 +65,9 @@ public class AveragedPerceptronLearner extends BinaryClassifierLearner {
   }
 
   @Override
-  protected Classifier trainFromSupplier(List<FeatureVector> vectors, Encoder labelEncoder, Encoder featureEncoder, PreprocessorList<Instance> preprocessors) {
+  protected Classifier trainFromStream(SerializableSupplier<MStream<FeatureVector>> supplier, EncoderPair encoders, PreprocessorList<Instance> preprocessors) {
     BinaryGLM model = new BinaryGLM(
-      labelEncoder,
-      featureEncoder,
+      encoders,
       preprocessors
     );
 
@@ -73,6 +75,7 @@ public class AveragedPerceptronLearner extends BinaryClassifierLearner {
     stamps = new FeatureVector(model.getFeatureEncoder());
     model.weights = new FeatureVector(model.getFeatureEncoder());
 
+    List<FeatureVector> vectors = supplier.get().collect();
     double c = 1d;
     double oldError = 0;
     double oldOldError = 0;

@@ -24,7 +24,9 @@ package com.davidbracewell.apollo.ml;
 import com.davidbracewell.Copyable;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.apollo.ml.sequence.FeatureVectorSequence;
+import com.davidbracewell.apollo.ml.sequence.Sequence;
 import com.davidbracewell.conversion.Cast;
+import com.davidbracewell.function.SerializableFunction;
 import com.davidbracewell.io.resource.Resource;
 import com.davidbracewell.io.structured.ElementType;
 import com.davidbracewell.io.structured.json.JSONReader;
@@ -50,8 +52,7 @@ import java.util.stream.Collectors;
 public abstract class Dataset<T extends Example> implements Iterable<T>, Copyable<Dataset>, Serializable {
   private static final long serialVersionUID = 1L;
 
-  private final Encoder featureEncoder;
-  private final Encoder labelEncoder;
+  private final EncoderPair encoders;
   private volatile PreprocessorList<T> preprocessors;
 
   /**
@@ -62,19 +63,8 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
    * @param preprocessors  the preprocessors
    */
   protected Dataset(Encoder featureEncoder, Encoder labelEncoder, PreprocessorList<T> preprocessors) {
-    this.featureEncoder = featureEncoder;
-    this.labelEncoder = labelEncoder;
+    this.encoders = new EncoderPair(labelEncoder, featureEncoder);
     this.preprocessors = preprocessors == null ? PreprocessorList.empty() : preprocessors;
-  }
-
-  /**
-   * Creates a generic dataset builder which defaults to an <code>IndexEncoder</code> for the labels and features.
-   *
-   * @param <T> the type of example the dataset contains.
-   * @return the dataset builder
-   */
-  public static <T extends Example> DatasetBuilder<T> builder() {
-    return new DatasetBuilder<>();
   }
 
   /**
@@ -84,8 +74,20 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
    * @return the dataset builder
    */
   public static DatasetBuilder<Instance> classification() {
-    return new DatasetBuilder<>();
+    return new DatasetBuilder<>(new IndexEncoder());
   }
+
+
+  /**
+   * Creates a dataset builder with an <code>IndexEncoder</code> for the class labels as is required for classification
+   * problems.
+   *
+   * @return the dataset builder
+   */
+  public static DatasetBuilder<Sequence> sequence() {
+    return new DatasetBuilder<>(new IndexEncoder());
+  }
+
 
   /**
    * Creates a dataset builder with a <code>RealEncoder</code> for the class labels as is required for regression
@@ -94,7 +96,7 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
    * @return the dataset builder
    */
   public static DatasetBuilder<Instance> regression() {
-    return new DatasetBuilder<Instance>().labelEncoder(new RealEncoder());
+    return new DatasetBuilder<>(new RealEncoder());
   }
 
   /**
@@ -111,6 +113,7 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
    * dataset has already been processed.
    *
    * @param preprocessors the preprocessors to use.
+   * @return the dataset
    */
   public Dataset<T> preprocess(@NonNull PreprocessorList<T> preprocessors) {
     Preconditions.checkState(!isPreprocessed(), "Dataset has already been preprocessed");
@@ -124,6 +127,11 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
     );
   }
 
+  /**
+   * Encode dataset.
+   *
+   * @return the dataset
+   */
   public Dataset<T> encode() {
     iterator().forEachRemaining(e -> {
     });
@@ -132,13 +140,12 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
 
   @Override
   public final Iterator<T> iterator() {
-    return Iterators.transform(rawIterator(), e -> {
-      labelEncoder.encode(e.getLabelSpace());
-      featureEncoder.encode(e.getFeatureSpace());
-      return e;
-    });
+    return Iterators.transform(rawIterator(), encoders::encode);
   }
 
+  /**
+   * Close.
+   */
   public void close() {
 
   }
@@ -287,7 +294,7 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
    * @return the encoder
    */
   public Encoder getFeatureEncoder() {
-    return featureEncoder;
+    return encoders.getFeatureEncoder();
   }
 
   /**
@@ -296,9 +303,17 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
    * @return the encoder
    */
   public Encoder getLabelEncoder() {
-    return labelEncoder;
+    return encoders.getLabelEncoder();
   }
 
+  /**
+   * Gets encoder pair.
+   *
+   * @return the encoder pair
+   */
+  public EncoderPair getEncoderPair() {
+    return encoders;
+  }
 
   /**
    * Creates a leave-one-out TrainTestSet
@@ -332,6 +347,7 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
    * @return the dataset
    */
   public abstract Dataset<T> shuffle(Random random);
+
 
   /**
    * The number of examples in the dataset
@@ -382,22 +398,32 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
   }
 
 
+  /**
+   * As feature vectors list.
+   *
+   * @return the list
+   */
   public List<FeatureVector> asFeatureVectors() {
     encode();
     List<FeatureVector> list = stream()
-      .flatMap(e -> e.asInstances().stream().map(ii -> ii.toVector(featureEncoder, labelEncoder)).collect(Collectors.toList()))
+      .flatMap(e -> e.asInstances().stream().map(ii -> ii.toVector(encoders)).collect(Collectors.toList()))
       .collect();
     close();
     return list;
   }
 
+  /**
+   * As feature vector sequences list.
+   *
+   * @return the list
+   */
   public List<FeatureVectorSequence> asFeatureVectorSequences() {
     encode();
     List<FeatureVectorSequence> list = stream()
       .map(e -> {
         FeatureVectorSequence fvs = new FeatureVectorSequence();
         for (Instance ii : e.asInstances()) {
-          fvs.add(ii.toVector(featureEncoder,labelEncoder));
+          fvs.add(ii.toVector(encoders));
         }
         return fvs;
       })
@@ -406,6 +432,12 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
     return list;
   }
 
+  /**
+   * Take list.
+   *
+   * @param n the n
+   * @return the list
+   */
   public List<T> take(int n) {
     return stream().take(n);
   }

@@ -1,28 +1,33 @@
 package com.davidbracewell.apollo.ml.classification.rule;
 
 import com.davidbracewell.apollo.linalg.Vector;
-import com.davidbracewell.apollo.ml.Encoder;
+import com.davidbracewell.apollo.ml.EncoderPair;
 import com.davidbracewell.apollo.ml.classification.Classifier;
 import com.davidbracewell.apollo.ml.classification.ClassifierResult;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.collection.MultiCounter;
 import com.davidbracewell.collection.MultiCounters;
+import lombok.NonNull;
 
 /**
+ * The type Zero r.
+ *
  * @author David B. Bracewell
  */
 public class ZeroR extends Classifier {
 
+  /**
+   * The Distribution.
+   */
   double[] distribution;
 
   /**
    * Instantiates a new Classifier.
    *
-   * @param labelEncoder   the label encoder
-   * @param featureEncoder the feature encoder
+   * @param encoderPair the encoder pair
    */
-  protected ZeroR(Encoder labelEncoder, Encoder featureEncoder) {
-    super(labelEncoder, featureEncoder, PreprocessorList.empty());
+  protected ZeroR(@NonNull EncoderPair encoderPair) {
+    super(encoderPair, PreprocessorList.empty());
   }
 
   @Override

@@ -23,8 +23,7 @@ package com.davidbracewell.apollo.ml.classification.bayes;
 
 import com.davidbracewell.apollo.linalg.DenseVector;
 import com.davidbracewell.apollo.linalg.Vector;
-import com.davidbracewell.apollo.ml.Encoder;
-import com.davidbracewell.apollo.ml.IndexEncoder;
+import com.davidbracewell.apollo.ml.EncoderPair;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.classification.Classifier;
 import com.davidbracewell.apollo.ml.classification.ClassifierResult;
@@ -55,18 +54,11 @@ public class NaiveBayes extends Classifier {
   double[][] conditionals;
 
 
-  /**
-   * Instantiates a new Classifier.
-   *
-   * @param labelEncoder   the label encoder
-   * @param featureEncoder the feature encoder
-   * @param preprocessors  the preprocessors
-   * @param modelType      the model type
-   */
-  protected NaiveBayes(IndexEncoder labelEncoder, Encoder featureEncoder, PreprocessorList<Instance> preprocessors, ModelType modelType) {
-    super(labelEncoder, featureEncoder, preprocessors);
+  protected NaiveBayes(@NonNull EncoderPair encoderPair, PreprocessorList<Instance> preprocessors, ModelType modelType) {
+    super(encoderPair, preprocessors);
     this.modelType = modelType;
   }
+
 
   /**
    * Gets model type.
@@ -79,53 +71,7 @@ public class NaiveBayes extends Classifier {
 
   @Override
   public ClassifierResult classify(@NonNull Vector instance) {
-    switch (modelType) {
-      case Bernoulli:
-        return bernoulli(instance);
-      case Multinomial:
-        return multinomial(instance);
-      case Complementary:
-        return complementary(instance);
-    }
-    throw new IllegalStateException(modelType + " is not valid");
-  }
-
-  private ClassifierResult bernoulli(Vector instance) {
-    DenseVector distribution = new DenseVector(priors);
-    for (int i = 0; i < numberOfLabels(); i++) {
-      for (int f = 0; f < numberOfFeatures(); f++) {
-        if (instance.get(f) != 0) {
-          distribution.increment(i, FastMath.log(conditionals[f][i]));
-        } else {
-          distribution.increment(i, FastMath.log(1 - conditionals[f][i]));
-        }
-      }
-    }
-    distribution.mapDivideSelf(distribution.sum());
-    distribution.mapSelf(d -> 1.0 - d);
-    return new ClassifierResult(distribution.toArray(), getLabelEncoder());
-  }
-
-  private ClassifierResult multinomial(Vector instance) {
-    DenseVector distribution = new DenseVector(priors);
-    instance.forEachSparse(entry -> {
-      for (int i = 0; i < numberOfLabels(); i++) {
-        distribution.increment(i, entry.getValue() * conditionals[entry.getIndex()][i]);
-      }
-    });
-    distribution.mapDivideSelf(distribution.sum());
-    distribution.mapSelf(d -> 1.0 - d);
-    return new ClassifierResult(distribution.toArray(), getLabelEncoder());
-  }
-
-  private ClassifierResult complementary(Vector instance) {
-    DenseVector distribution = new DenseVector(priors);
-    instance.forEachSparse(entry -> {
-      for (int i = 0; i < numberOfLabels(); i++) {
-        distribution.decrement(i, entry.getValue() * conditionals[entry.getIndex()][i]);
-      }
-    });
-    return new ClassifierResult(distribution.toArray(), getLabelEncoder());
+    return createResult(modelType.distribution(instance, priors, conditionals));
   }
 
   @Override
@@ -147,14 +93,77 @@ public class NaiveBayes extends Classifier {
     /**
      * Multinomial model type.
      */
-    Multinomial,
+    Multinomial {
+      @Override
+      double[] distribution(Vector instance, double[] priors, double[][] conditionals) {
+        DenseVector distribution = new DenseVector(priors);
+        instance.forEachSparse(entry -> {
+          for (int i = 0; i < priors.length; i++) {
+            distribution.increment(i, entry.getValue() * conditionals[entry.getIndex()][i]);
+          }
+        });
+        distribution.mapDivideSelf(distribution.sum());
+        distribution.mapSelf(d -> 1.0 - d);
+        return distribution.toArray();
+      }
+    },
     /**
      * Bernoulli model type.
      */
-    Bernoulli,
+    Bernoulli {
+      @Override
+      double convertValue(double value) {
+        return 1.0;
+      }
+
+      @Override
+      double normalize(double conditionalCount, double priorCount, double totalLabelCount, double V) {
+        return (conditionalCount + 1) / (priorCount + 2);
+      }
+
+      @Override
+      double[] distribution(Vector instance, double[] priors, double[][] conditionals) {
+        DenseVector distribution = new DenseVector(priors);
+        for (int i = 0; i < priors.length; i++) {
+          for (int f = 0; f < conditionals.length; f++) {
+            if (instance.get(f) != 0) {
+              distribution.increment(i, FastMath.log(conditionals[f][i]));
+            } else {
+              distribution.increment(i, FastMath.log(1 - conditionals[f][i]));
+            }
+          }
+        }
+        distribution.mapDivideSelf(distribution.sum());
+        distribution.mapSelf(d -> 1.0 - d);
+        return distribution.toArray();
+      }
+    },
     /**
      * Complementary model type.
      */
-    Complementary
+    Complementary {
+      @Override
+      double[] distribution(Vector instance, double[] priors, double[][] conditionals) {
+        DenseVector distribution = new DenseVector(priors);
+        instance.forEachSparse(entry -> {
+          for (int i = 0; i < priors.length; i++) {
+            distribution.decrement(i, entry.getValue() * conditionals[entry.getIndex()][i]);
+          }
+        });
+        distribution.mapDivideSelf(distribution.sum());
+        return distribution.toArray();
+      }
+    };
+
+    double convertValue(double value) {
+      return value;
+    }
+
+    double normalize(double conditionalCount, double priorCount, double totalLabelCount, double V) {
+      return FastMath.log((conditionalCount + 1) / (totalLabelCount + V));
+    }
+
+    abstract double[] distribution(Vector instance, double[] priors, double[][] conditionals);
+
   }
 }//END OF NaiveBayes

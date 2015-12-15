@@ -24,12 +24,15 @@ public class DatasetBuilder<T extends Example> {
   private Dataset.Type type = Dataset.Type.InMemory;
   @Setter(onParam = @_({@NonNull}))
   private Encoder featureEncoder = new IndexEncoder();
-  @Setter(onParam = @_({@NonNull}))
-  private Encoder labelEncoder = new IndexEncoder();
+  private final Encoder labelEncoder;
   @Setter(onParam = @_({@NonNull}))
   private MStream<T> source;
   @Setter(onParam = @_({@NonNull}))
   private Resource load;
+
+  public DatasetBuilder(@NonNull Encoder labelEncoder) {
+    this.labelEncoder = labelEncoder;
+  }
 
   /**
    * Sets the streaming source from a Java Stream.

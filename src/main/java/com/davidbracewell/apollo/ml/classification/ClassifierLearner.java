@@ -21,14 +21,8 @@
 
 package com.davidbracewell.apollo.ml.classification;
 
-import com.davidbracewell.apollo.ml.Encoder;
-import com.davidbracewell.apollo.ml.FeatureVector;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.Learner;
-import com.google.common.base.Preconditions;
-import lombok.NonNull;
-
-import java.util.List;
 
 /**
  * The interface Classifier learner.
@@ -37,33 +31,5 @@ import java.util.List;
  */
 public abstract class ClassifierLearner extends Learner<Instance, Classifier> {
   private static final long serialVersionUID = 1L;
-
-//  /**
-//   * Train classifier.
-//   *
-//   * @param vectors      the vectors
-//   * @param labelEncoder the label encoder
-//   * @return the classifier
-//   */
-//  public final Classifier train(@NonNull List<FeatureVector> vectors, @NonNull Encoder labelEncoder) {
-//    Preconditions.checkArgument(vectors.size() > 0, "Must have at least one vector");
-//    Classifier model = trainImpl(
-//      vectors,
-//      labelEncoder,
-//      vectors.get(0).getFeatureEncoder()
-//    );
-//    model.finishTraining();
-//    return model;
-//  }
-//
-//  /**
-//   * Train classifier.
-//   *
-//   * @param vectors        the vectors
-//   * @param labelEncoder   the label encoder
-//   * @param featureEncoder the feature encoder
-//   * @return the classifier
-//   */
-//  protected abstract Classifier trainImpl(@NonNull List<FeatureVector> vectors, @NonNull Encoder labelEncoder, @NonNull Encoder featureEncoder);
 
 }//END OF ClassifierLearner

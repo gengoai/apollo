@@ -16,7 +16,7 @@ public class ZeroRLearner extends ClassifierLearner {
 
   @Override
   public Classifier trainImpl(@NonNull Dataset<Instance> dataset) {
-    ZeroR model = new ZeroR(dataset.getLabelEncoder(), dataset.getFeatureEncoder());
+    ZeroR model = new ZeroR(dataset.getEncoderPair());
     Map<String, Long> m = dataset.stream()
       .filter(Instance::hasLabel)
       .map(Instance::getLabel)

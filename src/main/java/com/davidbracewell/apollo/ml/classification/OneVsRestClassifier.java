@@ -22,27 +22,31 @@
 package com.davidbracewell.apollo.ml.classification;
 
 import com.davidbracewell.apollo.linalg.Vector;
-import com.davidbracewell.apollo.ml.Encoder;
+import com.davidbracewell.apollo.ml.EncoderPair;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import lombok.NonNull;
 
 /**
+ * The type One vs rest classifier.
+ *
  * @author David B. Bracewell
  */
 public class OneVsRestClassifier extends Classifier {
   private static final long serialVersionUID = 1L;
+  /**
+   * The Classifiers.
+   */
   Classifier[] classifiers;
 
   /**
    * Instantiates a new Classifier.
    *
-   * @param labelEncoder   the label encoder
-   * @param featureEncoder the feature encoder
-   * @param preprocessors  the preprocessors
+   * @param encoderPair   the encoder pair
+   * @param preprocessors the preprocessors
    */
-  protected OneVsRestClassifier(Encoder labelEncoder, Encoder featureEncoder, @NonNull PreprocessorList<Instance> preprocessors) {
-    super(labelEncoder, featureEncoder, preprocessors);
+  protected OneVsRestClassifier(@NonNull EncoderPair encoderPair, @NonNull PreprocessorList<Instance> preprocessors) {
+    super(encoderPair, preprocessors);
   }
 
   @Override

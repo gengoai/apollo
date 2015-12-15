@@ -125,8 +125,6 @@ public class NaiveBayes extends Classifier {
         distribution.decrement(i, entry.getValue() * conditionals[entry.getIndex()][i]);
       }
     });
-    distribution.mapDivideSelf(distribution.sum());
-    distribution.mapSelf(d -> 1.0 - d);
     return new ClassifierResult(distribution.toArray(), getLabelEncoder());
   }
 

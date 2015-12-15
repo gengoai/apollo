@@ -22,22 +22,24 @@
 package com.davidbracewell.apollo.ml.classification.linear;
 
 import com.davidbracewell.apollo.linalg.Vector;
-import com.davidbracewell.apollo.ml.Dataset;
+import com.davidbracewell.apollo.ml.Encoder;
 import com.davidbracewell.apollo.ml.FeatureVector;
 import com.davidbracewell.apollo.ml.Instance;
-import com.davidbracewell.apollo.ml.classification.ClassifierLearner;
+import com.davidbracewell.apollo.ml.classification.BinaryClassifierLearner;
+import com.davidbracewell.apollo.ml.classification.Classifier;
+import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.collection.Collect;
 import com.davidbracewell.logging.Logger;
-import com.google.common.base.Preconditions;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
+import java.util.List;
 
 /**
  * @author David B. Bracewell
  */
-public class AveragedPerceptronLearner extends ClassifierLearner {
+public class AveragedPerceptronLearner extends BinaryClassifierLearner {
   private static Logger log = Logger.getLogger(AveragedPerceptronLearner.class);
   private static final long serialVersionUID = 1L;
   private int maxIterations;
@@ -60,13 +62,11 @@ public class AveragedPerceptronLearner extends ClassifierLearner {
   }
 
   @Override
-  protected BinaryGLM trainImpl(Dataset<Instance> dataset) {
-    dataset.encode();
-    Preconditions.checkArgument(dataset.getLabelEncoder().size() == 2, "Can only have two classes");
+  protected Classifier trainFromSupplier(List<FeatureVector> vectors, Encoder labelEncoder, Encoder featureEncoder, PreprocessorList<Instance> preprocessors) {
     BinaryGLM model = new BinaryGLM(
-      dataset.getLabelEncoder(),
-      dataset.getFeatureEncoder(),
-      dataset.getPreprocessors()
+      labelEncoder,
+      featureEncoder,
+      preprocessors
     );
 
     totalWeights = new FeatureVector(model.getFeatureEncoder());
@@ -80,9 +80,8 @@ public class AveragedPerceptronLearner extends ClassifierLearner {
     for (int iteration = 0; iteration < maxIterations; iteration++) {
       double error = 0;
       double count = 0;
-      for (Instance instance : dataset) {
+      for (FeatureVector v : vectors) {
         count++;
-        FeatureVector v = instance.toVector(model.getFeatureEncoder(), model.getLabelEncoder());
         double y = v.getLabel();
         double yHat = model.classify(v).getEncodedResult();
 
@@ -90,10 +89,8 @@ public class AveragedPerceptronLearner extends ClassifierLearner {
           error++;
           double eta = learningRate * (y - yHat);
           for (Vector.Entry entry : Collect.asIterable(v.nonZeroIterator())) {
-            updateFeature(model,entry.getIndex(),c, eta);
-//            model.weights.increment(entry.getIndex(), entry.getValue() * eta);
+            updateFeature(model, entry.getIndex(), c, eta);
           }
-//          model.bias += eta;
           double timeSpan = c - biasStamps;
           totalBias += (timeSpan * model.bias);
           model.bias += eta;
@@ -173,5 +170,13 @@ public class AveragedPerceptronLearner extends ClassifierLearner {
 
   public void setTolerance(double tolerance) {
     this.tolerance = tolerance;
+  }
+
+  public boolean isVerbose() {
+    return verbose;
+  }
+
+  public void setVerbose(boolean verbose) {
+    this.verbose = verbose;
   }
 }//END OF AveragedPerceptronLearner

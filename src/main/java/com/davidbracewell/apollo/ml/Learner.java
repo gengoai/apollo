@@ -56,6 +56,7 @@ public abstract class Learner<T extends Example, M extends Model> implements Ser
    * @return the classifier
    */
   public M train(@NonNull Dataset<T> dataset) {
+    dataset.encode();
     M model = trainImpl(dataset);
     model.finishTraining();
     return model;

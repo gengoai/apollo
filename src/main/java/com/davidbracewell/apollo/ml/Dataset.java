@@ -382,22 +382,22 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
   }
 
 
-  List<FeatureVector> asFeatureVectors() {
+  public List<FeatureVector> asFeatureVectors() {
     encode();
     List<FeatureVector> list = stream()
-      .flatMap(e -> e.asInstances().stream().map(ii -> ii.toVector(featureEncoder)).collect(Collectors.toList()))
+      .flatMap(e -> e.asInstances().stream().map(ii -> ii.toVector(featureEncoder, labelEncoder)).collect(Collectors.toList()))
       .collect();
     close();
     return list;
   }
 
-  List<FeatureVectorSequence> asFeatureVectorSequences() {
+  public List<FeatureVectorSequence> asFeatureVectorSequences() {
     encode();
     List<FeatureVectorSequence> list = stream()
       .map(e -> {
         FeatureVectorSequence fvs = new FeatureVectorSequence();
         for (Instance ii : e.asInstances()) {
-          fvs.add(ii.toVector(featureEncoder));
+          fvs.add(ii.toVector(featureEncoder,labelEncoder));
         }
         return fvs;
       })

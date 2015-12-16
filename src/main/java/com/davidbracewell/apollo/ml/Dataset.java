@@ -22,11 +22,11 @@
 package com.davidbracewell.apollo.ml;
 
 import com.davidbracewell.Copyable;
+import com.davidbracewell.apollo.ml.preprocess.Preprocessor;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.apollo.ml.sequence.FeatureVectorSequence;
 import com.davidbracewell.apollo.ml.sequence.Sequence;
 import com.davidbracewell.conversion.Cast;
-import com.davidbracewell.function.SerializableFunction;
 import com.davidbracewell.io.resource.Resource;
 import com.davidbracewell.io.structured.ElementType;
 import com.davidbracewell.io.structured.json.JSONReader;
@@ -363,11 +363,18 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
    * @throws IOException Something went wrong writing the dataset
    */
   public void write(@NonNull Resource resource) throws IOException {
-    try (JSONWriter writer = new JSONWriter(resource, true)) {
+    try (JSONWriter writer = new JSONWriter(resource)) {
       writer.beginDocument();
+      writer.beginArray("preprocessors");
+      for (Preprocessor<T> preprocessor : preprocessors) {
+        writer.writeValue(preprocessor.describe());
+      }
+      writer.endArray();
+      writer.beginArray("data");
       for (T instance : this) {
         instance.write(writer);
       }
+      writer.endArray();
       writer.endDocument();
     }
   }
@@ -384,13 +391,20 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
     try (JSONReader reader = new JSONReader(resource)) {
       reader.beginDocument();
       List<T> batch = new LinkedList<>();
-      while (reader.peek() != ElementType.END_DOCUMENT) {
+      reader.beginArray("preprocessors");
+      while (reader.peek() != ElementType.END_ARRAY) {
+        reader.nextValue();
+      }
+      reader.endArray();
+      reader.beginArray("data");
+      while (reader.peek() != ElementType.END_ARRAY) {
         batch.add(Cast.as(Example.read(reader)));
         if (batch.size() > 1000) {
           addAll(batch);
           batch.clear();
         }
       }
+      reader.endArray();
       addAll(batch);
       reader.endDocument();
     }

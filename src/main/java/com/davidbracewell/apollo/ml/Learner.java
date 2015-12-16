@@ -3,10 +3,15 @@ package com.davidbracewell.apollo.ml;
 import com.davidbracewell.apollo.ml.classification.Classifier;
 import com.davidbracewell.apollo.ml.sequence.Sequence;
 import com.davidbracewell.apollo.ml.sequence.SequenceLabeler;
+import com.davidbracewell.conversion.Cast;
+import com.davidbracewell.conversion.Val;
+import com.davidbracewell.io.structured.json.JSONReader;
+import com.davidbracewell.io.structured.json.JSONWriter;
 import com.davidbracewell.reflection.BeanMap;
 import com.davidbracewell.reflection.Ignore;
 import lombok.NonNull;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.Map;
 
@@ -48,6 +53,13 @@ public abstract class Learner<T extends Example, M extends Model> implements Ser
     return new LearnerBuilder<>();
   }
 
+  public static <T extends Example, M extends Model, R extends Learner<T, M>> R read(JSONReader reader) throws IOException {
+    Class<?> clazz = reader.nextKeyValue("class").getValue().asClass();
+    reader.beginObject("parameters");
+    Map<String, Val> params = reader.nextMap();
+    reader.endObject();
+    return Cast.as(builder().learnerClass(Cast.as(clazz)).parameters(params).build());
+  }
 
   /**
    * Train classifier.
@@ -112,11 +124,20 @@ public abstract class Learner<T extends Example, M extends Model> implements Ser
     return new BeanMap(this).get(name);
   }
 
-
   /**
    * Reset.
    */
   public abstract void reset();
+
+  public void write(JSONWriter writer) throws IOException {
+    writer.writeKeyValue("class", getClass().getName());
+    Map<String, ?> parameters = getParameters();
+    writer.beginObject("parameters");
+    for (Map.Entry<String, ?> entry : parameters.entrySet()) {
+      writer.writeKeyValue(entry.getKey(), entry.getValue());
+    }
+    writer.endObject();
+  }
 
 
 }// END OF Learner

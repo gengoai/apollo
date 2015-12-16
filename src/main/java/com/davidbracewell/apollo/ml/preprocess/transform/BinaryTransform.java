@@ -44,4 +44,8 @@ public class BinaryTransform extends RestrictedTransform {
 
   }
 
+  @Override
+  public String describe() {
+    return "BinaryTransform[" + getFeatureNamePrefix() + "]: threshold=" + threshold;
+  }
 }// END OF BinaryTransform

@@ -52,4 +52,9 @@ public class SequencePreprocessor implements Preprocessor<Sequence>, Serializabl
     instancePreprocessor.trimToSize(encoder);
   }
 
+  @Override
+  public String describe() {
+    return instancePreprocessor.describe();
+  }
+
 }// END OF SequencePreprocessor

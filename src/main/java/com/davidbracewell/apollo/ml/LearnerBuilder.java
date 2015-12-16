@@ -24,12 +24,16 @@ public class LearnerBuilder<T extends Example, M extends Model> implements Seria
   private static final long serialVersionUID = 1L;
   @Setter(onParam = @_({@NonNull}))
   private Class<? extends Learner<T, M>> learnerClass;
-  @Setter(onParam = @_({@NonNull}))
   private Map<String, Object> parameters = new HashMap<>();
 
 
   public LearnerBuilder<T, M> parameter(String name, Object value) {
     parameters.put(name, value);
+    return this;
+  }
+
+  public LearnerBuilder<T, M> parameters(Map<String, ?> parameters) {
+    this.parameters.putAll(parameters);
     return this;
   }
 

@@ -44,4 +44,9 @@ public class CountFilter implements FilterProcessor<Instance>, InstancePreproces
     counter = counter.filterByValue(filter);
   }
 
+  @Override
+  public String describe() {
+    return "CountFilter: min=" + counter.minimumCount() + ", max=" + counter.maximumCount();
+  }
+
 }// END OF CountFilter

@@ -73,4 +73,9 @@ public class NameFilter implements FilterProcessor<Instance>, InstancePreprocess
 
   }
 
+  @Override
+  public String describe() {
+    return "NameFilter: " + patterns;
+  }
+
 }//END OF RemoveFilter

@@ -48,4 +48,9 @@ public class ValueFilter implements FilterProcessor<Instance>, InstancePreproces
     return false;
   }
 
+  @Override
+  public String describe() {
+    return "ValueFilter";
+  }
+
 }// END OF ValueFilter

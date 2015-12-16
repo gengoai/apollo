@@ -50,5 +50,7 @@ public interface Preprocessor<T extends Example> {
    */
   void trimToSize(Encoder encoder);
 
+  String describe();
+
 
 }//END OF Preprocessor

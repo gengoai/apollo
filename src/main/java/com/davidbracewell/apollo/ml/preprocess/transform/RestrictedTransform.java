@@ -23,6 +23,10 @@ public abstract class RestrictedTransform implements TransformProcessor<Instance
     this.acceptAll = StringUtils.isNullOrBlank(featureNamePrefix);
   }
 
+  public String getFeatureNamePrefix() {
+    return featureNamePrefix;
+  }
+
   private Stream<Feature> filterPositive(Instance example) {
     return example.getFeatures().stream().filter(f -> acceptAll || f.getName().startsWith(featureNamePrefix));
   }
@@ -60,4 +64,8 @@ public abstract class RestrictedTransform implements TransformProcessor<Instance
 
   protected abstract Stream<Feature> processImpl(Stream<Feature> featureStream);
 
+  @Override
+  public String describe() {
+    return getClass().getSimpleName() + "[" + featureNamePrefix + "]";
+  }
 }// END OF RestrictedTransform

@@ -134,7 +134,7 @@ public abstract class Learner<T extends Example, M extends Model> implements Ser
     Map<String, ?> parameters = getParameters();
     writer.beginObject("parameters");
     for (Map.Entry<String, ?> entry : parameters.entrySet()) {
-      writer.writeKeyValue(entry.getKey(), entry.getValue());
+      writer.writeObject(entry.getKey(), entry.getValue());
     }
     writer.endObject();
   }

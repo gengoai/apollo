@@ -4,15 +4,15 @@ import com.davidbracewell.Copyable;
 import com.davidbracewell.collection.Interner;
 import com.davidbracewell.io.Resources;
 import com.davidbracewell.io.resource.Resource;
+import com.davidbracewell.io.structured.Readable;
+import com.davidbracewell.io.structured.Writeable;
 import com.davidbracewell.io.structured.json.JSONReader;
 import com.davidbracewell.io.structured.json.JSONWriter;
 import com.davidbracewell.string.StringUtils;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
-import lombok.NonNull;
 
 import java.io.IOException;
-import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -21,18 +21,7 @@ import java.util.stream.Stream;
  * <code>Instance</code> specialization and Sequence Labeling Problems use the <code>Sequence</code>
  * specialization.</p>
  */
-public interface Example extends Copyable<Example> {
-
-  /**
-   * Reads an example from a JSONReader. Only useful for reading examples written by a dataset.
-   *
-   * @param reader the reader
-   * @return the example
-   * @throws IOException Something went wrong reading.
-   */
-  static Example read(@NonNull JSONReader reader) throws IOException {
-    return ExampleSerializer.read(reader);
-  }
+public interface Example extends Copyable<Example>, Writeable, Readable {
 
   /**
    * Wraps reading an example from a JSON string as written by the write method. Useful for Datasets that keep examples
@@ -42,26 +31,16 @@ public interface Example extends Copyable<Example> {
    * @return the example
    * @throws IOException Something went wrong converting the string into an example
    */
-  static Example fromJson(String input) throws IOException {
+  static <T extends Example> T fromJson(String input, Class<T> example) throws IOException {
     Preconditions.checkArgument(!StringUtils.isNullOrBlank(input), "Cannot create example from null or empty string.");
     Resource r = Resources.fromString(input);
-    Example rval;
+    T rval;
     try (JSONReader reader = new JSONReader(r)) {
       reader.beginDocument();
-      rval = read(reader);
+      rval = reader.nextValue(example);
       reader.endDocument();
     }
     return rval;
-  }
-
-  /**
-   * Writes the example out to the given JSONWriter. Used by Datasets.
-   *
-   * @param writer the writer
-   * @throws IOException Something went wrong writing
-   */
-  default void write(@NonNull JSONWriter writer) throws IOException {
-    ExampleSerializer.write(writer, this);
   }
 
   /**
@@ -85,8 +64,8 @@ public interface Example extends Copyable<Example> {
    */
   default String toJson() {
     Resource r = Resources.fromString();
-    try (JSONWriter writer = new JSONWriter(r, true)) {
-      writer.beginDocument();
+    try (JSONWriter writer = new JSONWriter(r)) {
+      writer.beginDocument(true);
       write(writer);
       writer.endDocument();
     } catch (Exception e) {

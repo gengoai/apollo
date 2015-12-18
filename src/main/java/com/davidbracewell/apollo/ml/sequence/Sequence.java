@@ -3,8 +3,12 @@ package com.davidbracewell.apollo.ml.sequence;
 import com.davidbracewell.apollo.ml.Example;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.collection.Interner;
+import com.davidbracewell.io.structured.ElementType;
+import com.davidbracewell.io.structured.StructuredReader;
+import com.davidbracewell.io.structured.StructuredWriter;
 import lombok.NonNull;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,6 +37,10 @@ public class Sequence implements Example, Serializable, Iterable<Instance> {
   public Sequence(@NonNull List<Instance> sequence) {
     this.sequence = new ArrayList<>(sequence);
     this.sequence.trimToSize();
+  }
+
+  public Sequence() {
+    this.sequence = new ArrayList<>();
   }
 
   @Override
@@ -97,6 +105,25 @@ public class Sequence implements Example, Serializable, Iterable<Instance> {
     return sequence.toString();
   }
 
+  @Override
+  public void read(StructuredReader reader) throws IOException {
+    sequence.clear();
+    reader.beginArray("sequence");
+    while (reader.peek() != ElementType.END_ARRAY) {
+      sequence.add(reader.nextValue(Instance.class));
+    }
+    reader.endArray();
+    sequence.trimToSize();
+  }
+
+  @Override
+  public void write(StructuredWriter writer) throws IOException {
+    writer.beginArray("sequence");
+    for (Instance instance : sequence) {
+      writer.writeValue(instance);
+    }
+    writer.endArray();
+  }
 
   private class SequenceIterator extends ContextualIterator<Instance> {
     private static final long serialVersionUID = 1L;
@@ -122,6 +149,4 @@ public class Sequence implements Example, Serializable, Iterable<Instance> {
       return Optional.empty();
     }
   }
-
-
 }// END OF Sequence

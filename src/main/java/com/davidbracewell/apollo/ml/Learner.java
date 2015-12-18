@@ -4,9 +4,10 @@ import com.davidbracewell.apollo.ml.classification.Classifier;
 import com.davidbracewell.apollo.ml.sequence.Sequence;
 import com.davidbracewell.apollo.ml.sequence.SequenceLabeler;
 import com.davidbracewell.conversion.Cast;
-import com.davidbracewell.conversion.Val;
+import com.davidbracewell.io.structured.StructuredReader;
+import com.davidbracewell.io.structured.StructuredWriter;
+import com.davidbracewell.io.structured.Writeable;
 import com.davidbracewell.io.structured.json.JSONReader;
-import com.davidbracewell.io.structured.json.JSONWriter;
 import com.davidbracewell.reflection.BeanMap;
 import com.davidbracewell.reflection.Ignore;
 import lombok.NonNull;
@@ -22,7 +23,7 @@ import java.util.Map;
  * @param <M> the type parameter
  * @author David B. Bracewell
  */
-public abstract class Learner<T extends Example, M extends Model> implements Serializable {
+public abstract class Learner<T extends Example, M extends Model> implements Serializable, Writeable {
 
   /**
    * Builder learner builder.
@@ -53,12 +54,9 @@ public abstract class Learner<T extends Example, M extends Model> implements Ser
     return new LearnerBuilder<>();
   }
 
-  public static <T extends Example, M extends Model, R extends Learner<T, M>> R read(JSONReader reader) throws IOException {
-    Class<?> clazz = reader.nextKeyValue("class").getValue().asClass();
-    reader.beginObject("parameters");
-    Map<String, Val> params = reader.nextMap();
-    reader.endObject();
-    return Cast.as(builder().learnerClass(Cast.as(clazz)).parameters(params).build());
+  public static <T extends Example, M extends Model, R extends Learner<T, M>> R read(StructuredReader reader) throws IOException {
+    Class<?> clazz = reader.nextKeyValue("class").asClass();
+    return Cast.as(builder().learnerClass(Cast.as(clazz)).parameters(reader.nextMap("parameters")).build());
   }
 
   /**
@@ -129,14 +127,10 @@ public abstract class Learner<T extends Example, M extends Model> implements Ser
    */
   public abstract void reset();
 
-  public void write(JSONWriter writer) throws IOException {
+  @Override
+  public void write(StructuredWriter writer) throws IOException {
     writer.writeKeyValue("class", getClass().getName());
-    Map<String, ?> parameters = getParameters();
-    writer.beginObject("parameters");
-    for (Map.Entry<String, ?> entry : parameters.entrySet()) {
-      writer.writeObject(entry.getKey(), entry.getValue());
-    }
-    writer.endObject();
+    writer.writeKeyValue("parameters", getParameters());
   }
 
 

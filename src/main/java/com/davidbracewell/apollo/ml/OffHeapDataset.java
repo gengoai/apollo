@@ -23,6 +23,7 @@ public class OffHeapDataset<T extends Example> extends Dataset<T> {
   private static final long serialVersionUID = 1L;
   private final AtomicLong id = new AtomicLong();
   private Resource outputResource = Resources.temporaryDirectory();
+  private Class<T> clazz;
   private int size = 0;
 
   protected OffHeapDataset(Encoder featureEncoder, Encoder labelEncoder, PreprocessorList<T> preprocessors) {
@@ -33,6 +34,7 @@ public class OffHeapDataset<T extends Example> extends Dataset<T> {
   protected void addAll(@NonNull MStream<T> instances) {
     try (BufferedWriter writer = new BufferedWriter(outputResource.getChild("part-" + id.incrementAndGet() + ".json").writer())) {
       for (T instance : Collect.asIterable(instances.iterator())) {
+        clazz = Cast.as(instance.getClass());
         writer.write(instance.toJson());
         writer.newLine();
         size++;
@@ -47,7 +49,7 @@ public class OffHeapDataset<T extends Example> extends Dataset<T> {
     return Streams.of(
       outputResource.getChildren().stream()
         .flatMap(Unchecked.function(r -> r.readLines().stream()))
-        .map(Unchecked.function(line -> Cast.as(Example.fromJson(line))))
+        .map(Unchecked.function(line -> Cast.as(Example.fromJson(line, clazz))))
     );
   }
 

@@ -29,9 +29,11 @@ public class DatasetBuilder<T extends Example> {
   private MStream<T> source;
   @Setter(onParam = @_({@NonNull}))
   private Resource load;
+  private final Class<T> exampleType;
 
-  public DatasetBuilder(@NonNull Encoder labelEncoder) {
+  protected DatasetBuilder(@NonNull Encoder labelEncoder, @NonNull Class<T> exampleType) {
     this.labelEncoder = labelEncoder;
+    this.exampleType = exampleType;
   }
 
   /**
@@ -69,7 +71,7 @@ public class DatasetBuilder<T extends Example> {
 
     if (load != null) {
       try {
-        dataset.read(load);
+        dataset.read(load,exampleType);
       } catch (IOException e) {
         throw Throwables.propagate(e);
       }

@@ -23,10 +23,16 @@ package com.davidbracewell.apollo.ml;
 
 import com.davidbracewell.collection.Collect;
 import com.davidbracewell.collection.Interner;
+import com.davidbracewell.conversion.Val;
+import com.davidbracewell.io.structured.ElementType;
+import com.davidbracewell.io.structured.StructuredReader;
+import com.davidbracewell.io.structured.StructuredWriter;
+import com.davidbracewell.tuple.Tuple2;
 import lombok.EqualsAndHashCode;
 import lombok.NonNull;
 import lombok.ToString;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -63,6 +69,11 @@ public class Instance implements Example, Serializable, Iterable<Feature> {
     this.features = new ArrayList<>(features);
     this.features.trimToSize();
     this.label = label;
+  }
+
+  public Instance() {
+    this.features = new ArrayList<>();
+    this.label = null;
   }
 
   /**
@@ -209,6 +220,33 @@ public class Instance implements Example, Serializable, Iterable<Feature> {
   @Override
   public List<Instance> asInstances() {
     return Collections.singletonList(this);
+  }
+
+
+  @Override
+  public void write(@NonNull StructuredWriter writer) throws IOException {
+    writer.writeKeyValue("label", label);
+    writer.beginObject("features");
+    for (Feature f : features) {
+      writer.writeKeyValue(f.getName(), f.getValue());
+    }
+    writer.endObject();
+  }
+
+  @Override
+  public void read(StructuredReader reader) throws IOException {
+    this.label = null;
+    this.features.clear();
+    if (reader.peek() == ElementType.NAME) {
+      this.label = reader.nextKeyValue("label");
+    }
+    reader.beginObject();
+    while (reader.peek() != ElementType.END_OBJECT) {
+      Tuple2<String, Val> fv = reader.nextKeyValue();
+      this.features.add(Feature.real(fv.getKey(), fv.getValue().asDoubleValue()));
+    }
+    reader.endObject();
+    this.features.trimToSize();
   }
 
 }//END OF Instance

@@ -74,7 +74,7 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
    * @return the dataset builder
    */
   public static DatasetBuilder<Instance> classification() {
-    return new DatasetBuilder<>(new IndexEncoder());
+    return new DatasetBuilder<>(new IndexEncoder(), Instance.class);
   }
 
 
@@ -85,7 +85,7 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
    * @return the dataset builder
    */
   public static DatasetBuilder<Sequence> sequence() {
-    return new DatasetBuilder<>(new IndexEncoder());
+    return new DatasetBuilder<>(new IndexEncoder(), Sequence.class);
   }
 
 
@@ -96,7 +96,7 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
    * @return the dataset builder
    */
   public static DatasetBuilder<Instance> regression() {
-    return new DatasetBuilder<>(new RealEncoder());
+    return new DatasetBuilder<>(new RealEncoder(), Instance.class);
   }
 
   /**
@@ -372,7 +372,7 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
       writer.endArray();
       writer.beginArray("data");
       for (T instance : this) {
-        instance.write(writer);
+        writer.writeValue(instance);
       }
       writer.endArray();
       writer.endDocument();
@@ -387,7 +387,7 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
    * @return this dataset
    * @throws IOException Something went wrong reading.
    */
-  Dataset<T> read(@NonNull Resource resource) throws IOException {
+  Dataset<T> read(@NonNull Resource resource, Class<T> exampleType) throws IOException {
     try (JSONReader reader = new JSONReader(resource)) {
       reader.beginDocument();
       List<T> batch = new LinkedList<>();
@@ -398,7 +398,7 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
       reader.endArray();
       reader.beginArray("data");
       while (reader.peek() != ElementType.END_ARRAY) {
-        batch.add(Cast.as(Example.read(reader)));
+        batch.add(reader.nextValue(exampleType));
         if (batch.size() > 1000) {
           addAll(batch);
           batch.clear();

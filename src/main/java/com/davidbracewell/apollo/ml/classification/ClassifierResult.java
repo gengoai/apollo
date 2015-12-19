@@ -116,7 +116,7 @@ public class ClassifierResult implements Serializable {
   }
 
 
-  public int getEncodedResult() {
+  public double getEncodedResult() {
     return resultIndex;
   }
 

@@ -31,17 +31,14 @@ import com.davidbracewell.collection.MultiCounter;
 import com.davidbracewell.collection.MultiCounters;
 import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.string.StringUtils;
+import com.davidbracewell.string.TableFormatter;
 import com.davidbracewell.tuple.Tuple2;
 import com.google.common.base.Preconditions;
 import lombok.NonNull;
 
 import java.io.PrintStream;
 import java.io.Serializable;
-import java.text.DecimalFormat;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -280,6 +277,11 @@ public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, S
     return fp;
   }
 
+  /**
+   * False omission rate double.
+   *
+   * @return the double
+   */
   public double falseOmissionRate() {
     double fn = falseNegatives();
     double tn = trueNegatives();
@@ -424,14 +426,31 @@ public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, S
     return recall(label) / falsePositiveRate(label);
   }
 
+  /**
+   * Positive predictve value double.
+   *
+   * @return the double
+   */
   public double positivePredictveValue() {
     return microPrecision();
   }
 
+  /**
+   * Positive predictve value double.
+   *
+   * @param label the label
+   * @return the double
+   */
   public double positivePredictveValue(String label) {
     return precision(label);
   }
 
+  /**
+   * Precision double.
+   *
+   * @param label the label
+   * @return the double
+   */
   public double precision(String label) {
     double tp = truePositives(label);
     double fp = falsePositives(label);
@@ -452,6 +471,12 @@ public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, S
     return precisions;
   }
 
+  /**
+   * Recall double.
+   *
+   * @param label the label
+   * @return the double
+   */
   public double recall(String label) {
     double tp = truePositives(label);
     double fn = falseNegatives(label);
@@ -557,18 +582,40 @@ public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, S
     return tn;
   }
 
+  /**
+   * True negative rate double.
+   *
+   * @return the double
+   */
   public double trueNegativeRate() {
     return specificity();
   }
 
+  /**
+   * True negative rate double.
+   *
+   * @param label the label
+   * @return the double
+   */
   public double trueNegativeRate(String label) {
     return specificity(label);
   }
 
+  /**
+   * True positive rate double.
+   *
+   * @return the double
+   */
   public double truePositiveRate() {
     return microRecall();
   }
 
+  /**
+   * True positive rate double.
+   *
+   * @param label the label
+   * @return the double
+   */
   public double truePositiveRate(String label) {
     return recall(label);
   }
@@ -603,71 +650,85 @@ public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, S
     return builder.toString();
   }
 
+  /**
+   * Output.
+   *
+   * @param printStream the print stream
+   */
   public void output(@NonNull PrintStream printStream) {
-    final int longestLabel = Math.max(
-      matrix.entries().stream().flatMap(e -> Arrays.asList(e.v1, e.v2).stream()).mapToInt(String::length).max().orElse(0) + 2,
-      7
+    output(printStream, true);
+  }
+
+  public double f1(String label) {
+    return f1(precision(label), recall(label));
+  }
+
+  /**
+   * Output.
+   *
+   * @param printStream          the print stream
+   * @param printConfusionMatrix the print confusion matrix
+   */
+  public void output(@NonNull PrintStream printStream, boolean printConfusionMatrix) {
+
+    final Set<String> columns = matrix.entries().stream()
+      .flatMap(e -> Arrays.asList(e.v1, e.v2).stream())
+      .distinct()
+      .collect(Collectors.toCollection(TreeSet::new));
+
+    TableFormatter tableFormatter = new TableFormatter();
+    if (printConfusionMatrix) {
+      tableFormatter.title("Confusion Matrix");
+      tableFormatter.header(Collections.singleton(StringUtils.EMPTY));
+      tableFormatter.header(columns);
+      tableFormatter.header(Collections.singleton("Total"));
+      matrix.items().forEach(gold -> {
+        List<Object> row = new ArrayList<>();
+        row.add(gold);
+        columns.forEach(c -> row.add(matrix.get(gold, c)));
+        row.add(matrix.get(gold).sum());
+        tableFormatter.content(row);
+      });
+      List<Object> totalRow = new ArrayList<>();
+      totalRow.add("Total");
+      columns.forEach(c -> {
+        totalRow.add(matrix.items().stream()
+          .mapToDouble(k -> matrix.get(k, c))
+          .sum());
+      });
+      totalRow.add(matrix.sum());
+      tableFormatter.content(totalRow);
+      tableFormatter.print(printStream);
+      printStream.println();
+    }
+
+    tableFormatter.clear();
+    tableFormatter
+      .title("Classification Metrics")
+      .header(Arrays.asList(StringUtils.EMPTY, "P", "R", "F1"));
+
+    matrix.items().forEach(g ->
+      tableFormatter.content(Arrays.asList(
+        g,
+        precision(g),
+        recall(g),
+        f1(g)
+      ))
     );
-    final Set<String> columns = matrix.entries().stream().map(e -> e.v2).distinct().collect(Collectors.toCollection(TreeSet::new));
-    final DecimalFormat formatter = new DecimalFormat("####E");
+    tableFormatter.content(Arrays.asList(
+      "micro",
+      microPrecision(),
+      microRecall(),
+      microF1()
+    ));
+    tableFormatter.content(Arrays.asList(
+      "macro",
+      macroPrecision(),
+      macroRecall(),
+      macroF1()
+    ));
+    tableFormatter.print(printStream);
 
-    String horizontalBar = StringUtils.repeat("─", longestLabel);
-    String blankColumn = StringUtils.repeat(' ', longestLabel);
-
-    String hline = middleCMBar(horizontalBar, columns.size());
-
-
-    StringBuilder builder = new StringBuilder();
-
-    builder.append("┌").append(horizontalBar);
-    for (int i = 1; i <= columns.size(); i++) {
-      builder.append("┬").append(horizontalBar);
-    }
-    builder.append("┐");
-    printStream.println(builder.toString());
-
-    builder.setLength(0);
-    builder.append("│").append(blankColumn);
-    for (String column : columns) {
-      builder.append("│").append(StringUtils.center(column, longestLabel));
-    }
-    builder.append("│");
-    printStream.println(builder.toString());
-    printStream.println(hline);
-
-    int row = 0;
-    for (String gold : new TreeSet<>(matrix.items())) {
-      builder.setLength(0);
-      builder.append("│").append(StringUtils.center(gold, longestLabel));
-      for (String column : columns) {
-        builder.append("│").append(StringUtils.center(formatter.format(matrix.get(gold, column)), longestLabel));
-      }
-      builder.append("│");
-      printStream.println(builder.toString());
-      row++;
-      if (row < matrix.items().size()) {
-        printStream.println(hline);
-      }
-    }
-
-    builder.setLength(0);
-    builder.append("└").append(horizontalBar);
-    for (int i = 1; i <= columns.size(); i++) {
-      builder.append("┴").append(horizontalBar);
-    }
-    builder.append("┘");
-    printStream.println(builder.toString());
-
-
-    printStream.println();
-
-    printStream.println("       ┌───────┬───────┬───────┐");
-    printStream.println("       │   P   │   R   │  F-1  │");
-    printStream.println("┌──────├───────┼───────┼───────┤");
-    printStream.printf("│micro │ %.3f │ %.3f │ %.3f │\n", microPrecision(), microRecall(), microF1());
-    printStream.println("├──────┼───────┼───────┼───────┤");
-    printStream.printf("│macro │ %.3f │ %.3f │ %.3f │\n", macroPrecision(), macroRecall(), macroF1());
-    printStream.println("└──────┴───────┴───────┴───────┘\n");
   }
 
 

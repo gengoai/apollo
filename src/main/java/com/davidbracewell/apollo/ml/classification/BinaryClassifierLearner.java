@@ -22,15 +22,10 @@
 package com.davidbracewell.apollo.ml.classification;
 
 import com.davidbracewell.apollo.ml.Dataset;
-import com.davidbracewell.apollo.ml.EncoderPair;
-import com.davidbracewell.apollo.ml.FeatureVector;
 import com.davidbracewell.apollo.ml.Instance;
-import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.conversion.Cast;
-import com.davidbracewell.function.SerializableSupplier;
 import com.davidbracewell.reflection.Reflect;
 import com.davidbracewell.reflection.ReflectionException;
-import com.davidbracewell.stream.MStream;
 import com.google.common.base.Throwables;
 
 import java.util.Map;
@@ -45,26 +40,17 @@ public abstract class BinaryClassifierLearner extends ClassifierLearner {
 
   @Override
   protected Classifier trainImpl(Dataset<Instance> dataset) {
-    return trainFromStream(
-      () -> dataset.stream().map(i -> i.toVector(dataset.getEncoderPair())),
-      dataset.getEncoderPair(),
-      dataset.getPreprocessors()
-    );
+    return trainForLabel(dataset, 1.0);
   }
 
   /**
    * Train from supplier classifier.
    *
-   * @param supplier      the supplier
-   * @param encoderPair   the encoder pair
-   * @param preprocessors the preprocessors
+   * @param dataset   the dataset
+   * @param trueLabel the true label
    * @return the classifier
    */
-  protected abstract Classifier trainFromStream(
-    SerializableSupplier<MStream<FeatureVector>> supplier,
-    EncoderPair encoderPair,
-    PreprocessorList<Instance> preprocessors
-  );
+  protected abstract Classifier trainForLabel(Dataset<Instance> dataset, double trueLabel);
 
 
   /**

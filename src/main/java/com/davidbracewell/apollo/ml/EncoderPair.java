@@ -117,4 +117,8 @@ public final class EncoderPair implements Serializable {
     this.featureEncoder.freeze();
   }
 
+  public EncoderPair createNew() {
+    return new EncoderPair(labelEncoder.createNew(), featureEncoder.createNew());
+  }
+
 }// END OF EncoderPair

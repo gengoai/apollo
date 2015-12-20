@@ -22,22 +22,17 @@
 package com.davidbracewell.apollo.ml.classification.linear;
 
 import com.davidbracewell.apollo.linalg.Vector;
-import com.davidbracewell.apollo.ml.Encoder;
-import com.davidbracewell.apollo.ml.EncoderPair;
+import com.davidbracewell.apollo.ml.Dataset;
 import com.davidbracewell.apollo.ml.FeatureVector;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.classification.BinaryClassifierLearner;
 import com.davidbracewell.apollo.ml.classification.Classifier;
-import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.collection.Collect;
-import com.davidbracewell.function.SerializableSupplier;
 import com.davidbracewell.logging.Logger;
-import com.davidbracewell.stream.MStream;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
-import java.util.List;
 
 /**
  * @author David B. Bracewell
@@ -64,18 +59,21 @@ public class AveragedPerceptronLearner extends BinaryClassifierLearner {
     this.tolerance = tolerance;
   }
 
+  private double convertY(double real, double trueLabel) {
+    return (real == trueLabel) ? 1.0 : 0.0;
+  }
+
   @Override
-  protected Classifier trainFromStream(SerializableSupplier<MStream<FeatureVector>> supplier, EncoderPair encoders, PreprocessorList<Instance> preprocessors) {
+  protected Classifier trainForLabel(Dataset<Instance> dataset, double trueLabel) {
     BinaryGLM model = new BinaryGLM(
-      encoders,
-      preprocessors
+      dataset.getEncoderPair(),
+      dataset.getPreprocessors()
     );
 
     totalWeights = new FeatureVector(model.getFeatureEncoder());
     stamps = new FeatureVector(model.getFeatureEncoder());
     model.weights = new FeatureVector(model.getFeatureEncoder());
 
-    List<FeatureVector> vectors = supplier.get().collect();
     double c = 1d;
     double oldError = 0;
     double oldOldError = 0;
@@ -83,9 +81,10 @@ public class AveragedPerceptronLearner extends BinaryClassifierLearner {
     for (int iteration = 0; iteration < maxIterations; iteration++) {
       double error = 0;
       double count = 0;
-      for (FeatureVector v : vectors) {
+      for (Instance instance : dataset) {
+        FeatureVector v = instance.toVector(model.getEncoderPair());
         count++;
-        double y = v.getLabel();
+        double y = convertY(v.getLabel(), trueLabel);
         double yHat = model.classify(v).getEncodedResult();
 
         if (y != yHat) {
@@ -182,4 +181,5 @@ public class AveragedPerceptronLearner extends BinaryClassifierLearner {
   public void setVerbose(boolean verbose) {
     this.verbose = verbose;
   }
+
 }//END OF AveragedPerceptronLearner

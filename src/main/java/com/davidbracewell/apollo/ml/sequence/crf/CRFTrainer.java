@@ -28,13 +28,17 @@ import com.davidbracewell.apollo.ml.sequence.SequenceLabeler;
 import com.davidbracewell.apollo.ml.sequence.SequenceLabelerLearner;
 import com.davidbracewell.apollo.ml.sequence.TransitionFeatures;
 import com.davidbracewell.io.Resources;
-import com.github.jcrfsuite.util.CrfSuiteLoader;
 import third_party.org.chokkan.crfsuite.*;
 
 /**
+ * The type Crf trainer.
+ *
  * @author David B. Bracewell
  */
 public class CRFTrainer extends SequenceLabelerLearner {
+  private Solver solver = Solver.LBFGS;
+  private int maxIterations = 100;
+  private double c2 = 1.0;
 
   @Override
   protected SequenceLabeler trainImpl(Dataset<Sequence> dataset) {
@@ -51,8 +55,9 @@ public class CRFTrainer extends SequenceLabelerLearner {
       }
       trainer.append(seq, lables, 0);
     });
-    trainer.select("lbfgs", "crf1d");
-    trainer.set("max_iterations", "1");
+    trainer.select(solver.parameterSetting, "crf1d");
+    trainer.set("max_iterations", Integer.toString(maxIterations));
+    trainer.set("c2", Double.toString(c2));
 
 
     String tempFile = Resources.temporaryFile().asFile().get().getAbsolutePath();
@@ -71,4 +76,57 @@ public class CRFTrainer extends SequenceLabelerLearner {
 
   }
 
+  /**
+   * Gets solver.
+   *
+   * @return the solver
+   */
+  public Solver getSolver() {
+    return solver;
+  }
+
+  /**
+   * Sets solver.
+   *
+   * @param solver the solver
+   */
+  public void setSolver(Solver solver) {
+    this.solver = solver;
+  }
+
+  /**
+   * Gets max iterations.
+   *
+   * @return the max iterations
+   */
+  public int getMaxIterations() {
+    return maxIterations;
+  }
+
+  /**
+   * Sets max iterations.
+   *
+   * @param maxIterations the max iterations
+   */
+  public void setMaxIterations(int maxIterations) {
+    this.maxIterations = maxIterations;
+  }
+
+  /**
+   * Gets c 2.
+   *
+   * @return the c 2
+   */
+  public double getC2() {
+    return c2;
+  }
+
+  /**
+   * Sets c 2.
+   *
+   * @param c2 the c 2
+   */
+  public void setC2(double c2) {
+    this.c2 = c2;
+  }
 }// END OF CRFTrainer

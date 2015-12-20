@@ -6,6 +6,7 @@ import com.google.common.collect.MinMaxPriorityQueue;
 import com.google.common.collect.Ordering;
 import lombok.NonNull;
 
+import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -14,7 +15,8 @@ import java.util.List;
  *
  * @author David B. Bracewell
  */
-public class BeamDecoder implements Decoder {
+public class BeamDecoder implements Decoder, Serializable {
+  private static final long serialVersionUID = 1L;
   private int beamSize;
 
   /**

@@ -32,7 +32,6 @@ import com.davidbracewell.apollo.ml.sequence.TransitionFeatures;
 import com.davidbracewell.io.Resources;
 import com.davidbracewell.io.resource.Resource;
 import com.github.jcrfsuite.CrfTagger;
-import com.github.jcrfsuite.util.CrfSuiteLoader;
 import com.github.jcrfsuite.util.Pair;
 import lombok.NonNull;
 import third_party.org.chokkan.crfsuite.Attribute;
@@ -40,6 +39,7 @@ import third_party.org.chokkan.crfsuite.Item;
 import third_party.org.chokkan.crfsuite.ItemSequence;
 
 import java.io.IOException;
+import java.util.Base64;
 import java.util.Iterator;
 import java.util.List;
 
@@ -70,17 +70,13 @@ public class CRFTagger extends SequenceLabeler {
 
   @Override
   public LabelingResult label(@NonNull Sequence sequence) {
-    try {
-      if (!CrfSuiteLoader.isNativeLibraryLoaded()) {
-        CrfSuiteLoader.load();
-      }
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
+    LibraryLoader.INSTANCE.load();
     ItemSequence seq = new ItemSequence();
     for (Instance instance : sequence.asInstances()) {
       Item item = new Item();
-      instance.forEach(f -> item.add(new Attribute(f.getName(), f.getValue())));
+      for (Feature f : instance) {
+        item.add(new Attribute(f.getName(), f.getValue()));
+      }
       seq.add(item);
     }
     List<Pair<String, Double>> tags = tagger.tag(seq);
@@ -97,18 +93,20 @@ public class CRFTagger extends SequenceLabeler {
   }
 
   private void writeObject(java.io.ObjectOutputStream stream) throws IOException {
-    byte[] modelBytes = Resources.from(modelFile).readBytes();
+    byte[] modelBytes = Base64.getEncoder().encode(Resources.from(modelFile).readBytes());
     stream.writeInt(modelBytes.length);
     stream.write(modelBytes);
   }
 
   private void readObject(java.io.ObjectInputStream stream) throws IOException, ClassNotFoundException {
+    LibraryLoader.INSTANCE.load();
     Resource tmp = Resources.temporaryFile();
     int length = stream.readInt();
     byte[] bytes = new byte[length];
-    assert length == stream.read(bytes);
-    tmp.write(bytes);
+    stream.readFully(bytes);
+    tmp.write(Base64.getDecoder().decode(bytes));
     this.modelFile = tmp.asFile().get().getAbsolutePath();
+    this.tagger = new CrfTagger(modelFile);
   }
 
 

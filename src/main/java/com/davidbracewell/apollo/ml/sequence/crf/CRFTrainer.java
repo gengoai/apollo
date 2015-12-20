@@ -38,14 +38,8 @@ public class CRFTrainer extends SequenceLabelerLearner {
 
   @Override
   protected SequenceLabeler trainImpl(Dataset<Sequence> dataset) {
-    try {
-      CrfSuiteLoader.load();
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-
+    LibraryLoader.INSTANCE.load();
     Trainer trainer = new Trainer();
-
     dataset.forEach(sequence -> {
       ItemSequence seq = new ItemSequence();
       StringList lables = new StringList();
@@ -58,7 +52,7 @@ public class CRFTrainer extends SequenceLabelerLearner {
       trainer.append(seq, lables, 0);
     });
     trainer.select("lbfgs", "crf1d");
-    trainer.set("max_iterations", "50");
+    trainer.set("max_iterations", "1");
 
 
     String tempFile = Resources.temporaryFile().asFile().get().getAbsolutePath();

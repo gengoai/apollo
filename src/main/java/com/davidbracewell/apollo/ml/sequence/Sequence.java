@@ -3,7 +3,6 @@ package com.davidbracewell.apollo.ml.sequence;
 import com.davidbracewell.apollo.ml.Example;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.collection.Interner;
-import com.davidbracewell.io.structured.ElementType;
 import com.davidbracewell.io.structured.StructuredReader;
 import com.davidbracewell.io.structured.StructuredWriter;
 import lombok.NonNull;
@@ -108,23 +107,13 @@ public class Sequence implements Example, Serializable, Iterable<Instance> {
   @Override
   public void read(StructuredReader reader) throws IOException {
     sequence.clear();
-    reader.beginArray("sequence");
-    while (reader.peek() != ElementType.END_ARRAY) {
-      sequence.add(reader.nextValue(Instance.class));
-    }
-    reader.endArray();
+    sequence.addAll(reader.nextCollection(ArrayList::new, "sequence", Instance.class));
     sequence.trimToSize();
   }
 
   @Override
   public void write(StructuredWriter writer) throws IOException {
-    writer.beginArray("sequence");
-    for (Instance instance : sequence) {
-      writer.beginObject();
-      writer.writeValue(instance);
-      writer.endObject();
-    }
-    writer.endArray();
+    writer.writeKeyValue("sequence", sequence);
   }
 
   private class SequenceIterator extends ContextualIterator<Instance> {

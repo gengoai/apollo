@@ -50,7 +50,7 @@ public class OneVsRestLearner extends ClassifierLearner {
       dataset.getPreprocessors()
     );
     model.classifiers = IntStream.range(0, dataset.getLabelEncoder().size())
-      .parallel()
+//      .parallel()
       .mapToObj(i -> {
           BinaryClassifierLearner bcl = learnerSupplier.get();
           bcl.setParameters(parameters);

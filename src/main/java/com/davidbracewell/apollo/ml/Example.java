@@ -65,7 +65,7 @@ public interface Example extends Copyable<Example>, Writeable, Readable {
   default String toJson() {
     Resource r = Resources.fromString();
     try (JSONWriter writer = new JSONWriter(r)) {
-      writer.beginDocument(true);
+      writer.beginDocument();
       write(writer);
       writer.endDocument();
     } catch (Exception e) {

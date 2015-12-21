@@ -71,11 +71,6 @@
             <version>1.94</version>
         </dependency>
         <dependency>
-            <groupId>com.github.vsonnier</groupId>
-            <artifactId>hppcrt</artifactId>
-            <version>0.7.2</version>
-        </dependency>
-        <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-math3</artifactId>
             <version>3.5</version>

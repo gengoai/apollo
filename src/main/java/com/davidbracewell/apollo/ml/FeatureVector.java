@@ -1,7 +1,6 @@
 package com.davidbracewell.apollo.ml;
 
 import com.davidbracewell.apollo.linalg.SparseVector;
-import com.davidbracewell.apollo.linalg.SparseVector2;
 import lombok.NonNull;
 
 /**
@@ -14,15 +13,6 @@ public class FeatureVector extends SparseVector {
   private double label = Double.NaN;
 
   /**
-   * Gets feature encoder.
-   *
-   * @return the feature encoder
-   */
-  public Encoder getFeatureEncoder() {
-    return featureEncoder;
-  }
-
-  /**
    * Instantiates a new Feature vector.
    *
    * @param featureEncoder the feature encoder
@@ -30,6 +20,15 @@ public class FeatureVector extends SparseVector {
   public FeatureVector(@NonNull Encoder featureEncoder) {
     super(0);
     this.featureEncoder = featureEncoder;
+  }
+
+  /**
+   * Gets feature encoder.
+   *
+   * @return the feature encoder
+   */
+  public Encoder getFeatureEncoder() {
+    return featureEncoder;
   }
 
   @Override

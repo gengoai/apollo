@@ -16,6 +16,7 @@ import java.util.Iterator;
  * @author David B. Bracewell
  */
 public abstract class SequenceLabeler extends Model {
+  private static final long serialVersionUID = 1L;
   private final PreprocessorList<Sequence> preprocessors;
   private final TransitionFeatures transitionFeatures;
   private volatile Decoder decoder = new BeamDecoder();
@@ -32,7 +33,7 @@ public abstract class SequenceLabeler extends Model {
    */
   public SequenceLabeler(@NonNull Encoder labelEncoder, @NonNull Encoder featureEncoder, @NonNull PreprocessorList<Sequence> preprocessors, TransitionFeatures transitionFeatures) {
     super(labelEncoder, featureEncoder);
-    this.preprocessors = preprocessors;
+    this.preprocessors = preprocessors.getModelProcessors();
     this.transitionFeatures = transitionFeatures;
   }
 

@@ -459,7 +459,7 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
   /**
    * The dataset type.
    */
-  enum Type {
+  public enum Type {
     /**
      * Distributed type.
      */

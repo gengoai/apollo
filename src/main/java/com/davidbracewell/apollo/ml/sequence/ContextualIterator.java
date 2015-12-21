@@ -74,13 +74,17 @@ public abstract class ContextualIterator<T> implements Iterator<T>, Serializable
     return getContextAt(index).orElseThrow(NoSuchElementException::new);
   }
 
+  public boolean hasLabel(){
+    return getLabelAt(index).isPresent();
+  }
+
   /**
    * Gets label.
    *
    * @return the label
    */
   public String getLabel() {
-    return getLabelAt(index).orElseThrow(NoSuchElementException::new);
+    return getLabelAt(index).orElse(null);
   }
 
   /**

@@ -225,12 +225,15 @@ public class Instance implements Example, Serializable, Iterable<Feature> {
 
   @Override
   public void write(@NonNull StructuredWriter writer) throws IOException {
+    boolean inArray = writer.inArray();
+    if (inArray) writer.beginObject();
     writer.writeKeyValue("label", label);
     writer.beginObject("features");
     for (Feature f : features) {
       writer.writeKeyValue(f.getName(), f.getValue());
     }
     writer.endObject();
+    if (inArray) writer.endObject();
   }
 
   @Override

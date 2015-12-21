@@ -9,7 +9,7 @@ import lombok.NonNull;
  *
  * @author David B. Bracewell
  */
-public class FeatureVector extends SparseVector2 {
+public class FeatureVector extends SparseVector {
   private final Encoder featureEncoder;
   private double label = Double.NaN;
 

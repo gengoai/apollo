@@ -26,6 +26,8 @@ import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.function.SerializableSupplier;
 import lombok.NonNull;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.stream.IntStream;
 
 /**
@@ -34,9 +36,11 @@ import java.util.stream.IntStream;
 public class OneVsRestLearner extends ClassifierLearner {
   private static final long serialVersionUID = 1L;
   private final SerializableSupplier<BinaryClassifierLearner> learnerSupplier;
+  private final Map<String, Object> parameters = new HashMap<>();
 
   public OneVsRestLearner(@NonNull SerializableSupplier<BinaryClassifierLearner> learnerSupplier) {
     this.learnerSupplier = learnerSupplier;
+    this.parameters.putAll(learnerSupplier.get().getParameters());
   }
 
   @Override
@@ -49,6 +53,7 @@ public class OneVsRestLearner extends ClassifierLearner {
       .parallel()
       .mapToObj(i -> {
           BinaryClassifierLearner bcl = learnerSupplier.get();
+          bcl.setParameters(parameters);
           bcl.reset();
           return bcl.trainForLabel(dataset, i);
         }
@@ -62,5 +67,27 @@ public class OneVsRestLearner extends ClassifierLearner {
   public void reset() {
 
   }
+
+  @Override
+  public Map<String, ?> getParameters() {
+    return parameters;
+  }
+
+  @Override
+  public void setParameters(@NonNull Map<String, Object> parameters) {
+    this.parameters.clear();
+    this.parameters.putAll(parameters);
+  }
+
+  @Override
+  public void setParameter(String name, Object value) {
+    parameters.put(name, value);
+  }
+
+  @Override
+  public Object getParameter(String name) {
+    return parameters.get(name);
+  }
+
 
 }//END OF OneVsRestLearner

@@ -103,7 +103,7 @@ public class AveragedPerceptronLearner extends BinaryClassifierLearner {
         c++;
       }
       if (verbose) {
-        log.info("iteration={0} errorRate={1}", iteration, formatter.format(error / count));
+        log.info("iteration={0} errorRate={1} (true={2})", iteration, formatter.format(error / count), model.getLabelEncoder().decode(trueLabel));
       }
       if (error == 0) {
         break;

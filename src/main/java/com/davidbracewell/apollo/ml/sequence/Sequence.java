@@ -120,7 +120,9 @@ public class Sequence implements Example, Serializable, Iterable<Instance> {
   public void write(StructuredWriter writer) throws IOException {
     writer.beginArray("sequence");
     for (Instance instance : sequence) {
+      writer.beginObject();
       writer.writeValue(instance);
+      writer.endObject();
     }
     writer.endArray();
   }

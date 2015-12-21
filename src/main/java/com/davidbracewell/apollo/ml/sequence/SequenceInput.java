@@ -12,7 +12,6 @@ public class SequenceInput<T> implements Serializable {
   private final ArrayList<T> list = new ArrayList<>();
   private final ArrayList<String> labels = new ArrayList<>();
 
-
   public String getLabel(int index) {
     if (index < 0 || index >= labels.size()) {
       return null;

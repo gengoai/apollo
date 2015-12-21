@@ -1,9 +1,12 @@
-package com.davidbracewell.apollo.ml.sequence;
+package com.davidbracewell.apollo.ml.sequence.linear;
 
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.Encoder;
 import com.davidbracewell.apollo.ml.Feature;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
+import com.davidbracewell.apollo.ml.sequence.Sequence;
+import com.davidbracewell.apollo.ml.sequence.SequenceLabeler;
+import com.davidbracewell.apollo.ml.sequence.TransitionFeatures;
 import com.davidbracewell.collection.LRUMap;
 import com.google.common.base.Stopwatch;
 import com.google.common.primitives.Floats;

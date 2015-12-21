@@ -1,4 +1,4 @@
-package com.davidbracewell.apollo.ml.sequence.crf;
+package com.davidbracewell.apollo.ml.sequence.linear;
 
 import com.github.jcrfsuite.util.CrfSuiteLoader;
 

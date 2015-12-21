@@ -19,7 +19,7 @@
  * under the License.
  */
 
-package com.davidbracewell.apollo.ml.sequence.crf;
+package com.davidbracewell.apollo.ml.sequence.linear;
 
 import com.davidbracewell.apollo.ml.Encoder;
 import com.davidbracewell.apollo.ml.Feature;

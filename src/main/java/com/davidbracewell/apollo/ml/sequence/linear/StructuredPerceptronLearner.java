@@ -1,17 +1,17 @@
-package com.davidbracewell.apollo.ml.sequence;
+package com.davidbracewell.apollo.ml.sequence.linear;
 
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.Dataset;
 import com.davidbracewell.apollo.ml.Feature;
 import com.davidbracewell.apollo.ml.FeatureVector;
 import com.davidbracewell.apollo.ml.Instance;
+import com.davidbracewell.apollo.ml.sequence.*;
 import com.davidbracewell.collection.Collect;
 import com.davidbracewell.logging.Logger;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
 
 import java.text.DecimalFormat;
-import java.util.HashMap;
 import java.util.List;
 
 /**

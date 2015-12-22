@@ -121,8 +121,9 @@ public class Classification implements Serializable {
    * @param index the index
    * @return the label
    */
-  public Object getLabel(int index) {
-    return labelEncoder.decode(index);
+  public String getLabel(int index) {
+    Object lbl = labelEncoder.decode(index);
+    return lbl == null ? null : lbl.toString();
   }
 
 

@@ -16,12 +16,15 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class IndexEncoder implements Encoder, Serializable {
   private static final long serialVersionUID = 1L;
-  private volatile Index<Object> index = Indexes.newIndex();
+  private volatile Index<String> index = Indexes.newIndex();
   private volatile AtomicBoolean frozen = new AtomicBoolean(false);
 
   @Override
   public double get(Object object) {
-    return index.indexOf(object);
+    if (object == null) {
+      return -1;
+    }
+    return index.indexOf(object.toString());
   }
 
   @Override

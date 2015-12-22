@@ -1,7 +1,6 @@
 package com.davidbracewell.apollo.ml.sequence;
 
 import com.davidbracewell.apollo.ml.Instance;
-import com.davidbracewell.apollo.ml.sequence.decoder.DecoderRow;
 import com.davidbracewell.apollo.ml.sequence.decoder.DecoderState;
 import com.davidbracewell.collection.Interner;
 import com.davidbracewell.string.StringUtils;
@@ -100,39 +99,6 @@ public class TransitionFeatures implements Serializable {
       return Sequence.BOS;
     }
     return state.tag;
-  }
-
-  private String label(DecoderRow state, int back) {
-    back = state.size() - Math.abs(back) - 1;
-    if (back < 0) {
-      return Sequence.BOS;
-    }
-    return state.getLabel(back);
-  }
-
-  public Iterator<String> extract(final DecoderRow row) {
-    return new Iterator<String>() {
-      int templateIndex = -1;
-
-      @Override
-      public boolean hasNext() {
-        return templateIndex + 1 < featureTemplates.length;
-      }
-
-      @Override
-      public String next() {
-        templateIndex++;
-        if (templateIndex >= featureTemplates.length) {
-          throw new NoSuchElementException();
-        }
-        int[] template = featureTemplates[templateIndex];
-        StringBuilder builder = new StringBuilder();
-        for (int element : template) {
-          appendTo(builder, "T[" + element + "]=" + label(row, element));
-        }
-        return INTERNER.intern(builder.toString());
-      }
-    };
   }
 
   public Iterator<String> extract(final DecoderState prevState) {

@@ -120,9 +120,6 @@ public class StructuredPerceptronLearner extends SequenceLabelerLearner {
 
       oldOldError = oldError;
       oldError = error;
-
-//      Collections.shuffle(sequenceList);
-//      dataset.shuffle();
     }
 
     final double C = c;

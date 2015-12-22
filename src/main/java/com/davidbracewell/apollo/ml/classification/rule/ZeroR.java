@@ -3,7 +3,7 @@ package com.davidbracewell.apollo.ml.classification.rule;
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.EncoderPair;
 import com.davidbracewell.apollo.ml.classification.Classifier;
-import com.davidbracewell.apollo.ml.classification.ClassifierResult;
+import com.davidbracewell.apollo.ml.classification.Classification;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.collection.MultiCounter;
 import com.davidbracewell.collection.MultiCounters;
@@ -31,8 +31,8 @@ public class ZeroR extends Classifier {
   }
 
   @Override
-  public ClassifierResult classify(Vector vector) {
-    return new ClassifierResult(distribution, getLabelEncoder());
+  public Classification classify(Vector vector) {
+    return new Classification(distribution, getLabelEncoder());
   }
 
   @Override

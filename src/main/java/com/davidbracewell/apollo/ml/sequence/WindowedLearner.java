@@ -24,7 +24,8 @@ public class WindowedLearner extends SequenceLabelerLearner {
       dataset.getLabelEncoder(),
       dataset.getFeatureEncoder(),
       dataset.getPreprocessors(),
-      getTransitionFeatures()
+      getTransitionFeatures(),
+      getValidator()
     );
     Dataset<Instance> nd = Dataset.classification()
       .source(dataset.stream().flatMap(Sequence::asInstances))

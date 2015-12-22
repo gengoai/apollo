@@ -45,7 +45,7 @@ public abstract class Classifier extends Model {
    * @param encoderPair   the encoder pair
    * @param preprocessors the preprocessors
    */
-  protected Classifier(EncoderPair encoderPair, @NonNull PreprocessorList<Instance> preprocessors) {
+  protected Classifier(@NonNull EncoderPair encoderPair, @NonNull PreprocessorList<Instance> preprocessors) {
     super(encoderPair);
     Preconditions.checkArgument(encoderPair.getLabelEncoder() instanceof IndexEncoder, "Classifiers only allow IndexEncoders for labels.");
     this.preprocessors = preprocessors.getModelProcessors();
@@ -65,7 +65,7 @@ public abstract class Classifier extends Model {
    * @return the classifier result
    */
   @SuppressWarnings("unchecked")
-  public ClassifierResult classify(@NonNull Object input) {
+  public Classification classify(@NonNull Object input) {
     Preconditions.checkNotNull(featurizer, "Featurizer has not been set on the classifier");
     return classify(featurizer.extract(Cast.as(input)));
   }
@@ -77,7 +77,7 @@ public abstract class Classifier extends Model {
    * @param instance the instance
    * @return the classifier result
    */
-  public final ClassifierResult classify(@NonNull Instance instance) {
+  public final Classification classify(@NonNull Instance instance) {
     return classify(preprocessors.apply(instance).toVector(getEncoderPair()));
   }
 
@@ -87,7 +87,7 @@ public abstract class Classifier extends Model {
    * @param vector the vector
    * @return the classifier result
    */
-  public abstract ClassifierResult classify(Vector vector);
+  public abstract Classification classify(Vector vector);
 
   /**
    * Sets featurizer.
@@ -107,8 +107,8 @@ public abstract class Classifier extends Model {
     throw new UnsupportedOperationException();
   }
 
-  protected ClassifierResult createResult(double[] distribution) {
-    return new ClassifierResult(distribution, getLabelEncoder());
+  protected Classification createResult(double[] distribution) {
+    return new Classification(distribution, getLabelEncoder());
   }
 
 

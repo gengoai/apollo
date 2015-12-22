@@ -19,7 +19,7 @@ public class PerInstanceEvaluation implements Evaluation<Sequence, SequenceLabel
   @Override
   public void evaluate(@NonNull SequenceLabeler model, @NonNull Dataset<Sequence> dataset) {
     dataset.forEach(sequence -> {
-      LabelingResult result = model.label(sequence);
+      Labeling result = model.label(sequence);
       for (int i = 0; i < sequence.size(); i++) {
         eval.entry(sequence.get(i).getLabel().toString(), result.getLabel(i));
       }
@@ -29,7 +29,7 @@ public class PerInstanceEvaluation implements Evaluation<Sequence, SequenceLabel
   @Override
   public void evaluate(@NonNull SequenceLabeler model, @NonNull Collection<Sequence> dataset) {
     dataset.forEach(sequence -> {
-      LabelingResult result = model.label(sequence);
+      Labeling result = model.label(sequence);
       for (int i = 0; i < sequence.size(); i++) {
         eval.entry(sequence.get(i).getLabel().toString(), result.getLabel(i));
       }
@@ -44,7 +44,12 @@ public class PerInstanceEvaluation implements Evaluation<Sequence, SequenceLabel
 
   @Override
   public void output(@NonNull PrintStream printStream) {
-    eval.output(printStream);
+    eval.output(printStream, false);
   }
+
+  public void output(@NonNull PrintStream printStream, boolean printConfusionMatrix) {
+    eval.output(printStream, printConfusionMatrix);
+  }
+
 
 }// END OF PerInstanceEvaluation

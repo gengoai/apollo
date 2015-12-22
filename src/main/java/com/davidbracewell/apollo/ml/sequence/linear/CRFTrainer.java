@@ -67,7 +67,8 @@ public class CRFTrainer extends SequenceLabelerLearner {
       dataset.getFeatureEncoder(),
       dataset.getPreprocessors(),
       TransitionFeatures.FIRST_ORDER,
-      tempFile
+      tempFile,
+      getValidator()
     );
   }
 

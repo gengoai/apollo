@@ -50,12 +50,12 @@ public class OneVsRestClassifier extends Classifier {
   }
 
   @Override
-  public ClassifierResult classify(Vector vector) {
+  public Classification classify(Vector vector) {
     double[] distribution = new double[numberOfLabels()];
     for (int ci = 0; ci < distribution.length; ci++) {
       distribution[ci] = classifiers[ci].classify(vector).distribution()[1];
     }
-    return new ClassifierResult(distribution, getLabelEncoder());
+    return new Classification(distribution, getLabelEncoder());
   }
 
 }//END OF OneVsRestClassifier

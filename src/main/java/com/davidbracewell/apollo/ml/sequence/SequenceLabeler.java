@@ -2,10 +2,10 @@ package com.davidbracewell.apollo.ml.sequence;
 
 import com.davidbracewell.apollo.ml.Encoder;
 import com.davidbracewell.apollo.ml.Feature;
-import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.Model;
-import com.davidbracewell.apollo.ml.classification.ClassifierResult;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
+import com.davidbracewell.apollo.ml.sequence.decoder.BeamDecoder;
+import com.davidbracewell.apollo.ml.sequence.decoder.Decoder;
 import lombok.NonNull;
 
 import java.util.Iterator;
@@ -20,19 +20,21 @@ public abstract class SequenceLabeler extends Model {
   private final PreprocessorList<Sequence> preprocessors;
   private final TransitionFeatures transitionFeatures;
   private volatile Decoder decoder = new BeamDecoder();
+  private final SequenceValidator validator;
 
 //  private Featurizer featurizer;
 
   /**
    * Instantiates a new Model.
-   *
-   * @param labelEncoder       the label encoder
+   *  @param labelEncoder       the label encoder
    * @param featureEncoder     the feature encoder
    * @param preprocessors      the preprocessors
    * @param transitionFeatures the transition features
+   * @param validator
    */
-  public SequenceLabeler(@NonNull Encoder labelEncoder, @NonNull Encoder featureEncoder, @NonNull PreprocessorList<Sequence> preprocessors, TransitionFeatures transitionFeatures) {
+  public SequenceLabeler(Encoder labelEncoder, Encoder featureEncoder, PreprocessorList<Sequence> preprocessors, TransitionFeatures transitionFeatures, SequenceValidator validator) {
     super(labelEncoder, featureEncoder);
+    this.validator = validator;
     this.preprocessors = preprocessors.getModelProcessors();
     this.transitionFeatures = transitionFeatures;
   }
@@ -49,7 +51,7 @@ public abstract class SequenceLabeler extends Model {
    * @param sequence the sequence
    * @return the labeling result
    */
-  public LabelingResult label(@NonNull Sequence sequence) {
+  public Labeling label(@NonNull Sequence sequence) {
     return decoder.decode(this, sequence);
   }
 
@@ -73,15 +75,9 @@ public abstract class SequenceLabeler extends Model {
 
   public abstract double[] estimate(Iterator<Feature> observation, Iterator<String> transitions);
 
-  //  /**
-//   * Sets featurizer.
-//   *
-//   * @param featurizer the featurizer
-//   */
-//  public void setFeaturizer(Featurizer featurizer) {
-//    this.featurizer = featurizer;
-//  }
-
+  public SequenceValidator getValidator() {
+    return validator;
+  }
 
   public TransitionFeatures getTransitionFeatures() {
     return transitionFeatures;

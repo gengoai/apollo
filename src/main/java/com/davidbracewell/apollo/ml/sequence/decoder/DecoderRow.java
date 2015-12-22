@@ -1,4 +1,4 @@
-package com.davidbracewell.apollo.ml.sequence;
+package com.davidbracewell.apollo.ml.sequence.decoder;
 
 import java.io.Serializable;
 import java.util.ArrayList;

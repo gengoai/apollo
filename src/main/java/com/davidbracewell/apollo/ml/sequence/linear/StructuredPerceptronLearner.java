@@ -33,7 +33,8 @@ public class StructuredPerceptronLearner extends SequenceLabelerLearner {
       dataset.getLabelEncoder(),
       dataset.getFeatureEncoder(),
       dataset.getPreprocessors(),
-      transitionFeatures
+      transitionFeatures,
+      getValidator()
     );
     model.setDecoder(getDecoder());
 
@@ -61,7 +62,7 @@ public class StructuredPerceptronLearner extends SequenceLabelerLearner {
 
       for (Sequence sequence : sequenceList) {
 
-        LabelingResult lblResult = model.label(sequence);
+        Labeling lblResult = model.label(sequence);
 
         double diff = 0;
         for (ContextualIterator<Instance> iterator = sequence.iterator(); iterator.hasNext(); ) {

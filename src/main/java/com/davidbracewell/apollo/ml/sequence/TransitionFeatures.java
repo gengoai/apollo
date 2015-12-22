@@ -1,6 +1,8 @@
 package com.davidbracewell.apollo.ml.sequence;
 
 import com.davidbracewell.apollo.ml.Instance;
+import com.davidbracewell.apollo.ml.sequence.decoder.DecoderRow;
+import com.davidbracewell.apollo.ml.sequence.decoder.DecoderState;
 import com.davidbracewell.collection.Interner;
 import com.davidbracewell.string.StringUtils;
 import com.google.common.base.Preconditions;
@@ -16,6 +18,7 @@ import java.util.NoSuchElementException;
 public class TransitionFeatures implements Serializable {
   public static final TransitionFeatures FIRST_ORDER = new TransitionFeatures("-1");
   public static final TransitionFeatures SECOND_ORDER = new TransitionFeatures("-2,-1");
+  private static final long serialVersionUID = 1L;
   private static final Interner<String> INTERNER = new Interner<>();
   private final int[][] featureTemplates;
   private int historySize;
@@ -62,7 +65,7 @@ public class TransitionFeatures implements Serializable {
     };
   }
 
-  public Iterator<String> extract(final LabelingResult result, final int index) {
+  public Iterator<String> extract(final Labeling result, final int index) {
     return new Iterator<String>() {
       int templateIndex = -1;
 
@@ -101,7 +104,7 @@ public class TransitionFeatures implements Serializable {
 
   private String label(DecoderRow state, int back) {
     back = state.size() - Math.abs(back) - 1;
-    if(back < 0 ){
+    if (back < 0) {
       return Sequence.BOS;
     }
     return state.getLabel(back);

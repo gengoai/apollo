@@ -25,7 +25,7 @@ import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.EncoderPair;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.classification.Classifier;
-import com.davidbracewell.apollo.ml.classification.ClassifierResult;
+import com.davidbracewell.apollo.ml.classification.Classification;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import lombok.NonNull;
 
@@ -56,7 +56,7 @@ public class BinaryGLM extends Classifier {
   }
 
   @Override
-  public ClassifierResult classify(Vector vector) {
+  public Classification classify(Vector vector) {
     double[] dist = new double[2];
     dist[1] = weights.dot(vector) + bias;
     dist[0] = -dist[1];

@@ -26,7 +26,7 @@ import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.EncoderPair;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.classification.Classifier;
-import com.davidbracewell.apollo.ml.classification.ClassifierResult;
+import com.davidbracewell.apollo.ml.classification.Classification;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.collection.MultiCounter;
 import com.davidbracewell.collection.MultiCounters;
@@ -70,7 +70,7 @@ public class NaiveBayes extends Classifier {
   }
 
   @Override
-  public ClassifierResult classify(@NonNull Vector instance) {
+  public Classification classify(@NonNull Vector instance) {
     return createResult(modelType.distribution(instance, priors, conditionals));
   }
 

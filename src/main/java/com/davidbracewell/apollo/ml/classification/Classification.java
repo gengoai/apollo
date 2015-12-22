@@ -36,7 +36,7 @@ import java.util.List;
  * @author David B. Bracewell
  */
 @EqualsAndHashCode
-public class ClassifierResult implements Serializable {
+public class Classification implements Serializable {
   private static final long serialVersionUID = 1L;
   private final double[] distribution;
   private final int resultIndex;
@@ -48,7 +48,7 @@ public class ClassifierResult implements Serializable {
    * @param distribution the distribution
    * @param labelEncoder the label encoder
    */
-  public ClassifierResult(@NonNull double[] distribution, @NonNull Encoder labelEncoder) {
+  public Classification(@NonNull double[] distribution, @NonNull Encoder labelEncoder) {
     this.distribution = distribution;
     double max = distribution[0];
     int maxI = 0;
@@ -145,4 +145,4 @@ public class ClassifierResult implements Serializable {
   }
 
 
-}//END OF ClassifierResult
+}//END OF Classification

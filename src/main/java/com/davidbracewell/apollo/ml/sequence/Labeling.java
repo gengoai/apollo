@@ -1,23 +1,35 @@
 package com.davidbracewell.apollo.ml.sequence;
 
-import com.davidbracewell.apollo.ml.classification.ClassifierResult;
+import com.davidbracewell.apollo.ml.classification.Classification;
 
 import java.io.Serializable;
 
 /**
+ * The type Labeling.
+ *
  * @author David B. Bracewell
  */
-public class LabelingResult implements Serializable {
+public class Labeling implements Serializable {
   private static final long serialVersionUID = 1L;
   private final String[] labels;
   private final double[] probs;
   private double sequenceProbability;
 
-  public LabelingResult(int size) {
+  /**
+   * Instantiates a new Labeling.
+   *
+   * @param size the size
+   */
+  public Labeling(int size) {
     this.labels = new String[size];
     this.probs = new double[size];
   }
 
+  /**
+   * Get labels string [ ].
+   *
+   * @return the string [ ]
+   */
   public String[] getLabels() {
     return labels;
   }
@@ -37,30 +49,64 @@ public class LabelingResult implements Serializable {
     return labels[index];
   }
 
+  /**
+   * Size int.
+   *
+   * @return the int
+   */
   public int size() {
     return labels.length;
   }
 
+  /**
+   * Gets probability.
+   *
+   * @param index the index
+   * @return the probability
+   */
   public double getProbability(int index) {
     return probs[index];
   }
 
+  /**
+   * Sets label.
+   *
+   * @param index       the index
+   * @param label       the label
+   * @param probability the probability
+   */
   public void setLabel(int index, String label, double probability) {
     labels[index] = label;
     probs[index] = probability;
   }
 
-  public void setLabel(int index, ClassifierResult result) {
+  /**
+   * Sets label.
+   *
+   * @param index  the index
+   * @param result the result
+   */
+  public void setLabel(int index, Classification result) {
     labels[index] = result.getResult();
     probs[index] = result.getConfidence();
   }
 
+  /**
+   * Gets sequence probability.
+   *
+   * @return the sequence probability
+   */
   public double getSequenceProbability() {
     return sequenceProbability;
   }
 
+  /**
+   * Sets sequence probability.
+   *
+   * @param sequenceProbability the sequence probability
+   */
   public void setSequenceProbability(double sequenceProbability) {
     this.sequenceProbability = sequenceProbability;
   }
 
-}// END OF LabelingResult
+}// END OF Labeling

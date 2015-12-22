@@ -1,6 +1,12 @@
-package com.davidbracewell.apollo.ml.sequence;
+package com.davidbracewell.apollo.ml.sequence.decoder;
 
 import com.davidbracewell.apollo.ml.Instance;
+import com.davidbracewell.apollo.ml.sequence.ContextualIterator;
+import com.davidbracewell.apollo.ml.sequence.Labeling;
+import com.davidbracewell.apollo.ml.sequence.Sequence;
+import com.davidbracewell.apollo.ml.sequence.SequenceLabeler;
+import com.davidbracewell.apollo.ml.sequence.decoder.Decoder;
+import com.davidbracewell.apollo.ml.sequence.decoder.DecoderState;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.MinMaxPriorityQueue;
 import com.google.common.collect.Ordering;
@@ -37,9 +43,9 @@ public class BeamDecoder implements Decoder, Serializable {
   }
 
   @Override
-  public LabelingResult decode(@NonNull SequenceLabeler model, @NonNull Sequence sequence) {
+  public Labeling decode(@NonNull SequenceLabeler model, @NonNull Sequence sequence) {
     if (sequence.size() == 0) {
-      return new LabelingResult(0);
+      return new Labeling(0);
     }
     MinMaxPriorityQueue<DecoderState> queue = MinMaxPriorityQueue
       .orderedBy(Ordering.natural().reverse())
@@ -59,13 +65,21 @@ public class BeamDecoder implements Decoder, Serializable {
         );
         for (int i = 0; i < result.length; i++) {
           String label = model.getLabelEncoder().decode(i).toString();
-          newStates.add(new DecoderState(state, result[i], label));
+          if (model.getValidator().isValid(label, state.tag)) {
+            newStates.add(new DecoderState(state, result[i], label));
+          }
+        }
+        if (newStates.isEmpty()) {
+          for (int i = 0; i < result.length; i++) {
+            String label = model.getLabelEncoder().decode(i).toString();
+            newStates.add(new DecoderState(state, result[i], label));
+          }
         }
       }
       queue.addAll(newStates);
     }
 
-    LabelingResult result = new LabelingResult(sequence.size());
+    Labeling result = new Labeling(sequence.size());
     DecoderState last = queue.remove();
     while (last != null && last.tag != null) {
       result.setLabel(last.index - 1, last.tag, last.stateProbability);

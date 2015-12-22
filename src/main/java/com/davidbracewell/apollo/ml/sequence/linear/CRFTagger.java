@@ -25,10 +25,7 @@ import com.davidbracewell.apollo.ml.Encoder;
 import com.davidbracewell.apollo.ml.Feature;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
-import com.davidbracewell.apollo.ml.sequence.LabelingResult;
-import com.davidbracewell.apollo.ml.sequence.Sequence;
-import com.davidbracewell.apollo.ml.sequence.SequenceLabeler;
-import com.davidbracewell.apollo.ml.sequence.TransitionFeatures;
+import com.davidbracewell.apollo.ml.sequence.*;
 import com.davidbracewell.io.Resources;
 import com.davidbracewell.io.resource.Resource;
 import com.github.jcrfsuite.CrfTagger;
@@ -62,14 +59,14 @@ public class CRFTagger extends SequenceLabeler {
    * @param transitionFeatures the transition features
    * @param modelFile          the model file
    */
-  public CRFTagger(@NonNull Encoder labelEncoder, @NonNull Encoder featureEncoder, @NonNull PreprocessorList<Sequence> preprocessors, TransitionFeatures transitionFeatures, String modelFile) {
-    super(labelEncoder, featureEncoder, preprocessors, transitionFeatures);
+  public CRFTagger(@NonNull Encoder labelEncoder, @NonNull Encoder featureEncoder, @NonNull PreprocessorList<Sequence> preprocessors, @NonNull TransitionFeatures transitionFeatures, String modelFile, @NonNull SequenceValidator validator) {
+    super(labelEncoder, featureEncoder, preprocessors, transitionFeatures, validator);
     this.modelFile = modelFile;
     this.tagger = new CrfTagger(modelFile);
   }
 
   @Override
-  public LabelingResult label(@NonNull Sequence sequence) {
+  public Labeling label(@NonNull Sequence sequence) {
     LibraryLoader.INSTANCE.load();
     ItemSequence seq = new ItemSequence();
     for (Instance instance : sequence.asInstances()) {
@@ -80,7 +77,7 @@ public class CRFTagger extends SequenceLabeler {
       seq.add(item);
     }
     List<Pair<String, Double>> tags = tagger.tag(seq);
-    LabelingResult lr = new LabelingResult(sequence.size());
+    Labeling lr = new Labeling(sequence.size());
     for (int i = 0; i < tags.size(); i++) {
       lr.setLabel(i, tags.get(i).first, tags.get(i).second);
     }

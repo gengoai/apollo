@@ -6,14 +6,11 @@ import com.davidbracewell.apollo.ml.Feature;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.apollo.ml.sequence.Sequence;
 import com.davidbracewell.apollo.ml.sequence.SequenceLabeler;
+import com.davidbracewell.apollo.ml.sequence.SequenceValidator;
 import com.davidbracewell.apollo.ml.sequence.TransitionFeatures;
-import com.davidbracewell.collection.LRUMap;
-import com.google.common.base.Stopwatch;
-import com.google.common.primitives.Floats;
 import lombok.NonNull;
 
 import java.util.Iterator;
-import java.util.Map;
 
 /**
  * @author David B. Bracewell
@@ -29,8 +26,8 @@ public class StructuredPerceptron extends SequenceLabeler {
    * @param featureEncoder the feature encoder
    * @param preprocessors  the preprocessors
    */
-  public StructuredPerceptron(@NonNull Encoder labelEncoder, @NonNull Encoder featureEncoder, PreprocessorList<Sequence> preprocessors, TransitionFeatures transitionFeatures) {
-    super(labelEncoder, featureEncoder, preprocessors, transitionFeatures);
+  public StructuredPerceptron(@NonNull Encoder labelEncoder, @NonNull Encoder featureEncoder, @NonNull PreprocessorList<Sequence> preprocessors, @NonNull TransitionFeatures transitionFeatures, @NonNull SequenceValidator validator) {
+    super(labelEncoder, featureEncoder, preprocessors, transitionFeatures, validator);
     this.numberOfClasses = labelEncoder.size();
   }
 

@@ -24,6 +24,7 @@ package com.davidbracewell.apollo.ml.classification;
 import com.davidbracewell.apollo.ml.Encoder;
 import com.davidbracewell.conversion.Cast;
 import lombok.EqualsAndHashCode;
+import lombok.NonNull;
 
 import java.io.Serializable;
 import java.util.Arrays;
@@ -45,8 +46,9 @@ public class ClassifierResult implements Serializable {
    * Instantiates a new Classifier result.
    *
    * @param distribution the distribution
+   * @param labelEncoder the label encoder
    */
-  public ClassifierResult(double[] distribution, Encoder labelEncoder) {
+  public ClassifierResult(@NonNull double[] distribution, @NonNull Encoder labelEncoder) {
     this.distribution = distribution;
     double max = distribution[0];
     int maxI = 0;
@@ -78,13 +80,15 @@ public class ClassifierResult implements Serializable {
     return labelEncoder.decode(resultIndex).toString();
   }
 
+  /**
+   * Result is boolean.
+   *
+   * @param gold the gold
+   * @return the boolean
+   */
   public boolean resultIs(Object gold) {
-    if (gold == null) {
-      return false;
-    }
-    return getResult().equals(gold.toString());
+    return gold != null && getResult().equals(gold.toString());
   }
-
 
   @Override
   public String toString() {
@@ -111,11 +115,22 @@ public class ClassifierResult implements Serializable {
     return distribution[(int) labelEncoder.encode(label)];
   }
 
-  public String getLabel(int index) {
-    return labelEncoder.decode(index).toString();
+  /**
+   * Gets label.
+   *
+   * @param index the index
+   * @return the label
+   */
+  public Object getLabel(int index) {
+    return labelEncoder.decode(index);
   }
 
 
+  /**
+   * Gets encoded result.
+   *
+   * @return the encoded result
+   */
   public double getEncodedResult() {
     return resultIndex;
   }
@@ -125,7 +140,7 @@ public class ClassifierResult implements Serializable {
    *
    * @return the labels
    */
-  public List<String> getLabels() {
+  public List<Object> getLabels() {
     return Cast.cast(labelEncoder.values());
   }
 

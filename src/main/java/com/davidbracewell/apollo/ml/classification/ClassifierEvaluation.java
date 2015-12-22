@@ -22,7 +22,6 @@
 package com.davidbracewell.apollo.ml.classification;
 
 import com.davidbracewell.apollo.ml.Dataset;
-import com.davidbracewell.apollo.ml.EncoderPair;
 import com.davidbracewell.apollo.ml.Evaluation;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.collection.Counter;
@@ -50,23 +49,6 @@ public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, S
   private static final long serialVersionUID = 1L;
   private final MultiCounter<String, String> matrix = MultiCounters.newHashMapMultiCounter();
   private double total = 0;
-  private EncoderPair encoderPair;
-
-  /**
-   * Instantiates a new Classifier evaluation.
-   */
-  public ClassifierEvaluation() {
-
-  }
-
-  /**
-   * Instantiates a new Classifier evaluation.
-   *
-   * @param encoderPair the encoder pair
-   */
-  public ClassifierEvaluation(@NonNull EncoderPair encoderPair) {
-    this.encoderPair = encoderPair;
-  }
 
   /**
    * Accuracy double.
@@ -80,17 +62,6 @@ public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, S
     return correct / total;
   }
 
-  @Override
-  public void addEntry(double gold, double predicted) {
-    Preconditions.checkNotNull(encoderPair, "ENCODER PAIR NOT SET");
-    System.err.println(encoderPair.decodeLabel(gold));
-    System.err.println(encoderPair.decodeLabel(predicted));
-    matrix.increment(
-      encoderPair.decodeLabel(gold).toString(),
-      encoderPair.decodeLabel(predicted).toString()
-    );
-    total++;
-  }
 
   /**
    * Add entry.
@@ -98,7 +69,7 @@ public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, S
    * @param gold      the gold
    * @param predicted the predicted
    */
-  public void addEntry(String gold, String predicted) {
+  public void entry(String gold, String predicted) {
     matrix.increment(
       gold,
       predicted
@@ -127,20 +98,18 @@ public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, S
 
   @Override
   public void evaluate(@NonNull Classifier model, @NonNull Dataset<Instance> dataset) {
-    setEncoderPair(model.getEncoderPair());
     dataset.stream()
       .filter(Instance::hasLabel)
       .mapToPair(instance -> Tuple2.of(instance.getLabel().toString(), model.classify(instance).getResult()))
-      .forEachLocal(this::addEntry);
+      .forEachLocal(this::entry);
   }
 
   @Override
   public void evaluate(@NonNull Classifier model, @NonNull Collection<Instance> dataset) {
-    setEncoderPair(model.getEncoderPair());
     dataset.forEach(instance ->
-      addEntry(
-        model.encodeLabel(instance.getLabel()),
-        model.classify(instance).getEncodedResult()
+      entry(
+        instance.getLabel().toString(),
+        model.classify(instance).getResult()
       )
     );
   }
@@ -286,24 +255,6 @@ public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, S
     double fn = falseNegatives();
     double tn = trueNegatives();
     return fn / (fn + tn);
-  }
-
-  /**
-   * Gets encoder pair.
-   *
-   * @return the encoder pair
-   */
-  public EncoderPair getEncoderPair() {
-    return encoderPair;
-  }
-
-  /**
-   * Sets encoder pair.
-   *
-   * @param encoderPair the encoder pair
-   */
-  public void setEncoderPair(EncoderPair encoderPair) {
-    this.encoderPair = encoderPair;
   }
 
   /**
@@ -655,6 +606,7 @@ public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, S
    *
    * @param printStream the print stream
    */
+  @Override
   public void output(@NonNull PrintStream printStream) {
     output(printStream, true);
   }
@@ -676,13 +628,15 @@ public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, S
       .distinct()
       .collect(Collectors.toCollection(TreeSet::new));
 
+    Set<String> sorted = new TreeSet<>(matrix.items());
+
     TableFormatter tableFormatter = new TableFormatter();
     if (printConfusionMatrix) {
       tableFormatter.title("Confusion Matrix");
       tableFormatter.header(Collections.singleton(StringUtils.EMPTY));
       tableFormatter.header(columns);
       tableFormatter.header(Collections.singleton("Total"));
-      matrix.items().forEach(gold -> {
+      sorted.forEach(gold -> {
         List<Object> row = new ArrayList<>();
         row.add(gold);
         columns.forEach(c -> row.add(matrix.get(gold, c)));
@@ -707,7 +661,7 @@ public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, S
       .title("Classification Metrics")
       .header(Arrays.asList(StringUtils.EMPTY, "P", "R", "F1"));
 
-    matrix.items().forEach(g ->
+    sorted.forEach(g ->
       tableFormatter.content(Arrays.asList(
         g,
         precision(g),

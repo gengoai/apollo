@@ -41,7 +41,7 @@ public abstract class Model implements Serializable {
    * @return the classifier
    * @throws Exception the exception
    */
-  public static <T extends Model> T readModel(@NonNull Resource modelResource) throws Exception {
+  public static <T extends Model> T read(@NonNull Resource modelResource) throws Exception {
     return modelResource.readObject();
   }
 
@@ -96,7 +96,7 @@ public abstract class Model implements Serializable {
    * @param modelResource the model resource
    * @throws Exception the exception
    */
-  public void writeModel(@NonNull Resource modelResource) throws Exception {
+  public void write(@NonNull Resource modelResource) throws Exception {
     modelResource.setIsCompressed(true).writeObject(this);
   }
 

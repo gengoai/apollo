@@ -21,6 +21,7 @@
 
 package com.davidbracewell.apollo.ml;
 
+import java.io.PrintStream;
 import java.util.Collection;
 
 /**
@@ -28,12 +29,12 @@ import java.util.Collection;
  */
 public interface Evaluation<T extends Example, M extends Model> {
 
-  void addEntry(double predicted, double gold);
-
   void evaluate(M model, Dataset<T> dataset);
 
   void evaluate(M model, Collection<T> dataset);
 
-  void merge(Evaluation<T,M> evaluation);
+  void merge(Evaluation<T, M> evaluation);
+
+  void output(PrintStream printStream);
 
 }//END OF Evaluation

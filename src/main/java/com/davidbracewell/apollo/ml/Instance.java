@@ -23,11 +23,13 @@ package com.davidbracewell.apollo.ml;
 
 import com.davidbracewell.collection.Collect;
 import com.davidbracewell.collection.Interner;
+import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.conversion.Val;
 import com.davidbracewell.io.structured.ElementType;
 import com.davidbracewell.io.structured.StructuredReader;
 import com.davidbracewell.io.structured.StructuredWriter;
 import com.davidbracewell.tuple.Tuple2;
+import com.google.common.collect.Sets;
 import lombok.EqualsAndHashCode;
 import lombok.NonNull;
 import lombok.ToString;
@@ -68,9 +70,12 @@ public class Instance implements Example, Serializable, Iterable<Feature> {
   public Instance(@NonNull Collection<Feature> features, Object label) {
     this.features = new ArrayList<>(features);
     this.features.trimToSize();
-    this.label = label;
+    setLabel(label);
   }
 
+  /**
+   * Instantiates a new Instance.
+   */
   public Instance() {
     this.features = new ArrayList<>();
     this.label = null;
@@ -133,7 +138,53 @@ public class Instance implements Example, Serializable, Iterable<Feature> {
    * @param label the label
    */
   public void setLabel(Object label) {
-    this.label = label;
+    if (label == null) {
+      this.label = null;
+    } else if (label instanceof Collection) {
+      this.label = new HashSet<>(Cast.as(label));
+    } else if (label instanceof Iterable) {
+      this.label = Sets.newHashSet(Cast.<Iterable>as(label));
+    } else if (label instanceof Iterator) {
+      this.label = Sets.newHashSet(Cast.<Iterator>as(label));
+    } else if (label.getClass().isArray()) {
+      this.label = new HashSet<>(Arrays.asList(Cast.<Object[]>as(label)));
+    } else {
+      this.label = label;
+    }
+  }
+
+  /**
+   * Is multi labeled boolean.
+   *
+   * @return the boolean
+   */
+  public boolean isMultiLabeled() {
+    return this.label != null && (this.label instanceof Collection);
+  }
+
+  /**
+   * Gets label set.
+   *
+   * @return the label set
+   */
+  public Set<Object> getLabelSet() {
+    if (this.label == null) {
+      return Collections.emptySet();
+    } else if (this.label instanceof Set) {
+      return Collections.unmodifiableSet(Cast.as(this.label));
+    }
+    return Collections.singleton(this.label);
+  }
+
+
+  /**
+   * Has label boolean.
+   *
+   * @param label the label
+   * @return the boolean
+   */
+  public boolean hasLabel(Object label){
+    return getLabelSet().contains(label);
   }
 
   /**

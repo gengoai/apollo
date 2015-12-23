@@ -2,9 +2,11 @@ package com.davidbracewell.apollo.ml;
 
 import com.davidbracewell.collection.Index;
 import com.davidbracewell.collection.Indexes;
+import com.davidbracewell.conversion.Cast;
 import lombok.NonNull;
 
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -23,12 +25,31 @@ public class IndexEncoder implements Encoder, Serializable {
   public double get(Object object) {
     if (object == null) {
       return -1;
+    } else if (object instanceof Collection) {
+      Collection<?> collection = Cast.as(object);
+      double idx = -1;
+      for (Object o : collection) {
+        idx = index.indexOf(o.toString());
+      }
+      return idx;
     }
     return index.indexOf(object.toString());
   }
 
   @Override
   public double encode(@NonNull Object object) {
+    if (object instanceof Collection) {
+      Collection<?> collection = Cast.as(object);
+      double idx = -1;
+      for (Object o : collection) {
+        if (!frozen.get()) {
+          idx = index.add(o.toString());
+        } else {
+          idx = index.indexOf(o.toString());
+        }
+      }
+      return idx;
+    }
     String str = object.toString();
     if (!frozen.get()) {
       return index.add(str);

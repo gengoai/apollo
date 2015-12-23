@@ -8,7 +8,6 @@ import com.davidbracewell.collection.Collect;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
-import org.apache.commons.math3.util.FastMath;
 
 import java.util.Arrays;
 
@@ -72,7 +71,7 @@ public class NaiveBayesLearner extends ClassifierLearner {
     }
 
     for (int i = 0; i < model.priors.length; i++) {
-      model.priors[i] = FastMath.log(model.priors[i] / N);
+      model.priors[i] = Math.log(model.priors[i] / N);
     }
 
     return model;

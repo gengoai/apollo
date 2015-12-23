@@ -25,13 +25,12 @@ import com.davidbracewell.apollo.linalg.DenseVector;
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.EncoderPair;
 import com.davidbracewell.apollo.ml.Instance;
-import com.davidbracewell.apollo.ml.classification.Classifier;
 import com.davidbracewell.apollo.ml.classification.Classification;
+import com.davidbracewell.apollo.ml.classification.Classifier;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.collection.MultiCounter;
 import com.davidbracewell.collection.MultiCounters;
 import lombok.NonNull;
-import org.apache.commons.math3.util.FastMath;
 
 /**
  * The type Naive bayes.
@@ -127,9 +126,9 @@ public class NaiveBayes extends Classifier {
         for (int i = 0; i < priors.length; i++) {
           for (int f = 0; f < conditionals.length; f++) {
             if (instance.get(f) != 0) {
-              distribution.increment(i, FastMath.log(conditionals[f][i]));
+              distribution.increment(i, Math.log(conditionals[f][i]));
             } else {
-              distribution.increment(i, FastMath.log(1 - conditionals[f][i]));
+              distribution.increment(i, Math.log(1 - conditionals[f][i]));
             }
           }
         }
@@ -160,7 +159,7 @@ public class NaiveBayes extends Classifier {
     }
 
     double normalize(double conditionalCount, double priorCount, double totalLabelCount, double V) {
-      return FastMath.log((conditionalCount + 1) / (totalLabelCount + V));
+      return Math.log((conditionalCount + 1) / (totalLabelCount + V));
     }
 
     abstract double[] distribution(Vector instance, double[] priors, double[][] conditionals);

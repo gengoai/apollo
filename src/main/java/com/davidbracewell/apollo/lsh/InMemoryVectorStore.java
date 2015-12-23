@@ -87,7 +87,7 @@ public class InMemoryVectorStore<KEY, V extends Vector> extends VectorStore<KEY,
   @Override
   public List<Tuple2<KEY, Double>> nearestNeighbors(Vector query, int K) {
     if (query != null && K > 0) {
-      lsh.nearestNeighbors(query, K).stream().map(kv -> Tuple2.of(kv.first, kv.second));
+      lsh.nearestNeighbors(query, K);
     }
     return Collections.emptyList();
   }

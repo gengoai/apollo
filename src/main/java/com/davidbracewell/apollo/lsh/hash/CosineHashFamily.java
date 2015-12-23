@@ -21,9 +21,8 @@
 
 package com.davidbracewell.apollo.lsh.hash;
 
-import com.davidbracewell.apollo.affinity.CosineSimilarity;
 import com.davidbracewell.apollo.affinity.DistanceMeasure;
-import com.davidbracewell.apollo.affinity.OneMinusSimilarityDistance;
+import com.davidbracewell.apollo.affinity.Similarity;
 import com.davidbracewell.apollo.lsh.HashFamily;
 import com.davidbracewell.apollo.lsh.HashFunction;
 import com.google.common.base.Preconditions;
@@ -67,7 +66,7 @@ public class CosineHashFamily implements HashFamily {
 
   @Override
   public DistanceMeasure getDistanceMeasure() {
-    return new OneMinusSimilarityDistance(new CosineSimilarity());
+    return Similarity.Cosine.asDistanceMeasure();
   }
 
 }//END OF CosineHashFamily

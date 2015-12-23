@@ -21,8 +21,8 @@
 
 package com.davidbracewell.apollo.lsh.hash;
 
+import com.davidbracewell.apollo.affinity.Distance;
 import com.davidbracewell.apollo.affinity.DistanceMeasure;
-import com.davidbracewell.apollo.affinity.EuclideanDistance;
 import com.davidbracewell.apollo.lsh.HashFamily;
 import com.davidbracewell.apollo.lsh.HashFunction;
 import com.google.common.base.Preconditions;
@@ -66,7 +66,7 @@ public class EuclideanHashFamily implements HashFamily {
 
   @Override
   public DistanceMeasure getDistanceMeasure() {
-    return new EuclideanDistance();
+    return Distance.Euclidean;
   }
 
 }//END OF EuclideanHashFamily

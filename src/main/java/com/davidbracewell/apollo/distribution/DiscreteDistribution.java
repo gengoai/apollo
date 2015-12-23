@@ -22,12 +22,40 @@
 package com.davidbracewell.apollo.distribution;
 
 /**
+ * The interface Discrete distribution.
+ *
  * @author David B. Bracewell
  */
-public interface Distribution {
+public interface DiscreteDistribution {
 
-  double p(double value);
+  /**
+   * Probability double.
+   *
+   * @param value the value
+   * @return the double
+   */
+  double probability(int value);
 
-  double sample();
+  /**
+   * Sample int.
+   *
+   * @return the int
+   */
+  int sample();
+
+  /**
+   * Sample int [ ].
+   *
+   * @param size the size
+   * @return the int [ ]
+   */
+  default int[] sample(int size) {
+    int[] samples = new int[size];
+    for (int i = 0; i < size; i++) {
+      samples[i] = sample();
+    }
+    return samples;
+  }
+
 
 }//END OF Distribution

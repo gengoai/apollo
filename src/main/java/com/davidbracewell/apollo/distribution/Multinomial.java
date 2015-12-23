@@ -27,7 +27,7 @@ import java.util.Arrays;
 /**
  * @author David B. Bracewell
  */
-public class Multinomial implements Distribution, Serializable {
+public class Multinomial implements DiscreteDistribution, Serializable {
   private static final long serialVersionUID = 1L;
   private final long[] values;
   private final double alpha;
@@ -63,13 +63,12 @@ public class Multinomial implements Distribution, Serializable {
   }
 
   @Override
-  public double p(double value) {
-    int index = (int) value;
+  public double probability(int index) {
     return (values[index] + alpha) / (sum + alphaTimesV);
   }
 
   @Override
-  public double sample() {
+  public int sample() {
     double rnd = Math.random() * sum;
     double sum = 0;
     for (int i = 0; i < values.length; i++) {

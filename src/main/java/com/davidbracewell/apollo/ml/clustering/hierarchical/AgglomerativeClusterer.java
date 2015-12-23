@@ -21,24 +21,24 @@
 
 package com.davidbracewell.apollo.ml.clustering.hierarchical;
 
+import com.davidbracewell.apollo.ml.FeatureVector;
 import com.davidbracewell.apollo.ml.clustering.Cluster;
-import com.davidbracewell.apollo.ml.clustering.Clusterable;
+import com.davidbracewell.apollo.ml.clustering.Clusterer;
 import com.davidbracewell.apollo.similarity.DistanceMeasure;
 import com.davidbracewell.tuple.Tuple2;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Table;
+import lombok.NonNull;
 
-import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 /**
  * @author David B. Bracewell
  */
-public class AgglomerativeClusterer<T extends Clusterable> implements HierarchicalClusterer<T>, Serializable {
+public class AgglomerativeClusterer extends Clusterer {
   private static final long serialVersionUID = 1L;
   private final DistanceMeasure distanceMeasure;
   private final Linkage linkage;
@@ -50,25 +50,25 @@ public class AgglomerativeClusterer<T extends Clusterable> implements Hierarchic
 
 
   @Override
-  public HierarchicalClustering<T> cluster(List<? extends T> instances) {
-    Table<Cluster<T>, Cluster<T>, Double> distanceMatrix = HashBasedTable.create();
-    List<Cluster<T>> clusters = initDistanceMatrix(instances, distanceMatrix);
+  public HierarchicalClustering cluster(@NonNull List<FeatureVector> instances) {
+    Table<Cluster, Cluster, Double> distanceMatrix = HashBasedTable.create();
+    List<Cluster> clusters = initDistanceMatrix(instances, distanceMatrix);
 
     while (clusters.size() > 1) {
       doTurn(distanceMatrix, clusters);
     }
 
-    return new HierarchicalClustering<>(Arrays.asList(clusters.get(0)), clusters.get(0));
+    return new HierarchicalClustering(getEncoderPair(), Collections.singletonList(clusters.get(0)), clusters.get(0));
   }
 
-  private double distance(Cluster<T> c1, Cluster<T> c2) {
+  private double distance(Cluster c1, Cluster c2) {
     List<Double> distances = new ArrayList<>();
     double sum = 0;
     double count = 0;
-    for (T t1 : flatten(c1)) {
-      for (T t2 : flatten(c2)) {
+    for (FeatureVector t1 : flatten(c1)) {
+      for (FeatureVector t2 : flatten(c2)) {
         count++;
-        distances.add(distanceMeasure.calculate(t1.getPoint(), t2.getPoint()));
+        distances.add(distanceMeasure.calculate(t1, t2));
         sum += distances.get(distances.size() - 1);
       }
     }
@@ -82,13 +82,13 @@ public class AgglomerativeClusterer<T extends Clusterable> implements Hierarchic
     }
   }
 
-  private void doTurn(Table<Cluster<T>, Cluster<T>, Double> distanceMatrix, List<Cluster<T>> clusters) {
+  private void doTurn(Table<Cluster, Cluster, Double> distanceMatrix, List<Cluster> clusters) {
     double min = Double.POSITIVE_INFINITY;
-    Tuple2<Cluster<T>, Cluster<T>> minC = null;
+    Tuple2<Cluster, Cluster> minC = null;
     for (int i = 0; i < clusters.size(); i++) {
-      Cluster<T> c1 = clusters.get(i);
+      Cluster c1 = clusters.get(i);
       for (int j = i + 1; j < clusters.size(); j++) {
-        Cluster<T> c2 = clusters.get(j);
+        Cluster c2 = clusters.get(j);
         if (distanceMatrix.get(c1, c2) < min) {
           min = distanceMatrix.get(c1, c2);
           minC = Tuple2.of(c1, c2);
@@ -97,7 +97,7 @@ public class AgglomerativeClusterer<T extends Clusterable> implements Hierarchic
     }
 
     if (minC != null) {
-      Cluster<T> cprime = new Cluster<>();
+      Cluster cprime = new Cluster();
       cprime.setLeft(minC.getV1());
       cprime.setRight(minC.getV2());
       minC.getV1().setParent(cprime);
@@ -112,7 +112,7 @@ public class AgglomerativeClusterer<T extends Clusterable> implements Hierarchic
       clusters.remove(minC.getV1());
       clusters.remove(minC.getV2());
 
-      for (T point : Iterables.concat(minC.getV1().getPoints(), minC.getV2().getPoints())) {
+      for (FeatureVector point : Iterables.concat(minC.getV1().getPoints(), minC.getV2().getPoints())) {
         cprime.addPoint(point);
       }
 
@@ -122,30 +122,30 @@ public class AgglomerativeClusterer<T extends Clusterable> implements Hierarchic
 
   }
 
-  public List<T> flatten(Cluster<T> c) {
+  public List<FeatureVector> flatten(Cluster c) {
     if (c == null) {
       return Collections.emptyList();
     }
     if (!c.getPoints().isEmpty()) {
       return c.getPoints();
     }
-    List<T> list = new ArrayList<>();
+    List<FeatureVector> list = new ArrayList<>();
     list.addAll(flatten(c.getLeft()));
     list.addAll(flatten(c.getRight()));
     return list;
   }
 
-  private List<Cluster<T>> initDistanceMatrix(List<? extends T> instances, Table<Cluster<T>, Cluster<T>, Double> distanceMatrix) {
-    List<Cluster<T>> clusters = new ArrayList<>();
-    for (T item : instances) {
-      Cluster<T> c = new Cluster<>();
+  private List<Cluster> initDistanceMatrix(List<FeatureVector> instances, Table<Cluster, Cluster, Double> distanceMatrix) {
+    List<Cluster> clusters = new ArrayList<>();
+    for (FeatureVector item : instances) {
+      Cluster c = new Cluster();
       c.addPoint(item);
       clusters.add(c);
     }
     for (int i = 0; i < clusters.size(); i++) {
-      Cluster<T> c1 = clusters.get(i);
+      Cluster c1 = clusters.get(i);
       for (int j = i + 1; j < clusters.size(); j++) {
-        Cluster<T> c2 = clusters.get(j);
+        Cluster c2 = clusters.get(j);
         double distance = distance(c1, c2);
         distanceMatrix.put(c1, c2, distance);
         distanceMatrix.put(c2, c1, distance);
@@ -154,8 +154,8 @@ public class AgglomerativeClusterer<T extends Clusterable> implements Hierarchic
     return clusters;
   }
 
-  private void updateDistanceMatrix(Table<Cluster<T>, Cluster<T>, Double> distanceMatrix, Cluster<T> newCluster, List<Cluster<T>> clusterList) {
-    for (Cluster<T> c1 : clusterList) {
+  private void updateDistanceMatrix(Table<Cluster, Cluster, Double> distanceMatrix, Cluster newCluster, List<Cluster> clusterList) {
+    for (Cluster c1 : clusterList) {
       double d = distance(c1, newCluster);
       distanceMatrix.put(c1, newCluster, d);
       distanceMatrix.put(newCluster, c1, d);

@@ -23,12 +23,14 @@ package com.davidbracewell.apollo.ml.clustering.flat;
 
 
 import com.davidbracewell.apollo.linalg.Vector;
+import com.davidbracewell.apollo.ml.FeatureVector;
 import com.davidbracewell.apollo.ml.clustering.Cluster;
-import com.davidbracewell.apollo.ml.clustering.Clusterable;
+import com.davidbracewell.apollo.ml.clustering.Clusterer;
+import com.davidbracewell.apollo.ml.clustering.Clustering;
 import com.davidbracewell.apollo.similarity.DistanceMeasure;
 import com.google.common.base.Preconditions;
+import lombok.NonNull;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -36,8 +38,7 @@ import java.util.List;
 /**
  * @author David B. Bracewell
  */
-public class OneShotClusterer<T extends Clusterable> implements FlatClusterer<T>, Serializable {
-
+public class OneShotClusterer extends Clusterer {
   private static final long serialVersionUID = 1L;
   private DistanceMeasure distanceMeasure;
   private double threshold;
@@ -48,17 +49,18 @@ public class OneShotClusterer<T extends Clusterable> implements FlatClusterer<T>
   }
 
   @Override
-  public FlatClustering<T> cluster(List<? extends T> instances) {
+  public Clustering cluster(@NonNull List<FeatureVector> instances) {
     if (instances == null || instances.isEmpty()) {
-      return new FlatClustering<>(Collections.<Cluster<T>>emptyList());
+      return new Clustering(getEncoderPair(), Collections.emptyList());
     }
-    List<Cluster<T>> clusters = new ArrayList<>();
 
-    for (T ii : instances) {
+    List<Cluster> clusters = new ArrayList<>();
+
+    for (FeatureVector ii : instances) {
       double minD = Double.POSITIVE_INFINITY;
       int minI = 0;
       for (int k = 1; k < clusters.size(); k++) {
-        double d = distance(ii.getPoint(), clusters.get(k));
+        double d = distance(ii, clusters.get(k));
         if (d < minD) {
           minD = d;
           minI = k;
@@ -68,7 +70,7 @@ public class OneShotClusterer<T extends Clusterable> implements FlatClusterer<T>
       if (minD <= threshold) {
         clusters.get(minI).addPoint(ii);
       } else {
-        Cluster<T> newCluster = new Cluster<T>();
+        Cluster newCluster = new Cluster();
         newCluster.addPoint(ii);
         clusters.add(newCluster);
       }
@@ -76,14 +78,14 @@ public class OneShotClusterer<T extends Clusterable> implements FlatClusterer<T>
     }
 
 
-    return new FlatClustering<>(clusters);
+    return new Clustering(getEncoderPair(), clusters);
   }
 
 
-  private double distance(Vector ii, Cluster<T> cluster) {
+  private double distance(Vector ii, Cluster cluster) {
     double d = 0;
-    for (T jj : cluster) {
-      d += distanceMeasure.calculate(ii, jj.getPoint());
+    for (FeatureVector jj : cluster) {
+      d += distanceMeasure.calculate(ii, jj);
     }
     return d / (double) cluster.size();
   }
@@ -103,4 +105,5 @@ public class OneShotClusterer<T extends Clusterable> implements FlatClusterer<T>
   public void setThreshold(double threshold) {
     this.threshold = threshold;
   }
+
 }//END OF OneShotClusterer

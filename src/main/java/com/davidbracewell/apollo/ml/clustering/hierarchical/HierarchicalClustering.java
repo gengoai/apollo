@@ -22,51 +22,58 @@
 package com.davidbracewell.apollo.ml.clustering.hierarchical;
 
 
+import com.davidbracewell.apollo.ml.EncoderPair;
 import com.davidbracewell.apollo.ml.clustering.Cluster;
-import com.davidbracewell.apollo.ml.clustering.Clusterable;
 import com.davidbracewell.apollo.ml.clustering.Clustering;
-import com.davidbracewell.apollo.ml.clustering.flat.FlatClustering;
+import lombok.NonNull;
 
-import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 /**
+ * The type Hierarchical clustering.
+ *
  * @author David B. Bracewell
  */
-public class HierarchicalClustering<T extends Clusterable> implements Clustering<T>, Serializable {
+public class HierarchicalClustering extends Clustering {
   private static final long serialVersionUID = 1L;
+  private final Cluster root;
 
-  private final Cluster<T> root;
-  private final List<Cluster<T>> clusters;
-
-  public HierarchicalClustering(List<Cluster<T>> clusters, Cluster<T> root) {
-    this.clusters = clusters;
+  /**
+   * Instantiates a new Hierarchical clustering.
+   *
+   * @param encoderPair the encoder pair
+   * @param clusters    the clusters
+   * @param root        the root
+   */
+  public HierarchicalClustering(@NonNull EncoderPair encoderPair, @NonNull List<Cluster> clusters, @NonNull Cluster root) {
+    super(encoderPair, clusters);
     this.root = root;
   }
 
-  public Cluster<T> getRoot() {
+
+  /**
+   * Gets root.
+   *
+   * @return the root
+   */
+  public Cluster getRoot() {
     return root;
   }
 
-  @Override
-  public Iterator<Cluster<T>> iterator() {
-    return clusters.iterator();
-  }
-
-  @Override
-  public int size() {
-    return clusters.size();
-  }
-
-  public FlatClustering<T> asFlat(double threshold) {
-    List<Cluster<T>> flat = new ArrayList<>();
+  /**
+   * As flat clustering.
+   *
+   * @param threshold the threshold
+   * @return the clustering
+   */
+  public Clustering asFlat(double threshold) {
+    List<Cluster> flat = new ArrayList<>();
     process(root, flat, threshold);
-    return new FlatClustering<>(flat);
+    return new Clustering(getEncoderPair(), flat);
   }
 
-  private void process(Cluster<T> c, List<Cluster<T>> flat, double threshold) {
+  private void process(Cluster c, List<Cluster> flat, double threshold) {
     if (c == null) {
       return;
     }

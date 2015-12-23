@@ -23,12 +23,15 @@ package com.davidbracewell.apollo.ml.clustering.flat;
 
 
 import com.davidbracewell.apollo.linalg.SparseVector;
+import com.davidbracewell.apollo.linalg.Vector;
+import com.davidbracewell.apollo.ml.FeatureVector;
 import com.davidbracewell.apollo.ml.clustering.Cluster;
-import com.davidbracewell.apollo.ml.clustering.Clusterable;
+import com.davidbracewell.apollo.ml.clustering.Clusterer;
+import com.davidbracewell.apollo.ml.clustering.Clustering;
 import com.davidbracewell.apollo.similarity.DistanceMeasure;
 import com.google.common.base.Preconditions;
+import lombok.NonNull;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -39,8 +42,7 @@ import java.util.Random;
 /**
  * @author David B. Bracewell
  */
-public class KMeans<T extends Clusterable> implements FlatClusterer<T>, Serializable {
-
+public class KMeans extends Clusterer {
   private static final long serialVersionUID = 1L;
   private int K;
   private int maxIterations;
@@ -59,24 +61,25 @@ public class KMeans<T extends Clusterable> implements FlatClusterer<T>, Serializ
   }
 
   @Override
-  public FlatClustering<T> cluster(List<? extends T> instances) {
+  public Clustering cluster(@NonNull List<FeatureVector> instances) {
     if (instances == null || instances.isEmpty()) {
-      return new FlatClustering<>(Collections.<Cluster<T>>emptyList());
+      return new Clustering(getEncoderPair(), Collections.emptyList());
     }
-    List<Cluster<T>> clusters = new ArrayList<>();
+
+    List<Cluster> clusters = new ArrayList<>();
     com.davidbracewell.apollo.linalg.Vector[] centroids = initCentroids(instances);
 
-    Map<T, Integer> assignment = new HashMap<>();
+    Map<FeatureVector, Integer> assignment = new HashMap<>();
 
 
     for (int itr = 0; itr < maxIterations; itr++) {
       initClusters(clusters);
       int numMoved = 0;
-      for (T ii : instances) {
+      for (FeatureVector ii : instances) {
         int minI = 0;
-        double minD = distanceMeasure.calculate(ii.getPoint(), centroids[0]);
+        double minD = distanceMeasure.calculate(ii, centroids[0]);
         for (int ci = 1; ci < K; ci++) {
-          double distance = distanceMeasure.calculate(ii.getPoint(), centroids[ci]);
+          double distance = distanceMeasure.calculate(ii, centroids[ci]);
           if (distance < minD) {
             minD = distance;
             minI = ci;
@@ -97,8 +100,8 @@ public class KMeans<T extends Clusterable> implements FlatClusterer<T>, Serializ
       for (int i = 0; i < K; i++) {
         com.davidbracewell.apollo.linalg.Vector c = centroids[i];
         c.zero();
-        for (Clusterable ii : clusters.get(i)) {
-          c.addSelf(ii.getPoint());
+        for (FeatureVector ii : clusters.get(i)) {
+          c.addSelf(ii);
         }
         c.mapDivide((double) clusters.get(i).size());
       }
@@ -106,7 +109,7 @@ public class KMeans<T extends Clusterable> implements FlatClusterer<T>, Serializ
 
     }
 
-    return new FlatClustering<>(clusters);
+    return new Clustering(getEncoderPair(), clusters);
   }
 
   public DistanceMeasure getDistanceMeasure() {
@@ -133,19 +136,19 @@ public class KMeans<T extends Clusterable> implements FlatClusterer<T>, Serializ
     this.maxIterations = maxIterations;
   }
 
-  private com.davidbracewell.apollo.linalg.Vector[] initCentroids(List<? extends T> instances) {
-    com.davidbracewell.apollo.linalg.Vector[] centroids = new com.davidbracewell.apollo.linalg.Vector[K];
+  private Vector[] initCentroids(List<FeatureVector> instances) {
+    Vector[] centroids = new Vector[K];
     for (int i = 0; i < K; i++) {
-      centroids[i] = new SparseVector(instances.get(0).getPoint().dimension());
+      centroids[i] = new SparseVector(instances.get(0).dimension());
     }
 
     double[] cnts = new double[K];
 
 
     Random rnd = new Random();
-    for (Clusterable ii : instances) {
+    for (FeatureVector ii : instances) {
       int ci = rnd.nextInt(K);
-      centroids[ci].addSelf(ii.getPoint());
+      centroids[ci].addSelf(ii);
       cnts[ci]++;
     }
     for (int i = 0; i < K; i++) {
@@ -154,10 +157,10 @@ public class KMeans<T extends Clusterable> implements FlatClusterer<T>, Serializ
     return centroids;
   }
 
-  private void initClusters(List<Cluster<T>> clusters) {
+  private void initClusters(List<Cluster> clusters) {
     if (clusters.size() < K) {
       for (int i = 0; i < K; i++) {
-        clusters.add(new Cluster<T>());
+        clusters.add(new Cluster());
       }
     }
     for (Cluster l : clusters) {

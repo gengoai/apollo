@@ -21,11 +21,39 @@
 
 package com.davidbracewell.apollo.ml.clustering;
 
+import com.davidbracewell.apollo.ml.EncoderPair;
+import com.davidbracewell.apollo.ml.Model;
+import lombok.NonNull;
+
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+
+
 /**
  * @author David B. Bracewell
  */
-public interface Clustering<T extends Clusterable> extends Iterable<Cluster<T>> {
+public class Clustering extends Model implements Iterable<Cluster> {
+  private static final long serialVersionUID = 1L;
+  final List<Cluster> clusters;
 
-  int size();
+  public Clustering(@NonNull EncoderPair encoderPair, List<Cluster> clusters) {
+    super(encoderPair);
+    this.clusters = clusters;
+  }
+
+  public Cluster get(int i) {
+    return clusters.get(i);
+  }
+
+  @Override
+  public Iterator<Cluster> iterator() {
+    return Collections.unmodifiableList(clusters).iterator();
+  }
+
+  public int size() {
+    return clusters.size();
+  }
+
 
 }//END OF Clustering

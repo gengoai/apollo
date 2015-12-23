@@ -22,8 +22,10 @@
 package com.davidbracewell.apollo.ml.clustering.flat;
 
 import com.davidbracewell.apollo.linalg.Vector;
+import com.davidbracewell.apollo.ml.FeatureVector;
 import com.davidbracewell.apollo.ml.clustering.Cluster;
-import com.davidbracewell.apollo.ml.clustering.Clusterable;
+import com.davidbracewell.apollo.ml.clustering.Clusterer;
+import com.davidbracewell.apollo.ml.clustering.Clustering;
 import com.davidbracewell.apollo.similarity.DistanceMeasure;
 import com.davidbracewell.collection.Counter;
 import com.davidbracewell.collection.Counters;
@@ -31,6 +33,7 @@ import com.davidbracewell.logging.Logger;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
+import lombok.NonNull;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -43,7 +46,7 @@ import java.util.stream.Collectors;
 /**
  * @author David B. Bracewell
  */
-public class CRPLikeClusterer<T extends Clusterable> implements FlatClusterer<T> {
+public class CRPLikeClusterer extends Clusterer {
   private static final Logger log = Logger.getLogger(CRPLikeClusterer.class);
   private double alpha;
   private DistanceMeasure distanceMeasure;
@@ -56,25 +59,25 @@ public class CRPLikeClusterer<T extends Clusterable> implements FlatClusterer<T>
   }
 
   @Override
-  public FlatClustering<T> cluster(List<? extends T> instances) {
-    if (instances == null || instances.isEmpty()) {
-      return new FlatClustering<>(Collections.<Cluster<T>>emptyList());
+  public Clustering cluster(@NonNull List<FeatureVector> instances) {
+    if (instances.isEmpty()) {
+      return new Clustering(getEncoderPair(), Collections.emptyList());
     }
     distanceMatrix = HashBasedTable.create();
-    List<Cluster<T>> clusters = new ArrayList<>();
-    clusters.add(new Cluster<T>());
+    List<Cluster> clusters = new ArrayList<>();
+    clusters.add(new Cluster());
     clusters.get(0).addPoint(instances.get(0));
-    Map<T, Integer> assignments = new HashMap<>();
+    Map<FeatureVector, Integer> assignments = new HashMap<>();
     assignments.put(instances.get(0), 0);
 
     int report = instances.size() / 10;
 
     for (int i = 1; i < instances.size(); i++) {
-      T ii = instances.get(i);
+      FeatureVector ii = instances.get(i);
 
       Counter<Integer> distances = Counters.newHashMapCounter();
       for (int ci = 0; ci < clusters.size(); ci++) {
-        distances.set(ci, distance(ii.getPoint(), clusters.get(ci)));
+        distances.set(ci, distance(ii, clusters.get(ci)));
       }
       double sum = distances.sum();
 
@@ -92,7 +95,7 @@ public class CRPLikeClusterer<T extends Clusterable> implements FlatClusterer<T>
       }
 
       while (clusters.size() <= ci) {
-        clusters.add(new Cluster<T>());
+        clusters.add(new Cluster());
       }
       clusters.get(ci).addPoint(ii);
       assignments.put(ii, ci);
@@ -100,12 +103,12 @@ public class CRPLikeClusterer<T extends Clusterable> implements FlatClusterer<T>
 
     int numP = instances.size() - 1;
     for (int i = 0; i < 200; i++) {
-      T ii = instances.get((int) Math.floor(Math.random() % instances.size()));
+      FeatureVector ii = instances.get((int) Math.floor(Math.random() % instances.size()));
       int cci = assignments.remove(ii);
       clusters.get(cci).getPoints().remove(ii);
       Counter<Integer> distances = Counters.newHashMapCounter();
       for (int ci = 0; ci < clusters.size(); ci++) {
-        distances.set(ci, distance(ii.getPoint(), clusters.get(ci)));
+        distances.set(ci, distance(ii, clusters.get(ci)));
       }
       double sum = distances.sum();
 
@@ -118,20 +121,20 @@ public class CRPLikeClusterer<T extends Clusterable> implements FlatClusterer<T>
       distances.divideBySum();
       int ci = distances.sample();
       while (clusters.size() <= ci) {
-        clusters.add(new Cluster<T>());
+        clusters.add(new Cluster());
       }
       clusters.get(ci).addPoint(ii);
       assignments.put(ii, ci);
     }
 
 
-    return new FlatClustering<>(clusters.stream().filter(c -> c.size() > 0).collect(Collectors.toList()));
+    return new Clustering(getEncoderPair(), clusters.stream().filter(c -> c.size() > 0).collect(Collectors.toList()));
   }
 
-  private double distance(Vector ii, Cluster<T> cluster) {
+  private double distance(Vector ii, Cluster cluster) {
     double max = Double.NEGATIVE_INFINITY;
-    for (T jj : cluster) {
-      max = Math.max(max, distance(ii, jj.getPoint()));
+    for (FeatureVector jj : cluster) {
+      max = Math.max(max, distance(ii, jj));
     }
     return max;
   }

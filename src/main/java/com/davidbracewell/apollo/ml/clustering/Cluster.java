@@ -21,6 +21,8 @@
 
 package com.davidbracewell.apollo.ml.clustering;
 
+import com.davidbracewell.apollo.ml.FeatureVector;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -28,16 +30,16 @@ import java.util.List;
 
 /**
  * The type Cluster.
- * @param <T>  the type parameter
+ *
  * @author David B. Bracewell
  */
-public class Cluster<T extends Clusterable> implements Serializable, Iterable<T> {
+public class Cluster implements Serializable, Iterable<FeatureVector> {
 
   private static final long serialVersionUID = 1L;
-  private final List<T> points = new ArrayList<>();
-  private Cluster<T> parent;
-  private Cluster<T> left;
-  private Cluster<T> right;
+  private final List<FeatureVector> points = new ArrayList<>();
+  private Cluster parent;
+  private Cluster left;
+  private Cluster right;
   private double score;
 
   /**
@@ -45,7 +47,7 @@ public class Cluster<T extends Clusterable> implements Serializable, Iterable<T>
    *
    * @param point the point
    */
-  public void addPoint(final T point) {
+  public void addPoint(final FeatureVector point) {
     points.add(point);
   }
 
@@ -54,19 +56,19 @@ public class Cluster<T extends Clusterable> implements Serializable, Iterable<T>
    *
    * @return the points
    */
-  public List<T> getPoints() {
+  public List<FeatureVector> getPoints() {
     return points;
   }
 
   @Override
-  public Iterator<T> iterator() {
+  public Iterator<FeatureVector> iterator() {
     return points.iterator();
   }
 
   /**
    * Clear void.
    */
-  public void clear(){
+  public void clear() {
     points.clear();
   }
 
@@ -75,7 +77,7 @@ public class Cluster<T extends Clusterable> implements Serializable, Iterable<T>
    *
    * @return the int
    */
-  public int size(){
+  public int size() {
     return points.size();
   }
 
@@ -84,7 +86,7 @@ public class Cluster<T extends Clusterable> implements Serializable, Iterable<T>
    *
    * @return the left
    */
-  public Cluster<T> getLeft() {
+  public Cluster getLeft() {
     return left;
   }
 
@@ -93,7 +95,7 @@ public class Cluster<T extends Clusterable> implements Serializable, Iterable<T>
    *
    * @param left the left
    */
-  public void setLeft(Cluster<T> left) {
+  public void setLeft(Cluster left) {
     this.left = left;
   }
 
@@ -102,7 +104,7 @@ public class Cluster<T extends Clusterable> implements Serializable, Iterable<T>
    *
    * @return the parent
    */
-  public Cluster<T> getParent() {
+  public Cluster getParent() {
     return parent;
   }
 
@@ -111,7 +113,7 @@ public class Cluster<T extends Clusterable> implements Serializable, Iterable<T>
    *
    * @param parent the parent
    */
-  public void setParent(Cluster<T> parent) {
+  public void setParent(Cluster parent) {
     this.parent = parent;
   }
 
@@ -120,7 +122,7 @@ public class Cluster<T extends Clusterable> implements Serializable, Iterable<T>
    *
    * @return the right
    */
-  public Cluster<T> getRight() {
+  public Cluster getRight() {
     return right;
   }
 
@@ -129,7 +131,7 @@ public class Cluster<T extends Clusterable> implements Serializable, Iterable<T>
    *
    * @param right the right
    */
-  public void setRight(Cluster<T> right) {
+  public void setRight(Cluster right) {
     this.right = right;
   }
 

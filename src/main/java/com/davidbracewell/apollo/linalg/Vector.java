@@ -22,7 +22,6 @@
 package com.davidbracewell.apollo.linalg;
 
 import com.davidbracewell.Copyable;
-import com.davidbracewell.apollo.ml.clustering.Clusterable;
 import com.davidbracewell.collection.Collect;
 import com.davidbracewell.collection.EnhancedDoubleStatistics;
 import lombok.NonNull;
@@ -37,7 +36,7 @@ import java.util.function.DoubleUnaryOperator;
 /**
  * @author David B. Bracewell
  */
-public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector>, Clusterable {
+public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
   /**
    * Computes the sum of this vector and rhs in an element-by-element fashion.
    *
@@ -426,11 +425,6 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector>, Cluste
 
   default void forEachOrderedSparse(@NonNull Consumer<Vector.Entry> consumer) {
     Collect.from(orderedNonZeroIterator()).forEach(consumer);
-  }
-
-  @Override
-  default Vector getPoint() {
-    return this;
   }
 
   @Value

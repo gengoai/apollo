@@ -22,6 +22,7 @@
 package com.davidbracewell.apollo.linalg;
 
 import com.davidbracewell.Copyable;
+import com.davidbracewell.apollo.ml.clustering.Clusterable;
 import com.davidbracewell.collection.Collect;
 import com.davidbracewell.collection.EnhancedDoubleStatistics;
 import lombok.NonNull;
@@ -36,7 +37,7 @@ import java.util.function.DoubleUnaryOperator;
 /**
  * @author David B. Bracewell
  */
-public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
+public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector>, Clusterable {
   /**
    * Computes the sum of this vector and rhs in an element-by-element fashion.
    *
@@ -427,6 +428,10 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
     Collect.from(orderedNonZeroIterator()).forEach(consumer);
   }
 
+  @Override
+  default Vector getPoint() {
+    return this;
+  }
 
   @Value
   class Entry implements Serializable {
@@ -434,6 +439,5 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
     public final int index;
     public final double value;
   }
-
 
 }//END OF Vector

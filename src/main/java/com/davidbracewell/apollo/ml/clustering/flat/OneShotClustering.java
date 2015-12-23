@@ -23,6 +23,7 @@ package com.davidbracewell.apollo.ml.clustering.flat;
 
 import com.davidbracewell.apollo.ApolloMath;
 import com.davidbracewell.apollo.affinity.DistanceMeasure;
+import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.EncoderPair;
 import com.davidbracewell.apollo.ml.FeatureVector;
 import com.davidbracewell.apollo.ml.Instance;
@@ -44,8 +45,8 @@ class OneShotClustering extends FlatHardClustering {
     FeatureVector vector = instance.toVector(getEncoderPair());
     for (int i = 0; i < distances.length; i++) {
       double d = 0;
-      for (FeatureVector jj : clusters.get(i)) {
-        d += distanceMeasure.calculate(vector, jj);
+      for (Vector jj : clusters.get(i)) {
+        d += getDistanceMeasure().calculate(vector, jj);
       }
       distances[i] = d / (double) clusters.get(i).size();
     }

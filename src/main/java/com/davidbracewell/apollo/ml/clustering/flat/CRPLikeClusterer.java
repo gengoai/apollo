@@ -124,9 +124,9 @@ public class CRPLikeClusterer extends Clusterer {
     }
 
 
-
-
-    return new Clustering(getEncoderPair(), clusters.stream().filter(c -> c.size() > 0).collect(Collectors.toList()));
+    CRPClustering clustering = new CRPClustering(getEncoderPair(), distanceMeasure);
+    clustering.clusters = clusters.stream().filter(c -> c.size() > 0).collect(Collectors.toList());
+    return clustering;
   }
 
   private double distance(Vector ii, Cluster cluster) {

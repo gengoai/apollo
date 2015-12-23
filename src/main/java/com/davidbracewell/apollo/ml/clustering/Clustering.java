@@ -22,6 +22,7 @@
 package com.davidbracewell.apollo.ml.clustering;
 
 import com.davidbracewell.apollo.ApolloMath;
+import com.davidbracewell.apollo.affinity.DistanceMeasure;
 import com.davidbracewell.apollo.ml.EncoderPair;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.Model;
@@ -35,9 +36,15 @@ import java.util.List;
  */
 public abstract class Clustering extends Model {
   private static final long serialVersionUID = 1L;
+  private final DistanceMeasure distanceMeasure;
 
-  protected Clustering(EncoderPair encoderPair) {
+  protected Clustering(EncoderPair encoderPair, DistanceMeasure distanceMeasure) {
     super(encoderPair);
+    this.distanceMeasure = distanceMeasure;
+  }
+
+  public DistanceMeasure getDistanceMeasure() {
+    return distanceMeasure;
   }
 
   public abstract int size();

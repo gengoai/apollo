@@ -28,7 +28,6 @@ import com.davidbracewell.apollo.ml.FeatureVector;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.clustering.Cluster;
 import com.davidbracewell.apollo.ml.clustering.Clustering;
-import lombok.NonNull;
 
 import java.util.Collections;
 import java.util.List;
@@ -39,11 +38,14 @@ import java.util.List;
 public class FlatHardClustering extends Clustering {
   private static final long serialVersionUID = 1L;
   List<Cluster> clusters;
-  final DistanceMeasure distanceMeasure;
 
-  FlatHardClustering(@NonNull EncoderPair encoderPair, DistanceMeasure distanceMeasure) {
-    super(encoderPair);
-    this.distanceMeasure = distanceMeasure;
+  public FlatHardClustering(EncoderPair encoderPair, DistanceMeasure distanceMeasure) {
+    super(encoderPair, distanceMeasure);
+  }
+
+  public FlatHardClustering(EncoderPair encoderPair, DistanceMeasure distanceMeasure, List<Cluster> clusters) {
+    super(encoderPair, distanceMeasure);
+    this.clusters = clusters;
   }
 
   @Override
@@ -71,7 +73,7 @@ public class FlatHardClustering extends Clustering {
     double[] distances = new double[size()];
     FeatureVector vector = instance.toVector(getEncoderPair());
     for (int i = 0; i < distances.length; i++) {
-      distances[i] = distanceMeasure.calculate(clusters.get(i).getCentroid(), vector);
+      distances[i] = getDistanceMeasure().calculate(clusters.get(i).getCentroid(), vector);
     }
     int min = ApolloMath.argMin(distances).getV1();
     for (int i = 0; i < distances.length; i++) {

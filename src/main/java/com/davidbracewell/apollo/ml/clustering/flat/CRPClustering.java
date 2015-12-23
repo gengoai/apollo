@@ -23,6 +23,7 @@ package com.davidbracewell.apollo.ml.clustering.flat;
 
 import com.davidbracewell.apollo.ApolloMath;
 import com.davidbracewell.apollo.affinity.DistanceMeasure;
+import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.EncoderPair;
 import com.davidbracewell.apollo.ml.FeatureVector;
 import com.davidbracewell.apollo.ml.Instance;
@@ -44,10 +45,10 @@ class CRPClustering extends FlatHardClustering {
     FeatureVector vector = instance.toVector(getEncoderPair());
     for (int i = 0; i < distances.length; i++) {
       double max = Double.NEGATIVE_INFINITY;
-      for (FeatureVector jj : cluster) {
-        max = Math.max(max, distanceMeasure.calculate(ii, jj));
+      for (Vector jj : clusters.get(i)) {
+        max = Math.max(max, getDistanceMeasure().calculate(vector, jj));
       }
-      distances[i] = d / (double) clusters.get(i).size();
+      distances[i] = max;
     }
     int min = ApolloMath.argMin(distances).getV1();
     for (int i = 0; i < distances.length; i++) {

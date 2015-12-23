@@ -22,12 +22,16 @@
 package com.davidbracewell.apollo.ml.clustering.hierarchical;
 
 
+import com.davidbracewell.apollo.affinity.DistanceMeasure;
 import com.davidbracewell.apollo.ml.EncoderPair;
+import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.clustering.Cluster;
 import com.davidbracewell.apollo.ml.clustering.Clustering;
+import com.davidbracewell.apollo.ml.clustering.flat.FlatHardClustering;
 import lombok.NonNull;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -37,18 +41,16 @@ import java.util.List;
  */
 public class HierarchicalClustering extends Clustering {
   private static final long serialVersionUID = 1L;
-  private final Cluster root;
+  Cluster root;
+  Linkage linkage;
 
   /**
    * Instantiates a new Hierarchical clustering.
    *
    * @param encoderPair the encoder pair
-   * @param clusters    the clusters
-   * @param root        the root
    */
-  public HierarchicalClustering(@NonNull EncoderPair encoderPair, @NonNull List<Cluster> clusters, @NonNull Cluster root) {
-    super(encoderPair, clusters);
-    this.root = root;
+  public HierarchicalClustering(@NonNull EncoderPair encoderPair, @NonNull DistanceMeasure distanceMeasure) {
+    super(encoderPair, distanceMeasure);
   }
 
 
@@ -70,7 +72,36 @@ public class HierarchicalClustering extends Clustering {
   public Clustering asFlat(double threshold) {
     List<Cluster> flat = new ArrayList<>();
     process(root, flat, threshold);
-    return new Clustering(getEncoderPair(), flat);
+    return new FlatHardClustering(getEncoderPair(), getDistanceMeasure(), flat);
+  }
+
+  @Override
+  public boolean isHierarchical() {
+    return true;
+  }
+
+  @Override
+  public int size() {
+    return 1;
+  }
+
+  @Override
+  public Cluster get(int index) {
+    return getClusters().get(index);
+  }
+
+  @Override
+  public List<Cluster> getClusters() {
+    return Collections.singletonList(root);
+  }
+
+  @Override
+  public double[] softCluster(@NonNull Instance instance) {
+    return new double[]{linkage.calculate(
+      instance.toVector(getEncoderPair()),
+      root,
+      getDistanceMeasure()
+    )};
   }
 
   private void process(Cluster c, List<Cluster> flat, double threshold) {

@@ -21,6 +21,7 @@
 
 package com.davidbracewell.apollo.ml.clustering.hierarchical;
 
+import com.davidbracewell.apollo.affinity.Distance;
 import com.davidbracewell.apollo.affinity.DistanceMeasure;
 import com.davidbracewell.apollo.ml.FeatureVector;
 import com.davidbracewell.apollo.ml.clustering.Cluster;
@@ -32,7 +33,6 @@ import com.google.common.collect.Table;
 import lombok.NonNull;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -40,8 +40,12 @@ import java.util.List;
  */
 public class AgglomerativeClusterer extends Clusterer {
   private static final long serialVersionUID = 1L;
-  private final DistanceMeasure distanceMeasure;
-  private final Linkage linkage;
+  private DistanceMeasure distanceMeasure = Distance.Euclidean;
+  private Linkage linkage = Linkage.Min;
+
+  public AgglomerativeClusterer() {
+
+  }
 
   public AgglomerativeClusterer(DistanceMeasure distanceMeasure, Linkage linkage) {
     this.distanceMeasure = distanceMeasure;
@@ -58,28 +62,10 @@ public class AgglomerativeClusterer extends Clusterer {
       doTurn(distanceMatrix, clusters);
     }
 
-    return new HierarchicalClustering(getEncoderPair(), Collections.singletonList(clusters.get(0)), clusters.get(0));
-  }
-
-  private double distance(Cluster c1, Cluster c2) {
-    List<Double> distances = new ArrayList<>();
-    double sum = 0;
-    double count = 0;
-    for (FeatureVector t1 : flatten(c1)) {
-      for (FeatureVector t2 : flatten(c2)) {
-        count++;
-        distances.add(distanceMeasure.calculate(t1, t2));
-        sum += distances.get(distances.size() - 1);
-      }
-    }
-    switch (linkage) {
-      case MAX:
-        return Collections.max(distances);
-      case MIN:
-        return Collections.min(distances);
-      default:
-        return sum / count;
-    }
+    HierarchicalClustering clustering = new HierarchicalClustering(getEncoderPair(), distanceMeasure);
+    clustering.root = clusters.get(0);
+    clustering.linkage = linkage;
+    return clustering;
   }
 
   private void doTurn(Table<Cluster, Cluster, Double> distanceMatrix, List<Cluster> clusters) {
@@ -122,19 +108,6 @@ public class AgglomerativeClusterer extends Clusterer {
 
   }
 
-  public List<FeatureVector> flatten(Cluster c) {
-    if (c == null) {
-      return Collections.emptyList();
-    }
-    if (!c.getPoints().isEmpty()) {
-      return c.getPoints();
-    }
-    List<FeatureVector> list = new ArrayList<>();
-    list.addAll(flatten(c.getLeft()));
-    list.addAll(flatten(c.getRight()));
-    return list;
-  }
-
   private List<Cluster> initDistanceMatrix(List<FeatureVector> instances, Table<Cluster, Cluster, Double> distanceMatrix) {
     List<Cluster> clusters = new ArrayList<>();
     for (FeatureVector item : instances) {
@@ -146,7 +119,7 @@ public class AgglomerativeClusterer extends Clusterer {
       Cluster c1 = clusters.get(i);
       for (int j = i + 1; j < clusters.size(); j++) {
         Cluster c2 = clusters.get(j);
-        double distance = distance(c1, c2);
+        double distance = linkage.calculate(c1, c2, distanceMeasure);
         distanceMatrix.put(c1, c2, distance);
         distanceMatrix.put(c2, c1, distance);
       }
@@ -156,17 +129,10 @@ public class AgglomerativeClusterer extends Clusterer {
 
   private void updateDistanceMatrix(Table<Cluster, Cluster, Double> distanceMatrix, Cluster newCluster, List<Cluster> clusterList) {
     for (Cluster c1 : clusterList) {
-      double d = distance(c1, newCluster);
+      double d = linkage.calculate(c1, newCluster, distanceMeasure);
       distanceMatrix.put(c1, newCluster, d);
       distanceMatrix.put(newCluster, c1, d);
     }
-  }
-
-
-  public static enum Linkage {
-    MAX,
-    MIN,
-    AVERAGE
   }
 
 

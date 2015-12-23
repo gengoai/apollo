@@ -21,6 +21,7 @@
 
 package com.davidbracewell.apollo.ml.clustering;
 
+import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.FeatureVector;
 
 import java.io.Serializable;
@@ -37,6 +38,7 @@ public class Cluster implements Serializable, Iterable<FeatureVector> {
 
   private static final long serialVersionUID = 1L;
   private final List<FeatureVector> points = new ArrayList<>();
+  private Vector centroid;
   private Cluster parent;
   private Cluster left;
   private Cluster right;
@@ -151,5 +153,13 @@ public class Cluster implements Serializable, Iterable<FeatureVector> {
    */
   public void setScore(double score) {
     this.score = score;
+  }
+
+  public Vector getCentroid() {
+    return centroid;
+  }
+
+  public void setCentroid(Vector centroid) {
+    this.centroid = centroid;
   }
 }//END OF Cluster

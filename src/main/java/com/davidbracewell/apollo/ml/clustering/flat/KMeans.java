@@ -32,7 +32,13 @@ import com.davidbracewell.apollo.ml.clustering.Clustering;
 import com.google.common.base.Preconditions;
 import lombok.NonNull;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.IntStream;
 
 /**
  * @author David B. Bracewell
@@ -57,54 +63,58 @@ public class KMeans extends Clusterer {
 
   @Override
   public Clustering cluster(@NonNull List<FeatureVector> instances) {
-    if (instances == null || instances.isEmpty()) {
-      return new Clustering(getEncoderPair(), Collections.emptyList());
+    FlatHardClustering clustering = new FlatHardClustering(getEncoderPair(), distanceMeasure);
+
+    clustering.clusters = new ArrayList<>(K);
+    for (Vector centroid : initCentroids(instances)) {
+      Cluster c = new Cluster();
+      c.setCentroid(centroid);
+      clustering.clusters.add(c);
     }
 
-    List<Cluster> clusters = new ArrayList<>();
-    com.davidbracewell.apollo.linalg.Vector[] centroids = initCentroids(instances);
+    Map<FeatureVector, Integer> assignment = new ConcurrentHashMap<>();
 
-    Map<FeatureVector, Integer> assignment = new HashMap<>();
-
-
+    final AtomicLong numMoved = new AtomicLong(0);
     for (int itr = 0; itr < maxIterations; itr++) {
-      initClusters(clusters);
-      int numMoved = 0;
-      for (FeatureVector ii : instances) {
-        int minI = 0;
-        double minD = distanceMeasure.calculate(ii, centroids[0]);
-        for (int ci = 1; ci < K; ci++) {
-          double distance = distanceMeasure.calculate(ii, centroids[ci]);
-          if (distance < minD) {
-            minD = distance;
-            minI = ci;
+      initClusters(clustering.clusters);
+      numMoved.set(0);
+
+      instances.parallelStream()
+        .forEach(ii -> {
+            int minI = 0;
+            double minD = distanceMeasure.calculate(ii, clustering.clusters.get(0).getCentroid());
+            for (int ci = 1; ci < K; ci++) {
+              double distance = distanceMeasure.calculate(ii, clustering.clusters.get(ci).getCentroid());
+              if (distance < minD) {
+                minD = distance;
+                minI = ci;
+              }
+            }
+            Integer old = assignment.put(ii, minI);
+            clustering.clusters.get(minI).addPoint(ii);
+            if (old == null || old != minI) {
+              numMoved.incrementAndGet();
+            }
           }
-        }
+        );
 
-        Integer old = assignment.put(ii, minI);
-        clusters.get(minI).addPoint(ii);
-        if (old == null || old != minI) {
-          numMoved++;
-        }
-      }
 
-      if (numMoved == 0) {
+      if (numMoved.get() == 0) {
         break;
       }
 
-      for (int i = 0; i < K; i++) {
-        com.davidbracewell.apollo.linalg.Vector c = centroids[i];
-        c.zero();
-        for (FeatureVector ii : clusters.get(i)) {
-          c.addSelf(ii);
-        }
-        c.mapDivide((double) clusters.get(i).size());
-      }
-
-
+      IntStream.range(0, K).parallel()
+        .forEach(i -> {
+          Vector c = clustering.clusters.get(i).getCentroid();
+          c.zero();
+          for (FeatureVector ii : clustering.clusters.get(i)) {
+            c.addSelf(ii);
+          }
+          c.mapDivide((double) clustering.clusters.get(i).size());
+        });
     }
 
-    return new Clustering(getEncoderPair(), clusters);
+    return clustering;
   }
 
   public DistanceMeasure getDistanceMeasure() {
@@ -153,11 +163,6 @@ public class KMeans extends Clusterer {
   }
 
   private void initClusters(List<Cluster> clusters) {
-    if (clusters.size() < K) {
-      for (int i = 0; i < K; i++) {
-        clusters.add(new Cluster());
-      }
-    }
     for (Cluster l : clusters) {
       l.clear();
     }

@@ -19,48 +19,43 @@
  * under the License.
  */
 
-package com.davidbracewell.apollo.ml.clustering;
+package com.davidbracewell.apollo.ml.clustering.flat;
 
 import com.davidbracewell.apollo.ApolloMath;
+import com.davidbracewell.apollo.affinity.DistanceMeasure;
 import com.davidbracewell.apollo.ml.EncoderPair;
+import com.davidbracewell.apollo.ml.FeatureVector;
 import com.davidbracewell.apollo.ml.Instance;
-import com.davidbracewell.apollo.ml.Model;
 import lombok.NonNull;
-
-import java.util.List;
-
 
 /**
  * @author David B. Bracewell
  */
-public abstract class Clustering extends Model {
+class OneShotClustering extends FlatHardClustering {
   private static final long serialVersionUID = 1L;
 
-  protected Clustering(EncoderPair encoderPair) {
-    super(encoderPair);
+  OneShotClustering(@NonNull EncoderPair encoderPair, DistanceMeasure distanceMeasure) {
+    super(encoderPair, distanceMeasure);
   }
 
-  public abstract int size();
-
-  public abstract Cluster get(int index);
-
-  public boolean isFlat() {
-    return false;
+  @Override
+  public double[] softCluster(Instance instance) {
+    double[] distances = new double[size()];
+    FeatureVector vector = instance.toVector(getEncoderPair());
+    for (int i = 0; i < distances.length; i++) {
+      double d = 0;
+      for (FeatureVector jj : clusters.get(i)) {
+        d += distanceMeasure.calculate(vector, jj);
+      }
+      distances[i] = d / (double) clusters.get(i).size();
+    }
+    int min = ApolloMath.argMin(distances).getV1();
+    for (int i = 0; i < distances.length; i++) {
+      if (i != min) {
+        distances[i] = Double.POSITIVE_INFINITY;
+      }
+    }
+    return distances;
   }
 
-  public boolean isHierarchical() {
-    return false;
-  }
-
-  public abstract Cluster getRoot();
-
-  public abstract List<Cluster> getClusters();
-
-  public int hardCluster(@NonNull Instance instance) {
-    return ApolloMath.argMin(softCluster(instance)).getV1();
-  }
-
-  public abstract double[] softCluster(Instance instance);
-
-
-}//END OF Clustering
+}//END OF OneShotClustering

@@ -35,7 +35,10 @@ import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
 import lombok.NonNull;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 
@@ -56,9 +59,6 @@ public class CRPLikeClusterer extends Clusterer {
 
   @Override
   public Clustering cluster(@NonNull List<FeatureVector> instances) {
-    if (instances.isEmpty()) {
-      return new Clustering(getEncoderPair(), Collections.emptyList());
-    }
     distanceMatrix = HashBasedTable.create();
     List<Cluster> clusters = new ArrayList<>();
     clusters.add(new Cluster());
@@ -122,6 +122,8 @@ public class CRPLikeClusterer extends Clusterer {
       clusters.get(ci).addPoint(ii);
       assignments.put(ii, ci);
     }
+
+
 
 
     return new Clustering(getEncoderPair(), clusters.stream().filter(c -> c.size() > 0).collect(Collectors.toList()));

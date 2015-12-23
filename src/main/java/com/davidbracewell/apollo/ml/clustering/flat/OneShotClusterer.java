@@ -32,7 +32,7 @@ import com.google.common.base.Preconditions;
 import lombok.NonNull;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -50,17 +50,14 @@ public class OneShotClusterer extends Clusterer {
 
   @Override
   public Clustering cluster(@NonNull List<FeatureVector> instances) {
-    if (instances == null || instances.isEmpty()) {
-      return new Clustering(getEncoderPair(), Collections.emptyList());
-    }
-
-    List<Cluster> clusters = new ArrayList<>();
+    OneShotClustering clustering = new OneShotClustering(getEncoderPair(), distanceMeasure);
+    clustering.clusters = new ArrayList<>();
 
     for (FeatureVector ii : instances) {
       double minD = Double.POSITIVE_INFINITY;
       int minI = 0;
-      for (int k = 1; k < clusters.size(); k++) {
-        double d = distance(ii, clusters.get(k));
+      for (int k = 1; k < clustering.clusters.size(); k++) {
+        double d = distance(ii, clustering.clusters.get(k));
         if (d < minD) {
           minD = d;
           minI = k;
@@ -68,17 +65,23 @@ public class OneShotClusterer extends Clusterer {
       }
 
       if (minD <= threshold) {
-        clusters.get(minI).addPoint(ii);
+        clustering.clusters.get(minI).addPoint(ii);
       } else {
         Cluster newCluster = new Cluster();
         newCluster.addPoint(ii);
-        clusters.add(newCluster);
+        clustering.clusters.add(newCluster);
       }
 
     }
 
+    for (Iterator<Cluster> itr = clustering.clusters.iterator(); itr.hasNext(); ) {
+      Cluster c = itr.next();
+      if (c == null || c.size() == 0) {
+        itr.remove();
+      }
+    }
 
-    return new Clustering(getEncoderPair(), clusters);
+    return clustering;
   }
 
 

@@ -114,6 +114,17 @@ public interface Featurizer<INPUT> extends SerializableFunction<INPUT, Set<Featu
   }
 
   /**
+   * Extract instance.
+   *
+   * @param labeledDatum the labeled datum
+   * @return the instance
+   */
+  default Instance extract(@NonNull LabeledDatum<INPUT> labeledDatum) {
+    return Instance.create(apply(labeledDatum.getData()), labeledDatum.getLabel());
+  }
+
+
+  /**
    * A builder that allows combining multiple featurizers
    *
    * @param <T> the type of the input

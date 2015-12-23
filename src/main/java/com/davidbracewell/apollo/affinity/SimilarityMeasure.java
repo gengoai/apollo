@@ -19,32 +19,25 @@
  * under the License.
  */
 
-package com.davidbracewell.apollo.similarity;
+package com.davidbracewell.apollo.affinity;
 
-import com.google.common.base.Preconditions;
-
-import java.util.Map;
+import com.davidbracewell.apollo.stats.ContingencyTable;
+import com.davidbracewell.apollo.stats.ContingencyTableCalculator;
 
 /**
+ * The type Similarity measure.
+ *
  * @author David B. Bracewell
  */
-public class OneMinusSimilarityDistance extends DistanceMeasure {
+public interface SimilarityMeasure extends Measure, ContingencyTableCalculator {
 
-  private static final long serialVersionUID = 1L;
-  private final SimilarityMeasure similarityMeasure;
-
-  public OneMinusSimilarityDistance(SimilarityMeasure similarityMeasure) {
-    this.similarityMeasure = Preconditions.checkNotNull(similarityMeasure);
+  default DistanceMeasure asDistanceMeasure() {
+    return new OneMinusSimilarityDistance(this);
   }
 
   @Override
-  public double calculate(Map<?, ? extends Number> m1, Map<?, ? extends Number> m2) {
-    return 1d - similarityMeasure.calculate(m1, m2);
+  default double calculate(ContingencyTable table) {
+    throw new UnsupportedOperationException();
   }
 
-  @Override
-  public double calculate(double[] v1, double[] v2) {
-    return 1d - similarityMeasure.calculate(v1, v2);
-  }
-
-}//END OF OneMinusSimilarityDistance
+}//END OF SimilarityMeasure

@@ -21,12 +21,12 @@
 
 package com.davidbracewell.apollo.ml.clustering.flat;
 
+import com.davidbracewell.apollo.affinity.DistanceMeasure;
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.FeatureVector;
 import com.davidbracewell.apollo.ml.clustering.Cluster;
 import com.davidbracewell.apollo.ml.clustering.Clusterer;
 import com.davidbracewell.apollo.ml.clustering.Clustering;
-import com.davidbracewell.apollo.similarity.DistanceMeasure;
 import com.davidbracewell.collection.Counter;
 import com.davidbracewell.collection.Counters;
 import com.davidbracewell.logging.Logger;
@@ -35,11 +35,7 @@ import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
 import lombok.NonNull;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 

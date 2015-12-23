@@ -21,10 +21,10 @@
 
 package com.davidbracewell.apollo.lsh.hash;
 
+import com.davidbracewell.apollo.affinity.DistanceMeasure;
+import com.davidbracewell.apollo.affinity.EuclideanDistance;
 import com.davidbracewell.apollo.lsh.HashFamily;
 import com.davidbracewell.apollo.lsh.HashFunction;
-import com.davidbracewell.apollo.similarity.DistanceMeasure;
-import com.davidbracewell.apollo.similarity.EuclideanDistance;
 import com.google.common.base.Preconditions;
 
 import java.util.Arrays;

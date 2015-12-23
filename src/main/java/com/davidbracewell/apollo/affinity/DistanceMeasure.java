@@ -19,23 +19,17 @@
  * under the License.
  */
 
-package com.davidbracewell.apollo.similarity;
-
-import com.google.common.base.Preconditions;
+package com.davidbracewell.apollo.affinity;
 
 /**
+ * The type Distance measure.
+ *
  * @author David B. Bracewell
  */
-public class SpearmanCorrelation extends AbstractCorrelationSimilarity {
+public interface DistanceMeasure extends Measure {
 
-  private static final long serialVersionUID = 4729182287837932621L;
-
-  @Override
-  public double calculate(double[] v1, double[] v2) {
-    Preconditions.checkNotNull(v1, "Vectors cannot be null");
-    Preconditions.checkNotNull(v2, "Vectors cannot be null");
-    Preconditions.checkArgument(v1.length == v2.length, "Vector dimension mismatch " + v1.length + " != " + v2.length);
-    return new org.apache.commons.math3.stat.correlation.SpearmansCorrelation().correlation(v1, v2);
+  default SimilarityMeasure asSimilarityMeasure() {
+    return new NegativeDistanceSimilarity(this);
   }
 
-}//END OF SpearmanCorrelation
+}//END OF DistanceMeasure

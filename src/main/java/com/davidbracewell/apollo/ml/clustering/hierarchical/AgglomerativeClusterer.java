@@ -21,10 +21,10 @@
 
 package com.davidbracewell.apollo.ml.clustering.hierarchical;
 
+import com.davidbracewell.apollo.affinity.DistanceMeasure;
 import com.davidbracewell.apollo.ml.FeatureVector;
 import com.davidbracewell.apollo.ml.clustering.Cluster;
 import com.davidbracewell.apollo.ml.clustering.Clusterer;
-import com.davidbracewell.apollo.similarity.DistanceMeasure;
 import com.davidbracewell.tuple.Tuple2;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Iterables;

@@ -19,10 +19,9 @@
  * under the License.
  */
 
-package com.davidbracewell.apollo.similarity;
+package com.davidbracewell.apollo.affinity;
 
 import com.davidbracewell.apollo.linalg.Vector;
-import com.davidbracewell.apollo.stats.ContingencyTable;
 import com.davidbracewell.collection.Index;
 import com.davidbracewell.collection.Indexes;
 import com.google.common.base.Preconditions;
@@ -34,12 +33,10 @@ import java.util.Map;
 /**
  * @author David B. Bracewell
  */
-public abstract class AbstractCorrelationSimilarity extends SimilarityMeasure {
-
-  private static final long serialVersionUID = -2283302761286695056L;
+public interface CorrelationMeasure extends SimilarityMeasure {
 
   @Override
-  public double calculate(@NonNull Map<?, ? extends Number> m1, @NonNull Map<?, ? extends Number> m2) {
+  default double calculate(@NonNull Map<?, ? extends Number> m1, @NonNull Map<?, ? extends Number> m2) {
     Index index = Indexes.newIndex(Sets.union(m1.keySet(), m2.keySet()));
     double[] v1 = new double[index.size()];
     double[] v2 = new double[index.size()];
@@ -51,13 +48,12 @@ public abstract class AbstractCorrelationSimilarity extends SimilarityMeasure {
   }
 
   @Override
-  public double calculate(@NonNull Vector v1, @NonNull Vector v2) {
+  default double calculate(@NonNull Vector v1, @NonNull Vector v2) {
     Preconditions.checkArgument(v1.dimension() == v2.dimension(), "Vector dimension mismatch " + v1.dimension() + " != " + v2.dimension());
     return calculate(v1.toArray(), v2.toArray());
   }
 
   @Override
-  public double calculate(ContingencyTable table) {
-    throw new UnsupportedOperationException();
-  }
-}//END OF AbstractCorrelationSimilarity
+  double calculate(@NonNull double[] v1, @NonNull double[] v2);
+
+}//END OF CorrelationMeasure

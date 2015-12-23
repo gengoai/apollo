@@ -21,8 +21,8 @@
 
 package com.davidbracewell.apollo.lsh;
 
+import com.davidbracewell.apollo.affinity.DistanceMeasure;
 import com.davidbracewell.apollo.linalg.Vector;
-import com.davidbracewell.apollo.similarity.DistanceMeasure;
 import com.davidbracewell.collection.Counter;
 import com.davidbracewell.collection.Counters;
 import com.davidbracewell.io.Committable;

@@ -22,7 +22,7 @@
 package com.davidbracewell.apollo.lsh;
 
 
-import com.davidbracewell.apollo.similarity.DistanceMeasure;
+import com.davidbracewell.apollo.affinity.DistanceMeasure;
 
 import java.io.Serializable;
 

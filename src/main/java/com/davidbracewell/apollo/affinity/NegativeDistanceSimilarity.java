@@ -19,30 +19,21 @@
  * under the License.
  */
 
-package com.davidbracewell.apollo.similarity;
+package com.davidbracewell.apollo.affinity;
 
 import com.davidbracewell.apollo.stats.ContingencyTable;
-import com.google.common.base.Preconditions;
-import lombok.NonNull;
 
 import java.util.Map;
 
 /**
  * @author David B. Bracewell
  */
-public class DotProduct extends SimilarityMeasure {
+class NegativeDistanceSimilarity implements SimilarityMeasure {
+  private static final long serialVersionUID = 1L;
+  private final DistanceMeasure distanceMeasure;
 
-  private static final long serialVersionUID = 518635530697355573L;
-
-  @Override
-  public double calculate(@NonNull Map<?, ? extends Number> m1, @NonNull Map<?, ? extends Number> m2) {
-    double dp = 0;
-    for (Object key : m1.keySet()) {
-      if (m2.containsKey(key)) {
-        dp += (m1.get(key).doubleValue() * m2.get(key).doubleValue());
-      }
-    }
-    return dp;
+  NegativeDistanceSimilarity(DistanceMeasure distanceMeasure) {
+    this.distanceMeasure = distanceMeasure;
   }
 
   @Override
@@ -51,13 +42,11 @@ public class DotProduct extends SimilarityMeasure {
   }
 
   @Override
-  public double calculate(@NonNull double[] v1, @NonNull double[] v2) {
-    Preconditions.checkArgument(v1.length == v2.length, "Vector dimension mismatch");
-    double dp = 0d;
-    for (int i = 0; i < v1.length; i++) {
-      dp += (v1[i] * v2[i]);
-    }
-    return dp;
+  public double calculate(Map<?, ? extends Number> m1, Map<?, ? extends Number> m2) {
+    return -distanceMeasure.calculate(m1, m2);
   }
-
-}//END OF DotProduct
+  @Override
+  public DistanceMeasure asDistanceMeasure() {
+    return distanceMeasure;
+  }
+}//END OF NegativeDistanceSimilarity

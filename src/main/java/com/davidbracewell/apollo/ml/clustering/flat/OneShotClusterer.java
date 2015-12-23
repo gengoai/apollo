@@ -22,12 +22,12 @@
 package com.davidbracewell.apollo.ml.clustering.flat;
 
 
+import com.davidbracewell.apollo.affinity.DistanceMeasure;
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.FeatureVector;
 import com.davidbracewell.apollo.ml.clustering.Cluster;
 import com.davidbracewell.apollo.ml.clustering.Clusterer;
 import com.davidbracewell.apollo.ml.clustering.Clustering;
-import com.davidbracewell.apollo.similarity.DistanceMeasure;
 import com.google.common.base.Preconditions;
 import lombok.NonNull;
 

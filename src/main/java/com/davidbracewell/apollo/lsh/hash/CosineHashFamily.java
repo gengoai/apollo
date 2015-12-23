@@ -21,11 +21,11 @@
 
 package com.davidbracewell.apollo.lsh.hash;
 
+import com.davidbracewell.apollo.affinity.CosineSimilarity;
+import com.davidbracewell.apollo.affinity.DistanceMeasure;
+import com.davidbracewell.apollo.affinity.OneMinusSimilarityDistance;
 import com.davidbracewell.apollo.lsh.HashFamily;
 import com.davidbracewell.apollo.lsh.HashFunction;
-import com.davidbracewell.apollo.similarity.CosineSimilarity;
-import com.davidbracewell.apollo.similarity.DistanceMeasure;
-import com.davidbracewell.apollo.similarity.OneMinusSimilarityDistance;
 import com.google.common.base.Preconditions;
 
 /**

@@ -56,7 +56,7 @@ public class OneShotClusterer extends Clusterer {
     for (FeatureVector ii : instances) {
       double minD = Double.POSITIVE_INFINITY;
       int minI = 0;
-      for (int k = 1; k < clustering.clusters.size(); k++) {
+      for (int k = 0; k < clustering.clusters.size(); k++) {
         double d = distance(ii, clustering.clusters.get(k));
         if (d < minD) {
           minD = d;

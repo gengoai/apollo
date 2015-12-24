@@ -25,9 +25,10 @@ import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.FeatureVector;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.stream.Collectors;
 
 /**
  * The type Cluster.
@@ -37,7 +38,7 @@ import java.util.List;
 public class Cluster implements Serializable, Iterable<FeatureVector> {
 
   private static final long serialVersionUID = 1L;
-  private final List<FeatureVector> points = new ArrayList<>();
+  private final List<FeatureVector> points = new CopyOnWriteArrayList<>();
   private Vector centroid;
   private Cluster parent;
   private Cluster left;
@@ -50,7 +51,9 @@ public class Cluster implements Serializable, Iterable<FeatureVector> {
    * @param point the point
    */
   public void addPoint(final FeatureVector point) {
-    points.add(point);
+    if (point != null) {
+      points.add(point);
+    }
   }
 
   /**
@@ -162,4 +165,10 @@ public class Cluster implements Serializable, Iterable<FeatureVector> {
   public void setCentroid(Vector centroid) {
     this.centroid = centroid;
   }
+
+  @Override
+  public String toString() {
+    return points.stream().map(FeatureVector::getDecodedLabel).map(Object::toString).collect(Collectors.joining(","));
+  }
+
 }//END OF Cluster

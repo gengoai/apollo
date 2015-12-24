@@ -33,7 +33,7 @@ public class WindowedLabeler extends SequenceLabeler {
 
   @Override
   public double[] estimate(Iterator<Feature> observation, Iterator<String> transitions) {
-    FeatureVector vector = new FeatureVector(getFeatureEncoder());
+    FeatureVector vector = new FeatureVector(getEncoderPair());
     observation.forEachRemaining(vector::set);
     transitions.forEachRemaining(t -> vector.set(t, 1.0));
     return classifier.classify(vector).distribution();

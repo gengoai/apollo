@@ -244,7 +244,7 @@ public class Instance implements Example, Serializable, Iterable<Feature> {
    * @return the vector
    */
   public FeatureVector toVector(@NonNull EncoderPair encoderPair) {
-    FeatureVector vector = new FeatureVector(encoderPair.getFeatureEncoder());
+    FeatureVector vector = new FeatureVector(encoderPair);
     boolean isHash = encoderPair.getFeatureEncoder() instanceof HashingEncoder;
     features.forEach(f -> {
       int fi = (int) encoderPair.encodeFeature(f.getName());

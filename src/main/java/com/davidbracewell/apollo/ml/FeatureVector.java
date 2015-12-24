@@ -9,17 +9,23 @@ import lombok.NonNull;
  * @author David B. Bracewell
  */
 public class FeatureVector extends SparseVector {
-  private final Encoder featureEncoder;
+  private static final long serialVersionUID = 1L;
+  private final EncoderPair encoderPair;
   private double label = Double.NaN;
+
+  @Override
+  public int dimension() {
+    return encoderPair.getFeatureEncoder().size();
+  }
 
   /**
    * Instantiates a new Feature vector.
    *
-   * @param featureEncoder the feature encoder
+   * @param encoderPair the feature encoder
    */
-  public FeatureVector(@NonNull Encoder featureEncoder) {
+  public FeatureVector(@NonNull EncoderPair encoderPair) {
     super(0);
-    this.featureEncoder = featureEncoder;
+    this.encoderPair = encoderPair;
   }
 
   /**
@@ -27,14 +33,10 @@ public class FeatureVector extends SparseVector {
    *
    * @return the feature encoder
    */
-  public Encoder getFeatureEncoder() {
-    return featureEncoder;
+  public EncoderPair getEncoderPair() {
+    return encoderPair;
   }
 
-  @Override
-  public int size() {
-    return featureEncoder.size();
-  }
 
   /**
    * Has label boolean.
@@ -63,6 +65,17 @@ public class FeatureVector extends SparseVector {
     this.label = label;
   }
 
+  public void setLabel(Object o) {
+    this.label = encoderPair.encodeLabel(o);
+    if (this.label == -1) {
+      this.label = Double.NaN;
+    }
+  }
+
+  public Object getDecodedLabel() {
+    return encoderPair.decodeLabel(label);
+  }
+
   /**
    * Set boolean.
    *
@@ -71,7 +84,7 @@ public class FeatureVector extends SparseVector {
    * @return the boolean
    */
   public boolean set(String featureName, double featureValue) {
-    int index = (int) featureEncoder.encode(featureName);
+    int index = (int) encoderPair.encodeFeature(featureName);
     if (index < 0) {
       return false;
     }
@@ -92,17 +105,18 @@ public class FeatureVector extends SparseVector {
   /**
    * Transform feature vector.
    *
-   * @param newFeatureEncoder the new feature encoder
+   * @param newEncoderPair the new feature encoder
    * @return the feature vector
    */
-  public FeatureVector transform(@NonNull Encoder newFeatureEncoder) {
-    FeatureVector newVector = new FeatureVector(newFeatureEncoder);
+  public FeatureVector transform(@NonNull EncoderPair newEncoderPair) {
+    FeatureVector newVector = new FeatureVector(newEncoderPair);
     forEachSparse(entry ->
       newVector.set(
-        featureEncoder.decode(entry.getIndex()).toString(),
+        encoderPair.decodeFeature(entry.getIndex()).toString(),
         entry.getValue()
       )
     );
+    newVector.setLabel(getDecodedLabel());
     return newVector;
   }
 

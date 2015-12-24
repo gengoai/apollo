@@ -70,9 +70,9 @@ public class AveragedPerceptronLearner extends BinaryClassifierLearner {
       dataset.getPreprocessors()
     );
 
-    totalWeights = new FeatureVector(model.getFeatureEncoder());
-    stamps = new FeatureVector(model.getFeatureEncoder());
-    model.weights = new FeatureVector(model.getFeatureEncoder());
+    totalWeights = new FeatureVector(model.getEncoderPair());
+    stamps = new FeatureVector(model.getEncoderPair());
+    model.weights = new FeatureVector(model.getEncoderPair());
 
     double c = 1d;
     double oldError = 0;

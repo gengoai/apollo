@@ -43,8 +43,8 @@ public class StructuredPerceptronLearner extends SequenceLabelerLearner {
     model.weights = new Vector[nC];
     cWeights = new Vector[nC];
     for (int i = 0; i < nC; i++) {
-      model.weights[i] = new FeatureVector(model.getFeatureEncoder());
-      cWeights[i] = new FeatureVector(model.getFeatureEncoder());
+      model.weights[i] = new FeatureVector(model.getEncoderPair());
+      cWeights[i] = new FeatureVector(model.getEncoderPair());
     }
 
 

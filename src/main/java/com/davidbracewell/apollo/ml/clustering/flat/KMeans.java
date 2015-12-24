@@ -23,7 +23,6 @@ package com.davidbracewell.apollo.ml.clustering.flat;
 
 
 import com.davidbracewell.apollo.affinity.DistanceMeasure;
-import com.davidbracewell.apollo.linalg.SparseVector;
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.FeatureVector;
 import com.davidbracewell.apollo.ml.clustering.Cluster;
@@ -38,7 +37,6 @@ import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.IntStream;
 
 /**
  * @author David B. Bracewell
@@ -76,7 +74,7 @@ public class KMeans extends Clusterer {
 
     final AtomicLong numMoved = new AtomicLong(0);
     for (int itr = 0; itr < maxIterations; itr++) {
-      initClusters(clustering.clusters);
+      clustering.clusters.forEach(Cluster::clear);
       numMoved.set(0);
 
       instances.parallelStream()
@@ -103,15 +101,14 @@ public class KMeans extends Clusterer {
         break;
       }
 
-      IntStream.range(0, K).parallel()
-        .forEach(i -> {
-          Vector c = clustering.clusters.get(i).getCentroid();
-          c.zero();
-          for (FeatureVector ii : clustering.clusters.get(i)) {
-            c.addSelf(ii);
-          }
-          c.mapDivide((double) clustering.clusters.get(i).size());
-        });
+      for (int i = 0; i < K; i++) {
+        Vector c = clustering.clusters.get(i).getCentroid();
+        c.zero();
+        for (FeatureVector ii : clustering.clusters.get(i)) {
+          c.addSelf(ii);
+        }
+        c.mapDivideSelf((double) clustering.clusters.get(i).size());
+      }
     }
 
     return clustering;
@@ -144,12 +141,9 @@ public class KMeans extends Clusterer {
   private Vector[] initCentroids(List<FeatureVector> instances) {
     Vector[] centroids = new Vector[K];
     for (int i = 0; i < K; i++) {
-      centroids[i] = new SparseVector(instances.get(0).dimension());
+      centroids[i] = new FeatureVector(instances.get(0).getEncoderPair());
     }
-
     double[] cnts = new double[K];
-
-
     Random rnd = new Random();
     for (FeatureVector ii : instances) {
       int ci = rnd.nextInt(K);
@@ -157,14 +151,9 @@ public class KMeans extends Clusterer {
       cnts[ci]++;
     }
     for (int i = 0; i < K; i++) {
-      centroids[i].mapDivide(cnts[i]);
+      centroids[i].mapDivideSelf(cnts[i]);
     }
     return centroids;
   }
 
-  private void initClusters(List<Cluster> clusters) {
-    for (Cluster l : clusters) {
-      l.clear();
-    }
-  }
 }//END OF KMeans

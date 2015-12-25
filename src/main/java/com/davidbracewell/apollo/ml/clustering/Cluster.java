@@ -168,7 +168,7 @@ public class Cluster implements Serializable, Iterable<FeatureVector> {
 
   @Override
   public String toString() {
-    return points.stream().map(FeatureVector::getDecodedLabel).map(Object::toString).collect(Collectors.joining(","));
+    return points.stream().map(FeatureVector::getDecodedLabel).collect(Collectors.toList()).toString();
   }
 
 }//END OF Cluster

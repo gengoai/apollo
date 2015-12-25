@@ -25,14 +25,14 @@ import com.davidbracewell.apollo.ml.Dataset;
 import com.davidbracewell.apollo.ml.Feature;
 import com.davidbracewell.apollo.ml.IndexEncoder;
 import com.davidbracewell.apollo.ml.Instance;
+import com.davidbracewell.io.CSV;
 import com.davidbracewell.io.Resources;
-import com.davidbracewell.string.StringUtils;
+import com.davidbracewell.io.structured.csv.CSVReader;
 import com.google.common.base.Throwables;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Stream;
 
 /**
  * @author David B. Bracewell
@@ -46,26 +46,17 @@ public abstract class ClustererTest {
 
   public Dataset<Instance> getData() {
     List<Instance> instances = new ArrayList<>();
-    try (Stream<String> stream = Resources.fromClasspath("com/davidbracewell/apollo/ml/clustering/nutrient.dat").readLines().stream()) {
-      stream.forEach(line -> {
-        if (!StringUtils.isNullOrBlank(line)) {
-          String[] parts = line.split("\\s{2,}");
-          if (parts.length == 6) {
-            instances.add(
-              Instance.create(
-                Arrays.asList(
-                  Feature.real("Calories", Double.valueOf(parts[1])),
-                  Feature.real("Protein", Double.valueOf(parts[2])),
-                  Feature.real("Fat", Double.valueOf(parts[3])),
-                  Feature.real("Calcium", Double.valueOf(parts[4])),
-                  Feature.real("Iron", Double.valueOf(parts[5]))
-                ),
-                parts[0]
-              )
-            );
-          }
-        }
-      });
+    try (CSVReader reader = CSV.builder().reader(Resources.fromClasspath("com/davidbracewell/apollo/ml/clustering/sample.csv"))) {
+      reader.stream().forEach(row ->
+        instances.add(
+          Instance.create(
+            Arrays.asList(
+              Feature.real("X", Double.valueOf(row.get(1))),
+              Feature.real("Y", Double.valueOf(row.get(2)))
+            ),
+            row.get(0)
+          )
+        ));
     } catch (Exception e) {
       throw Throwables.propagate(e);
     }

@@ -22,11 +22,13 @@
 package com.davidbracewell.apollo.ml.clustering.flat;
 
 import com.davidbracewell.apollo.affinity.Distance;
+import com.davidbracewell.apollo.ml.FeatureVector;
+import com.davidbracewell.apollo.ml.clustering.Cluster;
 import com.davidbracewell.apollo.ml.clustering.ClustererTest;
 import com.davidbracewell.apollo.ml.clustering.Clustering;
 import org.junit.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author David B. Bracewell
@@ -40,6 +42,20 @@ public class KMeansTest extends ClustererTest {
   @Test
   public void testCluster() throws Exception {
     Clustering c = cluster();
-    assertTrue(Math.abs(c.get(0).size() - c.get(1).size()) <= 7);
+    assertEquals(c.size(), 2.0, 0.0);
+
+    Cluster c1 = c.get(0);
+    String target = c1.getPoints().get(0).getDecodedLabel().toString();
+    for (FeatureVector point : c1.getPoints()) {
+      assertEquals(target, point.getDecodedLabel().toString());
+    }
+
+    Cluster c2 = c.get(1);
+    target = c2.getPoints().get(0).getDecodedLabel().toString();
+    for (FeatureVector point : c2.getPoints()) {
+      assertEquals(target, point.getDecodedLabel().toString());
+    }
+
+
   }
 }

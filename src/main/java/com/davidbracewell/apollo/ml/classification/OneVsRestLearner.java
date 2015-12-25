@@ -23,6 +23,8 @@ package com.davidbracewell.apollo.ml.classification;
 
 import com.davidbracewell.apollo.ml.Dataset;
 import com.davidbracewell.apollo.ml.Instance;
+import com.davidbracewell.conversion.Cast;
+import com.davidbracewell.conversion.Val;
 import com.davidbracewell.function.SerializableSupplier;
 import lombok.NonNull;
 
@@ -35,12 +37,13 @@ import java.util.stream.IntStream;
  */
 public class OneVsRestLearner extends ClassifierLearner {
   private static final long serialVersionUID = 1L;
-  private final SerializableSupplier<BinaryClassifierLearner> learnerSupplier;
+  private volatile SerializableSupplier<BinaryClassifierLearner> learnerSupplier;
   private final Map<String, Object> parameters = new HashMap<>();
 
   public OneVsRestLearner(@NonNull SerializableSupplier<BinaryClassifierLearner> learnerSupplier) {
     this.learnerSupplier = learnerSupplier;
     this.parameters.putAll(learnerSupplier.get().getParameters());
+    this.parameters.put("binaryLearner", learnerSupplier.get().getClass());
   }
 
   @Override
@@ -50,7 +53,7 @@ public class OneVsRestLearner extends ClassifierLearner {
       dataset.getPreprocessors()
     );
     model.classifiers = IntStream.range(0, dataset.getLabelEncoder().size())
-//      .parallel()
+      .parallel()
       .mapToObj(i -> {
           BinaryClassifierLearner bcl = learnerSupplier.get();
           bcl.setParameters(parameters);
@@ -75,12 +78,20 @@ public class OneVsRestLearner extends ClassifierLearner {
 
   @Override
   public void setParameters(@NonNull Map<String, Object> parameters) {
+    if (parameters.containsKey("binaryLearner")) {
+      final BinaryClassifierLearner learner = Val.of(parameters.get("binaryLearner")).as(BinaryClassifierLearner.class);
+      this.learnerSupplier = () -> learner;
+    }
     this.parameters.clear();
     this.parameters.putAll(parameters);
   }
 
   @Override
   public void setParameter(String name, Object value) {
+    if (name.equals("binaryLearner")) {
+      final BinaryClassifierLearner learner = Cast.as(value);
+      this.learnerSupplier = () -> learner;
+    }
     parameters.put(name, value);
   }
 

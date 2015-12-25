@@ -38,7 +38,7 @@ public enum Similarity implements SimilarityMeasure {
    */
   DotProduct {
     @Override
-    public double calculate(Map<?, ? extends Number> m1, Map<?, ? extends Number> m2) {
+    public double calculate(@NonNull Map<?, ? extends Number> m1, Map<?, ? extends Number> m2) {
       double dp = 0;
       for (Object key : m1.keySet()) {
         if (m2.containsKey(key)) {

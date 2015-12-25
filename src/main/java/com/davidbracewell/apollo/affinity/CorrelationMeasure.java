@@ -31,6 +31,8 @@ import lombok.NonNull;
 import java.util.Map;
 
 /**
+ * The interface Correlation measure.
+ *
  * @author David B. Bracewell
  */
 public interface CorrelationMeasure extends SimilarityMeasure {
@@ -54,6 +56,6 @@ public interface CorrelationMeasure extends SimilarityMeasure {
   }
 
   @Override
-  double calculate(@NonNull double[] v1, @NonNull double[] v2);
+  double calculate(double[] v1, double[] v2);
 
 }//END OF CorrelationMeasure

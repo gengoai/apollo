@@ -25,7 +25,7 @@ public class WindowDecoder implements Decoder, Serializable {
 
       double max = Double.NEGATIVE_INFINITY;
       String label = null;
-      for (int i = 0; i < result.size(); i++) {
+      for (int i = 0; i < results.length; i++) {
         String tL = labeler.getEncoderPair().decodeLabel(i).toString();
         if (results[i] > max && labeler.getValidator().isValid(tL, previousLabel)) {
           max = results[i];

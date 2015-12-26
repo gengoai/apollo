@@ -21,8 +21,12 @@
 
 package com.davidbracewell.apollo.distribution;
 
+import com.google.common.base.Preconditions;
+import lombok.NonNull;
+
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.Random;
 
 /**
  * @author David B. Bracewell
@@ -33,15 +37,23 @@ public class Multinomial implements DiscreteDistribution, Serializable {
   private final double alpha;
   private final double alphaTimesV;
   private long sum = 0;
+  private final Random random;
 
-  public Multinomial(int size) {
-    this(size, 0);
-  }
-
-  public Multinomial(int size, double alpha) {
+  public Multinomial(int size, double alpha, @NonNull Random random) {
+    Preconditions.checkArgument(size > 0, "Size must be > 0");
+    Preconditions.checkArgument(alpha >= 0, "Alpha must be >= 0");
     this.values = new long[size];
     this.alpha = alpha;
     this.alphaTimesV = alpha * size;
+    this.random = random;
+  }
+
+  public Multinomial(int size) {
+    this(size, 0, new Random());
+  }
+
+  public Multinomial(int size, double alpha) {
+    this(size, alpha, new Random());
   }
 
   public Multinomial increment(int index) {
@@ -64,12 +76,15 @@ public class Multinomial implements DiscreteDistribution, Serializable {
 
   @Override
   public double probability(int index) {
+    if (index < 0 || index >= values.length) {
+      return 0.0;
+    }
     return (values[index] + alpha) / (sum + alphaTimesV);
   }
 
   @Override
   public int sample() {
-    double rnd = Math.random() * sum;
+    double rnd = random.nextDouble() * sum;
     double sum = 0;
     for (int i = 0; i < values.length; i++) {
       double p = values[i];

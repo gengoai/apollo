@@ -33,7 +33,7 @@ import java.util.stream.IntStream;
 /**
  * @author David B. Bracewell
  */
-public class SparseIntVector implements IntVector, Serializable {
+public class SparseIntVector implements Vector, Serializable {
   private static final long serialVersionUID = 1L;
   private final int dimension;
   private final OpenIntIntHashMap map = new OpenIntIntHashMap();
@@ -44,12 +44,13 @@ public class SparseIntVector implements IntVector, Serializable {
   }
 
   @Override
-  public void compress() {
+  public Vector compress() {
     map.trimToSize();
+    return this;
   }
 
   @Override
-  public IntVector copy() {
+  public Vector copy() {
     SparseIntVector copy = new SparseIntVector(dimension());
     map.forEachPair(copy.map::put);
     return copy;
@@ -61,14 +62,24 @@ public class SparseIntVector implements IntVector, Serializable {
   }
 
   @Override
-  public int get(int index) {
+  public double get(int index) {
     return map.get(index);
   }
 
   @Override
-  public IntVector increment(int index, int amount) {
-    map.adjustOrPutValue(index, amount, amount);
+  public Vector increment(int index, double amount) {
+    map.adjustOrPutValue(index, (int) amount, (int) amount);
     return this;
+  }
+
+  @Override
+  public boolean isDense() {
+    return false;
+  }
+
+  @Override
+  public boolean isSparse() {
+    return true;
   }
 
   @Override
@@ -87,7 +98,7 @@ public class SparseIntVector implements IntVector, Serializable {
           throw new NoSuchElementException();
         }
         int index = indexIter.next();
-        return new IntVector.Entry(index, get(index));
+        return new Vector.Entry(index, get(index));
       }
     };
   }
@@ -108,20 +119,14 @@ public class SparseIntVector implements IntVector, Serializable {
           throw new NoSuchElementException();
         }
         int index = indexIter.next();
-        return new IntVector.Entry(index, get(index));
+        return new Vector.Entry(index, get(index));
       }
     };
   }
 
   @Override
-  public IntVector scale(int index, int amount) {
-    map.put(index, map.get(index) * amount);
-    return this;
-  }
-
-  @Override
-  public IntVector set(int index, int value) {
-    map.put(index, value);
+  public Vector set(int index, double value) {
+    map.put(index, (int) value);
     return this;
   }
 
@@ -131,7 +136,7 @@ public class SparseIntVector implements IntVector, Serializable {
   }
 
   @Override
-  public IntVector slice(int from, int to) {
+  public Vector slice(int from, int to) {
     SparseIntVector copy = new SparseIntVector(to - from);
     map.forEachPair((i, v) -> {
       if (i >= to && i < from) copy.map.put(i - to, v);
@@ -141,20 +146,20 @@ public class SparseIntVector implements IntVector, Serializable {
   }
 
   @Override
-  public int[] toArray() {
-    int array[] = new int[dimension()];
+  public double[] toArray() {
+    double[] array = new double[dimension()];
     forEachSparse(e -> array[e.getIndex()] = e.getValue());
     return array;
   }
 
   @Override
-  public IntVector zero() {
+  public Vector zero() {
     map.clear();
     return this;
   }
 
   @Override
-  public IntVector redim(int newDimension) {
+  public Vector redim(int newDimension) {
     SparseIntVector copy = new SparseIntVector(newDimension);
     map.forEachPair((i, v) -> {
       if (i < newDimension) copy.map.put(i, v);
@@ -164,4 +169,4 @@ public class SparseIntVector implements IntVector, Serializable {
   }
 
 
-}//END OF SparseIntVector
+}//END OF SparseVector

@@ -36,13 +36,9 @@ public abstract class ForwardingVector implements Vector, Serializable {
   private static final long serialVersionUID = 1L;
 
   @Override
-  public Vector add(Vector rhs) {
-    return delegate().add(rhs);
-  }
-
-  @Override
   public Vector addSelf(Vector rhs) {
-    return delegate().addSelf(rhs);
+    delegate().addSelf(rhs);
+    return this;
   }
 
   @Override
@@ -58,12 +54,14 @@ public abstract class ForwardingVector implements Vector, Serializable {
 
   @Override
   public Vector decrement(int index) {
-    return delegate().decrement(index);
+    delegate().decrement(index);
+    return this;
   }
 
   @Override
   public Vector decrement(int index, double amount) {
-    return delegate().decrement(index, amount);
+    delegate().decrement(index, amount);
+    return this;
   }
 
   protected abstract Vector delegate();
@@ -74,18 +72,9 @@ public abstract class ForwardingVector implements Vector, Serializable {
   }
 
   @Override
-  public Vector divide(Vector rhs) {
-    return delegate().divide(rhs);
-  }
-
-  @Override
   public Vector divideSelf(Vector rhs) {
-    return delegate().divideSelf(rhs);
-  }
-
-  @Override
-  public double dot(Vector rhs) {
-    return delegate().dot(rhs);
+    delegate().divideSelf(rhs);
+    return this;
   }
 
   @Override
@@ -110,12 +99,14 @@ public abstract class ForwardingVector implements Vector, Serializable {
 
   @Override
   public Vector increment(int index) {
-    return delegate().increment(index);
+    delegate().increment(index);
+    return this;
   }
 
   @Override
   public Vector increment(int index, double amount) {
-    return delegate().increment(index, amount);
+    delegate().increment(index, amount);
+    return this;
   }
 
   @Override
@@ -124,118 +115,50 @@ public abstract class ForwardingVector implements Vector, Serializable {
   }
 
   @Override
-  public boolean isFinite() {
-    return delegate().isFinite();
-  }
-
-  @Override
-  public boolean isInfinite() {
-    return delegate().isInfinite();
-  }
-
-  @Override
-  public boolean isNaN() {
-    return delegate().isNaN();
-  }
-
-  @Override
   public Iterator<Vector.Entry> iterator() {
     return delegate().iterator();
   }
 
   @Override
-  public double l1Norm() {
-    return delegate().l1Norm();
-  }
-
-  @Override
-  public double lInfNorm() {
-    return delegate().lInfNorm();
-  }
-
-  @Override
-  public double magnitude() {
-    return delegate().magnitude();
-  }
-
-  @Override
-  public Vector map(DoubleUnaryOperator function) {
-    return delegate().map(function);
-  }
-
-  @Override
-  public Vector map(Vector v, DoubleBinaryOperator function) {
-    return delegate().map(v, function);
-  }
-
-  @Override
-  public Vector mapAdd(double amount) {
-    return delegate().mapAdd(amount);
-  }
-
-  @Override
   public Vector mapAddSelf(double amount) {
-    return delegate().mapAddSelf(amount);
-  }
-
-  @Override
-  public Vector mapDivide(double amount) {
-    return delegate().mapDivide(amount);
+    delegate().mapAddSelf(amount);
+    return this;
   }
 
   @Override
   public Vector mapDivideSelf(double amount) {
-    return delegate().mapDivideSelf(amount);
-  }
-
-  @Override
-  public Vector mapMultiply(double amount) {
-    return delegate().mapMultiply(amount);
+    delegate().mapDivideSelf(amount);
+    return this;
   }
 
   @Override
   public Vector mapMultiplySelf(double amount) {
-    return delegate().mapMultiplySelf(amount);
+    delegate().mapMultiplySelf(amount);
+    return this;
   }
 
   @Override
   public Vector mapSelf(DoubleUnaryOperator function) {
-    return delegate().mapSelf(function);
+    delegate().mapSelf(function);
+    return this;
   }
 
   @Override
   public Vector mapSelf(Vector v, DoubleBinaryOperator function) {
-    return delegate().mapSelf(v, function);
-  }
-
-  @Override
-  public Vector mapSubtract(double amount) {
-    return delegate().mapSubtract(amount);
+    delegate().mapSelf(v, function);
+    return this;
   }
 
   @Override
   public Vector mapSubtractSelf(double amount) {
-    return delegate().mapSubtractSelf(amount);
-  }
-
-  @Override
-  public double max() {
-    return delegate().max();
-  }
-
-  @Override
-  public double min() {
-    return delegate().min();
-  }
-
-  @Override
-  public Vector multiply(Vector rhs) {
-    return delegate().multiply(rhs);
+    delegate().mapSubtractSelf(amount);
+    return this;
   }
 
   @Override
   public Vector multiplySelf(Vector rhs) {
-    return delegate().multiplySelf(rhs);
+    delegate().multiplySelf(rhs);
+    return this;
   }
 
   @Override
@@ -250,12 +173,14 @@ public abstract class ForwardingVector implements Vector, Serializable {
 
   @Override
   public Vector scale(int index, double amount) {
-    return delegate().scale(index, amount);
+    delegate().scale(index, amount);
+    return this;
   }
 
   @Override
   public Vector set(int index, double value) {
-    return delegate().set(index, value);
+    delegate().set(index, value);
+    return this;
   }
 
   @Override
@@ -274,13 +199,9 @@ public abstract class ForwardingVector implements Vector, Serializable {
   }
 
   @Override
-  public Vector subtract(Vector rhs) {
-    return delegate().subtract(rhs);
-  }
-
-  @Override
   public Vector subtractSelf(Vector rhs) {
-    return delegate().subtractSelf(rhs);
+    delegate().subtractSelf(rhs);
+    return this;
   }
 
   @Override

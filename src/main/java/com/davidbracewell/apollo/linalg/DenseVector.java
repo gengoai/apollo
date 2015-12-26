@@ -21,19 +21,20 @@
 
 package com.davidbracewell.apollo.linalg;
 
-import com.davidbracewell.conversion.Cast;
 import com.google.common.base.Preconditions;
+import lombok.EqualsAndHashCode;
+import lombok.NonNull;
 
+import java.io.Serializable;
 import java.util.Arrays;
-import java.util.Iterator;
 
 /**
  * The type Dense vector.
  *
  * @author David B. Bracewell
  */
-public class DenseVector extends AbstractVector {
-
+@EqualsAndHashCode(callSuper = false)
+public class DenseVector implements Vector, Serializable {
   private static final long serialVersionUID = 1L;
   private double[] data;
 
@@ -56,8 +57,7 @@ public class DenseVector extends AbstractVector {
    *
    * @param values the values of the vector
    */
-  public DenseVector(double[] values) {
-    Preconditions.checkNotNull(values);
+  public DenseVector(@NonNull double[] values) {
     this.data = new double[values.length];
     System.arraycopy(values, 0, this.data, 0, values.length);
   }
@@ -93,8 +93,7 @@ public class DenseVector extends AbstractVector {
    * @param array The array to warp
    * @return a new <code>DenseVector</code> that wraps a given array.
    */
-  public static Vector wrap(double[] array) {
-    Preconditions.checkNotNull(array);
+  public static Vector wrap(@NonNull double[] array) {
     DenseVector v = new DenseVector();
     v.data = array;
     return v;
@@ -110,42 +109,27 @@ public class DenseVector extends AbstractVector {
     return new DenseVector(dimension);
   }
 
+
   @Override
-  public Vector copy() {
-    return new DenseVector(this);
+  public Vector compress() {
+    return this;
   }
 
   @Override
   public int dimension() {
-    return data.length;
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null) {
-      return false;
-    }
-    if (obj instanceof DenseVector) {
-      return Arrays.equals(data, Cast.<DenseVector>as(obj).data);
-    }
-    if (obj instanceof Vector) {
-      return Arrays.equals(data, Cast.<Vector>as(obj).toArray());
-    }
-    return false;
+    return this.data.length;
   }
 
   @Override
   public double get(int index) {
-    Preconditions.checkPositionIndex(index, data.length);
-    return data[index];
+    return this.data[index];
   }
 
   @Override
-  public int hashCode() {
-    return 31 * super.hashCode() + Arrays.hashCode(data);
+  public Vector increment(int index, double amount) {
+    Preconditions.checkPositionIndex(index, dimension());
+    this.data[index] += amount;
+    return this;
   }
 
   @Override
@@ -154,53 +138,58 @@ public class DenseVector extends AbstractVector {
   }
 
   @Override
+  public boolean isSparse() {
+    return false;
+  }
+
+  @Override
   public Vector set(int index, double value) {
-    Preconditions.checkPositionIndex(index, data.length);
-    data[index] = value;
+    Preconditions.checkPositionIndex(index, dimension());
+    this.data[index] = value;
     return this;
   }
 
   @Override
   public int size() {
-    return data.length;
+    return this.data.length;
   }
 
   @Override
   public Vector slice(int from, int to) {
-    Preconditions.checkPositionIndex(from, data.length);
-    Preconditions.checkPositionIndex(to, data.length + 1);
+    Preconditions.checkPositionIndex(from, dimension());
+    Preconditions.checkPositionIndex(to, dimension() + 1);
     Preconditions.checkState(to > from, "To index must be > from index");
-    DenseVector v = new DenseVector((to - from));
-    System.arraycopy(this.data, from, v.data, 0, v.dimension());
-    return v;
+    DenseVector copy = new DenseVector(to - from);
+    copy.data = Arrays.copyOfRange(this.data, from, to);
+    return copy;
   }
 
   @Override
   public double[] toArray() {
-    double[] array = new double[dimension()];
-    System.arraycopy(this.data, 0, array, 0, this.data.length);
-    return array;
-  }
-
-  @Override
-  public String toString() {
-    return Arrays.toString(this.data);
+    return this.data;
   }
 
   @Override
   public Vector zero() {
-    this.data = new double[dimension()];
+    this.data = new double[this.data.length];
     return this;
   }
 
   @Override
   public Vector redim(int newDimension) {
-    Vector v = new DenseVector(newDimension);
-    for (Iterator<Vector.Entry> itr = nonZeroIterator(); itr.hasNext(); ) {
-      Vector.Entry de = itr.next();
-      v.set(de.index, de.value);
-    }
-    return v;
+    DenseVector copy = new DenseVector(newDimension);
+    copy.data = Arrays.copyOf(this.data, newDimension);
+    return copy;
   }
 
+  @Override
+  public Vector copy() {
+    return new DenseVector(this);
+  }
+
+
+  @Override
+  public String toString() {
+    return Arrays.toString(toArray());
+  }
 }//END OF DenseVector

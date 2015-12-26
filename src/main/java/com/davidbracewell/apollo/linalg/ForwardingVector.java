@@ -46,8 +46,9 @@ public abstract class ForwardingVector implements Vector, Serializable {
   }
 
   @Override
-  public void compress() {
+  public Vector compress() {
     delegate().compress();
+    return this;
   }
 
   @Override

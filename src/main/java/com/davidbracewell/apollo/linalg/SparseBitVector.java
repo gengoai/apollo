@@ -24,13 +24,14 @@ package com.davidbracewell.apollo.linalg;
 import com.davidbracewell.conversion.Convert;
 import com.google.common.base.Preconditions;
 
+import java.io.Serializable;
 import java.util.BitSet;
 import java.util.Iterator;
 
 /**
  * @author David B. Bracewell
  */
-public class SparseBitVector extends AbstractVector {
+public class SparseBitVector implements Vector, Serializable {
 
   private static final long serialVersionUID = 3841985936614861097L;
   private final BitSet bits;
@@ -68,6 +69,11 @@ public class SparseBitVector extends AbstractVector {
 
 
   @Override
+  public Vector compress() {
+    return this;
+  }
+
+  @Override
   public int dimension() {
     return dimension;
   }
@@ -78,8 +84,19 @@ public class SparseBitVector extends AbstractVector {
   }
 
   @Override
+  public Vector increment(int index, double amount) {
+    bits.set(index, (bits.get(index) ? 1.0 : 0.0) + amount > 0);
+    return this;
+  }
+
+  @Override
   public boolean isDense() {
     return false;
+  }
+
+  @Override
+  public boolean isSparse() {
+    return true;
   }
 
   @Override

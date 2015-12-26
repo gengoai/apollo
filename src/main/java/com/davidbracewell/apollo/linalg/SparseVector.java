@@ -22,22 +22,25 @@
 package com.davidbracewell.apollo.linalg;
 
 import com.google.common.base.Preconditions;
-import org.apache.mahout.math.function.IntDoubleProcedure;
-import org.apache.mahout.math.list.IntArrayList;
+import lombok.EqualsAndHashCode;
+import lombok.NonNull;
 import org.apache.mahout.math.map.OpenIntDoubleHashMap;
 
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.util.PrimitiveIterator;
 import java.util.Random;
+import java.util.stream.IntStream;
 
 /**
  * A sparse vector implementation backed by a map
  *
  * @author David B. Bracewell
  */
-public class SparseVector extends AbstractVector {
+@EqualsAndHashCode(callSuper = false)
+public class SparseVector implements Vector, Serializable {
   private static final long serialVersionUID = 1L;
   private final OpenIntDoubleHashMap map;
   private final int dimension;
@@ -58,8 +61,8 @@ public class SparseVector extends AbstractVector {
    *
    * @param vector The vector to copy from
    */
-  public SparseVector(Vector vector) {
-    this.dimension = Preconditions.checkNotNull(vector.dimension());
+  public SparseVector(@NonNull Vector vector) {
+    this.dimension = vector.dimension();
     this.map = new OpenIntDoubleHashMap(vector.size());
     for (Iterator<Vector.Entry> itr = vector.nonZeroIterator(); itr.hasNext(); ) {
       Vector.Entry de = itr.next();
@@ -107,8 +110,9 @@ public class SparseVector extends AbstractVector {
   }
 
   @Override
-  public void compress() {
+  public Vector compress() {
     map.trimToSize();
+    return this;
   }
 
   @Override
@@ -123,12 +127,8 @@ public class SparseVector extends AbstractVector {
 
   @Override
   public double get(int index) {
+    Preconditions.checkPositionIndex(index, dimension());
     return map.get(index);
-  }
-
-  @Override
-  public int hashCode() {
-    return map.hashCode();
   }
 
   @Override
@@ -143,13 +143,50 @@ public class SparseVector extends AbstractVector {
   }
 
   @Override
+  public boolean isSparse() {
+    return true;
+  }
+
+  @Override
   public Iterator<Vector.Entry> nonZeroIterator() {
-    return new SparseIterator();
+    return new Iterator<Vector.Entry>() {
+      private final PrimitiveIterator.OfInt indexIter = IntStream.of(map.keys().elements()).iterator();
+
+      @Override
+      public boolean hasNext() {
+        return indexIter.hasNext();
+      }
+
+      @Override
+      public Vector.Entry next() {
+        if (!indexIter.hasNext()) {
+          throw new NoSuchElementException();
+        }
+        int index = indexIter.next();
+        return new Vector.Entry(index, get(index));
+      }
+    };
   }
 
   @Override
   public Iterator<Vector.Entry> orderedNonZeroIterator() {
-    return new OrderedSparseIterator();
+    return new Iterator<Vector.Entry>() {
+      private final PrimitiveIterator.OfInt indexIter = IntStream.of(map.keys().elements()).sorted().iterator();
+
+      @Override
+      public boolean hasNext() {
+        return indexIter.hasNext();
+      }
+
+      @Override
+      public Vector.Entry next() {
+        if (!indexIter.hasNext()) {
+          throw new NoSuchElementException();
+        }
+        int index = indexIter.next();
+        return new Vector.Entry(index, get(index));
+      }
+    };
   }
 
   @Override
@@ -182,19 +219,11 @@ public class SparseVector extends AbstractVector {
   @Override
   public double[] toArray() {
     final double[] d = new double[dimension()];
-    map.forEachPair(new IntDoubleProcedure() {
-      @Override
-      public boolean apply(int first, double second) {
-        d[first] = second;
-        return true;
-      }
+    map.forEachPair((i, v) -> {
+      d[i] = v;
+      return true;
     });
     return d;
-  }
-
-  @Override
-  public String toString() {
-    return Arrays.toString(map.values().elements());
   }
 
   @Override
@@ -213,85 +242,10 @@ public class SparseVector extends AbstractVector {
     return v;
   }
 
-  private class SparseIterator implements Iterator<Vector.Entry>, Serializable {
+  @Override
+  public String toString() {
+    return Arrays.toString(toArray());
+  }
 
-    private static final long serialVersionUID = 1L;
-    /**
-     * The Index.
-     */
-    int index = 0;
-    private IntArrayList indexes = new IntArrayList();
-
-
-    /**
-     * Instantiates a new Sparse iterator.
-     */
-    SparseIterator() {
-      map.keys(indexes);
-    }
-
-
-    @Override
-    public boolean hasNext() {
-      return index < indexes.size();
-    }
-
-    @Override
-    public Vector.Entry next() {
-      if (index >= indexes.size()) {
-        throw new NoSuchElementException();
-      }
-      int ii = indexes.get(index);
-      Vector.Entry de = new Vector.Entry(ii, map.get(ii));
-      index++;
-      return de;
-    }
-
-    @Override
-    public void remove() {
-      throw new UnsupportedOperationException();
-    }
-  }//END OF SparseIterator
-
-  private class OrderedSparseIterator implements Iterator<Vector.Entry>, Serializable {
-
-    private static final long serialVersionUID = 1L;
-    /**
-     * The Index.
-     */
-    int index = 0;
-    private IntArrayList indexes = new IntArrayList();
-
-
-    /**
-     * Instantiates a new Ordered sparse iterator.
-     */
-    OrderedSparseIterator() {
-      map.keys(indexes);
-      indexes.sort();
-    }
-
-
-    @Override
-    public boolean hasNext() {
-      return index < indexes.size();
-    }
-
-    @Override
-    public Vector.Entry next() {
-      if (index >= indexes.size()) {
-        throw new NoSuchElementException();
-      }
-      int ii = indexes.get(index);
-      Vector.Entry de = new Vector.Entry(ii, map.get(ii));
-      index++;
-      return de;
-    }
-
-    @Override
-    public void remove() {
-      throw new UnsupportedOperationException();
-    }
-  }//END OF SparseIterator
 
 }//END OF SparseVector

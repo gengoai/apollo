@@ -30,7 +30,7 @@ import java.util.Random;
 /**
  * @author David B. Bracewell
  */
-public class UniformDiscrete implements DiscreteDistribution, Serializable {
+public class UniformDiscrete implements DiscreteDistribution<UniformDiscrete>, Serializable {
   private static final long serialVersionUID = 1L;
   private final int k;
   private final Random random;
@@ -52,6 +52,11 @@ public class UniformDiscrete implements DiscreteDistribution, Serializable {
   @Override
   public int sample() {
     return random.nextInt(k);
+  }
+
+  @Override
+  public UniformDiscrete increment(int k, long value) {
+    return this;
   }
 
 }//END OF UniformDiscrete

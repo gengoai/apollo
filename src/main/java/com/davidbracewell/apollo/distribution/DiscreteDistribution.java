@@ -21,12 +21,15 @@
 
 package com.davidbracewell.apollo.distribution;
 
+import com.google.common.base.Preconditions;
+
 /**
  * The interface Discrete distribution.
  *
+ * @param <T> the type parameter
  * @author David B. Bracewell
  */
-public interface DiscreteDistribution {
+public interface DiscreteDistribution<T extends DiscreteDistribution> extends Density {
 
   /**
    * Probability double.
@@ -35,6 +38,47 @@ public interface DiscreteDistribution {
    * @return the double
    */
   double probability(int value);
+
+
+  @Override
+  default double applyAsDouble(double v) {
+    return unnormalizedProbability((int) v);
+  }
+
+  @Override
+  default double logApplyAsDouble(double v) {
+    return unnormalizedLogProbability((int) v);
+  }
+
+  /**
+   * Log probability double.
+   *
+   * @param value the value
+   * @return the double
+   */
+  default double logProbability(int value) {
+    return Math.log(probability(value));
+  }
+
+  /**
+   * Unnormalized probability double.
+   *
+   * @param value the value
+   * @return the double
+   */
+  default double unnormalizedProbability(int value) {
+    return probability(value);
+  }
+
+  /**
+   * Unnormalized log probability double.
+   *
+   * @param value the value
+   * @return the double
+   */
+  default double unnormalizedLogProbability(int value) {
+    return Math.log(unnormalizedProbability(value));
+  }
 
   /**
    * Sample int.
@@ -50,11 +94,53 @@ public interface DiscreteDistribution {
    * @return the int [ ]
    */
   default int[] sample(int size) {
+    Preconditions.checkArgument(size > 0, "Size must be > 0");
     int[] samples = new int[size];
     for (int i = 0; i < size; i++) {
       samples[i] = sample();
     }
     return samples;
+  }
+
+
+  /**
+   * Increment t.
+   *
+   * @param k     the k
+   * @param value the value
+   * @return the t
+   */
+  T increment(int k, long value);
+
+  /**
+   * Increment t.
+   *
+   * @param k the k
+   * @return the t
+   */
+  default T increment(int k) {
+    return increment(k, 1);
+  }
+
+  /**
+   * Decrement t.
+   *
+   * @param k     the k
+   * @param value the value
+   * @return the t
+   */
+  default T decrement(int k, long value) {
+    return increment(k, -value);
+  }
+
+  /**
+   * Decrement t.
+   *
+   * @param k the k
+   * @return the t
+   */
+  default T decrement(int k) {
+    return increment(k, -1);
   }
 
 

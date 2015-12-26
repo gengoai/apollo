@@ -29,16 +29,25 @@ import java.util.Arrays;
 import java.util.Random;
 
 /**
+ * The type Multinomial.
+ *
  * @author David B. Bracewell
  */
-public class Multinomial implements DiscreteDistribution, Serializable {
+public class Multinomial implements DiscreteDistribution<Multinomial>, Serializable {
   private static final long serialVersionUID = 1L;
   private final long[] values;
   private final double alpha;
   private final double alphaTimesV;
-  private long sum = 0;
   private final Random random;
+  private long sum = 0;
 
+  /**
+   * Instantiates a new Multinomial.
+   *
+   * @param size   the size
+   * @param alpha  the alpha
+   * @param random the random
+   */
   public Multinomial(int size, double alpha, @NonNull Random random) {
     Preconditions.checkArgument(size > 0, "Size must be > 0");
     Preconditions.checkArgument(alpha >= 0, "Alpha must be >= 0");
@@ -48,26 +57,35 @@ public class Multinomial implements DiscreteDistribution, Serializable {
     this.random = random;
   }
 
+  /**
+   * Instantiates a new Multinomial.
+   *
+   * @param size the size
+   */
   public Multinomial(int size) {
     this(size, 0, new Random());
   }
 
+  /**
+   * Instantiates a new Multinomial.
+   *
+   * @param size  the size
+   * @param alpha the alpha
+   */
   public Multinomial(int size, double alpha) {
     this(size, alpha, new Random());
   }
 
-  public Multinomial increment(int index) {
-    return increment(index, 1);
+
+  @Override
+  public double unnormalizedProbability(int index) {
+    if (index < 0 || index >= values.length) {
+      return 0.0;
+    }
+    return (values[index] + alpha);
   }
 
-  public Multinomial decrement(int index) {
-    return increment(index, -1);
-  }
-
-  public Multinomial decrement(int index, long amount) {
-    return increment(index, -amount);
-  }
-
+  @Override
   public Multinomial increment(int index, long amount) {
     this.values[index] += amount;
     sum += amount;

@@ -22,7 +22,7 @@
 package com.davidbracewell.apollo.lsh;
 
 
-import com.davidbracewell.apollo.linalg.KeyedVector;
+import com.davidbracewell.apollo.linalg.LabeledVector;
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.io.Committable;
 import com.davidbracewell.tuple.Tuple2;
@@ -48,7 +48,7 @@ public abstract class VectorStore<KEY, V extends Vector> implements Serializable
    * @param key the key
    * @return the v
    */
-  public abstract KeyedVector<KEY> get(KEY key);
+  public abstract LabeledVector get(KEY key);
 
   /**
    * Nearest neighbors.
@@ -58,7 +58,7 @@ public abstract class VectorStore<KEY, V extends Vector> implements Serializable
    * @return the list
    */
   public final List<Tuple2<KEY, Double>> nearestNeighbors(KEY key, int K) {
-    KeyedVector<KEY> vector = get(key);
+    LabeledVector vector = get(key);
     if (vector == null) {
       return Collections.emptyList();
     }
@@ -99,7 +99,7 @@ public abstract class VectorStore<KEY, V extends Vector> implements Serializable
    * @return the list
    */
   public final List<KEY> similar(KEY key) {
-    KeyedVector<KEY> vector = get(key);
+    LabeledVector vector = get(key);
     if (vector == null) {
       return Collections.emptyList();
     }

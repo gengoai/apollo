@@ -21,10 +21,11 @@
 
 package com.davidbracewell.apollo.lsh;
 
-import com.davidbracewell.apollo.linalg.KeyedVector;
+import com.davidbracewell.apollo.linalg.LabeledVector;
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.collection.Index;
 import com.davidbracewell.collection.Indexes;
+import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.tuple.Tuple2;
 import com.google.common.base.Preconditions;
 
@@ -39,7 +40,7 @@ import java.util.stream.Collectors;
  */
 public class InMemoryVectorStore<KEY, V extends Vector> extends VectorStore<KEY, V> {
 
-  private final InMemoryLSH<KeyedVector<KEY>> lsh;
+  private final InMemoryLSH<LabeledVector> lsh;
   private final Index<KEY> index;
 
   public InMemoryVectorStore(HashFamily hashFamily, int numberOfHashes, int numberOfBuckets) {
@@ -72,7 +73,7 @@ public class InMemoryVectorStore<KEY, V extends Vector> extends VectorStore<KEY,
   }
 
   @Override
-  public KeyedVector<KEY> get(KEY key) {
+  public LabeledVector get(KEY key) {
     if (key == null || !this.index.contains(key)) {
       return null;
     }
@@ -95,7 +96,7 @@ public class InMemoryVectorStore<KEY, V extends Vector> extends VectorStore<KEY,
   @Override
   public void put(KEY key, V vector) {
     if (key != null && vector != null) {
-      lsh.add(new KeyedVector<>(vector, key));
+      lsh.add(new LabeledVector(key, vector));
       this.index.add(key);
     }
   }
@@ -105,6 +106,6 @@ public class InMemoryVectorStore<KEY, V extends Vector> extends VectorStore<KEY,
     if (query == null) {
       return Collections.emptyList();
     }
-    return lsh.similar(query).stream().map(KeyedVector::getName).collect(Collectors.toList());
+    return lsh.similar(query).stream().map(LabeledVector::getLabel).map(Cast::<KEY>as).collect(Collectors.toList());
   }
 }//END OF InMemoryVectorStore

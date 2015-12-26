@@ -11,7 +11,7 @@ public class LabeledVector extends ForwardingVector {
   private final Vector delegate;
   private Object label;
 
-  protected LabeledVector(Object label, Vector delegate) {
+  public LabeledVector(Object label, Vector delegate) {
     this.delegate = delegate;
   }
 

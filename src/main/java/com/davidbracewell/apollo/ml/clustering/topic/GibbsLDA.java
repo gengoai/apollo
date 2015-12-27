@@ -71,7 +71,7 @@ public class GibbsLDA extends Clusterer<LDAModel> {
     LDAModel model = new GibbsLDA().train(d);
     for (int k = 0; k < model.wordTopic.getN(); k++) {
       Counter<String> words = model.getTopicWords(k);
-      System.out.println(words.topN(10).itemsByCount(false));
+      System.out.println(words.topN(10));
     }
   }
 
@@ -158,14 +158,30 @@ public class GibbsLDA extends Clusterer<LDAModel> {
     LDAModel model = new LDAModel(getEncoderPair());
     model.alpha = alpha;
     model.beta = beta;
-    model.docTopic = nd.copy();
-    model.wordTopic = nw.copy();
+    if (sampleLag <= 0) {
+      model.wordTopic = nw.copy();
+    } else {
+      model.wordTopic = new ConditionalMultinomial(K, V, beta);
+      for (int w = 0; w < V; w++) {
+        for (int k = 0; k < K; k++) {
+          model.wordTopic.increment(k, w, (int) (phisum[k].get(w) / numstats));
+        }
+      }
+    }
     model.clusters = new ArrayList<>(K);
+
     for (int k = 0; k < K; k++) {
       TopicCluster cluster = new TopicCluster();
       model.clusters.add(cluster);
+
       for (int m = 0; m < M; m++) {
-        double p = nd.probability(m, k);
+        double p;
+        if (sampleLag <= 0) {
+          p = nd.probability(m, k);
+        } else {
+          double c = thetasum[m].get(k) / numstats;
+          p = (c + alpha) / (K * alpha + nd.sum(m));
+        }
         if (p > 0) {
           cluster.addPoint(instances.get(m), p);
         }
@@ -182,12 +198,12 @@ public class GibbsLDA extends Clusterer<LDAModel> {
   private void updateParams() {
     for (int m = 0; m < M; m++) {
       for (int k = 0; k < K; k++) {
-        thetasum[m].increment(k, nd.probability(m, k));
+        thetasum[m].increment(k, nd.count(m, k));
       }
     }
     for (int k = 0; k < K; k++) {
       for (int w = 0; w < V; w++) {
-        phisum[k].increment(w, nw.probability(k, w));
+        phisum[k].increment(w, nw.count(k, w));
       }
     }
     numstats++;

@@ -19,7 +19,6 @@ public class LDAModel extends Clustering {
   private static final long serialVersionUID = 1L;
   ArrayList<Cluster> clusters;
   ConditionalMultinomial wordTopic;
-  ConditionalMultinomial docTopic;
   double alpha;
   double beta;
 

@@ -98,6 +98,10 @@ public class ConditionalMultinomial implements Serializable, Copyable<Conditiona
     return Arrays.copyOf(counts[n], M);
   }
 
+  public int count(int n, int m){
+    return counts[n][m];
+  }
+
   /**
    * Sum double.
    *

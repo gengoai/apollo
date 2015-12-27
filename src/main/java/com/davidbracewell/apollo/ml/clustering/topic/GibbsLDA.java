@@ -38,6 +38,7 @@ public class GibbsLDA extends Clusterer<LDAModel> {
   private int burnin = 250;
   private int sampleLag = 25;
   private boolean verbose = true;
+  private boolean keepDocumentTopicAssignments = false;
   private RandomGenerator randomGenerator = new Well19937c();
 
 
@@ -177,20 +178,21 @@ public class GibbsLDA extends Clusterer<LDAModel> {
     }
     model.clusters = new ArrayList<>(K);
 
-    for (int k = 0; k < K; k++) {
-      TopicCluster cluster = new TopicCluster();
-      model.clusters.add(cluster);
-
-      for (int m = 0; m < M; m++) {
-        double p;
-        if (sampleLag <= 0) {
-          p = nd.probability(m, k);
-        } else {
-          double c = thetasum[m].get(k) / numstats;
-          p = (c + alpha) / (K * alpha + nd.sum(m));
-        }
-        if (p > 0) {
-          cluster.addPoint(instances.get(m), p);
+    if (keepDocumentTopicAssignments) {
+      for (int k = 0; k < K; k++) {
+        TopicCluster cluster = new TopicCluster();
+        model.clusters.add(cluster);
+        for (int m = 0; m < M; m++) {
+          double p;
+          if (sampleLag <= 0) {
+            p = nd.probability(m, k);
+          } else {
+            double c = thetasum[m].get(k) / numstats;
+            p = (c + alpha) / (K * alpha + nd.sum(m));
+          }
+          if (p > 0) {
+            cluster.addPoint(instances.get(m), p);
+          }
         }
       }
     }
@@ -401,5 +403,13 @@ public class GibbsLDA extends Clusterer<LDAModel> {
    */
   public void setMaxIterations(int maxIterations) {
     this.maxIterations = maxIterations;
+  }
+
+  public boolean isKeepDocumentTopicAssignments() {
+    return keepDocumentTopicAssignments;
+  }
+
+  public void setKeepDocumentTopicAssignments(boolean keepDocumentTopicAssignments) {
+    this.keepDocumentTopicAssignments = keepDocumentTopicAssignments;
   }
 }// END OF GibbsLDA

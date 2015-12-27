@@ -56,7 +56,7 @@ public class GibbsLDA extends Clusterer {
         .source(
           Resources.fromFile("/home/david/analysis/working/corpus.txt").lines()
             .map(l -> Instance.create(
-              Stream.of(l.toLowerCase().split("[\\p{P}\\p{Z}]+")).distinct().map(Feature::TRUE).collect(Collectors.toList())
+              Stream.of(l.toLowerCase().split("\\p{Z}+")).distinct().map(Feature::TRUE).collect(Collectors.toList())
               )
             )
         ).build();

@@ -22,9 +22,11 @@
 package com.davidbracewell.apollo.ml.clustering.flat;
 
 
+import com.davidbracewell.apollo.affinity.Distance;
 import com.davidbracewell.apollo.affinity.DistanceMeasure;
+import com.davidbracewell.apollo.linalg.LabeledVector;
+import com.davidbracewell.apollo.linalg.SparseVector;
 import com.davidbracewell.apollo.linalg.Vector;
-import com.davidbracewell.apollo.ml.FeatureVector;
 import com.davidbracewell.apollo.ml.clustering.Cluster;
 import com.davidbracewell.apollo.ml.clustering.Clusterer;
 import com.davidbracewell.apollo.ml.clustering.Clustering;
@@ -39,6 +41,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
+ * The type K means.
+ *
  * @author David B. Bracewell
  */
 public class KMeans extends Clusterer {
@@ -47,10 +51,27 @@ public class KMeans extends Clusterer {
   private int maxIterations;
   private DistanceMeasure distanceMeasure;
 
+  private KMeans() {
+    this(1, Distance.Euclidean, 10);
+  }
+
+  /**
+   * Instantiates a new K means.
+   *
+   * @param k               the k
+   * @param distanceMeasure the distance measure
+   */
   public KMeans(int k, DistanceMeasure distanceMeasure) {
     this(k, distanceMeasure, Integer.MAX_VALUE);
   }
 
+  /**
+   * Instantiates a new K means.
+   *
+   * @param k               the k
+   * @param distanceMeasure the distance measure
+   * @param maxIterations   the max iterations
+   */
   public KMeans(int k, DistanceMeasure distanceMeasure, int maxIterations) {
     Preconditions.checkArgument(k > 0);
     Preconditions.checkArgument(maxIterations > 0);
@@ -60,7 +81,7 @@ public class KMeans extends Clusterer {
   }
 
   @Override
-  public Clustering cluster(@NonNull List<FeatureVector> instances) {
+  public Clustering cluster(@NonNull List<LabeledVector> instances) {
     FlatHardClustering clustering = new FlatHardClustering(getEncoderPair(), distanceMeasure);
 
     clustering.clusters = new ArrayList<>(K);
@@ -70,7 +91,7 @@ public class KMeans extends Clusterer {
       clustering.clusters.add(c);
     }
 
-    Map<FeatureVector, Integer> assignment = new ConcurrentHashMap<>();
+    Map<LabeledVector, Integer> assignment = new ConcurrentHashMap<>();
 
     final AtomicLong numMoved = new AtomicLong(0);
     for (int itr = 0; itr < maxIterations; itr++) {
@@ -104,7 +125,7 @@ public class KMeans extends Clusterer {
       for (int i = 0; i < K; i++) {
         Vector c = clustering.clusters.get(i).getCentroid();
         c.zero();
-        for (FeatureVector ii : clustering.clusters.get(i)) {
+        for (LabeledVector ii : clustering.clusters.get(i)) {
           c.addSelf(ii);
         }
         c.mapDivideSelf((double) clustering.clusters.get(i).size());
@@ -114,38 +135,68 @@ public class KMeans extends Clusterer {
     return clustering;
   }
 
+  /**
+   * Gets distance measure.
+   *
+   * @return the distance measure
+   */
   public DistanceMeasure getDistanceMeasure() {
     return distanceMeasure;
   }
 
+  /**
+   * Sets distance measure.
+   *
+   * @param distanceMeasure the distance measure
+   */
   public void setDistanceMeasure(DistanceMeasure distanceMeasure) {
     this.distanceMeasure = distanceMeasure;
   }
 
+  /**
+   * Gets k.
+   *
+   * @return the k
+   */
   public int getK() {
     return K;
   }
 
+  /**
+   * Sets k.
+   *
+   * @param k the k
+   */
   public void setK(int k) {
     K = k;
   }
 
+  /**
+   * Gets max iterations.
+   *
+   * @return the max iterations
+   */
   public int getMaxIterations() {
     return maxIterations;
   }
 
+  /**
+   * Sets max iterations.
+   *
+   * @param maxIterations the max iterations
+   */
   public void setMaxIterations(int maxIterations) {
     this.maxIterations = maxIterations;
   }
 
-  private Vector[] initCentroids(List<FeatureVector> instances) {
+  private Vector[] initCentroids(List<LabeledVector> instances) {
     Vector[] centroids = new Vector[K];
     for (int i = 0; i < K; i++) {
-      centroids[i] = new FeatureVector(instances.get(0).getEncoderPair());
+      centroids[i] = new SparseVector(instances.get(0).dimension());
     }
     double[] cnts = new double[K];
     Random rnd = new Random();
-    for (FeatureVector ii : instances) {
+    for (LabeledVector ii : instances) {
       int ci = rnd.nextInt(K);
       centroids[ci].addSelf(ii);
       cnts[ci]++;
@@ -155,5 +206,6 @@ public class KMeans extends Clusterer {
     }
     return centroids;
   }
+
 
 }//END OF KMeans

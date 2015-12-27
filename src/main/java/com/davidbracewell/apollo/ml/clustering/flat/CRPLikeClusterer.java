@@ -22,8 +22,8 @@
 package com.davidbracewell.apollo.ml.clustering.flat;
 
 import com.davidbracewell.apollo.affinity.DistanceMeasure;
+import com.davidbracewell.apollo.linalg.LabeledVector;
 import com.davidbracewell.apollo.linalg.Vector;
-import com.davidbracewell.apollo.ml.FeatureVector;
 import com.davidbracewell.apollo.ml.clustering.Cluster;
 import com.davidbracewell.apollo.ml.clustering.Clusterer;
 import com.davidbracewell.apollo.ml.clustering.Clustering;
@@ -43,6 +43,8 @@ import java.util.stream.Collectors;
 
 
 /**
+ * The type Crp like clusterer.
+ *
  * @author David B. Bracewell
  */
 public class CRPLikeClusterer extends Clusterer {
@@ -51,6 +53,12 @@ public class CRPLikeClusterer extends Clusterer {
   private DistanceMeasure distanceMeasure;
   private Table<Vector, Vector, Double> distanceMatrix;
 
+  /**
+   * Instantiates a new Crp like clusterer.
+   *
+   * @param distanceMeasure the distance measure
+   * @param alpha           the alpha
+   */
   public CRPLikeClusterer(DistanceMeasure distanceMeasure, double alpha) {
     Preconditions.checkArgument(alpha > 0);
     this.distanceMeasure = Preconditions.checkNotNull(distanceMeasure);
@@ -58,18 +66,18 @@ public class CRPLikeClusterer extends Clusterer {
   }
 
   @Override
-  public Clustering cluster(@NonNull List<FeatureVector> instances) {
+  public Clustering cluster(@NonNull List<LabeledVector> instances) {
     distanceMatrix = HashBasedTable.create();
     List<Cluster> clusters = new ArrayList<>();
     clusters.add(new Cluster());
     clusters.get(0).addPoint(instances.get(0));
-    Map<FeatureVector, Integer> assignments = new HashMap<>();
+    Map<LabeledVector, Integer> assignments = new HashMap<>();
     assignments.put(instances.get(0), 0);
 
     int report = instances.size() / 10;
 
     for (int i = 1; i < instances.size(); i++) {
-      FeatureVector ii = instances.get(i);
+      LabeledVector ii = instances.get(i);
 
       Counter<Integer> distances = Counters.newHashMapCounter();
       for (int ci = 0; ci < clusters.size(); ci++) {
@@ -99,7 +107,7 @@ public class CRPLikeClusterer extends Clusterer {
 
     int numP = instances.size() - 1;
     for (int i = 0; i < 200; i++) {
-      FeatureVector ii = instances.get((int) Math.floor(Math.random() % instances.size()));
+      LabeledVector ii = instances.get((int) Math.floor(Math.random() % instances.size()));
       int cci = assignments.remove(ii);
       clusters.get(cci).getPoints().remove(ii);
       Counter<Integer> distances = Counters.newHashMapCounter();
@@ -131,7 +139,7 @@ public class CRPLikeClusterer extends Clusterer {
 
   private double distance(Vector ii, Cluster cluster) {
     double max = Double.NEGATIVE_INFINITY;
-    for (FeatureVector jj : cluster) {
+    for (LabeledVector jj : cluster) {
       max = Math.max(max, distance(ii, jj));
     }
     return max;
@@ -148,20 +156,46 @@ public class CRPLikeClusterer extends Clusterer {
     return d;
   }
 
+  /**
+   * Gets alpha.
+   *
+   * @return the alpha
+   */
   public double getAlpha() {
     return alpha;
   }
 
+  /**
+   * Sets alpha.
+   *
+   * @param alpha the alpha
+   */
   public void setAlpha(double alpha) {
     this.alpha = alpha;
   }
 
+  /**
+   * Gets distance measure.
+   *
+   * @return the distance measure
+   */
   public DistanceMeasure getDistanceMeasure() {
     return distanceMeasure;
   }
 
+  /**
+   * Sets distance measure.
+   *
+   * @param distanceMeasure the distance measure
+   */
   public void setDistanceMeasure(DistanceMeasure distanceMeasure) {
     this.distanceMeasure = distanceMeasure;
+  }
+
+  @Override
+  public void reset() {
+    super.reset();
+    this.distanceMatrix.clear();
   }
 
 }//END OF CRPLikeClusterer

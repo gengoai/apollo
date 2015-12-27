@@ -23,7 +23,7 @@ package com.davidbracewell.apollo.ml.clustering.hierarchical;
 
 import com.davidbracewell.apollo.affinity.Distance;
 import com.davidbracewell.apollo.affinity.DistanceMeasure;
-import com.davidbracewell.apollo.ml.FeatureVector;
+import com.davidbracewell.apollo.linalg.LabeledVector;
 import com.davidbracewell.apollo.ml.clustering.Cluster;
 import com.davidbracewell.apollo.ml.clustering.Clusterer;
 import com.davidbracewell.tuple.Tuple2;
@@ -36,6 +36,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * The type Agglomerative clusterer.
+ *
  * @author David B. Bracewell
  */
 public class AgglomerativeClusterer extends Clusterer {
@@ -43,18 +45,62 @@ public class AgglomerativeClusterer extends Clusterer {
   private DistanceMeasure distanceMeasure = Distance.Euclidean;
   private Linkage linkage = Linkage.Min;
 
+  /**
+   * Instantiates a new Agglomerative clusterer.
+   */
   public AgglomerativeClusterer() {
 
   }
 
+  /**
+   * Instantiates a new Agglomerative clusterer.
+   *
+   * @param distanceMeasure the distance measure
+   * @param linkage         the linkage
+   */
   public AgglomerativeClusterer(DistanceMeasure distanceMeasure, Linkage linkage) {
     this.distanceMeasure = distanceMeasure;
     this.linkage = linkage;
   }
 
+  /**
+   * Gets distance measure.
+   *
+   * @return the distance measure
+   */
+  public DistanceMeasure getDistanceMeasure() {
+    return distanceMeasure;
+  }
+
+  /**
+   * Sets distance measure.
+   *
+   * @param distanceMeasure the distance measure
+   */
+  public void setDistanceMeasure(DistanceMeasure distanceMeasure) {
+    this.distanceMeasure = distanceMeasure;
+  }
+
+  /**
+   * Gets linkage.
+   *
+   * @return the linkage
+   */
+  public Linkage getLinkage() {
+    return linkage;
+  }
+
+  /**
+   * Sets linkage.
+   *
+   * @param linkage the linkage
+   */
+  public void setLinkage(Linkage linkage) {
+    this.linkage = linkage;
+  }
 
   @Override
-  public HierarchicalClustering cluster(@NonNull List<FeatureVector> instances) {
+  public HierarchicalClustering cluster(@NonNull List<LabeledVector> instances) {
     Table<Cluster, Cluster, Double> distanceMatrix = HashBasedTable.create();
     List<Cluster> clusters = initDistanceMatrix(instances, distanceMatrix);
 
@@ -98,7 +144,7 @@ public class AgglomerativeClusterer extends Clusterer {
       clusters.remove(minC.getV1());
       clusters.remove(minC.getV2());
 
-      for (FeatureVector point : Iterables.concat(minC.getV1().getPoints(), minC.getV2().getPoints())) {
+      for (LabeledVector point : Iterables.concat(minC.getV1().getPoints(), minC.getV2().getPoints())) {
         cprime.addPoint(point);
       }
 
@@ -108,9 +154,9 @@ public class AgglomerativeClusterer extends Clusterer {
 
   }
 
-  private List<Cluster> initDistanceMatrix(List<FeatureVector> instances, Table<Cluster, Cluster, Double> distanceMatrix) {
+  private List<Cluster> initDistanceMatrix(List<LabeledVector> instances, Table<Cluster, Cluster, Double> distanceMatrix) {
     List<Cluster> clusters = new ArrayList<>();
-    for (FeatureVector item : instances) {
+    for (LabeledVector item : instances) {
       Cluster c = new Cluster();
       c.addPoint(item);
       clusters.add(c);

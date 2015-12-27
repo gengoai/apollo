@@ -23,8 +23,8 @@ package com.davidbracewell.apollo.ml.clustering.flat;
 
 
 import com.davidbracewell.apollo.affinity.DistanceMeasure;
+import com.davidbracewell.apollo.linalg.LabeledVector;
 import com.davidbracewell.apollo.linalg.Vector;
-import com.davidbracewell.apollo.ml.FeatureVector;
 import com.davidbracewell.apollo.ml.clustering.Cluster;
 import com.davidbracewell.apollo.ml.clustering.Clusterer;
 import com.davidbracewell.apollo.ml.clustering.Clustering;
@@ -36,6 +36,8 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
+ * The type One shot clusterer.
+ *
  * @author David B. Bracewell
  */
 public class OneShotClusterer extends Clusterer {
@@ -43,17 +45,23 @@ public class OneShotClusterer extends Clusterer {
   private DistanceMeasure distanceMeasure;
   private double threshold;
 
+  /**
+   * Instantiates a new One shot clusterer.
+   *
+   * @param threshold the threshold
+   * @param measure   the measure
+   */
   public OneShotClusterer(double threshold, DistanceMeasure measure) {
     this.threshold = threshold;
     this.distanceMeasure = Preconditions.checkNotNull(measure);
   }
 
   @Override
-  public Clustering cluster(@NonNull List<FeatureVector> instances) {
+  public Clustering cluster(@NonNull List<LabeledVector> instances) {
     OneShotClustering clustering = new OneShotClustering(getEncoderPair(), distanceMeasure);
     clustering.clusters = new ArrayList<>();
 
-    for (FeatureVector ii : instances) {
+    for (LabeledVector ii : instances) {
       double minD = Double.POSITIVE_INFINITY;
       int minI = 0;
       for (int k = 0; k < clustering.clusters.size(); k++) {
@@ -87,26 +95,47 @@ public class OneShotClusterer extends Clusterer {
 
   private double distance(Vector ii, Cluster cluster) {
     double d = 0;
-    for (FeatureVector jj : cluster) {
+    for (LabeledVector jj : cluster) {
       d += distanceMeasure.calculate(ii, jj);
     }
     return d / (double) cluster.size();
   }
 
+  /**
+   * Gets distance measure.
+   *
+   * @return the distance measure
+   */
   public DistanceMeasure getDistanceMeasure() {
     return distanceMeasure;
   }
 
+  /**
+   * Sets distance measure.
+   *
+   * @param distanceMeasure the distance measure
+   */
   public void setDistanceMeasure(DistanceMeasure distanceMeasure) {
     this.distanceMeasure = distanceMeasure;
   }
 
+  /**
+   * Gets threshold.
+   *
+   * @return the threshold
+   */
   public double getThreshold() {
     return threshold;
   }
 
+  /**
+   * Sets threshold.
+   *
+   * @param threshold the threshold
+   */
   public void setThreshold(double threshold) {
     this.threshold = threshold;
   }
+
 
 }//END OF OneShotClusterer

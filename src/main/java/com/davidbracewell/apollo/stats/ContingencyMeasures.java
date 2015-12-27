@@ -27,6 +27,7 @@ import com.google.common.primitives.Doubles;
 
 /**
  * The enum Contingency measures.
+ *
  * @author David B. Bracewell
  */
 public enum ContingencyMeasures implements ContingencyTableCalculator {

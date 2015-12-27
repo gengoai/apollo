@@ -1,11 +1,12 @@
 package com.davidbracewell.apollo.ml.clustering;
 
+import com.davidbracewell.apollo.linalg.LabeledVector;
 import com.davidbracewell.apollo.ml.Dataset;
 import com.davidbracewell.apollo.ml.EncoderPair;
-import com.davidbracewell.apollo.ml.FeatureVector;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.Learner;
 
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -18,10 +19,12 @@ public abstract class Clusterer extends Learner<Instance, Clustering> {
   @Override
   protected Clustering trainImpl(Dataset<Instance> dataset) {
     this.encoderPair = dataset.getEncoderPair();
-    return cluster(dataset.asFeatureVectors());
+    List<LabeledVector> instances = new LinkedList<>();
+    dataset.forEach(i -> instances.add(new LabeledVector(i.getLabel(), i.toVector(dataset.getEncoderPair()))));
+    return cluster(instances);
   }
 
-  public abstract Clustering cluster(List<FeatureVector> instances);
+  public abstract Clustering cluster(List<LabeledVector> instances);
 
   @Override
   public void reset() {

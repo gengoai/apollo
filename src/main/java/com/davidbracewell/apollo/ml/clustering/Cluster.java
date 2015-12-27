@@ -21,8 +21,8 @@
 
 package com.davidbracewell.apollo.ml.clustering;
 
+import com.davidbracewell.apollo.linalg.LabeledVector;
 import com.davidbracewell.apollo.linalg.Vector;
-import com.davidbracewell.apollo.ml.FeatureVector;
 
 import java.io.Serializable;
 import java.util.Iterator;
@@ -35,10 +35,10 @@ import java.util.stream.Collectors;
  *
  * @author David B. Bracewell
  */
-public class Cluster implements Serializable, Iterable<FeatureVector> {
+public class Cluster implements Serializable, Iterable<LabeledVector> {
 
   private static final long serialVersionUID = 1L;
-  private final List<FeatureVector> points = new CopyOnWriteArrayList<>();
+  private final List<LabeledVector> points = new CopyOnWriteArrayList<>();
   private Vector centroid;
   private Cluster parent;
   private Cluster left;
@@ -50,7 +50,7 @@ public class Cluster implements Serializable, Iterable<FeatureVector> {
    *
    * @param point the point
    */
-  public void addPoint(final FeatureVector point) {
+  public void addPoint(final LabeledVector point) {
     if (point != null) {
       points.add(point);
     }
@@ -61,12 +61,12 @@ public class Cluster implements Serializable, Iterable<FeatureVector> {
    *
    * @return the points
    */
-  public List<FeatureVector> getPoints() {
+  public List<LabeledVector> getPoints() {
     return points;
   }
 
   @Override
-  public Iterator<FeatureVector> iterator() {
+  public Iterator<LabeledVector> iterator() {
     return points.iterator();
   }
 
@@ -168,7 +168,7 @@ public class Cluster implements Serializable, Iterable<FeatureVector> {
 
   @Override
   public String toString() {
-    return points.stream().map(FeatureVector::getDecodedLabel).collect(Collectors.toList()).toString();
+    return points.stream().map(LabeledVector::getLabel).collect(Collectors.toList()).toString();
   }
 
 }//END OF Cluster

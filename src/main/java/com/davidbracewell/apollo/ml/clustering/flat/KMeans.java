@@ -29,7 +29,6 @@ import com.davidbracewell.apollo.linalg.SparseVector;
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.clustering.Cluster;
 import com.davidbracewell.apollo.ml.clustering.Clusterer;
-import com.davidbracewell.apollo.ml.clustering.Clustering;
 import com.google.common.base.Preconditions;
 import lombok.NonNull;
 
@@ -45,7 +44,7 @@ import java.util.concurrent.atomic.AtomicLong;
  *
  * @author David B. Bracewell
  */
-public class KMeans extends Clusterer {
+public class KMeans extends Clusterer<FlatHardClustering> {
   private static final long serialVersionUID = 1L;
   private int K;
   private int maxIterations;
@@ -81,7 +80,7 @@ public class KMeans extends Clusterer {
   }
 
   @Override
-  public Clustering cluster(@NonNull List<LabeledVector> instances) {
+  public FlatHardClustering cluster(@NonNull List<LabeledVector> instances) {
     FlatHardClustering clustering = new FlatHardClustering(getEncoderPair(), distanceMeasure);
 
     clustering.clusters = new ArrayList<>(K);

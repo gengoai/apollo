@@ -47,7 +47,7 @@ import java.util.stream.Collectors;
  *
  * @author David B. Bracewell
  */
-public class CRPLikeClusterer extends Clusterer {
+public class CRPLikeClusterer extends Clusterer<FlatHardClustering> {
   private static final Logger log = Logger.getLogger(CRPLikeClusterer.class);
   private double alpha;
   private DistanceMeasure distanceMeasure;
@@ -66,7 +66,7 @@ public class CRPLikeClusterer extends Clusterer {
   }
 
   @Override
-  public Clustering cluster(@NonNull List<LabeledVector> instances) {
+  public FlatHardClustering cluster(@NonNull List<LabeledVector> instances) {
     distanceMatrix = HashBasedTable.create();
     List<Cluster> clusters = new ArrayList<>();
     clusters.add(new Cluster());

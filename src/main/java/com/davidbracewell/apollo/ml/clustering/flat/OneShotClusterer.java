@@ -40,7 +40,7 @@ import java.util.List;
  *
  * @author David B. Bracewell
  */
-public class OneShotClusterer extends Clusterer {
+public class OneShotClusterer extends Clusterer<FlatHardClustering> {
   private static final long serialVersionUID = 1L;
   private DistanceMeasure distanceMeasure;
   private double threshold;
@@ -57,7 +57,7 @@ public class OneShotClusterer extends Clusterer {
   }
 
   @Override
-  public Clustering cluster(@NonNull List<LabeledVector> instances) {
+  public FlatHardClustering cluster(@NonNull List<LabeledVector> instances) {
     OneShotClustering clustering = new OneShotClustering(getEncoderPair(), distanceMeasure);
     clustering.clusters = new ArrayList<>();
 

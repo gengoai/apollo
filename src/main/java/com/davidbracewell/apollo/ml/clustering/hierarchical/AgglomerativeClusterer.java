@@ -40,7 +40,7 @@ import java.util.List;
  *
  * @author David B. Bracewell
  */
-public class AgglomerativeClusterer extends Clusterer {
+public class AgglomerativeClusterer extends Clusterer<HierarchicalClustering> {
   private static final long serialVersionUID = 1L;
   private DistanceMeasure distanceMeasure = Distance.Euclidean;
   private Linkage linkage = Linkage.Min;

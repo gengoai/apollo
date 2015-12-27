@@ -8,15 +8,15 @@ import com.davidbracewell.apollo.ml.Dataset;
 import com.davidbracewell.apollo.ml.Feature;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.clustering.Clusterer;
-import com.davidbracewell.apollo.ml.clustering.Clustering;
 import com.davidbracewell.collection.Collect;
+import com.davidbracewell.collection.Counter;
 import com.davidbracewell.io.Resources;
 import com.davidbracewell.logging.Logger;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.commons.math3.random.Well19937c;
 
 import java.io.IOException;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -26,16 +26,16 @@ import java.util.stream.Stream;
  *
  * @author David B. Bracewell
  */
-public class GibbsLDA extends Clusterer {
+public class GibbsLDA extends Clusterer<LDAModel> {
   private static final Logger log = Logger.getLogger(GibbsLDA.class);
 
   private int K = 20;
   private double alpha = 0;
   private double beta = 0;
-  private int maxIterations = 500;
-  private int burnin = 50;
-  private int sampleLag = 0;
-  private boolean verbose = false;
+  private int maxIterations = 1000;
+  private int burnin = 250;
+  private int sampleLag = 25;
+  private boolean verbose = true;
   private RandomGenerator randomGenerator = new Well19937c();
 
 
@@ -61,18 +61,22 @@ public class GibbsLDA extends Clusterer {
         .source(
           Resources.fromFile("/home/david/analysis/working/corpus.txt").lines()
             .map(l -> Instance.create(
-              Stream.of(l.toLowerCase().split("\\p{Z}+")).distinct().map(Feature::TRUE).collect(Collectors.toList())
+              Stream.of(l.toLowerCase().split("\\p{Z}+")).filter(s -> !s.contains("pronoun") && (s.contains("noun") || s.contains("verb") || s.contains("adjective") || s.contains("adverb"))).distinct().map(Feature::TRUE).collect(Collectors.toList())
               )
             )
         ).build();
     } catch (IOException e) {
       e.printStackTrace();
     }
-    new GibbsLDA().train(d);
+    LDAModel model = new GibbsLDA().train(d);
+    for (int k = 0; k < model.wordTopic.getN(); k++) {
+      Counter<String> words = model.getTopicWords(k);
+      System.out.println(words.topN(10).itemsByCount(false));
+    }
   }
 
   @Override
-  public Clustering cluster(List<LabeledVector> instances) {
+  public LDAModel cluster(List<LabeledVector> instances) {
     V = getEncoderPair().numberOfFeatures();
     M = instances.size();
 
@@ -121,8 +125,9 @@ public class GibbsLDA extends Clusterer {
       }
     }
 
+    long changed = 0;
     for (int iteration = 0; iteration < maxIterations; iteration++) {
-      long changed = 0;
+      changed = 0;
       for (int m = 0; m < M; m++) {
         for (int n = 0; n < documents[m].length; n++) {
           int topic = sample(m, n);
@@ -146,20 +151,32 @@ public class GibbsLDA extends Clusterer {
       }
     }
 
+    if (verbose) {
+      log.info("Iteration {0}: {1} total words changed topics.", maxIterations, changed);
+    }
+
+    LDAModel model = new LDAModel(getEncoderPair());
+    model.alpha = alpha;
+    model.beta = beta;
+    model.docTopic = nd.copy();
+    model.wordTopic = nw.copy();
+    model.clusters = new ArrayList<>(K);
+    for (int k = 0; k < K; k++) {
+      TopicCluster cluster = new TopicCluster();
+      model.clusters.add(cluster);
+      for (int m = 0; m < M; m++) {
+        double p = nd.probability(m, k);
+        if (p > 0) {
+          cluster.addPoint(instances.get(m), p);
+        }
+      }
+    }
+
 
     alpha = oAlpha;
     beta = oBeta;
 
-
-    for (int w = 0; w < V; w++) {
-      double[] t = new double[K];
-      for (int k = 0; k < K; k++) {
-        t[k] = nw.counts(k)[w];
-      }
-      System.out.println(Arrays.toString(t));
-    }
-
-    return null;
+    return model;
   }
 
   private void updateParams() {

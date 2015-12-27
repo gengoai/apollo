@@ -1,6 +1,7 @@
 package com.davidbracewell.apollo.ml.clustering.hierarchical;
 
 import com.davidbracewell.apollo.affinity.DistanceMeasure;
+import com.davidbracewell.apollo.linalg.LabeledVector;
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.FeatureVector;
 import com.davidbracewell.apollo.ml.clustering.Cluster;
@@ -38,8 +39,8 @@ public enum Linkage {
 
   public final double calculate(@NonNull Cluster c1, @NonNull Cluster c2, @NonNull DistanceMeasure distanceMeasure) {
     List<Double> distances = new ArrayList<>();
-    for (FeatureVector t1 : flatten(c1)) {
-      for (FeatureVector t2 : flatten(c2)) {
+    for (LabeledVector t1 : flatten(c1)) {
+      for (LabeledVector t2 : flatten(c2)) {
         distances.add(distanceMeasure.calculate(t1, t2));
       }
     }
@@ -50,14 +51,14 @@ public enum Linkage {
     return calculate(cluster.getPoints().stream().mapToDouble(v2 -> distanceMeasure.calculate(v, v2)));
   }
 
-  protected List<FeatureVector> flatten(Cluster c) {
+  protected List<LabeledVector> flatten(Cluster c) {
     if (c == null) {
       return Collections.emptyList();
     }
     if (!c.getPoints().isEmpty()) {
       return c.getPoints();
     }
-    List<FeatureVector> list = new ArrayList<>();
+    List<LabeledVector> list = new ArrayList<>();
     list.addAll(flatten(c.getLeft()));
     list.addAll(flatten(c.getRight()));
     return list;

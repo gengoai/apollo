@@ -23,9 +23,10 @@ package com.davidbracewell.apollo.distribution;
 
 import com.google.common.base.Preconditions;
 import lombok.NonNull;
+import org.apache.commons.math3.random.RandomGenerator;
+import org.apache.commons.math3.random.Well19937c;
 
 import java.io.Serializable;
-import java.util.Random;
 
 /**
  * @author David B. Bracewell
@@ -33,9 +34,14 @@ import java.util.Random;
 public class UniformDiscrete implements DiscreteDistribution<UniformDiscrete>, Serializable {
   private static final long serialVersionUID = 1L;
   private final int k;
-  private final Random random;
+  private final RandomGenerator random;
 
-  public UniformDiscrete(int k, @NonNull Random random) {
+
+  public UniformDiscrete(int k) {
+    this(k, new Well19937c());
+  }
+
+  public UniformDiscrete(int k, @NonNull RandomGenerator random) {
     Preconditions.checkArgument(k > 0, "K must be > 0");
     this.k = k;
     this.random = random;

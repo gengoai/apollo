@@ -37,7 +37,10 @@ public class IndexEncoder implements Encoder, Serializable {
   }
 
   @Override
-  public double encode(@NonNull Object object) {
+  public double encode(Object object) {
+    if (object == null) {
+      return -1;
+    }
     if (object instanceof Collection) {
       Collection<?> collection = Cast.as(object);
       double idx = -1;

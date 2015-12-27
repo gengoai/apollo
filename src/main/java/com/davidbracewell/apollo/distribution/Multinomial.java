@@ -52,7 +52,8 @@ public class Multinomial implements DiscreteDistribution<Multinomial>, Serializa
    */
   public Multinomial(int size, double alpha, @NonNull Random random) {
     Preconditions.checkArgument(size > 0, "Size must be > 0");
-    Preconditions.checkArgument(alpha >= 0, "Alpha must be >= 0");
+    Preconditions.checkArgument(Double.isFinite(alpha), "Alpha must be finite");
+    Preconditions.checkArgument(alpha > 0, "Alpha must be > 0");
     this.values = new long[size];
     this.alpha = alpha;
     this.alphaTimesV = alpha * size;
@@ -78,6 +79,9 @@ public class Multinomial implements DiscreteDistribution<Multinomial>, Serializa
     this(size, alpha, new Random());
   }
 
+  public double sum(){
+    return sum;
+  }
 
   @Override
   public double unnormalizedProbability(int index) {

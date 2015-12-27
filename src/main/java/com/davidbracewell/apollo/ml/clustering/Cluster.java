@@ -57,6 +57,16 @@ public class Cluster implements Serializable, Iterable<LabeledVector> {
   }
 
   /**
+   * Gets score.
+   *
+   * @param vector the vector
+   * @return the score
+   */
+  public double getScore(LabeledVector vector) {
+    return points.contains(vector) ? 1.0 : 0.0;
+  }
+
+  /**
    * Gets points.
    *
    * @return the points
@@ -158,10 +168,20 @@ public class Cluster implements Serializable, Iterable<LabeledVector> {
     this.score = score;
   }
 
+  /**
+   * Gets centroid.
+   *
+   * @return the centroid
+   */
   public Vector getCentroid() {
     return centroid;
   }
 
+  /**
+   * Sets centroid.
+   *
+   * @param centroid the centroid
+   */
   public void setCentroid(Vector centroid) {
     this.centroid = centroid;
   }

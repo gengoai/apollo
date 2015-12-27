@@ -30,8 +30,8 @@ public class GibbsLDA extends Clusterer {
   private static final Logger log = Logger.getLogger(GibbsLDA.class);
 
   private int K = 20;
-  private double alpha;
-  private double beta;
+  private double alpha = 0;
+  private double beta = 0;
   private int maxIterations = 500;
   private int burnin = 50;
   private int sampleLag = 0;
@@ -49,6 +49,11 @@ public class GibbsLDA extends Clusterer {
   private Vector[] phisum;
   private int numstats = 0;
 
+  /**
+   * The entry point of application.
+   *
+   * @param args the input arguments
+   */
   public static void main(String[] args) {
     Dataset<Instance> d = null;
     try {
@@ -268,5 +273,93 @@ public class GibbsLDA extends Clusterer {
     numstats = 0;
   }
 
+  /**
+   * Gets random generator.
+   *
+   * @return the random generator
+   */
+  public RandomGenerator getRandomGenerator() {
+    return randomGenerator;
+  }
 
+  /**
+   * Sets random generator.
+   *
+   * @param randomGenerator the random generator
+   */
+  public void setRandomGenerator(RandomGenerator randomGenerator) {
+    this.randomGenerator = randomGenerator;
+  }
+
+  /**
+   * Is verbose boolean.
+   *
+   * @return the boolean
+   */
+  public boolean isVerbose() {
+    return verbose;
+  }
+
+  /**
+   * Sets verbose.
+   *
+   * @param verbose the verbose
+   */
+  public void setVerbose(boolean verbose) {
+    this.verbose = verbose;
+  }
+
+  /**
+   * Gets sample lag.
+   *
+   * @return the sample lag
+   */
+  public int getSampleLag() {
+    return sampleLag;
+  }
+
+  /**
+   * Sets sample lag.
+   *
+   * @param sampleLag the sample lag
+   */
+  public void setSampleLag(int sampleLag) {
+    this.sampleLag = sampleLag;
+  }
+
+  /**
+   * Gets burnin.
+   *
+   * @return the burnin
+   */
+  public int getBurnin() {
+    return burnin;
+  }
+
+  /**
+   * Sets burnin.
+   *
+   * @param burnin the burnin
+   */
+  public void setBurnin(int burnin) {
+    this.burnin = burnin;
+  }
+
+  /**
+   * Gets max iterations.
+   *
+   * @return the max iterations
+   */
+  public int getMaxIterations() {
+    return maxIterations;
+  }
+
+  /**
+   * Sets max iterations.
+   *
+   * @param maxIterations the max iterations
+   */
+  public void setMaxIterations(int maxIterations) {
+    this.maxIterations = maxIterations;
+  }
 }// END OF GibbsLDA

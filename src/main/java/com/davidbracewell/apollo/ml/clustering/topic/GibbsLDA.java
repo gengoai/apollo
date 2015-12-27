@@ -10,6 +10,7 @@ import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.clustering.Clusterer;
 import com.davidbracewell.collection.Collect;
 import com.davidbracewell.collection.Counter;
+import com.davidbracewell.collection.Counters;
 import com.davidbracewell.io.Resources;
 import com.davidbracewell.logging.Logger;
 import org.apache.commons.math3.random.RandomGenerator;
@@ -27,9 +28,10 @@ import java.util.stream.Stream;
  * @author David B. Bracewell
  */
 public class GibbsLDA extends Clusterer<LDAModel> {
+  private static final long serialVersionUID = 1L;
   private static final Logger log = Logger.getLogger(GibbsLDA.class);
 
-  private int K = 20;
+  private int K = 100;
   private double alpha = 0;
   private double beta = 0;
   private int maxIterations = 1000;
@@ -59,9 +61,9 @@ public class GibbsLDA extends Clusterer<LDAModel> {
     try {
       d = Dataset.classification()
         .source(
-          Resources.fromFile("/home/david/analysis/working/corpus.txt").lines()
+          Resources.fromFile("/shared/data/corpora/en/eng_news_2005_10K-text/eng_news_2005_10K-sentences.txt").lines()
             .map(l -> Instance.create(
-              Stream.of(l.toLowerCase().split("\\p{Z}+")).filter(s -> !s.contains("pronoun") && (s.contains("noun") || s.contains("verb") || s.contains("adjective") || s.contains("adverb"))).distinct().map(Feature::TRUE).collect(Collectors.toList())
+              Stream.of(l.toLowerCase().split("\\p{Z}+")).filter(s -> s.length() > 3).distinct().map(Feature::TRUE).collect(Collectors.toList())
               )
             )
         ).build();
@@ -69,9 +71,12 @@ public class GibbsLDA extends Clusterer<LDAModel> {
       e.printStackTrace();
     }
     LDAModel model = new GibbsLDA().train(d);
+    d.forEach(i ->
+      System.out.println(Counters.fromArray(model.softCluster(i)).topN(3).itemsByCount(false))
+    );
     for (int k = 0; k < model.wordTopic.getN(); k++) {
       Counter<String> words = model.getTopicWords(k);
-      System.out.println(words.topN(10));
+      System.out.println(words.topN(10).itemsByCount(false));
     }
   }
 
@@ -158,6 +163,8 @@ public class GibbsLDA extends Clusterer<LDAModel> {
     LDAModel model = new LDAModel(getEncoderPair());
     model.alpha = alpha;
     model.beta = beta;
+    model.K = K;
+    model.randomGenerator = randomGenerator;
     if (sampleLag <= 0) {
       model.wordTopic = nw.copy();
     } else {

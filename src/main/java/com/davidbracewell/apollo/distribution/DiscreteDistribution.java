@@ -80,6 +80,11 @@ public interface DiscreteDistribution<T extends DiscreteDistribution> extends De
     return Math.log(unnormalizedProbability(value));
   }
 
+
+  double cumulativeProbability(int x);
+
+  double cumulativeProbability(int lowerBound, int higherBound);
+
   /**
    * Sample int.
    *

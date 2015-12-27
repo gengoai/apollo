@@ -59,4 +59,23 @@ public class UniformDiscrete implements DiscreteDistribution<UniformDiscrete>, S
     return this;
   }
 
+  @Override
+  public double cumulativeProbability(int x) {
+    if (x < 0) {
+      return 0;
+    } else if (x >= k) {
+      return 1.0;
+    }
+    return (double) x / (double) k;
+  }
+
+  @Override
+  public double cumulativeProbability(int lowerBound, int higherBound) {
+    if (higherBound - lowerBound <= 0) {
+      return 0.0;
+    } else if (lowerBound == 0 && higherBound >= k) {
+      return 1.0;
+    }
+    return (higherBound - lowerBound) / k;
+  }
 }//END OF UniformDiscrete

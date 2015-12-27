@@ -23,10 +23,12 @@ package com.davidbracewell.apollo.distribution;
 
 import com.google.common.base.Preconditions;
 import lombok.NonNull;
+import org.apache.commons.math3.distribution.EnumeratedIntegerDistribution;
 
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Random;
+import java.util.stream.IntStream;
 
 /**
  * The type Multinomial.
@@ -117,6 +119,22 @@ public class Multinomial implements DiscreteDistribution<Multinomial>, Serializa
   @Override
   public String toString() {
     return Arrays.toString(values);
+  }
+
+  @Override
+  public double cumulativeProbability(int x) {
+    return new EnumeratedIntegerDistribution(
+      IntStream.range(0, values.length).toArray(),
+      IntStream.range(0, values.length).mapToDouble(this::probability).toArray()
+    ).cumulativeProbability(x);
+  }
+
+  @Override
+  public double cumulativeProbability(int lowerBound, int higherBound) {
+    return new EnumeratedIntegerDistribution(
+      IntStream.range(0, values.length).toArray(),
+      IntStream.range(0, values.length).mapToDouble(this::probability).toArray()
+    ).cumulativeProbability(lowerBound, higherBound);
   }
 
 }//END OF Multinomial

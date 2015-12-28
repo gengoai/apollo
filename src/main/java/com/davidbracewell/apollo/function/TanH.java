@@ -1,4 +1,4 @@
-package com.davidbracewell.apollo;
+package com.davidbracewell.apollo.function;
 
 import org.apache.commons.math3.util.FastMath;
 
@@ -6,6 +6,7 @@ import org.apache.commons.math3.util.FastMath;
  * @author David B. Bracewell
  */
 public class TanH implements DifferentiableFunction {
+  private static final long serialVersionUID = 1L;
 
   @Override
   public double applyAsDouble(double operand) {

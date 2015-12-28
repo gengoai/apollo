@@ -1,4 +1,4 @@
-package com.davidbracewell.apollo;
+package com.davidbracewell.apollo.function;
 
 /**
  * @author David B. Bracewell

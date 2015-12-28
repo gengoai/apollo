@@ -1,17 +1,20 @@
 package com.davidbracewell.apollo;
 
+import org.apache.commons.math3.util.FastMath;
+
 /**
  * @author David B. Bracewell
  */
 public class TanH implements DifferentiableFunction {
+
   @Override
   public double applyAsDouble(double operand) {
-    return 2.0 / (1.0 + Math.exp(-operand)) - 1.0;
+    return FastMath.tanh(operand);
   }
 
   @Override
   public double gradientAsDouble(double value) {
-    return 1.0 - (value * value);
+    return (1.0 - Math.pow(applyAsDouble(value), 2.0));
   }
 
 

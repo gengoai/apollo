@@ -46,6 +46,8 @@ public class MLP extends ClassifierLearner {
         for (int i = 0; i < predicted.length; i++) {
           e += Math.pow(predicted[i] - (y == i ? 1.0 : 0.0), 2);
         }
+        e /= 2.0;
+
       }
     }
 

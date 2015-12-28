@@ -6,11 +6,10 @@ import com.davidbracewell.function.SerializableDoubleUnaryOperator;
  * @author David B. Bracewell
  */
 public interface DifferentiableFunction extends SerializableDoubleUnaryOperator {
-  double H = 0.0001;
-  double TWO_H = 2.0 * H;
+  double H = 0.000001;
 
   default double gradientAsDouble(double value) {
-    return (applyAsDouble(value + H) - applyAsDouble(value - H)) / TWO_H;
+    return (applyAsDouble(value + H) - applyAsDouble(value)) / H;
   }
 
 }//END OF DifferentiableFunction

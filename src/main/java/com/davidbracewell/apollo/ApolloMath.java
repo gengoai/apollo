@@ -27,6 +27,7 @@ import com.davidbracewell.collection.Collect;
 import com.davidbracewell.tuple.Tuple2;
 import lombok.NonNull;
 
+import java.math.BigDecimal;
 import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 
@@ -149,5 +150,11 @@ public interface ApolloMath {
     }
     return Tuple2.of(minI, minV);
   }
+
+
+  static double truncate(double value, int precision) {
+    return BigDecimal.valueOf(value).setScale(precision, BigDecimal.ROUND_HALF_UP).doubleValue();
+  }
+
 
 }//END OF ApolloMath

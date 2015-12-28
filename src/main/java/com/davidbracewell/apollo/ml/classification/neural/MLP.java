@@ -1,6 +1,8 @@
 package com.davidbracewell.apollo.ml.classification.neural;
 
+import com.davidbracewell.apollo.DifferentiableFunction;
 import com.davidbracewell.apollo.Sigmoid;
+import com.davidbracewell.apollo.TanH;
 import com.davidbracewell.apollo.linalg.DenseVector;
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.Dataset;
@@ -16,7 +18,7 @@ import com.davidbracewell.apollo.ml.classification.ClassifierLearner;
 public class MLP extends ClassifierLearner {
 
   private int[] hiddenLayers = new int[]{50};
-
+  private double learningRate = 1.0;
 
   @Override
   protected Classifier trainImpl(Dataset<Instance> dataset) {
@@ -28,7 +30,8 @@ public class MLP extends ClassifierLearner {
     model.layers = new Layer[hiddenLayers.length + 1];
     int inputsize = model.getEncoderPair().numberOfFeatures() + 1;
     for (int i = 0; i < model.layers.length; i++) {
-      model.layers[i] = new Layer(inputsize, hiddenLayers[i] + 1, new Sigmoid());
+      DifferentiableFunction af = (i + 1 == model.layers.length) ? new Sigmoid() : new TanH();
+      model.layers[i] = new Layer(inputsize, hiddenLayers[i] + 1, af);
       inputsize = hiddenLayers[i] + 1;
     }
 

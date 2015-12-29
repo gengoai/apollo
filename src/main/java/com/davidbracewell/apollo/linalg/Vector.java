@@ -406,7 +406,7 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
    */
   default Vector multiplySelf(@NonNull Vector rhs) {
     Preconditions.checkArgument(rhs.dimension() == dimension(), "Dimension mismatch");
-    rhs.forEachSparse(e -> scale(e.index, e.value));
+    forEachSparse(e -> scale(e.index, rhs.get(e.index)));
     return this;
   }
 
@@ -432,7 +432,8 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
   }
 
   /**
-   * Creates an <code>Iterator</code> over non-zero values in the vector. The order is optimized based on the underlying
+   * Creates an <code>Iterator</code> over non-zero values in the vector. The order is optimized based on the
+   * underlying
    * structure.
    *
    * @return An iterator over non-zero values in the vector.
@@ -452,16 +453,17 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
       private Integer ni = null;
 
       private boolean advance() {
-        if (ni == null) {
-          while (indexIter.hasNext()) {
-            int i = indexIter.next();
-            if (get(i) != 0) {
-              ni = i;
-              return true;
+        while (ni == null) {
+          if (indexIter.hasNext()) {
+            ni = indexIter.next();
+            if (get(ni) == 0) {
+              ni = null;
             }
+          } else {
+            return false;
           }
         }
-        return false;
+        return ni != null;
       }
 
       @Override

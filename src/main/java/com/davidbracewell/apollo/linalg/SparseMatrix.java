@@ -22,16 +22,13 @@
 package com.davidbracewell.apollo.linalg;
 
 import com.davidbracewell.collection.Collect;
+import com.davidbracewell.stream.Streams;
 import com.google.common.base.Preconditions;
 import lombok.NonNull;
 import org.apache.mahout.math.map.OpenIntObjectHashMap;
 
 import java.io.Serializable;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.PrimitiveIterator;
+import java.util.*;
 import java.util.stream.IntStream;
 
 /**
@@ -39,20 +36,43 @@ import java.util.stream.IntStream;
  */
 public class SparseMatrix implements Matrix, Serializable {
   private static final long serialVersionUID = -3802597548916836308L;
-  private final OpenIntObjectHashMap<Vector> matrix;
+  private volatile OpenIntObjectHashMap<Vector> matrix;
   final private int numberOfRows;
   final private int colDimension;
-  private double nonZero = 0d;
 
-  public SparseMatrix(int numRows, int numColumns) {
-    this(numRows, numColumns, 0d);
+  public static Matrix zeroes(int numberOfRows, int numberOfColumns) {
+    return new SparseMatrix(numberOfRows, numberOfColumns);
   }
 
-  public SparseMatrix(int numRows, int numColumns, double nonZero) {
+  public static Matrix ones(int numberOfRows, int numberOfColumns) {
+    return new SparseMatrix(numberOfRows, numberOfColumns).incrementSelf(1);
+  }
+
+  public static Matrix eye(int size) {
+    Matrix m = new SparseMatrix(size, size);
+    for (int r = 0; r < size; r++) {
+      m.set(r, r, 1d);
+    }
+    return m;
+  }
+
+  public static Matrix random(int numberOfRows, int numberOfColumns) {
+    Matrix m = new SparseMatrix(numberOfRows, numberOfColumns);
+    Streams.range(0, numberOfRows)
+      .parallel()
+      .forEach(r -> {
+        for (int c = 0; c < numberOfColumns; c++) {
+          m.set(r, c, Math.random());
+        }
+      });
+    return m;
+  }
+
+
+  public SparseMatrix(int numRows, int numColumns) {
     this.colDimension = numColumns;
     this.numberOfRows = numRows;
     this.matrix = new OpenIntObjectHashMap<>();
-    this.nonZero = nonZero;
   }
 
   public SparseMatrix(@NonNull Matrix matrix) {
@@ -74,31 +94,20 @@ public class SparseMatrix implements Matrix, Serializable {
       this.numberOfRows = vectors.size();
     }
     this.matrix = new OpenIntObjectHashMap<>();
-    this.nonZero = 0d;
     for (int i = 0; i < vectors.size(); i++) {
       this.matrix.put(i, vectors.get(i));
     }
   }
 
   public static void main(String[] args) {
-    SparseMatrix m1 = new SparseMatrix(2, 3);
-    m1.set(0, 1, -1);
-    m1.set(0, 2, 2);
-    m1.set(1, 0, 4);
-    m1.set(1, 1, 11);
-    m1.set(1, 2, 2);
+    Matrix m1 = SparseMatrix.random(1000, 1000);
+    Matrix m2 = SparseMatrix.random(1000, 1000);
+    System.out.println(m1.multiply(m2));
+  }
 
-    SparseMatrix m2 = new SparseMatrix(3, 2);
-    m2.set(0, 0, 3);
-    m2.set(0, 1, -1);
-    m2.set(1, 0, 1);
-    m2.set(0, 1, 2);
-    m2.set(2, 0, 6);
-    m2.set(2, 1, 1);
-
-    Matrix m3 = m1.multiply(m2);
-    System.out.println(m3);
-
+  @Override
+  public DenseMatrix toDense() {
+    return new DenseMatrix(this);
   }
 
   @Override
@@ -106,22 +115,26 @@ public class SparseMatrix implements Matrix, Serializable {
     return new Iterator<Entry>() {
       private PrimitiveIterator.OfInt rowItr = IntStream.of(matrix.keys().toArray(new int[matrix.size()])).iterator();
       private int row;
+      private Integer currentColumn = null;
       private Iterator<Vector.Entry> colItr;
 
       private boolean advance() {
-        while (colItr == null || !colItr.hasNext()) {
+
+        while (currentColumn == null) {
           if (colItr == null && !rowItr.hasNext()) {
             return false;
           } else if (colItr == null) {
             row = rowItr.next();
             colItr = row(row).nonZeroIterator();
-          } else if (!colItr.hasNext()) {
-            colItr = null;
+          } else if (colItr.hasNext()) {
+            currentColumn = colItr.next().getIndex();
           } else {
-            return true;
+            currentColumn = null;
+            colItr = null;
           }
         }
-        return colItr != null;
+
+        return currentColumn != null;
       }
 
       @Override
@@ -134,8 +147,9 @@ public class SparseMatrix implements Matrix, Serializable {
         if (!advance()) {
           throw new NoSuchElementException();
         }
-        Vector.Entry e = colItr.next();
-        return new Matrix.Entry(row, e.index, e.value);
+        int c = currentColumn;
+        currentColumn = null;
+        return new Matrix.Entry(row, c, get(row, c));
       }
     };
   }
@@ -145,22 +159,26 @@ public class SparseMatrix implements Matrix, Serializable {
     return new Iterator<Entry>() {
       private PrimitiveIterator.OfInt rowItr = IntStream.of(matrix.keys().toArray(new int[matrix.size()])).sorted().iterator();
       private int row;
+      private Integer currentColumn = null;
       private Iterator<Vector.Entry> colItr;
 
       private boolean advance() {
-        while (colItr == null || !colItr.hasNext()) {
+
+        while (currentColumn == null) {
           if (colItr == null && !rowItr.hasNext()) {
             return false;
           } else if (colItr == null) {
             row = rowItr.next();
-            colItr = row(row).nonZeroIterator();
-          } else if (!colItr.hasNext()) {
-            colItr = null;
+            colItr = row(row).orderedNonZeroIterator();
+          } else if (colItr.hasNext()) {
+            currentColumn = colItr.next().getIndex();
           } else {
-            return true;
+            currentColumn = null;
+            colItr = null;
           }
         }
-        return colItr != null;
+
+        return currentColumn != null;
       }
 
       @Override
@@ -173,15 +191,16 @@ public class SparseMatrix implements Matrix, Serializable {
         if (!advance()) {
           throw new NoSuchElementException();
         }
-        Vector.Entry e = colItr.next();
-        return new Matrix.Entry(row, e.index, e.value);
+        int c = currentColumn;
+        currentColumn = null;
+        return new Matrix.Entry(row, c, get(row, c));
       }
     };
   }
 
   @Override
   public Vector column(int column) {
-    Preconditions.checkArgument(column >= 0 && column < numberOfColumns());
+    Preconditions.checkElementIndex(column, numberOfColumns());
     SparseVector col = new SparseVector(numberOfRows());
     for (int row : matrix.keys().elements()) {
       col.set(row, get(row, column));
@@ -191,9 +210,9 @@ public class SparseMatrix implements Matrix, Serializable {
 
   @Override
   public Vector row(int row) {
-    Preconditions.checkArgument(row >= 0 && row < numberOfRows());
+    Preconditions.checkElementIndex(row, numberOfRows());
     if (!matrix.containsKey(row)) {
-      synchronized (matrix) {
+      synchronized (this) {
         if (!matrix.containsKey(row)) {
           matrix.put(row, new SparseVector(numberOfColumns()));
         }
@@ -204,13 +223,16 @@ public class SparseMatrix implements Matrix, Serializable {
 
   @Override
   public double get(int row, int column) {
+    Preconditions.checkElementIndex(row, numberOfRows());
+    Preconditions.checkElementIndex(column, numberOfColumns());
     return row(row).get(column);
   }
 
   @Override
   public void set(int row, int column, double value) {
-    Vector r = row(row);
-    r.set(column, value);
+    Preconditions.checkElementIndex(row, numberOfRows());
+    Preconditions.checkElementIndex(column, numberOfColumns());
+    row(row).set(column, value);
   }
 
   @Override
@@ -224,9 +246,8 @@ public class SparseMatrix implements Matrix, Serializable {
   }
 
   @Override
-  public void setRow(int row, Vector vector) {
-    Preconditions.checkNotNull(vector);
-    Preconditions.checkArgument(row >= 0 && row < numberOfRows());
+  public void setRow(int row, @NonNull Vector vector) {
+    Preconditions.checkElementIndex(row, numberOfRows);
     Preconditions.checkArgument(vector.dimension() == numberOfColumns());
     synchronized (matrix) {
       matrix.put(row, vector);
@@ -255,82 +276,85 @@ public class SparseMatrix implements Matrix, Serializable {
   }
 
   @Override
-  public Matrix addSelf(Matrix other) {
-    return null;
+  public Matrix addSelf(@NonNull Matrix other) {
+    Preconditions.checkArgument(numberOfRows() == other.numberOfRows() && numberOfColumns() == other.numberOfColumns(), "Dimension mismatch");
+    for (int r = 0; r < numberOfRows(); r++) {
+      row(r).addSelf(other.row(r));
+    }
+    return this;
   }
 
   @Override
-  public Matrix subtractSelf(Matrix other) {
-    return null;
+  public Matrix subtractSelf(@NonNull Matrix other) {
+    Preconditions.checkArgument(numberOfRows() == other.numberOfRows() && numberOfColumns() == other.numberOfColumns(), "Dimension mismatch");
+    other.forEachSparse(e -> decrement(e.row, e.column, e.value));
+    return this;
+  }
+
+  @Override
+  public Matrix scaleSelf(@NonNull Matrix other) {
+    Preconditions.checkArgument(numberOfRows() == other.numberOfRows() && numberOfColumns() == other.numberOfColumns(), "Dimension mismatch");
+    other.forEachSparse(e -> scale(e.row, e.column, e.value));
+    return this;
+  }
+
+  @Override
+  public Matrix scaleSelf(@NonNull Vector other) {
+    Preconditions.checkArgument(numberOfColumns() == other.dimension(), "Dimension mismatch");
+    matrix.keys().forEach(r -> {
+      row(r).multiplySelf(other);
+      return true;
+    });
+    return this;
   }
 
   @Override
   public Matrix scaleSelf(double value) {
     for (int row : matrix.keys().elements()) {
       for (Vector.Entry entry : Collect.asIterable(row(row).nonZeroIterator())) {
-        matrix.get(row).set(entry.index, entry.value * value);
+        row(row).set(entry.index, entry.value * value);
       }
     }
     return this;
   }
 
   @Override
-  public Matrix scale(double value) {
-    Matrix m = new SparseMatrix(numberOfRows(), numberOfColumns());
-    for (int row : matrix.keys().elements()) {
-      for (Vector.Entry entry : Collect.asIterable(row(row).nonZeroIterator())) {
-        m.set(row, entry.index, entry.value * value);
-      }
-    }
-    return m;
-  }
-
-  @Override
   public Matrix incrementSelf(double value) {
-    return null;
+    for (int r = 0; r < numberOfRows(); r++) {
+      row(r).mapAddSelf(value);
+    }
+    return this;
   }
 
   @Override
   public Matrix multiply(@NonNull Matrix m) {
     Preconditions.checkArgument(numberOfColumns() == m.numberOfRows(), "Dimension Mismatch");
     SparseMatrix mprime = new SparseMatrix(numberOfRows(), m.numberOfColumns());
+    IntStream.of(matrix.keys().toArray(new int[matrix.size()])).parallel()
+      .forEach(r -> {
+        for (int c = 0; c < m.numberOfColumns(); c++) {
+          for (int k = 0; k < numberOfColumns(); k++) {
+            mprime.increment(r, c, get(r, k) * m.get(k, c));
+          }
+        }
+      });
     return mprime;
   }
 
   @Override
-  public Matrix multiplySelf(@NonNull Matrix m) {
-    Preconditions.checkArgument(numberOfColumns() == m.numberOfRows(), "Dimension Mismatch");
-    IntStream.range(0, numberOfRows())
-      .parallel()
-      .forEach(r -> {
-        setRow(r, row(r).multiplySelf(m.column(r)));
-      });
-    return this;
-  }
-
-
-  @Override
-  public Matrix multiplySelf(Vector v) {
-    return null;
-  }
-
-  @Override
   public Vector dot(Vector v) {
-    SparseVector result = new SparseVector(numberOfRows);
-    for (int i = 0; i < numberOfRows; i++) {
-      result.set(i, row(i).dot(v));
-    }
+    SparseVector result = new SparseVector(numberOfRows());
+    matrix.keys().forEach(r -> {
+      result.set(r, v.dot(row(r)));
+      return true;
+    });
     return result;
   }
 
   @Override
   public Matrix transpose() {
     Matrix T = new SparseMatrix(numberOfColumns(), numberOfRows());
-    for (int row : matrix.keys().elements()) {
-      for (Vector.Entry entry : Collect.asIterable(row(row).nonZeroIterator())) {
-        T.set(entry.index, row, entry.value);
-      }
-    }
+    forEachSparse(e -> T.set(e.column, e.row, e.value));
     return T;
   }
 
@@ -341,7 +365,9 @@ public class SparseMatrix implements Matrix, Serializable {
 
   @Override
   public Matrix increment(int row, int col, double amount) {
-    matrix.get(row).increment(col, amount);
+    Preconditions.checkElementIndex(row, numberOfRows());
+    Preconditions.checkElementIndex(col, numberOfColumns());
+    row(row).increment(col, amount);
     return this;
   }
 

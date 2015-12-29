@@ -14,10 +14,11 @@ import java.io.Serializable;
  * @author David B. Bracewell
  */
 public class DenseMatrix implements Matrix, Serializable {
+  private static final long serialVersionUID = 1L;
   /**
    * The Matrix.
    */
-  final DoubleMatrix matrix;
+  volatile DoubleMatrix matrix;
 
   /**
    * Instantiates a new Dense matrix.
@@ -98,14 +99,6 @@ public class DenseMatrix implements Matrix, Serializable {
     return new DenseMatrix(DoubleMatrix.eye(N));
   }
 
-  private static DenseMatrix asJBLAS(Matrix m) {
-    if (m instanceof DenseMatrix) {
-      return (DenseMatrix) m;
-    } else {
-      return new DenseMatrix(m);
-    }
-  }
-
   public DoubleMatrix asDoubleMatrix() {
     return matrix;
   }
@@ -176,16 +169,19 @@ public class DenseMatrix implements Matrix, Serializable {
   }
 
   @Override
-  public Matrix add(Matrix m) {
-    Preconditions.checkNotNull(m);
-    return new DenseMatrix(matrix.add(asJBLAS(m).matrix));
+  public Matrix add(@NonNull Matrix m) {
+    if (m instanceof DenseMatrix) {
+      return new DenseMatrix(matrix.add(m.toDense().matrix));
+    }
+    return Matrix.super.add(m);
   }
 
   @Override
-  public Matrix subtract(Matrix m) {
-    Preconditions.checkNotNull(m);
-    return new DenseMatrix(matrix.sub(asJBLAS(m).matrix));
-
+  public Matrix subtract(@NonNull Matrix m) {
+    if (m instanceof DenseMatrix) {
+      return new DenseMatrix(matrix.sub(m.toDense().matrix));
+    }
+    return Matrix.super.add(m);
   }
 
   @Override
@@ -201,6 +197,13 @@ public class DenseMatrix implements Matrix, Serializable {
   }
 
   @Override
+  public Matrix multiply(@NonNull Matrix m) {
+    Preconditions.checkArgument(m.numberOfColumns() == numberOfRows(), "Dimension Mismatch");
+    return new DenseMatrix(matrix.mmul(m.toDense().matrix));
+  }
+
+
+  @Override
   public Matrix transpose() {
     return new DenseMatrix(matrix.transpose());
   }
@@ -212,25 +215,46 @@ public class DenseMatrix implements Matrix, Serializable {
 
   @Override
   public Matrix addSelf(@NonNull Matrix other) {
-    matrix.addi(asJBLAS(other).matrix);
+    Preconditions.checkArgument(other.numberOfColumns() == numberOfColumns() && other.numberOfRows() == numberOfRows(), "Dimension Mismatch");
+    if (other instanceof DenseMatrix) {
+      matrix.addi(other.toDense().matrix);
+    } else {
+      other.forEachSparse(e -> increment(e.row, e.column, e.value));
+    }
     return this;
   }
 
   @Override
   public Matrix subtractSelf(@NonNull Matrix other) {
-    matrix.subi(asJBLAS(other).matrix);
+    Preconditions.checkArgument(other.numberOfColumns() == numberOfColumns() && other.numberOfRows() == numberOfRows(), "Dimension Mismatch");
+    if (other instanceof DenseMatrix) {
+      matrix.subi(other.toDense().matrix);
+    } else {
+      other.forEachSparse(e -> increment(e.row, e.column, e.value));
+    }
     return this;
   }
 
   @Override
-  public Matrix multiplySelf(@NonNull Matrix other) {
-    matrix.mmuli(asJBLAS(other).matrix);
+  public Matrix scaleSelf(@NonNull Matrix other) {
+    Preconditions.checkArgument(other.numberOfColumns() == numberOfColumns() && other.numberOfRows() == numberOfRows(), "Dimension Mismatch");
+    if (other instanceof DenseMatrix) {
+      matrix.muli(other.toDense().matrix);
+    } else {
+      forEachSparse(e -> increment(e.row, e.column, other.get(e.row, e.column)));
+    }
     return this;
   }
 
   @Override
-  public Matrix multiplySelf(Vector v) {
-    return null;
+  public Matrix scaleSelf(@NonNull Vector other) {
+    Preconditions.checkArgument(other.dimension() == numberOfColumns(), "Dimension Mismatch");
+    for (int r = 0; r < numberOfRows(); r++) {
+      for (int c = 0; c < numberOfColumns(); c++) {
+        set(r, c, get(r, c) * other.get(c));
+      }
+    }
+    return this;
   }
 
   @Override
@@ -242,6 +266,11 @@ public class DenseMatrix implements Matrix, Serializable {
   @Override
   public String toString() {
     return matrix.toString();
+  }
+
+  @Override
+  public DenseMatrix toDense() {
+    return this;
   }
 
 }// END OF DenseMatrix

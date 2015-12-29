@@ -40,6 +40,7 @@ import java.util.stream.IntStream;
 public interface Matrix extends Copyable<Matrix>, Iterable<Matrix.Entry> {
 
 
+
   @Override
   default Iterator<Entry> iterator() {
     return new Iterator<Entry>() {
@@ -77,6 +78,9 @@ public interface Matrix extends Copyable<Matrix>, Iterable<Matrix.Entry> {
       }
     };
   }
+
+  DenseMatrix toDense();
+
 
   /**
    * For each sparse.
@@ -272,17 +276,41 @@ public interface Matrix extends Copyable<Matrix>, Iterable<Matrix.Entry> {
    */
   Matrix subtractSelf(Matrix other);
 
+  /**
+   * Scale matrix.
+   *
+   * @param other the other
+   * @return the matrix
+   */
   default Matrix scale(@NonNull Matrix other) {
     return copy().scaleSelf(other);
   }
 
+  /**
+   * Scale self matrix.
+   *
+   * @param other the other
+   * @return the matrix
+   */
   Matrix scaleSelf(Matrix other);
 
 
+  /**
+   * Scale matrix.
+   *
+   * @param other the other
+   * @return the matrix
+   */
   default Matrix scale(@NonNull Vector other) {
     return copy().scaleSelf(other);
   }
 
+  /**
+   * Scale self matrix.
+   *
+   * @param other the other
+   * @return the matrix
+   */
   Matrix scaleSelf(Vector other);
 
 
@@ -329,14 +357,6 @@ public interface Matrix extends Copyable<Matrix>, Iterable<Matrix.Entry> {
    * @return the matrix
    */
   Matrix multiply(@NonNull Matrix m);
-
-  /**
-   * Multiply matrix.
-   *
-   * @param v the v
-   * @return the matrix
-   */
-  Matrix multiply(@NonNull Vector v);
 
   /**
    * Transpose matrix.
@@ -394,6 +414,11 @@ public interface Matrix extends Copyable<Matrix>, Iterable<Matrix.Entry> {
    */
   default Matrix decrement(int row, int col) {
     return increment(row, col, -1);
+  }
+
+  default Matrix scale(int r, int c, double amount) {
+    set(r, c, get(r, c) * amount);
+    return this;
   }
 
   /**

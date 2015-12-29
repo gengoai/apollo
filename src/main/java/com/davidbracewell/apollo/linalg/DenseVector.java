@@ -93,7 +93,7 @@ public class DenseVector implements Vector, Serializable {
    * @param array The array to warp
    * @return a new <code>DenseVector</code> that wraps a given array.
    */
-  public static Vector wrap(@NonNull double[] array) {
+  public static Vector wrap(@NonNull double... array) {
     DenseVector v = new DenseVector();
     v.data = array;
     return v;

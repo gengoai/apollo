@@ -78,7 +78,6 @@ public interface Matrix extends Copyable<Matrix>, Iterable<Matrix.Entry> {
     };
   }
 
-
   /**
    * For each sparse.
    *
@@ -273,6 +272,20 @@ public interface Matrix extends Copyable<Matrix>, Iterable<Matrix.Entry> {
    */
   Matrix subtractSelf(Matrix other);
 
+  default Matrix scale(@NonNull Matrix other) {
+    return copy().scaleSelf(other);
+  }
+
+  Matrix scaleSelf(Matrix other);
+
+
+  default Matrix scale(@NonNull Vector other) {
+    return copy().scaleSelf(other);
+  }
+
+  Matrix scaleSelf(Vector other);
+
+
   /**
    * Scale self.
    *
@@ -315,17 +328,7 @@ public interface Matrix extends Copyable<Matrix>, Iterable<Matrix.Entry> {
    * @param m the m
    * @return the matrix
    */
-  default Matrix multiply(@NonNull Matrix m) {
-    return copy().multiplySelf(m);
-  }
-
-  /**
-   * Multiply self matrix.
-   *
-   * @param m the m
-   * @return the matrix
-   */
-  Matrix multiplySelf(Matrix m);
+  Matrix multiply(@NonNull Matrix m);
 
   /**
    * Multiply matrix.
@@ -333,17 +336,7 @@ public interface Matrix extends Copyable<Matrix>, Iterable<Matrix.Entry> {
    * @param v the v
    * @return the matrix
    */
-  default Matrix multiply(@NonNull Vector v) {
-    return copy().multiplySelf(v);
-  }
-
-  /**
-   * Multiply self matrix.
-   *
-   * @param v the v
-   * @return the matrix
-   */
-  Matrix multiplySelf(Vector v);
+  Matrix multiply(@NonNull Vector v);
 
   /**
    * Transpose matrix.
@@ -420,6 +413,7 @@ public interface Matrix extends Copyable<Matrix>, Iterable<Matrix.Entry> {
      * The Value.
      */
     public double value;
+
   }
 
 }//END OF Matrix

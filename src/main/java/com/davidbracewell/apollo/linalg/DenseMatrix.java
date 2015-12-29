@@ -170,7 +170,7 @@ public class DenseMatrix implements Matrix, Serializable {
 
   @Override
   public Matrix multiply(@NonNull Matrix m) {
-    Preconditions.checkArgument(m.numberOfColumns() == numberOfRows(), "Dimension Mismatch");
+    Preconditions.checkArgument(numberOfColumns() == m.numberOfRows(), "Dimension Mismatch");
     return new DenseMatrix(matrix.mmul(m.toDense().matrix));
   }
 

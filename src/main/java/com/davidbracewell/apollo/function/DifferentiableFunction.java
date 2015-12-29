@@ -8,7 +8,7 @@ import com.davidbracewell.function.SerializableDoubleUnaryOperator;
 public interface DifferentiableFunction extends SerializableDoubleUnaryOperator {
   double H = 0.000001;
 
-  default double gradientAsDouble(double value) {
+  default double gradient(double value) {
     return (applyAsDouble(value + H) - applyAsDouble(value)) / H;
   }
 

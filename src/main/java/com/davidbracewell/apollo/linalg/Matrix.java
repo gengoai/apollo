@@ -30,6 +30,7 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.PrimitiveIterator;
 import java.util.function.Consumer;
+import java.util.function.DoubleUnaryOperator;
 import java.util.stream.IntStream;
 
 /**
@@ -38,7 +39,6 @@ import java.util.stream.IntStream;
  * @author David B. Bracewell
  */
 public interface Matrix extends Copyable<Matrix>, Iterable<Matrix.Entry> {
-
 
 
   @Override
@@ -98,6 +98,15 @@ public interface Matrix extends Copyable<Matrix>, Iterable<Matrix.Entry> {
    */
   default void forEachOrderedSparse(@NonNull Consumer<Matrix.Entry> consumer) {
     orderedNonZeroIterator().forEachRemaining(consumer);
+  }
+
+  default Matrix map(@NonNull DoubleUnaryOperator operator) {
+    return copy().mapSelf(operator);
+  }
+
+  default Matrix mapSelf(@NonNull DoubleUnaryOperator operator) {
+    forEach(entry -> set(entry.row, entry.column, operator.applyAsDouble(entry.value)));
+    return this;
   }
 
   /**

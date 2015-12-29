@@ -1,8 +1,6 @@
 package com.davidbracewell.apollo.ml.classification.neural;
 
 import com.davidbracewell.apollo.function.DifferentiableFunction;
-import com.davidbracewell.apollo.function.Sigmoid;
-import com.davidbracewell.apollo.function.TanH;
 import com.davidbracewell.apollo.linalg.DenseVector;
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.Dataset;

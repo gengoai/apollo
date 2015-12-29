@@ -23,7 +23,7 @@ public class Neuron implements Serializable {
   }
 
   public double gradient(Vector input) {
-    return activation.gradientAsDouble(input.dot(weights));
+    return activation.gradient(input.dot(weights));
   }
 
 }// END OF Neuron

@@ -4,9 +4,7 @@ import com.davidbracewell.apollo.DifferentiableFunction;
 import com.davidbracewell.apollo.linalg.DenseVector;
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.Dataset;
-import com.davidbracewell.apollo.ml.FeatureVector;
 import com.davidbracewell.apollo.ml.Instance;
-import com.davidbracewell.apollo.ml.classification.Classification;
 import com.davidbracewell.apollo.ml.classification.Classifier;
 import com.davidbracewell.apollo.ml.classification.ClassifierLearner;
 
@@ -14,9 +12,10 @@ import com.davidbracewell.apollo.ml.classification.ClassifierLearner;
  * @author David B. Bracewell
  */
 public class MLP extends ClassifierLearner {
-
+  private static final long serialVersionUID = 1L;
   private int[] hiddenLayers = new int[]{50};
   private double learningRate = 1.0;
+  private double momentum = 1.0;
 
   @Override
   protected Classifier trainImpl(Dataset<Instance> dataset) {
@@ -34,19 +33,7 @@ public class MLP extends ClassifierLearner {
     }
 
     for (Instance instance : dataset) {
-      FeatureVector v = instance.toVector(model.getEncoderPair());
-      Classification result = model.classify(v);
-      double y = v.getLabel();
-      double yHat = result.getEncodedResult();
-      if (y != yHat) {
-        double[] predicted = result.distribution();
-        double e = 0;
-        for (int i = 0; i < predicted.length; i++) {
-          e += Math.pow(predicted[i] - (y == i ? 1.0 : 0.0), 2);
-        }
-        e /= 2.0;
 
-      }
     }
 
     return model;

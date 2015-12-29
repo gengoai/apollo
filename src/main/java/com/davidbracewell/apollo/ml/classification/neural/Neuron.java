@@ -10,6 +10,7 @@ import java.io.Serializable;
  * @author David B. Bracewell
  */
 public class Neuron implements Serializable {
+  private static final long serialVersionUID = 1L;
   private final DifferentiableFunction activation;
   private Vector weights;
 

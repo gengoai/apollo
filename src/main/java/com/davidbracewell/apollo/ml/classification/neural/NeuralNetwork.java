@@ -58,8 +58,11 @@ public class NeuralNetwork extends Classifier {
     for (int j = 0; j < 60000; j++) {
       Matrix l1 = X.multiply(syn0).mapSelf(sigmoid);
       Matrix l2 = l1.multiply(syn1).mapSelf(sigmoid);
+
       Matrix l2Gradient = l2.map(sigmoid::gradientOfResult);
       Matrix l2_delta = Y.subtract(l2).scaleSelf(l2Gradient);
+
+
       Matrix l1Gradient = l1.map(sigmoid::gradientOfResult);
       Matrix l1_delta = l2_delta.multiply(syn1.transpose()).scaleSelf(l1Gradient);
       syn1.addSelf(l1.transpose().multiply(l2_delta));

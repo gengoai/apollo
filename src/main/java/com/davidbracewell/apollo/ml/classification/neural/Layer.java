@@ -10,6 +10,7 @@ import java.io.Serializable;
  * @author David B. Bracewell
  */
 public class Layer implements Serializable {
+  private static final long serialVersionUID = 1L;
   private final Neuron[] neurons;
   private int inputSize;
 
@@ -32,7 +33,7 @@ public class Layer implements Serializable {
   public Vector gradient(Vector input) {
     Vector gradient = new SparseVector(inputSize);
     for (int i = 0; i < neurons.length; i++) {
-
+      gradient.set(i, neurons[i].gradient(input));
     }
     return gradient;
   }

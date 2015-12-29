@@ -1,6 +1,6 @@
 package com.davidbracewell.apollo.ml.classification.neural;
 
-import com.davidbracewell.apollo.function.DifferentiableFunction;
+import com.davidbracewell.apollo.DifferentiableFunction;
 import com.davidbracewell.apollo.linalg.SparseVector;
 import com.davidbracewell.apollo.linalg.Vector;
 

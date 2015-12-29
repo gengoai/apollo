@@ -19,15 +19,18 @@
  * under the License.
  */
 
-package com.davidbracewell.apollo.ml.classification.neural;
+package com.davidbracewell.apollo;
 
-import com.davidbracewell.apollo.DifferentiableFunction;
+import com.davidbracewell.function.SerializableDoubleUnaryOperator;
 
 /**
  * @author David B. Bracewell
  */
-public interface Activation extends DifferentiableFunction{
+public interface DifferentiableFunction extends SerializableDoubleUnaryOperator {
+  double H = 0.000001;
 
-  double gradientOfResult(double value);
+  default double gradient(double value) {
+    return (applyAsDouble(value + H) - applyAsDouble(value)) / H;
+  }
 
-}//END OF Activation
+}//END OF DifferentiableFunction

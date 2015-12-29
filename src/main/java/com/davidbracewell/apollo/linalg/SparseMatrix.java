@@ -81,10 +81,24 @@ public class SparseMatrix implements Matrix, Serializable {
   }
 
   public static void main(String[] args) {
-    Matrix m = new DenseMatrix(10, 10);
-    m.set(5, 5, 100);
-    m.set(8, 8, 23);
-    m.forEachSparse(System.out::println);
+    SparseMatrix m1 = new SparseMatrix(2, 3);
+    m1.set(0, 1, -1);
+    m1.set(0, 2, 2);
+    m1.set(1, 0, 4);
+    m1.set(1, 1, 11);
+    m1.set(1, 2, 2);
+
+    SparseMatrix m2 = new SparseMatrix(3, 2);
+    m2.set(0, 0, 3);
+    m2.set(0, 1, -1);
+    m2.set(1, 0, 1);
+    m2.set(0, 1, 2);
+    m2.set(2, 0, 6);
+    m2.set(2, 1, 1);
+
+    Matrix m3 = m1.multiply(m2);
+    System.out.println(m3);
+
   }
 
   @Override
@@ -125,7 +139,6 @@ public class SparseMatrix implements Matrix, Serializable {
       }
     };
   }
-
 
   @Override
   public Iterator<Entry> orderedNonZeroIterator() {
@@ -278,20 +291,23 @@ public class SparseMatrix implements Matrix, Serializable {
   }
 
   @Override
-  public Matrix multiplySelf(Matrix m) {
-    return null;
+  public Matrix multiply(@NonNull Matrix m) {
+    Preconditions.checkArgument(numberOfColumns() == m.numberOfRows(), "Dimension Mismatch");
+    SparseMatrix mprime = new SparseMatrix(numberOfRows(), m.numberOfColumns());
+    return mprime;
   }
 
   @Override
-  public Matrix multiply(Vector v) {
-    Preconditions.checkNotNull(v);
-    SparseMatrix m = new SparseMatrix(numberOfRows(), numberOfColumns());
-    for (int row : matrix.keys().elements()) {
-      Vector rowV = row(row);
-      m.setRow(row, rowV.multiply(v));
-    }
-    return m;
+  public Matrix multiplySelf(@NonNull Matrix m) {
+    Preconditions.checkArgument(numberOfColumns() == m.numberOfRows(), "Dimension Mismatch");
+    IntStream.range(0, numberOfRows())
+      .parallel()
+      .forEach(r -> {
+        setRow(r, row(r).multiplySelf(m.column(r)));
+      });
+    return this;
   }
+
 
   @Override
   public Matrix multiplySelf(Vector v) {

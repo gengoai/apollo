@@ -48,7 +48,7 @@ public class SparseMatrix implements Matrix, Serializable {
     return new SparseMatrix(numberOfRows, numberOfColumns).incrementSelf(1);
   }
 
-  public static Matrix eye(int size) {
+  public static Matrix unit(int size) {
     Matrix m = new SparseMatrix(size, size);
     for (int r = 0; r < size; r++) {
       m.set(r, r, 1d);

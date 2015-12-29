@@ -58,6 +58,7 @@ public class DenseMatrix implements Matrix, Serializable {
     matrix.forEachSparse(e -> this.matrix.put(e.row, e.column, e.value));
   }
 
+
   /**
    * Instantiates a new Dense matrix.
    *
@@ -65,17 +66,6 @@ public class DenseMatrix implements Matrix, Serializable {
    */
   public DenseMatrix(DoubleMatrix matrix) {
     this.matrix = matrix;
-  }
-
-  /**
-   * Zeroes matrix.
-   *
-   * @param rowDimension    the row dimension
-   * @param columnDimension the column dimension
-   * @return the matrix
-   */
-  public static Matrix zeroes(int rowDimension, int columnDimension) {
-    return new DenseMatrix(DoubleMatrix.zeros(rowDimension, columnDimension));
   }
 
   /**
@@ -89,6 +79,10 @@ public class DenseMatrix implements Matrix, Serializable {
     return new DenseMatrix(DoubleMatrix.ones(rowDimension, columnDimension));
   }
 
+  public static Matrix random(int numberOfRows, int numberOfColumns) {
+    return new DenseMatrix(DoubleMatrix.rand(numberOfRows, numberOfColumns));
+  }
+
   /**
    * Unit matrix.
    *
@@ -99,73 +93,15 @@ public class DenseMatrix implements Matrix, Serializable {
     return new DenseMatrix(DoubleMatrix.eye(N));
   }
 
-  public DoubleMatrix asDoubleMatrix() {
-    return matrix;
-  }
-
-  @Override
-  public Vector dot(Vector v) {
-    DenseVector result = new DenseVector(numberOfRows());
-    for (int i = 0; i < numberOfRows(); i++) {
-      result.set(i, row(i).dot(v));
-    }
-    return result;
-  }
-
-
-  @Override
-  public Matrix increment(int row, int col, double amount) {
-    set(row, col, get(row, col) + amount);
-    return this;
-  }
-
-  @Override
-  public Vector column(int column) {
-    return new DenseVector(matrix.getColumn(column).toArray());
-  }
-
-  @Override
-  public Vector row(int row) {
-    return new DenseVector(matrix.getRow(row).toArray());
-  }
-
-  @Override
-  public double get(int row, int column) {
-    return matrix.get(row, column);
-  }
-
-  @Override
-  public void set(int row, int column, double value) {
-    matrix.put(row, column, value);
-  }
-
-  @Override
-  public void setColumn(int column, Vector vector) {
-    for (Vector.Entry entry : Collect.asIterable(vector.nonZeroIterator())) {
-      set(entry.index, column, entry.value);
-    }
-  }
-
-  @Override
-  public void setRow(int row, Vector vector) {
-    for (Vector.Entry entry : Collect.asIterable(vector.iterator())) {
-      set(row, entry.index, entry.value);
-    }
-  }
-
-  @Override
-  public double[][] toArray() {
-    return matrix.toArray2();
-  }
-
-  @Override
-  public int numberOfRows() {
-    return matrix.rows;
-  }
-
-  @Override
-  public int numberOfColumns() {
-    return matrix.columns;
+  /**
+   * Zeroes matrix.
+   *
+   * @param rowDimension    the row dimension
+   * @param columnDimension the column dimension
+   * @return the matrix
+   */
+  public static Matrix zeroes(int rowDimension, int columnDimension) {
+    return new DenseMatrix(DoubleMatrix.zeros(rowDimension, columnDimension));
   }
 
   @Override
@@ -174,43 +110,6 @@ public class DenseMatrix implements Matrix, Serializable {
       return new DenseMatrix(matrix.add(m.toDense().matrix));
     }
     return Matrix.super.add(m);
-  }
-
-  @Override
-  public Matrix subtract(@NonNull Matrix m) {
-    if (m instanceof DenseMatrix) {
-      return new DenseMatrix(matrix.sub(m.toDense().matrix));
-    }
-    return Matrix.super.add(m);
-  }
-
-  @Override
-  public Matrix scaleSelf(double value) {
-    matrix.muli(value);
-    return this;
-  }
-
-  @Override
-  public Matrix incrementSelf(double value) {
-    matrix.addi(value);
-    return this;
-  }
-
-  @Override
-  public Matrix multiply(@NonNull Matrix m) {
-    Preconditions.checkArgument(m.numberOfColumns() == numberOfRows(), "Dimension Mismatch");
-    return new DenseMatrix(matrix.mmul(m.toDense().matrix));
-  }
-
-
-  @Override
-  public Matrix transpose() {
-    return new DenseMatrix(matrix.transpose());
-  }
-
-  @Override
-  public boolean isSparse() {
-    return false;
   }
 
   @Override
@@ -224,14 +123,75 @@ public class DenseMatrix implements Matrix, Serializable {
     return this;
   }
 
+  public DoubleMatrix asDoubleMatrix() {
+    return matrix;
+  }
+
   @Override
-  public Matrix subtractSelf(@NonNull Matrix other) {
-    Preconditions.checkArgument(other.numberOfColumns() == numberOfColumns() && other.numberOfRows() == numberOfRows(), "Dimension Mismatch");
-    if (other instanceof DenseMatrix) {
-      matrix.subi(other.toDense().matrix);
-    } else {
-      other.forEachSparse(e -> increment(e.row, e.column, e.value));
+  public Vector column(int column) {
+    return new DenseVector(matrix.getColumn(column).toArray());
+  }
+
+  @Override
+  public Matrix copy() {
+    return new DenseMatrix(toArray());
+  }
+
+  @Override
+  public Vector dot(Vector v) {
+    DenseVector result = new DenseVector(numberOfRows());
+    for (int i = 0; i < numberOfRows(); i++) {
+      result.set(i, row(i).dot(v));
     }
+    return result;
+  }
+
+  @Override
+  public double get(int row, int column) {
+    return matrix.get(row, column);
+  }
+
+  @Override
+  public Matrix increment(int row, int col, double amount) {
+    set(row, col, get(row, col) + amount);
+    return this;
+  }
+
+  @Override
+  public Matrix incrementSelf(double value) {
+    matrix.addi(value);
+    return this;
+  }
+
+  @Override
+  public boolean isSparse() {
+    return false;
+  }
+
+  @Override
+  public Matrix multiply(@NonNull Matrix m) {
+    Preconditions.checkArgument(m.numberOfColumns() == numberOfRows(), "Dimension Mismatch");
+    return new DenseMatrix(matrix.mmul(m.toDense().matrix));
+  }
+
+  @Override
+  public int numberOfColumns() {
+    return matrix.columns;
+  }
+
+  @Override
+  public int numberOfRows() {
+    return matrix.rows;
+  }
+
+  @Override
+  public Vector row(int row) {
+    return new DenseVector(matrix.getRow(row).toArray());
+  }
+
+  @Override
+  public Matrix scaleSelf(double value) {
+    matrix.muli(value);
     return this;
   }
 
@@ -258,10 +218,52 @@ public class DenseMatrix implements Matrix, Serializable {
   }
 
   @Override
-  public Matrix copy() {
-    return new DenseMatrix(toArray());
+  public void set(int row, int column, double value) {
+    matrix.put(row, column, value);
   }
 
+  @Override
+  public void setColumn(int column, Vector vector) {
+    for (Vector.Entry entry : Collect.asIterable(vector.nonZeroIterator())) {
+      set(entry.index, column, entry.value);
+    }
+  }
+
+  @Override
+  public void setRow(int row, Vector vector) {
+    for (Vector.Entry entry : Collect.asIterable(vector.iterator())) {
+      set(row, entry.index, entry.value);
+    }
+  }
+
+  @Override
+  public Matrix subtract(@NonNull Matrix m) {
+    if (m instanceof DenseMatrix) {
+      return new DenseMatrix(matrix.sub(m.toDense().matrix));
+    }
+    return Matrix.super.add(m);
+  }
+
+  @Override
+  public Matrix subtractSelf(@NonNull Matrix other) {
+    Preconditions.checkArgument(other.numberOfColumns() == numberOfColumns() && other.numberOfRows() == numberOfRows(), "Dimension Mismatch");
+    if (other instanceof DenseMatrix) {
+      matrix.subi(other.toDense().matrix);
+    } else {
+      other.forEachSparse(e -> increment(e.row, e.column, e.value));
+    }
+    return this;
+  }
+
+  @Override
+  public double[][] toArray() {
+    return matrix.toArray2();
+  }
+
+  @Override
+  public DenseMatrix toDense() {
+    return this;
+  }
 
   @Override
   public String toString() {
@@ -269,8 +271,8 @@ public class DenseMatrix implements Matrix, Serializable {
   }
 
   @Override
-  public DenseMatrix toDense() {
-    return this;
+  public Matrix transpose() {
+    return new DenseMatrix(matrix.transpose());
   }
 
 }// END OF DenseMatrix

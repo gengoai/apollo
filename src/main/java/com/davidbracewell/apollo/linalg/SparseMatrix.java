@@ -48,6 +48,9 @@ public class SparseMatrix implements Matrix, Serializable {
     this.colDimension = numColumns;
     this.numberOfRows = numRows;
     this.matrix = new OpenIntObjectHashMap<>();
+    for (int r = 0; r < numRows; r++) {
+      matrix.put(r, new SparseVector(numColumns));
+    }
   }
 
   public SparseMatrix(@NonNull Matrix matrix) {
@@ -102,11 +105,6 @@ public class SparseMatrix implements Matrix, Serializable {
     return m;
   }
 
-  public static void main(String[] args) {
-    Matrix m1 = SparseMatrix.random(1000, 1000);
-    Matrix m2 = SparseMatrix.random(1000, 1000);
-    System.out.println(m1.multiply(m2));
-  }
 
   @Override
   public DenseMatrix toDense() {

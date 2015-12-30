@@ -24,7 +24,7 @@ public class Layer implements Serializable {
   }
 
   public Matrix evaluate(Matrix input) {
-    return input.multiply(matrix);
+    return input.multiply(matrix).mapSelf(activation);
   }
 
   public Matrix gradient(Matrix input) {

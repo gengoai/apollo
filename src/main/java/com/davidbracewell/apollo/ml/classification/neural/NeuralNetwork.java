@@ -27,16 +27,6 @@ public class NeuralNetwork extends Classifier {
     super(encoderPair, preprocessors);
   }
 
-  @Override
-  public Classification classify(Vector vector) {
-    Matrix v = vector.transpose();
-    for (Layer layer : layers) {
-      v = layer.evaluate(v);
-    }
-    return null; // new Classification(v.toArray(), getLabelEncoder());
-  }
-
-
   public static void main(String[] args) throws Exception {
     Matrix X = new DenseMatrix(new double[][]{
       new double[]{0, 0, 1},
@@ -49,7 +39,7 @@ public class NeuralNetwork extends Classifier {
     Matrix XTranspose = X.transpose();
 
     Matrix Y = new DenseMatrix(new double[][]{
-      new double[]{0, 1, 1, 0,1}
+      new double[]{0, 1, 1, 0, 1}
     }).transpose();
 
     Matrix syn0 = DenseMatrix.random(3, 4).mapSelf(d -> 2.0 * d - 1);
@@ -62,7 +52,6 @@ public class NeuralNetwork extends Classifier {
 
       Matrix l2Gradient = l2.map(sigmoid::gradientOfResult);
       Matrix l2_delta = Y.subtract(l2).scaleSelf(l2Gradient);
-
 
 
       Matrix l1Gradient = l1.map(sigmoid::gradientOfResult);
@@ -78,6 +67,15 @@ public class NeuralNetwork extends Classifier {
       .mapSelf(sigmoid::applyAsDouble);
     System.out.println(l2);
 
+  }
+
+  @Override
+  public Classification classify(Vector vector) {
+    Matrix v = vector.toMatrix();
+    for (Layer layer : layers) {
+      v = layer.evaluate(v);
+    }
+    return new Classification(v.row(0).toArray(), getLabelEncoder());
   }
 
 

@@ -1,7 +1,6 @@
 package com.davidbracewell.apollo.ml.classification.neural;
 
 import com.davidbracewell.apollo.linalg.DenseVector;
-import com.davidbracewell.apollo.linalg.Matrix;
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.Dataset;
 import com.davidbracewell.apollo.ml.Feature;
@@ -18,9 +17,11 @@ import com.davidbracewell.io.resource.Resource;
 import com.davidbracewell.logging.Logger;
 import com.davidbracewell.stream.Streams;
 import com.davidbracewell.string.StringUtils;
+import com.davidbracewell.tuple.Tuple2;
 import com.google.common.base.Joiner;
 import com.google.common.base.Stopwatch;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -34,10 +35,9 @@ public class MLP extends ClassifierLearner {
   private static final Logger log = Logger.getLogger(MLP.class);
   private static final long serialVersionUID = 1L;
   private int[] hiddenLayers = new int[]{50};
-  private double learningRate = 0.9;
-  private double momentum = 1.0;
-  private double tolerance = 0.000001;
-  private double maxIterations = 60000;
+  private double learningRate = 1;
+  private double tolerance = 0.0001;
+  private double maxIterations = 100;
   private boolean verbose = true;
 
   public static void main(String[] args) throws Exception {
@@ -90,61 +90,42 @@ public class MLP extends ClassifierLearner {
       dataset.getPreprocessors()
     );
 
-    model.layers = new Layer[hiddenLayers.length + 1];
-    for (int i = 0; i < model.layers.length; i++) {
-      int inputSize = (i == 0 ? model.numberOfFeatures() : model.layers[i - 1].getMatrix().numberOfColumns());
-      int outputSize = (i == hiddenLayers.length ? model.numberOfLabels() : hiddenLayers[i]);
-      Activation af = i + 1 == model.layers.length ? new Sigmoid() : new TanH();
-      model.layers[i] = new Layer(inputSize, outputSize, af);
+    List<Tuple2<Integer, Activation>> layers = new ArrayList<>();
+    for (int hiddenLayer : hiddenLayers) {
+      layers.add(Tuple2.of(hiddenLayer, new Sigmoid()));
     }
+    model.network = new Network(layers, dataset.getEncoderPair());
 
-    int nL = model.layers.length;
-    int outputLayer = nL - 1;
-
-    Layer[] net = model.layers;
     double lastError = 0;
     double lastLastError = 0;
     Stopwatch sw = Stopwatch.createUnstarted();
     for (int iteration = 0; iteration < maxIterations; iteration++) {
       double error = 0;
+      double N = 0;
       sw.start();
       for (Instance instance : dataset) {
+        N++;
         FeatureVector v = instance.toVector(model.getEncoderPair());
         Vector yVec = new DenseVector(model.numberOfLabels());
         yVec.set((int) v.getLabel(), 1);
-
-        Matrix[] outputs = new Matrix[nL];
-        Matrix input = v.toMatrix();
-        for (int i = 0; i < nL; i++) {
-          outputs[i] = model.layers[i].evaluate(input);
-          input = outputs[i];
-        }
-
-        Matrix[] deltas = new Matrix[nL];
-        for (int i = 0; i < model.numberOfLabels(); i++) {
-          error += Math.pow(yVec.get(i) - input.get(0, i),2);
-        }
-        deltas[outputLayer] = yVec.toMatrix().subtract(input).scaleSelf(net[outputLayer].gradient(input));
-        for (int i = nL - 2; i >= 0; i--) {
-          deltas[i] = deltas[i + 1].multiply(net[i + 1].getMatrix().transpose()).scaleSelf(net[i].gradient(outputs[i])).scale(learningRate);
-        }
-
-        net[0].getMatrix().addSelf(v.transpose().multiply(deltas[0]));
-        for (int i = 1; i < nL; i++) {
-          net[i].getMatrix().addSelf(outputs[i - 1].transpose().multiply(deltas[i]));
-        }
+        error += model.network.backprop(
+          model.network.forward(v),
+          v,
+          yVec,
+          learningRate
+        );
       }
-
+      error = error / N;
       sw.stop();
       if (verbose) {
-        log.info("Iteration {0}: total error={1,number,0.00000} [{2}]", iteration, error, sw);
+        log.info("Iteration {0}: total error={1,number,0.00000} [{2}]", (iteration + 1), error, sw);
       }
       sw.reset();
 
-      if ( error == 0 ||
+      if (error == 0 ||
         (iteration > 2 &&
-        Math.signum(error) == Math.signum(lastError) && Math.abs(error - lastError) < tolerance &&
-        Math.signum(lastError) == Math.signum(lastLastError) && Math.abs(lastError - lastLastError) < tolerance)) {
+          Math.signum(error) == Math.signum(lastError) && Math.abs(error - lastError) < tolerance &&
+          Math.signum(lastError) == Math.signum(lastLastError) && Math.abs(lastError - lastLastError) < tolerance)) {
         break;
       }
       lastLastError = lastError;

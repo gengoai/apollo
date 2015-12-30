@@ -26,7 +26,11 @@ import com.google.common.base.Preconditions;
 import lombok.NonNull;
 import org.apache.mahout.math.map.OpenIntDoubleHashMap;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.PrimitiveIterator;
 import java.util.stream.IntStream;
 
 /**
@@ -105,7 +109,7 @@ public class SparseMatrix extends AbstractMatrix {
   @Override
   public Iterator<Entry> nonZeroIterator() {
     return new Iterator<Entry>() {
-      private PrimitiveIterator.OfInt rowItr = IntStream.range(0,numberOfRows).iterator();
+      private PrimitiveIterator.OfInt rowItr = IntStream.range(0, numberOfRows).iterator();
       private int row;
       private Integer currentColumn = null;
       private Iterator<Vector.Entry> colItr;
@@ -201,7 +205,9 @@ public class SparseMatrix extends AbstractMatrix {
   public void set(int row, int column, double value) {
     Preconditions.checkElementIndex(row, numberOfRows());
     Preconditions.checkElementIndex(column, numberOfColumns());
-    matrix.put(encode(row, column), value);
+    synchronized (this) {
+      matrix.put(encode(row, column), value);
+    }
   }
 
   @Override
@@ -227,7 +233,9 @@ public class SparseMatrix extends AbstractMatrix {
   public Matrix increment(int row, int col, double amount) {
     Preconditions.checkElementIndex(row, numberOfRows());
     Preconditions.checkElementIndex(col, numberOfColumns());
-    matrix.adjustOrPutValue(encode(row, col), amount, amount);
+    synchronized (this) {
+      matrix.adjustOrPutValue(encode(row, col), amount, amount);
+    }
     return this;
   }
 

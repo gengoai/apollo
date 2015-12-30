@@ -370,4 +370,10 @@ public abstract class AbstractMatrix implements Matrix, Serializable {
     return T;
   }
 
+  @Override
+  public double[][] toArray() {
+    double[][] array = new double[numberOfRows()][numberOfColumns()];
+    forEachSparse(e -> array[e.row][e.column] = e.value);
+    return array;
+  }
 }//END OF AbstractMatrix

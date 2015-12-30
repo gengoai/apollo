@@ -10,18 +10,8 @@ import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.classification.Classifier;
 import com.davidbracewell.apollo.ml.classification.ClassifierEvaluation;
 import com.davidbracewell.apollo.ml.classification.ClassifierLearner;
-import com.davidbracewell.function.Unchecked;
-import com.davidbracewell.io.Resources;
-import com.davidbracewell.io.resource.Resource;
-import com.davidbracewell.stream.Streams;
-import com.davidbracewell.string.StringUtils;
-import com.google.common.base.Joiner;
 
 import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.stream.Collectors;
 
 /**
  * @author David B. Bracewell
@@ -31,36 +21,37 @@ public class MLP extends ClassifierLearner {
   private int[] hiddenLayers = new int[]{50};
   private double learningRate = 0.3;
   private double momentum = 1.0;
-  private double maxIterations = 100;
+  private double tolerance = 0.000001;
+  private double maxIterations = 60000;
 
   public static void main(String[] args) throws Exception {
-//    Dataset<Instance> dataset = Dataset.classification()
-//      .localSource(
-//        Arrays.asList(
-//          Instance.create(Arrays.asList(Feature.TRUE("3")), "false"),
-//          Instance.create(Arrays.asList(Feature.TRUE("2"), Feature.TRUE("3")), "true"),
-//          Instance.create(Arrays.asList(Feature.TRUE("1"), Feature.TRUE("3")), "true"),
-//          Instance.create(Arrays.asList(Feature.TRUE("1"), Feature.TRUE("2"), Feature.TRUE("3")), "false")
-//        ).stream()
-//      )
-//      .build();
-
     Dataset<Instance> dataset = Dataset.classification()
       .localSource(
-        Resources.fromFile("/home/david/Downloads/Data/SomasundaranWiebe-politicalDebates/abortion")
-          .getChildren()
-          .stream()
-          .map(Unchecked.function(Resource::readToString))
-          .map(doc -> {
-            String[] parts = doc.split("\n+");
-            String label = parts[0].split("=")[1];
-            String content = Joiner.on('\n').join(Arrays.copyOfRange(parts, 3, parts.length)).toLowerCase();
-            Map<String, Long> counts = Streams.of(content.split("[^A-Za-z]+")).filter(s -> !StringUtils.isNullOrBlank(s)).countByValue();
-            List<Feature> features = counts.entrySet().stream().map(e -> Feature.real(e.getKey(), e.getValue())).collect(Collectors.toList());
-            return Instance.create(features, label);
-          })
-      ).build()
-      .shuffle(new Random(123));
+        Arrays.asList(
+          Instance.create(Arrays.asList(Feature.TRUE("3")), "false"),
+          Instance.create(Arrays.asList(Feature.TRUE("2"), Feature.TRUE("3")), "true"),
+          Instance.create(Arrays.asList(Feature.TRUE("1"), Feature.TRUE("3")), "true"),
+          Instance.create(Arrays.asList(Feature.TRUE("1"), Feature.TRUE("2"), Feature.TRUE("3")), "false")
+        ).stream()
+      )
+      .build();
+//
+//    Dataset<Instance> dataset = Dataset.classification()
+//      .localSource(
+//        Resources.fromFile("/home/david/Downloads/Data/SomasundaranWiebe-politicalDebates/abortion")
+//          .getChildren()
+//          .stream()
+//          .map(Unchecked.function(Resource::readToString))
+//          .map(doc -> {
+//            String[] parts = doc.split("\n+");
+//            String label = parts[0].split("=")[1];
+//            String content = Joiner.on('\n').join(Arrays.copyOfRange(parts, 3, parts.length)).toLowerCase();
+//            Map<String, Long> counts = Streams.of(content.split("[^A-Za-z]+")).filter(s -> !StringUtils.isNullOrBlank(s)).countByValue();
+//            List<Feature> features = counts.entrySet().stream().map(e -> Feature.real(e.getKey(), e.getValue())).collect(Collectors.toList());
+//            return Instance.create(features, label);
+//          })
+//      ).build()
+//      .shuffle(new Random(123));
 
     MLP mlp = new MLP();
     mlp.hiddenLayers = new int[]{4};
@@ -85,7 +76,7 @@ public class MLP extends ClassifierLearner {
     for (int i = 0; i < model.layers.length; i++) {
       int inputSize = (i == 0 ? model.numberOfFeatures() : model.layers[i - 1].getMatrix().numberOfColumns());
       int outputSize = (i == hiddenLayers.length ? model.numberOfLabels() : hiddenLayers[i]);
-      Activation af = i +1 == model.layers.length ? new Sigmoid() : new TanH();
+      Activation af = i + 1 == model.layers.length ? new Sigmoid() : new TanH();
       model.layers[i] = new Layer(inputSize, outputSize, af);
     }
 
@@ -93,6 +84,8 @@ public class MLP extends ClassifierLearner {
     int outputLayer = nL - 1;
 
     Layer[] net = model.layers;
+    double lastError = 0;
+    double lastLastError = 0;
     for (int iteration = 0; iteration < maxIterations; iteration++) {
       double error = 0;
       for (Instance instance : dataset) {
@@ -122,6 +115,13 @@ public class MLP extends ClassifierLearner {
         }
       }
       System.err.println(iteration + " :  " + error);
+
+      if (iteration > 2 && Math.abs(error - lastError) < tolerance && Math.abs(lastError - lastLastError) < tolerance) {
+        break;
+      }
+      lastLastError = lastError;
+      lastError = error;
+
     }
 
     return model;

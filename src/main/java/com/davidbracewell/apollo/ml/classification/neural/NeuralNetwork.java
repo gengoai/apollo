@@ -14,6 +14,7 @@ import lombok.NonNull;
  * @author David B. Bracewell
  */
 public class NeuralNetwork extends Classifier {
+  private static final long serialVersionUID = 1L;
 
   Layer[] layers;
 

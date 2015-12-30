@@ -21,11 +21,10 @@
 
 package com.davidbracewell.apollo.linalg;
 
-import com.davidbracewell.collection.Collect;
 import com.davidbracewell.stream.Streams;
 import com.google.common.base.Preconditions;
 import lombok.NonNull;
-import org.apache.mahout.math.map.OpenIntObjectHashMap;
+import org.apache.mahout.math.map.OpenIntDoubleHashMap;
 
 import java.util.*;
 import java.util.stream.IntStream;
@@ -37,15 +36,12 @@ public class SparseMatrix extends AbstractMatrix {
   private static final long serialVersionUID = -3802597548916836308L;
   final private int numberOfRows;
   final private int colDimension;
-  private volatile OpenIntObjectHashMap<Vector> matrix;
+  private volatile OpenIntDoubleHashMap matrix;
 
   public SparseMatrix(int numRows, int numColumns) {
     this.colDimension = numColumns;
     this.numberOfRows = numRows;
-    this.matrix = new OpenIntObjectHashMap<>();
-    for (int r = 0; r < numRows; r++) {
-      matrix.put(r, new SparseVector(numColumns));
-    }
+    this.matrix = new OpenIntDoubleHashMap();
   }
 
   public SparseMatrix(@NonNull Matrix matrix) {
@@ -53,7 +49,7 @@ public class SparseMatrix extends AbstractMatrix {
     matrix.forEachSparse(e -> set(e.row, e.column, e.value));
   }
 
-  public SparseMatrix(Vector[] vectors) {
+  public SparseMatrix(Vector... vectors) {
     this(Arrays.asList(Preconditions.checkNotNull(vectors)));
   }
 
@@ -66,9 +62,9 @@ public class SparseMatrix extends AbstractMatrix {
       this.colDimension = vectors.get(0).dimension();
       this.numberOfRows = vectors.size();
     }
-    this.matrix = new OpenIntObjectHashMap<>();
+    this.matrix = new OpenIntDoubleHashMap();
     for (int i = 0; i < vectors.size(); i++) {
-      this.matrix.put(i, vectors.get(i));
+      setRow(i, vectors.get(i));
     }
   }
 
@@ -109,7 +105,7 @@ public class SparseMatrix extends AbstractMatrix {
   @Override
   public Iterator<Entry> nonZeroIterator() {
     return new Iterator<Entry>() {
-      private PrimitiveIterator.OfInt rowItr = IntStream.of(matrix.keys().toArray(new int[matrix.size()])).iterator();
+      private PrimitiveIterator.OfInt rowItr = IntStream.range(0,numberOfRows).iterator();
       private int row;
       private Integer currentColumn = null;
       private Iterator<Vector.Entry> colItr;
@@ -153,7 +149,7 @@ public class SparseMatrix extends AbstractMatrix {
   @Override
   public Iterator<Entry> orderedNonZeroIterator() {
     return new Iterator<Entry>() {
-      private PrimitiveIterator.OfInt rowItr = IntStream.of(matrix.keys().toArray(new int[matrix.size()])).sorted().iterator();
+      private PrimitiveIterator.OfInt rowItr = IntStream.range(0, numberOfRows).iterator();
       private int row;
       private Integer currentColumn = null;
       private Iterator<Vector.Entry> colItr;
@@ -198,25 +194,14 @@ public class SparseMatrix extends AbstractMatrix {
   public double get(int row, int column) {
     Preconditions.checkElementIndex(row, numberOfRows());
     Preconditions.checkElementIndex(column, numberOfColumns());
-    return row(row).get(column);
+    return matrix.get(encode(row, column));
   }
 
   @Override
   public void set(int row, int column, double value) {
     Preconditions.checkElementIndex(row, numberOfRows());
     Preconditions.checkElementIndex(column, numberOfColumns());
-    row(row).set(column, value);
-  }
-
-  @Override
-  public double[][] toArray() {
-    double[][] m = new double[numberOfRows()][numberOfColumns()];
-    for (int row : matrix.keys().elements()) {
-      for (Vector.Entry entry : Collect.asIterable(matrix.get(row).nonZeroIterator())) {
-        m[row][entry.index] = entry.value;
-      }
-    }
-    return m;
+    matrix.put(encode(row, column), value);
   }
 
   @Override
@@ -234,11 +219,15 @@ public class SparseMatrix extends AbstractMatrix {
     return true;
   }
 
+  public int encode(int row, int col) {
+    return (row * numberOfColumns()) + col;
+  }
+
   @Override
   public Matrix increment(int row, int col, double amount) {
     Preconditions.checkElementIndex(row, numberOfRows());
     Preconditions.checkElementIndex(col, numberOfColumns());
-    row(row).increment(col, amount);
+    matrix.adjustOrPutValue(encode(row, col), amount, amount);
     return this;
   }
 

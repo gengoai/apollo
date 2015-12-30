@@ -80,6 +80,11 @@ public interface Matrix extends Copyable<Matrix>, Iterable<Matrix.Entry> {
     };
   }
 
+  /**
+   * To dense dense matrix.
+   *
+   * @return the dense matrix
+   */
   DenseMatrix toDense();
 
 
@@ -101,10 +106,22 @@ public interface Matrix extends Copyable<Matrix>, Iterable<Matrix.Entry> {
     orderedNonZeroIterator().forEachRemaining(consumer);
   }
 
+  /**
+   * Map matrix.
+   *
+   * @param operator the operator
+   * @return the matrix
+   */
   default Matrix map(@NonNull DoubleUnaryOperator operator) {
     return copy().mapSelf(operator);
   }
 
+  /**
+   * Map self matrix.
+   *
+   * @param operator the operator
+   * @return the matrix
+   */
   default Matrix mapSelf(@NonNull DoubleUnaryOperator operator) {
     forEach(entry -> set(entry.row, entry.column, operator.applyAsDouble(entry.value)));
     return this;
@@ -196,10 +213,43 @@ public interface Matrix extends Copyable<Matrix>, Iterable<Matrix.Entry> {
    */
   double get(int row, int column);
 
+
+  /**
+   * Row iterator iterator.
+   *
+   * @return the iterator
+   */
+  Iterator<Vector> rowIterator();
+
+  /**
+   * Column iterator iterator.
+   *
+   * @return the iterator
+   */
+  Iterator<Vector> columnIterator();
+
+  /**
+   * For each row.
+   *
+   * @param consumer the consumer
+   */
+  default void forEachRow(@NonNull Consumer<Vector> consumer) {
+    rowIterator().forEachRemaining(consumer);
+  }
+
+  /**
+   * For each column.
+   *
+   * @param consumer the consumer
+   */
+  default void forEachColumn(@NonNull Consumer<Vector> consumer) {
+    columnIterator().forEachRemaining(consumer);
+  }
+
   /**
    * Dot vector.
    *
-   * @param v the v
+   * @param vector the vector
    * @return the vector
    */
   default Vector dot(@NonNull Vector vector) {
@@ -318,12 +368,16 @@ public interface Matrix extends Copyable<Matrix>, Iterable<Matrix.Entry> {
    * @param other the other
    * @return the matrix
    */
-  default Matrix scale(@NonNull Vector other) {
-    return copy().scaleSelf(other);
+  default Matrix multiplyVectorRow(@NonNull Vector other) {
+    return copy().multiplyVectorRowSelf(other);
   }
 
 
+  default Matrix multiplyVectorColumn(@NonNull Vector other) {
+    return copy().multiplyVectorColumnSelf(other);
+  }
 
+  Matrix multiplyVectorColumnSelf(Vector other);
 
   /**
    * Scale self matrix.
@@ -331,7 +385,7 @@ public interface Matrix extends Copyable<Matrix>, Iterable<Matrix.Entry> {
    * @param other the other
    * @return the matrix
    */
-  Matrix scaleSelf(Vector other);
+  Matrix multiplyVectorRowSelf(Vector other);
 
 
   /**
@@ -436,6 +490,14 @@ public interface Matrix extends Copyable<Matrix>, Iterable<Matrix.Entry> {
     return increment(row, col, -1);
   }
 
+  /**
+   * Scale matrix.
+   *
+   * @param r      the r
+   * @param c      the c
+   * @param amount the amount
+   * @return the matrix
+   */
   default Matrix scale(int r, int c, double amount) {
     set(r, c, get(r, c) * amount);
     return this;

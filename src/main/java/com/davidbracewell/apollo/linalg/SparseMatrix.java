@@ -27,18 +27,13 @@ import com.google.common.base.Preconditions;
 import lombok.NonNull;
 import org.apache.mahout.math.map.OpenIntObjectHashMap;
 
-import java.io.Serializable;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.PrimitiveIterator;
+import java.util.*;
 import java.util.stream.IntStream;
 
 /**
  * @author David B. Bracewell
  */
-public class SparseMatrix implements Matrix, Serializable {
+public class SparseMatrix extends AbstractMatrix {
   private static final long serialVersionUID = -3802597548916836308L;
   final private int numberOfRows;
   final private int colDimension;
@@ -107,8 +102,8 @@ public class SparseMatrix implements Matrix, Serializable {
 
 
   @Override
-  public DenseMatrix toDense() {
-    return new DenseMatrix(this);
+  protected Matrix createNew(int nRows, int nCols) {
+    return new SparseMatrix(nRows, nCols);
   }
 
   @Override
@@ -200,29 +195,6 @@ public class SparseMatrix implements Matrix, Serializable {
   }
 
   @Override
-  public Vector column(int column) {
-    Preconditions.checkElementIndex(column, numberOfColumns());
-    SparseVector col = new SparseVector(numberOfRows());
-    for (int row : matrix.keys().elements()) {
-      col.set(row, get(row, column));
-    }
-    return col;
-  }
-
-  @Override
-  public Vector row(int row) {
-    Preconditions.checkElementIndex(row, numberOfRows());
-    if (!matrix.containsKey(row)) {
-      synchronized (this) {
-        if (!matrix.containsKey(row)) {
-          matrix.put(row, new SparseVector(numberOfColumns()));
-        }
-      }
-    }
-    return matrix.get(row);
-  }
-
-  @Override
   public double get(int row, int column) {
     Preconditions.checkElementIndex(row, numberOfRows());
     Preconditions.checkElementIndex(column, numberOfColumns());
@@ -234,25 +206,6 @@ public class SparseMatrix implements Matrix, Serializable {
     Preconditions.checkElementIndex(row, numberOfRows());
     Preconditions.checkElementIndex(column, numberOfColumns());
     row(row).set(column, value);
-  }
-
-  @Override
-  public void setColumn(int column, Vector vector) {
-    Preconditions.checkNotNull(vector);
-    Preconditions.checkArgument(column >= 0 && column < numberOfColumns());
-    Preconditions.checkArgument(vector.dimension() == numberOfRows());
-    for (Vector.Entry entry : Collect.asIterable(vector.nonZeroIterator())) {
-      set(entry.index, column, entry.value);
-    }
-  }
-
-  @Override
-  public void setRow(int row, @NonNull Vector vector) {
-    Preconditions.checkElementIndex(row, numberOfRows);
-    Preconditions.checkArgument(vector.dimension() == numberOfColumns());
-    synchronized (matrix) {
-      matrix.put(row, vector);
-    }
   }
 
   @Override
@@ -274,79 +227,6 @@ public class SparseMatrix implements Matrix, Serializable {
   @Override
   public int numberOfColumns() {
     return colDimension;
-  }
-
-  @Override
-  public Matrix addSelf(@NonNull Matrix other) {
-    Preconditions.checkArgument(numberOfRows() == other.numberOfRows() && numberOfColumns() == other.numberOfColumns(), "Dimension mismatch");
-    for (int r = 0; r < numberOfRows(); r++) {
-      row(r).addSelf(other.row(r));
-    }
-    return this;
-  }
-
-  @Override
-  public Matrix subtractSelf(@NonNull Matrix other) {
-    Preconditions.checkArgument(numberOfRows() == other.numberOfRows() && numberOfColumns() == other.numberOfColumns(), "Dimension mismatch");
-    other.forEachSparse(e -> decrement(e.row, e.column, e.value));
-    return this;
-  }
-
-  @Override
-  public Matrix scaleSelf(@NonNull Matrix other) {
-    Preconditions.checkArgument(numberOfRows() == other.numberOfRows() && numberOfColumns() == other.numberOfColumns(), "Dimension mismatch");
-    other.forEachSparse(e -> scale(e.row, e.column, e.value));
-    return this;
-  }
-
-  @Override
-  public Matrix scaleSelf(@NonNull Vector other) {
-    Preconditions.checkArgument(numberOfColumns() == other.dimension(), "Dimension mismatch");
-    matrix.keys().forEach(r -> {
-      row(r).multiplySelf(other);
-      return true;
-    });
-    return this;
-  }
-
-  @Override
-  public Matrix scaleSelf(double value) {
-    for (int row : matrix.keys().elements()) {
-      for (Vector.Entry entry : Collect.asIterable(row(row).nonZeroIterator())) {
-        row(row).set(entry.index, entry.value * value);
-      }
-    }
-    return this;
-  }
-
-  @Override
-  public Matrix incrementSelf(double value) {
-    for (int r = 0; r < numberOfRows(); r++) {
-      row(r).mapAddSelf(value);
-    }
-    return this;
-  }
-
-  @Override
-  public Matrix multiply(@NonNull Matrix m) {
-    Preconditions.checkArgument(numberOfColumns() == m.numberOfRows(), "Dimension Mismatch");
-    SparseMatrix mprime = new SparseMatrix(numberOfRows(), m.numberOfColumns());
-    IntStream.of(matrix.keys().toArray(new int[matrix.size()])).parallel()
-      .forEach(r -> {
-        for (int c = 0; c < m.numberOfColumns(); c++) {
-          for (int k = 0; k < numberOfColumns(); k++) {
-            mprime.increment(r, c, get(r, k) * m.get(k, c));
-          }
-        }
-      });
-    return mprime;
-  }
-
-  @Override
-  public Matrix transpose() {
-    Matrix T = new SparseMatrix(numberOfColumns(), numberOfRows());
-    forEachSparse(e -> T.set(e.column, e.row, e.value));
-    return T;
   }
 
   @Override

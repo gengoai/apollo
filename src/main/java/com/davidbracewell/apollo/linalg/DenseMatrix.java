@@ -1,19 +1,16 @@
 package com.davidbracewell.apollo.linalg;
 
-import com.davidbracewell.collection.Collect;
 import com.google.common.base.Preconditions;
 import lombok.NonNull;
 import org.jblas.ComplexDouble;
 import org.jblas.DoubleMatrix;
-
-import java.io.Serializable;
 
 /**
  * The type Dense matrix.
  *
  * @author David B. Bracewell
  */
-public class DenseMatrix implements Matrix, Serializable {
+public class DenseMatrix extends AbstractMatrix {
   private static final long serialVersionUID = 1L;
   /**
    * The Matrix.
@@ -109,7 +106,7 @@ public class DenseMatrix implements Matrix, Serializable {
     if (m instanceof DenseMatrix) {
       return new DenseMatrix(matrix.add(m.toDense().matrix));
     }
-    return Matrix.super.add(m);
+    return super.add(m);
   }
 
   @Override
@@ -118,18 +115,13 @@ public class DenseMatrix implements Matrix, Serializable {
     if (other instanceof DenseMatrix) {
       matrix.addi(other.toDense().matrix);
     } else {
-      other.forEachSparse(e -> increment(e.row, e.column, e.value));
+      super.addSelf(other);
     }
     return this;
   }
 
   public DoubleMatrix asDoubleMatrix() {
     return matrix;
-  }
-
-  @Override
-  public Vector column(int column) {
-    return new DenseVector(matrix.getColumn(column).toArray());
   }
 
   @Override
@@ -177,11 +169,6 @@ public class DenseMatrix implements Matrix, Serializable {
   }
 
   @Override
-  public Vector row(int row) {
-    return new DenseVector(matrix.getRow(row).toArray());
-  }
-
-  @Override
   public Matrix scaleSelf(double value) {
     matrix.muli(value);
     return this;
@@ -193,18 +180,7 @@ public class DenseMatrix implements Matrix, Serializable {
     if (other instanceof DenseMatrix) {
       matrix.muli(other.toDense().matrix);
     } else {
-      forEachSparse(e -> increment(e.row, e.column, other.get(e.row, e.column)));
-    }
-    return this;
-  }
-
-  @Override
-  public Matrix scaleSelf(@NonNull Vector other) {
-    Preconditions.checkArgument(other.dimension() == numberOfColumns(), "Dimension Mismatch");
-    for (int r = 0; r < numberOfRows(); r++) {
-      for (int c = 0; c < numberOfColumns(); c++) {
-        set(r, c, get(r, c) * other.get(c));
-      }
+      super.scaleSelf(other);
     }
     return this;
   }
@@ -215,25 +191,11 @@ public class DenseMatrix implements Matrix, Serializable {
   }
 
   @Override
-  public void setColumn(int column, Vector vector) {
-    for (Vector.Entry entry : Collect.asIterable(vector.nonZeroIterator())) {
-      set(entry.index, column, entry.value);
-    }
-  }
-
-  @Override
-  public void setRow(int row, Vector vector) {
-    for (Vector.Entry entry : Collect.asIterable(vector.iterator())) {
-      set(row, entry.index, entry.value);
-    }
-  }
-
-  @Override
   public Matrix subtract(@NonNull Matrix m) {
     if (m instanceof DenseMatrix) {
       return new DenseMatrix(matrix.sub(m.toDense().matrix));
     }
-    return Matrix.super.add(m);
+    return super.subtract(m);
   }
 
   @Override
@@ -242,7 +204,7 @@ public class DenseMatrix implements Matrix, Serializable {
     if (other instanceof DenseMatrix) {
       matrix.subi(other.toDense().matrix);
     } else {
-      other.forEachSparse(e -> increment(e.row, e.column, e.value));
+      super.subtractSelf(other);
     }
     return this;
   }
@@ -250,6 +212,11 @@ public class DenseMatrix implements Matrix, Serializable {
   @Override
   public double[][] toArray() {
     return matrix.toArray2();
+  }
+
+  @Override
+  protected Matrix createNew(int nRows, int nCols) {
+    return new DenseMatrix(nRows, nCols);
   }
 
   @Override

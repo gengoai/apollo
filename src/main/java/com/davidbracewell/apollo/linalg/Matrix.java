@@ -23,6 +23,7 @@ package com.davidbracewell.apollo.linalg;
 
 
 import com.davidbracewell.Copyable;
+import com.google.common.base.Preconditions;
 import lombok.NonNull;
 import lombok.Value;
 
@@ -201,7 +202,14 @@ public interface Matrix extends Copyable<Matrix>, Iterable<Matrix.Entry> {
    * @param v the v
    * @return the vector
    */
-  Vector dot(Vector v);
+  default Vector dot(@NonNull Vector vector) {
+    Preconditions.checkArgument(vector.dimension() == numberOfColumns());
+    SparseVector output = new SparseVector(numberOfRows());
+    for (int r = 0; r < numberOfRows(); r++) {
+      output.set(r, row(r).dot(vector));
+    }
+    return output;
+  }
 
   /**
    * Set void.
@@ -313,6 +321,9 @@ public interface Matrix extends Copyable<Matrix>, Iterable<Matrix.Entry> {
   default Matrix scale(@NonNull Vector other) {
     return copy().scaleSelf(other);
   }
+
+
+
 
   /**
    * Scale self matrix.

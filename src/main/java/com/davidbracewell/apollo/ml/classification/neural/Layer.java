@@ -1,9 +1,7 @@
 package com.davidbracewell.apollo.ml.classification.neural;
 
-import com.davidbracewell.apollo.DifferentiableFunction;
 import com.davidbracewell.apollo.linalg.DenseMatrix;
 import com.davidbracewell.apollo.linalg.Matrix;
-import com.davidbracewell.apollo.linalg.SparseVector;
 import com.davidbracewell.apollo.linalg.Vector;
 
 import java.io.Serializable;
@@ -13,57 +11,29 @@ import java.io.Serializable;
  */
 public class Layer implements Serializable {
   private static final long serialVersionUID = 1L;
-  private final Neuron[] neurons;
+  private Activation activation;
   private volatile Matrix matrix;
-  private int inputSize;
 
-  public Layer(int inputSize, int outputSize, DifferentiableFunction activationFunction) {
-    matrix = DenseMatrix.random(outputSize, inputSize);
-    this.inputSize = inputSize;
-    this.neurons = new Neuron[outputSize];
-    for (int i = 0; i < outputSize; i++) {
-      this.neurons[i] = new Neuron(inputSize, activationFunction);
-    }
+  public Layer(int inputSize, int outputSize, Activation activation) {
+    this.matrix = DenseMatrix.random(inputSize, outputSize);
+    this.activation = activation;
   }
 
-  public int inputSize() {
-    return inputSize;
+  public Matrix getMatrix() {
+    return matrix;
   }
 
-  public int outputSize() {
-    return neurons.length;
+  public Matrix evaluate(Matrix input) {
+    return input.multiply(matrix);
   }
 
-  public Vector multiply(Vector delta) {
-    Vector out = new SparseVector(outputSize());
-    for (int i = 0; i < neurons.length; i++) {
-      out.set(i, neurons[i].dot(delta));
-    }
-    return out;
-  }
-
-  public Vector evaluate(Vector input) {
-    return matrix.scale(input).mapSelf(new Sigmoid()).row(0);
-//    System.out.println(matrix.numberOfRows() + " : " + matrix.numberOfColumns() + " : " + input.dimension());
-//    System.out.println(matrix.scale(input));
-//    Vector output = new SparseVector(neurons.length);
-//    for (int i = 0; i < neurons.length; i++) {
-//      output.set(i, neurons[i].activate(input));
-//    }
-//    return output;
-  }
-
-  public Vector gradient(Vector input) {
-    Vector gradient = new SparseVector(neurons.length);
-    for (int i = 0; i < neurons.length; i++) {
-      gradient.set(i, neurons[i].gradient(input));
-    }
-    return gradient;
+  public Matrix gradient(Matrix input) {
+    return input.map(activation::gradientOfResult);
   }
 
   public void update(Vector delta) {
-    for (int i = 0; i < neurons.length; i++) {
-      neurons[i].update(delta);
+    for (int r = 0; r < matrix.numberOfRows(); r++) {
+      matrix.row(r).addSelf(delta);
     }
   }
 

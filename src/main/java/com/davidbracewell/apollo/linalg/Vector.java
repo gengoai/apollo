@@ -67,6 +67,14 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
     return this;
   }
 
+  default Matrix toMatrix() {
+    return new SparseMatrix(new Vector[]{this});
+  }
+
+  default Matrix transpose() {
+    return new SparseMatrix(new Vector[]{this}).transpose();
+  }
+
   /**
    * Compresses memory if possible
    */
@@ -432,8 +440,7 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
   }
 
   /**
-   * Creates an <code>Iterator</code> over non-zero values in the vector. The order is optimized based on the
-   * underlying
+   * Creates an <code>Iterator</code> over non-zero values in the vector. The order is optimized based on the underlying
    * structure.
    *
    * @return An iterator over non-zero values in the vector.

@@ -28,7 +28,11 @@ import lombok.NonNull;
 import org.apache.mahout.math.map.OpenIntObjectHashMap;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.PrimitiveIterator;
 import java.util.stream.IntStream;
 
 /**
@@ -36,38 +40,9 @@ import java.util.stream.IntStream;
  */
 public class SparseMatrix implements Matrix, Serializable {
   private static final long serialVersionUID = -3802597548916836308L;
-  private volatile OpenIntObjectHashMap<Vector> matrix;
   final private int numberOfRows;
   final private int colDimension;
-
-  public static Matrix zeroes(int numberOfRows, int numberOfColumns) {
-    return new SparseMatrix(numberOfRows, numberOfColumns);
-  }
-
-  public static Matrix ones(int numberOfRows, int numberOfColumns) {
-    return new SparseMatrix(numberOfRows, numberOfColumns).incrementSelf(1);
-  }
-
-  public static Matrix unit(int size) {
-    Matrix m = new SparseMatrix(size, size);
-    for (int r = 0; r < size; r++) {
-      m.set(r, r, 1d);
-    }
-    return m;
-  }
-
-  public static Matrix random(int numberOfRows, int numberOfColumns) {
-    Matrix m = new SparseMatrix(numberOfRows, numberOfColumns);
-    Streams.range(0, numberOfRows)
-      .parallel()
-      .forEach(r -> {
-        for (int c = 0; c < numberOfColumns; c++) {
-          m.set(r, c, Math.random());
-        }
-      });
-    return m;
-  }
-
+  private volatile OpenIntObjectHashMap<Vector> matrix;
 
   public SparseMatrix(int numRows, int numColumns) {
     this.colDimension = numColumns;
@@ -97,6 +72,34 @@ public class SparseMatrix implements Matrix, Serializable {
     for (int i = 0; i < vectors.size(); i++) {
       this.matrix.put(i, vectors.get(i));
     }
+  }
+
+  public static Matrix zeroes(int numberOfRows, int numberOfColumns) {
+    return new SparseMatrix(numberOfRows, numberOfColumns);
+  }
+
+  public static Matrix ones(int numberOfRows, int numberOfColumns) {
+    return new SparseMatrix(numberOfRows, numberOfColumns).incrementSelf(1);
+  }
+
+  public static Matrix unit(int size) {
+    Matrix m = new SparseMatrix(size, size);
+    for (int r = 0; r < size; r++) {
+      m.set(r, r, 1d);
+    }
+    return m;
+  }
+
+  public static Matrix random(int numberOfRows, int numberOfColumns) {
+    Matrix m = new SparseMatrix(numberOfRows, numberOfColumns);
+    Streams.range(0, numberOfRows)
+      .parallel()
+      .forEach(r -> {
+        for (int c = 0; c < numberOfColumns; c++) {
+          m.set(r, c, Math.random());
+        }
+      });
+    return m;
   }
 
   public static void main(String[] args) {
@@ -339,16 +342,6 @@ public class SparseMatrix implements Matrix, Serializable {
         }
       });
     return mprime;
-  }
-
-  @Override
-  public Vector dot(Vector v) {
-    SparseVector result = new SparseVector(numberOfRows());
-    matrix.keys().forEach(r -> {
-      result.set(r, v.dot(row(r)));
-      return true;
-    });
-    return result;
   }
 
   @Override

@@ -29,11 +29,11 @@ public class NeuralNetwork extends Classifier {
 
   @Override
   public Classification classify(Vector vector) {
-    Vector v = vector;
+    Matrix v = vector.transpose();
     for (Layer layer : layers) {
       v = layer.evaluate(v);
     }
-    return new Classification(v.toArray(), getLabelEncoder());
+    return null; // new Classification(v.toArray(), getLabelEncoder());
   }
 
 
@@ -43,12 +43,13 @@ public class NeuralNetwork extends Classifier {
       new double[]{0, 1, 1},
       new double[]{1, 0, 1},
       new double[]{1, 1, 1},
+      new double[]{1, 1, 1},
     });
 
     Matrix XTranspose = X.transpose();
 
     Matrix Y = new DenseMatrix(new double[][]{
-      new double[]{0, 1, 1, 0}
+      new double[]{0, 1, 1, 0,1}
     }).transpose();
 
     Matrix syn0 = DenseMatrix.random(3, 4).mapSelf(d -> 2.0 * d - 1);

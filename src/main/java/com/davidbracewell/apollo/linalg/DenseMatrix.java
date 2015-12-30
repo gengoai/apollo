@@ -137,14 +137,6 @@ public class DenseMatrix implements Matrix, Serializable {
     return new DenseMatrix(toArray());
   }
 
-  @Override
-  public Vector dot(Vector v) {
-    DenseVector result = new DenseVector(numberOfRows());
-    for (int i = 0; i < numberOfRows(); i++) {
-      result.set(i, row(i).dot(v));
-    }
-    return result;
-  }
 
   @Override
   public double get(int row, int column) {

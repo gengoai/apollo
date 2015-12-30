@@ -19,8 +19,16 @@ public class Neuron implements Serializable {
     this.weights = SparseVector.randomGaussian(size);
   }
 
+  public double dot(Vector input) {
+    return weights.dot(input);
+  }
+
   public double activate(Vector input) {
     return activation.applyAsDouble(input.dot(weights));
+  }
+
+  public void update(Vector vector) {
+    weights.addSelf(vector);
   }
 
   public double gradient(Vector input) {

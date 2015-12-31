@@ -77,7 +77,7 @@ public class AveragedPerceptronLearner extends BinaryClassifierLearner {
     double c = 1d;
     double oldError = 0;
     double oldOldError = 0;
-    final DecimalFormat formatter = new DecimalFormat("###.00%");
+    final DecimalFormat formatter = new DecimalFormat("##0.00%");
     for (int iteration = 0; iteration < maxIterations; iteration++) {
       double error = 0;
       double count = 0;

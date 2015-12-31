@@ -9,15 +9,15 @@ import java.util.stream.Stream;
 /**
  * @author David B. Bracewell
  */
-public class BinaryTransform extends RestrictedTransform {
+public class RealToBinaryTransform extends RestrictedTransform {
   private static final long serialVersionUID = 1L;
   private final double threshold;
 
-  public BinaryTransform(double threshold) {
+  public RealToBinaryTransform(double threshold) {
     this(StringUtils.EMPTY, threshold);
   }
 
-  public BinaryTransform(String featureNamePrefix, double threshold) {
+  public RealToBinaryTransform(String featureNamePrefix, double threshold) {
     super(featureNamePrefix);
     this.threshold = threshold;
   }
@@ -48,4 +48,4 @@ public class BinaryTransform extends RestrictedTransform {
   public String describe() {
     return "BinaryTransform[" + getFeatureNamePrefix() + "]: threshold=" + threshold;
   }
-}// END OF BinaryTransform
+}// END OF RealToBinaryTransform

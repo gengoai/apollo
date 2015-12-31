@@ -10,7 +10,7 @@ import lombok.NonNull;
  */
 public abstract class SequenceLabelerLearner extends Learner<Sequence, SequenceLabeler> {
   private static final long serialVersionUID = 1L;
-  protected Decoder decoder = new BeamDecoder(3);
+  protected Decoder decoder = new BeamDecoder(5);
   protected TransitionFeatures transitionFeatures = TransitionFeatures.FIRST_ORDER;
   protected SequenceValidator validator = SequenceValidator.ALWAYS_TRUE;
 

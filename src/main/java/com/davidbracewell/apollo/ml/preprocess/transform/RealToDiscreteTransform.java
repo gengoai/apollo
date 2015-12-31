@@ -52,13 +52,14 @@ public class RealToDiscreteTransform extends RestrictedTransform {
       sum += binSize;
       bins[i] = sum;
     }
-    finished.set(false);
+    finished.set(true);
     counts.clear();
   }
 
   @Override
   public void reset() {
-
+    finished.set(false);
+    counts.clear();
   }
 
   @Override

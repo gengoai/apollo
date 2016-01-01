@@ -659,27 +659,38 @@ public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, S
     tableFormatter.clear();
     tableFormatter
       .title("Classification Metrics")
-      .header(Arrays.asList(StringUtils.EMPTY, "P", "R", "F1"));
+      .header(Arrays.asList(StringUtils.EMPTY, "P", "R", "F1", "Correct", "Incorrect", "Missed", "Total"));
 
     sorted.forEach(g ->
       tableFormatter.content(Arrays.asList(
         g,
         precision(g),
         recall(g),
-        f1(g)
+        f1(g),
+        matrix.get(g,g),
+        falsePositives(g),
+        matrix.get(g).sum() - matrix.get(g,g),
+        matrix.get(g).sum()
       ))
     );
     tableFormatter.content(Arrays.asList(
       "micro",
       microPrecision(),
       microRecall(),
-      microF1()
+      microF1(),
+      truePositives(),
+      falsePositives(),
+      falseNegatives(),
+      total
     ));
     tableFormatter.content(Arrays.asList(
       "macro",
       macroPrecision(),
       macroRecall(),
-      macroF1()
+      macroF1(),
+      "-",
+      "-",
+      "-"
     ));
     tableFormatter.print(printStream);
 

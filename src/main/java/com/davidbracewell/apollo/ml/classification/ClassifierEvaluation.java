@@ -639,18 +639,18 @@ public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, S
       sorted.forEach(gold -> {
         List<Object> row = new ArrayList<>();
         row.add(gold);
-        columns.forEach(c -> row.add(matrix.get(gold, c)));
-        row.add(matrix.get(gold).sum());
+        columns.forEach(c -> row.add((long)matrix.get(gold, c)));
+        row.add((long)matrix.get(gold).sum());
         tableFormatter.content(row);
       });
       List<Object> totalRow = new ArrayList<>();
       totalRow.add("Total");
       columns.forEach(c -> {
-        totalRow.add(matrix.items().stream()
+        totalRow.add((long)matrix.items().stream()
           .mapToDouble(k -> matrix.get(k, c))
           .sum());
       });
-      totalRow.add(matrix.sum());
+      totalRow.add((long)matrix.sum());
       tableFormatter.content(totalRow);
       tableFormatter.print(printStream);
       printStream.println();
@@ -688,6 +688,7 @@ public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, S
       macroPrecision(),
       macroRecall(),
       macroF1(),
+      "-",
       "-",
       "-",
       "-"

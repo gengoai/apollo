@@ -5,8 +5,6 @@ import com.davidbracewell.apollo.ml.sequence.ContextualIterator;
 import com.davidbracewell.apollo.ml.sequence.Labeling;
 import com.davidbracewell.apollo.ml.sequence.Sequence;
 import com.davidbracewell.apollo.ml.sequence.SequenceLabeler;
-import com.davidbracewell.apollo.ml.sequence.decoder.Decoder;
-import com.davidbracewell.apollo.ml.sequence.decoder.DecoderState;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.MinMaxPriorityQueue;
 import com.google.common.collect.Ordering;
@@ -65,7 +63,7 @@ public class BeamDecoder implements Decoder, Serializable {
         );
         for (int i = 0; i < result.length; i++) {
           String label = model.getLabelEncoder().decode(i).toString();
-          if (model.getValidator().isValid(label, state.tag)) {
+          if (model.getValidator().isValid(label, state.tag, iterator.getCurrent())) {
             newStates.add(new DecoderState(state, result[i], label));
           }
         }

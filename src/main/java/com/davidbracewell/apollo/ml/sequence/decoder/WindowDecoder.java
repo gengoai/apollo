@@ -1,7 +1,10 @@
 package com.davidbracewell.apollo.ml.sequence.decoder;
 
 import com.davidbracewell.apollo.ml.Instance;
-import com.davidbracewell.apollo.ml.sequence.*;
+import com.davidbracewell.apollo.ml.sequence.ContextualIterator;
+import com.davidbracewell.apollo.ml.sequence.Labeling;
+import com.davidbracewell.apollo.ml.sequence.Sequence;
+import com.davidbracewell.apollo.ml.sequence.SequenceLabeler;
 
 import java.io.Serializable;
 
@@ -27,9 +30,18 @@ public class WindowDecoder implements Decoder, Serializable {
       String label = null;
       for (int i = 0; i < results.length; i++) {
         String tL = labeler.getEncoderPair().decodeLabel(i).toString();
-        if (results[i] > max && labeler.getValidator().isValid(tL, previousLabel)) {
+        if (results[i] > max && labeler.getValidator().isValid(tL, previousLabel, iterator.getCurrent())) {
           max = results[i];
           label = tL;
+        }
+      }
+      if (max == Double.NEGATIVE_INFINITY) {
+        for (int i = 0; i < results.length; i++) {
+          String tL = labeler.getEncoderPair().decodeLabel(i).toString();
+          if (results[i] > max) {
+            max = results[i];
+            label = tL;
+          }
         }
       }
       previousLabel = label;

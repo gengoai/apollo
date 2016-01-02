@@ -1,5 +1,7 @@
 package com.davidbracewell.apollo.ml.sequence;
 
+import com.davidbracewell.apollo.ml.Instance;
+
 import java.io.Serializable;
 
 /**
@@ -11,11 +13,11 @@ public interface SequenceValidator extends Serializable {
     private static final long serialVersionUID = 1L;
 
     @Override
-    public boolean isValid(String label, String previousLabel) {
+    public boolean isValid(String label, String previousLabel, Instance instance) {
       return true;
     }
   };
 
-  boolean isValid(String label, String previousLabel);
+  boolean isValid(String label, String previousLabel, Instance instance);
 
 }// END OF SequenceValidator

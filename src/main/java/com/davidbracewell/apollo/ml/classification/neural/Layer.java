@@ -2,7 +2,6 @@ package com.davidbracewell.apollo.ml.classification.neural;
 
 import com.davidbracewell.apollo.linalg.DenseMatrix;
 import com.davidbracewell.apollo.linalg.Matrix;
-import com.davidbracewell.apollo.linalg.Vector;
 
 import java.io.Serializable;
 
@@ -30,12 +29,5 @@ public class Layer implements Serializable {
   public Matrix gradient(Matrix input) {
     return input.map(activation::gradientOfResult);
   }
-
-  public void update(Vector delta) {
-    for (int r = 0; r < matrix.numberOfRows(); r++) {
-      matrix.row(r).addSelf(delta);
-    }
-  }
-
 
 }// END OF Layer

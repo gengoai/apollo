@@ -36,6 +36,7 @@ import third_party.org.chokkan.crfsuite.*;
  * @author David B. Bracewell
  */
 public class CRFTrainer extends SequenceLabelerLearner {
+  private static final long serialVersionUID = 1L;
   private Solver solver = Solver.LBFGS;
   private int maxIterations = 100;
   private double c2 = 1.0;

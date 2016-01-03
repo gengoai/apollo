@@ -41,17 +41,6 @@ public class MLP extends ClassifierLearner {
   private boolean verbose = true;
 
   public static void main(String[] args) throws Exception {
-//    Dataset<Instance> dataset = Dataset.classification()
-//      .localSource(
-//        Arrays.asList(
-//          Instance.create(Arrays.asList(Feature.TRUE("3")), "false"),
-//          Instance.create(Arrays.asList(Feature.TRUE("2"), Feature.TRUE("3")), "true"),
-//          Instance.create(Arrays.asList(Feature.TRUE("1"), Feature.TRUE("3")), "true"),
-//          Instance.create(Arrays.asList(Feature.TRUE("1"), Feature.TRUE("2"), Feature.TRUE("3")), "false")
-//        ).stream()
-//      )
-//      .build();
-//
     Dataset<Instance> dataset = Dataset.classification()
       .localSource(
         Resources.fromFile("/home/david/Downloads/Data/SomasundaranWiebe-politicalDebates/abortion")
@@ -62,7 +51,8 @@ public class MLP extends ClassifierLearner {
             String[] parts = doc.split("\n+");
             String label = parts[0].split("=")[1];
             String content = Joiner.on('\n').join(Arrays.copyOfRange(parts, 3, parts.length)).toLowerCase();
-            Map<String, Long> counts = Streams.of(content.split("[^A-Za-z]+")).filter(s -> !StringUtils.isNullOrBlank(s)).countByValue();
+            Map<String, Long> counts = Streams.of(content.split("[^A-Za-z]+"))
+              .filter(s -> !StringUtils.isNullOrBlank(s)).map(String::toLowerCase).countByValue();
             List<Feature> features = counts.entrySet().stream().map(e -> Feature.real(e.getKey(), e.getValue())).collect(Collectors.toList());
             return Instance.create(features, label);
           })
@@ -70,7 +60,9 @@ public class MLP extends ClassifierLearner {
       .shuffle(new Random(123));
 
     MLP mlp = new MLP();
-    mlp.hiddenLayers = new int[]{4};
+    mlp.learningRate=0.3;
+    mlp.maxIterations=10;
+    mlp.hiddenLayers = new int[]{10};
 
     dataset.split(0.8).forEach((train, test) -> {
       Classifier c = mlp.train(train.preprocess(PreprocessorList.create(new CountFilter(d -> d >= 5))));
@@ -107,7 +99,7 @@ public class MLP extends ClassifierLearner {
         N++;
         FeatureVector v = instance.toVector(model.getEncoderPair());
         Vector yVec = new DenseVector(model.numberOfLabels());
-        yVec.set((int) v.getLabel(), 1);
+          yVec.set((int) v.getLabel(), 1);
         error += model.network.backprop(
           model.network.forward(v),
           v,

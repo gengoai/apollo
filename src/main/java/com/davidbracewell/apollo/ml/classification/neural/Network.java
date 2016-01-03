@@ -23,7 +23,12 @@ public class Network implements Serializable {
     this.layers = new Layer[config.size() + 1];
     for (int i = 0; i < layers.length; i++) {
       int inputSize = (i == 0 ? encoderPair.numberOfFeatures() : layers[i - 1].getMatrix().numberOfColumns());
-      int outputSize = (i == layers.length - 1 ? encoderPair.numberOfLabels() : config.get(i).v1);
+      int outputSize;
+      if (i == layers.length - 1) {
+        outputSize = encoderPair.numberOfLabels();
+      } else {
+        outputSize = config.get(i).v1;
+      }
       Activation af = i + 1 == layers.length ? new Sigmoid() : config.get(i).v2;
       layers[i] = new Layer(inputSize, outputSize, af);
     }
@@ -34,7 +39,7 @@ public class Network implements Serializable {
   }
 
   public Classification evaluate(Vector input) {
-    return new Classification(forward(input)[layers.length-1].row(0).toArray(), encoderPair.getLabelEncoder());
+    return new Classification(forward(input)[layers.length - 1].row(0).toArray(), encoderPair.getLabelEncoder());
   }
 
   public Matrix[] forward(Vector v) {

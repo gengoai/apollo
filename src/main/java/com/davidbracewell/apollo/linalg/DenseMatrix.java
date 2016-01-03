@@ -80,6 +80,16 @@ public class DenseMatrix extends AbstractMatrix {
     return new DenseMatrix(DoubleMatrix.rand(numberOfRows, numberOfColumns));
   }
 
+  public static Matrix random(int numberOfRows, int numberOfColumns, double min, double max) {
+    DenseMatrix m = new DenseMatrix(DoubleMatrix.zeros(numberOfRows, numberOfColumns));
+    for (int r = 0; r < numberOfRows; r++) {
+      for (int c = 0; c < numberOfColumns; c++) {
+        m.set(r, c, min + (max - min) * Math.random());
+      }
+    }
+    return m;
+  }
+
   /**
    * Unit matrix.
    *

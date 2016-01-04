@@ -22,6 +22,7 @@
 package com.davidbracewell.apollo.linalg;
 
 import com.davidbracewell.Copyable;
+import com.davidbracewell.apollo.affinity.Correlation;
 import com.davidbracewell.collection.Collect;
 import com.davidbracewell.collection.EnhancedDoubleStatistics;
 import com.google.common.base.Preconditions;
@@ -609,6 +610,11 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
    */
   default void forEachOrderedSparse(@NonNull Consumer<Vector.Entry> consumer) {
     Collect.from(orderedNonZeroIterator()).forEach(consumer);
+  }
+
+
+  default double corr(@NonNull Vector other) {
+    return Correlation.Spearman.calculate(this, other);
   }
 
   /**

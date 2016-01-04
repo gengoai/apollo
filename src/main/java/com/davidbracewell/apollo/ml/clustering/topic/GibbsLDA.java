@@ -52,35 +52,6 @@ public class GibbsLDA extends Clusterer<LDAModel> {
   private Vector[] phisum;
   private int numstats = 0;
 
-  /**
-   * The entry point of application.
-   *
-   * @param args the input arguments
-   */
-  public static void main(String[] args) {
-    Dataset<Instance> d = null;
-    try {
-      d = Dataset.classification()
-        .source(
-          Resources.fromFile("/shared/data/corpora/en/eng_news_2005_10K-text/eng_news_2005_10K-sentences.txt").lines()
-            .map(l -> Instance.create(
-              Stream.of(l.toLowerCase().split("\\p{Z}+")).filter(s -> s.length() > 3).distinct().map(Feature::TRUE).collect(Collectors.toList())
-              )
-            )
-        ).build();
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-    LDAModel model = new GibbsLDA().train(d);
-    d.forEach(i ->
-      System.out.println(Counters.fromArray(model.softCluster(i)).topN(3).itemsByCount(false))
-    );
-    for (int k = 0; k < model.wordTopic.getN(); k++) {
-      Counter<String> words = model.getTopicWords(k);
-      System.out.println(words.topN(10).itemsByCount(false));
-    }
-  }
-
   @Override
   public LDAModel cluster(List<LabeledVector> instances) {
     V = getEncoderPair().numberOfFeatures();

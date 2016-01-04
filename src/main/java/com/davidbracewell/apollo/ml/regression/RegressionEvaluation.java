@@ -16,23 +16,15 @@ import java.util.Collection;
 import java.util.stream.DoubleStream;
 
 /**
+ * The type Regression evaluation.
+ *
  * @author David B. Bracewell
  */
 public class RegressionEvaluation implements Evaluation<Instance, Regression> {
-  DoubleArrayList gold = new DoubleArrayList();
-  DoubleArrayList predicted = new DoubleArrayList();
+  private DoubleArrayList gold = new DoubleArrayList();
+  private DoubleArrayList predicted = new DoubleArrayList();
   private double p = 0;
 
-  public static void main(String[] args) {
-    RegressionEvaluation re = new RegressionEvaluation();
-    for (int i = 0; i < 100; i++) {
-      double g = Math.random();
-      double p = g + (0.5 * g) * Math.random();
-      re.entry(g, p);
-    }
-    re.setP(5);
-    re.output(System.out);
-  }
 
   @Override
   public void evaluate(@NonNull Regression model, @NonNull Dataset<Instance> dataset) {
@@ -62,6 +54,11 @@ public class RegressionEvaluation implements Evaluation<Instance, Regression> {
     predicted.addAllOf(re.predicted);
   }
 
+  /**
+   * Squared error double.
+   *
+   * @return the double
+   */
   public double squaredError() {
     double error = 0;
     for (int i = 0; i < gold.size(); i++) {
@@ -70,22 +67,42 @@ public class RegressionEvaluation implements Evaluation<Instance, Regression> {
     return error;
   }
 
+  /**
+   * Mean squared error double.
+   *
+   * @return the double
+   */
   public double meanSquaredError() {
     return squaredError() / gold.size();
   }
 
+  /**
+   * Root mean squared error double.
+   *
+   * @return the double
+   */
   public double rootMeanSquaredError() {
     return Math.sqrt(meanSquaredError());
   }
 
+  /**
+   * Adjusted r 2 double.
+   *
+   * @return the double
+   */
   public double adjustedR2() {
     double r2 = r2();
     return r2 - (1.0 - r2) * p / (gold.size() - p - 1.0);
   }
 
+  /**
+   * R 2 double.
+   *
+   * @return the double
+   */
   public double r2() {
-    double yMean = DoubleStream.of(gold.elements()).sum() / gold.size();
-    double SStot = DoubleStream.of(gold.elements()).map(d -> Math.pow(d - yMean, 2)).sum();
+    double yMean = DoubleStream.of(gold.elements()).parallel().sum() / gold.size();
+    double SStot = DoubleStream.of(gold.elements()).parallel().map(d -> Math.pow(d - yMean, 2)).sum();
     double SSres = 0;
     for (int i = 0; i < gold.size(); i++) {
       SSres += Math.pow(gold.get(i) - predicted.get(i), 2);
@@ -93,11 +110,22 @@ public class RegressionEvaluation implements Evaluation<Instance, Regression> {
     return 1.0 - SSres / SStot;
   }
 
+  /**
+   * Entry.
+   *
+   * @param predicted the predicted
+   * @param gold      the gold
+   */
   public void entry(double predicted, double gold) {
     this.gold.add(gold);
     this.predicted.add(predicted);
   }
 
+  /**
+   * Sets p.
+   *
+   * @param p the p
+   */
   public void setP(double p) {
     this.p = p;
   }

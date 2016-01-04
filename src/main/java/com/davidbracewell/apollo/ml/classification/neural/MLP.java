@@ -60,9 +60,9 @@ public class MLP extends ClassifierLearner {
       .shuffle(new Random(123));
 
     MLP mlp = new MLP();
-    mlp.learningRate=0.3;
-    mlp.maxIterations=10;
-    mlp.hiddenLayers = new int[]{10};
+    mlp.learningRate=1.0;
+    mlp.maxIterations=500;
+    mlp.hiddenLayers = new int[]{4};
 
     dataset.split(0.8).forEach((train, test) -> {
       Classifier c = mlp.train(train.preprocess(PreprocessorList.create(new CountFilter(d -> d >= 5))));

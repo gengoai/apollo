@@ -37,13 +37,15 @@ import java.util.stream.IntStream;
  */
 public class OneVsRestLearner extends ClassifierLearner {
   private static final long serialVersionUID = 1L;
-  private volatile SerializableSupplier<BinaryClassifierLearner> learnerSupplier;
   private final Map<String, Object> parameters = new HashMap<>();
+  private volatile SerializableSupplier<BinaryClassifierLearner> learnerSupplier;
+  private boolean normalize = false;
 
   public OneVsRestLearner(@NonNull SerializableSupplier<BinaryClassifierLearner> learnerSupplier) {
     this.learnerSupplier = learnerSupplier;
     this.parameters.putAll(learnerSupplier.get().getParameters());
     this.parameters.put("binaryLearner", learnerSupplier.get().getClass());
+    this.parameters.put("normalize", false);
   }
 
   @Override
@@ -82,6 +84,9 @@ public class OneVsRestLearner extends ClassifierLearner {
       final BinaryClassifierLearner learner = Val.of(parameters.get("binaryLearner")).as(BinaryClassifierLearner.class);
       this.learnerSupplier = () -> learner;
     }
+    if (parameters.containsKey("normalize")) {
+      this.normalize = Val.of(parameters.get("normalize")).asBooleanValue();
+    }
     this.parameters.clear();
     this.parameters.putAll(parameters);
   }
@@ -92,11 +97,19 @@ public class OneVsRestLearner extends ClassifierLearner {
       final BinaryClassifierLearner learner = Cast.as(value);
       this.learnerSupplier = () -> learner;
     }
+    if (name.equals("normalize")) {
+      this.normalize = Val.of(value).asBooleanValue();
+    }
     parameters.put(name, value);
   }
 
   @Override
   public Object getParameter(String name) {
+    if (name.equals("normalize")) {
+      return this.normalize;
+    } else if (name.equals("binaryLearner")) {
+      return learnerSupplier.get();
+    }
     return parameters.get(name);
   }
 

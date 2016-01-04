@@ -21,6 +21,7 @@
 
 package com.davidbracewell.apollo.ml.classification;
 
+import com.davidbracewell.apollo.linalg.DenseVector;
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.EncoderPair;
 import com.davidbracewell.apollo.ml.Instance;
@@ -38,6 +39,7 @@ public class OneVsRestClassifier extends Classifier {
    * The Classifiers.
    */
   Classifier[] classifiers;
+  boolean normalize;
 
   /**
    * Instantiates a new Classifier.
@@ -51,11 +53,20 @@ public class OneVsRestClassifier extends Classifier {
 
   @Override
   public Classification classify(Vector vector) {
-    double[] distribution = new double[numberOfLabels()];
-    for (int ci = 0; ci < distribution.length; ci++) {
-      distribution[ci] = classifiers[ci].classify(vector).distribution()[1];
+    DenseVector distribution = new DenseVector(numberOfLabels());
+    for (int ci = 0; ci < distribution.dimension(); ci++) {
+      distribution.set(ci, classifiers[ci].classify(vector).distribution()[1]);
     }
-    return new Classification(distribution, getLabelEncoder());
+    if (normalize) {
+      //Softmax normalization and log normaliza
+      distribution
+        .mapSubtractSelf(
+          distribution.max()
+        ).mapSelf(Math::exp);
+      distribution.mapDivideSelf(distribution.sum());
+      distribution.mapSelf(Math::log);
+    }
+    return new Classification(distribution.toArray(), getLabelEncoder());
   }
 
 }//END OF OneVsRestClassifier

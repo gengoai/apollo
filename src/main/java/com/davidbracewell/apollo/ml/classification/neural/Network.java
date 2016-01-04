@@ -29,8 +29,11 @@ public class Network implements Serializable {
       } else {
         outputSize = config.get(i).v1;
       }
-      Activation af = i + 1 == layers.length ? new Sigmoid() : config.get(i).v2;
-      layers[i] = new Layer(inputSize, outputSize, af);
+      if (i == layers.length - 1) {
+        layers[i] = new SoftmaxLayer(inputSize, outputSize);
+      } else {
+        layers[i] = new Layer(inputSize, outputSize, config.get(i).v2);
+      }
     }
   }
 

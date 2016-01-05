@@ -25,7 +25,11 @@ import com.davidbracewell.apollo.ml.Dataset;
 import com.davidbracewell.apollo.ml.FeatureVector;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.classification.ClassifierLearner;
-import de.bwaldvogel.liblinear.*;
+import de.bwaldvogel.liblinear.Feature;
+import de.bwaldvogel.liblinear.Linear;
+import de.bwaldvogel.liblinear.Parameter;
+import de.bwaldvogel.liblinear.Problem;
+import de.bwaldvogel.liblinear.SolverType;
 
 import java.util.Iterator;
 
@@ -39,6 +43,7 @@ public class LibLinearLearner extends ClassifierLearner {
   private SolverType solver = SolverType.L2R_LR;
   private double C = 1;
   private double eps = 0.0001;
+  private boolean bias = false;
   private boolean verbose = false;
 
   @Override
@@ -52,10 +57,13 @@ public class LibLinearLearner extends ClassifierLearner {
     problem.l = dataset.size();
     problem.x = new Feature[problem.l][];
     problem.y = new double[problem.l];
+    problem.bias = bias ? 0 : -1;
+
+    int biasIndex = (bias ? model.numberOfFeatures() : -1);
     int index = 0;
     for (Iterator<Instance> iitr = dataset.iterator(); iitr.hasNext(); index++) {
       FeatureVector vector = iitr.next().toVector(dataset.getEncoderPair());
-      problem.x[index] = LibLinearModel.toFeature(vector);
+      problem.x[index] = LibLinearModel.toFeature(vector, biasIndex);
       problem.y[index] = vector.getLabel();
     }
     problem.n = model.getFeatureEncoder().size() + 1;
@@ -141,6 +149,15 @@ public class LibLinearLearner extends ClassifierLearner {
    */
   public void setVerbose(boolean verbose) {
     this.verbose = verbose;
+  }
+
+
+  public boolean getBias() {
+    return bias;
+  }
+
+  public void setBias(boolean bias) {
+    this.bias = bias;
   }
 
   @Override

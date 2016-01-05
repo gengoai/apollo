@@ -24,8 +24,8 @@ package com.davidbracewell.apollo.ml.classification.linear;
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.EncoderPair;
 import com.davidbracewell.apollo.ml.Instance;
-import com.davidbracewell.apollo.ml.classification.Classifier;
 import com.davidbracewell.apollo.ml.classification.Classification;
+import com.davidbracewell.apollo.ml.classification.Classifier;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.collection.MultiCounter;
 import com.davidbracewell.collection.MultiCounters;
@@ -49,6 +49,7 @@ public class LibLinearModel extends Classifier {
    * The Model.
    */
   Model model;
+  int biasIndex = 0;
 
   /**
    * Instantiates a new Classifier.
@@ -66,12 +67,20 @@ public class LibLinearModel extends Classifier {
    * @param vector the vector
    * @return the feature [ ]
    */
-  public static Feature[] toFeature(Vector vector) {
+  public static Feature[] toFeature(Vector vector, int biasIndex) {
     List<Vector.Entry> entries = Lists.newArrayList(vector.orderedNonZeroIterator());
-    Feature[] feature = new Feature[entries.size()];
+
+    int size = entries.size() + (biasIndex > 0 ? 1 : 0);
+
+    Feature[] feature = new Feature[size];
     for (int i = 0; i < entries.size(); i++) {
       feature[i] = new FeatureNode(entries.get(i).index + 1, entries.get(i).value);
     }
+
+    if (biasIndex > 0) {
+      feature[size - 1] = new FeatureNode(biasIndex, 1.0);
+    }
+
     return feature;
   }
 
@@ -79,9 +88,9 @@ public class LibLinearModel extends Classifier {
   public Classification classify(Vector vector) {
     double[] p = new double[numberOfLabels()];
     if (model.isProbabilityModel()) {
-      Linear.predictProbability(model, toFeature(vector), p);
+      Linear.predictProbability(model, toFeature(vector,biasIndex), p);
     } else {
-      Linear.predictValues(model, toFeature(vector), p);
+      Linear.predictValues(model, toFeature(vector,biasIndex), p);
     }
 
     //re-arrange the probabilities to match the target feature

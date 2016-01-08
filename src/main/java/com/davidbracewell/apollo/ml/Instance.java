@@ -36,7 +36,15 @@ import lombok.ToString;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -113,6 +121,14 @@ public class Instance implements Example, Serializable, Iterable<Feature> {
     return features.stream().filter(f -> f.getName().startsWith(prefix)).collect(Collectors.toList());
   }
 
+  public Optional<Feature> getFeature(@NonNull String name) {
+    return features.stream().filter(f -> f.getName().equals(name)).findFirst();
+  }
+
+  public Optional<Feature> getFeatureByPrefix(@NonNull String name) {
+    return features.stream().filter(f -> f.getName().startsWith(name)).findFirst();
+  }
+
   /**
    * Gets value.
    *
@@ -183,7 +199,7 @@ public class Instance implements Example, Serializable, Iterable<Feature> {
    * @param label the label
    * @return the boolean
    */
-  public boolean hasLabel(Object label){
+  public boolean hasLabel(Object label) {
     return getLabelSet().contains(label);
   }
 

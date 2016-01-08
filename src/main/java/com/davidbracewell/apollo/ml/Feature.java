@@ -22,6 +22,7 @@
 package com.davidbracewell.apollo.ml;
 
 import com.davidbracewell.Copyable;
+import com.google.common.base.Joiner;
 import lombok.NonNull;
 import lombok.Value;
 
@@ -53,8 +54,8 @@ public class Feature implements Serializable, Comparable<Feature>, Copyable<Feat
     return new Feature(name, 1.0);
   }
 
-  public static Feature TRUE(@NonNull String featureName, @NonNull String featureComponent) {
-    return new Feature(featureName + "=" + featureComponent, 1.0);
+  public static Feature TRUE(@NonNull String featureName, @NonNull String... featureComponent) {
+    return new Feature(featureName + "=" + Joiner.on('_').join(featureComponent), 1.0);
   }
 
   /**

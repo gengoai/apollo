@@ -20,7 +20,7 @@ public abstract class ContextualIterator<T> implements Iterator<T>, Serializable
    *
    * @return the int
    */
-  protected abstract int size();
+  public abstract int size();
 
   /**
    * Gets context at.

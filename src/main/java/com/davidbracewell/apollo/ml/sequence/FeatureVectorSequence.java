@@ -54,7 +54,7 @@ public class FeatureVectorSequence implements Serializable, Iterable<FeatureVect
     private static final long serialVersionUID = 1L;
 
     @Override
-    protected int size() {
+    public int size() {
       return FeatureVectorSequence.this.size();
     }
 

@@ -120,7 +120,7 @@ public class Sequence implements Example, Serializable, Iterable<Instance> {
     private static final long serialVersionUID = 1L;
 
     @Override
-    protected int size() {
+    public int size() {
       return Sequence.this.size();
     }
 

@@ -61,7 +61,7 @@ public class SequenceInput<T> implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @Override
-    protected int size() {
+    public int size() {
       return SequenceInput.this.size();
     }
 

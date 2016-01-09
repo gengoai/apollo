@@ -6,10 +6,7 @@ import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.function.SerializableFunction;
 import lombok.NonNull;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 /**
  * The interface Sequence featurizer.
@@ -19,6 +16,9 @@ import java.util.Set;
  */
 public interface SequenceFeaturizer<INPUT> extends Featurizer<ContextualIterator<INPUT>> {
 
+  static Set<Feature> featureSet(Feature... features){
+    return new HashSet<>(Arrays.asList(features));
+  }
 
   /**
    * Of sequence featurizer.

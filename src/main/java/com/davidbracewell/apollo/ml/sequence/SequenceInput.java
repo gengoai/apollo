@@ -31,7 +31,7 @@ public class SequenceInput<T> implements Serializable {
   }
 
   public T get(int index) {
-    if (index < 0 || index >= labels.size()) {
+    if (index < 0 || index >= list.size()) {
       return null;
     }
     return list.get(index);

@@ -8,6 +8,9 @@ import java.util.Collection;
 import java.util.Optional;
 
 /**
+ * The type Sequence input.
+ *
+ * @param <T> the type parameter
  * @author David B. Bracewell
  */
 public class SequenceInput<T> implements Serializable {
@@ -15,14 +18,28 @@ public class SequenceInput<T> implements Serializable {
   private final ArrayList<T> list = new ArrayList<>();
   private final ArrayList<String> labels = new ArrayList<>();
 
+  /**
+   * Instantiates a new Sequence input.
+   */
   public SequenceInput() {
 
   }
 
+  /**
+   * Instantiates a new Sequence input.
+   *
+   * @param collection the collection
+   */
   public SequenceInput(@NonNull Collection<T> collection) {
     list.addAll(collection);
   }
 
+  /**
+   * Gets label.
+   *
+   * @param index the index
+   * @return the label
+   */
   public String getLabel(int index) {
     if (index < 0 || index >= labels.size()) {
       return null;
@@ -30,6 +47,12 @@ public class SequenceInput<T> implements Serializable {
     return labels.get(index);
   }
 
+  /**
+   * Get t.
+   *
+   * @param index the index
+   * @return the t
+   */
   public T get(int index) {
     if (index < 0 || index >= list.size()) {
       return null;
@@ -38,20 +61,41 @@ public class SequenceInput<T> implements Serializable {
   }
 
 
+  /**
+   * Add.
+   *
+   * @param observation the observation
+   * @param label       the label
+   */
   public void add(T observation, String label) {
     list.add(observation);
     labels.add(label);
   }
 
+  /**
+   * Add.
+   *
+   * @param observation the observation
+   */
   public void add(T observation) {
     list.add(observation);
     labels.add(null);
   }
 
+  /**
+   * Size int.
+   *
+   * @return the int
+   */
   public int size() {
     return list.size();
   }
 
+  /**
+   * Iterator contextual iterator.
+   *
+   * @return the contextual iterator
+   */
   public ContextualIterator<T> iterator() {
     return new Itr();
   }

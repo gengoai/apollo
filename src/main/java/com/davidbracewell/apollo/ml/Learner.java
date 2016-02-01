@@ -7,7 +7,6 @@ import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.io.structured.StructuredReader;
 import com.davidbracewell.io.structured.StructuredWriter;
 import com.davidbracewell.io.structured.Writable;
-import com.davidbracewell.io.structured.json.JSONReader;
 import com.davidbracewell.reflection.BeanMap;
 import com.davidbracewell.reflection.Ignore;
 import lombok.NonNull;

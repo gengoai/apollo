@@ -5,7 +5,7 @@ import com.davidbracewell.collection.Interner;
 import com.davidbracewell.io.Resources;
 import com.davidbracewell.io.resource.Resource;
 import com.davidbracewell.io.structured.Readable;
-import com.davidbracewell.io.structured.Writeable;
+import com.davidbracewell.io.structured.Writable;
 import com.davidbracewell.io.structured.json.JSONReader;
 import com.davidbracewell.io.structured.json.JSONWriter;
 import com.davidbracewell.string.StringUtils;
@@ -21,7 +21,7 @@ import java.util.stream.Stream;
  * <code>Instance</code> specialization and Sequence Labeling Problems use the <code>Sequence</code>
  * specialization.</p>
  */
-public interface Example extends Copyable<Example>, Writeable, Readable {
+public interface Example extends Copyable<Example>, Writable, Readable {
 
   /**
    * Wraps reading an example from a JSON string as written by the write method. Useful for Datasets that keep examples

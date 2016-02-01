@@ -6,7 +6,7 @@ import com.davidbracewell.apollo.ml.sequence.SequenceLabeler;
 import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.io.structured.StructuredReader;
 import com.davidbracewell.io.structured.StructuredWriter;
-import com.davidbracewell.io.structured.Writeable;
+import com.davidbracewell.io.structured.Writable;
 import com.davidbracewell.io.structured.json.JSONReader;
 import com.davidbracewell.reflection.BeanMap;
 import com.davidbracewell.reflection.Ignore;
@@ -23,7 +23,7 @@ import java.util.Map;
  * @param <M> the type parameter
  * @author David B. Bracewell
  */
-public abstract class Learner<T extends Example, M extends Model> implements Serializable, Writeable {
+public abstract class Learner<T extends Example, M extends Model> implements Serializable, Writable {
 
   /**
    * Builder learner builder.

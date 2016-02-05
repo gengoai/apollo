@@ -88,9 +88,9 @@ public class LibLinearModel extends Classifier {
   public Classification classify(Vector vector) {
     double[] p = new double[numberOfLabels()];
     if (model.isProbabilityModel()) {
-      Linear.predictProbability(model, toFeature(vector,biasIndex), p);
+      Linear.predictProbability(model, toFeature(vector, biasIndex), p);
     } else {
-      Linear.predictValues(model, toFeature(vector,biasIndex), p);
+      Linear.predictValues(model, toFeature(vector, biasIndex), p);
     }
 
     //re-arrange the probabilities to match the target feature
@@ -110,7 +110,7 @@ public class LibLinearModel extends Classifier {
     MultiCounter<String, String> weights = MultiCounters.newHashMapMultiCounter();
 
     int nrClass = model.getNrClass() - 1;
-    for (int i = 0, index = 0; i < model.getNrFeature(); i++, index += nrClass) {
+    for (int i = 0, index = 0; i < getFeatureEncoder().size(); i++, index += nrClass) {
       String featureName = getFeatureEncoder().decode(i).toString();
       for (int j = 0; j < nrClass; j++) {
         weights.set(featureName, getLabelEncoder().decode(labels[j]).toString(), modelWeights[j + index]);

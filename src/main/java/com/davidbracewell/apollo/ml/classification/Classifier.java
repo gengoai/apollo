@@ -37,7 +37,7 @@ import lombok.NonNull;
 public abstract class Classifier extends Model {
   private static final long serialVersionUID = 1L;
   private final PreprocessorList<Instance> preprocessors;
-  private Featurizer featurizer;
+  private Featurizer<?> featurizer;
 
   /**
    * Instantiates a new Classifier.

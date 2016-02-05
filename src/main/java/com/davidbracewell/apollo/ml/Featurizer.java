@@ -24,6 +24,7 @@ package com.davidbracewell.apollo.ml;
 import com.davidbracewell.collection.Counter;
 import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.function.SerializableFunction;
+import com.davidbracewell.stream.MStream;
 import com.google.common.base.Preconditions;
 import lombok.NonNull;
 
@@ -119,10 +120,18 @@ public interface Featurizer<INPUT> extends SerializableFunction<INPUT, Set<Featu
    * @param labeledDatum the labeled datum
    * @return the instance
    */
-  default Instance extract(@NonNull LabeledDatum<INPUT> labeledDatum) {
+  default Instance extractLabeled(@NonNull LabeledDatum<INPUT> labeledDatum) {
     return Instance.create(apply(labeledDatum.getData()), labeledDatum.getLabel());
   }
 
+
+  default MStream<Instance> extractLabeled(@NonNull MStream<LabeledDatum<INPUT>> inputStream) {
+    return inputStream.map(this::extractLabeled);
+  }
+
+  default MStream<Instance> extract(@NonNull MStream<INPUT> inputStream) {
+    return inputStream.map(this::extract);
+  }
 
   /**
    * A builder that allows combining multiple featurizers

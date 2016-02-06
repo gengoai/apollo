@@ -15,6 +15,7 @@ import lombok.experimental.Accessors;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Supplier;
 
 /**
  * @author David B. Bracewell
@@ -50,6 +51,14 @@ public class LearnerBuilder<T extends Example, M extends Model> implements Seria
     } catch (ReflectionException e) {
       throw Throwables.propagate(e);
     }
+  }
+
+  public Class<? extends Learner<T, M>> getLearnerClass() {
+    return learnerClass;
+  }
+
+  public <R extends Learner<T, M>> Supplier<R> supplier() {
+    return this::build;
   }
 
 

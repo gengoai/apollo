@@ -132,5 +132,4 @@ public abstract class Learner<T extends Example, M extends Model> implements Ser
     writer.writeKeyValue("parameters", getParameters());
   }
 
-
 }// END OF Learner

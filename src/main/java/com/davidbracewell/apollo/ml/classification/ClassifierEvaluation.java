@@ -38,6 +38,7 @@ import lombok.NonNull;
 import java.io.PrintStream;
 import java.io.Serializable;
 import java.util.*;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
@@ -639,18 +640,18 @@ public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, S
       sorted.forEach(gold -> {
         List<Object> row = new ArrayList<>();
         row.add(gold);
-        columns.forEach(c -> row.add((long)matrix.get(gold, c)));
-        row.add((long)matrix.get(gold).sum());
+        columns.forEach(c -> row.add((long) matrix.get(gold, c)));
+        row.add((long) matrix.get(gold).sum());
         tableFormatter.content(row);
       });
       List<Object> totalRow = new ArrayList<>();
       totalRow.add("Total");
       columns.forEach(c -> {
-        totalRow.add((long)matrix.items().stream()
+        totalRow.add((long) matrix.items().stream()
           .mapToDouble(k -> matrix.get(k, c))
           .sum());
       });
-      totalRow.add((long)matrix.sum());
+      totalRow.add((long) matrix.sum());
       tableFormatter.content(totalRow);
       tableFormatter.print(printStream);
       printStream.println();
@@ -667,9 +668,9 @@ public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, S
         precision(g),
         recall(g),
         f1(g),
-        matrix.get(g,g),
+        matrix.get(g, g),
         falsePositives(g),
-        matrix.get(g).sum() - matrix.get(g,g),
+        matrix.get(g).sum() - matrix.get(g, g),
         matrix.get(g).sum()
       ))
     );
@@ -697,5 +698,13 @@ public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, S
 
   }
 
+
+  public ClassifierEvaluation crossValidation(@NonNull Dataset<Instance> dataset, @NonNull Supplier<ClassifierLearner> learnerSupplier, int nFolds) {
+    dataset.fold(nFolds).forEach((train, test) -> {
+      Classifier model = learnerSupplier.get().train(train);
+      evaluate(model, test);
+    });
+    return this;
+  }
 
 }//END OF ClassifierEvaluation

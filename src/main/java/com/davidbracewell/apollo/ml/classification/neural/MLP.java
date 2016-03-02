@@ -43,7 +43,7 @@ public class MLP extends ClassifierLearner {
   public static void main(String[] args) throws Exception {
     Dataset<Instance> dataset = Dataset.classification()
       .localSource(
-        Resources.fromFile("/home/david/Downloads/Data/SomasundaranWiebe-politicalDebates/abortion")
+        Resources.fromFile("/data/Downloads/SomasundaranWiebe-politicalDebates/abortion")
           .getChildren()
           .stream()
           .map(Unchecked.function(Resource::readToString))

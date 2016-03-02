@@ -40,7 +40,7 @@ public class LDAModel extends Clustering {
 
   @Override
   public int size() {
-    return clusters.size();
+    return K;
   }
 
   @Override

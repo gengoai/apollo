@@ -1,10 +1,6 @@
 package com.davidbracewell.apollo.ml.embedding;
 
-import com.davidbracewell.collection.Collect;
-import com.davidbracewell.collection.Counter;
-import com.davidbracewell.collection.Counters;
-import com.davidbracewell.collection.Index;
-import com.davidbracewell.collection.Indexes;
+import com.davidbracewell.collection.*;
 import com.google.common.collect.ImmutableMap;
 import lombok.NonNull;
 import lombok.Value;
@@ -18,7 +14,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author David B. Bracewell
  */
 public class HuffmanCoding implements Serializable {
-
+  private static final long serialVersionUID = 1L;
   private final Counter<String> vocabulary;
   private final Index<String> index;
 
@@ -150,6 +146,7 @@ public class HuffmanCoding implements Serializable {
 
   @Value
   public static class HuffmanNode implements Serializable {
+    private static final long serialVersionUID = 1L;
     byte[] code;
     int[] point;
     int idx;

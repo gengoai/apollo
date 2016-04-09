@@ -18,15 +18,35 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * The type Lda model.
+ *
  * @author David B. Bracewell
  */
 public class LDAModel extends Clustering {
   private static final long serialVersionUID = 1L;
+  /**
+   * The Clusters.
+   */
   ArrayList<Cluster> clusters;
+  /**
+   * The Word topic.
+   */
   ConditionalMultinomial wordTopic;
+  /**
+   * The K.
+   */
   int K;
+  /**
+   * The Random generator.
+   */
   RandomGenerator randomGenerator;
+  /**
+   * The Alpha.
+   */
   double alpha;
+  /**
+   * The Beta.
+   */
   double beta;
 
   /**
@@ -40,7 +60,7 @@ public class LDAModel extends Clustering {
 
   @Override
   public int size() {
-    return clusters.size();
+    return K;
   }
 
   @Override
@@ -117,6 +137,12 @@ public class LDAModel extends Clustering {
     return topic;
   }
 
+  /**
+   * Gets topic words.
+   *
+   * @param topic the topic
+   * @return the topic words
+   */
   public Counter<String> getTopicWords(int topic) {
     Counter<String> counter = Counters.newHashMapCounter();
     for (int i = 0; i < getFeatureEncoder().size(); i++) {
@@ -129,6 +155,12 @@ public class LDAModel extends Clustering {
   }
 
 
+  /**
+   * Get topic distribution double [ ].
+   *
+   * @param feature the feature
+   * @return the double [ ]
+   */
   public double[] getTopicDistribution(String feature) {
     double[] distribution = new double[clusters.size()];
     int i = (int) getFeatureEncoder().encode(feature);

@@ -7,12 +7,16 @@ import lombok.NonNull;
 import org.jblas.DoubleMatrix;
 import org.jblas.Singular;
 
+import java.io.Serializable;
+
 /**
  * @author David B. Bracewell
  */
-public class SVD {
+public class SingularValueDecomposition implements Decomposition, Serializable {
+  private static final long serialVersionUID = 1L;
 
-  public Matrix[] decomppse(@NonNull Matrix m) {
+  @NonNull
+  public Matrix[] decompose(@NonNull Matrix m) {
     DenseMatrix dense;
     if (m instanceof DenseMatrix) {
       dense = Cast.as(m);
@@ -27,4 +31,4 @@ public class SVD {
     return asDense;
   }
 
-}// END OF SVD
+}// END OF SingularValueDecomposition

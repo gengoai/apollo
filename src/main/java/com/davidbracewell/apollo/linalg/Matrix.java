@@ -430,7 +430,7 @@ public interface Matrix extends Copyable<Matrix>, Iterable<Matrix.Entry> {
    * @param m the m
    * @return the matrix
    */
-  Matrix multiply(@NonNull Matrix m);
+  Matrix multiply(Matrix m);
 
   /**
    * Transpose matrix.

@@ -6,24 +6,16 @@ import com.davidbracewell.conversion.Cast;
 import lombok.NonNull;
 import org.jblas.ComplexDoubleMatrix;
 
+import java.io.Serializable;
+
 /**
  * @author David B. Bracewell
  */
-public class Eigen {
-  public static void main(String[] args) {
-    DenseMatrix matrix = new DenseMatrix(100, 100);
-    for (int r = 0; r < 100; r++) {
-      for (int c = 0; c < 100; c++) {
-        matrix.set(r, c, Math.random());
-      }
-    }
+public class EigenValueDecomposition implements Decomposition, Serializable {
+  private static final long serialVersionUID = 1L;
 
-    Eigen svd = new Eigen();
-    System.out.println(svd.decomppse(matrix));
-
-  }
-
-  public Matrix decomppse(@NonNull Matrix m) {
+  @Override
+  public Matrix[] decompose(@NonNull Matrix m) {
     DenseMatrix dense;
     if (m instanceof DenseMatrix) {
       dense = Cast.as(m);
@@ -31,6 +23,7 @@ public class Eigen {
       dense = new DenseMatrix(m);
     }
     ComplexDoubleMatrix result = org.jblas.Eigen.eigenvalues(dense.asDoubleMatrix());
-    return new DenseMatrix(result.toArray2());
+    return new DenseMatrix[]{new DenseMatrix(result.toArray2())};
   }
+
 }// END OF Eigen

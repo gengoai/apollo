@@ -14,7 +14,6 @@ import java.util.List;
  * @author dbracewell
  */
 public class InMemoryLSH<V extends Vector> extends LSH<V> {
-
   private static final long serialVersionUID = 1L;
 
   private List<V> vectors = new ArrayList<>();

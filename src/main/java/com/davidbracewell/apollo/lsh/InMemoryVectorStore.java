@@ -39,7 +39,7 @@ import java.util.stream.Collectors;
  * @author David B. Bracewell
  */
 public class InMemoryVectorStore<KEY, V extends Vector> extends VectorStore<KEY, V> {
-
+  private static final long serialVersionUID = 1L;
   private final InMemoryLSH<LabeledVector> lsh;
   private final Index<KEY> index;
 

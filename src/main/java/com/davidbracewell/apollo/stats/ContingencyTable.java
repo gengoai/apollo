@@ -55,9 +55,9 @@ public class ContingencyTable {
   public static ContingencyTable forCorpusComparison(double countInCorpusOne, double corpusOneSize, double countInCorpusTwo, double corpusTwoSize) {
     ContingencyTable table = new ContingencyTable(2, 2);
     table.set(0, 0, countInCorpusOne);
-    table.set(1, 0, corpusOneSize);
+    table.set(1, 0, corpusOneSize-countInCorpusOne);
     table.set(0, 1, countInCorpusTwo);
-    table.set(1, 1, corpusTwoSize);
+    table.set(1, 1, corpusTwoSize-countInCorpusTwo);
     return table;
   }
 

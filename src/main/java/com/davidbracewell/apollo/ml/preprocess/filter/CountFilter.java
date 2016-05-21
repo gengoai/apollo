@@ -15,7 +15,7 @@ import java.io.Serializable;
 public class CountFilter implements FilterProcessor<Instance>, InstancePreprocessor, Serializable {
   private static final long serialVersionUID = 1L;
   private final SerializableDoublePredicate filter;
-  private volatile Counter<String> counter = Counters.newConcurrentCounter();
+  private volatile Counter<String> counter = Counters.synchronizedCounter(Counters.newHashMapCounter());
 
   public CountFilter(@NonNull SerializableDoublePredicate filter) {
     this.filter = filter;

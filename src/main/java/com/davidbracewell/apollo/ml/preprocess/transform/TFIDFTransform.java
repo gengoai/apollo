@@ -2,21 +2,20 @@ package com.davidbracewell.apollo.ml.preprocess.transform;
 
 import com.davidbracewell.apollo.ml.Encoder;
 import com.davidbracewell.apollo.ml.Feature;
-import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.collection.Counter;
 import com.davidbracewell.collection.Counters;
 import com.davidbracewell.string.StringUtils;
 import com.google.common.util.concurrent.AtomicDouble;
 
 import java.util.Objects;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
  * @author David B. Bracewell
  */
 public class TFIDFTransform extends RestrictedTransform {
-  private volatile Counter<String> documentFrequencies = Counters.newConcurrentCounter();
+  private static final long serialVersionUID = 1L;
+  private volatile Counter<String> documentFrequencies = Counters.synchronizedCounter(Counters.newHashMapCounter());
   private volatile AtomicDouble totalDocs = new AtomicDouble();
 
   public TFIDFTransform() {

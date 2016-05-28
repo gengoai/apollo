@@ -28,10 +28,7 @@ import com.davidbracewell.stream.MStream;
 import com.google.common.base.Preconditions;
 import lombok.NonNull;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.*;
 
 /**
  * <p> A featurizer converts an input into a one or more <code>Feature</code>s which have a name and a value. Specific
@@ -84,16 +81,6 @@ public interface Featurizer<INPUT> extends SerializableFunction<INPUT, Set<Featu
   }
 
   /**
-   * Creates a new builder that allows constructing more complex sets of featurizers.
-   *
-   * @param <T> the type of the input
-   * @return the builder
-   */
-  static <T> Builder<T> builder() {
-    return new Builder<>();
-  }
-
-  /**
    * Converts the given input into features and creates an <code>Instance</code> from the features.
    *
    * @param object the input
@@ -133,64 +120,24 @@ public interface Featurizer<INPUT> extends SerializableFunction<INPUT, Set<Featu
     return inputStream.map(this::extract);
   }
 
-  /**
-   * A builder that allows combining multiple featurizers
-   *
-   * @param <T> the type of the input
-   */
-  class Builder<T> {
-    private final Set<Featurizer<? super T>> featurizers = new LinkedHashSet<>();
-
-    /**
-     * Adds the featurizer to the builder
-     *
-     * @param featurizer the featurizer to add
-     * @return the builder
-     */
-    public Builder<T> add(Featurizer<? super T> featurizer) {
-      if (featurizer != null) {
-        featurizers.add(featurizer);
-      }
-      return this;
+   @SafeVarargs
+  static <T> Featurizer<T> chain(@NonNull Featurizer<? super T>... extractors) {
+    Preconditions.checkState(extractors.length > 0, "No Featurizers have been specified.");
+    if (extractors.length == 1) {
+      return Cast.as(extractors[0]);
     }
+    return new Featurizer<T>() {
+      private static final long serialVersionUID = 1L;
+      private final Set<Featurizer<? super T>> featurizers = new LinkedHashSet<>(Arrays.asList(extractors));
 
-    /**
-     * Adds all featurizers in the given collection.
-     *
-     * @param featurizers the featurizers to add
-     * @return the builder
-     */
-    public Builder<T> addAll(Collection<? extends Featurizer<? super T>> featurizers) {
-      if (featurizers != null) {
-        featurizers.forEach(this.featurizers::add);
+      @Override
+      public Set<Feature> apply(T t) {
+        Set<Feature> features = new HashSet<>();
+        featurizers.forEach(f -> features.addAll(f.apply(t)));
+        return features;
       }
-      return this;
-    }
-
-    /**
-     * Builds a featurizer that chains all the add featurizers into one.
-     *
-     * @return the featurizer
-     */
-    public Featurizer<T> build() {
-      Preconditions.checkState(featurizers.size() > 0, "No Featurizers have been added.");
-      if (featurizers.size() == 1) {
-        return Cast.as(featurizers.stream().findFirst().get());
-      }
-      return new Featurizer<T>() {
-        private static final long serialVersionUID = 1L;
-        private final Set<Featurizer<? super T>> featurizers = new LinkedHashSet<>(Builder.this.featurizers);
-
-        @Override
-        public Set<Feature> apply(T t) {
-          Set<Feature> features = new HashSet<>();
-          featurizers.forEach(f -> features.addAll(f.apply(t)));
-          return features;
-        }
-      };
-    }
-
-  }//END OF Builder
+    };
+  }
 
 
 }//END OF Featurizer

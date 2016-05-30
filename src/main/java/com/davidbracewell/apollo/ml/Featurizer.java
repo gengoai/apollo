@@ -21,6 +21,7 @@
 
 package com.davidbracewell.apollo.ml;
 
+import com.davidbracewell.cache.CacheProxy;
 import com.davidbracewell.cache.Cached;
 import com.davidbracewell.collection.Counter;
 import com.davidbracewell.conversion.Cast;
@@ -114,14 +115,33 @@ public interface Featurizer<INPUT> extends SerializableFunction<INPUT, Set<Featu
   }
 
 
+  /**
+   * Extract labeled m stream.
+   *
+   * @param inputStream the input stream
+   * @return the m stream
+   */
   default MStream<Instance> extractLabeled(@NonNull MStream<LabeledDatum<INPUT>> inputStream) {
     return inputStream.map(this::extractLabeled);
   }
 
+  /**
+   * Extract m stream.
+   *
+   * @param inputStream the input stream
+   * @return the m stream
+   */
   default MStream<Instance> extract(@NonNull MStream<INPUT> inputStream) {
     return inputStream.map(this::extract);
   }
 
+  /**
+   * Chain featurizer.
+   *
+   * @param <T>        the type parameter
+   * @param extractors the extractors
+   * @return the featurizer
+   */
   @SafeVarargs
   static <T> Featurizer<T> chain(@NonNull Featurizer<? super T>... extractors) {
     Preconditions.checkState(extractors.length > 0, "No Featurizers have been specified.");
@@ -140,6 +160,25 @@ public interface Featurizer<INPUT> extends SerializableFunction<INPUT, Set<Featu
         return features;
       }
     };
+  }
+
+  /**
+   * Cache featurizer.
+   *
+   * @param cacheName the cache name
+   * @return the featurizer
+   */
+  default Featurizer<INPUT> cache(String cacheName) {
+    return CacheProxy.cache(this, cacheName);
+  }
+
+  /**
+   * Cache featurizer.
+   *
+   * @return the featurizer
+   */
+  default Featurizer<INPUT> cache() {
+    return CacheProxy.cache(this);
   }
 
 

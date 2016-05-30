@@ -21,6 +21,7 @@
 
 package com.davidbracewell.apollo.ml;
 
+import com.davidbracewell.cache.Cached;
 import com.davidbracewell.collection.Counter;
 import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.function.SerializableFunction;
@@ -38,6 +39,7 @@ import java.util.*;
  * @author David B. Bracewell
  */
 public interface Featurizer<INPUT> extends SerializableFunction<INPUT, Set<Feature>> {
+
 
   /**
    * Creates a binary featurizer, i.e. one that in which the values returned are all 1.0 (true). The given function
@@ -120,7 +122,7 @@ public interface Featurizer<INPUT> extends SerializableFunction<INPUT, Set<Featu
     return inputStream.map(this::extract);
   }
 
-   @SafeVarargs
+  @SafeVarargs
   static <T> Featurizer<T> chain(@NonNull Featurizer<? super T>... extractors) {
     Preconditions.checkState(extractors.length > 0, "No Featurizers have been specified.");
     if (extractors.length == 1) {
@@ -131,6 +133,7 @@ public interface Featurizer<INPUT> extends SerializableFunction<INPUT, Set<Featu
       private final Set<Featurizer<? super T>> featurizers = new LinkedHashSet<>(Arrays.asList(extractors));
 
       @Override
+      @Cached
       public Set<Feature> apply(T t) {
         Set<Feature> features = new HashSet<>();
         featurizers.forEach(f -> features.addAll(f.apply(t)));

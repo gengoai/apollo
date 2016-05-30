@@ -21,6 +21,8 @@
 
 package com.davidbracewell.apollo.ml;
 
+import com.davidbracewell.cache.Cached;
+
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -34,6 +36,7 @@ public abstract class BinaryFeaturizer<T> implements Featurizer<T> {
   private static final long serialVersionUID = 1L;
 
   @Override
+  @Cached
   public final Set<Feature> apply(T t) {
     return applyImpl(t).stream().map(Feature::TRUE).collect(Collectors.toSet());
   }

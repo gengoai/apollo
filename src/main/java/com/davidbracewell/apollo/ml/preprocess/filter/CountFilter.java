@@ -4,6 +4,7 @@ import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.preprocess.InstancePreprocessor;
 import com.davidbracewell.collection.Counter;
 import com.davidbracewell.collection.Counters;
+import com.davidbracewell.collection.HashMapCounter;
 import com.davidbracewell.function.SerializableDoublePredicate;
 import lombok.NonNull;
 
@@ -15,7 +16,7 @@ import java.io.Serializable;
 public class CountFilter implements FilterProcessor<Instance>, InstancePreprocessor, Serializable {
   private static final long serialVersionUID = 1L;
   private final SerializableDoublePredicate filter;
-  private volatile Counter<String> counter = Counters.synchronizedCounter(Counters.newHashMapCounter());
+  private volatile Counter<String> counter = Counters.synchronizedCounter(new HashMapCounter<>());
 
   public CountFilter(@NonNull SerializableDoublePredicate filter) {
     this.filter = filter;

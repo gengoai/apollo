@@ -5,13 +5,14 @@ import com.davidbracewell.apollo.ml.EncoderPair;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.collection.Counter;
-import com.davidbracewell.collection.Counters;
+import com.davidbracewell.collection.HashMapCounter;
 import lombok.NonNull;
 
 /**
  * @author David B. Bracewell
  */
 public class SimpleRegressionModel extends Regression {
+  private static final long serialVersionUID = 1L;
   Vector weights;
   double bias;
 
@@ -32,7 +33,7 @@ public class SimpleRegressionModel extends Regression {
 
   @Override
   public Counter<String> getFeatureWeights() {
-    Counter<String> out = Counters.newHashMapCounter();
+    Counter<String> out = new HashMapCounter<>();
     out.set("***BIAS***", bias);
     weights.forEachSparse(e -> out.set(decodeFeature(e.index).toString(), e.value));
     return out;

@@ -25,9 +25,9 @@ import com.davidbracewell.apollo.ml.Dataset;
 import com.davidbracewell.apollo.ml.Evaluation;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.collection.Counter;
-import com.davidbracewell.collection.Counters;
+import com.davidbracewell.collection.HashMapCounter;
+import com.davidbracewell.collection.HashMapMultiCounter;
 import com.davidbracewell.collection.MultiCounter;
-import com.davidbracewell.collection.MultiCounters;
 import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.string.StringUtils;
 import com.davidbracewell.string.TableFormatter;
@@ -48,7 +48,7 @@ import java.util.stream.Collectors;
  */
 public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, Serializable {
   private static final long serialVersionUID = 1L;
-  private final MultiCounter<String, String> matrix = MultiCounters.newHashMapMultiCounter();
+  private final MultiCounter<String, String> matrix = new HashMapMultiCounter<>();
   private double total = 0;
 
   /**
@@ -128,7 +128,7 @@ public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, S
    * @return the counter
    */
   public Counter<String> f1PerClass() {
-    Counter<String> f1 = Counters.newHashMapCounter();
+    Counter<String> f1 = new HashMapCounter<>();
     Counter<String> p = precisionPerClass();
     Counter<String> r = recallPerClass();
     matrix.items().forEach(k ->
@@ -418,7 +418,7 @@ public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, S
    * @return the counter
    */
   public Counter<String> precisionPerClass() {
-    Counter<String> precisions = Counters.newHashMapCounter();
+    Counter<String> precisions = new HashMapCounter<>();
     matrix.items().forEach(k -> precisions.set(k, precision(k)));
     return precisions;
   }
@@ -444,7 +444,7 @@ public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, S
    * @return the counter
    */
   public Counter<String> recallPerClass() {
-    Counter<String> recalls = Counters.newHashMapCounter();
+    Counter<String> recalls = new HashMapCounter<>();
     matrix.items().forEach(k -> recalls.set(k, recall(k)));
     return recalls;
   }

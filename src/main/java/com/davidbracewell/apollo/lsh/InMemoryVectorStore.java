@@ -23,8 +23,8 @@ package com.davidbracewell.apollo.lsh;
 
 import com.davidbracewell.apollo.linalg.LabeledVector;
 import com.davidbracewell.apollo.linalg.Vector;
+import com.davidbracewell.collection.HashMapIndex;
 import com.davidbracewell.collection.Index;
-import com.davidbracewell.collection.Indexes;
 import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.tuple.Tuple2;
 import com.google.common.base.Preconditions;
@@ -47,14 +47,14 @@ public class InMemoryVectorStore<KEY, V extends Vector> extends VectorStore<KEY,
     Preconditions.checkArgument(numberOfHashes > 0, "Number of hashes must be > 0");
     Preconditions.checkArgument(numberOfBuckets > 0, "Number of buckets must be > 0");
     this.lsh = new InMemoryLSH<>(Preconditions.checkNotNull(hashFamily), numberOfHashes, numberOfBuckets);
-    this.index = Indexes.newIndex();
+    this.index = new HashMapIndex<>();
   }
 
   public InMemoryVectorStore(HashFamily hashFamily, int numberOfBuckets, double desiredSimilarity) {
     double y1 = 1d - Math.pow(1d - 0.9996, 1d / numberOfBuckets);
     int numberOfHashes = (int) Math.floor(Math.log10(y1) / Math.log10(desiredSimilarity));
     this.lsh = new InMemoryLSH<>(Preconditions.checkNotNull(hashFamily), numberOfHashes, numberOfBuckets);
-    this.index = Indexes.newIndex();
+    this.index = new HashMapIndex<>();
   }
 
   @Override

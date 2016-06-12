@@ -22,8 +22,8 @@
 package com.davidbracewell.apollo.affinity;
 
 import com.davidbracewell.apollo.linalg.Vector;
+import com.davidbracewell.collection.HashMapIndex;
 import com.davidbracewell.collection.Index;
-import com.davidbracewell.collection.Indexes;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 import lombok.NonNull;
@@ -39,7 +39,7 @@ public interface CorrelationMeasure extends SimilarityMeasure {
 
   @Override
   default double calculate(@NonNull Map<?, ? extends Number> m1, @NonNull Map<?, ? extends Number> m2) {
-    Index index = Indexes.newIndex(Sets.union(m1.keySet(), m2.keySet()));
+    Index index = new HashMapIndex<>(Sets.union(m1.keySet(), m2.keySet()));
     double[] v1 = new double[index.size()];
     double[] v2 = new double[index.size()];
     for (int i = 0; i < index.size(); i++) {

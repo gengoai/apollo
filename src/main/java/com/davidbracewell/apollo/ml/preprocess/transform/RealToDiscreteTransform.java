@@ -3,7 +3,7 @@ package com.davidbracewell.apollo.ml.preprocess.transform;
 import com.davidbracewell.apollo.ml.Encoder;
 import com.davidbracewell.apollo.ml.Feature;
 import com.davidbracewell.collection.Counter;
-import com.davidbracewell.collection.Counters;
+import com.davidbracewell.collection.HashMapCounter;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Stream;
@@ -14,7 +14,7 @@ import java.util.stream.Stream;
 public class RealToDiscreteTransform extends RestrictedTransform {
   private static final long serialVersionUID = 1L;
   private final double[] bins;
-  private transient Counter<Double> counts = Counters.newHashMapCounter();
+  private transient Counter<Double> counts = new HashMapCounter<>();
   private volatile AtomicBoolean finished = new AtomicBoolean(false);
 
 

@@ -10,7 +10,7 @@ import com.davidbracewell.apollo.ml.clustering.Cluster;
 import com.davidbracewell.apollo.ml.clustering.Clustering;
 import com.davidbracewell.collection.Collect;
 import com.davidbracewell.collection.Counter;
-import com.davidbracewell.collection.Counters;
+import com.davidbracewell.collection.HashMapCounter;
 import lombok.NonNull;
 import org.apache.commons.math3.random.RandomGenerator;
 
@@ -144,7 +144,7 @@ public class LDAModel extends Clustering {
    * @return the topic words
    */
   public Counter<String> getTopicWords(int topic) {
-    Counter<String> counter = Counters.newHashMapCounter();
+    Counter<String> counter = new HashMapCounter<>();
     for (int i = 0; i < getFeatureEncoder().size(); i++) {
       counter.set(
         getFeatureEncoder().decode(i).toString(),

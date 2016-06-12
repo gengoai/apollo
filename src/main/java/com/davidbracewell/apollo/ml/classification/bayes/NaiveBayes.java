@@ -28,8 +28,8 @@ import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.classification.Classification;
 import com.davidbracewell.apollo.ml.classification.Classifier;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
+import com.davidbracewell.collection.HashMapMultiCounter;
 import com.davidbracewell.collection.MultiCounter;
-import com.davidbracewell.collection.MultiCounters;
 import lombok.NonNull;
 
 /**
@@ -75,7 +75,7 @@ public class NaiveBayes extends Classifier {
 
   @Override
   public MultiCounter<String, String> getModelParameters() {
-    MultiCounter<String, String> weights = MultiCounters.newHashMapMultiCounter();
+    MultiCounter<String, String> weights = new HashMapMultiCounter<>();
     for (int fi = 0; fi < numberOfFeatures(); fi++) {
       String featureName = getFeatureEncoder().decode(fi).toString();
       for (int ci = 0; ci < numberOfLabels(); ci++) {

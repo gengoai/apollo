@@ -1,9 +1,8 @@
 package com.davidbracewell.apollo.ml;
 
+import com.davidbracewell.collection.HashMapIndex;
 import com.davidbracewell.collection.Index;
-import com.davidbracewell.collection.Indexes;
 import com.davidbracewell.conversion.Cast;
-import lombok.NonNull;
 
 import java.io.Serializable;
 import java.util.Collection;
@@ -18,7 +17,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class IndexEncoder implements Encoder, Serializable {
   private static final long serialVersionUID = 1L;
-  private volatile Index<String> index = Indexes.newIndex();
+  private volatile Index<String> index = new HashMapIndex<>();
   private volatile AtomicBoolean frozen = new AtomicBoolean(false);
 
   @Override

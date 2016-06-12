@@ -24,7 +24,7 @@ package com.davidbracewell.apollo.lsh;
 import com.davidbracewell.apollo.affinity.DistanceMeasure;
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.collection.Counter;
-import com.davidbracewell.collection.Counters;
+import com.davidbracewell.collection.HashMapCounter;
 import com.davidbracewell.io.Committable;
 import com.davidbracewell.tuple.Tuple2;
 import lombok.NonNull;
@@ -98,7 +98,7 @@ public abstract class LSH<V extends Vector> implements Serializable, Committable
    */
   public List<Tuple2<V, Double>> nearestNeighbors(@NonNull Vector query, int maxResults) {
     DistanceMeasure dm = family.getDistanceMeasure();
-    Counter<V> scores = Counters.newHashMapCounter();
+    Counter<V> scores = new HashMapCounter<>();
     for (V vector : similar(query)) {
       scores.set(vector, dm.calculate(query, vector));
     }
@@ -121,7 +121,7 @@ public abstract class LSH<V extends Vector> implements Serializable, Committable
    * @return the list
    */
   public List<V> similar(@NonNull final Vector query) {
-    Counter<Integer> candidates = Counters.newHashMapCounter();
+    Counter<Integer> candidates = new HashMapCounter<>();
     for (LSHTable table : tables) {
       candidates.incrementAll(table.get(query));
     }

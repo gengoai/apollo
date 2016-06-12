@@ -27,8 +27,8 @@ import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.classification.Classification;
 import com.davidbracewell.apollo.ml.classification.Classifier;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
+import com.davidbracewell.collection.HashMapMultiCounter;
 import com.davidbracewell.collection.MultiCounter;
-import com.davidbracewell.collection.MultiCounters;
 import com.google.common.collect.Lists;
 import de.bwaldvogel.liblinear.Feature;
 import de.bwaldvogel.liblinear.FeatureNode;
@@ -107,7 +107,7 @@ public class LibLinearModel extends Classifier {
   public MultiCounter<String, String> getModelParameters() {
     double[] modelWeights = model.getFeatureWeights();
     int[] labels = model.getLabels();
-    MultiCounter<String, String> weights = MultiCounters.newHashMapMultiCounter();
+    MultiCounter<String, String> weights = new HashMapMultiCounter<>();
 
     int nrClass = model.getNrClass() - 1;
     for (int i = 0, index = 0; i < getFeatureEncoder().size(); i++, index += nrClass) {

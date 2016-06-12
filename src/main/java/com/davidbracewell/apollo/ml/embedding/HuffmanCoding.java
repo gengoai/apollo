@@ -20,11 +20,11 @@ public class HuffmanCoding implements Serializable {
 
   public HuffmanCoding(@NonNull Counter<String> vocabulary) {
     this.vocabulary = vocabulary;
-    this.index = Indexes.newIndex(vocabulary.itemsByCount(false));
+    this.index = new HashMapIndex<>(vocabulary.itemsByCount(false));
   }
 
   public static void main(String[] args) {
-    Counter<String> c = Counters.newHashMapCounter(
+    Counter<String> c = new HashMapCounter<>(
       Collect.map(
         "the", 4000,
         "ship", 500,

@@ -2,11 +2,11 @@ package com.davidbracewell.apollo.ml.classification.rule;
 
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.EncoderPair;
-import com.davidbracewell.apollo.ml.classification.Classifier;
 import com.davidbracewell.apollo.ml.classification.Classification;
+import com.davidbracewell.apollo.ml.classification.Classifier;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
+import com.davidbracewell.collection.HashMapMultiCounter;
 import com.davidbracewell.collection.MultiCounter;
-import com.davidbracewell.collection.MultiCounters;
 import lombok.NonNull;
 
 /**
@@ -37,7 +37,7 @@ public class ZeroR extends Classifier {
 
   @Override
   public MultiCounter<String, String> getModelParameters() {
-    MultiCounter<String, String> weights = MultiCounters.newHashMapMultiCounter();
+    MultiCounter<String, String> weights = new HashMapMultiCounter<>();
     for (int i = 0; i < distribution.length; i++) {
       weights.set("*", getLabelEncoder().decode(i).toString(), distribution[i]);
     }

@@ -4,6 +4,7 @@ import com.davidbracewell.apollo.ml.Encoder;
 import com.davidbracewell.apollo.ml.Feature;
 import com.davidbracewell.collection.Counter;
 import com.davidbracewell.collection.Counters;
+import com.davidbracewell.collection.HashMapCounter;
 import com.davidbracewell.string.StringUtils;
 import com.google.common.util.concurrent.AtomicDouble;
 
@@ -15,7 +16,7 @@ import java.util.stream.Stream;
  */
 public class TFIDFTransform extends RestrictedTransform {
   private static final long serialVersionUID = 1L;
-  private volatile Counter<String> documentFrequencies = Counters.synchronizedCounter(Counters.newHashMapCounter());
+  private volatile Counter<String> documentFrequencies = Counters.synchronizedCounter(new HashMapCounter<>());
   private volatile AtomicDouble totalDocs = new AtomicDouble();
 
   public TFIDFTransform() {

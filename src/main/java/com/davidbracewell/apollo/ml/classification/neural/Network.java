@@ -17,15 +17,18 @@ public class Network implements Serializable {
   private static final long serialVersionUID = 1L;
   private final Layer[] layers;
   private final EncoderPair encoderPair;
+  private final int numberOfOutputLabels;
 
   public Network(@NonNull List<Tuple2<Integer, Activation>> config, @NonNull EncoderPair encoderPair) {
     this.encoderPair = encoderPair;
     this.layers = new Layer[config.size() + 1];
+    this.numberOfOutputLabels = encoderPair.getLabelEncoder().size();
+
     for (int i = 0; i < layers.length; i++) {
       int inputSize = (i == 0 ? encoderPair.numberOfFeatures() : layers[i - 1].getMatrix().numberOfColumns());
       int outputSize;
       if (i == layers.length - 1) {
-        outputSize = encoderPair.numberOfLabels();
+        outputSize = numberOfOutputLabels;
       } else {
         outputSize = config.get(i).v1;
       }
@@ -42,6 +45,10 @@ public class Network implements Serializable {
   }
 
   public Classification evaluate(Vector input) {
+    if (encoderPair.getLabelEncoder().size() == 2) {
+      double score = forward(input)[layers.length - 1].row(0).toArray()[0];
+      return new Classification(new double[]{1d - score, score}, encoderPair.getLabelEncoder());
+    }
     return new Classification(forward(input)[layers.length - 1].row(0).toArray(), encoderPair.getLabelEncoder());
   }
 
@@ -59,7 +66,7 @@ public class Network implements Serializable {
     Matrix[] deltas = new Matrix[numberOfLayers()];
     double error = 0;
     Matrix input = outputs[outputs.length - 1];
-    for (int i = 0; i < encoderPair.numberOfLabels(); i++) {
+    for (int i = 0; i < numberOfOutputLabels; i++) {
       error += Math.pow(yVec.get(i) - input.get(0, i), 2);
     }
     deltas[numberOfLayers() - 1] = yVec.toMatrix().subtract(input).scaleSelf(layers[numberOfLayers() - 1].gradient(input));

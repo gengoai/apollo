@@ -177,4 +177,7 @@ public class SparseBitVector implements Vector, Serializable {
     return v;
   }
 
+  public BitSet asBitSet() {
+    return BitSet.valueOf(bits.toByteArray());
+  }
 }//END OF SparseBitVector

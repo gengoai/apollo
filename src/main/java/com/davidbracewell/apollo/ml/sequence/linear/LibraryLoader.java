@@ -11,7 +11,7 @@ public enum LibraryLoader {
   INSTANCE;
   private volatile AtomicBoolean done = new AtomicBoolean(false);
 
-  void load() {
+  public void load() {
     if (!done.get()) {
       synchronized (this) {
         if (!done.get()) {

@@ -164,5 +164,16 @@ public enum Similarity implements SimilarityMeasure {
       Preconditions.checkArgument(table.rowCount() == table.columnCount() && table.rowCount() == 2, "Only supports 2x2 contingency tables.");
       return table.get(0, 0) / Math.min(table.columnSum(0), table.rowSum(0));
     }
+  },
+  Angular {
+    @Override
+    public double calculate(@NonNull Map<?, ? extends Number> m1, @NonNull Map<?, ? extends Number> m2) {
+      return 1.0 - Math.acos(Cosine.calculate(m1, m2)) / Math.PI;
+    }
+
+    @Override
+    public DistanceMeasure asDistanceMeasure() {
+      return Distance.Angular;
+    }
   }
 }//END OF SimilarityMeasures

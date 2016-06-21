@@ -90,6 +90,12 @@ public enum Distance implements DistanceMeasure {
       }
       return kl;
     }
+  },
+  Angular {
+    @Override
+    public double calculate(Map<?, ? extends Number> m1, Map<?, ? extends Number> m2) {
+      return Math.acos(Similarity.Cosine.calculate(m1, m2)) / Math.PI;
+    }
   }
 
 

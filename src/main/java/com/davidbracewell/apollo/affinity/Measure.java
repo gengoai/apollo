@@ -92,4 +92,12 @@ public interface Measure extends Serializable {
    */
   double calculate(Map<?, ? extends Number> m1, Map<?, ? extends Number> m2);
 
+
+  /**
+   * Gets optimum.
+   *
+   * @return the optimum
+   */
+  Optimum getOptimum();
+
 }//END OF Measure

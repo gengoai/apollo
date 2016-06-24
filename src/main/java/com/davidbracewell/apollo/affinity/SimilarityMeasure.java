@@ -40,4 +40,10 @@ public interface SimilarityMeasure extends Measure, ContingencyTableCalculator {
     throw new UnsupportedOperationException();
   }
 
+  @Override
+  default Optimum getOptimum() {
+    return Optimum.MAXIMUM;
+  }
+
+
 }//END OF SimilarityMeasure

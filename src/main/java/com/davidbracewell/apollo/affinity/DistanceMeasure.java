@@ -32,4 +32,9 @@ public interface DistanceMeasure extends Measure {
     return new NegativeDistanceSimilarity(this);
   }
 
+  @Override
+  default Optimum getOptimum() {
+    return Optimum.MINIMUM;
+  }
+
 }//END OF DistanceMeasure

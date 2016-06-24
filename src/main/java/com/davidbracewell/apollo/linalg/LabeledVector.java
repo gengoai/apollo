@@ -1,9 +1,13 @@
 package com.davidbracewell.apollo.linalg;
 
+import com.davidbracewell.conversion.Cast;
+
 import java.util.function.DoubleBinaryOperator;
 import java.util.function.DoubleUnaryOperator;
 
 /**
+ * The type Labeled vector.
+ *
  * @author David B. Bracewell
  */
 public class LabeledVector extends ForwardingVector {
@@ -11,15 +15,35 @@ public class LabeledVector extends ForwardingVector {
   private final Vector delegate;
   private Object label;
 
+  /**
+   * Instantiates a new Labeled vector.
+   *
+   * @param label    the label
+   * @param delegate the delegate
+   */
   public LabeledVector(Object label, Vector delegate) {
     this.label = label;
     this.delegate = delegate;
   }
 
+  /**
+   * Sparse labeled vector.
+   *
+   * @param dimension the dimension
+   * @param label     the label
+   * @return the labeled vector
+   */
   public static LabeledVector sparse(int dimension, Object label) {
     return new LabeledVector(label, new SparseVector(dimension));
   }
 
+  /**
+   * Dense labeled vector.
+   *
+   * @param dimension the dimension
+   * @param label     the label
+   * @return the labeled vector
+   */
   public static LabeledVector dense(int dimension, Object label) {
     return new LabeledVector(label, new DenseVector(dimension));
   }
@@ -29,15 +53,32 @@ public class LabeledVector extends ForwardingVector {
     return delegate;
   }
 
-  public Object getLabel() {
-    return label;
+  /**
+   * Gets label.
+   *
+   * @param <T> the type parameter
+   * @return the label
+   */
+  public <T> T getLabel() {
+    return Cast.as(label);
   }
 
+  /**
+   * Sets label.
+   *
+   * @param label the label
+   * @return the label
+   */
   public LabeledVector setLabel(Object label) {
     this.label = label;
     return this;
   }
 
+  /**
+   * Has label boolean.
+   *
+   * @return the boolean
+   */
   public boolean hasLabel() {
     return label != null;
   }

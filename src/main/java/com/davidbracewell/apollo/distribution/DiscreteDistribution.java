@@ -81,8 +81,21 @@ public interface DiscreteDistribution<T extends DiscreteDistribution> extends De
   }
 
 
+  /**
+   * Cumulative probability double.
+   *
+   * @param x the x
+   * @return the double
+   */
   double cumulativeProbability(int x);
 
+  /**
+   * Cumulative probability double.
+   *
+   * @param lowerBound  the lower bound
+   * @param higherBound the higher bound
+   * @return the double
+   */
   double cumulativeProbability(int lowerBound, int higherBound);
 
   /**

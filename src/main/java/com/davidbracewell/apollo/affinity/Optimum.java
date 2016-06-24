@@ -1,11 +1,18 @@
 package com.davidbracewell.apollo.affinity;
 
+import lombok.NonNull;
+
 import java.util.Comparator;
 
 /**
+ * The enum Optimum.
+ *
  * @author David B. Bracewell
  */
 public enum Optimum implements Comparator<Double> {
+  /**
+   * The Minimum.
+   */
   MINIMUM {
     @Override
     public int compare(double v1, double v2) {
@@ -23,6 +30,9 @@ public enum Optimum implements Comparator<Double> {
     }
 
   },
+  /**
+   * The Maximum.
+   */
   MAXIMUM {
     @Override
     public int compare(double v1, double v2) {
@@ -47,11 +57,64 @@ public enum Optimum implements Comparator<Double> {
     return compare(o1, o2);
   }
 
-
+  /**
+   * Compare int.
+   *
+   * @param v1 the v 1
+   * @param v2 the v 2
+   * @return the int
+   */
   public abstract int compare(double v1, double v2);
 
+  /**
+   * Test boolean.
+   *
+   * @param value     the value
+   * @param threshold the threshold
+   * @return the boolean
+   */
   public abstract boolean test(double value, double threshold);
 
+  /**
+   * Starting value double.
+   *
+   * @return the double
+   */
   public abstract double startingValue();
+
+  /**
+   * Select best value double.
+   *
+   * @param array the array
+   * @return the double
+   */
+  public double selectBestValue(@NonNull double[] array) {
+    double val = startingValue();
+    for (int i = 0; i < array.length; i++) {
+      if (test(array[i], val)) {
+        val = array[i];
+      }
+    }
+    return val;
+  }
+
+  /**
+   * Select best index int.
+   *
+   * @param array the array
+   * @return the int
+   */
+  public int selectBestIndex(@NonNull double[] array) {
+    double val = startingValue();
+    int index = -1;
+    for (int i = 0; i < array.length; i++) {
+      if (test(array[i], val)) {
+        val = array[i];
+        index = i;
+      }
+    }
+    return index;
+  }
+
 
 }//END OF Optimum

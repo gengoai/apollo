@@ -206,7 +206,7 @@ public abstract class LSH implements Serializable {
     return signatureFunction.getMeasure().getOptimum();
   }
 
-  protected abstract static class Builder {
+  public abstract static class Builder {
     protected int bands = 5;
     protected int buckets = 20;
     protected double threshold = 0.5;
@@ -229,7 +229,7 @@ public abstract class LSH implements Serializable {
       return this;
     }
 
-    public Builder threshiold(double threshold) {
+    public Builder threshold(double threshold) {
       this.threshold = threshold;
       return this;
     }

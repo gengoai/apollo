@@ -79,6 +79,11 @@ public class Multinomial implements DiscreteDistribution<Multinomial>, Serializa
     this(size, alpha, new Random());
   }
 
+  /**
+   * Sum double.
+   *
+   * @return the double
+   */
   public double sum(){
     return sum;
   }

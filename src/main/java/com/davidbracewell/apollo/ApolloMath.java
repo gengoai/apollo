@@ -21,9 +21,8 @@
 
 package com.davidbracewell.apollo;
 
-import com.davidbracewell.apollo.linalg.DenseVector;
+import com.davidbracewell.apollo.affinity.Optimum;
 import com.davidbracewell.apollo.linalg.Vector;
-import com.davidbracewell.collection.Collect;
 import com.davidbracewell.tuple.Tuple2;
 import lombok.NonNull;
 
@@ -102,7 +101,8 @@ public interface ApolloMath {
    * @return the tuple 2
    */
   static Tuple2<Integer, Double> argMax(@NonNull double[] array) {
-    return argMax(DenseVector.wrap(array));
+    int index = Optimum.MAXIMUM.selectBestIndex(array);
+    return Tuple2.of(index, array[index]);
   }
 
   /**
@@ -112,15 +112,7 @@ public interface ApolloMath {
    * @return the tuple 2
    */
   static Tuple2<Integer, Double> argMax(@NonNull Vector vector) {
-    int maxI = -1;
-    double maxV = Double.NEGATIVE_INFINITY;
-    for (Vector.Entry entry : Collect.asIterable(vector.nonZeroIterator())) {
-      if (entry.getValue() > maxV) {
-        maxV = entry.getValue();
-        maxI = entry.getIndex();
-      }
-    }
-    return Tuple2.of(maxI, maxV);
+    return argMax(vector.toArray());
   }
 
   /**
@@ -130,7 +122,8 @@ public interface ApolloMath {
    * @return the tuple 2
    */
   static Tuple2<Integer, Double> argMin(@NonNull double[] array) {
-    return argMin(DenseVector.wrap(array));
+    int index = Optimum.MINIMUM.selectBestIndex(array);
+    return Tuple2.of(index, array[index]);
   }
 
   /**
@@ -140,18 +133,17 @@ public interface ApolloMath {
    * @return the tuple 2
    */
   static Tuple2<Integer, Double> argMin(@NonNull Vector vector) {
-    int minI = -1;
-    double minV = Double.POSITIVE_INFINITY;
-    for (Vector.Entry entry : Collect.asIterable(vector.nonZeroIterator())) {
-      if (entry.getValue() < minV) {
-        minV = entry.getValue();
-        minI = entry.getIndex();
-      }
-    }
-    return Tuple2.of(minI, minV);
+    return argMin(vector.toArray());
   }
 
 
+  /**
+   * Truncate double.
+   *
+   * @param value     the value
+   * @param precision the precision
+   * @return the double
+   */
   static double truncate(double value, int precision) {
     return BigDecimal.valueOf(value).setScale(precision, BigDecimal.ROUND_HALF_UP).doubleValue();
   }

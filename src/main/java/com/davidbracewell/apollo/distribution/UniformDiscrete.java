@@ -29,6 +29,8 @@ import org.apache.commons.math3.random.Well19937c;
 import java.io.Serializable;
 
 /**
+ * The type Uniform discrete.
+ *
  * @author David B. Bracewell
  */
 public class UniformDiscrete implements DiscreteDistribution<UniformDiscrete>, Serializable {
@@ -37,10 +39,21 @@ public class UniformDiscrete implements DiscreteDistribution<UniformDiscrete>, S
   private final RandomGenerator random;
 
 
+  /**
+   * Instantiates a new Uniform discrete.
+   *
+   * @param k the k
+   */
   public UniformDiscrete(int k) {
     this(k, new Well19937c());
   }
 
+  /**
+   * Instantiates a new Uniform discrete.
+   *
+   * @param k      the k
+   * @param random the random
+   */
   public UniformDiscrete(int k, @NonNull RandomGenerator random) {
     Preconditions.checkArgument(k > 0, "K must be > 0");
     this.k = k;

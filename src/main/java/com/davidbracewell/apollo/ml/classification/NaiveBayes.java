@@ -19,7 +19,7 @@
  * under the License.
  */
 
-package com.davidbracewell.apollo.ml.classification.bayes;
+package com.davidbracewell.apollo.ml.classification;
 
 import com.davidbracewell.apollo.linalg.DenseVector;
 import com.davidbracewell.apollo.linalg.Vector;

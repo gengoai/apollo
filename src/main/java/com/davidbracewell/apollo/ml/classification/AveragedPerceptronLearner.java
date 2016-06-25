@@ -19,14 +19,12 @@
  * under the License.
  */
 
-package com.davidbracewell.apollo.ml.classification.linear;
+package com.davidbracewell.apollo.ml.classification;
 
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.Dataset;
 import com.davidbracewell.apollo.ml.FeatureVector;
 import com.davidbracewell.apollo.ml.Instance;
-import com.davidbracewell.apollo.ml.classification.BinaryClassifierLearner;
-import com.davidbracewell.apollo.ml.classification.Classifier;
 import com.davidbracewell.collection.Collect;
 import com.davidbracewell.logging.Logger;
 

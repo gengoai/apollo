@@ -1,9 +1,7 @@
-package com.davidbracewell.apollo.ml.classification.rule;
+package com.davidbracewell.apollo.ml.classification;
 
 import com.davidbracewell.apollo.ml.Dataset;
 import com.davidbracewell.apollo.ml.Instance;
-import com.davidbracewell.apollo.ml.classification.Classifier;
-import com.davidbracewell.apollo.ml.classification.ClassifierLearner;
 import lombok.NonNull;
 
 import java.util.Map;

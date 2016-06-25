@@ -31,12 +31,19 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
+ * The type Name filter.
+ *
  * @author David B. Bracewell
  */
 public class NameFilter implements FilterProcessor<Instance>, InstancePreprocessor, Serializable {
   private static final long serialVersionUID = 1L;
   private final Set<Pattern> patterns = new HashSet<>();
 
+  /**
+   * Instantiates a new Name filter.
+   *
+   * @param patterns the patterns
+   */
   public NameFilter(String... patterns) {
     for (String pattern : patterns) {
       this.patterns.add(Pattern.compile(pattern));

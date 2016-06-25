@@ -1,11 +1,9 @@
-package com.davidbracewell.apollo.ml.classification.lazy;
+package com.davidbracewell.apollo.ml.classification;
 
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.linalg.VectorStore;
 import com.davidbracewell.apollo.ml.EncoderPair;
 import com.davidbracewell.apollo.ml.Instance;
-import com.davidbracewell.apollo.ml.classification.Classification;
-import com.davidbracewell.apollo.ml.classification.Classifier;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import lombok.NonNull;
 
@@ -13,6 +11,7 @@ import lombok.NonNull;
  * @author David B. Bracewell
  */
 public class KNN extends Classifier {
+  private static final long serialVersionUID = 1L;
   VectorStore<Integer> vectors;
   int K;
 
@@ -22,7 +21,7 @@ public class KNN extends Classifier {
    * @param encoderPair   the encoder pair
    * @param preprocessors the preprocessors
    */
-  protected KNN(@NonNull EncoderPair encoderPair, @NonNull PreprocessorList<Instance> preprocessors) {
+  public KNN(@NonNull EncoderPair encoderPair, @NonNull PreprocessorList<Instance> preprocessors) {
     super(encoderPair, preprocessors);
   }
 
@@ -32,7 +31,7 @@ public class KNN extends Classifier {
     vectors.nearest(vector, K).forEach(slv ->
       distribution[(int) slv.getLabel()] += slv.getScore()
     );
-    return new Classification(distribution, getLabelEncoder());
+    return createResult(distribution);
   }
 
 }// END OF KNN

@@ -1,4 +1,4 @@
-package com.davidbracewell.apollo.ml.classification.lazy;
+package com.davidbracewell.apollo.ml.classification;
 
 import com.davidbracewell.apollo.linalg.CosineDistanceSignature;
 import com.davidbracewell.apollo.linalg.InMemoryLSH;
@@ -7,8 +7,6 @@ import com.davidbracewell.apollo.linalg.SignatureFunction;
 import com.davidbracewell.apollo.ml.Dataset;
 import com.davidbracewell.apollo.ml.FeatureVector;
 import com.davidbracewell.apollo.ml.Instance;
-import com.davidbracewell.apollo.ml.classification.Classifier;
-import com.davidbracewell.apollo.ml.classification.ClassifierLearner;
 import lombok.NonNull;
 
 import java.util.function.BiFunction;
@@ -19,18 +17,10 @@ import java.util.function.BiFunction;
  * @author David B. Bracewell
  */
 public class KNNLearner extends ClassifierLearner {
-  /**
-   * The Model.
-   */
-  KNN model = null;
-  /**
-   * The K.
-   */
-  int K = 3;
-  /**
-   * The Signature supplier.
-   */
-  BiFunction<Integer, Integer, SignatureFunction> signatureSupplier = CosineDistanceSignature::new;
+  private static final long serialVersionUID = 1L;
+  private KNN model = null;
+  private int K = 3;
+  private BiFunction<Integer, Integer, SignatureFunction> signatureSupplier = CosineDistanceSignature::new;
 
   @Override
   protected Classifier trainImpl(Dataset<Instance> dataset) {
@@ -38,11 +28,11 @@ public class KNNLearner extends ClassifierLearner {
       dataset.getEncoderPair(),
       dataset.getPreprocessors()
     );
-
+    model.K = K;
     model.vectors = InMemoryLSH.builder()
       .signatureSupplier(signatureSupplier)
+      .dimension(model.getFeatureEncoder().size())
       .createVectorStore();
-
     dataset.forEach(instance -> {
       FeatureVector fv = instance.toVector(model.getEncoderPair());
       model.vectors.add(new LabeledVector((int) fv.getLabel(), fv));

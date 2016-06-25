@@ -22,7 +22,11 @@
 package com.davidbracewell.apollo.ml.classification;
 
 import com.davidbracewell.apollo.linalg.Vector;
-import com.davidbracewell.apollo.ml.*;
+import com.davidbracewell.apollo.ml.EncoderPair;
+import com.davidbracewell.apollo.ml.Featurizer;
+import com.davidbracewell.apollo.ml.IndexEncoder;
+import com.davidbracewell.apollo.ml.Instance;
+import com.davidbracewell.apollo.ml.Model;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.collection.MultiCounter;
 import com.davidbracewell.conversion.Cast;
@@ -37,7 +41,7 @@ import lombok.NonNull;
 public abstract class Classifier extends Model {
   private static final long serialVersionUID = 1L;
   private final PreprocessorList<Instance> preprocessors;
-  private Featurizer<?> featurizer;
+  private Featurizer<Object> featurizer;
 
   /**
    * Instantiates a new Classifier.
@@ -67,7 +71,7 @@ public abstract class Classifier extends Model {
   @SuppressWarnings("unchecked")
   public Classification classify(@NonNull Object input) {
     Preconditions.checkNotNull(featurizer, "Featurizer has not been set on the classifier");
-    return classify(featurizer.extract(Cast.as(input)));
+    return classify(featurizer.extract(input));
   }
 
 
@@ -94,8 +98,8 @@ public abstract class Classifier extends Model {
    *
    * @param featurizer the featurizer
    */
-  public void setFeaturizer(Featurizer featurizer) {
-    this.featurizer = featurizer;
+  public void setFeaturizer(Featurizer<?> featurizer) {
+    this.featurizer = Cast.as(featurizer);
   }
 
   /**
@@ -107,6 +111,12 @@ public abstract class Classifier extends Model {
     throw new UnsupportedOperationException();
   }
 
+  /**
+   * Create result classification.
+   *
+   * @param distribution the distribution
+   * @return the classification
+   */
   protected Classification createResult(double[] distribution) {
     return new Classification(distribution, getLabelEncoder());
   }

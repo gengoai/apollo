@@ -5,7 +5,6 @@ import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.Dataset;
 import com.davidbracewell.apollo.ml.FeatureVector;
 import com.davidbracewell.apollo.ml.Instance;
-import com.davidbracewell.apollo.ml.classification.linear.LibLinearModel;
 import com.google.common.collect.Lists;
 import de.bwaldvogel.liblinear.Feature;
 import de.bwaldvogel.liblinear.FeatureNode;
@@ -19,6 +18,8 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
+ * The type Lib linear regression.
+ *
  * @author David B. Bracewell
  */
 public class LibLinearRegression extends RegressionLearner {
@@ -27,6 +28,13 @@ public class LibLinearRegression extends RegressionLearner {
   private double eps = 0.0001;
   private boolean verbose = false;
 
+  /**
+   * To feature feature [ ].
+   *
+   * @param vector    the vector
+   * @param biasIndex the bias index
+   * @return the feature [ ]
+   */
   static Feature[] toFeature(Vector vector, int biasIndex) {
     List<Vector.Entry> entries = Lists.newArrayList(vector.orderedNonZeroIterator());
     Feature[] feature = new Feature[entries.size() + 1];
@@ -83,26 +91,56 @@ public class LibLinearRegression extends RegressionLearner {
   }
 
 
+  /**
+   * Gets c.
+   *
+   * @return the c
+   */
   public double getC() {
     return C;
   }
 
+  /**
+   * Sets c.
+   *
+   * @param c the c
+   */
   public void setC(double c) {
     C = c;
   }
 
+  /**
+   * Gets eps.
+   *
+   * @return the eps
+   */
   public double getEps() {
     return eps;
   }
 
+  /**
+   * Sets eps.
+   *
+   * @param eps the eps
+   */
   public void setEps(double eps) {
     this.eps = eps;
   }
 
+  /**
+   * Is verbose boolean.
+   *
+   * @return the boolean
+   */
   public boolean isVerbose() {
     return verbose;
   }
 
+  /**
+   * Sets verbose.
+   *
+   * @param verbose the verbose
+   */
   public void setVerbose(boolean verbose) {
     this.verbose = verbose;
   }

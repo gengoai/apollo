@@ -19,7 +19,7 @@
  * under the License.
  */
 
-package com.davidbracewell.apollo.ml.classification.linear;
+package com.davidbracewell.apollo.ml.classification;
 
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.EncoderPair;

@@ -67,7 +67,7 @@ public class CRFTagger extends SequenceLabeler {
 
   @Override
   public Labeling label(@NonNull Sequence sequence) {
-    LibraryLoader.INSTANCE.load();
+    LibraryLoader.INSTANCE.name();
     ItemSequence seq = new ItemSequence();
     for (Instance instance : sequence.asInstances()) {
       Item item = new Item();
@@ -96,7 +96,7 @@ public class CRFTagger extends SequenceLabeler {
   }
 
   private void readObject(java.io.ObjectInputStream stream) throws IOException, ClassNotFoundException {
-    LibraryLoader.INSTANCE.load();
+    LibraryLoader.INSTANCE.name();
     Resource tmp = Resources.temporaryFile();
     int length = stream.readInt();
     byte[] bytes = new byte[length];

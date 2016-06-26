@@ -47,14 +47,14 @@ public class CRFTrainer extends SequenceLabelerLearner {
     Trainer trainer = new Trainer();
     dataset.forEach(sequence -> {
       ItemSequence seq = new ItemSequence();
-      StringList lables = new StringList();
+      StringList labels = new StringList();
       for (Instance instance : sequence.asInstances()) {
         Item item = new Item();
         instance.forEach(f -> item.add(new Attribute(f.getName(), f.getValue())));
-        lables.add(instance.getLabel().toString());
+        labels.add(instance.getLabel().toString());
         seq.add(item);
       }
-      trainer.append(seq, lables, 0);
+      trainer.append(seq, labels, 0);
     });
     trainer.select(solver.parameterSetting, "crf1d");
     trainer.set("max_iterations", Integer.toString(maxIterations));

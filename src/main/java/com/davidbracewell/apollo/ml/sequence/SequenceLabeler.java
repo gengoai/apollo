@@ -6,6 +6,7 @@ import com.davidbracewell.apollo.ml.Model;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.apollo.ml.sequence.decoder.BeamDecoder;
 import com.davidbracewell.apollo.ml.sequence.decoder.Decoder;
+import lombok.Getter;
 import lombok.NonNull;
 
 import java.util.Iterator;
@@ -17,6 +18,7 @@ import java.util.Iterator;
  */
 public abstract class SequenceLabeler extends Model {
   private static final long serialVersionUID = 1L;
+  @Getter
   private final PreprocessorList<Sequence> preprocessors;
   private final TransitionFeatures transitionFeatures;
   private volatile Decoder decoder = new BeamDecoder();

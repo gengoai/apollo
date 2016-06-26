@@ -660,7 +660,7 @@ public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, S
     tableFormatter.clear();
     tableFormatter
       .title("Classification Metrics")
-      .header(Arrays.asList(StringUtils.EMPTY, "P", "R", "F1", "Correct", "Incorrect", "Missed", "Total"));
+      .header(Arrays.asList(StringUtils.EMPTY, "Precision", "Recall", "F1-Measure", "Correct", "Incorrect", "Missed", "Total"));
 
     sorted.forEach(g ->
       tableFormatter.content(Arrays.asList(

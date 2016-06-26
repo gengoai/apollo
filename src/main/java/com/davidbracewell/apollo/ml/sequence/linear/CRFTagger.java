@@ -25,7 +25,11 @@ import com.davidbracewell.apollo.ml.Encoder;
 import com.davidbracewell.apollo.ml.Feature;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
-import com.davidbracewell.apollo.ml.sequence.*;
+import com.davidbracewell.apollo.ml.sequence.Labeling;
+import com.davidbracewell.apollo.ml.sequence.Sequence;
+import com.davidbracewell.apollo.ml.sequence.SequenceLabeler;
+import com.davidbracewell.apollo.ml.sequence.SequenceValidator;
+import com.davidbracewell.apollo.ml.sequence.TransitionFeatures;
 import com.davidbracewell.io.Resources;
 import com.davidbracewell.io.resource.Resource;
 import com.github.jcrfsuite.CrfTagger;
@@ -67,7 +71,7 @@ public class CRFTagger extends SequenceLabeler {
 
   @Override
   public Labeling label(@NonNull Sequence sequence) {
-    LibraryLoader.INSTANCE.name();
+    LibraryLoader.INSTANCE.load();
     ItemSequence seq = new ItemSequence();
     for (Instance instance : sequence.asInstances()) {
       Item item = new Item();
@@ -96,7 +100,7 @@ public class CRFTagger extends SequenceLabeler {
   }
 
   private void readObject(java.io.ObjectInputStream stream) throws IOException, ClassNotFoundException {
-    LibraryLoader.INSTANCE.name();
+    LibraryLoader.INSTANCE.load();
     Resource tmp = Resources.temporaryFile();
     int length = stream.readInt();
     byte[] bytes = new byte[length];

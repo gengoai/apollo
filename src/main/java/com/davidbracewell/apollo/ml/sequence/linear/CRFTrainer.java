@@ -28,7 +28,11 @@ import com.davidbracewell.apollo.ml.sequence.SequenceLabeler;
 import com.davidbracewell.apollo.ml.sequence.SequenceLabelerLearner;
 import com.davidbracewell.apollo.ml.sequence.TransitionFeatures;
 import com.davidbracewell.io.Resources;
-import third_party.org.chokkan.crfsuite.*;
+import third_party.org.chokkan.crfsuite.Attribute;
+import third_party.org.chokkan.crfsuite.Item;
+import third_party.org.chokkan.crfsuite.ItemSequence;
+import third_party.org.chokkan.crfsuite.StringList;
+import third_party.org.chokkan.crfsuite.Trainer;
 
 /**
  * The type Crf trainer.

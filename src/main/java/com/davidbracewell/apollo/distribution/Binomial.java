@@ -36,6 +36,13 @@ public class Binomial implements DiscreteDistribution<Binomial> {
 
   }
 
+  /**
+   * Instantiates a new Binomial.
+   *
+   * @param numberOfSuccess the number of success
+   * @param numberOfTrials  the number of trials
+   * @param randomGenerator the random generator
+   */
   public Binomial(int numberOfSuccess, int numberOfTrials, @NonNull RandomGenerator randomGenerator) {
     Preconditions.checkArgument(numberOfTrials > 0, "Number of trails must be > 0");
     this.nSuccess = numberOfSuccess;
@@ -123,6 +130,11 @@ public class Binomial implements DiscreteDistribution<Binomial> {
     return this;
   }
 
+  /**
+   * Gets distribution.
+   *
+   * @return the distribution
+   */
   protected BinomialDistribution getDistribution() {
     if (wrapped == null) {
       synchronized (this) {

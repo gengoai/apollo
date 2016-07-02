@@ -80,15 +80,16 @@ public enum Correlation implements CorrelationMeasure {
     rankPairs.trimToSize();
     Collections.sort(rankPairs);
     double[] out = new double[v.length];
+
     for (int i = 0; i < v.length; i++) {
       RankPair rp = rankPairs.get(i);
       double rank = i + 1;
       if (i > 0 && rp.value == rankPairs.get(i - 1).value) {
         rank = (rank + i) / 2d;
-      } else if (i < v.length && rp.value == rankPairs.get(i + 1).value) {
+      } else if (i < v.length-1 && rp.value == rankPairs.get(i + 1).value) {
         rank = (rank + i + 2) / 2d;
       }
-      out[i] = rank;
+      out[rp.index] = rank;
     }
     return out;
   }

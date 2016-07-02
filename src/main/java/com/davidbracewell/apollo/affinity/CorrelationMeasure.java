@@ -27,6 +27,7 @@ import com.davidbracewell.collection.Index;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 import lombok.NonNull;
+import org.apache.commons.math3.distribution.TDistribution;
 
 import java.util.Map;
 
@@ -57,5 +58,19 @@ public interface CorrelationMeasure extends SimilarityMeasure {
 
   @Override
   double calculate(double[] v1, double[] v2);
+
+
+  /**
+   * Calculates the p-value for the correlation coefficient when N >= 6 using a t-Test.
+   *
+   * @param r the correlation coefficient.
+   * @param N the number of items
+   * @return the non-directional p-value
+   */
+  static double pValue(double r, int N) {
+    Preconditions.checkArgument(N >= 6, "N must be >= 6.");
+    double t = r / Math.sqrt((1 - r * r) / (N - 2));
+    return 1.0 - new TDistribution(N - 2).cumulativeProbability(t);
+  }
 
 }//END OF CorrelationMeasure

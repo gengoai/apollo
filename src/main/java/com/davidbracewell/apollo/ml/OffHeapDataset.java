@@ -7,7 +7,7 @@ import com.davidbracewell.function.Unchecked;
 import com.davidbracewell.io.Resources;
 import com.davidbracewell.io.resource.Resource;
 import com.davidbracewell.stream.MStream;
-import com.davidbracewell.stream.Streams;
+import com.davidbracewell.stream.StreamingContext;
 import com.google.common.base.Throwables;
 import lombok.NonNull;
 
@@ -46,7 +46,7 @@ public class OffHeapDataset<T extends Example> extends Dataset<T> {
 
   @Override
   public MStream<T> stream() {
-    return Streams.of(
+    return StreamingContext.local().stream(
       outputResource.getChildren().stream()
         .flatMap(Unchecked.function(r -> r.readLines().stream()))
         .map(Unchecked.function(line -> Cast.as(Example.fromJson(line, clazz))))

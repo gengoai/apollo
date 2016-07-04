@@ -21,16 +21,11 @@
 
 package com.davidbracewell.apollo.linalg;
 
-import com.davidbracewell.stream.Streams;
 import com.google.common.base.Preconditions;
 import lombok.NonNull;
 import org.apache.mahout.math.map.OpenIntDoubleHashMap;
 
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.PrimitiveIterator;
+import java.util.*;
 import java.util.stream.IntStream;
 
 /**
@@ -90,7 +85,7 @@ public class SparseMatrix extends AbstractMatrix {
 
   public static Matrix random(int numberOfRows, int numberOfColumns) {
     Matrix m = new SparseMatrix(numberOfRows, numberOfColumns);
-    Streams.range(0, numberOfRows)
+    IntStream.range(0, numberOfRows)
       .parallel()
       .forEach(r -> {
         for (int c = 0; c < numberOfColumns; c++) {

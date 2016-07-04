@@ -3,7 +3,7 @@ package com.davidbracewell.apollo.ml;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.io.resource.Resource;
 import com.davidbracewell.stream.MStream;
-import com.davidbracewell.stream.Streams;
+import com.davidbracewell.stream.StreamingContext;
 import com.google.common.base.Throwables;
 import lombok.NonNull;
 import lombok.Setter;
@@ -43,7 +43,7 @@ public class DatasetBuilder<T extends Example> {
    * @return the dataset builder
    */
   public DatasetBuilder<T> localSource(@NonNull Stream<T> stream) {
-    this.source = Streams.of(stream);
+    this.source = StreamingContext.local().stream(stream);
     return this;
   }
 

@@ -5,7 +5,7 @@ import com.davidbracewell.collection.Collect;
 import com.davidbracewell.collection.Interner;
 import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.stream.MStream;
-import com.davidbracewell.stream.Streams;
+import com.davidbracewell.stream.StreamingContext;
 import lombok.EqualsAndHashCode;
 import lombok.NonNull;
 import lombok.ToString;
@@ -74,7 +74,7 @@ public class InMemoryDataset<T extends Example> extends Dataset<T> {
 
   @Override
   protected MStream<T> slice(int start, int end) {
-    return Streams.of(instances.subList(start, end).stream());
+    return StreamingContext.local().stream(instances.subList(start, end).stream());
   }
 
   @Override
@@ -84,7 +84,7 @@ public class InMemoryDataset<T extends Example> extends Dataset<T> {
 
   @Override
   public MStream<T> stream() {
-    return Streams.of(instances, false).map(getEncoderPair()::encode);
+    return StreamingContext.local().stream(instances).map(getEncoderPair()::encode);
   }
 
   @Override

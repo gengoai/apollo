@@ -15,17 +15,13 @@ import com.davidbracewell.function.Unchecked;
 import com.davidbracewell.io.Resources;
 import com.davidbracewell.io.resource.Resource;
 import com.davidbracewell.logging.Logger;
-import com.davidbracewell.stream.Streams;
+import com.davidbracewell.stream.StreamingContext;
 import com.davidbracewell.string.StringUtils;
 import com.davidbracewell.tuple.Tuple2;
 import com.google.common.base.Joiner;
 import com.google.common.base.Stopwatch;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -51,7 +47,7 @@ public class MLP extends ClassifierLearner {
             String[] parts = doc.split("\n+");
             String label = parts[0].split("=")[1];
             String content = Joiner.on('\n').join(Arrays.copyOfRange(parts, 3, parts.length)).toLowerCase();
-            Map<String, Long> counts = Streams.of(content.split("[^A-Za-z]+"))
+            Map<String, Long> counts = StreamingContext.local().stream(content.split("[^A-Za-z]+"))
               .filter(s -> !StringUtils.isNullOrBlank(s)).map(String::toLowerCase).countByValue();
             List<Feature> features = counts.entrySet().stream().map(e -> Feature.real(e.getKey(), e.getValue())).collect(Collectors.toList());
             return Instance.create(features, label);
@@ -60,8 +56,8 @@ public class MLP extends ClassifierLearner {
       .shuffle(new Random(123));
 
     MLP mlp = new MLP();
-    mlp.learningRate=1.0;
-    mlp.maxIterations=500;
+    mlp.learningRate = 1.0;
+    mlp.maxIterations = 500;
     mlp.hiddenLayers = new int[]{4};
 
     dataset.split(0.8).forEach((train, test) -> {
@@ -99,7 +95,7 @@ public class MLP extends ClassifierLearner {
         N++;
         FeatureVector v = instance.toVector(model.getEncoderPair());
         Vector yVec = new DenseVector(model.numberOfLabels());
-          yVec.set((int) v.getLabel(), 1);
+        yVec.set((int) v.getLabel(), 1);
         error += model.network.backprop(
           model.network.forward(v),
           v,

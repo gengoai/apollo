@@ -32,7 +32,7 @@ import com.davidbracewell.io.structured.ElementType;
 import com.davidbracewell.io.structured.json.JSONReader;
 import com.davidbracewell.io.structured.json.JSONWriter;
 import com.davidbracewell.stream.MStream;
-import com.davidbracewell.stream.Streams;
+import com.davidbracewell.stream.StreamingContext;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterators;
 import lombok.NonNull;
@@ -160,7 +160,8 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
   }
 
   /**
-   * Creates a new dataset from the given stream of instances creating a new feature and label encoder from this dataset
+   * Creates a new dataset from the given stream of instances creating a new feature and label encoder from this
+   * dataset
    * and a copy this dataset's preprocessors.
    *
    * @param instances the stream of instances
@@ -216,7 +217,7 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
    * @param instances the instances
    */
   protected void addAll(@NonNull Collection<T> instances) {
-    addAll(Streams.of(instances, false));
+    addAll(StreamingContext.local().stream(instances));
   }
 
 

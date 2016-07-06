@@ -7,7 +7,14 @@ import com.google.common.collect.Iterators;
 import lombok.NonNull;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -93,8 +100,11 @@ public class PreprocessorList<T extends Example> implements Iterable<Preprocesso
    * Finish.
    */
   public void finish() {
+    Set<String> removed = new HashSet<>();
     if (!finished) {
-      preprocessors.forEach(Preprocessor::finish);
+      for (Preprocessor<T> preprocessor : preprocessors) {
+        removed.addAll(preprocessor.finish(removed));
+      }
       finished = true;
     }
   }

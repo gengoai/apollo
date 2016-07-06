@@ -5,6 +5,8 @@ import com.davidbracewell.apollo.ml.Feature;
 import com.davidbracewell.collection.Counter;
 import com.davidbracewell.collection.HashMapCounter;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Stream;
 
@@ -15,6 +17,7 @@ public class RealToDiscreteTransform extends RestrictedTransform {
   private static final long serialVersionUID = 1L;
   private final double[] bins;
   private transient Counter<Double> counts = new HashMapCounter<>();
+  private transient Set<String> featureNames = new HashSet<>();
   private volatile AtomicBoolean finished = new AtomicBoolean(false);
 
 
@@ -26,7 +29,10 @@ public class RealToDiscreteTransform extends RestrictedTransform {
   @Override
   protected void visitImpl(Stream<Feature> featureStream) {
     if (!finished.get()) {
-      featureStream.mapToDouble(Feature::getValue).forEach(counts::increment);
+      featureStream.forEach(feature -> {
+        counts.increment(feature.getValue());
+        featureNames.add(feature.getName());
+      });
     }
   }
 
@@ -43,7 +49,7 @@ public class RealToDiscreteTransform extends RestrictedTransform {
   }
 
   @Override
-  public void finish() {
+  public Set<String> finish(Set<String> removedFeatures) {
     double max = counts.max();
     double min = counts.min();
     double binSize = ((max - min) / bins.length);
@@ -54,6 +60,7 @@ public class RealToDiscreteTransform extends RestrictedTransform {
     }
     finished.set(true);
     counts.clear();
+    return featureNames;
   }
 
   @Override

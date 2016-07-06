@@ -8,7 +8,10 @@ import com.davidbracewell.collection.HashMapCounter;
 import com.davidbracewell.string.StringUtils;
 import com.google.common.util.concurrent.AtomicDouble;
 
+import java.util.Collections;
 import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Stream;
 
 /**
@@ -18,6 +21,7 @@ public class TFIDFTransform extends RestrictedTransform {
   private static final long serialVersionUID = 1L;
   private volatile Counter<String> documentFrequencies = Counters.synchronizedCounter(new HashMapCounter<>());
   private volatile AtomicDouble totalDocs = new AtomicDouble();
+  private volatile AtomicBoolean finished = new AtomicBoolean(false);
 
   public TFIDFTransform() {
     super(StringUtils.EMPTY);
@@ -31,8 +35,10 @@ public class TFIDFTransform extends RestrictedTransform {
 
   @Override
   protected void visitImpl(Stream<Feature> featureStream) {
-    totalDocs.addAndGet(1d);
-    featureStream.map(Feature::getName).distinct().forEach(documentFrequencies::increment);
+    if (!finished.get()) {
+      totalDocs.addAndGet(1d);
+      featureStream.map(Feature::getName).distinct().forEach(documentFrequencies::increment);
+    }
   }
 
 
@@ -50,12 +56,15 @@ public class TFIDFTransform extends RestrictedTransform {
   }
 
   @Override
-  public void finish() {
-
+  public Set<String> finish(Set<String> removedFeature) {
+    finished.set(true);
+    return Collections.emptySet();
   }
 
   @Override
   public void reset() {
+    finished.set(false);
+    totalDocs.set(0);
     documentFrequencies.clear();
   }
 

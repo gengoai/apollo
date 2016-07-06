@@ -5,6 +5,8 @@ import com.davidbracewell.apollo.ml.Feature;
 import com.davidbracewell.collection.EnhancedDoubleStatistics;
 import com.davidbracewell.string.StringUtils;
 
+import java.util.Collections;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Stream;
 
@@ -37,8 +39,9 @@ public class ZScoreTransform extends RestrictedTransform {
   }
 
   @Override
-  public void finish() {
+  public Set<String> finish(Set<String> removedFeatures) {
     finished.set(true);
+    return Collections.emptySet();
   }
 
   @Override

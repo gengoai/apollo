@@ -25,6 +25,7 @@ import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.preprocess.InstancePreprocessor;
 
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -71,8 +72,8 @@ public class NameFilter implements FilterProcessor<Instance>, InstancePreprocess
   }
 
   @Override
-  public void finish() {
-
+  public Set<String> finish(Set<String> removedFeatures) {
+    return Collections.emptySet();
   }
 
   @Override

@@ -4,6 +4,8 @@ import com.davidbracewell.apollo.ml.Encoder;
 import com.davidbracewell.apollo.ml.Feature;
 import com.davidbracewell.string.StringUtils;
 
+import java.util.Collections;
+import java.util.Set;
 import java.util.stream.Stream;
 
 /**
@@ -32,7 +34,8 @@ public class RealToBinaryTransform extends RestrictedTransform {
   }
 
   @Override
-  public void finish() {
+  public Set<String> finish(Set<String> removedFeatures) {
+    return Collections.emptySet();
   }
 
   @Override

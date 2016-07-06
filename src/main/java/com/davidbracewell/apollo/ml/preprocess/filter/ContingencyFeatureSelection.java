@@ -54,8 +54,14 @@ public class ContingencyFeatureSelection implements FilterProcessor<Instance>, I
   }
 
   @Override
-  public void finish() {
+  public Set<String> finish(Set<String> removedFeatures) {
+    Set<String> removed = new HashSet<>();
+
     for (Object label : labelCounter.items()) {
+      if (removedFeatures.contains(label.toString())) {
+        continue;
+      }
+      removed.add(label.toString());
       double labelCount = labelCounter.get(label);
       double totalCount = labelCounter.sum();
       Map<String, Double> featureScores = new HashMap<>();
@@ -81,6 +87,9 @@ public class ContingencyFeatureSelection implements FilterProcessor<Instance>, I
         entryList.subList(0, Math.min(numFeaturesPerClass, entryList.size())).forEach(e -> finalFeatures.add(e.getKey()));
       }
     }
+
+    removed.removeAll(finalFeatures);
+    return removed;
   }
 
   @Override

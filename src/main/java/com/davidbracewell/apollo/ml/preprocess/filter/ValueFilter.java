@@ -5,6 +5,8 @@ import com.davidbracewell.apollo.ml.preprocess.InstancePreprocessor;
 import com.davidbracewell.function.SerializableDoublePredicate;
 
 import java.io.Serializable;
+import java.util.Collections;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -34,8 +36,8 @@ public class ValueFilter implements FilterProcessor<Instance>, InstancePreproces
   }
 
   @Override
-  public void finish() {
-
+  public Set<String> finish(Set<String> removedFeatures) {
+    return Collections.emptySet();
   }
 
   @Override

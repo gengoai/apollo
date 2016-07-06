@@ -9,6 +9,8 @@ import com.davidbracewell.function.SerializableDoublePredicate;
 import lombok.NonNull;
 
 import java.io.Serializable;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author David B. Bracewell
@@ -41,8 +43,11 @@ public class CountFilter implements FilterProcessor<Instance>, InstancePreproces
   }
 
   @Override
-  public void finish() {
-    counter = counter.filterByValue(filter);
+  public Set<String> finish(Set<String> removedFeatures) {
+    Set<String> removed = new HashSet<>(counter.items());
+    counter = counter.filterByKey(f -> !removedFeatures.contains(f)).filterByValue(filter);
+    removed.removeAll(counter.items());
+    return removed;
   }
 
   @Override

@@ -3,6 +3,8 @@ package com.davidbracewell.apollo.ml.preprocess;
 import com.davidbracewell.apollo.ml.Encoder;
 import com.davidbracewell.apollo.ml.Example;
 
+import java.util.Set;
+
 /**
  * The interface Preprocessor.
  *
@@ -29,7 +31,7 @@ public interface Preprocessor<T extends Example> {
   /**
    * Finish.
    */
-  void finish();
+  Set<String> finish(Set<String> removedFeatures);
 
   /**
    * Train only boolean.

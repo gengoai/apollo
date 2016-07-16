@@ -2,8 +2,8 @@ package com.davidbracewell.apollo.ml.preprocess.filter;
 
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.preprocess.InstancePreprocessor;
-import com.davidbracewell.apollo.stats.ContingencyTable;
-import com.davidbracewell.apollo.stats.ContingencyTableCalculator;
+import com.davidbracewell.apollo.ContingencyTable;
+import com.davidbracewell.apollo.ContingencyTableCalculator;
 import com.davidbracewell.collection.Counter;
 import com.davidbracewell.collection.HashMapCounter;
 import com.davidbracewell.collection.HashMapMultiCounter;
@@ -31,7 +31,7 @@ public class ContingencyFeatureSelection implements FilterProcessor<Instance>, I
   private final double threshold;
 
 
-  protected ContingencyFeatureSelection(@NonNull ContingencyTableCalculator calculator, int numFeaturesPerClass, double threshold) {
+  public ContingencyFeatureSelection(@NonNull ContingencyTableCalculator calculator, int numFeaturesPerClass, double threshold) {
     this.calculator = calculator;
     this.numFeaturesPerClass = numFeaturesPerClass;
     this.threshold = threshold;

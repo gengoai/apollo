@@ -19,7 +19,7 @@
  * under the License.
  */
 
-package com.davidbracewell.apollo.stats;
+package com.davidbracewell.apollo;
 
 
 /**

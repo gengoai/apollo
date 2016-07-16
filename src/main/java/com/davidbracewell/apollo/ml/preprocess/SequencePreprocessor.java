@@ -7,6 +7,7 @@ import com.davidbracewell.apollo.ml.sequence.Sequence;
 import lombok.NonNull;
 
 import java.io.Serializable;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -33,8 +34,8 @@ public class SequencePreprocessor implements Preprocessor<Sequence>, Serializabl
   }
 
   @Override
-  public void finish() {
-    instancePreprocessor.finish();
+  public Set<String> finish(Set<String> removedFeatures) {
+    return instancePreprocessor.finish(removedFeatures);
   }
 
   @Override

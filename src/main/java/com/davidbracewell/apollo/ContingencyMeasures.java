@@ -19,7 +19,7 @@
  * under the License.
  */
 
-package com.davidbracewell.apollo.stats;
+package com.davidbracewell.apollo;
 
 import com.google.common.base.Preconditions;
 import com.google.common.math.DoubleMath;

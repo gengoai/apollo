@@ -24,12 +24,26 @@ package com.davidbracewell.apollo;
 import com.davidbracewell.function.SerializableDoubleUnaryOperator;
 
 /**
+ * The interface Differentiable function.
+ *
  * @author David B. Bracewell
  */
 public interface DifferentiableFunction extends SerializableDoubleUnaryOperator {
+  /**
+   * The constant H.
+   */
   double H = 1E-5;
+  /**
+   * The constant TWO_H.
+   */
   double TWO_H = 2.0 * H;
 
+  /**
+   * Gradient double.
+   *
+   * @param value the value
+   * @return the double
+   */
   default double gradient(double value) {
     return (applyAsDouble(value + H) - applyAsDouble(value - H)) / TWO_H;
   }

@@ -21,8 +21,8 @@
 
 package com.davidbracewell.apollo.affinity;
 
-import com.davidbracewell.apollo.stats.ContingencyTable;
-import com.davidbracewell.apollo.stats.ContingencyTableCalculator;
+import com.davidbracewell.apollo.ContingencyTable;
+import com.davidbracewell.apollo.ContingencyTableCalculator;
 
 /**
  * The type Similarity measure.

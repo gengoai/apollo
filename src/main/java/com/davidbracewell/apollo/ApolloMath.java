@@ -63,6 +63,28 @@ public interface ApolloMath {
     return DoubleStream.of(array).average().orElse(Double.NaN);
   }
 
+
+  static double add(double v1, double v2) {
+    return v1 + v2;
+  }
+
+  static double addSquared(double v1, double v2) {
+    return v1 * v1 + v2 * v2;
+  }
+
+  static double subtract(double v1, double v2) {
+    return v1 - v2;
+  }
+
+  static double multiply(double v1, double v2) {
+    return v1 * v2;
+  }
+
+  static double divide(double v1, double v2) {
+    return v1 / v2;
+  }
+
+
   /**
    * Sum double.
    *

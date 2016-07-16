@@ -34,6 +34,7 @@ import com.davidbracewell.string.TableFormatter;
 import com.davidbracewell.tuple.Tuple2;
 import com.google.common.base.Preconditions;
 import lombok.NonNull;
+import org.apache.commons.math3.stat.inference.MannWhitneyUTest;
 
 import java.io.PrintStream;
 import java.io.Serializable;

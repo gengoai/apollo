@@ -1,6 +1,6 @@
 package com.davidbracewell.apollo.ml.preprocess.filter;
 
-import com.davidbracewell.apollo.stats.ContingencyMeasures;
+import com.davidbracewell.apollo.ContingencyMeasures;
 
 /**
  * The type Chi squared feature selection.

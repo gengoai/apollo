@@ -11,7 +11,7 @@ import org.apache.commons.math3.random.Well19937c;
  *
  * @author David B. Bracewell
  */
-public class Binomial implements DiscreteDistribution<Binomial> {
+public final class Binomial implements DiscreteDistribution<Binomial> {
   private static final long serialVersionUID = 1L;
   private final RandomGenerator randomGenerator;
   private int nSuccess = 0;

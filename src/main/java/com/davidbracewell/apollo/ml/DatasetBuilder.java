@@ -20,16 +20,16 @@ import java.util.stream.Stream;
  */
 @Accessors(fluent = true)
 public class DatasetBuilder<T extends Example> {
+  private final Encoder labelEncoder;
+  private final Class<T> exampleType;
   @Setter(onParam = @_({@NonNull}))
   private Dataset.Type type = Dataset.Type.InMemory;
   @Setter(onParam = @_({@NonNull}))
   private Encoder featureEncoder = new IndexEncoder();
-  private final Encoder labelEncoder;
   @Setter(onParam = @_({@NonNull}))
   private MStream<T> source;
   @Setter(onParam = @_({@NonNull}))
   private Resource load;
-  private final Class<T> exampleType;
 
   protected DatasetBuilder(@NonNull Encoder labelEncoder, @NonNull Class<T> exampleType) {
     this.labelEncoder = labelEncoder;
@@ -57,6 +57,8 @@ public class DatasetBuilder<T extends Example> {
 
     switch (type) {
       case Distributed:
+        dataset = new DistributedDataset<>(featureEncoder, labelEncoder, PreprocessorList.empty());
+        break;
       case OffHeap:
         dataset = new OffHeapDataset<>(featureEncoder, labelEncoder, PreprocessorList.empty());
         break;
@@ -71,7 +73,7 @@ public class DatasetBuilder<T extends Example> {
 
     if (load != null) {
       try {
-        dataset.read(load,exampleType);
+        dataset.read(load, exampleType);
       } catch (IOException e) {
         throw Throwables.propagate(e);
       }

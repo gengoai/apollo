@@ -19,7 +19,6 @@ public interface Encoder {
    * Encodes a stream of objects returning a double stream containing the encoded values.
    *
    * @param stream the stream to encode
-   * @return the stream of encoded values
    */
   default void encode(@NonNull Stream<?> stream) {
     stream.forEach(this::encode);

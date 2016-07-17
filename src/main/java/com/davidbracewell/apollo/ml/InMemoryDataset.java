@@ -24,7 +24,7 @@ import java.util.*;
 public class InMemoryDataset<T extends Example> extends Dataset<T> {
 
   private static final Interner<String> interner = new Interner<>();
-  private final List<T> instances = new LinkedList<>();
+  private final List<T> instances = new ArrayList<>();
 
   /**
    * Instantiates a new In memory dataset.

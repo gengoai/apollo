@@ -1,5 +1,6 @@
 package com.davidbracewell.apollo.ml;
 
+import com.davidbracewell.apollo.ml.preprocess.Preprocessor;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.collection.Collect;
 import com.davidbracewell.conversion.Cast;
@@ -8,6 +9,7 @@ import com.davidbracewell.io.Resources;
 import com.davidbracewell.io.resource.Resource;
 import com.davidbracewell.stream.MStream;
 import com.davidbracewell.stream.StreamingContext;
+import com.davidbracewell.tuple.Tuples;
 import com.google.common.base.Throwables;
 import lombok.NonNull;
 
@@ -28,11 +30,28 @@ public class OffHeapDataset<T extends Example> extends Dataset<T> {
 
   protected OffHeapDataset(Encoder featureEncoder, Encoder labelEncoder, PreprocessorList<T> preprocessors) {
     super(featureEncoder, labelEncoder, preprocessors);
+    System.err.println(outputResource.descriptor());
+    outputResource.deleteOnExit();
   }
 
   @Override
   protected void addAll(@NonNull MStream<T> instances) {
-    try (BufferedWriter writer = new BufferedWriter(outputResource.getChild("part-" + id.incrementAndGet() + ".json").writer())) {
+    long binSize = instances.count() / 5000;
+    if (binSize <= 1) {
+      writeInstancesTo(instances, outputResource.setIsCompressed(true).getChild("part-" + id.incrementAndGet() + ".json"));
+    } else {
+      instances.mapToPair(i -> Tuples.$((long) Math.floor(Math.random() * binSize), i))
+        .groupByKey()
+        .forEachLocal((key, list) -> {
+            Resource r = outputResource.setIsCompressed(true).getChild("part-" + id.incrementAndGet() + ".json");
+            writeInstancesTo(StreamingContext.local().stream(list), r);
+          }
+        );
+    }
+  }
+
+  private void writeInstancesTo(MStream<T> instances, Resource file) {
+    try (BufferedWriter writer = new BufferedWriter(file.writer())) {
       for (T instance : Collect.asIterable(instances.iterator())) {
         clazz = Cast.as(instance.getClass());
         writer.write(instance.toJson());
@@ -43,6 +62,35 @@ public class OffHeapDataset<T extends Example> extends Dataset<T> {
       throw Throwables.propagate(e);
     }
   }
+
+  @Override
+  public Dataset<T> preprocess(@NonNull PreprocessorList<T> preprocessors) {
+    Dataset<T> dataset = this;
+    for (Preprocessor<T> preprocessor : preprocessors) {
+      dataset = dataset.preprocess(preprocessor);
+    }
+    return dataset;
+  }
+
+  @Override
+  public Dataset<T> preprocess(Preprocessor<T> preprocessor) {
+    if (preprocessor == null) {
+      return this;
+    }
+    preprocessor.fit(this);
+    PreprocessorList<T> preprocessorList = new PreprocessorList<>(getPreprocessors());
+    preprocessorList.add(preprocessor);
+    outputResource.getChildren().forEach(Unchecked.consumer(r -> {
+      InMemoryDataset<T> temp = new InMemoryDataset<>(getFeatureEncoder(), getLabelEncoder(), null);
+      for (String line : r.readLines()) {
+        temp.add(Example.fromJson(line, clazz));
+      }
+      temp = Cast.as(temp.preprocess(preprocessorList));
+      writeInstancesTo(temp.stream(), r);
+    }));
+    return this;
+  }
+
 
   @Override
   public DatasetType getType() {

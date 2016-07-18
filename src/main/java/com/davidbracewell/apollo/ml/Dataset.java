@@ -27,6 +27,7 @@ import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.apollo.ml.sequence.FeatureVectorSequence;
 import com.davidbracewell.apollo.ml.sequence.Sequence;
 import com.davidbracewell.conversion.Cast;
+import com.davidbracewell.function.SerializablePredicate;
 import com.davidbracewell.io.resource.Resource;
 import com.davidbracewell.io.structured.ElementType;
 import com.davidbracewell.io.structured.json.JSONReader;
@@ -114,6 +115,11 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
   }
 
 
+  /**
+   * Gets type.
+   *
+   * @return the type
+   */
   public abstract DatasetType getType();
 
   /**
@@ -149,6 +155,11 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
   }
 
 
+  /**
+   * Gets streaming context.
+   *
+   * @return the streaming context
+   */
   public StreamingContext getStreamingContext() {
     return getType().getStreamingContext();
   }
@@ -169,7 +180,18 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
   }
 
 
-  public Dataset<T> preprocess(Preprocessor<T> preprocessor){
+  public Dataset<T> filter(@NonNull SerializablePredicate<T> predicate) {
+    return create(stream().filter(predicate));
+  }
+
+
+  /**
+   * Preprocess dataset.
+   *
+   * @param preprocessor the preprocessor
+   * @return the dataset
+   */
+  public Dataset<T> preprocess(Preprocessor<T> preprocessor) {
     if (preprocessor == null) {
       return this;
     }
@@ -216,7 +238,18 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
    * @param end   the end
    * @return the m stream
    */
-  protected MStream<T> slice(int start, int end) {
+  public Dataset<T> slice(int start, int end) {
+    return create(stream().skip(start).limit(end - start));
+  }
+
+  /**
+   * Slices the dataset int a sub stream
+   *
+   * @param start the start
+   * @param end   the end
+   * @return the m stream
+   */
+  protected MStream<T> streamSlice(int start, int end) {
     return stream().skip(start).limit(end - start);
   }
 
@@ -246,6 +279,11 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
     addAll(getType().getStreamingContext().stream(instances));
   }
 
+  /**
+   * Add all.
+   *
+   * @param instances the instances
+   */
   @SafeVarargs
   protected final void addAll(@NonNull T... instances) {
     addAll(Arrays.asList(instances));
@@ -262,10 +300,7 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
     Preconditions.checkArgument(pctTrain > 0 && pctTrain < 1, "Percentage should be between 0 and 1");
     int split = (int) Math.floor(pctTrain * size());
     TrainTestSet<T> set = new TrainTestSet<>();
-    set.add(TrainTest.of(
-      create(slice(0, split)),
-      create(slice(split, size()))
-    ));
+    set.add(TrainTest.of(slice(0, split), slice(split, size())));
     set.trimToSize();
     return set;
   }
@@ -290,19 +325,16 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
       MStream<T> train;
       MStream<T> test;
       if (i == 0) {
-        test = slice(0, foldSize);
-        train = slice(foldSize, size());
+        test = streamSlice(0, foldSize);
+        train = streamSlice(foldSize, size());
       } else if (i == numberOfFolds - 1) {
-        test = slice(size() - foldSize, size());
-        train = slice(0, size() - foldSize);
+        test = streamSlice(size() - foldSize, size());
+        train = streamSlice(0, size() - foldSize);
       } else {
-        train = slice(0, foldSize * i).union(slice(foldSize * i + foldSize, size()));
-        test = slice(foldSize * i, foldSize * i + foldSize);
+        train = streamSlice(0, foldSize * i).union(streamSlice(foldSize * i + foldSize, size()));
+        test = streamSlice(foldSize * i, foldSize * i + foldSize);
       }
-
-      folds.add(
-        TrainTest.of(create(train), create(test))
-      );
+      folds.add(TrainTest.of(create(train), create(test)));
     }
 
     folds.trimToSize();
@@ -415,7 +447,8 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
   /**
    * Reads the dataset from the given resource.
    *
-   * @param resource the resource to read from
+   * @param resource    the resource to read from
+   * @param exampleType the example type
    * @return this dataset
    * @throws IOException Something went wrong reading.
    */

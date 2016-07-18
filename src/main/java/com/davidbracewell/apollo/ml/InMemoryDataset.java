@@ -84,8 +84,8 @@ public class InMemoryDataset<T extends Example> extends Dataset<T> {
   }
 
   @Override
-  protected MStream<T> slice(int start, int end) {
-    return StreamingContext.local().stream(instances.subList(start, end).stream());
+  public Dataset<T> slice(int start, int end) {
+    return create(StreamingContext.local().stream(instances.subList(start, end).stream()));
   }
 
   @Override

@@ -44,7 +44,7 @@ public abstract class SequenceLabeler extends Model {
   @Override
   protected void finishTraining() {
     super.finishTraining(); //Call super to freeze encoders
-    preprocessors.trimToSize(getFeatureEncoder());
+//    preprocessors.trimToSize(getFeatureEncoder());
   }
 
   /**

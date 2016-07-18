@@ -59,7 +59,7 @@ public abstract class Classifier extends Model {
   @Override
   protected void finishTraining() {
     super.finishTraining();
-    preprocessors.trimToSize(getFeatureEncoder());
+//    preprocessors.trimToSize(getFeatureEncoder());
   }
 
   /**

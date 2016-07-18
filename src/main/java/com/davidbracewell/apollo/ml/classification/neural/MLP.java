@@ -20,8 +20,13 @@ import com.davidbracewell.string.StringUtils;
 import com.davidbracewell.tuple.Tuple2;
 import com.google.common.base.Joiner;
 import com.google.common.base.Stopwatch;
+import org.apache.commons.lang.math.LongRange;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 /**
@@ -61,7 +66,7 @@ public class MLP extends ClassifierLearner {
     mlp.hiddenLayers = new int[]{4};
 
     dataset.split(0.8).forEach((train, test) -> {
-      Classifier c = mlp.train(train.preprocess(PreprocessorList.create(new CountFilter(d -> d >= 5))));
+      Classifier c = mlp.train(train.preprocess(PreprocessorList.create(new CountFilter(new LongRange(5,Long.MAX_VALUE)))));
       ClassifierEvaluation evaluation = new ClassifierEvaluation();
       evaluation.evaluate(c, test);
       evaluation.output(System.out);

@@ -1,22 +1,25 @@
 package com.davidbracewell.apollo.ml.preprocess.transform;
 
-import com.davidbracewell.apollo.ml.Encoder;
 import com.davidbracewell.apollo.ml.Feature;
+import com.davidbracewell.apollo.ml.Instance;
+import com.davidbracewell.apollo.ml.preprocess.RestrictedInstancePreprocessor;
 import com.davidbracewell.collection.EnhancedDoubleStatistics;
+import com.davidbracewell.stream.MStream;
+import com.davidbracewell.stream.accumulator.MAccumulator;
+import com.davidbracewell.stream.accumulator.StatisticsAccumulatable;
 import com.davidbracewell.string.StringUtils;
 
-import java.util.Collections;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.io.Serializable;
+import java.util.List;
 import java.util.stream.Stream;
 
 /**
  * @author David B. Bracewell
  */
-public class ZScoreTransform extends RestrictedTransform {
+public class ZScoreTransform extends RestrictedInstancePreprocessor implements TransformProcessor<Instance>, Serializable {
+
   private static final long serialVersionUID = 1L;
   private final EnhancedDoubleStatistics statistics = new EnhancedDoubleStatistics();
-  private volatile AtomicBoolean finished = new AtomicBoolean(false);
 
   public ZScoreTransform() {
     super(StringUtils.EMPTY);
@@ -27,32 +30,35 @@ public class ZScoreTransform extends RestrictedTransform {
   }
 
   @Override
-  protected void visitImpl(Stream<Feature> featureStream) {
-    if (!finished.get()) {
-      featureStream.mapToDouble(Feature::getValue).forEach(statistics::accept);
-    }
-  }
-
-  @Override
-  protected Stream<Feature> processImpl(Stream<Feature> featureStream) {
+  protected Stream<Feature> restrictedProcessImpl(Stream<Feature> featureStream, Instance originalExample) {
     return featureStream.map(feature -> Feature.real(feature.getName(), (feature.getValue() - statistics.getAverage()) / statistics.getSampleStandardDeviation()));
   }
 
+
   @Override
-  public Set<String> finish(Set<String> removedFeatures) {
-    finished.set(true);
-    return Collections.emptySet();
+  protected void restrictedFitImpl(MStream<List<Feature>> stream) {
+    MAccumulator<EnhancedDoubleStatistics> stats = stream.getContext().accumulator(null, new StatisticsAccumulatable());
+    stream.forEach(instance ->
+      stats.add(
+        instance.stream().mapToDouble(Feature::getValue).collect(
+          EnhancedDoubleStatistics::new, EnhancedDoubleStatistics::accept, EnhancedDoubleStatistics::combine
+        )
+      )
+    );
+    this.statistics.combine(stats.value());
   }
 
   @Override
   public void reset() {
-    finished.set(false);
     statistics.clear();
   }
 
   @Override
-  public void trimToSize(Encoder encoder) {
-
+  public String describe() {
+    if (acceptAll()) {
+      return "ZScoreTransform";
+    }
+    return "ZScoreTransform[" + getRestriction() + "]";
   }
 
 }// END OF ZScoreTransform

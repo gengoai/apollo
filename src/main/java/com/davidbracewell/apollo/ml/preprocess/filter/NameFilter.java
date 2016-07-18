@@ -21,11 +21,12 @@
 
 package com.davidbracewell.apollo.ml.preprocess.filter;
 
+import com.davidbracewell.apollo.ml.Dataset;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.preprocess.InstancePreprocessor;
+import lombok.NonNull;
 
 import java.io.Serializable;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -45,19 +46,29 @@ public class NameFilter implements FilterProcessor<Instance>, InstancePreprocess
    *
    * @param patterns the patterns
    */
-  public NameFilter(String... patterns) {
+  public NameFilter(@NonNull String... patterns) {
     for (String pattern : patterns) {
       this.patterns.add(Pattern.compile(pattern));
     }
   }
 
   @Override
-  public void visit(Instance example) {
+  public void fit(Dataset<Instance> dataset) {
 
   }
 
   @Override
-  public Instance process(Instance example) {
+  public void reset() {
+
+  }
+
+  @Override
+  public String describe() {
+    return "NameFilter: " + patterns;
+  }
+
+  @Override
+  public Instance apply(Instance example) {
     return Instance.create(
       example.getFeatures().stream().filter(f -> {
         for (Pattern pattern : patterns) {
@@ -69,21 +80,6 @@ public class NameFilter implements FilterProcessor<Instance>, InstancePreprocess
       }).collect(Collectors.toList()),
       example.getLabel()
     );
-  }
-
-  @Override
-  public Set<String> finish(Set<String> removedFeatures) {
-    return Collections.emptySet();
-  }
-
-  @Override
-  public void reset() {
-
-  }
-
-  @Override
-  public String describe() {
-    return "NameFilter: " + patterns;
   }
 
 }//END OF RemoveFilter

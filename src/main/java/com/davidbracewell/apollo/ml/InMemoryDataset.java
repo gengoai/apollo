@@ -1,5 +1,6 @@
 package com.davidbracewell.apollo.ml;
 
+import com.davidbracewell.apollo.ml.preprocess.Preprocessor;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.collection.Collect;
 import com.davidbracewell.collection.Interner;
@@ -10,7 +11,12 @@ import lombok.EqualsAndHashCode;
 import lombok.NonNull;
 import lombok.ToString;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Random;
 
 /**
  * <p>A Dataset that stores all examples in memory. Feature names are interned to conserve memory. In addition, methods
@@ -37,6 +43,11 @@ public class InMemoryDataset<T extends Example> extends Dataset<T> {
     super(featureEncoder, labelEncoder, preprocessors);
   }
 
+  @Override
+  public DatasetType getType() {
+    return DatasetType.InMemory;
+  }
+
   /**
    * Adds an example
    *
@@ -60,12 +71,12 @@ public class InMemoryDataset<T extends Example> extends Dataset<T> {
   }
 
   @Override
-  public void addAll(@NonNull Collection<T> instances) {
+  protected void addAll(@NonNull Collection<T> instances) {
     super.addAll(instances);
   }
 
   @Override
-  public void addAll(@NonNull MStream<T> stream) {
+  protected void addAll(@NonNull MStream<T> stream) {
     for (T instance : Collect.asIterable(stream.iterator())) {
       getLabelEncoder().encode(instance.getLabelSpace());
       instances.add(Cast.as(instance.intern(interner)));

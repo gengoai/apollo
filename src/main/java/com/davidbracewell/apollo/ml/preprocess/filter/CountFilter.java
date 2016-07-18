@@ -1,58 +1,64 @@
 package com.davidbracewell.apollo.ml.preprocess.filter;
 
+import com.davidbracewell.apollo.ml.Feature;
 import com.davidbracewell.apollo.ml.Instance;
-import com.davidbracewell.apollo.ml.preprocess.InstancePreprocessor;
-import com.davidbracewell.collection.Counter;
-import com.davidbracewell.collection.Counters;
+import com.davidbracewell.apollo.ml.preprocess.RestrictedInstancePreprocessor;
 import com.davidbracewell.collection.HashMapCounter;
-import com.davidbracewell.function.SerializableDoublePredicate;
+import com.davidbracewell.stream.MStream;
 import lombok.NonNull;
+import org.apache.commons.lang.math.LongRange;
 
 import java.io.Serializable;
-import java.util.HashSet;
+import java.util.Collections;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author David B. Bracewell
  */
-public class CountFilter implements FilterProcessor<Instance>, InstancePreprocessor, Serializable {
+public class CountFilter extends RestrictedInstancePreprocessor implements FilterProcessor<Instance>, Serializable {
   private static final long serialVersionUID = 1L;
-  private final SerializableDoublePredicate filter;
-  private volatile Counter<String> counter = Counters.synchronizedCounter(new HashMapCounter<>());
+  private final LongRange range;
+  private volatile Set<String> selectedFeatures = Collections.emptySet();
 
-  public CountFilter(@NonNull SerializableDoublePredicate filter) {
-    this.filter = filter;
+  public CountFilter(@NonNull String featurePrefix, @NonNull LongRange filter) {
+    super(featurePrefix);
+    this.range = filter;
+  }
+
+  public CountFilter(@NonNull LongRange filter) {
+    super(null);
+    this.range = filter;
   }
 
   @Override
-  public void visit(Instance example) {
-    if (example != null) {
-      example.forEach(f -> counter.increment(f.getName()));
-    }
-  }
-
-  @Override
-  public Instance process(@NonNull Instance example) {
-    example.getFeatures().removeIf(f -> !counter.contains(f.getName()));
-    return example;
+  protected void restrictedFitImpl(MStream<List<Feature>> stream) {
+    selectedFeatures = new HashMapCounter<>(
+      stream.flatMap(l -> l.stream().map(Feature::getName).collect(Collectors.toList()))
+        .countByValue()
+    )
+      .filterByValue(range::containsDouble)
+      .items();
   }
 
   @Override
   public void reset() {
-    counter.clear();
+    selectedFeatures.clear();
   }
 
   @Override
-  public Set<String> finish(Set<String> removedFeatures) {
-    Set<String> removed = new HashSet<>(counter.items());
-    counter = counter.filterByKey(f -> !removedFeatures.contains(f)).filterByValue(filter);
-    removed.removeAll(counter.items());
-    return removed;
+  protected Stream<Feature> restrictedProcessImpl(Stream<Feature> featureStream, Instance originalExample) {
+    return featureStream.filter(f -> selectedFeatures.contains(f.getName()));
   }
 
   @Override
   public String describe() {
-    return "CountFilter: min=" + counter.minimumCount() + ", max=" + counter.maximumCount();
+    if (acceptAll()) {
+      return "CountFilter: min=" + range.getMinimumLong() + ", max=" + range.getMaximumLong();
+    }
+    return "CountFilter[" + getRestriction() + "]: min=" + range.getMinimumLong() + ", max=" + range.getMaximumLong();
   }
 
 }// END OF CountFilter

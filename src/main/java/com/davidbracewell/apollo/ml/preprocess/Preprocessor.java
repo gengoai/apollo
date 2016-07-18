@@ -1,9 +1,10 @@
 package com.davidbracewell.apollo.ml.preprocess;
 
-import com.davidbracewell.apollo.ml.Encoder;
+import com.davidbracewell.apollo.ml.Dataset;
 import com.davidbracewell.apollo.ml.Example;
+import lombok.NonNull;
 
-import java.util.Set;
+import java.io.Serializable;
 
 /**
  * The interface Preprocessor.
@@ -11,27 +12,15 @@ import java.util.Set;
  * @param <T> the type parameter
  * @author David B. Bracewell
  */
-public interface Preprocessor<T extends Example> {
+public interface Preprocessor<T extends Example> extends Serializable {
 
   /**
-   * Visit.
+   * Process dataset.
    *
-   * @param example the example
+   * @param dataset the dataset
+   * @return the dataset
    */
-  void visit(T example);
-
-  /**
-   * Process t.
-   *
-   * @param example the example
-   * @return the t
-   */
-  T process(T example);
-
-  /**
-   * Finish.
-   */
-  Set<String> finish(Set<String> removedFeatures);
+  void fit(Dataset<T> dataset);
 
   /**
    * Train only boolean.
@@ -45,14 +34,21 @@ public interface Preprocessor<T extends Example> {
    */
   void reset();
 
+
   /**
-   * Trim to size.
+   * Apply t.
    *
-   * @param encoder the encoder
+   * @param example the example
+   * @return the t
    */
-  void trimToSize(Encoder encoder);
+  T apply(T example);
 
+
+  /**
+   * Describe string.
+   *
+   * @return the string
+   */
   String describe();
-
 
 }//END OF Preprocessor

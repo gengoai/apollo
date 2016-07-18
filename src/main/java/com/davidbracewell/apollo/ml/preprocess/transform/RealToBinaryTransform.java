@@ -1,17 +1,20 @@
 package com.davidbracewell.apollo.ml.preprocess.transform;
 
-import com.davidbracewell.apollo.ml.Encoder;
 import com.davidbracewell.apollo.ml.Feature;
+import com.davidbracewell.apollo.ml.Instance;
+import com.davidbracewell.apollo.ml.preprocess.RestrictedInstancePreprocessor;
+import com.davidbracewell.stream.MStream;
 import com.davidbracewell.string.StringUtils;
+import lombok.NonNull;
 
-import java.util.Collections;
-import java.util.Set;
+import java.io.Serializable;
+import java.util.List;
 import java.util.stream.Stream;
 
 /**
  * @author David B. Bracewell
  */
-public class RealToBinaryTransform extends RestrictedTransform {
+public class RealToBinaryTransform extends RestrictedInstancePreprocessor implements TransformProcessor<Instance>, Serializable {
   private static final long serialVersionUID = 1L;
   private final double threshold;
 
@@ -19,36 +22,37 @@ public class RealToBinaryTransform extends RestrictedTransform {
     this(StringUtils.EMPTY, threshold);
   }
 
-  public RealToBinaryTransform(String featureNamePrefix, double threshold) {
+  public RealToBinaryTransform(@NonNull String featureNamePrefix, double threshold) {
     super(featureNamePrefix);
     this.threshold = threshold;
   }
 
-  @Override
-  protected void visitImpl(Stream<Feature> featureStream) {
-  }
-
-  @Override
-  protected Stream<Feature> processImpl(Stream<Feature> featureStream) {
-    return featureStream.filter(f -> f.getValue() >= threshold).map(feature -> Feature.TRUE(feature.getName()));
-  }
-
-  @Override
-  public Set<String> finish(Set<String> removedFeatures) {
-    return Collections.emptySet();
-  }
 
   @Override
   public void reset() {
   }
 
   @Override
-  public void trimToSize(Encoder encoder) {
+  public String describe() {
+    if (acceptAll()) {
+      return "RealToBinaryTransform: threshold=" + threshold;
+    }
+    return "RealToBinaryTransform[" + getRestriction() + "]: threshold=" + threshold;
+  }
+
+  @Override
+  protected void restrictedFitImpl(MStream<List<Feature>> stream) {
 
   }
 
   @Override
-  public String describe() {
-    return "BinaryTransform[" + getFeatureNamePrefix() + "]: threshold=" + threshold;
+  public boolean requiresFit() {
+    return false;
   }
+
+  @Override
+  protected Stream<Feature> restrictedProcessImpl(Stream<Feature> featureStream, Instance originalExample) {
+    return featureStream.filter(f -> f.getValue() >= threshold).map(feature -> Feature.TRUE(feature.getName()));
+  }
+
 }// END OF RealToBinaryTransform

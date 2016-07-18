@@ -45,6 +45,11 @@ public class OffHeapDataset<T extends Example> extends Dataset<T> {
   }
 
   @Override
+  public DatasetType getType() {
+    return DatasetType.OffHeap;
+  }
+
+  @Override
   public MStream<T> stream() {
     return StreamingContext.local().stream(
       outputResource.getChildren().stream()

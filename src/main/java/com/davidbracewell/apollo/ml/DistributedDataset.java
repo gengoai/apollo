@@ -1,5 +1,6 @@
 package com.davidbracewell.apollo.ml;
 
+import com.davidbracewell.apollo.ml.preprocess.Preprocessor;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.stream.MStream;
 import com.davidbracewell.stream.SparkStream;
@@ -30,6 +31,11 @@ public class DistributedDataset<T extends Example> extends Dataset<T> {
     DistributedDataset<T> dataset = new DistributedDataset<>(featureEncoder, labelEncoder, preprocessors);
     dataset.stream = new SparkStream<>(instances);
     return dataset;
+  }
+
+  @Override
+  public DatasetType getType() {
+    return DatasetType.Distributed;
   }
 
   @Override

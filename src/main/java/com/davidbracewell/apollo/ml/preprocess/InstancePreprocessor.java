@@ -10,7 +10,6 @@ import com.davidbracewell.apollo.ml.sequence.Sequence;
  */
 public interface InstancePreprocessor extends Preprocessor<Instance> {
 
-
   /**
    * As sequence processor preprocessor.
    *

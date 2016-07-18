@@ -23,7 +23,7 @@ public class DatasetBuilder<T extends Example> {
   private final Encoder labelEncoder;
   private final Class<T> exampleType;
   @Setter(onParam = @_({@NonNull}))
-  private Dataset.Type type = Dataset.Type.InMemory;
+  private DatasetType datasetType = DatasetType.InMemory;
   @Setter(onParam = @_({@NonNull}))
   private Encoder featureEncoder = new IndexEncoder();
   @Setter(onParam = @_({@NonNull}))
@@ -55,7 +55,7 @@ public class DatasetBuilder<T extends Example> {
   public Dataset<T> build() {
     Dataset<T> dataset;
 
-    switch (type) {
+    switch (datasetType) {
       case Distributed:
         dataset = new DistributedDataset<>(featureEncoder, labelEncoder, PreprocessorList.empty());
         break;

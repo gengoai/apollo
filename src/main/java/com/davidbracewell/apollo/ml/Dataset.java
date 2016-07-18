@@ -39,7 +39,12 @@ import lombok.NonNull;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 /**
@@ -53,7 +58,7 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
   private static final long serialVersionUID = 1L;
 
   private final EncoderPair encoders;
-  private volatile PreprocessorList<T> preprocessors;
+  private final PreprocessorList<T> preprocessors;
 
   /**
    * Instantiates a new Dataset.
@@ -108,24 +113,8 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
     return !preprocessors.isEmpty();
   }
 
-  /**
-   * Preprocess the dataset with the given set of preprocessors. An <code>IllegalStateException</code> is thrown if the
-   * dataset has already been processed.
-   *
-   * @param preprocessors the preprocessors to use.
-   * @return the dataset
-   */
-  public Dataset<T> preprocess(@NonNull PreprocessorList<T> preprocessors) {
-    Preconditions.checkState(!isPreprocessed(), "Dataset has already been preprocessed");
-    this.preprocessors = preprocessors;
-    if (!this.preprocessors.isFinished()) {
-      this.preprocessors.visit(this.rawIterator());
-      this.preprocessors.finish();
-    }
-    return create(
-      stream().map(e -> preprocessors.apply(Cast.as(e.copy())))
-    );
-  }
+
+  public abstract DatasetType getType();
 
   /**
    * Encode dataset.
@@ -158,6 +147,43 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
   protected Iterator<T> rawIterator() {
     return stream().iterator();
   }
+
+
+  public StreamingContext getStreamingContext() {
+    return getType().getStreamingContext();
+  }
+
+  /**
+   * Preprocess the dataset with the given set of preprocessors. An <code>IllegalStateException</code> is thrown if the
+   * dataset has already been processed.
+   *
+   * @param preprocessors the preprocessors to use.
+   * @return the dataset
+   */
+  public Dataset<T> preprocess(@NonNull PreprocessorList<T> preprocessors) {
+    Dataset<T> dataset = this;
+    for (Preprocessor<T> preprocessor : preprocessors) {
+      dataset = dataset.preprocess(preprocessor);
+    }
+    return dataset;
+  }
+
+
+  public Dataset<T> preprocess(Preprocessor<T> preprocessor){
+    if (preprocessor == null) {
+      return this;
+    }
+    preprocessor.fit(this);
+    PreprocessorList<T> preprocessorList = new PreprocessorList<>(getPreprocessors());
+    preprocessorList.add(preprocessor);
+    return create(
+      stream().map(preprocessor::apply),
+      getFeatureEncoder().createNew(),
+      getLabelEncoder().createNew(),
+      preprocessorList
+    );
+  }
+
 
   /**
    * Creates a new dataset from the given stream of instances creating a new feature and label encoder from this
@@ -217,7 +243,12 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
    * @param instances the instances
    */
   protected void addAll(@NonNull Collection<T> instances) {
-    addAll(StreamingContext.local().stream(instances));
+    addAll(getType().getStreamingContext().stream(instances));
+  }
+
+  @SafeVarargs
+  protected final void addAll(@NonNull T... instances) {
+    addAll(Arrays.asList(instances));
   }
 
 
@@ -455,24 +486,6 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
    */
   public List<T> take(int n) {
     return stream().take(n);
-  }
-
-  /**
-   * The dataset type.
-   */
-  public enum Type {
-    /**
-     * Distributed type.
-     */
-    Distributed,
-    /**
-     * In memory type.
-     */
-    InMemory,
-    /**
-     * Off heap type.
-     */
-    OffHeap
   }
 
 }//END OF Dataset

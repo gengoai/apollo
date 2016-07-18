@@ -1,43 +1,68 @@
 package com.davidbracewell.apollo.ml.preprocess.transform;
 
-import com.davidbracewell.apollo.ml.Encoder;
 import com.davidbracewell.apollo.ml.Feature;
-import com.davidbracewell.collection.Counter;
-import com.davidbracewell.collection.HashMapCounter;
+import com.davidbracewell.apollo.ml.Instance;
+import com.davidbracewell.apollo.ml.preprocess.RestrictedInstancePreprocessor;
+import com.davidbracewell.collection.EnhancedDoubleStatistics;
+import com.davidbracewell.stream.MStream;
+import com.davidbracewell.stream.accumulator.MAccumulator;
+import com.davidbracewell.stream.accumulator.StatisticsAccumulatable;
+import com.google.common.base.Preconditions;
+import lombok.NonNull;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.io.Serializable;
+import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Stream;
 
 /**
  * @author David B. Bracewell
  */
-public class RealToDiscreteTransform extends RestrictedTransform {
+public class RealToDiscreteTransform extends RestrictedInstancePreprocessor implements TransformProcessor<Instance>, Serializable {
   private static final long serialVersionUID = 1L;
   private final double[] bins;
-  private transient Counter<Double> counts = new HashMapCounter<>();
-  private transient Set<String> featureNames = new HashSet<>();
-  private volatile AtomicBoolean finished = new AtomicBoolean(false);
 
 
-  protected RealToDiscreteTransform(String featureNamePrefix, int numberOfBins) {
+  public RealToDiscreteTransform(int numberOfBins) {
+    super(null);
+    Preconditions.checkArgument(numberOfBins > 0, "Number of bins must be > 0.");
+    this.bins = new double[numberOfBins];
+  }
+
+  public RealToDiscreteTransform(@NonNull String featureNamePrefix, int numberOfBins) {
     super(featureNamePrefix);
+    Preconditions.checkArgument(numberOfBins > 0, "Number of bins must be > 0.");
     this.bins = new double[numberOfBins];
   }
 
   @Override
-  protected void visitImpl(Stream<Feature> featureStream) {
-    if (!finished.get()) {
-      featureStream.forEach(feature -> {
-        counts.increment(feature.getValue());
-        featureNames.add(feature.getName());
-      });
+  protected void restrictedFitImpl(MStream<List<Feature>> stream) {
+    MAccumulator<EnhancedDoubleStatistics> stats = stream.getContext().accumulator(null, new StatisticsAccumulatable());
+    stream.forEach(instance ->
+      stats.add(
+        instance.stream().mapToDouble(Feature::getValue).collect(
+          EnhancedDoubleStatistics::new, EnhancedDoubleStatistics::accept, EnhancedDoubleStatistics::combine
+        )
+      )
+    );
+    EnhancedDoubleStatistics statistics = stats.value();
+    double max = statistics.getMax();
+    double min = statistics.getMin();
+    double binSize = ((max - min) / bins.length);
+    double sum = 0;
+    for (int i = 0; i < bins.length; i++) {
+      sum += binSize;
+      bins[i] = sum;
     }
   }
 
   @Override
-  protected Stream<Feature> processImpl(Stream<Feature> featureStream) {
+  public void reset() {
+    Arrays.fill(bins, 0);
+  }
+
+  @Override
+  protected Stream<Feature> restrictedProcessImpl(Stream<Feature> featureStream, Instance originalExample) {
     return featureStream.map(f -> {
       for (int i = 0; i < bins.length; i++) {
         if (f.getValue() < bins[i]) {
@@ -48,29 +73,14 @@ public class RealToDiscreteTransform extends RestrictedTransform {
     });
   }
 
+
   @Override
-  public Set<String> finish(Set<String> removedFeatures) {
-    double max = counts.max();
-    double min = counts.min();
-    double binSize = ((max - min) / bins.length);
-    double sum = 0;
-    for (int i = 0; i < bins.length; i++) {
-      sum += binSize;
-      bins[i] = sum;
+  public String describe() {
+    if (acceptAll()) {
+      return "RealToDiscreteTransform: numberOfBins=" + bins.length;
     }
-    finished.set(true);
-    counts.clear();
-    return featureNames;
+    return "RealToDiscreteTransform[" + getRestriction() + "]: numberOfBins=" + bins.length;
   }
 
-  @Override
-  public void reset() {
-    finished.set(false);
-    counts.clear();
-  }
 
-  @Override
-  public void trimToSize(Encoder encoder) {
-
-  }
 }// END OF RealToDiscreteTransform

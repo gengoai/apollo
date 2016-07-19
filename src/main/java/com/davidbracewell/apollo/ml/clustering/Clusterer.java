@@ -1,7 +1,7 @@
 package com.davidbracewell.apollo.ml.clustering;
 
 import com.davidbracewell.apollo.linalg.LabeledVector;
-import com.davidbracewell.apollo.ml.Dataset;
+import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.ml.EncoderPair;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.Learner;

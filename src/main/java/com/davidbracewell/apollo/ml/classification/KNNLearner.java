@@ -4,7 +4,7 @@ import com.davidbracewell.apollo.linalg.CosineDistanceSignature;
 import com.davidbracewell.apollo.linalg.InMemoryLSH;
 import com.davidbracewell.apollo.linalg.LabeledVector;
 import com.davidbracewell.apollo.linalg.SignatureFunction;
-import com.davidbracewell.apollo.ml.Dataset;
+import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.ml.FeatureVector;
 import com.davidbracewell.apollo.ml.Instance;
 import lombok.NonNull;

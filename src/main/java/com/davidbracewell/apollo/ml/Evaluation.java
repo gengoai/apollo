@@ -21,6 +21,8 @@
 
 package com.davidbracewell.apollo.ml;
 
+import com.davidbracewell.apollo.ml.data.Dataset;
+
 import java.io.PrintStream;
 import java.util.Collection;
 

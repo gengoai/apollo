@@ -19,9 +19,18 @@
  * under the License.
  */
 
-package com.davidbracewell.apollo.ml;
+package com.davidbracewell.apollo.ml.data;
 
 import com.davidbracewell.Copyable;
+import com.davidbracewell.apollo.ml.Encoder;
+import com.davidbracewell.apollo.ml.EncoderPair;
+import com.davidbracewell.apollo.ml.Example;
+import com.davidbracewell.apollo.ml.FeatureVector;
+import com.davidbracewell.apollo.ml.IndexEncoder;
+import com.davidbracewell.apollo.ml.Instance;
+import com.davidbracewell.apollo.ml.RealEncoder;
+import com.davidbracewell.apollo.ml.TrainTest;
+import com.davidbracewell.apollo.ml.TrainTestSet;
 import com.davidbracewell.apollo.ml.preprocess.Preprocessor;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.apollo.ml.sequence.FeatureVectorSequence;
@@ -318,6 +327,7 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
    */
   public TrainTestSet<T> fold(int numberOfFolds) {
     Preconditions.checkArgument(numberOfFolds > 0, "Number of folds must be >= 0");
+    Preconditions.checkArgument(size() >= numberOfFolds, "Number of folds must be <= number of examples");
     TrainTestSet<T> folds = new TrainTestSet<>();
 
     int foldSize = size() / numberOfFolds;

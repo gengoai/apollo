@@ -21,7 +21,7 @@
 
 package com.davidbracewell.apollo.ml.classification;
 
-import com.davidbracewell.apollo.ml.Dataset;
+import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.conversion.Val;

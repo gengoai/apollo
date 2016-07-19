@@ -4,23 +4,14 @@ import com.davidbracewell.apollo.distribution.ConditionalMultinomial;
 import com.davidbracewell.apollo.linalg.LabeledVector;
 import com.davidbracewell.apollo.linalg.SparseVector;
 import com.davidbracewell.apollo.linalg.Vector;
-import com.davidbracewell.apollo.ml.Dataset;
-import com.davidbracewell.apollo.ml.Feature;
-import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.clustering.Clusterer;
 import com.davidbracewell.collection.Collect;
-import com.davidbracewell.collection.Counter;
-import com.davidbracewell.collection.Counters;
-import com.davidbracewell.io.Resources;
 import com.davidbracewell.logging.Logger;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.commons.math3.random.Well19937c;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * The type Gibbs lda.

@@ -1,8 +1,8 @@
 package com.davidbracewell.apollo.ml.preprocess;
 
-import com.davidbracewell.apollo.ml.Dataset;
+import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.ml.Instance;
-import com.davidbracewell.apollo.ml.MStreamDataset;
+import com.davidbracewell.apollo.ml.data.MStreamDataset;
 import com.davidbracewell.apollo.ml.sequence.Sequence;
 import lombok.NonNull;
 

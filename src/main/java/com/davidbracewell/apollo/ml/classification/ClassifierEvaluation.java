@@ -21,7 +21,7 @@
 
 package com.davidbracewell.apollo.ml.classification;
 
-import com.davidbracewell.apollo.ml.Dataset;
+import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.ml.Evaluation;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.collection.Counter;
@@ -34,7 +34,6 @@ import com.davidbracewell.string.TableFormatter;
 import com.davidbracewell.tuple.Tuple2;
 import com.google.common.base.Preconditions;
 import lombok.NonNull;
-import org.apache.commons.math3.stat.inference.MannWhitneyUTest;
 
 import java.io.PrintStream;
 import java.io.Serializable;
@@ -702,6 +701,7 @@ public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, S
 
   public ClassifierEvaluation crossValidation(@NonNull Dataset<Instance> dataset, @NonNull Supplier<ClassifierLearner> learnerSupplier, int nFolds) {
     dataset.fold(nFolds).forEach((train, test) -> {
+      train.forEach(i -> i.toVector(train.getEncoderPair()));
       Classifier model = learnerSupplier.get().train(train);
       evaluate(model, test);
     });

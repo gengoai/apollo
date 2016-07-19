@@ -1,5 +1,7 @@
-package com.davidbracewell.apollo.ml;
+package com.davidbracewell.apollo.ml.data;
 
+import com.davidbracewell.apollo.ml.Encoder;
+import com.davidbracewell.apollo.ml.Example;
 import com.davidbracewell.apollo.ml.preprocess.Preprocessor;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.collection.Collect;
@@ -30,7 +32,6 @@ public class OffHeapDataset<T extends Example> extends Dataset<T> {
 
   protected OffHeapDataset(Encoder featureEncoder, Encoder labelEncoder, PreprocessorList<T> preprocessors) {
     super(featureEncoder, labelEncoder, preprocessors);
-    System.err.println(outputResource.descriptor());
     outputResource.deleteOnExit();
   }
 

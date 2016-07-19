@@ -1,5 +1,7 @@
-package com.davidbracewell.apollo.ml;
+package com.davidbracewell.apollo.ml.data;
 
+import com.davidbracewell.apollo.ml.Encoder;
+import com.davidbracewell.apollo.ml.Example;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.stream.MStream;
 import com.davidbracewell.stream.StreamingContext;

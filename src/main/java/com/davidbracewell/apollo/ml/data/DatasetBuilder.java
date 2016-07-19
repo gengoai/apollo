@@ -1,5 +1,9 @@
-package com.davidbracewell.apollo.ml;
+package com.davidbracewell.apollo.ml.data;
 
+import com.davidbracewell.apollo.ml.Encoder;
+import com.davidbracewell.apollo.ml.Example;
+import com.davidbracewell.apollo.ml.IndexEncoder;
+import com.davidbracewell.apollo.ml.data.source.DataSource;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.io.resource.Resource;
 import com.davidbracewell.stream.MStream;
@@ -23,7 +27,9 @@ public class DatasetBuilder<T extends Example> {
   private final Encoder labelEncoder;
   private final Class<T> exampleType;
   @Setter(onParam = @_({@NonNull}))
-  private DatasetType datasetType = DatasetType.InMemory;
+  private DataSource<T> dataSource;
+  @Setter(onParam = @_({@NonNull}))
+  private DatasetType type = DatasetType.InMemory;
   @Setter(onParam = @_({@NonNull}))
   private Encoder featureEncoder = new IndexEncoder();
   @Setter(onParam = @_({@NonNull}))
@@ -55,7 +61,7 @@ public class DatasetBuilder<T extends Example> {
   public Dataset<T> build() {
     Dataset<T> dataset;
 
-    switch (datasetType) {
+    switch (type) {
       case Distributed:
         dataset = new DistributedDataset<>(featureEncoder, labelEncoder, PreprocessorList.empty());
         break;
@@ -71,7 +77,14 @@ public class DatasetBuilder<T extends Example> {
       dataset.addAll(source);
     }
 
-    if (load != null) {
+    if (dataSource != null) {
+      dataSource.setStreamingContext(type.getStreamingContext());
+      try {
+        dataset.addAll(dataSource.stream());
+      } catch (IOException e) {
+        throw Throwables.propagate(e);
+      }
+    } else if (load != null) {
       try {
         dataset.read(load, exampleType);
       } catch (IOException e) {

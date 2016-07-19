@@ -1,6 +1,7 @@
-package com.davidbracewell.apollo.ml;
+package com.davidbracewell.apollo.ml.data;
 
-import com.davidbracewell.apollo.ml.preprocess.Preprocessor;
+import com.davidbracewell.apollo.ml.Encoder;
+import com.davidbracewell.apollo.ml.Example;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.collection.Collect;
 import com.davidbracewell.collection.Interner;
@@ -106,7 +107,7 @@ public class InMemoryDataset<T extends Example> extends Dataset<T> {
 
   @Override
   protected Dataset<T> create(@NonNull MStream<T> instances, @NonNull Encoder featureEncoder, @NonNull Encoder labelEncoder, PreprocessorList<T> preprocessors) {
-    Dataset<T> dataset = new InMemoryDataset<>(featureEncoder, labelEncoder, preprocessors);
+    InMemoryDataset<T> dataset = new InMemoryDataset<>(featureEncoder, labelEncoder, preprocessors);
     dataset.addAll(instances);
     return dataset;
   }

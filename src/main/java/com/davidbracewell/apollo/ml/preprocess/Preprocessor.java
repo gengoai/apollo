@@ -1,8 +1,7 @@
 package com.davidbracewell.apollo.ml.preprocess;
 
-import com.davidbracewell.apollo.ml.Dataset;
+import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.ml.Example;
-import lombok.NonNull;
 
 import java.io.Serializable;
 

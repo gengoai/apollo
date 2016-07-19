@@ -1,4 +1,4 @@
-package com.davidbracewell.apollo.ml;
+package com.davidbracewell.apollo.ml.data;
 
 import com.davidbracewell.stream.StreamingContext;
 

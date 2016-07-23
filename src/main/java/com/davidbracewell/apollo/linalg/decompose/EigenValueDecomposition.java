@@ -26,4 +26,4 @@ public class EigenValueDecomposition implements Decomposition, Serializable {
     return new DenseMatrix[]{new DenseMatrix(result.toArray2())};
   }
 
-}// END OF Eigen
+}// END OF EigenValueDecomposition

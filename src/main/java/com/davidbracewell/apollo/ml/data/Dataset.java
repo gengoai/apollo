@@ -26,7 +26,6 @@ import com.davidbracewell.apollo.ml.Encoder;
 import com.davidbracewell.apollo.ml.EncoderPair;
 import com.davidbracewell.apollo.ml.Example;
 import com.davidbracewell.apollo.ml.FeatureVector;
-import com.davidbracewell.apollo.ml.IndexEncoder;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.LabelEncoder;
 import com.davidbracewell.apollo.ml.LabelIndexEncoder;
@@ -37,6 +36,8 @@ import com.davidbracewell.apollo.ml.preprocess.Preprocessor;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.apollo.ml.sequence.FeatureVectorSequence;
 import com.davidbracewell.apollo.ml.sequence.Sequence;
+import com.davidbracewell.collection.Counter;
+import com.davidbracewell.collection.HashMapCounter;
 import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.function.SerializablePredicate;
 import com.davidbracewell.io.resource.Resource;
@@ -45,8 +46,8 @@ import com.davidbracewell.io.structured.json.JSONReader;
 import com.davidbracewell.io.structured.json.JSONWriter;
 import com.davidbracewell.stream.MStream;
 import com.davidbracewell.stream.StreamingContext;
+import com.davidbracewell.stream.accumulator.MAccumulator;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Iterators;
 import lombok.NonNull;
 
 import java.io.IOException;
@@ -490,18 +491,53 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
   }
 
 
+  public Dataset<T> undersample() {
+    MAccumulator<Counter<Object>> accumulator = getStreamingContext().counterAccumulator();
+    stream().forEach(e -> accumulator.add(new HashMapCounter<>(e.getLabelSpace().collect(Collectors.toList()))));
+    Counter<Object> fCount = accumulator.value();
+    int targetCount = (int) fCount.minimumCount();
+    MStream<T> undersample = getStreamingContext().empty();
+    for (Object label : fCount.items()) {
+      undersample = undersample.union(
+        stream().filter(e -> e.getLabelSpace().findFirst().filter(label::equals).isPresent())
+          .sample(targetCount)
+      );
+    }
+    return create(undersample);
+  }
+
+  public Dataset<T> oversample() {
+    MAccumulator<Counter<Object>> accumulator = getStreamingContext().counterAccumulator();
+    stream().forEach(e -> accumulator.add(new HashMapCounter<>(e.getLabelSpace().collect(Collectors.toList()))));
+    Counter<Object> fCount = accumulator.value();
+    int targetCount = (int) fCount.maximumCount();
+    MStream<T> undersample = getStreamingContext().empty();
+    for (Object label : fCount.items()) {
+      MStream<T> fStream = stream().filter(e -> e.getLabelSpace().findFirst().filter(label::equals).isPresent()).cache();
+      int count = (int) fStream.count();
+      int curCount = 0;
+      while (curCount + count < targetCount) {
+        undersample = undersample.union(fStream);
+        curCount += count;
+      }
+      if (curCount < targetCount) {
+        undersample = undersample.union(fStream.sample(targetCount - curCount));
+      } else if (count == targetCount) {
+        undersample = undersample.union(fStream);
+      }
+    }
+    return create(undersample);
+  }
+
   /**
    * As feature vectors list.
    *
    * @return the list
    */
-  public List<FeatureVector> asFeatureVectors() {
+  public MStream<FeatureVector> asFeatureVectors() {
     encode();
-    List<FeatureVector> list = stream()
-      .flatMap(e -> e.asInstances().stream().map(ii -> ii.toVector(encoders)).collect(Collectors.toList()))
-      .collect();
-    close();
-    return list;
+    return stream()
+      .flatMap(e -> e.asInstances().stream().map(ii -> ii.toVector(encoders)).collect(Collectors.toList()));
   }
 
   /**
@@ -509,19 +545,16 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
    *
    * @return the list
    */
-  public List<FeatureVectorSequence> asFeatureVectorSequences() {
+  public MStream<FeatureVectorSequence> asFeatureVectorSequences() {
     encode();
-    List<FeatureVectorSequence> list = stream()
+    return stream()
       .map(e -> {
         FeatureVectorSequence fvs = new FeatureVectorSequence();
         for (Instance ii : e.asInstances()) {
           fvs.add(ii.toVector(encoders));
         }
         return fvs;
-      })
-      .collect();
-    close();
-    return list;
+      });
   }
 
   /**

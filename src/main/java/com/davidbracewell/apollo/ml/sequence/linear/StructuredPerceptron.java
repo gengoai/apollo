@@ -3,6 +3,7 @@ package com.davidbracewell.apollo.ml.sequence.linear;
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.Encoder;
 import com.davidbracewell.apollo.ml.Feature;
+import com.davidbracewell.apollo.ml.LabelEncoder;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.apollo.ml.sequence.Sequence;
 import com.davidbracewell.apollo.ml.sequence.SequenceLabeler;
@@ -26,7 +27,7 @@ public class StructuredPerceptron extends SequenceLabeler {
    * @param featureEncoder the feature encoder
    * @param preprocessors  the preprocessors
    */
-  public StructuredPerceptron(@NonNull Encoder labelEncoder, @NonNull Encoder featureEncoder, @NonNull PreprocessorList<Sequence> preprocessors, @NonNull TransitionFeatures transitionFeatures, @NonNull SequenceValidator validator) {
+  public StructuredPerceptron(@NonNull LabelEncoder labelEncoder, @NonNull Encoder featureEncoder, @NonNull PreprocessorList<Sequence> preprocessors, @NonNull TransitionFeatures transitionFeatures, @NonNull SequenceValidator validator) {
     super(labelEncoder, featureEncoder, preprocessors, transitionFeatures, validator);
     this.numberOfClasses = labelEncoder.size();
   }

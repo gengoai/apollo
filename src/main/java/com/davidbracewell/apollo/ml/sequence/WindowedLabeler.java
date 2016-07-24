@@ -3,6 +3,7 @@ package com.davidbracewell.apollo.ml.sequence;
 import com.davidbracewell.apollo.ml.Encoder;
 import com.davidbracewell.apollo.ml.Feature;
 import com.davidbracewell.apollo.ml.FeatureVector;
+import com.davidbracewell.apollo.ml.LabelEncoder;
 import com.davidbracewell.apollo.ml.classification.Classifier;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.apollo.ml.sequence.decoder.Decoder;
@@ -26,7 +27,7 @@ public class WindowedLabeler extends SequenceLabeler {
    * @param preprocessors      the preprocessors
    * @param transitionFeatures the transition features
    */
-  public WindowedLabeler(@NonNull Encoder labelEncoder, @NonNull Encoder featureEncoder, @NonNull PreprocessorList<Sequence> preprocessors, @NonNull TransitionFeatures transitionFeatures, @NonNull SequenceValidator validator) {
+  public WindowedLabeler(@NonNull LabelEncoder labelEncoder, @NonNull Encoder featureEncoder, @NonNull PreprocessorList<Sequence> preprocessors, @NonNull TransitionFeatures transitionFeatures, @NonNull SequenceValidator validator) {
     super(labelEncoder, featureEncoder, preprocessors, transitionFeatures, validator);
     super.setDecoder(new WindowDecoder());
   }

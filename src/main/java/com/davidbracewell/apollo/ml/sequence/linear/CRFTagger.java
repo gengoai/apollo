@@ -24,6 +24,7 @@ package com.davidbracewell.apollo.ml.sequence.linear;
 import com.davidbracewell.apollo.ml.Encoder;
 import com.davidbracewell.apollo.ml.Feature;
 import com.davidbracewell.apollo.ml.Instance;
+import com.davidbracewell.apollo.ml.LabelEncoder;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.apollo.ml.sequence.Labeling;
 import com.davidbracewell.apollo.ml.sequence.Sequence;
@@ -63,7 +64,7 @@ public class CRFTagger extends SequenceLabeler {
    * @param transitionFeatures the transition features
    * @param modelFile          the model file
    */
-  public CRFTagger(@NonNull Encoder labelEncoder, @NonNull Encoder featureEncoder, @NonNull PreprocessorList<Sequence> preprocessors, @NonNull TransitionFeatures transitionFeatures, String modelFile, @NonNull SequenceValidator validator) {
+  public CRFTagger(@NonNull LabelEncoder labelEncoder, @NonNull Encoder featureEncoder, @NonNull PreprocessorList<Sequence> preprocessors, @NonNull TransitionFeatures transitionFeatures, String modelFile, @NonNull SequenceValidator validator) {
     super(labelEncoder, featureEncoder, preprocessors, transitionFeatures, validator);
     this.modelFile = modelFile;
     this.tagger = new CrfTagger(modelFile);

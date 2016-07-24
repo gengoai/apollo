@@ -20,7 +20,7 @@ public abstract class Model implements Serializable {
    * @param labelEncoder   the label encoder
    * @param featureEncoder the feature encoder
    */
-  public Model(@NonNull Encoder labelEncoder, @NonNull Encoder featureEncoder) {
+  public Model(@NonNull LabelEncoder labelEncoder, @NonNull Encoder featureEncoder) {
     this.encoderPair = new EncoderPair(labelEncoder, featureEncoder);
   }
 
@@ -68,7 +68,7 @@ public abstract class Model implements Serializable {
    *
    * @return the label encoder
    */
-  public Encoder getLabelEncoder() {
+  public LabelEncoder getLabelEncoder() {
     return encoderPair.getLabelEncoder();
   }
 

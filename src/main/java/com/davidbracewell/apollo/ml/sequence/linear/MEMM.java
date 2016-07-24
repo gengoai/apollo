@@ -3,6 +3,7 @@ package com.davidbracewell.apollo.ml.sequence.linear;
 import com.davidbracewell.apollo.ml.Encoder;
 import com.davidbracewell.apollo.ml.Feature;
 import com.davidbracewell.apollo.ml.Instance;
+import com.davidbracewell.apollo.ml.LabelEncoder;
 import com.davidbracewell.apollo.ml.classification.LibLinearModel;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.apollo.ml.sequence.Sequence;
@@ -30,7 +31,7 @@ public class MEMM extends SequenceLabeler {
    * @param transitionFeatures the transition features
    * @param validator          the Validator
    */
-  public MEMM(Encoder labelEncoder, Encoder featureEncoder, PreprocessorList<Sequence> preprocessors, TransitionFeatures transitionFeatures, SequenceValidator validator) {
+  public MEMM(LabelEncoder labelEncoder, Encoder featureEncoder, PreprocessorList<Sequence> preprocessors, TransitionFeatures transitionFeatures, SequenceValidator validator) {
     super(labelEncoder, featureEncoder, preprocessors, transitionFeatures, validator);
   }
 

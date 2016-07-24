@@ -2,6 +2,7 @@ package com.davidbracewell.apollo.ml.sequence;
 
 import com.davidbracewell.apollo.ml.Encoder;
 import com.davidbracewell.apollo.ml.Feature;
+import com.davidbracewell.apollo.ml.LabelEncoder;
 import com.davidbracewell.apollo.ml.Model;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.apollo.ml.sequence.decoder.BeamDecoder;
@@ -34,7 +35,7 @@ public abstract class SequenceLabeler extends Model {
    * @param transitionFeatures the transition features
    * @param validator
    */
-  public SequenceLabeler(Encoder labelEncoder, Encoder featureEncoder, PreprocessorList<Sequence> preprocessors, TransitionFeatures transitionFeatures, SequenceValidator validator) {
+  public SequenceLabeler(LabelEncoder labelEncoder, Encoder featureEncoder, PreprocessorList<Sequence> preprocessors, TransitionFeatures transitionFeatures, SequenceValidator validator) {
     super(labelEncoder, featureEncoder);
     this.validator = validator;
     this.preprocessors = preprocessors.getModelProcessors();

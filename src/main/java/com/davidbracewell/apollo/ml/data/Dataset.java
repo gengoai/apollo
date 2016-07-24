@@ -28,6 +28,8 @@ import com.davidbracewell.apollo.ml.Example;
 import com.davidbracewell.apollo.ml.FeatureVector;
 import com.davidbracewell.apollo.ml.IndexEncoder;
 import com.davidbracewell.apollo.ml.Instance;
+import com.davidbracewell.apollo.ml.LabelEncoder;
+import com.davidbracewell.apollo.ml.LabelIndexEncoder;
 import com.davidbracewell.apollo.ml.RealEncoder;
 import com.davidbracewell.apollo.ml.TrainTest;
 import com.davidbracewell.apollo.ml.TrainTestSet;
@@ -77,7 +79,7 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
    * @param labelEncoder   the label encoder
    * @param preprocessors  the preprocessors
    */
-  protected Dataset(Encoder featureEncoder, Encoder labelEncoder, PreprocessorList<T> preprocessors) {
+  protected Dataset(Encoder featureEncoder, LabelEncoder labelEncoder, PreprocessorList<T> preprocessors) {
     this.encoders = new EncoderPair(labelEncoder, featureEncoder);
     this.preprocessors = preprocessors == null ? PreprocessorList.empty() : preprocessors;
   }
@@ -89,7 +91,7 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
    * @return the dataset builder
    */
   public static DatasetBuilder<Instance> classification() {
-    return new DatasetBuilder<>(new IndexEncoder(), Instance.class);
+    return new DatasetBuilder<>(new LabelIndexEncoder(), Instance.class);
   }
 
 
@@ -100,7 +102,7 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
    * @return the dataset builder
    */
   public static DatasetBuilder<Sequence> sequence() {
-    return new DatasetBuilder<>(new IndexEncoder(), Sequence.class);
+    return new DatasetBuilder<>(new LabelIndexEncoder(), Sequence.class);
   }
 
 
@@ -239,7 +241,7 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
    * @param preprocessors  the preprocessors
    * @return the dataset
    */
-  protected abstract Dataset<T> create(MStream<T> instances, Encoder featureEncoder, Encoder labelEncoder, PreprocessorList<T> preprocessors);
+  protected abstract Dataset<T> create(MStream<T> instances, Encoder featureEncoder, LabelEncoder labelEncoder, PreprocessorList<T> preprocessors);
 
   /**
    * Slices the dataset int a sub stream
@@ -377,7 +379,7 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
    *
    * @return the encoder
    */
-  public Encoder getLabelEncoder() {
+  public LabelEncoder getLabelEncoder() {
     return encoders.getLabelEncoder();
   }
 

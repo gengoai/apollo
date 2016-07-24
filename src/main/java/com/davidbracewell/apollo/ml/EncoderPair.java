@@ -11,7 +11,7 @@ import java.io.Serializable;
  */
 @EqualsAndHashCode(callSuper = false)
 public final class EncoderPair implements Serializable {
-  private final Encoder labelEncoder;
+  private final LabelEncoder labelEncoder;
   private final Encoder featureEncoder;
 
   /**
@@ -20,7 +20,7 @@ public final class EncoderPair implements Serializable {
    * @param labelEncoder   the label encoder
    * @param featureEncoder the feature encoder
    */
-  public EncoderPair(Encoder labelEncoder, Encoder featureEncoder) {
+  public EncoderPair(LabelEncoder labelEncoder, Encoder featureEncoder) {
     this.labelEncoder = labelEncoder;
     this.featureEncoder = featureEncoder;
   }
@@ -96,7 +96,7 @@ public final class EncoderPair implements Serializable {
    *
    * @return the label encoder
    */
-  public Encoder getLabelEncoder() {
+  public LabelEncoder getLabelEncoder() {
     return labelEncoder;
   }
 

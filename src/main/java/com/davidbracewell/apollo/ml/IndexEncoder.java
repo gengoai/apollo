@@ -25,8 +25,8 @@ import java.util.stream.Collectors;
  */
 public class IndexEncoder implements Encoder, Serializable {
   private static final long serialVersionUID = 1L;
-  private volatile Index<String> index = new HashMapIndex<>();
-  private volatile AtomicBoolean frozen = new AtomicBoolean(false);
+  protected volatile Index<String> index = new HashMapIndex<>();
+  protected volatile AtomicBoolean frozen = new AtomicBoolean(false);
 
   @Override
   public double get(Object object) {

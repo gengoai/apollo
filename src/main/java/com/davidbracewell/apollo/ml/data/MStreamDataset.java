@@ -2,6 +2,7 @@ package com.davidbracewell.apollo.ml.data;
 
 import com.davidbracewell.apollo.ml.Encoder;
 import com.davidbracewell.apollo.ml.Example;
+import com.davidbracewell.apollo.ml.LabelEncoder;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.stream.MStream;
 import com.davidbracewell.stream.StreamingContext;
@@ -21,7 +22,7 @@ public class MStreamDataset<T extends Example> extends Dataset<T> {
    * @param labelEncoder   the label encoder
    * @param preprocessors  the preprocessors
    */
-  public MStreamDataset(Encoder featureEncoder, Encoder labelEncoder, PreprocessorList<T> preprocessors, MStream<T> stream) {
+  public MStreamDataset(Encoder featureEncoder, LabelEncoder labelEncoder, PreprocessorList<T> preprocessors, MStream<T> stream) {
     super(featureEncoder, labelEncoder, preprocessors);
     this.stream = stream;
   }
@@ -37,7 +38,7 @@ public class MStreamDataset<T extends Example> extends Dataset<T> {
   }
 
   @Override
-  protected Dataset<T> create(MStream<T> instances, Encoder featureEncoder, Encoder labelEncoder, PreprocessorList<T> preprocessors) {
+  protected Dataset<T> create(MStream<T> instances, Encoder featureEncoder, LabelEncoder labelEncoder, PreprocessorList<T> preprocessors) {
     return new MStreamDataset<>(featureEncoder, labelEncoder, preprocessors, instances);
   }
 

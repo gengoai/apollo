@@ -3,6 +3,7 @@ package com.davidbracewell.apollo.ml.data;
 import com.davidbracewell.apollo.ml.Encoder;
 import com.davidbracewell.apollo.ml.Example;
 import com.davidbracewell.apollo.ml.IndexEncoder;
+import com.davidbracewell.apollo.ml.LabelEncoder;
 import com.davidbracewell.apollo.ml.data.source.DataSource;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.io.resource.Resource;
@@ -24,7 +25,7 @@ import java.util.stream.Stream;
  */
 @Accessors(fluent = true)
 public class DatasetBuilder<T extends Example> {
-  private final Encoder labelEncoder;
+  private final LabelEncoder labelEncoder;
   private final Class<T> exampleType;
   @Setter(onParam = @_({@NonNull}))
   private DataSource<T> dataSource;
@@ -37,7 +38,7 @@ public class DatasetBuilder<T extends Example> {
   @Setter(onParam = @_({@NonNull}))
   private Resource load;
 
-  protected DatasetBuilder(@NonNull Encoder labelEncoder, @NonNull Class<T> exampleType) {
+  protected DatasetBuilder(@NonNull LabelEncoder labelEncoder, @NonNull Class<T> exampleType) {
     this.labelEncoder = labelEncoder;
     this.exampleType = exampleType;
   }

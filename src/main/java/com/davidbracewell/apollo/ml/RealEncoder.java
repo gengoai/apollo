@@ -15,7 +15,7 @@ import java.util.List;
  *
  * @author David B. Bracewell
  */
-public class RealEncoder implements Encoder, Serializable {
+public class RealEncoder implements Serializable, LabelEncoder {
   private static final long serialVersionUID = 1L;
 
   @Override
@@ -65,7 +65,7 @@ public class RealEncoder implements Encoder, Serializable {
   }
 
   @Override
-  public Encoder createNew() {
+  public LabelEncoder createNew() {
     return new RealEncoder();
   }
 

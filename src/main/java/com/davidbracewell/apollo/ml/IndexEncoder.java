@@ -1,14 +1,22 @@
 package com.davidbracewell.apollo.ml;
 
+import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.collection.HashMapIndex;
 import com.davidbracewell.collection.Index;
 import com.davidbracewell.conversion.Cast;
+import com.davidbracewell.stream.accumulator.CollectionAccumulatable;
+import com.davidbracewell.stream.accumulator.MAccumulator;
+import com.google.common.base.Preconditions;
+import lombok.NonNull;
 
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 /**
  * An encoder backed by an <code>Index</code> allowing a finite number of objects to be mapped to double values.
@@ -33,6 +41,15 @@ public class IndexEncoder implements Encoder, Serializable {
       return idx;
     }
     return index.indexOf(object.toString());
+  }
+
+  @Override
+  public void fit(@NonNull Dataset<? extends Example> dataset) {
+    if (!isFrozen()) {
+      MAccumulator<Set<String>> accumulator = dataset.getStreamingContext().accumulator(new HashSet<>(), new CollectionAccumulatable<>());
+      dataset.stream().forEach(ex -> accumulator.add(ex.getFeatureSpace().collect(Collectors.toSet())));
+      this.index.addAll(accumulator.value());
+    }
   }
 
   @Override

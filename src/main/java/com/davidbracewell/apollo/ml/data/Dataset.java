@@ -137,14 +137,15 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
    * @return the dataset
    */
   public Dataset<T> encode() {
-    iterator().forEachRemaining(e -> {
-    });
+    getFeatureEncoder().fit(this);
+    getLabelEncoder().fit(this);
     return this;
   }
 
   @Override
   public final Iterator<T> iterator() {
-    return Iterators.transform(rawIterator(), encoders::encode);
+    return rawIterator();
+    //return Iterators.transform(rawIterator(), encoders::encode);
   }
 
   /**

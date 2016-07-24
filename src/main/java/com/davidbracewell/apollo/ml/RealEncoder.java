@@ -1,5 +1,6 @@
 package com.davidbracewell.apollo.ml;
 
+import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.conversion.Cast;
 import com.google.common.base.Preconditions;
 import lombok.NonNull;
@@ -20,6 +21,11 @@ public class RealEncoder implements Encoder, Serializable {
   @Override
   public double get(Object object) {
     return encode(object);
+  }
+
+  @Override
+  public void fit(Dataset<? extends Example> dataset) {
+
   }
 
   @Override

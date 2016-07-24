@@ -1,5 +1,6 @@
 package com.davidbracewell.apollo.ml;
 
+import com.davidbracewell.apollo.ml.data.Dataset;
 import com.google.common.base.Preconditions;
 import lombok.NonNull;
 
@@ -31,6 +32,12 @@ public class HashingEncoder implements Encoder, Serializable {
   public double get(Object object) {
     return encode(object);
   }
+
+  @Override
+  public void fit(Dataset<? extends Example> dataset) {
+
+  }
+
 
   @Override
   public double encode(@NonNull Object object) {

@@ -193,6 +193,12 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
   }
 
 
+  /**
+   * Filter dataset.
+   *
+   * @param predicate the predicate
+   * @return the dataset
+   */
   public Dataset<T> filter(@NonNull SerializablePredicate<T> predicate) {
     return create(stream().filter(predicate));
   }
@@ -491,6 +497,11 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
   }
 
 
+  /**
+   * Undersample dataset.
+   *
+   * @return the dataset
+   */
   public Dataset<T> undersample() {
     MAccumulator<Counter<Object>> accumulator = getStreamingContext().counterAccumulator();
     stream().forEach(e -> accumulator.add(new HashMapCounter<>(e.getLabelSpace().collect(Collectors.toList()))));
@@ -506,6 +517,11 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
     return create(undersample);
   }
 
+  /**
+   * Oversample dataset.
+   *
+   * @return the dataset
+   */
   public Dataset<T> oversample() {
     MAccumulator<Counter<Object>> accumulator = getStreamingContext().counterAccumulator();
     stream().forEach(e -> accumulator.add(new HashMapCounter<>(e.getLabelSpace().collect(Collectors.toList()))));

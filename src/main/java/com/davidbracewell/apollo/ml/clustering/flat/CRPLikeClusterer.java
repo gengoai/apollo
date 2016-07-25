@@ -29,6 +29,7 @@ import com.davidbracewell.apollo.ml.clustering.Clusterer;
 import com.davidbracewell.collection.Counter;
 import com.davidbracewell.collection.HashMapCounter;
 import com.davidbracewell.logging.Logger;
+import com.davidbracewell.stream.MStream;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
@@ -65,7 +66,8 @@ public class CRPLikeClusterer extends Clusterer<FlatHardClustering> {
   }
 
   @Override
-  public FlatHardClustering cluster(@NonNull List<LabeledVector> instances) {
+  public FlatHardClustering cluster(@NonNull MStream<LabeledVector> instanceStream) {
+    List<LabeledVector> instances = instanceStream.collect();
     distanceMatrix = HashBasedTable.create();
     List<Cluster> clusters = new ArrayList<>();
     clusters.add(new Cluster());

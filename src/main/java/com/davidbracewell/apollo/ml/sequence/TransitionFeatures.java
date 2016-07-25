@@ -1,6 +1,7 @@
 package com.davidbracewell.apollo.ml.sequence;
 
 import com.davidbracewell.apollo.ml.Instance;
+import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.ml.sequence.decoder.DecoderState;
 import com.davidbracewell.collection.Interner;
 import com.davidbracewell.string.StringUtils;
@@ -32,6 +33,18 @@ public class TransitionFeatures implements Serializable {
         this.historySize = Math.max(this.historySize, Math.abs(this.featureTemplates[i][j]));
       }
     }
+  }
+
+
+  public void fitTransitionsFeatures(Dataset<Sequence> dataset) {
+    dataset.encode();
+    dataset.stream().forEach(sequence -> {
+      ContextualIterator<Instance> ci = sequence.iterator();
+      while (ci.hasNext()) {
+        ci.next();
+        extract(ci).forEachRemaining(t -> dataset.getFeatureEncoder().encode(t));
+      }
+    });
   }
 
   public int getHistorySize() {

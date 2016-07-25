@@ -42,7 +42,7 @@ public class DistributedKMeansTest extends ClustererTest {
 
   @Before
   public void setUp() throws Exception {
-    Config.setProperty("spark.master","local[*]");
+    Config.setProperty("spark.master", "local[*]");
   }
 
   @Test
@@ -61,7 +61,5 @@ public class DistributedKMeansTest extends ClustererTest {
     for (LabeledVector point : c2.getPoints()) {
       assertEquals(target, point.getLabel().toString());
     }
-
-
   }
 }

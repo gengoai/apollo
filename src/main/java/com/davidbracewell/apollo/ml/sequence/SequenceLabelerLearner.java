@@ -1,6 +1,7 @@
 package com.davidbracewell.apollo.ml.sequence;
 
 import com.davidbracewell.apollo.ml.Learner;
+import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.ml.sequence.decoder.BeamDecoder;
 import com.davidbracewell.apollo.ml.sequence.decoder.Decoder;
 import lombok.NonNull;
@@ -29,6 +30,16 @@ public abstract class SequenceLabelerLearner extends Learner<Sequence, SequenceL
   public void setTransitionFeatures(@NonNull TransitionFeatures transitionFeatures) {
     this.transitionFeatures = transitionFeatures;
   }
+
+  @Override
+  public SequenceLabeler train(@NonNull Dataset<Sequence> dataset) {
+    dataset.encode();
+    transitionFeatures.fitTransitionsFeatures(dataset);
+    SequenceLabeler model = trainImpl(dataset);
+    model.finishTraining();
+    return model;
+  }
+
 
   public SequenceValidator getValidator() {
     return validator;

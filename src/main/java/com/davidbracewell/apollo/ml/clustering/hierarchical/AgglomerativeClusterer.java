@@ -24,8 +24,10 @@ package com.davidbracewell.apollo.ml.clustering.hierarchical;
 import com.davidbracewell.apollo.affinity.Distance;
 import com.davidbracewell.apollo.affinity.DistanceMeasure;
 import com.davidbracewell.apollo.linalg.LabeledVector;
+import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.clustering.Cluster;
 import com.davidbracewell.apollo.ml.clustering.Clusterer;
+import com.davidbracewell.stream.MStream;
 import com.davidbracewell.tuple.Tuple2;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Iterables;
@@ -100,7 +102,8 @@ public class AgglomerativeClusterer extends Clusterer<HierarchicalClustering> {
   }
 
   @Override
-  public HierarchicalClustering cluster(@NonNull List<LabeledVector> instances) {
+  public HierarchicalClustering cluster(@NonNull MStream<LabeledVector> instanceStream) {
+    List<LabeledVector> instances = instanceStream.collect();
     Table<Cluster, Cluster, Double> distanceMatrix = HashBasedTable.create();
     List<Cluster> clusters = initDistanceMatrix(instances, distanceMatrix);
 

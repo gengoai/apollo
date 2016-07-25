@@ -28,6 +28,7 @@ import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.clustering.Cluster;
 import com.davidbracewell.apollo.ml.clustering.Clusterer;
 import com.davidbracewell.apollo.ml.clustering.Clustering;
+import com.davidbracewell.stream.MStream;
 import com.google.common.base.Preconditions;
 import lombok.NonNull;
 
@@ -57,10 +58,10 @@ public class OneShotClusterer extends Clusterer<FlatHardClustering> {
   }
 
   @Override
-  public FlatHardClustering cluster(@NonNull List<LabeledVector> instances) {
+  public FlatHardClustering cluster(@NonNull MStream<LabeledVector> instanceStream) {
     OneShotClustering clustering = new OneShotClustering(getEncoderPair(), distanceMeasure);
     clustering.clusters = new ArrayList<>();
-
+    List<LabeledVector> instances = instanceStream.collect();
     for (LabeledVector ii : instances) {
       double minD = Double.POSITIVE_INFINITY;
       int minI = 0;

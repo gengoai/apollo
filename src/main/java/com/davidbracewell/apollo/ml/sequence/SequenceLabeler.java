@@ -22,14 +22,15 @@ public abstract class SequenceLabeler extends Model {
   @Getter
   private final PreprocessorList<Sequence> preprocessors;
   private final TransitionFeatures transitionFeatures;
-  private volatile Decoder decoder = new BeamDecoder();
   private final SequenceValidator validator;
+  private volatile Decoder decoder = new BeamDecoder();
 
 //  private Featurizer featurizer;
 
   /**
    * Instantiates a new Model.
-   *  @param labelEncoder       the label encoder
+   *
+   * @param labelEncoder       the label encoder
    * @param featureEncoder     the feature encoder
    * @param preprocessors      the preprocessors
    * @param transitionFeatures the transition features
@@ -40,12 +41,6 @@ public abstract class SequenceLabeler extends Model {
     this.validator = validator;
     this.preprocessors = preprocessors.getModelProcessors();
     this.transitionFeatures = transitionFeatures;
-  }
-
-  @Override
-  protected void finishTraining() {
-    super.finishTraining(); //Call super to freeze encoders
-//    preprocessors.trimToSize(getFeatureEncoder());
   }
 
   /**
@@ -85,4 +80,11 @@ public abstract class SequenceLabeler extends Model {
   public TransitionFeatures getTransitionFeatures() {
     return transitionFeatures;
   }
+
+
+  @Override
+  protected void finishTraining() {
+    super.finishTraining();
+  }
+
 }// END OF SequenceLabeler

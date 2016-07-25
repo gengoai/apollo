@@ -7,6 +7,7 @@ import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.clustering.Clusterer;
 import com.davidbracewell.collection.Collect;
 import com.davidbracewell.logging.Logger;
+import com.davidbracewell.stream.MStream;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.commons.math3.random.Well19937c;
 
@@ -44,7 +45,8 @@ public class GibbsLDA extends Clusterer<LDAModel> {
   private int numstats = 0;
 
   @Override
-  public LDAModel cluster(List<LabeledVector> instances) {
+  public LDAModel cluster(MStream<LabeledVector> instanceStrream) {
+    List<LabeledVector> instances = instanceStrream.collect();
     V = getEncoderPair().numberOfFeatures();
     M = instances.size();
 

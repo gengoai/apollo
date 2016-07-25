@@ -26,6 +26,9 @@ import com.davidbracewell.apollo.affinity.DistanceMeasure;
 import com.davidbracewell.apollo.ml.EncoderPair;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.Model;
+import com.davidbracewell.apollo.ml.data.Dataset;
+import com.davidbracewell.stream.MPairStream;
+import com.davidbracewell.tuple.Tuples;
 import lombok.NonNull;
 
 import java.util.List;
@@ -124,6 +127,17 @@ public abstract class Clustering extends Model {
    * @return the double [ ]
    */
   public abstract double[] softCluster(Instance instance);
+
+
+  public MPairStream<Instance, Integer> hardCluster(@NonNull Dataset<Instance> dataset) {
+    return dataset.stream().parallel()
+      .mapToPair(i -> Tuples.$(i, hardCluster(i)));
+  }
+
+  public MPairStream<Instance, double[]> softCluster(@NonNull Dataset<Instance> dataset) {
+    return dataset.stream().parallel()
+      .mapToPair(i -> Tuples.$(i, softCluster(i)));
+  }
 
 
 }//END OF Clustering

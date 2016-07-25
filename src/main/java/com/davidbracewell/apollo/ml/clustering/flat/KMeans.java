@@ -27,8 +27,10 @@ import com.davidbracewell.apollo.affinity.DistanceMeasure;
 import com.davidbracewell.apollo.linalg.LabeledVector;
 import com.davidbracewell.apollo.linalg.SparseVector;
 import com.davidbracewell.apollo.linalg.Vector;
+import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.clustering.Cluster;
 import com.davidbracewell.apollo.ml.clustering.Clusterer;
+import com.davidbracewell.stream.MStream;
 import com.google.common.base.Preconditions;
 import lombok.NonNull;
 
@@ -80,9 +82,10 @@ public class KMeans extends Clusterer<FlatHardClustering> {
   }
 
   @Override
-  public FlatHardClustering cluster(@NonNull List<LabeledVector> instances) {
+  public FlatHardClustering cluster(@NonNull MStream<LabeledVector> instanceStream) {
     FlatHardClustering clustering = new FlatHardClustering(getEncoderPair(), distanceMeasure);
 
+    List<LabeledVector> instances = instanceStream.collect();
     clustering.clusters = new ArrayList<>(K);
     for (Vector centroid : initCentroids(instances)) {
       Cluster c = new Cluster();

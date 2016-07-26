@@ -27,4 +27,9 @@ public class ApacheClusterable implements Clusterable, Serializable {
     return new double[0];
   }
 
+  @Override
+  public String toString() {
+    return vector.toString();
+  }
+
 }// END OF ApacheClusterable

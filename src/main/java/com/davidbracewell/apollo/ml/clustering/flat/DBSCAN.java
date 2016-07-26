@@ -18,6 +18,7 @@ import java.util.stream.Collectors;
  * @author David B. Bracewell
  */
 public class DBSCAN extends Clusterer<FlatHardClustering> {
+  private static final long serialVersionUID = 1L;
   @Getter
   @Setter
   private double eps;

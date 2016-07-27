@@ -21,16 +21,21 @@
 
 package com.davidbracewell.apollo.ml.clustering.flat;
 
-import com.davidbracewell.apollo.ApolloMath;
 import com.davidbracewell.apollo.affinity.DistanceMeasure;
+import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.EncoderPair;
 import com.davidbracewell.apollo.ml.FeatureVector;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.clustering.Cluster;
 import com.davidbracewell.apollo.ml.clustering.Clustering;
+import com.davidbracewell.tuple.Tuple2;
+import lombok.NonNull;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+
+import static com.davidbracewell.tuple.Tuples.$;
 
 /**
  * @author David B. Bracewell
@@ -69,17 +74,23 @@ public class FlatHardClustering extends Clustering {
   }
 
   @Override
+  public int hardCluster(@NonNull Instance instance) {
+    Vector vector = instance.toVector(getEncoderPair());
+    return clusters.parallelStream()
+      .map(c -> $(c.getIndex(), getDistanceMeasure().calculate(vector, c.getCentroid())))
+      .min((t1, t2) -> Double.compare(t1.getValue(), t2.getValue()))
+      .map(Tuple2::getKey)
+      .orElse(-1);
+  }
+
+  @Override
   public double[] softCluster(Instance instance) {
     double[] distances = new double[size()];
+    Arrays.fill(distances, Double.POSITIVE_INFINITY);
     FeatureVector vector = instance.toVector(getEncoderPair());
-    for (int i = 0; i < distances.length; i++) {
-      distances[i] = getDistanceMeasure().calculate(clusters.get(i).getCentroid(), vector);
-    }
-    int min = ApolloMath.argMin(distances).getV1();
-    for (int i = 0; i < distances.length; i++) {
-      if (i != min) {
-        distances[i] = Double.POSITIVE_INFINITY;
-      }
+    int assignment = hardCluster(instance);
+    if (assignment >= 0) {
+      distances[assignment] = getDistanceMeasure().calculate(clusters.get(assignment).getCentroid(), vector);
     }
     return distances;
   }

@@ -33,7 +33,6 @@ import com.davidbracewell.stream.MStream;
 import com.google.common.base.Preconditions;
 import lombok.NonNull;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -85,34 +84,33 @@ public class KMeans extends Clusterer<FlatHardClustering> {
     FlatHardClustering clustering = new FlatHardClustering(getEncoderPair(), distanceMeasure);
 
     List<LabeledVector> instances = instanceStream.collect();
-    clustering.clusters = new ArrayList<>(K);
     for (Vector centroid : initCentroids(instances)) {
       Cluster c = new Cluster();
       c.setIndex(c.size());
       c.setCentroid(centroid);
-      clustering.clusters.add(c);
+      clustering.addCluster(c);
     }
 
     Map<LabeledVector, Integer> assignment = new ConcurrentHashMap<>();
 
     final AtomicLong numMoved = new AtomicLong(0);
     for (int itr = 0; itr < maxIterations; itr++) {
-      clustering.clusters.forEach(Cluster::clear);
+      clustering.forEach(Cluster::clear);
       numMoved.set(0);
 
       instances.parallelStream()
         .forEach(ii -> {
             int minI = 0;
-            double minD = distanceMeasure.calculate(ii, clustering.clusters.get(0).getCentroid());
+            double minD = distanceMeasure.calculate(ii, clustering.get(0).getCentroid());
             for (int ci = 1; ci < K; ci++) {
-              double distance = distanceMeasure.calculate(ii, clustering.clusters.get(ci).getCentroid());
+              double distance = distanceMeasure.calculate(ii, clustering.get(ci).getCentroid());
               if (distance < minD) {
                 minD = distance;
                 minI = ci;
               }
             }
             Integer old = assignment.put(ii, minI);
-            clustering.clusters.get(minI).addPoint(ii);
+            clustering.get(minI).addPoint(ii);
             if (old == null || old != minI) {
               numMoved.incrementAndGet();
             }
@@ -125,12 +123,12 @@ public class KMeans extends Clusterer<FlatHardClustering> {
       }
 
       for (int i = 0; i < K; i++) {
-        Vector c = clustering.clusters.get(i).getCentroid();
+        Vector c = clustering.get(i).getCentroid();
         c.zero();
-        for (LabeledVector ii : clustering.clusters.get(i)) {
+        for (LabeledVector ii : clustering.get(i)) {
           c.addSelf(ii);
         }
-        c.mapDivideSelf((double) clustering.clusters.get(i).size());
+        c.mapDivideSelf((double) clustering.get(i).size());
       }
     }
 

@@ -39,7 +39,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 
 /**
@@ -135,7 +134,7 @@ public class CRPLikeClusterer extends Clusterer<FlatHardClustering> {
 
 
     CRPClustering clustering = new CRPClustering(getEncoderPair(), distanceMeasure);
-    clustering.clusters = clusters.stream().filter(c -> c.size() > 0).collect(Collectors.toList());
+    clusters.stream().filter(c -> c.size() > 0).forEach(clustering::addCluster);
     return clustering;
   }
 

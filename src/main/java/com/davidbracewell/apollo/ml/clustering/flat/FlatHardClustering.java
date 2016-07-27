@@ -31,21 +31,20 @@ import com.davidbracewell.apollo.ml.clustering.Clustering;
 import com.davidbracewell.tuple.Tuple2;
 import lombok.NonNull;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import static com.davidbracewell.tuple.Tuples.$;
 
 /**
  * @author David B. Bracewell
  */
-public class FlatHardClustering extends Clustering {
+public class FlatHardClustering extends Clustering implements Iterable<Cluster> {
   private static final long serialVersionUID = 1L;
-  List<Cluster> clusters;
+  private List<Cluster> clusters;
 
   public FlatHardClustering(EncoderPair encoderPair, DistanceMeasure distanceMeasure) {
     super(encoderPair, distanceMeasure);
+    this.clusters = new ArrayList<>();
   }
 
   public FlatHardClustering(EncoderPair encoderPair, DistanceMeasure distanceMeasure, List<Cluster> clusters) {
@@ -54,6 +53,16 @@ public class FlatHardClustering extends Clustering {
     for (int i = 0; i < this.clusters.size(); i++) {
       this.clusters.get(i).setIndex(i);
     }
+  }
+
+  public void addCluster(@NonNull Cluster cluster) {
+    cluster.setIndex(this.clusters.size());
+    this.clusters.add(cluster);
+  }
+
+  @Override
+  public Iterator<Cluster> iterator() {
+    return this.clusters.iterator();
   }
 
   @Override

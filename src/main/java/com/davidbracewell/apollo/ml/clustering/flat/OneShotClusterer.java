@@ -27,12 +27,10 @@ import com.davidbracewell.apollo.linalg.LabeledVector;
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.clustering.Cluster;
 import com.davidbracewell.apollo.ml.clustering.Clusterer;
-import com.davidbracewell.apollo.ml.clustering.Clustering;
 import com.davidbracewell.stream.MStream;
 import com.google.common.base.Preconditions;
 import lombok.NonNull;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -60,13 +58,13 @@ public class OneShotClusterer extends Clusterer<FlatHardClustering> {
   @Override
   public FlatHardClustering cluster(@NonNull MStream<LabeledVector> instanceStream) {
     OneShotClustering clustering = new OneShotClustering(getEncoderPair(), distanceMeasure);
-    clustering.clusters = new ArrayList<>();
+
     List<LabeledVector> instances = instanceStream.collect();
     for (LabeledVector ii : instances) {
       double minD = Double.POSITIVE_INFINITY;
       int minI = 0;
-      for (int k = 0; k < clustering.clusters.size(); k++) {
-        double d = distance(ii, clustering.clusters.get(k));
+      for (int k = 0; k < clustering.size(); k++) {
+        double d = distance(ii, clustering.get(k));
         if (d < minD) {
           minD = d;
           minI = k;
@@ -74,16 +72,16 @@ public class OneShotClusterer extends Clusterer<FlatHardClustering> {
       }
 
       if (minD <= threshold) {
-        clustering.clusters.get(minI).addPoint(ii);
+        clustering.get(minI).addPoint(ii);
       } else {
         Cluster newCluster = new Cluster();
         newCluster.addPoint(ii);
-        clustering.clusters.add(newCluster);
+        clustering.addCluster(newCluster);
       }
 
     }
 
-    for (Iterator<Cluster> itr = clustering.clusters.iterator(); itr.hasNext(); ) {
+    for (Iterator<Cluster> itr = clustering.iterator(); itr.hasNext(); ) {
       Cluster c = itr.next();
       if (c == null || c.size() == 0) {
         itr.remove();

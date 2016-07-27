@@ -44,6 +44,7 @@ public class DBSCAN extends Clusterer<FlatHardClustering> {
   @Override
   public FlatHardClustering cluster(MStream<LabeledVector> instances) {
     DBSCANClusterer<ApacheClusterable> clusterer = new DBSCANClusterer<>(eps, minPts, new ApacheDistanceMeasure(distanceMeasure));
+
     List<Cluster> clusters = clusterer.cluster(instances.map(ApacheClusterable::new).collect())
       .stream()
       .map(c -> {

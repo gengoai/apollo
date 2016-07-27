@@ -28,7 +28,7 @@ import com.davidbracewell.apollo.ml.clustering.ClustererTest;
 import com.davidbracewell.apollo.ml.clustering.Clustering;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 /**
  * @author David B. Bracewell
@@ -55,7 +55,6 @@ public class KMeansTest extends ClustererTest {
     for (LabeledVector point : c2.getPoints()) {
       assertEquals(target, point.getLabel().toString());
     }
-
 
   }
 }

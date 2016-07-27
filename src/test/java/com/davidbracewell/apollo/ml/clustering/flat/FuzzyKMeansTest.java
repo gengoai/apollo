@@ -22,9 +22,13 @@
 package com.davidbracewell.apollo.ml.clustering.flat;
 
 import com.davidbracewell.apollo.affinity.Distance;
+import com.davidbracewell.apollo.linalg.LabeledVector;
+import com.davidbracewell.apollo.ml.clustering.Cluster;
 import com.davidbracewell.apollo.ml.clustering.ClustererTest;
 import com.davidbracewell.apollo.ml.clustering.Clustering;
 import org.junit.Test;
+
+import static org.junit.Assert.*;
 
 /**
  * @author David B. Bracewell
@@ -38,7 +42,18 @@ public class FuzzyKMeansTest extends ClustererTest {
   @Test
   public void testCluster() throws Exception {
     Clustering c = cluster();
-    System.err.println(c.get(0));
-//    System.err.println(c.get(1));
+    assertEquals(c.size(), 2.0, 0.0);
+
+    Cluster c1 = c.get(0);
+    String target = c1.getPoints().get(0).getLabel().toString();
+    for (LabeledVector point : c1.getPoints()) {
+      assertEquals(target, point.getLabel().toString());
+    }
+
+    Cluster c2 = c.get(1);
+    target = c2.getPoints().get(0).getLabel().toString();
+    for (LabeledVector point : c2.getPoints()) {
+      assertEquals(target, point.getLabel().toString());
+    }
   }
 }

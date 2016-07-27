@@ -24,7 +24,7 @@ public class ApacheClusterable implements Clusterable, Serializable {
 
   @Override
   public double[] getPoint() {
-    return new double[0];
+    return point.get();
   }
 
   @Override

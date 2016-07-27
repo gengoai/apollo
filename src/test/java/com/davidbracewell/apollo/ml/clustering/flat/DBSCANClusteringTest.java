@@ -22,9 +22,13 @@
 package com.davidbracewell.apollo.ml.clustering.flat;
 
 import com.davidbracewell.apollo.affinity.Distance;
+import com.davidbracewell.apollo.linalg.LabeledVector;
+import com.davidbracewell.apollo.ml.clustering.Cluster;
 import com.davidbracewell.apollo.ml.clustering.ClustererTest;
-import com.davidbracewell.apollo.ml.clustering.Clustering;
+import com.davidbracewell.conversion.Cast;
 import org.junit.Test;
+
+import static org.junit.Assert.*;
 
 /**
  * @author David B. Bracewell
@@ -32,11 +36,27 @@ import org.junit.Test;
 public class DBSCANClusteringTest extends ClustererTest {
 
   public DBSCANClusteringTest() {
-    super(new DBSCAN());
+    super(new DBSCAN(Distance.Euclidean, 1, 3));
   }
 
   @Test
   public void testCluster() throws Exception {
-    Clustering c = cluster();
+    FlatHardClustering c = Cast.as(cluster());
+    assertEquals(2.0, c.size(), 0.0);
+
+    Cluster c1 = c.get(0);
+    String target = c1.getPoints().get(0).getLabel().toString();
+    for (LabeledVector point : c1.getPoints()) {
+      assertEquals(target, point.getLabel().toString());
+    }
+
+    Cluster c2 = c.get(1);
+    target = c2.getPoints().get(0).getLabel().toString();
+    for (LabeledVector point : c2.getPoints()) {
+      assertEquals(target, point.getLabel().toString());
+    }
+
   }
+
+
 }

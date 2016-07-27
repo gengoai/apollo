@@ -27,7 +27,13 @@ import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.EncoderPair;
 import com.davidbracewell.apollo.ml.FeatureVector;
 import com.davidbracewell.apollo.ml.Instance;
+import com.davidbracewell.stream.StreamingContext;
+import com.davidbracewell.tuple.Tuple2;
 import lombok.NonNull;
+
+import java.util.Arrays;
+
+import static com.davidbracewell.tuple.Tuples.$;
 
 /**
  * @author David B. Bracewell
@@ -40,21 +46,29 @@ class CRPClustering extends FlatHardClustering {
   }
 
   @Override
+  public int hardCluster(@NonNull Instance instance) {
+    return ApolloMath.argMin(softCluster(instance)).v1;
+  }
+
+  @Override
   public double[] softCluster(Instance instance) {
     double[] distances = new double[size()];
+    Arrays.fill(distances, Double.POSITIVE_INFINITY);
     FeatureVector vector = instance.toVector(getEncoderPair());
-    for (int i = 0; i < distances.length; i++) {
-      double max = Double.NEGATIVE_INFINITY;
-      for (Vector jj : clusters.get(i)) {
-        max = Math.max(max, getDistanceMeasure().calculate(vector, jj));
-      }
-      distances[i] = max;
-    }
-    int min = ApolloMath.argMin(distances).getV1();
-    for (int i = 0; i < distances.length; i++) {
-      if (i != min) {
-        distances[i] = Double.POSITIVE_INFINITY;
-      }
+    Tuple2<Integer, Double> best = StreamingContext.local().stream(this)
+      .parallel()
+      .map(cluster -> {
+          double max = 0;
+          for (Vector jj : cluster) {
+            max = Math.max(max, getDistanceMeasure().calculate(vector, jj));
+          }
+          return $(cluster.getIndex(), max);
+        }
+      ).min((t1, t2) -> Double.compare(t1.v2, t2.v2))
+      .orElse($(-1, 0.0));
+
+    if (best.v1 != -1) {
+      distances[best.v1] = best.v2;
     }
     return distances;
   }

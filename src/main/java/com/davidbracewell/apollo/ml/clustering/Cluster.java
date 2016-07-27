@@ -27,9 +27,9 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 /**
@@ -40,11 +40,21 @@ import java.util.stream.Collectors;
 public class Cluster implements Serializable, Iterable<LabeledVector> {
 
   private static final long serialVersionUID = 1L;
-  private final List<LabeledVector> points = new CopyOnWriteArrayList<>();
+  private final List<LabeledVector> points = new ArrayList<>();
+  @Getter
+  @Setter
   private Vector centroid;
+  @Getter
+  @Setter
   private Cluster parent;
+  @Getter
+  @Setter
   private Cluster left;
+  @Getter
+  @Setter
   private Cluster right;
+  @Getter
+  @Setter
   private double score;
   @Getter
   @Setter
@@ -99,96 +109,6 @@ public class Cluster implements Serializable, Iterable<LabeledVector> {
    */
   public int size() {
     return points.size();
-  }
-
-  /**
-   * Gets left.
-   *
-   * @return the left
-   */
-  public Cluster getLeft() {
-    return left;
-  }
-
-  /**
-   * Sets left.
-   *
-   * @param left the left
-   */
-  public void setLeft(Cluster left) {
-    this.left = left;
-  }
-
-  /**
-   * Gets parent.
-   *
-   * @return the parent
-   */
-  public Cluster getParent() {
-    return parent;
-  }
-
-  /**
-   * Sets parent.
-   *
-   * @param parent the parent
-   */
-  public void setParent(Cluster parent) {
-    this.parent = parent;
-  }
-
-  /**
-   * Gets right.
-   *
-   * @return the right
-   */
-  public Cluster getRight() {
-    return right;
-  }
-
-  /**
-   * Sets right.
-   *
-   * @param right the right
-   */
-  public void setRight(Cluster right) {
-    this.right = right;
-  }
-
-  /**
-   * Gets score.
-   *
-   * @return the score
-   */
-  public double getScore() {
-    return score;
-  }
-
-  /**
-   * Sets score.
-   *
-   * @param score the score
-   */
-  public void setScore(double score) {
-    this.score = score;
-  }
-
-  /**
-   * Gets centroid.
-   *
-   * @return the centroid
-   */
-  public Vector getCentroid() {
-    return centroid;
-  }
-
-  /**
-   * Sets centroid.
-   *
-   * @param centroid the centroid
-   */
-  public void setCentroid(Vector centroid) {
-    this.centroid = centroid;
   }
 
   @Override

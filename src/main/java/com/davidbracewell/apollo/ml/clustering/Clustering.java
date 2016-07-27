@@ -39,7 +39,7 @@ import java.util.List;
  *
  * @author David B. Bracewell
  */
-public abstract class Clustering extends Model {
+public abstract class Clustering extends Model  {
   private static final long serialVersionUID = 1L;
   private final DistanceMeasure distanceMeasure;
 

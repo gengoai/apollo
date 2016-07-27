@@ -36,7 +36,7 @@ public class FlatSoftClustering extends FlatHardClustering {
     Vector distances = new DenseVector(size());
     FeatureVector vector = instance.toVector(getEncoderPair());
     for (int i = 0; i < distances.dimension(); i++) {
-      distances.set(i, getDistanceMeasure().calculate(clusters.get(i).getCentroid(), vector));
+      distances.set(i, getDistanceMeasure().calculate(get(i).getCentroid(), vector));
     }
     double max = distances.max();
     distances.mapSelf(d -> Math.exp(max - d));

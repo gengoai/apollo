@@ -51,6 +51,9 @@ public class FlatHardClustering extends Clustering {
   public FlatHardClustering(EncoderPair encoderPair, DistanceMeasure distanceMeasure, List<Cluster> clusters) {
     super(encoderPair, distanceMeasure);
     this.clusters = clusters;
+    for (int i = 0; i < this.clusters.size(); i++) {
+      this.clusters.get(i).setIndex(i);
+    }
   }
 
   @Override

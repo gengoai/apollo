@@ -37,7 +37,6 @@ public class TransitionFeatures implements Serializable {
 
 
   public void fitTransitionsFeatures(Dataset<Sequence> dataset) {
-    dataset.encode();
     dataset.stream().forEach(sequence -> {
       ContextualIterator<Instance> ci = sequence.iterator();
       while (ci.hasNext()) {

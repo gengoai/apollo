@@ -4,17 +4,13 @@ import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.collection.HashMapIndex;
 import com.davidbracewell.collection.Index;
 import com.davidbracewell.conversion.Cast;
-import com.davidbracewell.stream.accumulator.CollectionAccumulatable;
-import com.davidbracewell.stream.accumulator.MAccumulator;
-import com.google.common.base.Preconditions;
 import lombok.NonNull;
 
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
@@ -46,9 +42,14 @@ public class IndexEncoder implements Encoder, Serializable {
   @Override
   public void fit(@NonNull Dataset<? extends Example> dataset) {
     if (!isFrozen()) {
-      MAccumulator<Set<String>> accumulator = dataset.getStreamingContext().accumulator(new HashSet<>(), new CollectionAccumulatable<>());
-      dataset.stream().forEach(ex -> accumulator.add(ex.getFeatureSpace().collect(Collectors.toSet())));
-      this.index.addAll(accumulator.value());
+      this.index.addAll(
+        dataset.stream()
+//          .parallel()
+          .flatMap(ex -> ex.getFeatureSpace().filter(Objects::nonNull).collect(Collectors.toSet()))
+          .filter(Objects::nonNull)
+          .distinct()
+          .collect()
+      );
     }
   }
 
@@ -70,8 +71,10 @@ public class IndexEncoder implements Encoder, Serializable {
       return idx;
     }
     String str = object.toString();
-    if (!frozen.get()) {
-      return index.add(str);
+    if (str != null) {
+      if (!frozen.get()) {
+        return index.add(str);
+      }
     }
     return index.indexOf(str);
   }

@@ -2,15 +2,13 @@ package com.davidbracewell.apollo.ml.classification.neural;
 
 import com.davidbracewell.apollo.linalg.DenseVector;
 import com.davidbracewell.apollo.linalg.Vector;
-import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.ml.Feature;
 import com.davidbracewell.apollo.ml.FeatureVector;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.classification.Classifier;
 import com.davidbracewell.apollo.ml.classification.ClassifierEvaluation;
 import com.davidbracewell.apollo.ml.classification.ClassifierLearner;
-import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
-import com.davidbracewell.apollo.ml.preprocess.filter.CountFilter;
+import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.function.Unchecked;
 import com.davidbracewell.io.Resources;
 import com.davidbracewell.io.resource.Resource;
@@ -20,13 +18,8 @@ import com.davidbracewell.string.StringUtils;
 import com.davidbracewell.tuple.Tuple2;
 import com.google.common.base.Joiner;
 import com.google.common.base.Stopwatch;
-import org.apache.commons.lang.math.LongRange;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -66,7 +59,7 @@ public class MLP extends ClassifierLearner {
     mlp.hiddenLayers = new int[]{4};
 
     dataset.split(0.8).forEach((train, test) -> {
-      Classifier c = mlp.train(train.preprocess(PreprocessorList.create(new CountFilter(new LongRange(5,Long.MAX_VALUE)))));
+      Classifier c = mlp.train(train);
       ClassifierEvaluation evaluation = new ClassifierEvaluation();
       evaluation.evaluate(c, test);
       evaluation.output(System.out);

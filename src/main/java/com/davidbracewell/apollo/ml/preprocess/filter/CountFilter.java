@@ -5,8 +5,8 @@ import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.preprocess.RestrictedInstancePreprocessor;
 import com.davidbracewell.collection.HashMapCounter;
 import com.davidbracewell.stream.MStream;
+import com.google.common.collect.Range;
 import lombok.NonNull;
-import org.apache.commons.lang.math.LongRange;
 
 import java.io.Serializable;
 import java.util.Collections;
@@ -20,15 +20,15 @@ import java.util.stream.Stream;
  */
 public class CountFilter extends RestrictedInstancePreprocessor implements FilterProcessor<Instance>, Serializable {
   private static final long serialVersionUID = 1L;
-  private final LongRange range;
+  private final Range<Double> range;
   private volatile Set<String> selectedFeatures = Collections.emptySet();
 
-  public CountFilter(@NonNull String featurePrefix, @NonNull LongRange filter) {
+  public CountFilter(@NonNull String featurePrefix, @NonNull Range<Double> filter) {
     super(featurePrefix);
     this.range = filter;
   }
 
-  public CountFilter(@NonNull LongRange filter) {
+  public CountFilter(@NonNull Range<Double> filter) {
     super(null);
     this.range = filter;
   }
@@ -39,7 +39,7 @@ public class CountFilter extends RestrictedInstancePreprocessor implements Filte
       stream.flatMap(l -> l.stream().map(Feature::getName).collect(Collectors.toList()))
         .countByValue()
     )
-      .filterByValue(range::containsDouble)
+      .filterByValue(range::contains)
       .items();
   }
 
@@ -56,9 +56,9 @@ public class CountFilter extends RestrictedInstancePreprocessor implements Filte
   @Override
   public String describe() {
     if (acceptAll()) {
-      return "CountFilter: min=" + range.getMinimumLong() + ", max=" + range.getMaximumLong();
+      return "CountFilter: " + range.toString();
     }
-    return "CountFilter[" + getRestriction() + "]: min=" + range.getMinimumLong() + ", max=" + range.getMaximumLong();
+    return "CountFilter[" + getRestriction() + "]: " + range.toString();
   }
 
 }// END OF CountFilter

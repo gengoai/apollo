@@ -35,6 +35,7 @@ public abstract class SequenceLabelerLearner extends Learner<Sequence, SequenceL
   public SequenceLabeler train(@NonNull Dataset<Sequence> dataset) {
     dataset.encode();
     transitionFeatures.fitTransitionsFeatures(dataset);
+    dataset.getEncoderPair().freeze();
     SequenceLabeler model = trainImpl(dataset);
     model.finishTraining();
     return model;

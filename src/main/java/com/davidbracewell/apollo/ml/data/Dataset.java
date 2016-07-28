@@ -22,7 +22,16 @@
 package com.davidbracewell.apollo.ml.data;
 
 import com.davidbracewell.Copyable;
-import com.davidbracewell.apollo.ml.*;
+import com.davidbracewell.apollo.ml.Encoder;
+import com.davidbracewell.apollo.ml.EncoderPair;
+import com.davidbracewell.apollo.ml.Example;
+import com.davidbracewell.apollo.ml.FeatureVector;
+import com.davidbracewell.apollo.ml.Instance;
+import com.davidbracewell.apollo.ml.LabelEncoder;
+import com.davidbracewell.apollo.ml.LabelIndexEncoder;
+import com.davidbracewell.apollo.ml.RealEncoder;
+import com.davidbracewell.apollo.ml.TrainTest;
+import com.davidbracewell.apollo.ml.TrainTestSet;
 import com.davidbracewell.apollo.ml.preprocess.Preprocessor;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.apollo.ml.sequence.FeatureVectorSequence;
@@ -44,7 +53,12 @@ import lombok.NonNull;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 /**
@@ -128,10 +142,12 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
    * @return the dataset
    */
   public Dataset<T> encode() {
-    log.info("Encoding dataset...");
+    if (getFeatureEncoder().isFrozen() && getLabelEncoder().isFrozen()) {
+      return this;
+    }
     getFeatureEncoder().fit(this);
     getLabelEncoder().fit(this);
-    log.info("Finished encoding: {0} Features and {1} Labels", getFeatureEncoder().size(), getLabelEncoder().size());
+    log.info("Encoded {0} Features and {1} Labels", getFeatureEncoder().size(), getLabelEncoder().size());
     return this;
   }
 

@@ -44,7 +44,7 @@ public class IndexEncoder implements Encoder, Serializable {
     if (!isFrozen()) {
       this.index.addAll(
         dataset.stream()
-//          .parallel()
+          .parallel()
           .flatMap(ex -> ex.getFeatureSpace().filter(Objects::nonNull).collect(Collectors.toSet()))
           .filter(Objects::nonNull)
           .distinct()

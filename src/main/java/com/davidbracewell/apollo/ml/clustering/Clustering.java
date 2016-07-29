@@ -23,15 +23,18 @@ package com.davidbracewell.apollo.ml.clustering;
 
 import com.davidbracewell.apollo.ApolloMath;
 import com.davidbracewell.apollo.affinity.DistanceMeasure;
+import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.EncoderPair;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.Model;
 import com.davidbracewell.apollo.ml.data.Dataset;
+import com.davidbracewell.function.SerializableBiFunction;
 import com.davidbracewell.stream.MPairStream;
-import com.davidbracewell.tuple.Tuples;
 import lombok.NonNull;
 
 import java.util.List;
+
+import static com.davidbracewell.tuple.Tuples.$;
 
 
 /**
@@ -39,9 +42,10 @@ import java.util.List;
  *
  * @author David B. Bracewell
  */
-public abstract class Clustering extends Model  {
+public abstract class Clustering extends Model {
   private static final long serialVersionUID = 1L;
   private final DistanceMeasure distanceMeasure;
+  private SerializableBiFunction<Vector, Cluster, Double> scoringFunction;
 
   /**
    * Instantiates a new Clustering.
@@ -126,17 +130,17 @@ public abstract class Clustering extends Model  {
    * @param instance the instance
    * @return the double [ ]
    */
-  public abstract double[] softCluster(Instance instance);
+  public abstract double[] softCluster(@NonNull Instance instance);
 
 
   public MPairStream<Instance, Integer> hardCluster(@NonNull Dataset<Instance> dataset) {
     return dataset.stream().parallel()
-      .mapToPair(i -> Tuples.$(i, hardCluster(i)));
+      .mapToPair(i -> $(i, hardCluster(i)));
   }
 
   public MPairStream<Instance, double[]> softCluster(@NonNull Dataset<Instance> dataset) {
     return dataset.stream().parallel()
-      .mapToPair(i -> Tuples.$(i, softCluster(i)));
+      .mapToPair(i -> $(i, softCluster(i)));
   }
 
 

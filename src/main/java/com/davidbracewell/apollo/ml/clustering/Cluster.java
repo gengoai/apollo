@@ -30,17 +30,16 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * The type Cluster.
  *
  * @author David B. Bracewell
  */
-public class Cluster implements Serializable, Iterable<LabeledVector> {
+public class Cluster implements Serializable, Iterable<Vector> {
 
   private static final long serialVersionUID = 1L;
-  private final List<LabeledVector> points = new ArrayList<>();
+  private final List<Vector> points = new ArrayList<>();
   @Getter
   @Setter
   private Vector centroid;
@@ -58,7 +57,7 @@ public class Cluster implements Serializable, Iterable<LabeledVector> {
   private double score;
   @Getter
   @Setter
-  private int index;
+  private int id;
 
   /**
    * Add point.
@@ -77,7 +76,7 @@ public class Cluster implements Serializable, Iterable<LabeledVector> {
    * @param vector the vector
    * @return the score
    */
-  public double getScore(LabeledVector vector) {
+  public double getScore(Vector vector) {
     return points.contains(vector) ? 1.0 : 0.0;
   }
 
@@ -86,12 +85,12 @@ public class Cluster implements Serializable, Iterable<LabeledVector> {
    *
    * @return the points
    */
-  public List<LabeledVector> getPoints() {
+  public List<Vector> getPoints() {
     return points;
   }
 
   @Override
-  public Iterator<LabeledVector> iterator() {
+  public Iterator<Vector> iterator() {
     return points.iterator();
   }
 
@@ -113,7 +112,7 @@ public class Cluster implements Serializable, Iterable<LabeledVector> {
 
   @Override
   public String toString() {
-    return points.stream().map(LabeledVector::getLabel).collect(Collectors.toList()).toString();
+    return "Cluster(id=" + id + ", size=" + points.size() + ")";
   }
 
 }//END OF Cluster

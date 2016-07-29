@@ -51,12 +51,12 @@ public class FlatHardClustering extends Clustering implements Iterable<Cluster> 
     super(encoderPair, distanceMeasure);
     this.clusters = clusters;
     for (int i = 0; i < this.clusters.size(); i++) {
-      this.clusters.get(i).setIndex(i);
+      this.clusters.get(i).setId(i);
     }
   }
 
   public void addCluster(@NonNull Cluster cluster) {
-    cluster.setIndex(this.clusters.size());
+    cluster.setId(this.clusters.size());
     this.clusters.add(cluster);
   }
 
@@ -89,7 +89,7 @@ public class FlatHardClustering extends Clustering implements Iterable<Cluster> 
   public int hardCluster(@NonNull Instance instance) {
     Vector vector = instance.toVector(getEncoderPair());
     return clusters.parallelStream()
-      .map(c -> $(c.getIndex(), getDistanceMeasure().calculate(vector, c.getCentroid())))
+      .map(c -> $(c.getId(), getDistanceMeasure().calculate(vector, c.getCentroid())))
       .min((t1, t2) -> Double.compare(t1.getValue(), t2.getValue()))
       .map(Tuple2::getKey)
       .orElse(-1);

@@ -97,11 +97,9 @@ public class HierarchicalClustering extends Clustering {
 
   @Override
   public double[] softCluster(@NonNull Instance instance) {
-    return new double[]{linkage.calculate(
-      instance.toVector(getEncoderPair()),
-      root,
-      getDistanceMeasure()
-    )};
+    return new double[]{
+      linkage.calculate(instance.toVector(getEncoderPair()), root, getDistanceMeasure())
+    };
   }
 
   private void process(Cluster c, List<Cluster> flat, double threshold) {

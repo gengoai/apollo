@@ -86,7 +86,7 @@ public class KMeans extends Clusterer<FlatHardClustering> {
     List<LabeledVector> instances = instanceStream.collect();
     for (Vector centroid : initCentroids(instances)) {
       Cluster c = new Cluster();
-      c.setIndex(c.size());
+      c.setId(c.size());
       c.setCentroid(centroid);
       clustering.addCluster(c);
     }

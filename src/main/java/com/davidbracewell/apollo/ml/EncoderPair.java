@@ -11,6 +11,7 @@ import java.io.Serializable;
  */
 @EqualsAndHashCode(callSuper = false)
 public final class EncoderPair implements Serializable {
+  private static final long serialVersionUID = 1L;
   private final LabelEncoder labelEncoder;
   private final Encoder featureEncoder;
 
@@ -25,6 +26,13 @@ public final class EncoderPair implements Serializable {
     this.featureEncoder = featureEncoder;
   }
 
+  /**
+   * Encode t.
+   *
+   * @param <T>     the type parameter
+   * @param example the example
+   * @return the t
+   */
   public <T extends Example> T encode(T example) {
     if (example != null) {
       labelEncoder.encode(example.getLabelSpace());
@@ -117,6 +125,11 @@ public final class EncoderPair implements Serializable {
     this.featureEncoder.freeze();
   }
 
+  /**
+   * Create new encoder pair.
+   *
+   * @return the encoder pair
+   */
   public EncoderPair createNew() {
     return new EncoderPair(labelEncoder.createNew(), featureEncoder.createNew());
   }

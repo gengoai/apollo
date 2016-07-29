@@ -14,9 +14,20 @@ import java.util.stream.Stream;
  */
 public interface Encoder {
 
+  /**
+   * Get double.
+   *
+   * @param object the object
+   * @return the double
+   */
   double get(Object object);
 
 
+  /**
+   * Fit.
+   *
+   * @param dataset the dataset
+   */
   void fit(Dataset<? extends Example> dataset);
 
   /**

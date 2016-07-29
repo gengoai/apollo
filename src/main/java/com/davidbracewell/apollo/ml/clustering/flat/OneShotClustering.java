@@ -62,7 +62,7 @@ class OneShotClustering extends FlatHardClustering {
           for (Vector jj : cluster) {
             d += getDistanceMeasure().calculate(vector, jj);
           }
-          return $(cluster.getIndex(), d);
+          return $(cluster.getId(), d);
         }
       ).min((t1, t2) -> Double.compare(t1.v2, t2.v2))
       .orElse($(-1, 0.0));

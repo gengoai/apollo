@@ -62,7 +62,7 @@ class CRPClustering extends FlatHardClustering {
           for (Vector jj : cluster) {
             max = Math.max(max, getDistanceMeasure().calculate(vector, jj));
           }
-          return $(cluster.getIndex(), max);
+          return $(cluster.getId(), max);
         }
       ).min((t1, t2) -> Double.compare(t1.v2, t2.v2))
       .orElse($(-1, 0.0));

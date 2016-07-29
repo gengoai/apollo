@@ -15,6 +15,7 @@ import java.util.function.Supplier;
  */
 @Value
 public class TrainTest<T extends Example> implements Serializable {
+  private static final long serialVersionUID = 1L;
   private Dataset<T> train;
   private Dataset<T> test;
 

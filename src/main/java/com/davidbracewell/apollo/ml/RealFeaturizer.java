@@ -24,6 +24,7 @@ package com.davidbracewell.apollo.ml;
 import com.davidbracewell.cache.Cached;
 import com.davidbracewell.collection.Counter;
 
+import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -39,6 +40,9 @@ public abstract class RealFeaturizer<T> implements Featurizer<T> {
   @Override
   @Cached
   public final Set<Feature> apply(T input) {
+    if (input == null) {
+      return Collections.emptySet();
+    }
     return applyImpl(input).entries().stream().map(entry -> Feature.real(entry.getKey(), entry.getValue())).collect(Collectors.toSet());
   }
 

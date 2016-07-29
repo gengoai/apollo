@@ -100,7 +100,7 @@ public class CRPLikeClusterer extends Clusterer<FlatHardClustering> {
 
       while (clusters.size() <= ci) {
         clusters.add(new Cluster());
-        clusters.get(clusters.size() - 1).setIndex(clusters.size() - 1);
+        clusters.get(clusters.size() - 1).setId(clusters.size() - 1);
       }
       clusters.get(ci).addPoint(ii);
       assignments.put(ii, ci);

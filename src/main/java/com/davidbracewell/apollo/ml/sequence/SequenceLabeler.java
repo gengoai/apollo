@@ -24,7 +24,7 @@ public abstract class SequenceLabeler implements Model {
   private final PreprocessorList<Sequence> preprocessors;
   private final TransitionFeatures transitionFeatures;
   private final SequenceValidator validator;
-  private EncoderPair encoderPair;
+  protected EncoderPair encoderPair;
   private volatile Decoder decoder = new BeamDecoder();
 
 //  private Featurizer featurizer;
@@ -36,7 +36,7 @@ public abstract class SequenceLabeler implements Model {
    * @param featureEncoder     the feature encoder
    * @param preprocessors      the preprocessors
    * @param transitionFeatures the transition features
-   * @param validator
+   * @param validator the validator
    */
   public SequenceLabeler(LabelEncoder labelEncoder, Encoder featureEncoder, PreprocessorList<Sequence> preprocessors, TransitionFeatures transitionFeatures, SequenceValidator validator) {
     this.encoderPair = new EncoderPair(labelEncoder, featureEncoder);

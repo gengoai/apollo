@@ -1,13 +1,16 @@
 package com.davidbracewell.apollo.ml.sequence;
 
+import com.davidbracewell.apollo.ml.Feature;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.ml.sequence.decoder.DecoderState;
 import com.davidbracewell.collection.Interner;
 import com.davidbracewell.string.StringUtils;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -37,6 +40,21 @@ public class TransitionFeatures implements Serializable {
     }
   }
 
+
+  public List<Instance> toInstances(Sequence sequence) {
+    ContextualIterator<Instance> itr = sequence.iterator();
+    List<Instance> instances = new ArrayList<>();
+    while (itr.hasNext()) {
+      Instance instance = itr.next();
+      List<Feature> features = Lists.newArrayList(instance);
+      Iterator<String> transitions = extract(itr);
+      while (transitions.hasNext()) {
+        features.add(Feature.TRUE(transitions.next()));
+      }
+      instances.add(Instance.create(features, instance.getLabel()));
+    }
+    return instances;
+  }
 
   public void fitTransitionsFeatures(Dataset<Sequence> dataset) {
     dataset.getFeatureEncoder().fit(

@@ -38,6 +38,7 @@ public abstract class SequenceLabelerLearner extends Learner<Sequence, SequenceL
     dataset.getEncoderPair().freeze();
     SequenceLabeler model = trainImpl(dataset);
     model.finishTraining();
+    model.getFeatureEncoder().freeze();
     return model;
   }
 

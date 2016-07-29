@@ -5,7 +5,10 @@ import com.davidbracewell.apollo.ml.classification.ClassifierLearner;
 import com.davidbracewell.apollo.ml.data.Dataset;
 import lombok.NonNull;
 
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author David B. Bracewell
@@ -27,11 +30,14 @@ public class WindowedLearner extends SequenceLabelerLearner {
       getTransitionFeatures(),
       getValidator()
     );
+
     Dataset<Instance> nd = Dataset.classification()
-      .source(dataset.stream().flatMap(Sequence::asInstances))
+      .source(dataset.stream().flatMap(sequence -> getTransitionFeatures().toInstances(sequence)))
       .build();
+
     dataset.close();
     wl.classifier = learner.train(nd);
+    wl.encoderPair = wl.classifier.getEncoderPair();
     return wl;
   }
 
@@ -39,6 +45,9 @@ public class WindowedLearner extends SequenceLabelerLearner {
   public void reset() {
     learner.reset();
   }
+
+
+
 
   @Override
   public Map<String, ?> getParameters() {

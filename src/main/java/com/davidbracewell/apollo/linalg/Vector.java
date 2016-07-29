@@ -158,6 +158,7 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
    * @return the scalar dot product of this instance and rhs.
    */
   default double dot(@NonNull Vector rhs) {
+    System.err.println(dimension() + " == " + rhs.dimension());
     Preconditions.checkArgument(rhs.dimension() == dimension(), "Dimension mismatch");
     AtomicDouble dot = new AtomicDouble(0d);
     Vector small = size() < rhs.size() ? this : rhs;

@@ -142,11 +142,12 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
    * @return the dataset
    */
   public Dataset<T> encode() {
-    if (getFeatureEncoder().isFrozen() && getLabelEncoder().isFrozen()) {
-      return this;
+    if (!getFeatureEncoder().isFrozen()) {
+      getFeatureEncoder().fit(this);
     }
-    getFeatureEncoder().fit(this);
-    getLabelEncoder().fit(this);
+    if (!getLabelEncoder().isFrozen()) {
+      getLabelEncoder().fit(this);
+    }
     log.info("Encoded {0} Features and {1} Labels", getFeatureEncoder().size(), getLabelEncoder().size());
     return this;
   }

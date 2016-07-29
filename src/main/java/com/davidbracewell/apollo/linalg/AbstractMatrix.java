@@ -26,6 +26,7 @@ import com.google.common.base.Preconditions;
 import lombok.NonNull;
 
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -135,6 +136,11 @@ public abstract class AbstractMatrix implements Matrix, Serializable {
       }
       return v;
     }
+
+    @Override
+    public String toString() {
+      return Arrays.toString(toArray());
+    }
   }
 
   class RowVector implements Vector, Serializable {
@@ -143,6 +149,11 @@ public abstract class AbstractMatrix implements Matrix, Serializable {
 
     RowVector(int row) {
       this.row = row;
+    }
+
+    @Override
+    public String toString() {
+      return Arrays.toString(toArray());
     }
 
     @Override

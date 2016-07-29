@@ -5,7 +5,6 @@ import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.preprocess.RestrictedInstancePreprocessor;
 import com.davidbracewell.collection.HashMapCounter;
 import com.davidbracewell.stream.MStream;
-import com.google.common.collect.Range;
 import lombok.NonNull;
 
 import java.io.Serializable;
@@ -18,19 +17,19 @@ import java.util.stream.Stream;
 /**
  * @author David B. Bracewell
  */
-public class CountFilter extends RestrictedInstancePreprocessor implements FilterProcessor<Instance>, Serializable {
+public class MinCountFilter extends RestrictedInstancePreprocessor implements FilterProcessor<Instance>, Serializable {
   private static final long serialVersionUID = 1L;
-  private final Range<Double> range;
+  private final long minCount;
   private volatile Set<String> selectedFeatures = Collections.emptySet();
 
-  public CountFilter(@NonNull String featurePrefix, @NonNull Range<Double> filter) {
+  public MinCountFilter(@NonNull String featurePrefix, long minCount) {
     super(featurePrefix);
-    this.range = filter;
+    this.minCount = minCount;
   }
 
-  public CountFilter(@NonNull Range<Double> filter) {
+  public MinCountFilter(long minCount) {
     super(null);
-    this.range = filter;
+    this.minCount = minCount;
   }
 
   @Override
@@ -39,7 +38,7 @@ public class CountFilter extends RestrictedInstancePreprocessor implements Filte
       stream.flatMap(l -> l.stream().map(Feature::getName).collect(Collectors.toList()))
         .countByValue()
     )
-      .filterByValue(range::contains)
+      .filterByValue(v -> v >= minCount)
       .items();
   }
 
@@ -56,9 +55,9 @@ public class CountFilter extends RestrictedInstancePreprocessor implements Filte
   @Override
   public String describe() {
     if (acceptAll()) {
-      return "CountFilter: " + range.toString();
+      return "CountFilter: minCount=" + minCount;
     }
-    return "CountFilter[" + getRestriction() + "]: " + range.toString();
+    return "CountFilter[" + getRestriction() + "]: minCount=" + minCount;
   }
 
 }// END OF CountFilter

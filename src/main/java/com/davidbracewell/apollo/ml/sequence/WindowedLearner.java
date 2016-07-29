@@ -1,8 +1,8 @@
 package com.davidbracewell.apollo.ml.sequence;
 
-import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.classification.ClassifierLearner;
+import com.davidbracewell.apollo.ml.data.Dataset;
 import lombok.NonNull;
 
 import java.util.Map;
@@ -37,7 +37,7 @@ public class WindowedLearner extends SequenceLabelerLearner {
 
   @Override
   public void reset() {
-
+    learner.reset();
   }
 
   @Override

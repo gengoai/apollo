@@ -8,9 +8,11 @@ import com.davidbracewell.string.StringUtils;
 import com.google.common.base.Preconditions;
 
 import java.io.Serializable;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Set;
 
 /**
  * @author David B. Bracewell
@@ -37,13 +39,22 @@ public class TransitionFeatures implements Serializable {
 
 
   public void fitTransitionsFeatures(Dataset<Sequence> dataset) {
-    dataset.stream().forEach(sequence -> {
-      ContextualIterator<Instance> ci = sequence.iterator();
-      while (ci.hasNext()) {
-        ci.next();
-        extract(ci).forEachRemaining(t -> dataset.getFeatureEncoder().encode(t));
-      }
-    });
+    dataset.getFeatureEncoder().fit(
+      dataset.stream()
+        .flatMap(sequence -> {
+            ContextualIterator<Instance> ci = sequence.iterator();
+            Set<String> features = new HashSet<>();
+            while (ci.hasNext()) {
+              ci.next();
+              Iterator<String> itr = extract(ci);
+              while (itr.hasNext()) {
+                features.add(itr.next());
+              }
+            }
+            return features;
+          }
+        )
+    );
   }
 
   public int getHistorySize() {

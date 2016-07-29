@@ -4,6 +4,7 @@ import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.collection.HashMapIndex;
 import com.davidbracewell.collection.Index;
 import com.davidbracewell.conversion.Cast;
+import com.davidbracewell.stream.MStream;
 import lombok.NonNull;
 
 import java.io.Serializable;
@@ -40,10 +41,23 @@ public class IndexEncoder implements Encoder, Serializable {
   }
 
   @Override
+  public void fit(MStream<String> stream) {
+    if (!isFrozen()) {
+      this.index.addAll(
+        stream
+          .filter(Objects::nonNull)
+          .distinct()
+          .collect()
+      );
+    }
+  }
+
+  @Override
   public void fit(@NonNull Dataset<? extends Example> dataset) {
     if (!isFrozen()) {
       this.index.addAll(
         dataset.stream()
+          .parallel()
           .flatMap(ex -> ex.getFeatureSpace().filter(Objects::nonNull).collect(Collectors.toSet()))
           .filter(Objects::nonNull)
           .distinct()

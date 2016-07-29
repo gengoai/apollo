@@ -2,6 +2,7 @@ package com.davidbracewell.apollo.ml;
 
 import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.conversion.Cast;
+import com.davidbracewell.stream.MStream;
 import com.google.common.base.Preconditions;
 import lombok.NonNull;
 
@@ -25,6 +26,11 @@ public class RealEncoder implements Serializable, LabelEncoder {
 
   @Override
   public void fit(Dataset<? extends Example> dataset) {
+
+  }
+
+  @Override
+  public void fit(MStream<String> stream) {
 
   }
 

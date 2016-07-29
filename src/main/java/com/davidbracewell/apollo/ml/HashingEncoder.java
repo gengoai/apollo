@@ -1,6 +1,7 @@
 package com.davidbracewell.apollo.ml;
 
 import com.davidbracewell.apollo.ml.data.Dataset;
+import com.davidbracewell.stream.MStream;
 import com.google.common.base.Preconditions;
 import lombok.NonNull;
 
@@ -38,6 +39,10 @@ public class HashingEncoder implements Encoder, Serializable {
 
   }
 
+  @Override
+  public void fit(MStream<String> stream) {
+
+  }
 
   @Override
   public double encode(@NonNull Object object) {

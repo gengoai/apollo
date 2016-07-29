@@ -1,6 +1,7 @@
 package com.davidbracewell.apollo.ml;
 
 import com.davidbracewell.apollo.ml.data.Dataset;
+import com.davidbracewell.stream.MStream;
 import lombok.NonNull;
 
 import java.util.List;
@@ -22,13 +23,14 @@ public interface Encoder {
    */
   double get(Object object);
 
-
   /**
    * Fit.
    *
    * @param dataset the dataset
    */
   void fit(Dataset<? extends Example> dataset);
+
+  void fit(MStream<String> stream);
 
   /**
    * Encodes a stream of objects returning a double stream containing the encoded values.

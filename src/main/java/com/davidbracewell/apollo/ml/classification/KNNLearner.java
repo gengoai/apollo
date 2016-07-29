@@ -4,9 +4,9 @@ import com.davidbracewell.apollo.linalg.CosineDistanceSignature;
 import com.davidbracewell.apollo.linalg.InMemoryLSH;
 import com.davidbracewell.apollo.linalg.LabeledVector;
 import com.davidbracewell.apollo.linalg.SignatureFunction;
-import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.ml.FeatureVector;
 import com.davidbracewell.apollo.ml.Instance;
+import com.davidbracewell.apollo.ml.data.Dataset;
 import lombok.NonNull;
 
 import java.util.function.BiFunction;
@@ -35,7 +35,7 @@ public class KNNLearner extends ClassifierLearner {
       .createVectorStore();
     dataset.forEach(instance -> {
       FeatureVector fv = instance.toVector(model.getEncoderPair());
-      model.vectors.add(new LabeledVector((int) fv.getLabel(), fv));
+      model.vectors.add(new LabeledVector(fv.getLabel().intValue(), fv));
     });
     return model;
   }

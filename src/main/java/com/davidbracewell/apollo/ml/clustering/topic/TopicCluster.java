@@ -1,6 +1,6 @@
 package com.davidbracewell.apollo.ml.clustering.topic;
 
-import com.davidbracewell.apollo.linalg.LabeledVector;
+import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.clustering.Cluster;
 
 import java.util.HashMap;
@@ -11,15 +11,15 @@ import java.util.Map;
  */
 public class TopicCluster extends Cluster {
   private static final long serialVersionUID = 1L;
-  private final Map<LabeledVector, Double> scores = new HashMap<>();
+  private final Map<Vector, Double> scores = new HashMap<>();
 
-  public void addPoint(LabeledVector vector, double score) {
+  public void addPoint(Vector vector, double score) {
     super.addPoint(vector);
     scores.put(vector, score);
   }
 
   @Override
-  public double getScore(LabeledVector vector) {
+  public double getScore(Vector vector) {
     return scores.getOrDefault(vector, 0.0);
   }
 

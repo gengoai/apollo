@@ -1,7 +1,7 @@
 package com.davidbracewell.apollo.ml.clustering.flat;
 
 import com.davidbracewell.Lazy;
-import com.davidbracewell.apollo.linalg.LabeledVector;
+import com.davidbracewell.apollo.linalg.Vector;
 import org.apache.commons.math3.ml.clustering.Clusterable;
 
 import java.io.Serializable;
@@ -11,14 +11,14 @@ import java.io.Serializable;
  */
 public class ApacheClusterable implements Clusterable, Serializable {
   private static final long serialVersionUID = 1L;
-  private volatile LabeledVector vector;
+  private volatile Vector vector;
   private Lazy<double[]> point = new Lazy<>(() -> vector.toArray());
 
-  public ApacheClusterable(LabeledVector vector) {
+  public ApacheClusterable(Vector vector) {
     this.vector = vector;
   }
 
-  public LabeledVector getVector() {
+  public Vector getVector() {
     return vector;
   }
 

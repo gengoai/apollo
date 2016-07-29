@@ -27,11 +27,13 @@ import com.davidbracewell.apollo.ml.EncoderPair;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.clustering.Cluster;
 import com.davidbracewell.apollo.ml.clustering.Clustering;
-import com.davidbracewell.apollo.ml.clustering.flat.FlatHardClustering;
+import com.davidbracewell.apollo.ml.clustering.flat.KMeansClustering;
 import lombok.NonNull;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -39,10 +41,12 @@ import java.util.List;
  *
  * @author David B. Bracewell
  */
-public class HierarchicalClustering extends Clustering {
+public class HierarchicalClustering implements Clustering, Serializable {
   private static final long serialVersionUID = 1L;
   Cluster root;
   Linkage linkage;
+  private EncoderPair encoderPair;
+  private DistanceMeasure distanceMeasure;
 
   /**
    * Instantiates a new Hierarchical clustering.
@@ -50,9 +54,35 @@ public class HierarchicalClustering extends Clustering {
    * @param encoderPair the encoder pair
    */
   public HierarchicalClustering(@NonNull EncoderPair encoderPair, @NonNull DistanceMeasure distanceMeasure) {
-    super(encoderPair, distanceMeasure);
+    this.encoderPair = encoderPair;
+    this.distanceMeasure = distanceMeasure;
   }
 
+
+  @Override
+  public DistanceMeasure getDistanceMeasure() {
+    return distanceMeasure;
+  }
+
+  @Override
+  public boolean isFlat() {
+    return false;
+  }
+
+  @Override
+  public EncoderPair getEncoderPair() {
+    return encoderPair;
+  }
+
+  @Override
+  public int hardCluster(@NonNull Instance instance) {
+    return 0;
+  }
+
+  @Override
+  public Iterator<Cluster> iterator() {
+    return Collections.singleton(root).iterator();
+  }
 
   /**
    * Gets root.
@@ -72,7 +102,9 @@ public class HierarchicalClustering extends Clustering {
   public Clustering asFlat(double threshold) {
     List<Cluster> flat = new ArrayList<>();
     process(root, flat, threshold);
-    return new FlatHardClustering(getEncoderPair(), getDistanceMeasure(), flat);
+    KMeansClustering kmeans = new KMeansClustering(getEncoderPair(), getDistanceMeasure());
+    flat.forEach(kmeans::addCluster);
+    return kmeans;
   }
 
   @Override

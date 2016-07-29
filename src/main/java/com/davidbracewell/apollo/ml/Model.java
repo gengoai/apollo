@@ -10,9 +10,9 @@ import java.io.Serializable;
  *
  * @author David B. Bracewell
  */
-public abstract class Model implements Serializable {
-  private static final long serialVersionUID = 1L;
-  private final EncoderPair encoderPair;
+public interface Model extends Serializable {
+//  private static final long serialVersionUID = 1L;
+//  private final EncoderPair getEncoderPair();
 
   /**
    * Instantiates a new Model.
@@ -20,18 +20,18 @@ public abstract class Model implements Serializable {
    * @param labelEncoder   the label encoder
    * @param featureEncoder the feature encoder
    */
-  public Model(@NonNull LabelEncoder labelEncoder, @NonNull Encoder featureEncoder) {
-    this.encoderPair = new EncoderPair(labelEncoder, featureEncoder);
-  }
+//  public Model(@NonNull LabelEncoder labelEncoder, @NonNull Encoder featureEncoder) {
+//    this.getEncoderPair() = new EncoderPair(labelEncoder, featureEncoder);
+//  }
 
   /**
    * Instantiates a new Model.
    *
-   * @param encoderPair the encoder pair
+   * @param getEncoderPair() the encoder pair
    */
-  public Model(@NonNull EncoderPair encoderPair) {
-    this.encoderPair = encoderPair;
-  }
+//  public Model(@NonNull EncoderPair getEncoderPair()) {
+//    this.getEncoderPair() = getEncoderPair();
+//  }
 
   /**
    * Read model classifier.
@@ -41,7 +41,7 @@ public abstract class Model implements Serializable {
    * @return the classifier
    * @throws Exception the exception
    */
-  public static <T extends Model> T read(@NonNull Resource modelResource) throws Exception {
+  static <T extends Model> T read(@NonNull Resource modelResource) throws Exception {
     return modelResource.readObject();
   }
 
@@ -50,8 +50,8 @@ public abstract class Model implements Serializable {
    *
    * @return the int
    */
-  public int numberOfLabels() {
-    return encoderPair.numberOfLabels();
+  default int numberOfLabels() {
+    return getEncoderPair().numberOfLabels();
   }
 
   /**
@@ -59,8 +59,8 @@ public abstract class Model implements Serializable {
    *
    * @return the int
    */
-  public int numberOfFeatures() {
-    return encoderPair.numberOfFeatures();
+  default int numberOfFeatures() {
+    return getEncoderPair().numberOfFeatures();
   }
 
   /**
@@ -68,8 +68,8 @@ public abstract class Model implements Serializable {
    *
    * @return the label encoder
    */
-  public LabelEncoder getLabelEncoder() {
-    return encoderPair.getLabelEncoder();
+  default LabelEncoder getLabelEncoder() {
+    return getEncoderPair().getLabelEncoder();
   }
 
   /**
@@ -77,8 +77,8 @@ public abstract class Model implements Serializable {
    *
    * @return the feature encoder
    */
-  public Encoder getFeatureEncoder() {
-    return encoderPair.getFeatureEncoder();
+  default Encoder getFeatureEncoder() {
+    return getEncoderPair().getFeatureEncoder();
   }
 
   /**
@@ -86,9 +86,7 @@ public abstract class Model implements Serializable {
    *
    * @return the encoder pair
    */
-  public EncoderPair getEncoderPair() {
-    return encoderPair;
-  }
+  EncoderPair getEncoderPair();
 
   /**
    * Write model.
@@ -96,7 +94,7 @@ public abstract class Model implements Serializable {
    * @param modelResource the model resource
    * @throws Exception the exception
    */
-  public void write(@NonNull Resource modelResource) throws Exception {
+  default void write(@NonNull Resource modelResource) throws Exception {
     modelResource.setIsCompressed(true).writeObject(this);
   }
 
@@ -106,8 +104,8 @@ public abstract class Model implements Serializable {
    * @param label the label
    * @return the double
    */
-  public double encodeLabel(Object label) {
-    return encoderPair.encodeLabel(label);
+  default double encodeLabel(Object label) {
+    return getEncoderPair().encodeLabel(label);
   }
 
   /**
@@ -116,8 +114,8 @@ public abstract class Model implements Serializable {
    * @param value the value
    * @return the object
    */
-  public Object decodeLabel(double value) {
-    return encoderPair.decodeLabel(value);
+  default Object decodeLabel(double value) {
+    return getEncoderPair().decodeLabel(value);
   }
 
   /**
@@ -126,8 +124,8 @@ public abstract class Model implements Serializable {
    * @param feature the feature
    * @return the double
    */
-  public double encodeFeature(Object feature) {
-    return encoderPair.encodeFeature(feature);
+  default double encodeFeature(Object feature) {
+    return getEncoderPair().encodeFeature(feature);
   }
 
   /**
@@ -136,15 +134,15 @@ public abstract class Model implements Serializable {
    * @param value the value
    * @return the object
    */
-  public Object decodeFeature(double value) {
-    return encoderPair.decodeFeature(value);
+  default Object decodeFeature(double value) {
+    return getEncoderPair().decodeFeature(value);
   }
 
   /**
    * Finish training.
    */
-  protected void finishTraining() {
-    encoderPair.freeze();
+  default void finishTraining() {
+    getEncoderPair().freeze();
   }
 
 }// END OF Model

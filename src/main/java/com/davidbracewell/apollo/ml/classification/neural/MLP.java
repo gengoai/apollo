@@ -93,7 +93,7 @@ public class MLP extends ClassifierLearner {
         N++;
         FeatureVector v = instance.toVector(model.getEncoderPair());
         Vector yVec = new DenseVector(model.numberOfLabels());
-        yVec.set((int) v.getLabel(), 1);
+        yVec.set(v.getLabel().intValue(), 1);
         error += model.network.backprop(
           model.network.forward(v),
           v,

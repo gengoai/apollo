@@ -22,6 +22,7 @@
 package com.davidbracewell.apollo.ml.clustering.flat;
 
 import com.davidbracewell.apollo.linalg.LabeledVector;
+import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.clustering.Cluster;
 import com.davidbracewell.apollo.ml.clustering.ClustererTest;
 import com.davidbracewell.apollo.ml.clustering.Clustering;
@@ -52,13 +53,13 @@ public class DistributedKMeansTest extends ClustererTest {
 
     Cluster c1 = c.get(0);
     String target = c1.getPoints().get(0).getLabel().toString();
-    for (LabeledVector point : c1.getPoints()) {
+    for (Vector point : c1.getPoints()) {
       assertEquals(target, point.getLabel().toString());
     }
 
     Cluster c2 = c.get(1);
     target = c2.getPoints().get(0).getLabel().toString();
-    for (LabeledVector point : c2.getPoints()) {
+    for (Vector point : c2.getPoints()) {
       assertEquals(target, point.getLabel().toString());
     }
   }

@@ -52,7 +52,7 @@ public class FeatureVector extends SparseVector {
    *
    * @return the label
    */
-  public double getLabel() {
+  public Double getLabel() {
     return label;
   }
 

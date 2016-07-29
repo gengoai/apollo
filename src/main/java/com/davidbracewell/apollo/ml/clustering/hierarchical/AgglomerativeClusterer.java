@@ -23,8 +23,7 @@ package com.davidbracewell.apollo.ml.clustering.hierarchical;
 
 import com.davidbracewell.apollo.affinity.Distance;
 import com.davidbracewell.apollo.affinity.DistanceMeasure;
-import com.davidbracewell.apollo.linalg.LabeledVector;
-import com.davidbracewell.apollo.ml.Instance;
+import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.clustering.Cluster;
 import com.davidbracewell.apollo.ml.clustering.Clusterer;
 import com.davidbracewell.stream.MStream;
@@ -102,8 +101,8 @@ public class AgglomerativeClusterer extends Clusterer<HierarchicalClustering> {
   }
 
   @Override
-  public HierarchicalClustering cluster(@NonNull MStream<LabeledVector> instanceStream) {
-    List<LabeledVector> instances = instanceStream.collect();
+  public HierarchicalClustering cluster(@NonNull MStream<Vector> instanceStream) {
+    List<Vector> instances = instanceStream.collect();
     Table<Cluster, Cluster, Double> distanceMatrix = HashBasedTable.create();
     List<Cluster> clusters = initDistanceMatrix(instances, distanceMatrix);
 
@@ -147,7 +146,7 @@ public class AgglomerativeClusterer extends Clusterer<HierarchicalClustering> {
       clusters.remove(minC.getV1());
       clusters.remove(minC.getV2());
 
-      for (LabeledVector point : Iterables.concat(minC.getV1().getPoints(), minC.getV2().getPoints())) {
+      for (Vector point : Iterables.concat(minC.getV1().getPoints(), minC.getV2().getPoints())) {
         cprime.addPoint(point);
       }
 
@@ -157,9 +156,9 @@ public class AgglomerativeClusterer extends Clusterer<HierarchicalClustering> {
 
   }
 
-  private List<Cluster> initDistanceMatrix(List<LabeledVector> instances, Table<Cluster, Cluster, Double> distanceMatrix) {
+  private List<Cluster> initDistanceMatrix(List<Vector> instances, Table<Cluster, Cluster, Double> distanceMatrix) {
     List<Cluster> clusters = new ArrayList<>();
-    for (LabeledVector item : instances) {
+    for (Vector item : instances) {
       Cluster c = new Cluster();
       c.addPoint(item);
       clusters.add(c);

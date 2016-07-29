@@ -1,6 +1,7 @@
 package com.davidbracewell.apollo.ml.sequence;
 
 import com.davidbracewell.apollo.ml.Encoder;
+import com.davidbracewell.apollo.ml.EncoderPair;
 import com.davidbracewell.apollo.ml.Feature;
 import com.davidbracewell.apollo.ml.LabelEncoder;
 import com.davidbracewell.apollo.ml.Model;
@@ -17,12 +18,13 @@ import java.util.Iterator;
  *
  * @author David B. Bracewell
  */
-public abstract class SequenceLabeler extends Model {
+public abstract class SequenceLabeler implements Model {
   private static final long serialVersionUID = 1L;
   @Getter
   private final PreprocessorList<Sequence> preprocessors;
   private final TransitionFeatures transitionFeatures;
   private final SequenceValidator validator;
+  private EncoderPair encoderPair;
   private volatile Decoder decoder = new BeamDecoder();
 
 //  private Featurizer featurizer;
@@ -37,10 +39,15 @@ public abstract class SequenceLabeler extends Model {
    * @param validator
    */
   public SequenceLabeler(LabelEncoder labelEncoder, Encoder featureEncoder, PreprocessorList<Sequence> preprocessors, TransitionFeatures transitionFeatures, SequenceValidator validator) {
-    super(labelEncoder, featureEncoder);
+    this.encoderPair = new EncoderPair(labelEncoder, featureEncoder);
     this.validator = validator;
     this.preprocessors = preprocessors.getModelProcessors();
     this.transitionFeatures = transitionFeatures;
+  }
+
+  @Override
+  public EncoderPair getEncoderPair() {
+    return encoderPair;
   }
 
   /**
@@ -81,10 +88,5 @@ public abstract class SequenceLabeler extends Model {
     return transitionFeatures;
   }
 
-
-  @Override
-  protected void finishTraining() {
-    super.finishTraining();
-  }
 
 }// END OF SequenceLabeler

@@ -59,6 +59,7 @@ public class LabeledVector extends ForwardingVector {
    * @param <T> the type parameter
    * @return the label
    */
+  @Override
   public <T> T getLabel() {
     return Cast.as(label);
   }

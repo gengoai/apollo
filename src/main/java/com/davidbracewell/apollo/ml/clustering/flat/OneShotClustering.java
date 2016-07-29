@@ -38,7 +38,7 @@ import static com.davidbracewell.tuple.Tuples.$;
 /**
  * @author David B. Bracewell
  */
-class OneShotClustering extends FlatHardClustering {
+class OneShotClustering extends FlatClustering {
   private static final long serialVersionUID = 1L;
 
   OneShotClustering(@NonNull EncoderPair encoderPair, DistanceMeasure distanceMeasure) {

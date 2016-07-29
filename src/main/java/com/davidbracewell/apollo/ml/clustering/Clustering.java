@@ -21,14 +21,10 @@
 
 package com.davidbracewell.apollo.ml.clustering;
 
-import com.davidbracewell.apollo.ApolloMath;
 import com.davidbracewell.apollo.affinity.DistanceMeasure;
-import com.davidbracewell.apollo.linalg.Vector;
-import com.davidbracewell.apollo.ml.EncoderPair;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.Model;
 import com.davidbracewell.apollo.ml.data.Dataset;
-import com.davidbracewell.function.SerializableBiFunction;
 import com.davidbracewell.stream.MPairStream;
 import lombok.NonNull;
 
@@ -42,37 +38,22 @@ import static com.davidbracewell.tuple.Tuples.$;
  *
  * @author David B. Bracewell
  */
-public abstract class Clustering extends Model {
-  private static final long serialVersionUID = 1L;
-  private final DistanceMeasure distanceMeasure;
-  private SerializableBiFunction<Vector, Cluster, Double> scoringFunction;
-
-  /**
-   * Instantiates a new Clustering.
-   *
-   * @param encoderPair     the encoder pair
-   * @param distanceMeasure the distance measure
-   */
-  protected Clustering(EncoderPair encoderPair, DistanceMeasure distanceMeasure) {
-    super(encoderPair);
-    this.distanceMeasure = distanceMeasure;
-  }
+public interface Clustering extends Model, Iterable<Cluster> {
 
   /**
    * Gets distance measure.
    *
    * @return the distance measure
    */
-  public DistanceMeasure getDistanceMeasure() {
-    return distanceMeasure;
-  }
+  DistanceMeasure getDistanceMeasure();
+
 
   /**
    * Size int.
    *
    * @return the int
    */
-  public abstract int size();
+  int size();
 
   /**
    * Get cluster.
@@ -80,39 +61,35 @@ public abstract class Clustering extends Model {
    * @param index the index
    * @return the cluster
    */
-  public abstract Cluster get(int index);
+  Cluster get(int index);
 
   /**
    * Is flat boolean.
    *
    * @return the boolean
    */
-  public boolean isFlat() {
-    return false;
-  }
+  boolean isFlat();
 
   /**
    * Is hierarchical boolean.
    *
    * @return the boolean
    */
-  public boolean isHierarchical() {
-    return false;
-  }
+  boolean isHierarchical();
 
   /**
    * Gets root.
    *
    * @return the root
    */
-  public abstract Cluster getRoot();
+  Cluster getRoot();
 
   /**
    * Gets clusters.
    *
    * @return the clusters
    */
-  public abstract List<Cluster> getClusters();
+  List<Cluster> getClusters();
 
   /**
    * Hard cluster int.
@@ -120,9 +97,7 @@ public abstract class Clustering extends Model {
    * @param instance the instance
    * @return the int
    */
-  public int hardCluster(@NonNull Instance instance) {
-    return ApolloMath.argMin(softCluster(instance)).getV1();
-  }
+  int hardCluster(@NonNull Instance instance);
 
   /**
    * Soft cluster double [ ].
@@ -130,15 +105,27 @@ public abstract class Clustering extends Model {
    * @param instance the instance
    * @return the double [ ]
    */
-  public abstract double[] softCluster(@NonNull Instance instance);
+  double[] softCluster(@NonNull Instance instance);
 
 
-  public MPairStream<Instance, Integer> hardCluster(@NonNull Dataset<Instance> dataset) {
+  /**
+   * Hard cluster m pair stream.
+   *
+   * @param dataset the dataset
+   * @return the m pair stream
+   */
+  default MPairStream<Instance, Integer> hardCluster(@NonNull Dataset<Instance> dataset) {
     return dataset.stream().parallel()
       .mapToPair(i -> $(i, hardCluster(i)));
   }
 
-  public MPairStream<Instance, double[]> softCluster(@NonNull Dataset<Instance> dataset) {
+  /**
+   * Soft cluster m pair stream.
+   *
+   * @param dataset the dataset
+   * @return the m pair stream
+   */
+  default MPairStream<Instance, double[]> softCluster(@NonNull Dataset<Instance> dataset) {
     return dataset.stream().parallel()
       .mapToPair(i -> $(i, softCluster(i)));
   }

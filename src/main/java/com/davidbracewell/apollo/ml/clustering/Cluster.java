@@ -21,7 +21,6 @@
 
 package com.davidbracewell.apollo.ml.clustering;
 
-import com.davidbracewell.apollo.linalg.LabeledVector;
 import com.davidbracewell.apollo.linalg.Vector;
 import lombok.Getter;
 import lombok.Setter;
@@ -64,7 +63,7 @@ public class Cluster implements Serializable, Iterable<Vector> {
    *
    * @param point the point
    */
-  public void addPoint(final LabeledVector point) {
+  public void addPoint(final Vector point) {
     if (point != null) {
       points.add(point);
     }

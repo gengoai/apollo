@@ -1,7 +1,6 @@
 package com.davidbracewell.apollo.ml.clustering.flat;
 
 import com.davidbracewell.apollo.affinity.Distance;
-import com.davidbracewell.apollo.linalg.LabeledVector;
 import com.davidbracewell.apollo.ml.clustering.Cluster;
 import com.davidbracewell.apollo.ml.clustering.Clusterer;
 import com.davidbracewell.stream.MStream;
@@ -10,7 +9,6 @@ import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.mllib.clustering.KMeansModel;
 import org.apache.spark.mllib.linalg.DenseVector;
 import org.apache.spark.mllib.linalg.Vector;
-import org.apache.spark.mllib.regression.LabeledPoint;
 import scala.Tuple2;
 
 import java.util.ArrayList;
@@ -20,7 +18,7 @@ import java.util.List;
 /**
  * @author David B. Bracewell
  */
-public class DistributedKMeans extends Clusterer<FlatHardClustering> {
+public class DistributedKMeans extends Clusterer<FlatClustering> {
   private static final long serialVersionUID = 1L;
   private int K = 2;
   private int maxIterations = 100;
@@ -35,16 +33,16 @@ public class DistributedKMeans extends Clusterer<FlatHardClustering> {
   }
 
   @Override
-  public FlatHardClustering cluster(MStream<LabeledVector> instanceStream) {
+  public FlatClustering cluster(MStream<com.davidbracewell.apollo.linalg.Vector> instanceStream) {
 
 
-    JavaRDD<LabeledPoint> rdd = new SparkStream<>(instanceStream)
-      .map(v -> new LabeledPoint(getEncoderPair().encodeLabel(v.getLabel()), new DenseVector(v.toArray())))
+    JavaRDD<Vector> rdd = new SparkStream<>(instanceStream)
+      .map(v -> (Vector) new DenseVector(v.toArray()))
       .asRDD();
 
 
     KMeansModel model = org.apache.spark.mllib.clustering.KMeans.train(
-      rdd.map(LabeledPoint::features).rdd(),
+      rdd.rdd(),
       K,
       maxIterations
     );
@@ -55,23 +53,22 @@ public class DistributedKMeans extends Clusterer<FlatHardClustering> {
       clusters.add(null);
     }
 
-    for (Iterator<Tuple2<Integer, Iterable<LabeledPoint>>> itr = model.predict(rdd.map(LabeledPoint::features)).zip(rdd)
+    for (Iterator<Tuple2<Integer, Iterable<Vector>>> itr = model.predict(rdd).zip(rdd)
       .groupByKey()
       .toLocalIterator(); itr.hasNext(); ) {
-      Tuple2<Integer, Iterable<LabeledPoint>> tuple = itr.next();
+      Tuple2<Integer, Iterable<Vector>> tuple = itr.next();
       Cluster cluster = new Cluster();
       int i = tuple._1();
       cluster.setCentroid(new com.davidbracewell.apollo.linalg.DenseVector(centroids[i].toArray()));
       if (isKeepPoints()) {
         tuple._2().forEach(lp -> {
-          Object lbl = getEncoderPair().decodeLabel(lp.label());
-          cluster.addPoint(new LabeledVector(lbl, new com.davidbracewell.apollo.linalg.DenseVector(lp.features().toArray())));
+          cluster.addPoint(new com.davidbracewell.apollo.linalg.DenseVector(lp.toArray()));
         });
       }
       clusters.set(i, cluster);
     }
 
-    return new FlatHardClustering(getEncoderPair(), Distance.Euclidean, clusters);
+    return new KMeansClustering(getEncoderPair(), Distance.Euclidean, clusters);
   }
 
 

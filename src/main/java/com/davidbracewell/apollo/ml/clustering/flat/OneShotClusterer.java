@@ -23,7 +23,6 @@ package com.davidbracewell.apollo.ml.clustering.flat;
 
 
 import com.davidbracewell.apollo.affinity.DistanceMeasure;
-import com.davidbracewell.apollo.linalg.LabeledVector;
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.clustering.Cluster;
 import com.davidbracewell.apollo.ml.clustering.Clusterer;
@@ -39,7 +38,7 @@ import java.util.List;
  *
  * @author David B. Bracewell
  */
-public class OneShotClusterer extends Clusterer<FlatHardClustering> {
+public class OneShotClusterer extends Clusterer<FlatClustering> {
   private static final long serialVersionUID = 1L;
   private DistanceMeasure distanceMeasure;
   private double threshold;
@@ -56,11 +55,11 @@ public class OneShotClusterer extends Clusterer<FlatHardClustering> {
   }
 
   @Override
-  public FlatHardClustering cluster(@NonNull MStream<LabeledVector> instanceStream) {
+  public FlatClustering cluster(@NonNull MStream<Vector> instanceStream) {
     OneShotClustering clustering = new OneShotClustering(getEncoderPair(), distanceMeasure);
 
-    List<LabeledVector> instances = instanceStream.collect();
-    for (LabeledVector ii : instances) {
+    List<Vector> instances = instanceStream.collect();
+    for (Vector ii : instances) {
       double minD = Double.POSITIVE_INFINITY;
       int minI = 0;
       for (int k = 0; k < clustering.size(); k++) {
@@ -94,7 +93,7 @@ public class OneShotClusterer extends Clusterer<FlatHardClustering> {
 
   private double distance(Vector ii, Cluster cluster) {
     double d = 0;
-    for (LabeledVector jj : cluster) {
+    for (Vector jj : cluster) {
       d += distanceMeasure.calculate(ii, jj);
     }
     return d / (double) cluster.size();

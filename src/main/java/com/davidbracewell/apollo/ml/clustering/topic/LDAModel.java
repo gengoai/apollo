@@ -1,5 +1,6 @@
 package com.davidbracewell.apollo.ml.clustering.topic;
 
+import com.davidbracewell.apollo.ApolloMath;
 import com.davidbracewell.apollo.affinity.Similarity;
 import com.davidbracewell.apollo.distribution.ConditionalMultinomial;
 import com.davidbracewell.apollo.linalg.SparseVector;
@@ -7,7 +8,7 @@ import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.EncoderPair;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.clustering.Cluster;
-import com.davidbracewell.apollo.ml.clustering.Clustering;
+import com.davidbracewell.apollo.ml.clustering.flat.FlatClustering;
 import com.davidbracewell.collection.Collect;
 import com.davidbracewell.collection.Counter;
 import com.davidbracewell.collection.HashMapCounter;
@@ -22,7 +23,7 @@ import java.util.List;
  *
  * @author David B. Bracewell
  */
-public class LDAModel extends Clustering {
+public class LDAModel extends FlatClustering {
   private static final long serialVersionUID = 1L;
   /**
    * The Clusters.
@@ -76,6 +77,11 @@ public class LDAModel extends Clustering {
   @Override
   public List<Cluster> getClusters() {
     return clusters;
+  }
+
+  @Override
+  public int hardCluster(@NonNull Instance instance) {
+    return ApolloMath.argMax(softCluster(instance)).getV1();
   }
 
   @Override

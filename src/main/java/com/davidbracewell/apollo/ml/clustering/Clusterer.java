@@ -1,6 +1,6 @@
 package com.davidbracewell.apollo.ml.clustering;
 
-import com.davidbracewell.apollo.linalg.LabeledVector;
+import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.EncoderPair;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.Learner;
@@ -27,7 +27,7 @@ public abstract class Clusterer<T extends Clustering> extends Learner<Instance, 
   @Override
   protected T trainImpl(Dataset<Instance> dataset) {
     this.encoderPair = dataset.getEncoderPair();
-    return cluster(dataset.stream().map(i -> new LabeledVector(i.getLabel(), i.toVector(dataset.getEncoderPair()))));
+    return cluster(dataset.stream().map(i -> i.toVector(dataset.getEncoderPair())));
   }
 
   /**
@@ -36,7 +36,7 @@ public abstract class Clusterer<T extends Clustering> extends Learner<Instance, 
    * @param instances the instances
    * @return the t
    */
-  public abstract T cluster(MStream<LabeledVector> instances);
+  public abstract T cluster(MStream<Vector> instances);
 
   @Override
   public void reset() {

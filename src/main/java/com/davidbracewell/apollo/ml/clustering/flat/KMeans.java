@@ -24,7 +24,6 @@ package com.davidbracewell.apollo.ml.clustering.flat;
 
 import com.davidbracewell.apollo.affinity.Distance;
 import com.davidbracewell.apollo.affinity.DistanceMeasure;
-import com.davidbracewell.apollo.linalg.LabeledVector;
 import com.davidbracewell.apollo.linalg.SparseVector;
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.clustering.Cluster;
@@ -44,7 +43,7 @@ import java.util.concurrent.atomic.AtomicLong;
  *
  * @author David B. Bracewell
  */
-public class KMeans extends Clusterer<FlatHardClustering> {
+public class KMeans extends Clusterer<FlatClustering> {
   private static final long serialVersionUID = 1L;
   private int K;
   private int maxIterations;
@@ -80,10 +79,10 @@ public class KMeans extends Clusterer<FlatHardClustering> {
   }
 
   @Override
-  public FlatHardClustering cluster(@NonNull MStream<LabeledVector> instanceStream) {
-    FlatHardClustering clustering = new FlatHardClustering(getEncoderPair(), distanceMeasure);
+  public FlatClustering cluster(@NonNull MStream<Vector> instanceStream) {
+    KMeansClustering clustering = new KMeansClustering(getEncoderPair(), distanceMeasure);
 
-    List<LabeledVector> instances = instanceStream.collect();
+    List<Vector> instances = instanceStream.collect();
     for (Vector centroid : initCentroids(instances)) {
       Cluster c = new Cluster();
       c.setId(c.size());
@@ -91,7 +90,7 @@ public class KMeans extends Clusterer<FlatHardClustering> {
       clustering.addCluster(c);
     }
 
-    Map<LabeledVector, Integer> assignment = new ConcurrentHashMap<>();
+    Map<Vector, Integer> assignment = new ConcurrentHashMap<>();
 
     final AtomicLong numMoved = new AtomicLong(0);
     for (int itr = 0; itr < maxIterations; itr++) {
@@ -125,7 +124,7 @@ public class KMeans extends Clusterer<FlatHardClustering> {
       for (int i = 0; i < K; i++) {
         Vector c = clustering.get(i).getCentroid();
         c.zero();
-        for (LabeledVector ii : clustering.get(i)) {
+        for (Vector ii : clustering.get(i)) {
           c.addSelf(ii);
         }
         c.mapDivideSelf((double) clustering.get(i).size());
@@ -189,14 +188,14 @@ public class KMeans extends Clusterer<FlatHardClustering> {
     this.maxIterations = maxIterations;
   }
 
-  private Vector[] initCentroids(List<LabeledVector> instances) {
+  private Vector[] initCentroids(List<Vector> instances) {
     Vector[] centroids = new Vector[K];
     for (int i = 0; i < K; i++) {
       centroids[i] = new SparseVector(instances.get(0).dimension());
     }
     double[] cnts = new double[K];
     Random rnd = new Random();
-    for (LabeledVector ii : instances) {
+    for (Vector ii : instances) {
       int ci = rnd.nextInt(K);
       centroids[ci].addSelf(ii);
       cnts[ci]++;

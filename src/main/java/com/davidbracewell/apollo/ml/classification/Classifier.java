@@ -38,10 +38,11 @@ import lombok.NonNull;
  *
  * @author David B. Bracewell
  */
-public abstract class Classifier extends Model {
+public abstract class Classifier implements Model {
   private static final long serialVersionUID = 1L;
   private final PreprocessorList<Instance> preprocessors;
   private Featurizer<Object> featurizer;
+  private EncoderPair encoderPair;
 
   /**
    * Instantiates a new Classifier.
@@ -50,16 +51,9 @@ public abstract class Classifier extends Model {
    * @param preprocessors the preprocessors
    */
   protected Classifier(@NonNull EncoderPair encoderPair, @NonNull PreprocessorList<Instance> preprocessors) {
-    super(encoderPair);
+    this.encoderPair = encoderPair;
     Preconditions.checkArgument(encoderPair.getLabelEncoder() instanceof IndexEncoder, "Classifiers only allow IndexEncoders for labels.");
     this.preprocessors = preprocessors.getModelProcessors();
-  }
-
-
-  @Override
-  protected void finishTraining() {
-    super.finishTraining();
-//    preprocessors.trimToSize(getFeatureEncoder());
   }
 
   /**
@@ -121,5 +115,9 @@ public abstract class Classifier extends Model {
     return new Classification(distribution, getLabelEncoder());
   }
 
+  @Override
+  public EncoderPair getEncoderPair() {
+    return encoderPair;
+  }
 
 }//END OF Classifier

@@ -1,7 +1,6 @@
 package com.davidbracewell.apollo.ml.clustering.topic;
 
 import com.davidbracewell.apollo.distribution.ConditionalMultinomial;
-import com.davidbracewell.apollo.linalg.LabeledVector;
 import com.davidbracewell.apollo.linalg.SparseVector;
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.clustering.Clusterer;
@@ -45,8 +44,8 @@ public class GibbsLDA extends Clusterer<LDAModel> {
   private int numstats = 0;
 
   @Override
-  public LDAModel cluster(MStream<LabeledVector> instanceStrream) {
-    List<LabeledVector> instances = instanceStrream.collect();
+  public LDAModel cluster(MStream<Vector> instanceStrream) {
+    List<Vector> instances = instanceStrream.collect();
     V = getEncoderPair().numberOfFeatures();
     M = instances.size();
 
@@ -80,7 +79,7 @@ public class GibbsLDA extends Clusterer<LDAModel> {
 
 
     for (int m = 0; m < M; m++) {
-      LabeledVector vector = instances.get(m);
+      Vector vector = instances.get(m);
       int N = vector.size();
       z[m] = new int[N];
       documents[m] = new int[N];

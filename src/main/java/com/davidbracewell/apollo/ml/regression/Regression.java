@@ -15,9 +15,10 @@ import lombok.NonNull;
  *
  * @author David B. Bracewell
  */
-public abstract class Regression extends Model {
+public abstract class Regression implements Model {
   private static final long serialVersionUID = 1L;
   private final PreprocessorList<Instance> preprocessors;
+  private EncoderPair encoderPair;
 
   /**
    * Instantiates a new Regression.
@@ -26,7 +27,7 @@ public abstract class Regression extends Model {
    * @param preprocessors the preprocessors
    */
   public Regression(@NonNull EncoderPair encoderPair, @NonNull PreprocessorList<Instance> preprocessors) {
-    super(encoderPair);
+    this.encoderPair = encoderPair;
     Preconditions.checkArgument(encoderPair.getLabelEncoder() instanceof RealEncoder, "Regression only allows RealEncoder for labels.");
     this.preprocessors = preprocessors.getModelProcessors();
   }
@@ -57,5 +58,11 @@ public abstract class Regression extends Model {
    * @return the feature weights
    */
   public abstract Counter<String> getFeatureWeights();
+
+
+  @Override
+  public EncoderPair getEncoderPair() {
+    return encoderPair;
+  }
 
 }// END OF Regression

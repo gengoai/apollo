@@ -2,7 +2,7 @@ package com.davidbracewell.apollo.ml.clustering.flat;
 
 import com.davidbracewell.apollo.affinity.Distance;
 import com.davidbracewell.apollo.affinity.DistanceMeasure;
-import com.davidbracewell.apollo.linalg.LabeledVector;
+import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.clustering.Cluster;
 import com.davidbracewell.apollo.ml.clustering.Clusterer;
 import com.davidbracewell.stream.MStream;
@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 /**
  * @author David B. Bracewell
  */
-public class DBSCAN extends Clusterer<FlatHardClustering> {
+public class DBSCAN extends Clusterer<FlatClustering> {
   private static final long serialVersionUID = 1L;
   @Getter
   @Setter
@@ -42,7 +42,7 @@ public class DBSCAN extends Clusterer<FlatHardClustering> {
 
 
   @Override
-  public FlatHardClustering cluster(MStream<LabeledVector> instances) {
+  public FlatClustering cluster(MStream<Vector> instances) {
     DBSCANClusterer<ApacheClusterable> clusterer = new DBSCANClusterer<>(eps, minPts, new ApacheDistanceMeasure(distanceMeasure));
 
     List<Cluster> clusters = clusterer.cluster(instances.map(ApacheClusterable::new).collect())
@@ -52,7 +52,9 @@ public class DBSCAN extends Clusterer<FlatHardClustering> {
         c.getPoints().forEach(ap -> cp.addPoint(ap.getVector()));
         return cp;
       }).collect(Collectors.toList());
-    return new FlatHardClustering(getEncoderPair(), distanceMeasure, clusters);
+    KMeansClustering clustering = new KMeansClustering(getEncoderPair(), distanceMeasure);
+    clusters.forEach(clustering::addCluster);
+    return clustering;
   }
 
 

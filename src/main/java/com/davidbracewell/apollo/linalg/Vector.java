@@ -68,16 +68,36 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
     return this;
   }
 
+  default <T> T getLabel() {
+    return null;
+  }
+
+  default Vector withLabel(Object label) {
+    return new LabeledVector(label, this);
+  }
+
+  /**
+   * To matrix matrix.
+   *
+   * @return the matrix
+   */
   default Matrix toMatrix() {
     return new SparseMatrix(new Vector[]{this});
   }
 
+  /**
+   * Transpose matrix.
+   *
+   * @return the matrix
+   */
   default Matrix transpose() {
     return new SparseMatrix(new Vector[]{this}).transpose();
   }
 
   /**
    * Compresses memory if possible
+   *
+   * @return the vector
    */
   Vector compress();
 
@@ -613,6 +633,12 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
   }
 
 
+  /**
+   * Corr double.
+   *
+   * @param other the other
+   * @return the double
+   */
   default double corr(@NonNull Vector other) {
     return Correlation.Spearman.calculate(this, other);
   }

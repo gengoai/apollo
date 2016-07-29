@@ -3,7 +3,7 @@ package com.davidbracewell.apollo.ml.clustering.flat;
 import com.davidbracewell.apollo.affinity.Distance;
 import com.davidbracewell.apollo.affinity.DistanceMeasure;
 import com.davidbracewell.apollo.linalg.DenseVector;
-import com.davidbracewell.apollo.linalg.LabeledVector;
+import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.clustering.Cluster;
 import com.davidbracewell.apollo.ml.clustering.Clusterer;
 import com.davidbracewell.stream.MStream;
@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 /**
  * @author David B. Bracewell
  */
-public class FuzzyKMeans extends Clusterer<FlatSoftClustering> {
+public class FuzzyKMeans extends Clusterer<FlatClustering> {
   private static final long serialVersionUID = 1L;
   @Getter
   @Setter
@@ -62,7 +62,7 @@ public class FuzzyKMeans extends Clusterer<FlatSoftClustering> {
   }
 
   @Override
-  public FlatSoftClustering cluster(MStream<LabeledVector> instances) {
+  public FlatClustering cluster(MStream<Vector> instances) {
     FuzzyKMeansClusterer<ApacheClusterable> clusterer = new FuzzyKMeansClusterer<>(
       this.K,
       this.fuzziness,
@@ -80,7 +80,7 @@ public class FuzzyKMeans extends Clusterer<FlatSoftClustering> {
         c.getPoints().forEach(ap -> cp.addPoint(ap.getVector()));
         return cp;
       }).collect(Collectors.toList());
-    return new FlatSoftClustering(getEncoderPair(), distanceMeasure, clusters);
+    return new KMeansClustering(getEncoderPair(), distanceMeasure, clusters);
   }
 
 

@@ -1,8 +1,5 @@
 package com.davidbracewell.apollo.linalg;
 
-import com.davidbracewell.apollo.linalg.LabeledVector;
-import com.davidbracewell.apollo.linalg.ScoredLabelVector;
-import com.davidbracewell.apollo.linalg.Vector;
 import lombok.NonNull;
 
 import java.util.List;

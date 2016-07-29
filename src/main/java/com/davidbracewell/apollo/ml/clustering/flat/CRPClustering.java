@@ -38,7 +38,7 @@ import static com.davidbracewell.tuple.Tuples.$;
 /**
  * @author David B. Bracewell
  */
-class CRPClustering extends FlatHardClustering {
+class CRPClustering extends FlatClustering {
   private static final long serialVersionUID = 1L;
 
   CRPClustering(@NonNull EncoderPair encoderPair, DistanceMeasure distanceMeasure) {

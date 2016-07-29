@@ -22,7 +22,6 @@
 package com.davidbracewell.apollo.ml.clustering.flat;
 
 import com.davidbracewell.apollo.affinity.DistanceMeasure;
-import com.davidbracewell.apollo.linalg.LabeledVector;
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.clustering.Cluster;
 import com.davidbracewell.apollo.ml.clustering.Clusterer;
@@ -46,7 +45,7 @@ import java.util.Map;
  *
  * @author David B. Bracewell
  */
-public class CRPLikeClusterer extends Clusterer<FlatHardClustering> {
+public class CRPLikeClusterer extends Clusterer<FlatClustering> {
   private static final Logger log = Logger.getLogger(CRPLikeClusterer.class);
   private double alpha;
   private DistanceMeasure distanceMeasure;
@@ -65,19 +64,19 @@ public class CRPLikeClusterer extends Clusterer<FlatHardClustering> {
   }
 
   @Override
-  public FlatHardClustering cluster(@NonNull MStream<LabeledVector> instanceStream) {
-    List<LabeledVector> instances = instanceStream.collect();
+  public FlatClustering cluster(@NonNull MStream<Vector> instanceStream) {
+    List<Vector> instances = instanceStream.collect();
     distanceMatrix = HashBasedTable.create();
     List<Cluster> clusters = new ArrayList<>();
     clusters.add(new Cluster());
     clusters.get(0).addPoint(instances.get(0));
-    Map<LabeledVector, Integer> assignments = new HashMap<>();
+    Map<Vector, Integer> assignments = new HashMap<>();
     assignments.put(instances.get(0), 0);
 
     int report = instances.size() / 10;
 
     for (int i = 1; i < instances.size(); i++) {
-      LabeledVector ii = instances.get(i);
+      Vector ii = instances.get(i);
 
       Counter<Integer> distances = new HashMapCounter<>();
       for (int ci = 0; ci < clusters.size(); ci++) {
@@ -108,7 +107,7 @@ public class CRPLikeClusterer extends Clusterer<FlatHardClustering> {
 
     int numP = instances.size() - 1;
     for (int i = 0; i < 200; i++) {
-      LabeledVector ii = instances.get((int) Math.floor(Math.random() % instances.size()));
+      Vector ii = instances.get((int) Math.floor(Math.random() % instances.size()));
       int cci = assignments.remove(ii);
       clusters.get(cci).getPoints().remove(ii);
       Counter<Integer> distances = new HashMapCounter<>();
@@ -140,7 +139,7 @@ public class CRPLikeClusterer extends Clusterer<FlatHardClustering> {
 
   private double distance(Vector ii, Cluster cluster) {
     double max = Double.NEGATIVE_INFINITY;
-    for (LabeledVector jj : cluster) {
+    for (Vector jj : cluster) {
       max = Math.max(max, distance(ii, jj));
     }
     return max;

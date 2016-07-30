@@ -1,8 +1,8 @@
 package com.davidbracewell.apollo.ml.classification;
 
 import com.davidbracewell.apollo.linalg.Vector;
-import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.ml.Instance;
+import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.collection.Collect;
 import lombok.Getter;
 import lombok.NonNull;
@@ -39,11 +39,11 @@ public class NaiveBayesLearner extends ClassifierLearner {
       if (instance.hasLabel()) {
         N++;
         int ci = (int) model.encodeLabel(instance.getLabel());
-        model.priors[ci]++;
+        model.priors[ci] += instance.getWeight();
         Vector vector = instance.toVector(dataset.getEncoderPair());
         for (Vector.Entry entry : Collect.asIterable(vector.nonZeroIterator())) {
           labelCounts[ci] += entry.value;
-          model.conditionals[entry.getIndex()][ci] += modelType.convertValue(entry.value);
+          model.conditionals[entry.getIndex()][ci] += instance.getWeight() * modelType.convertValue(entry.value);
         }
       }
     }

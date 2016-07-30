@@ -67,4 +67,5 @@ public class MStreamDataset<T extends Example> extends Dataset<T> {
     return (int) stream.count();
   }
 
+
 }// END OF MStreamDataset

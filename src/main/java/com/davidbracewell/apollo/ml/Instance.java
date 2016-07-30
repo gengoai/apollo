@@ -31,12 +31,22 @@ import com.davidbracewell.io.structured.StructuredWriter;
 import com.davidbracewell.tuple.Tuple2;
 import com.google.common.collect.Sets;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.Setter;
 import lombok.ToString;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -51,6 +61,9 @@ public class Instance implements Example, Serializable, Iterable<Feature> {
   private static final long serialVersionUID = 1L;
   private final ArrayList<Feature> features;
   private Object label;
+  @Getter
+  @Setter
+  private double weight = 1.0;
 
   /**
    * Instantiates a new Instance.

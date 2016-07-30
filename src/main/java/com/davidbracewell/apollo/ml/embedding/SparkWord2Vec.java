@@ -11,11 +11,10 @@ import com.davidbracewell.apollo.ml.IndexEncoder;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.ml.data.DatasetType;
-import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
-import com.davidbracewell.apollo.ml.preprocess.transform.TFIDFTransform;
 import com.davidbracewell.apollo.ml.sequence.Sequence;
 import com.davidbracewell.config.Config;
 import com.davidbracewell.conversion.Convert;
+import com.davidbracewell.io.Resources;
 import com.davidbracewell.stream.SparkStream;
 import com.davidbracewell.stream.StreamingContext;
 import com.davidbracewell.string.StringUtils;
@@ -29,8 +28,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
-
-import static com.davidbracewell.tuple.Tuples.$;
 
 /**
  * @author David B. Bracewell
@@ -58,20 +55,6 @@ public class SparkWord2Vec extends EmbeddingLearner {
   @Getter
   @Setter
   double learningRate = 0.025;
-
-  public static void main(String[] args) {
-    Config.initialize("");
-    Config.setProperty("spark.master", "local[*]");
-    Dataset<Sequence> sentences = Dataset.embedding(
-      DatasetType.Distributed,
-      StreamingContext.distributed().textFile("/home/david/prj/text-analysis/sentences.txt"),
-      line -> Stream.of(line.split("\\s+")).map(String::toLowerCase).filter(w -> StringUtils.hasLetter(w) && w.length() > 2)
-    ).preprocess(PreprocessorList.create(new TFIDFTransform().asSequenceProcessor()));
-    SparkLSA word2Vec = new SparkLSA();
-    Embedding embedding = word2Vec.train(sentences);
-    System.out.println(embedding.similarity("flavors", "spicy"));
-    embedding.nearest($("flavors", "smell"), $("spicy"), 10, 0).forEach(slv -> System.out.println(slv.<String>getLabel() + " : " + slv.getScore()));
-  }
 
   @Override
   protected Embedding trainImpl(Dataset<Sequence> dataset) {

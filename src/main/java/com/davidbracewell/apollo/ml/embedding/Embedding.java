@@ -12,8 +12,10 @@ import lombok.NonNull;
 
 import java.io.Serializable;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.davidbracewell.tuple.Tuples.$;
 
@@ -73,7 +75,7 @@ public class Embedding implements Model, Serializable {
     if (v1 == null) {
       return Collections.emptyList();
     }
-    return vectorStore.nearest(v1, K, threshold);
+    return vectorStore.nearest(v1, K + 1, threshold).stream().filter(slv -> !word.equals(slv.getLabel())).collect(Collectors.toList());
   }
 
   public List<ScoredLabelVector> nearest(@NonNull Tuple words, int K) {
@@ -85,7 +87,11 @@ public class Embedding implements Model, Serializable {
     positive.forEach(word -> pVec.addSelf(getVector(word.toString())));
     Vector nVec = new DenseVector(getDimension());
     negative.forEach(word -> nVec.addSelf(getVector(word.toString())));
-    return vectorStore.nearest(pVec.subtract(nVec), K, threshold);
+    Set<String> ignore = new HashSet<>();
+    positive.forEach(o -> ignore.add(o.toString()));
+    negative.forEach(o -> ignore.add(o.toString()));
+    List<ScoredLabelVector> vectors = vectorStore.nearest(pVec.subtract(nVec), K + positive.degree() + negative.degree(), threshold).stream().filter(slv -> !ignore.contains(slv.<String>getLabel())).collect(Collectors.toList());
+    return vectors.subList(0, Math.min(K,vectors.size()));
   }
 
 }// END OF Embedding

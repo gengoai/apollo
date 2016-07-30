@@ -59,4 +59,8 @@ public class ScoredLabelVector extends LabeledVector implements Comparable<Score
     return Double.compare(score, o.score);
   }
 
+  @Override
+  public String toString() {
+    return "(" + getLabel() + ", " + score + ')';
+  }
 }// END OF ScoredLabelVector

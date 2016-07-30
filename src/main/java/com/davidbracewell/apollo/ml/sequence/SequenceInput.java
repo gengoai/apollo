@@ -1,11 +1,17 @@
 package com.davidbracewell.apollo.ml.sequence;
 
+import com.davidbracewell.apollo.ml.Feature;
+import com.davidbracewell.apollo.ml.Instance;
 import lombok.NonNull;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * The type Sequence input.
@@ -34,6 +40,7 @@ public class SequenceInput<T> implements Serializable {
     list.addAll(collection);
   }
 
+
   /**
    * Gets label.
    *
@@ -59,7 +66,6 @@ public class SequenceInput<T> implements Serializable {
     }
     return list.get(index);
   }
-
 
   /**
    * Add.
@@ -100,7 +106,6 @@ public class SequenceInput<T> implements Serializable {
     return new Itr();
   }
 
-
   private class Itr extends ContextualIterator<T> {
     private static final long serialVersionUID = 1L;
 
@@ -119,6 +124,5 @@ public class SequenceInput<T> implements Serializable {
       return Optional.ofNullable(SequenceInput.this.getLabel(index));
     }
   }
-
 
 }// END OF SequenceInput

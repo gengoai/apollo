@@ -39,6 +39,7 @@ import com.davidbracewell.apollo.ml.sequence.Sequence;
 import com.davidbracewell.collection.Counter;
 import com.davidbracewell.collection.HashMapCounter;
 import com.davidbracewell.conversion.Cast;
+import com.davidbracewell.function.SerializableFunction;
 import com.davidbracewell.function.SerializablePredicate;
 import com.davidbracewell.io.resource.Resource;
 import com.davidbracewell.io.structured.ElementType;
@@ -60,6 +61,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * <p>A dataset is a collection of examples which can be used for training and evaluating models. Implementations of
@@ -106,6 +108,13 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
    */
   public static DatasetBuilder<Sequence> sequence() {
     return new DatasetBuilder<>(new LabelIndexEncoder(), Sequence.class);
+  }
+
+  public static <T> Dataset<Sequence> embedding(@NonNull DatasetType type, @NonNull MStream<T> stream, @NonNull SerializableFunction<T, Stream<String>> tokenizer) {
+    return sequence()
+      .type(type)
+      .source(stream.map(line -> Sequence.toSequence(tokenizer.apply(line))))
+      .build();
   }
 
 
@@ -588,7 +597,6 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
   public List<T> take(int n) {
     return stream().take(n);
   }
-
 
 
 }//END OF Dataset

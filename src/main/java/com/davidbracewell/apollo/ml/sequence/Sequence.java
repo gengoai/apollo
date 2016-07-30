@@ -1,6 +1,7 @@
 package com.davidbracewell.apollo.ml.sequence;
 
 import com.davidbracewell.apollo.ml.Example;
+import com.davidbracewell.apollo.ml.Feature;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.collection.Interner;
 import com.davidbracewell.io.structured.StructuredReader;
@@ -10,6 +11,8 @@ import lombok.NonNull;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -38,8 +41,21 @@ public class Sequence implements Example, Serializable, Iterable<Instance> {
     this.sequence.trimToSize();
   }
 
+  public Sequence(@NonNull Instance... words) {
+    this.sequence = new ArrayList<>(Arrays.asList(words));
+    this.sequence.trimToSize();
+  }
+
   public Sequence() {
     this.sequence = new ArrayList<>();
+  }
+
+  public static Sequence toSequence(String... words) {
+    return toSequence(Stream.of(words));
+  }
+
+  public static Sequence toSequence(Stream<String>  words) {
+    return new Sequence(words.map(w -> Instance.create(Collections.singleton(Feature.TRUE(w)))).collect(Collectors.toList()));
   }
 
   @Override

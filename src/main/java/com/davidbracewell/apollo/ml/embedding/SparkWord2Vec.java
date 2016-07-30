@@ -5,9 +5,14 @@ import com.davidbracewell.apollo.linalg.DenseVector;
 import com.davidbracewell.apollo.linalg.InMemoryLSH;
 import com.davidbracewell.apollo.linalg.LabeledVector;
 import com.davidbracewell.apollo.linalg.VectorStore;
+import com.davidbracewell.apollo.ml.Encoder;
+import com.davidbracewell.apollo.ml.EncoderPair;
+import com.davidbracewell.apollo.ml.IndexEncoder;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.ml.data.DatasetType;
+import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
+import com.davidbracewell.apollo.ml.preprocess.transform.TFIDFTransform;
 import com.davidbracewell.apollo.ml.sequence.Sequence;
 import com.davidbracewell.config.Config;
 import com.davidbracewell.conversion.Convert;
@@ -54,6 +59,20 @@ public class SparkWord2Vec extends EmbeddingLearner {
   @Setter
   double learningRate = 0.025;
 
+  public static void main(String[] args) {
+    Config.initialize("");
+    Config.setProperty("spark.master", "local[*]");
+    Dataset<Sequence> sentences = Dataset.embedding(
+      DatasetType.Distributed,
+      StreamingContext.distributed().textFile("/home/david/prj/text-analysis/sentences.txt"),
+      line -> Stream.of(line.split("\\s+")).map(String::toLowerCase).filter(w -> StringUtils.hasLetter(w) && w.length() > 2)
+    ).preprocess(PreprocessorList.create(new TFIDFTransform().asSequenceProcessor()));
+    SparkLSA word2Vec = new SparkLSA();
+    Embedding embedding = word2Vec.train(sentences);
+    System.out.println(embedding.similarity("flavors", "spicy"));
+    embedding.nearest($("flavors", "smell"), $("spicy"), 10, 0).forEach(slv -> System.out.println(slv.<String>getLabel() + " : " + slv.getScore()));
+  }
+
   @Override
   protected Embedding trainImpl(Dataset<Sequence> dataset) {
     Word2Vec w2v = new Word2Vec();
@@ -73,14 +92,16 @@ public class SparkWord2Vec extends EmbeddingLearner {
     );
     Word2VecModel model = w2v.fit(sentences.asRDD());
 
+    Encoder encoder = new IndexEncoder();
     VectorStore<String> vectorStore = InMemoryLSH.builder()
       .dimension(dimension)
       .signatureSupplier(CosineSignature::new)
       .createVectorStore();
     for (Map.Entry<String, float[]> vector : JavaConversions.mapAsJavaMap(model.getVectors()).entrySet()) {
+      encoder.encode(vector.getKey());
       vectorStore.add(new LabeledVector(vector.getKey(), new DenseVector(Convert.convert(vector.getValue(), double[].class))));
     }
-    return new Embedding(dataset.getEncoderPair(), vectorStore);
+    return new Embedding(new EncoderPair(dataset.getLabelEncoder(), encoder), vectorStore);
   }
 
   @Override

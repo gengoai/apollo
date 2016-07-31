@@ -4,14 +4,16 @@ import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.collection.HashMapIndex;
 import com.davidbracewell.collection.Index;
 import com.davidbracewell.conversion.Cast;
+import com.davidbracewell.io.structured.Readable;
+import com.davidbracewell.io.structured.StructuredReader;
+import com.davidbracewell.io.structured.StructuredWriter;
+import com.davidbracewell.io.structured.Writable;
 import com.davidbracewell.stream.MStream;
 import lombok.NonNull;
 
+import java.io.IOException;
 import java.io.Serializable;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
@@ -20,10 +22,22 @@ import java.util.stream.Collectors;
  *
  * @author David B. Bracewell
  */
-public class IndexEncoder implements Encoder, Serializable {
+public class IndexEncoder implements Encoder, Serializable, Writable, Readable {
   private static final long serialVersionUID = 1L;
   protected volatile Index<String> index = new HashMapIndex<>();
   protected volatile AtomicBoolean frozen = new AtomicBoolean(false);
+
+  @Override
+  public void read(StructuredReader reader) throws IOException {
+    index.addAll(reader.nextCollection(ArrayList::new, "items", String.class));
+    frozen.set(reader.nextKeyValue("isFrozen").asBooleanValue());
+  }
+
+  @Override
+  public void write(StructuredWriter writer) throws IOException {
+    writer.writeKeyValue("items", index.asList());
+    writer.writeKeyValue("isFrozen", frozen.get());
+  }
 
   @Override
   public double get(Object object) {
@@ -125,5 +139,6 @@ public class IndexEncoder implements Encoder, Serializable {
   public Encoder createNew() {
     return new IndexEncoder();
   }
+
 
 }// END OF IndexEncoder

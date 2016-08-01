@@ -1,7 +1,12 @@
 package com.davidbracewell.apollo.ml;
 
+import com.davidbracewell.io.structured.*;
+import com.davidbracewell.io.structured.Readable;
+import com.davidbracewell.reflection.Reflect;
+import com.davidbracewell.reflection.ReflectionException;
 import lombok.EqualsAndHashCode;
 
+import java.io.IOException;
 import java.io.Serializable;
 
 /**
@@ -10,7 +15,7 @@ import java.io.Serializable;
  * @author David B. Bracewell
  */
 @EqualsAndHashCode(callSuper = false)
-public final class EncoderPair implements Serializable {
+public final class EncoderPair implements Serializable, Writable, Readable {
   private static final long serialVersionUID = 1L;
   private final LabelEncoder labelEncoder;
   private final Encoder featureEncoder;
@@ -24,6 +29,50 @@ public final class EncoderPair implements Serializable {
   public EncoderPair(LabelEncoder labelEncoder, Encoder featureEncoder) {
     this.labelEncoder = labelEncoder;
     this.featureEncoder = featureEncoder;
+  }
+
+  protected EncoderPair() {
+    this.labelEncoder = null;
+    this.featureEncoder = null;
+  }
+
+  @Override
+  public void read(StructuredReader reader) throws IOException {
+    try {
+      while (reader.peek() != ElementType.END_OBJECT) {
+        switch (reader.peekName()) {
+          case "features":
+            Reflect.onObject(this).allowPrivilegedAccess().set("featureEncoder", createEncoder(reader));
+            break;
+          case "labels":
+            Reflect.onObject(this).allowPrivilegedAccess().set("labelEncoder", createEncoder(reader));
+            break;
+        }
+      }
+    } catch (ReflectionException e) {
+      throw new IOException(e);
+    }
+  }
+
+  private Object createEncoder(StructuredReader reader) throws IOException {
+    reader.beginObject();
+    Class<?> clazz = reader.nextKeyValue("class").asClass();
+    Object o = reader.nextKeyValue("encoder", clazz);
+    reader.endObject();
+    return o;
+  }
+
+  @Override
+  public void write(StructuredWriter writer) throws IOException {
+    writer
+      .beginObject("features")
+      .writeKeyValue("class", featureEncoder.getClass().getName())
+      .writeKeyValue("encoder", featureEncoder)
+      .endObject()
+      .beginObject("labels")
+      .writeKeyValue("class", labelEncoder.getClass().getName())
+      .writeKeyValue("encoder", labelEncoder)
+      .endObject();
   }
 
   /**

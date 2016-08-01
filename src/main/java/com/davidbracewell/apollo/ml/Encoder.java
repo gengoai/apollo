@@ -1,6 +1,8 @@
 package com.davidbracewell.apollo.ml;
 
 import com.davidbracewell.apollo.ml.data.Dataset;
+import com.davidbracewell.io.structured.Readable;
+import com.davidbracewell.io.structured.Writable;
 import com.davidbracewell.stream.MStream;
 import lombok.NonNull;
 
@@ -13,7 +15,7 @@ import java.util.stream.Stream;
  *
  * @author David B. Bracewell
  */
-public interface Encoder {
+public interface Encoder extends Writable, Readable{
 
   /**
    * Get double.
@@ -30,6 +32,11 @@ public interface Encoder {
    */
   void fit(Dataset<? extends Example> dataset);
 
+  /**
+   * Fit.
+   *
+   * @param stream the stream
+   */
   void fit(MStream<String> stream);
 
   /**

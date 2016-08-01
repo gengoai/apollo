@@ -1,10 +1,13 @@
 package com.davidbracewell.apollo.ml;
 
 import com.davidbracewell.apollo.ml.data.Dataset;
+import com.davidbracewell.io.structured.StructuredReader;
+import com.davidbracewell.io.structured.StructuredWriter;
 import com.davidbracewell.stream.MStream;
 import com.google.common.base.Preconditions;
 import lombok.NonNull;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
@@ -17,7 +20,11 @@ import java.util.List;
  */
 public class HashingEncoder implements Encoder, Serializable {
   private static final long serialVersionUID = 1L;
-  private final int numberOfFeatures;
+  private int numberOfFeatures = Integer.MAX_VALUE;
+
+  protected HashingEncoder() {
+
+  }
 
   /**
    * Instantiates a new Hashing encoder.
@@ -27,6 +34,16 @@ public class HashingEncoder implements Encoder, Serializable {
   public HashingEncoder(int numberOfFeatures) {
     Preconditions.checkArgument(numberOfFeatures > 0, "Must allow at least one feature.");
     this.numberOfFeatures = numberOfFeatures;
+  }
+
+  @Override
+  public void read(StructuredReader reader) throws IOException {
+    this.numberOfFeatures = reader.nextKeyValue("numberOfFeatures").asIntegerValue();
+  }
+
+  @Override
+  public void write(StructuredWriter writer) throws IOException {
+    writer.writeKeyValue("numberOfFeatures", numberOfFeatures);
   }
 
   @Override

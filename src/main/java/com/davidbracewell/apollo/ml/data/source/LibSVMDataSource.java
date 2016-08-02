@@ -21,7 +21,7 @@ public class LibSVMDataSource extends DataSource<Instance> {
 
   @Override
   public MStream<Instance> stream() throws IOException {
-    return getResource().lines()
+    return getStreamingContext().textFile(getResource())
       .map(line -> {
         String[] parts = line.split("\\s+");
         List<Feature> featureList = new ArrayList<>();

@@ -75,7 +75,7 @@ public abstract class Classifier implements Model {
    * @param instance the instance
    * @return the classifier result
    */
-  public final Classification classify(@NonNull Instance instance) {
+  public Classification classify(@NonNull Instance instance) {
     return classify(preprocessors.apply(instance).toVector(getEncoderPair()));
   }
 

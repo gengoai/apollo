@@ -1,6 +1,8 @@
 package com.davidbracewell.apollo.ml;
 
 import com.davidbracewell.io.resource.Resource;
+import com.davidbracewell.io.structured.Readable;
+import com.davidbracewell.io.structured.Writable;
 import lombok.NonNull;
 
 import java.io.Serializable;
@@ -10,28 +12,7 @@ import java.io.Serializable;
  *
  * @author David B. Bracewell
  */
-public interface Model extends Serializable {
-//  private static final long serialVersionUID = 1L;
-//  private final EncoderPair getEncoderPair();
-
-  /**
-   * Instantiates a new Model.
-   *
-   * @param labelEncoder   the label encoder
-   * @param featureEncoder the feature encoder
-   */
-//  public Model(@NonNull LabelEncoder labelEncoder, @NonNull Encoder featureEncoder) {
-//    this.getEncoderPair() = new EncoderPair(labelEncoder, featureEncoder);
-//  }
-
-  /**
-   * Instantiates a new Model.
-   *
-   * @param getEncoderPair() the encoder pair
-   */
-//  public Model(@NonNull EncoderPair getEncoderPair()) {
-//    this.getEncoderPair() = getEncoderPair();
-//  }
+public interface Model extends Serializable, Writable, Readable {
 
   /**
    * Read model classifier.

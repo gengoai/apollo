@@ -10,14 +10,9 @@ import com.davidbracewell.apollo.ml.EncoderPair;
 import com.davidbracewell.apollo.ml.IndexEncoder;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.data.Dataset;
-import com.davidbracewell.apollo.ml.data.DatasetType;
 import com.davidbracewell.apollo.ml.sequence.Sequence;
-import com.davidbracewell.config.Config;
 import com.davidbracewell.conversion.Convert;
-import com.davidbracewell.io.Resources;
 import com.davidbracewell.stream.SparkStream;
-import com.davidbracewell.stream.StreamingContext;
-import com.davidbracewell.string.StringUtils;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.spark.mllib.feature.Word2Vec;
@@ -27,7 +22,6 @@ import scala.collection.JavaConversions;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
 
 /**
  * @author David B. Bracewell

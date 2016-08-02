@@ -22,6 +22,8 @@
 package com.davidbracewell.apollo.ml.classification;
 
 import com.davidbracewell.apollo.ml.Encoder;
+import com.davidbracewell.collection.Counter;
+import com.davidbracewell.collection.HashMapCounter;
 import com.davidbracewell.conversion.Cast;
 import lombok.EqualsAndHashCode;
 import lombok.NonNull;
@@ -143,6 +145,15 @@ public class Classification implements Serializable {
    */
   public List<Object> getLabels() {
     return Cast.cast(labelEncoder.values());
+  }
+
+
+  public Counter<String> asCounter() {
+    Counter<String> counter = new HashMapCounter<>();
+    for (int ci = 0; ci < distribution.length; ci++) {
+      counter.set(labelEncoder.decode(ci).toString(), distribution[ci]);
+    }
+    return counter;
   }
 
 

@@ -382,9 +382,9 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
    * @param sampleSize the sample size
    * @return the dataset
    */
-  public Dataset<T> sample(int sampleSize) {
+  public Dataset<T> sample(boolean withReplacement, int sampleSize) {
     Preconditions.checkArgument(sampleSize > 0, "Sample size must be > 0");
-    return create(stream().sample(sampleSize).map(e -> Cast.as(e.copy())));
+    return create(stream().sample(withReplacement, sampleSize).map(e -> Cast.as(e.copy())));
   }
 
   /**
@@ -526,7 +526,7 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
     for (Object label : fCount.items()) {
       undersample = undersample.union(
         stream().filter(e -> e.getLabelSpace().findFirst().filter(label::equals).isPresent())
-          .sample(targetCount)
+          .sample(false,targetCount)
       );
     }
     return create(undersample);
@@ -542,22 +542,22 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
     stream().forEach(e -> accumulator.add(new HashMapCounter<>(e.getLabelSpace().collect(Collectors.toList()))));
     Counter<Object> fCount = accumulator.value();
     int targetCount = (int) fCount.maximumCount();
-    MStream<T> undersample = getStreamingContext().empty();
+    MStream<T> oversample = getStreamingContext().empty();
     for (Object label : fCount.items()) {
       MStream<T> fStream = stream().filter(e -> e.getLabelSpace().findFirst().filter(label::equals).isPresent()).cache();
       int count = (int) fStream.count();
       int curCount = 0;
       while (curCount + count < targetCount) {
-        undersample = undersample.union(fStream);
+        oversample = oversample.union(fStream);
         curCount += count;
       }
       if (curCount < targetCount) {
-        undersample = undersample.union(fStream.sample(targetCount - curCount));
+        oversample = oversample.union(fStream.sample(false,targetCount - curCount));
       } else if (count == targetCount) {
-        undersample = undersample.union(fStream);
+        oversample = oversample.union(fStream);
       }
     }
-    return create(undersample);
+    return create(oversample);
   }
 
   /**

@@ -23,6 +23,7 @@ package com.davidbracewell.apollo;
 
 
 import com.davidbracewell.tuple.Tuple2;
+import lombok.Getter;
 
 /**
  * The type Contingency table.
@@ -31,8 +32,8 @@ import com.davidbracewell.tuple.Tuple2;
  */
 public class ContingencyTable {
 
-  private final int M;
-  private final int N;
+  private final int numberOfRows;
+  private final int numberOfColumns;
   private final double table[][];
   private double sum = 0;
   private double rowSums[];
@@ -41,15 +42,15 @@ public class ContingencyTable {
   /**
    * Instantiates a new Contingency table.
    *
-   * @param m the m
-   * @param n the n
+   * @param numberOfRows the numberOfRows
+   * @param numberOfColumns the numberOfColumns
    */
-  public ContingencyTable(int m, int n) {
-    this.M = m;
-    this.N = n;
-    this.table = new double[m][n];
-    this.rowSums = new double[m];
-    this.columnSums = new double[n];
+  public ContingencyTable(int numberOfRows, int numberOfColumns) {
+    this.numberOfRows = numberOfRows;
+    this.numberOfColumns = numberOfColumns;
+    this.table = new double[numberOfRows][numberOfColumns];
+    this.rowSums = new double[numberOfRows];
+    this.columnSums = new double[numberOfColumns];
   }
 
   public static ContingencyTable forCorpusComparison(double countInCorpusOne, double corpusOneSize, double countInCorpusTwo, double corpusTwoSize) {
@@ -128,13 +129,17 @@ public class ContingencyTable {
     return table;
   }
 
+  public double degreesOfFreedom(){
+    return (numberOfColumns-1.0) * (numberOfRows - 1.0);
+  }
+
   /**
    * Gets the number of columns in the table
    *
    * @return the number of columns in the table
    */
   public int columnCount() {
-    return N;
+    return numberOfColumns;
   }
 
   /**
@@ -189,7 +194,7 @@ public class ContingencyTable {
    * @return the number of rows in the table
    */
   public int rowCount() {
-    return M;
+    return numberOfRows;
   }
 
 
@@ -206,18 +211,18 @@ public class ContingencyTable {
   /**
    * Set void.
    *
-   * @param m   the m
-   * @param n   the n
+   * @param row   the m
+   * @param column   the n
    * @param val the val
    */
-  public void set(int m, int n, double val) {
-    sum -= table[m][n];
-    rowSums[m] -= table[m][n];
-    columnSums[n] -= table[m][n];
-    table[m][n] = val;
+  public void set(int row, int column, double val) {
+    sum -= table[row][column];
+    rowSums[row] -= table[row][column];
+    columnSums[column] -= table[row][column];
+    table[row][column] = val;
     sum += val;
-    rowSums[m] += val;
-    columnSums[n] += val;
+    rowSums[row] += val;
+    columnSums[column] += val;
   }
 
   /**

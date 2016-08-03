@@ -23,6 +23,8 @@ package com.davidbracewell.apollo;
 
 
 /**
+ * The interface Contingency table calculator.
+ *
  * @author David B. Bracewell
  */
 public interface ContingencyTableCalculator {
@@ -35,6 +37,16 @@ public interface ContingencyTableCalculator {
    * @return the double
    */
   double calculate(ContingencyTable table);
+
+  /**
+   * P value double.
+   *
+   * @param table the table
+   * @return the double
+   */
+  default double pValue(ContingencyTable table){
+    throw new UnsupportedOperationException();
+  }
 
 
 }//END OF ContingencyTableCalculator

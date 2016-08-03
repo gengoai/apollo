@@ -58,6 +58,6 @@ public class ContingencyMeasuresTest {
 
   @Test
   public void testLL() throws Exception {
-    assertEquals(489.32, ContingencyMeasures.LOG_LIKELIHOOD.calculate(table), 0.01);
+    assertEquals(489.32, ContingencyMeasures.G_SQUARE.calculate(table), 0.01);
   }
 }

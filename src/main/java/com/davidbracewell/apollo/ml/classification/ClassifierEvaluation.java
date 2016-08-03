@@ -21,14 +21,15 @@
 
 package com.davidbracewell.apollo.ml.classification;
 
-import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.ml.Evaluation;
 import com.davidbracewell.apollo.ml.Instance;
+import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.collection.Counter;
 import com.davidbracewell.collection.HashMapCounter;
 import com.davidbracewell.collection.HashMapMultiCounter;
 import com.davidbracewell.collection.MultiCounter;
 import com.davidbracewell.conversion.Cast;
+import com.davidbracewell.logging.Logger;
 import com.davidbracewell.string.StringUtils;
 import com.davidbracewell.string.TableFormatter;
 import com.davidbracewell.tuple.Tuple2;
@@ -37,7 +38,14 @@ import lombok.NonNull;
 
 import java.io.PrintStream;
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -48,6 +56,7 @@ import java.util.stream.Collectors;
  */
 public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, Serializable {
   private static final long serialVersionUID = 1L;
+  private static final Logger log = Logger.getLogger(ClassifierEvaluation.class);
   private final MultiCounter<String, String> matrix = new HashMapMultiCounter<>();
   private double total = 0;
 
@@ -700,10 +709,12 @@ public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, S
 
 
   public ClassifierEvaluation crossValidation(@NonNull Dataset<Instance> dataset, @NonNull Supplier<ClassifierLearner> learnerSupplier, int nFolds) {
+    AtomicInteger foldId = new AtomicInteger(0);
     dataset.fold(nFolds).forEach((train, test) -> {
-      train.forEach(i -> i.toVector(train.getEncoderPair()));
+      log.info("Running fold {0}", foldId.incrementAndGet());
       Classifier model = learnerSupplier.get().train(train);
       evaluate(model, test);
+      log.info("Fold {0}: Cumulative Metrics(microP={1}, microR={2}, microF1={3})", foldId.get(), microPrecision(), microRecall(), microF1());
     });
     return this;
   }

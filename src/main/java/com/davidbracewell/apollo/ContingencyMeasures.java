@@ -21,9 +21,16 @@
 
 package com.davidbracewell.apollo;
 
+import com.davidbracewell.apollo.distribution.NormalDistribution;
 import com.google.common.base.Preconditions;
 import com.google.common.math.DoubleMath;
 import com.google.common.primitives.Doubles;
+import lombok.NonNull;
+import org.apache.commons.math.MathException;
+import org.apache.commons.math.distribution.ChiSquaredDistribution;
+import org.apache.commons.math.distribution.ChiSquaredDistributionImpl;
+import org.apache.commons.math.distribution.PoissonDistribution;
+import org.apache.commons.math.distribution.PoissonDistributionImpl;
 
 /**
  * The enum Contingency measures.
@@ -36,8 +43,7 @@ public enum ContingencyMeasures implements ContingencyTableCalculator {
    */
   MI {
     @Override
-    public double calculate(ContingencyTable table) {
-      Preconditions.checkNotNull(table);
+    public double calculate(@NonNull ContingencyTable table) {
       double sum = 0d;
       for (int row = 0; row < table.rowCount(); row++) {
         for (int col = 0; col < table.columnCount(); col++) {
@@ -52,8 +58,7 @@ public enum ContingencyMeasures implements ContingencyTableCalculator {
    */
   PMI {
     @Override
-    public double calculate(ContingencyTable table) {
-      Preconditions.checkNotNull(table);
+    public double calculate(@NonNull ContingencyTable table) {
       Preconditions.checkArgument(table.rowCount() == table.columnCount() && table.rowCount() == 2, "Only supports 2x2 contingency tables.");
       return DoubleMath.log2(table.get(0, 0)) - DoubleMath.log2(table.getExpected(0, 0));
     }
@@ -63,8 +68,7 @@ public enum ContingencyMeasures implements ContingencyTableCalculator {
    */
   ODDS_RATIO {
     @Override
-    public double calculate(ContingencyTable table) {
-      Preconditions.checkNotNull(table);
+    public double calculate(@NonNull ContingencyTable table) {
       Preconditions.checkArgument(table.rowCount() == table.columnCount() && table.rowCount() == 2, "Only supports 2x2 contingency tables.");
       double n21 = table.get(1, 0);
       if (n21 == 0) {
@@ -82,8 +86,7 @@ public enum ContingencyMeasures implements ContingencyTableCalculator {
    */
   T_SCORE {
     @Override
-    public double calculate(ContingencyTable table) {
-      Preconditions.checkNotNull(table);
+    public double calculate(@NonNull ContingencyTable table) {
       Preconditions.checkArgument(table.rowCount() == table.columnCount() && table.rowCount() == 2, "Only supports 2x2 contingency tables.");
       return (table.get(0, 0) - table.getExpected(0, 0)) / Math.sqrt(table.get(0, 0));
     }
@@ -93,8 +96,7 @@ public enum ContingencyMeasures implements ContingencyTableCalculator {
    */
   NPMI {
     @Override
-    public double calculate(ContingencyTable table) {
-      Preconditions.checkNotNull(table);
+    public double calculate(@NonNull ContingencyTable table) {
       Preconditions.checkArgument(table.rowCount() == table.columnCount() && table.rowCount() == 2, "Only supports 2x2 contingency tables.");
       if (table.get(0, 0) == 0) {
         return -1;
@@ -108,8 +110,7 @@ public enum ContingencyMeasures implements ContingencyTableCalculator {
    */
   POISSON_STIRLING {
     @Override
-    public double calculate(ContingencyTable table) {
-      Preconditions.checkNotNull(table);
+    public double calculate(@NonNull ContingencyTable table) {
       Preconditions.checkArgument(table.rowCount() == table.columnCount() && table.rowCount() == 2, "Only supports 2x2 contingency tables.");
       return table.get(0, 0) * (Math.log(table.get(0, 0) / table.getExpected(0, 0)) - 1);
     }
@@ -119,8 +120,7 @@ public enum ContingencyMeasures implements ContingencyTableCalculator {
    */
   CHI_SQUARE {
     @Override
-    public double calculate(ContingencyTable table) {
-      Preconditions.checkNotNull(table);
+    public double calculate(@NonNull ContingencyTable table) {
       double sumSq = 0d;
       for (int row = 0; row < table.rowCount(); row++) {
         for (int col = 0; col < table.columnCount(); col++) {
@@ -130,14 +130,23 @@ public enum ContingencyMeasures implements ContingencyTableCalculator {
       }
       return Doubles.isFinite(sumSq) ? sumSq : 0d;
     }
+
+    @Override
+    public double pValue(@NonNull ContingencyTable table) {
+      ChiSquaredDistribution distribution = new ChiSquaredDistributionImpl(table.degreesOfFreedom());
+      try {
+        return 1.0 - distribution.cumulativeProbability(calculate(table));
+      } catch (MathException e) {
+        return Double.POSITIVE_INFINITY;
+      }
+    }
   },
   /**
-   * The LOG_LIKELIHOOD.
+   * The G_SQUARE or likelihood test.
    */
-  LOG_LIKELIHOOD {
+  G_SQUARE {
     @Override
-    public double calculate(ContingencyTable table) {
-      Preconditions.checkNotNull(table);
+    public double calculate(@NonNull ContingencyTable table) {
       double sum = 0d;
       for (int row = 0; row < table.rowCount(); row++) {
         for (int col = 0; col < table.columnCount(); col++) {
@@ -146,16 +155,49 @@ public enum ContingencyMeasures implements ContingencyTableCalculator {
       }
       return Doubles.isFinite(sum) ? 2 * sum : 0d;
     }
+
+    @Override
+    public double pValue(@NonNull ContingencyTable table) {
+      ChiSquaredDistribution distribution = new ChiSquaredDistributionImpl(table.degreesOfFreedom());
+      try {
+        return 1.0 - distribution.cumulativeProbability(calculate(table));
+      } catch (MathException e) {
+        return Double.POSITIVE_INFINITY;
+      }
+    }
   },
   /**
    * The RELATIVE_RISK.
    */
   RELATIVE_RISK {
     @Override
-    public double calculate(ContingencyTable table) {
-      return (table.get(0, 0) / (table.get(0, 0) + table.get(0, 1))) / (table.get(1, 0) / (table.get(1, 0) + table.get(1, 1)));
+    public double calculate(@NonNull ContingencyTable table) {
+      Preconditions.checkArgument(table.rowCount() == table.columnCount() && table.rowCount() == 2, "Only supports 2x2 contingency tables.");
+      double v1 = table.get(0,0) / table.rowSum(0);
+      double v2 = table.get(1,0) / table.rowSum(1);
+      return v1 / v2;
     }
-  }
 
+    @Override
+    public double pValue(@NonNull ContingencyTable table) {
+      NormalDistribution distribution = new NormalDistribution(0, 1);
+      return 1.0 - distribution.cumulativeProbability(Math.log(calculate(table)));
+    }
+  };
+
+
+  public static void main(String[] args) {
+    ContingencyTable table = new ContingencyTable(2, 2);
+    table.set(0, 0, 139);
+    table.set(0, 1, 10898);
+    table.set(1, 0, 239);
+    table.set(1, 1, 10795);
+
+    double rr =RELATIVE_RISK.calculate(table);
+    System.out.println(rr);
+    System.out.println(Math.log(rr));
+    System.out.println(RELATIVE_RISK.pValue(table));
+
+  }
 
 }//END OF AssociationMeasures

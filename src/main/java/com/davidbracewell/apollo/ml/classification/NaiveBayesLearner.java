@@ -61,9 +61,9 @@ public class NaiveBayesLearner extends ClassifierLearner {
               nC += labelCounts[j];
             }
           }
-          model.conditionals[featureIndex][labelIndex] = modelType.normalize(nCi, model.priors[labelIndex], nC, V);
+          model.conditionals[featureIndex][labelIndex] = Math.log(modelType.normalize(nCi, model.priors[labelIndex], nC, V));
         } else {
-          model.conditionals[featureIndex][labelIndex] = modelType.normalize(model.conditionals[featureIndex][labelIndex], model.priors[labelIndex], labelCounts[labelIndex], V);
+          model.conditionals[featureIndex][labelIndex] = Math.log(modelType.normalize(model.conditionals[featureIndex][labelIndex], model.priors[labelIndex], labelCounts[labelIndex], V));
         }
       }
 

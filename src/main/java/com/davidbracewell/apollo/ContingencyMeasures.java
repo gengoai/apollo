@@ -29,8 +29,8 @@ import lombok.NonNull;
 import org.apache.commons.math.MathException;
 import org.apache.commons.math.distribution.ChiSquaredDistribution;
 import org.apache.commons.math.distribution.ChiSquaredDistributionImpl;
-import org.apache.commons.math.distribution.PoissonDistribution;
-import org.apache.commons.math.distribution.PoissonDistributionImpl;
+import org.apache.commons.math.distribution.TDistribution;
+import org.apache.commons.math.distribution.TDistributionImpl;
 
 /**
  * The enum Contingency measures.
@@ -70,15 +70,15 @@ public enum ContingencyMeasures implements ContingencyTableCalculator {
     @Override
     public double calculate(@NonNull ContingencyTable table) {
       Preconditions.checkArgument(table.rowCount() == table.columnCount() && table.rowCount() == 2, "Only supports 2x2 contingency tables.");
-      double n21 = table.get(1, 0);
-      if (n21 == 0) {
-        n21 = 1;
-      }
-      double n12 = table.get(0, 1);
-      if (n12 == 0) {
-        n12 = 1;
-      }
-      return (table.get(0, 0) * table.get(1, 1)) / (n21 * n12);
+      double v1 = table.get(0, 0) / table.get(0, 1);
+      double v2 = table.get(1, 0) / table.get(1, 1);
+      return v1 / v2;
+    }
+
+    @Override
+    public double pValue(@NonNull ContingencyTable table) {
+      NormalDistribution distribution = new NormalDistribution(0, 1);
+      return 1.0 - distribution.cumulativeProbability(Math.log(calculate(table)));
     }
   },
   /**
@@ -90,6 +90,17 @@ public enum ContingencyMeasures implements ContingencyTableCalculator {
       Preconditions.checkArgument(table.rowCount() == table.columnCount() && table.rowCount() == 2, "Only supports 2x2 contingency tables.");
       return (table.get(0, 0) - table.getExpected(0, 0)) / Math.sqrt(table.get(0, 0));
     }
+
+    @Override
+    public double pValue(@NonNull ContingencyTable table) {
+      TDistribution distribution = new TDistributionImpl(table.degreesOfFreedom());
+      try {
+        return 1.0 - distribution.cumulativeProbability(calculate(table));
+      } catch (MathException e) {
+        return Double.POSITIVE_INFINITY;
+      }
+    }
+
   },
   /**
    * The NPMI.
@@ -173,8 +184,8 @@ public enum ContingencyMeasures implements ContingencyTableCalculator {
     @Override
     public double calculate(@NonNull ContingencyTable table) {
       Preconditions.checkArgument(table.rowCount() == table.columnCount() && table.rowCount() == 2, "Only supports 2x2 contingency tables.");
-      double v1 = table.get(0,0) / table.rowSum(0);
-      double v2 = table.get(1,0) / table.rowSum(1);
+      double v1 = table.get(0, 0) / table.rowSum(0);
+      double v2 = table.get(1, 0) / table.rowSum(1);
       return v1 / v2;
     }
 
@@ -193,7 +204,7 @@ public enum ContingencyMeasures implements ContingencyTableCalculator {
     table.set(1, 0, 239);
     table.set(1, 1, 10795);
 
-    double rr =RELATIVE_RISK.calculate(table);
+    double rr = RELATIVE_RISK.calculate(table);
     System.out.println(rr);
     System.out.println(Math.log(rr));
     System.out.println(RELATIVE_RISK.pValue(table));

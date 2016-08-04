@@ -54,32 +54,85 @@ public interface ApolloMath {
 
 
   /**
+   * Log sum double.
+   *
+   * @param v the v
+   * @return the double
+   */
+  static double logSum(@NonNull double... v) {
+    double m = v[0];
+    for (int i = 1; i < v.length; ++i) {
+      m = Math.max(m, v[i]);
+    }
+    double s = 0.;
+    for (int i = 0; i < v.length; ++i) {
+      s += Math.exp(-(m - v[i]));
+    }
+    return m + Math.log(s);
+  }
+
+  /**
    * Average double.
    *
    * @param array the array
    * @return the double
    */
-  static double average(@NonNull double[] array) {
+  static double average(@NonNull double... array) {
     return DoubleStream.of(array).average().orElse(Double.NaN);
   }
 
 
+  /**
+   * Add double.
+   *
+   * @param v1 the v 1
+   * @param v2 the v 2
+   * @return the double
+   */
   static double add(double v1, double v2) {
     return v1 + v2;
   }
 
+  /**
+   * Add squared double.
+   *
+   * @param v1 the v 1
+   * @param v2 the v 2
+   * @return the double
+   */
   static double addSquared(double v1, double v2) {
     return v1 * v1 + v2 * v2;
   }
 
+  /**
+   * Subtract double.
+   *
+   * @param v1 the v 1
+   * @param v2 the v 2
+   * @return the double
+   */
   static double subtract(double v1, double v2) {
     return v1 - v2;
   }
 
+  /**
+   * Multiply double.
+   *
+   * @param v1 the v 1
+   * @param v2 the v 2
+   * @return the double
+   */
   static double multiply(double v1, double v2) {
     return v1 * v2;
   }
 
+  /**
+   * Divide double.
+   *
+   * @param v1 the v 1
+   * @param v2 the v 2
+   * @return the double
+   */
   static double divide(double v1, double v2) {
     return v1 / v2;
   }
@@ -91,7 +144,7 @@ public interface ApolloMath {
    * @param array the array
    * @return the double
    */
-  static double sum(@NonNull double[] array) {
+  static double sum(@NonNull double... array) {
     return DoubleStream.of(array).sum();
   }
 
@@ -101,7 +154,7 @@ public interface ApolloMath {
    * @param array the array
    * @return the double
    */
-  static double sum(@NonNull int[] array) {
+  static double sum(@NonNull int... array) {
     return IntStream.of(array).sum();
   }
 
@@ -111,7 +164,7 @@ public interface ApolloMath {
    * @param array the array
    * @return the double
    */
-  static double average(@NonNull int[] array) {
+  static double average(@NonNull int... array) {
     return IntStream.of(array).average().orElse(Double.NaN);
   }
 
@@ -143,7 +196,7 @@ public interface ApolloMath {
    * @param array the array
    * @return the tuple 2
    */
-  static Tuple2<Integer, Double> argMin(@NonNull double[] array) {
+  static Tuple2<Integer, Double> argMin(@NonNull double... array) {
     int index = Optimum.MINIMUM.selectBestIndex(array);
     return Tuple2.of(index, array[index]);
   }

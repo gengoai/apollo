@@ -2,25 +2,19 @@ package com.davidbracewell.apollo.ml.classification.neural;
 
 import com.davidbracewell.apollo.linalg.DenseVector;
 import com.davidbracewell.apollo.linalg.Vector;
-import com.davidbracewell.apollo.ml.Feature;
 import com.davidbracewell.apollo.ml.FeatureVector;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.classification.Classifier;
-import com.davidbracewell.apollo.ml.classification.ClassifierEvaluation;
 import com.davidbracewell.apollo.ml.classification.ClassifierLearner;
 import com.davidbracewell.apollo.ml.data.Dataset;
-import com.davidbracewell.function.Unchecked;
-import com.davidbracewell.io.Resources;
-import com.davidbracewell.io.resource.Resource;
 import com.davidbracewell.logging.Logger;
-import com.davidbracewell.stream.StreamingContext;
-import com.davidbracewell.string.StringUtils;
 import com.davidbracewell.tuple.Tuple2;
-import com.google.common.base.Joiner;
 import com.google.common.base.Stopwatch;
+import lombok.Getter;
+import lombok.Setter;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author David B. Bracewell
@@ -29,44 +23,26 @@ public class MLP extends ClassifierLearner {
   private static final Logger log = Logger.getLogger(MLP.class);
   private static final long serialVersionUID = 1L;
   private int[] hiddenLayers = new int[]{50};
+  @Getter
+  @Setter
   private double learningRate = 1;
+  @Getter
+  @Setter
   private double tolerance = 0.0001;
+  @Getter
+  @Setter
   private double maxIterations = 100;
+  @Getter
+  @Setter
   private boolean verbose = true;
 
-  public static void main(String[] args) throws Exception {
-    Dataset<Instance> dataset = Dataset.classification()
-      .localSource(
-        Resources.fromFile("/home/david/Downloads/Data/SomasundaranWiebe-politicalDebates/abortion")
-          .getChildren()
-          .stream()
-          .map(Unchecked.function(Resource::readToString))
-          .map(doc -> {
-            String[] parts = doc.split("\n+");
-            String label = parts[0].split("=")[1];
-            String content = Joiner.on('\n').join(Arrays.copyOfRange(parts, 3, parts.length)).toLowerCase();
-            Map<String, Long> counts = StreamingContext.local().stream(content.split("[^A-Za-z]+"))
-              .filter(s -> !StringUtils.isNullOrBlank(s)).map(String::toLowerCase).countByValue();
-            List<Feature> features = counts.entrySet().stream().map(e -> Feature.real(e.getKey(), e.getValue())).collect(Collectors.toList());
-            return Instance.create(features, label);
-          })
-      ).build()
-      .shuffle(new Random(123));
 
-    MLP mlp = new MLP();
-    mlp.learningRate = 1.0;
-    mlp.maxIterations = 500;
-    mlp.hiddenLayers = new int[]{4};
+  public int getHiddenLayerSize() {
+    return hiddenLayers[0];
+  }
 
-    dataset.split(0.8).forEach((train, test) -> {
-      Classifier c = mlp.train(train);
-      ClassifierEvaluation evaluation = new ClassifierEvaluation();
-      evaluation.evaluate(c, test);
-      evaluation.output(System.out);
-
-    });
-
-
+  public void setHiddenLayerSize(int size) {
+    hiddenLayers = new int[]{size};
   }
 
   @Override

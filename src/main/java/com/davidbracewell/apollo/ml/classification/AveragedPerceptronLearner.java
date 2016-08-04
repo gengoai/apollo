@@ -22,11 +22,13 @@
 package com.davidbracewell.apollo.ml.classification;
 
 import com.davidbracewell.apollo.linalg.Vector;
-import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.ml.FeatureVector;
 import com.davidbracewell.apollo.ml.Instance;
+import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.collection.Collect;
 import com.davidbracewell.logging.Logger;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -38,13 +40,21 @@ import java.text.DecimalFormat;
 public class AveragedPerceptronLearner extends BinaryClassifierLearner {
   private static final long serialVersionUID = 1L;
   private static Logger log = Logger.getLogger(AveragedPerceptronLearner.class);
+  @Getter
+  @Setter
   private int maxIterations;
+  @Getter
+  @Setter
   private double learningRate;
   private Vector totalWeights;
   private Vector stamps;
   private double totalBias;
   private double biasStamps;
+  @Getter
+  @Setter
   private double tolerance;
+  @Getter
+  @Setter
   private boolean verbose = false;
 
   public AveragedPerceptronLearner() {
@@ -146,38 +156,6 @@ public class AveragedPerceptronLearner extends BinaryClassifierLearner {
     this.biasStamps = 0;
     this.stamps = null;
     this.totalWeights = null;
-  }
-
-  public double getLearningRate() {
-    return learningRate;
-  }
-
-  public void setLearningRate(double learningRate) {
-    this.learningRate = learningRate;
-  }
-
-  public int getMaxIterations() {
-    return maxIterations;
-  }
-
-  public void setMaxIterations(int maxIterations) {
-    this.maxIterations = maxIterations;
-  }
-
-  public double getTolerance() {
-    return tolerance;
-  }
-
-  public void setTolerance(double tolerance) {
-    this.tolerance = tolerance;
-  }
-
-  public boolean isVerbose() {
-    return verbose;
-  }
-
-  public void setVerbose(boolean verbose) {
-    this.verbose = verbose;
   }
 
 }//END OF AveragedPerceptronLearner

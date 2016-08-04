@@ -47,6 +47,8 @@ public final class EncoderPair implements Serializable, Writable, Readable {
           case "labels":
             Reflect.onObject(this).allowPrivilegedAccess().set("labelEncoder", createEncoder(reader));
             break;
+          default:
+            throw new IOException("Unexpected " + reader.peekName() + " [" + reader.peek() + "]");
         }
       }
     } catch (ReflectionException e) {

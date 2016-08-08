@@ -25,6 +25,7 @@ import com.davidbracewell.apollo.affinity.Optimum;
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.tuple.Tuple2;
 import lombok.NonNull;
+import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
 import java.math.BigDecimal;
 import java.util.stream.DoubleStream;
@@ -52,6 +53,72 @@ public interface ApolloMath {
     return Math.log(number) / LOG2;
   }
 
+
+  /**
+   * Clip double [ ].
+   *
+   * @param values     the values
+   * @param lowerBound the lower bound
+   * @param upperBound the upper bound
+   * @return the double [ ]
+   */
+  static double[] clip(@NonNull double[] values, double lowerBound, double upperBound) {
+    return DoubleStream.of(values).sequential().map(d -> clip(d, lowerBound, upperBound)).toArray();
+  }
+
+  /**
+   * Clip double.
+   *
+   * @param value      the value
+   * @param lowerBound the lower bound
+   * @param upperBound the upper bound
+   * @return the double
+   */
+  static double clip(double value, double lowerBound, double upperBound) {
+    return value < lowerBound ? lowerBound : value > upperBound ? upperBound : value;
+  }
+
+
+  /**
+   * Rescale double [ ].
+   *
+   * @param values the values
+   * @param newMin the new min
+   * @param newMax the new max
+   * @return the double [ ]
+   */
+  static double[] rescale(@NonNull double[] values, double newMin, double newMax) {
+    final DescriptiveStatistics statistics = new DescriptiveStatistics(values);
+    return rescale(values, statistics.getMin(), statistics.getMax(), newMin, newMax);
+  }
+
+  /**
+   * Rescale double [ ].
+   *
+   * @param values the values
+   * @param oldMin the old min
+   * @param oldMax the old max
+   * @param newMin the new min
+   * @param newMax the new max
+   * @return the double [ ]
+   */
+  static double[] rescale(@NonNull double[] values, double oldMin, double oldMax, double newMin, double newMax) {
+    return DoubleStream.of(values).sequential().map(d -> rescale(d, oldMin, oldMax, newMin, newMax)).toArray();
+  }
+
+  /**
+   * Rescale double.
+   *
+   * @param value  the value
+   * @param oldMin the old min
+   * @param oldMax the old max
+   * @param newMin the new min
+   * @param newMax the new max
+   * @return the double
+   */
+  static double rescale(double value, double oldMin, double oldMax, double newMin, double newMax) {
+    return ((value - oldMin) / (oldMax - oldMin)) * (newMax - newMin) + newMin;
+  }
 
   /**
    * Log sum double.

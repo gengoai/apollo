@@ -43,7 +43,7 @@ public enum VectorCompositions implements VectorComposition {
       if (vectors.size() == 0) {
         return new SparseVector(dimension);
       }
-      Vector rval = new DenseVector(dimension);
+      Vector rval = DenseVector.ones(dimension);
       vectors.stream().filter(vector -> vector.magnitude() > 0).forEach(rval::multiplySelf);
       return rval;
     }

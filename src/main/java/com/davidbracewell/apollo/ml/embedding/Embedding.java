@@ -3,7 +3,9 @@ package com.davidbracewell.apollo.ml.embedding;
 import com.davidbracewell.apollo.affinity.Similarity;
 import com.davidbracewell.apollo.linalg.DenseVector;
 import com.davidbracewell.apollo.linalg.ScoredLabelVector;
+import com.davidbracewell.apollo.linalg.SparseVector;
 import com.davidbracewell.apollo.linalg.Vector;
+import com.davidbracewell.apollo.linalg.VectorComposition;
 import com.davidbracewell.apollo.linalg.VectorStore;
 import com.davidbracewell.apollo.ml.EncoderPair;
 import com.davidbracewell.apollo.ml.Model;
@@ -11,6 +13,7 @@ import com.davidbracewell.tuple.Tuple;
 import lombok.NonNull;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -86,6 +89,20 @@ public class Embedding implements Model, Serializable {
     }
     return new DenseVector(getDimension());
   }
+
+  public Vector compose(@NonNull VectorComposition composition, String... words) {
+    if (words == null) {
+      return new SparseVector(getDimension());
+    } else if (words.length == 1) {
+      return getVector(words[0]);
+    }
+    List<Vector> vectors = new ArrayList<>();
+    for (String w : words) {
+      vectors.add(getVector(w));
+    }
+    return composition.compose(getDimension(), vectors);
+  }
+
 
   /**
    * Similarity double.

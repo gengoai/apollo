@@ -1,7 +1,8 @@
 package com.davidbracewell.apollo.ml.preprocess;
 
-import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.ml.Example;
+import com.davidbracewell.apollo.ml.data.Dataset;
+import com.davidbracewell.io.structured.StructuredSerializable;
 
 import java.io.Serializable;
 
@@ -11,7 +12,7 @@ import java.io.Serializable;
  * @param <T> the type parameter
  * @author David B. Bracewell
  */
-public interface Preprocessor<T extends Example> extends Serializable {
+public interface Preprocessor<T extends Example> extends Serializable, StructuredSerializable {
 
   /**
    * Process dataset.
@@ -33,6 +34,9 @@ public interface Preprocessor<T extends Example> extends Serializable {
    */
   void reset();
 
+  default boolean requiresFit() {
+    return true;
+  }
 
   /**
    * Apply t.
@@ -49,5 +53,7 @@ public interface Preprocessor<T extends Example> extends Serializable {
    * @return the string
    */
   String describe();
+
+
 
 }//END OF Preprocessor

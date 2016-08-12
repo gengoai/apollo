@@ -1,8 +1,6 @@
 package com.davidbracewell.apollo.ml;
 
 import com.davidbracewell.io.resource.Resource;
-import com.davidbracewell.io.structured.Readable;
-import com.davidbracewell.io.structured.Writable;
 import lombok.NonNull;
 
 import java.io.Serializable;
@@ -12,7 +10,7 @@ import java.io.Serializable;
  *
  * @author David B. Bracewell
  */
-public interface Model extends Serializable, Writable, Readable {
+public interface Model extends Serializable {
 
   /**
    * Read model classifier.

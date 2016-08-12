@@ -464,11 +464,7 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
   public void write(@NonNull Resource resource) throws IOException {
     try (JSONWriter writer = new JSONWriter(resource)) {
       writer.beginDocument();
-      writer.beginArray("preprocessors");
-      for (Preprocessor<T> preprocessor : preprocessors) {
-        writer.writeValue(preprocessor.describe());
-      }
-      writer.endArray();
+      writer.writeKeyValue("preprocessors", preprocessors);
       writer.beginArray("data");
       for (T instance : this) {
         writer.writeValue(instance);
@@ -491,11 +487,8 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
     try (JSONReader reader = new JSONReader(resource)) {
       reader.beginDocument();
       List<T> batch = new LinkedList<>();
-      reader.beginArray("preprocessors");
-      while (reader.peek() != ElementType.END_ARRAY) {
-        reader.nextValue();
-      }
-      reader.endArray();
+      preprocessors.clear();
+      preprocessors.addAll(Cast.as(reader.nextKeyValue(PreprocessorList.class).v2));
       reader.beginArray("data");
       while (reader.peek() != ElementType.END_ARRAY) {
         batch.add(reader.nextValue(exampleType));
@@ -526,7 +519,7 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
     for (Object label : fCount.items()) {
       undersample = undersample.union(
         stream().filter(e -> e.getLabelSpace().findFirst().filter(label::equals).isPresent())
-          .sample(false,targetCount)
+                .sample(false, targetCount)
       );
     }
     return create(undersample);
@@ -544,7 +537,9 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
     int targetCount = (int) fCount.maximumCount();
     MStream<T> oversample = getStreamingContext().empty();
     for (Object label : fCount.items()) {
-      MStream<T> fStream = stream().filter(e -> e.getLabelSpace().findFirst().filter(label::equals).isPresent()).cache();
+      MStream<T> fStream = stream()
+        .filter(e -> e.getLabelSpace().findFirst().filter(label::equals).isPresent())
+        .cache();
       int count = (int) fStream.count();
       int curCount = 0;
       while (curCount + count < targetCount) {
@@ -552,7 +547,7 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
         curCount += count;
       }
       if (curCount < targetCount) {
-        oversample = oversample.union(fStream.sample(false,targetCount - curCount));
+        oversample = oversample.union(fStream.sample(false, targetCount - curCount));
       } else if (count == targetCount) {
         oversample = oversample.union(fStream);
       }

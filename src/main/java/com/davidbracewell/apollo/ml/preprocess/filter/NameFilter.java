@@ -21,12 +21,17 @@
 
 package com.davidbracewell.apollo.ml.preprocess.filter;
 
-import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.ml.Instance;
+import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.ml.preprocess.InstancePreprocessor;
+import com.davidbracewell.io.structured.ArrayValue;
+import com.davidbracewell.io.structured.ElementType;
+import com.davidbracewell.io.structured.StructuredReader;
+import com.davidbracewell.io.structured.StructuredWriter;
+import com.davidbracewell.string.StringUtils;
 import lombok.NonNull;
 
-import java.io.Serializable;
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -37,7 +42,7 @@ import java.util.stream.Collectors;
  *
  * @author David B. Bracewell
  */
-public class NameFilter implements FilterProcessor<Instance>, InstancePreprocessor, Serializable {
+public class NameFilter implements FilterProcessor<Instance>, InstancePreprocessor, ArrayValue {
   private static final long serialVersionUID = 1L;
   private final Set<Pattern> patterns = new HashSet<>();
 
@@ -52,20 +57,22 @@ public class NameFilter implements FilterProcessor<Instance>, InstancePreprocess
     }
   }
 
+  protected NameFilter() {
+  }
+
   @Override
   public void fit(Dataset<Instance> dataset) {
-
   }
 
   @Override
   public void reset() {
-
   }
 
   @Override
   public String describe() {
-    return "NameFilter: " + patterns;
+    return "NameFilter{patterns=" + patterns + "}";
   }
+
 
   @Override
   public Instance apply(Instance example) {
@@ -80,6 +87,48 @@ public class NameFilter implements FilterProcessor<Instance>, InstancePreprocess
       }).collect(Collectors.toList()),
       example.getLabel()
     );
+  }
+
+  @Override
+  public void write(StructuredWriter writer) throws IOException {
+    for (Pattern pattern : patterns) {
+      writer.beginObject();
+      writer.writeKeyValue("pattern", pattern.toString());
+      writer.writeKeyValue("flags", pattern.flags());
+      writer.endObject();
+    }
+  }
+
+  @Override
+  public boolean requiresFit() {
+    return false;
+  }
+
+  @Override
+  public void read(StructuredReader reader) throws IOException {
+    reset();
+    while (reader.peek() != ElementType.END_ARRAY) {
+      reader.beginObject();
+      int flags = -1;
+      String pattern = StringUtils.EMPTY;
+      while (reader.peek() != ElementType.END_OBJECT) {
+        switch (reader.peekName()) {
+          case "pattern":
+            pattern = reader.nextKeyValue().v2.asString();
+            break;
+          case "flags":
+            flags = reader.nextKeyValue().v2.asIntegerValue();
+            break;
+        }
+      }
+      patterns.add(Pattern.compile(pattern, flags));
+      reader.endObject();
+    }
+  }
+
+  @Override
+  public String toString() {
+    return describe();
   }
 
 }//END OF RemoveFilter

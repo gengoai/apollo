@@ -68,57 +68,6 @@ public class NaiveBayes extends Classifier {
     this.modelType = modelType;
   }
 
-  @Override
-  public void read(StructuredReader reader) throws IOException {
-    ModelType type = ModelType.valueOf(reader.nextKeyValue("type").asString());
-    try {
-      Reflect.onObject(this).allowPrivilegedAccess().set("modelType", type);
-    } catch (ReflectionException e) {
-      throw new IOException(e);
-    }
-
-    this.priors = new double[numberOfLabels()];
-    reader.beginObject("priors");
-    while (reader.peek() != ElementType.END_OBJECT) {
-      Tuple2<String, Val> kv = reader.nextKeyValue();
-      priors[(int) encodeLabel(kv.v1)] = kv.v2.asDoubleValue();
-    }
-    reader.endObject();
-
-    this.conditionals = new double[numberOfFeatures()][numberOfLabels()];
-    reader.beginObject("conditionals");
-    while (reader.peek() != ElementType.END_OBJECT) {
-      String featureName = reader.beginObject();
-      int fi = (int) encodeFeature(featureName);
-      while (reader.peek() != ElementType.END_OBJECT) {
-        Tuple2<String, Val> kv = reader.nextKeyValue();
-        conditionals[fi][(int) encodeLabel(kv.v1)] = kv.v2.asDoubleValue();
-      }
-      reader.endObject();
-    }
-    reader.endObject();
-  }
-
-  @Override
-  public void write(StructuredWriter writer) throws IOException {
-    writer.writeKeyValue("type", modelType.toString());
-    writer.beginObject("priors");
-    for (Object o : getLabelEncoder().values()) {
-      writer.writeKeyValue(o.toString(), priors[(int) encodeLabel(o.toString())]);
-    }
-    writer.endObject();
-    MultiCounter<String, String> parameters = getModelParameters();
-    writer.beginObject("conditionals");
-    for (String feature : parameters.items()) {
-      writer.beginObject(feature);
-      for (String clazz : parameters.get(feature).items()) {
-        writer.writeKeyValue(clazz, conditionals[(int) encodeFeature(feature)][(int) encodeLabel(clazz)]);
-      }
-      writer.endObject();
-    }
-    writer.endObject();
-  }
-
   /**
    * Gets model type.
    *

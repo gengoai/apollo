@@ -1,8 +1,7 @@
 package com.davidbracewell.apollo.ml;
 
 import com.davidbracewell.apollo.ml.data.Dataset;
-import com.davidbracewell.io.structured.Readable;
-import com.davidbracewell.io.structured.Writable;
+import com.davidbracewell.io.structured.StructuredSerializable;
 import com.davidbracewell.stream.MStream;
 import lombok.NonNull;
 
@@ -15,7 +14,7 @@ import java.util.stream.Stream;
  *
  * @author David B. Bracewell
  */
-public interface Encoder extends Writable, Readable{
+public interface Encoder extends StructuredSerializable {
 
   /**
    * Get double.

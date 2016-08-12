@@ -4,16 +4,19 @@ import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.collection.HashMapIndex;
 import com.davidbracewell.collection.Index;
 import com.davidbracewell.conversion.Cast;
-import com.davidbracewell.io.structured.Readable;
 import com.davidbracewell.io.structured.StructuredReader;
+import com.davidbracewell.io.structured.StructuredSerializable;
 import com.davidbracewell.io.structured.StructuredWriter;
-import com.davidbracewell.io.structured.Writable;
 import com.davidbracewell.stream.MStream;
 import lombok.NonNull;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
@@ -22,7 +25,7 @@ import java.util.stream.Collectors;
  *
  * @author David B. Bracewell
  */
-public class IndexEncoder implements Encoder, Serializable, Writable, Readable {
+public class IndexEncoder implements Encoder, Serializable, StructuredSerializable {
   private static final long serialVersionUID = 1L;
   protected volatile Index<String> index = new HashMapIndex<>();
   protected volatile AtomicBoolean frozen = new AtomicBoolean(false);
@@ -71,10 +74,10 @@ public class IndexEncoder implements Encoder, Serializable, Writable, Readable {
     if (!isFrozen()) {
       this.index.addAll(
         dataset.stream()
-          .flatMap(ex -> ex.getFeatureSpace().filter(Objects::nonNull).collect(Collectors.toSet()))
-          .filter(Objects::nonNull)
-          .distinct()
-          .collect()
+               .flatMap(ex -> ex.getFeatureSpace().filter(Objects::nonNull).collect(Collectors.toSet()))
+               .filter(Objects::nonNull)
+               .distinct()
+               .collect()
       );
     }
   }

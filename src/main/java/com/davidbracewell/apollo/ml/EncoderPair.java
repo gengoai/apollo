@@ -1,7 +1,9 @@
 package com.davidbracewell.apollo.ml;
 
-import com.davidbracewell.io.structured.*;
-import com.davidbracewell.io.structured.Readable;
+import com.davidbracewell.io.structured.ElementType;
+import com.davidbracewell.io.structured.StructuredReader;
+import com.davidbracewell.io.structured.StructuredSerializable;
+import com.davidbracewell.io.structured.StructuredWriter;
 import com.davidbracewell.reflection.Reflect;
 import com.davidbracewell.reflection.ReflectionException;
 import lombok.EqualsAndHashCode;
@@ -15,7 +17,7 @@ import java.io.Serializable;
  * @author David B. Bracewell
  */
 @EqualsAndHashCode(callSuper = false)
-public final class EncoderPair implements Serializable, Writable, Readable {
+public final class EncoderPair implements Serializable, StructuredSerializable {
   private static final long serialVersionUID = 1L;
   private final LabelEncoder labelEncoder;
   private final Encoder featureEncoder;

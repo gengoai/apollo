@@ -29,4 +29,13 @@ public class Chi2FeatureSelection extends ContingencyFeatureSelection {
     super(ContingencyMeasures.CHI_SQUARE, numberOfFeaturesPerClass, Double.NEGATIVE_INFINITY);
   }
 
+  protected Chi2FeatureSelection() {
+
+  }
+
+  @Override
+  public String describe() {
+    return getClass().getSimpleName() + "{numberOfFeaturesPerClass=" + getNumFeaturesPerClass() + ", threshold=" + getThreshold() + "}";
+  }
+
 }// END OF Chi2FeatureSelection

@@ -13,5 +13,4 @@ public interface Restricted {
     return acceptAll() || featureName.startsWith(getRestriction());
   }
 
-
 }//END OF Restricted

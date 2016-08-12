@@ -2,16 +2,21 @@ package com.davidbracewell.apollo.ml.preprocess.filter;
 
 import com.davidbracewell.apollo.ContingencyTable;
 import com.davidbracewell.apollo.ContingencyTableCalculator;
-import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.ml.Instance;
+import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.ml.preprocess.InstancePreprocessor;
 import com.davidbracewell.collection.Counter;
 import com.davidbracewell.collection.HashMapCounter;
 import com.davidbracewell.collection.HashMapMultiCounter;
 import com.davidbracewell.collection.MultiCounter;
+import com.davidbracewell.io.structured.ElementType;
+import com.davidbracewell.io.structured.StructuredReader;
+import com.davidbracewell.io.structured.StructuredWriter;
 import com.davidbracewell.stream.accumulator.MAccumulator;
+import lombok.Getter;
 import lombok.NonNull;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -25,11 +30,12 @@ import java.util.stream.Collectors;
  */
 public class ContingencyFeatureSelection implements FilterProcessor<Instance>, InstancePreprocessor, Serializable {
   private static final long serialVersionUID = 1L;
-  private final ContingencyTableCalculator calculator;
   private final Set<String> finalFeatures = new HashSet<>();
-  private final int numFeaturesPerClass;
-  private final double threshold;
-
+  private ContingencyTableCalculator calculator;
+  @Getter
+  private int numFeaturesPerClass;
+  @Getter
+  private double threshold;
 
   public ContingencyFeatureSelection(@NonNull ContingencyTableCalculator calculator, int numFeaturesPerClass, double threshold) {
     this.calculator = calculator;
@@ -37,11 +43,18 @@ public class ContingencyFeatureSelection implements FilterProcessor<Instance>, I
     this.threshold = threshold;
   }
 
+  protected ContingencyFeatureSelection() {
+
+  }
+
 
   @Override
   public void fit(@NonNull Dataset<Instance> dataset) {
     MAccumulator<Counter<Object>> labelCounts = dataset.getType().getStreamingContext().counterAccumulator();
-    MAccumulator<MultiCounter<String, Object>> featureLabelCounts = dataset.getType().getStreamingContext().multiCounterAccumulator();
+    MAccumulator<MultiCounter<String, Object>> featureLabelCounts = dataset
+      .getType()
+      .getStreamingContext()
+      .multiCounterAccumulator();
     dataset.stream().forEach(instance -> {
       Object label = instance.getLabel();
       labelCounts.add(new HashMapCounter<>(label));
@@ -55,28 +68,29 @@ public class ContingencyFeatureSelection implements FilterProcessor<Instance>, I
       double labelCount = labelCounts.value().get(label);
       Map<String, Double> featureScores = new HashMap<>();
       featureLabelCounts.value().items().forEach(feature -> {
-          double featureLabelCount = featureLabelCounts.value().get(feature, label);
-          double featureSum = featureLabelCounts.value().get(feature).sum();
-          if (featureLabelCount > 0) {
-            double score = calculator.calculate(
-              ContingencyTable.create2X2(featureLabelCount, labelCount, featureSum, totalCount)
-            );
-            featureScores.put(feature, score);
-          }
-        }
+                                                   double featureLabelCount = featureLabelCounts.value().get(feature, label);
+                                                   double featureSum = featureLabelCounts.value().get(feature).sum();
+                                                   if (featureLabelCount > 0) {
+                                                     double score = calculator.calculate(
+                                                       ContingencyTable.create2X2(featureLabelCount, labelCount, featureSum, totalCount)
+                                                     );
+                                                     featureScores.put(feature, score);
+                                                   }
+                                                 }
       );
 
       List<Map.Entry<String, Double>> entryList = featureScores.entrySet()
-        .stream()
-        .sorted(Map.Entry.<String, Double>comparingByValue().reversed())
-        .filter(e -> e.getValue() >= threshold)
-        .collect(Collectors.toList());
+                                                               .stream()
+                                                               .sorted(Map.Entry.<String, Double>comparingByValue().reversed())
+                                                               .filter(e -> e.getValue() >= threshold)
+                                                               .collect(Collectors.toList());
 
       if (entryList.size() > 0) {
-        entryList.subList(0, Math.min(numFeaturesPerClass, entryList.size())).forEach(e -> finalFeatures.add(e.getKey()));
+        entryList
+          .subList(0, Math.min(numFeaturesPerClass, entryList.size()))
+          .forEach(e -> finalFeatures.add(e.getKey()));
       }
     }
-
   }
 
   @Override
@@ -86,8 +100,11 @@ public class ContingencyFeatureSelection implements FilterProcessor<Instance>, I
 
   @Override
   public String describe() {
-    return getClass().getSimpleName() + ": numberOfFeaturesPerClass=" + numFeaturesPerClass + ", threshold=" + threshold;
+    return getClass().getSimpleName() + "{calculator=" + calculator
+      .getClass()
+      .getSimpleName() + ", numberOfFeaturesPerClass=" + numFeaturesPerClass + ", threshold=" + threshold + "}";
   }
+
 
   @Override
   public Instance apply(Instance example) {
@@ -95,5 +112,35 @@ public class ContingencyFeatureSelection implements FilterProcessor<Instance>, I
     return example;
   }
 
+
+  @Override
+  public void write(@NonNull StructuredWriter writer) throws IOException {
+    writer.writeKeyValue("calculator", calculator.getClass().getName());
+    writer.writeKeyValue("numFeaturesPerClass", numFeaturesPerClass);
+    writer.writeKeyValue("threshold", threshold);
+  }
+
+  @Override
+  public void read(@NonNull StructuredReader reader) throws IOException {
+    reset();
+    while (reader.peek() != ElementType.END_OBJECT) {
+      switch (reader.peekName()) {
+        case "calculator":
+          this.calculator = reader.nextKeyValue().v2.as(ContingencyTableCalculator.class);
+          break;
+        case "threshold":
+          this.threshold = reader.nextKeyValue().v2.asDoubleValue();
+          break;
+        case "numFeaturesPerClass":
+          this.numFeaturesPerClass = reader.nextKeyValue().v2.asIntegerValue();
+          break;
+      }
+    }
+  }
+
+  @Override
+  public String toString() {
+    return describe();
+  }
 
 }// END OF ContingencyFeatureSelection

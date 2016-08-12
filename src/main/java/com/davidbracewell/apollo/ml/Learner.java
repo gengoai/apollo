@@ -4,10 +4,9 @@ import com.davidbracewell.apollo.ml.classification.Classifier;
 import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.ml.sequence.Sequence;
 import com.davidbracewell.apollo.ml.sequence.SequenceLabeler;
-import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.io.structured.StructuredReader;
+import com.davidbracewell.io.structured.StructuredSerializable;
 import com.davidbracewell.io.structured.StructuredWriter;
-import com.davidbracewell.io.structured.Writable;
 import com.davidbracewell.reflection.BeanMap;
 import com.davidbracewell.reflection.Ignore;
 import lombok.NonNull;
@@ -23,7 +22,7 @@ import java.util.Map;
  * @param <M> the type parameter
  * @author David B. Bracewell
  */
-public abstract class Learner<T extends Example, M extends Model> implements Serializable, Writable {
+public abstract class Learner<T extends Example, M extends Model> implements Serializable, StructuredSerializable {
 
   /**
    * Builder learner builder.
@@ -54,10 +53,11 @@ public abstract class Learner<T extends Example, M extends Model> implements Ser
     return new LearnerBuilder<>();
   }
 
-  public static <T extends Example, M extends Model, R extends Learner<T, M>> R read(StructuredReader reader) throws IOException {
-    Class<?> clazz = reader.nextKeyValue("class").asClass();
-    return Cast.as(builder().learnerClass(Cast.as(clazz)).parameters(reader.nextMap("parameters")).build());
-  }
+//  public static <T extends Example, M extends Model, R extends Learner<T, M>> R read(StructuredReader reader) throws IOException {
+//    Class<?> clazz = reader.nextKeyValue("class").asClass();
+//    return Cast.as(builder().learnerClass(Cast.as(clazz)).parameters(reader.nextMap("parameters")).build());
+//  }
+
 
   /**
    * Train classifier.

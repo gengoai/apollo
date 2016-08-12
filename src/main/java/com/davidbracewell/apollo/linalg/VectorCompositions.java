@@ -6,9 +6,14 @@ import java.util.Arrays;
 import java.util.Collection;
 
 /**
+ * The enum Vector compositions.
+ *
  * @author David B. Bracewell
  */
 public enum VectorCompositions implements VectorComposition {
+  /**
+   * The Average.
+   */
   Average {
     @Override
     public Vector compose(int dimension, @NonNull Collection<Vector> vectors) {
@@ -26,6 +31,9 @@ public enum VectorCompositions implements VectorComposition {
       return rval.mapDivideSelf(count);
     }
   },
+  /**
+   * The Sum.
+   */
   Sum {
     @Override
     public Vector compose(int dimension, @NonNull Collection<Vector> vectors) {
@@ -37,6 +45,9 @@ public enum VectorCompositions implements VectorComposition {
       return rval;
     }
   },
+  /**
+   * The Point wise multiply.
+   */
   PointWiseMultiply {
     @Override
     public Vector compose(int dimension, @NonNull Collection<Vector> vectors) {
@@ -48,6 +59,9 @@ public enum VectorCompositions implements VectorComposition {
       return rval;
     }
   },
+  /**
+   * The Max.
+   */
   Max {
     @Override
     public Vector compose(int dimension, @NonNull Collection<Vector> vectors) {
@@ -67,6 +81,9 @@ public enum VectorCompositions implements VectorComposition {
       return rval;
     }
   },
+  /**
+   * The Min.
+   */
   Min {
     @Override
     public Vector compose(int dimension, @NonNull Collection<Vector> vectors) {

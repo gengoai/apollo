@@ -22,8 +22,8 @@
 package com.davidbracewell.apollo.affinity;
 
 import com.davidbracewell.apollo.linalg.Vector;
-import com.davidbracewell.collection.HashMapIndex;
-import com.davidbracewell.collection.Index;
+import com.davidbracewell.collection.index.HashMapIndex;
+import com.davidbracewell.collection.index.Index;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 import lombok.NonNull;

@@ -2,11 +2,9 @@ package com.davidbracewell.apollo.ml.classification;
 
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.EncoderPair;
-import com.davidbracewell.apollo.ml.classification.Classification;
-import com.davidbracewell.apollo.ml.classification.Classifier;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
-import com.davidbracewell.collection.HashMapMultiCounter;
-import com.davidbracewell.collection.MultiCounter;
+import com.davidbracewell.collection.counter.HashMapMultiCounter;
+import com.davidbracewell.collection.counter.MultiCounter;
 import lombok.NonNull;
 
 /**

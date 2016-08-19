@@ -2,20 +2,15 @@ package com.davidbracewell.apollo.ml.regression;
 
 import com.davidbracewell.apollo.linalg.SparseVector;
 import com.davidbracewell.apollo.linalg.Vector;
-import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.ml.FeatureVector;
 import com.davidbracewell.apollo.ml.Instance;
-import com.google.common.collect.Lists;
-import de.bwaldvogel.liblinear.Feature;
-import de.bwaldvogel.liblinear.FeatureNode;
-import de.bwaldvogel.liblinear.Linear;
-import de.bwaldvogel.liblinear.Model;
-import de.bwaldvogel.liblinear.Parameter;
-import de.bwaldvogel.liblinear.Problem;
-import de.bwaldvogel.liblinear.SolverType;
+import com.davidbracewell.apollo.ml.data.Dataset;
+import de.bwaldvogel.liblinear.*;
 
 import java.util.Iterator;
 import java.util.List;
+
+import static com.davidbracewell.collection.CollectionHelpers.asArrayList;
 
 /**
  * The type Lib linear regression.
@@ -36,7 +31,7 @@ public class LibLinearRegression extends RegressionLearner {
    * @return the feature [ ]
    */
   static Feature[] toFeature(Vector vector, int biasIndex) {
-    List<Vector.Entry> entries = Lists.newArrayList(vector.orderedNonZeroIterator());
+    List<Vector.Entry> entries = asArrayList(vector.orderedNonZeroIterator());
     Feature[] feature = new Feature[entries.size() + 1];
     for (int i = 0; i < entries.size(); i++) {
       feature[i] = new FeatureNode(entries.get(i).index + 1, entries.get(i).value);
@@ -54,7 +49,7 @@ public class LibLinearRegression extends RegressionLearner {
     problem.bias = 0;
 
     int index = 0;
-    int biasIndex = dataset.getFeatureEncoder().size()+1;
+    int biasIndex = dataset.getFeatureEncoder().size() + 1;
 
     for (Iterator<Instance> iitr = dataset.iterator(); iitr.hasNext(); index++) {
       FeatureVector vector = iitr.next().toVector(dataset.getEncoderPair());

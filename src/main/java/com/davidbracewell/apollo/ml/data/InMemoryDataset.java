@@ -5,7 +5,7 @@ import com.davidbracewell.apollo.ml.Example;
 import com.davidbracewell.apollo.ml.LabelEncoder;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.collection.Collect;
-import com.davidbracewell.collection.Interner;
+import com.davidbracewell.Interner;
 import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.stream.MStream;
 import com.davidbracewell.stream.StreamingContext;

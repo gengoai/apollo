@@ -41,6 +41,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.davidbracewell.collection.CollectionHelpers.asStream;
+
 /**
  * The type Crf learner.
  *
@@ -349,7 +351,7 @@ public class CRFLearner extends SequenceLabelerLearner {
       return Instance.create(
         Collect.union(
           iterator.getCurrent().getFeatures(),
-          Collect.stream(model.getTransitionFeatures().extract(iterator)).map(Feature::TRUE).collect(Collectors.toList())
+          asStream(model.getTransitionFeatures().extract(iterator)).map(Feature::TRUE).collect(Collectors.toList())
         )
       ).toVector(model.getEncoderPair());
     }

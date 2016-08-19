@@ -24,7 +24,7 @@ package com.davidbracewell.apollo.affinity;
 import com.davidbracewell.apollo.linalg.DenseVector;
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.linalg.VectorMap;
-import com.davidbracewell.collection.Counter;
+import com.davidbracewell.collection.counter.Counter;
 import com.google.common.collect.Maps;
 import lombok.NonNull;
 

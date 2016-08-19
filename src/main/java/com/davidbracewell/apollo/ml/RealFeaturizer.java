@@ -22,7 +22,7 @@
 package com.davidbracewell.apollo.ml;
 
 import com.davidbracewell.cache.Cached;
-import com.davidbracewell.collection.Counter;
+import com.davidbracewell.collection.counter.Counter;
 
 import java.util.Collections;
 import java.util.Set;

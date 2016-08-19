@@ -1,6 +1,9 @@
 package com.davidbracewell.apollo.ml.embedding;
 
-import com.davidbracewell.collection.*;
+import com.davidbracewell.collection.counter.Counter;
+import com.davidbracewell.collection.counter.HashMapCounter;
+import com.davidbracewell.collection.index.HashMapIndex;
+import com.davidbracewell.collection.index.Index;
 import com.google.common.collect.ImmutableMap;
 import lombok.NonNull;
 import lombok.Value;
@@ -9,6 +12,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import static com.davidbracewell.collection.map.Maps.map;
 
 /**
  * @author David B. Bracewell
@@ -25,7 +30,7 @@ public class HuffmanCoding implements Serializable {
 
   public static void main(String[] args) {
     Counter<String> c = new HashMapCounter<>(
-      Collect.map(
+      map(
         "the", 4000,
         "ship", 500,
         "gold", 2,
@@ -47,7 +52,7 @@ public class HuffmanCoding implements Serializable {
 
     AtomicInteger i = new AtomicInteger();
     index.forEach(k ->
-      count[i.getAndIncrement()] = (long) vocabulary.get(k)
+                    count[i.getAndIncrement()] = (long) vocabulary.get(k)
     );
 
     for (int j = nTokens; j < count.length; j++) {

@@ -1,7 +1,7 @@
 package com.davidbracewell.apollo.ml;
 
 import com.davidbracewell.Copyable;
-import com.davidbracewell.collection.Interner;
+import com.davidbracewell.Interner;
 import com.davidbracewell.io.Resources;
 import com.davidbracewell.io.resource.Resource;
 import com.davidbracewell.io.structured.StructuredSerializable;

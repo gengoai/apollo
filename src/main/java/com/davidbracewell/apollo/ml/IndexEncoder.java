@@ -1,8 +1,8 @@
 package com.davidbracewell.apollo.ml;
 
 import com.davidbracewell.apollo.ml.data.Dataset;
-import com.davidbracewell.collection.HashMapIndex;
-import com.davidbracewell.collection.Index;
+import com.davidbracewell.collection.index.HashMapIndex;
+import com.davidbracewell.collection.index.Index;
 import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.io.structured.StructuredReader;
 import com.davidbracewell.io.structured.StructuredSerializable;

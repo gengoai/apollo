@@ -3,7 +3,7 @@ package com.davidbracewell.apollo.ml.sequence;
 import com.davidbracewell.apollo.ml.Example;
 import com.davidbracewell.apollo.ml.Feature;
 import com.davidbracewell.apollo.ml.Instance;
-import com.davidbracewell.collection.Interner;
+import com.davidbracewell.Interner;
 import com.davidbracewell.io.structured.StructuredReader;
 import com.davidbracewell.io.structured.StructuredWriter;
 import lombok.NonNull;

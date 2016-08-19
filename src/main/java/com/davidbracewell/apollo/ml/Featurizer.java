@@ -23,7 +23,7 @@ package com.davidbracewell.apollo.ml;
 
 import com.davidbracewell.cache.CacheProxy;
 import com.davidbracewell.cache.Cached;
-import com.davidbracewell.collection.Counter;
+import com.davidbracewell.collection.counter.Counter;
 import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.function.SerializableFunction;
 import com.davidbracewell.stream.MStream;

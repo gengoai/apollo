@@ -3,7 +3,7 @@ package com.davidbracewell.apollo.ml.preprocess.filter;
 import com.davidbracewell.apollo.ml.Feature;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.preprocess.RestrictedInstancePreprocessor;
-import com.davidbracewell.collection.HashMapCounter;
+import com.davidbracewell.collection.counter.HashMapCounter;
 import com.davidbracewell.io.structured.ElementType;
 import com.davidbracewell.io.structured.StructuredReader;
 import com.davidbracewell.io.structured.StructuredWriter;

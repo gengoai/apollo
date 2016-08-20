@@ -22,7 +22,6 @@
 package com.davidbracewell.apollo.ml.clustering.flat;
 
 import com.davidbracewell.apollo.affinity.Distance;
-import com.davidbracewell.apollo.linalg.LabeledVector;
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.clustering.Cluster;
 import com.davidbracewell.apollo.ml.clustering.ClustererTest;
@@ -43,7 +42,7 @@ public class KMeansTest extends ClustererTest {
   @Test
   public void testCluster() throws Exception {
     Clustering c = cluster();
-    assertEquals(c.size(), 2.0, 0.0);
+    assertEquals(2.0, c.size(), 0.0);
 
     Cluster c1 = c.get(0);
     String target = c1.getPoints().get(0).getLabel().toString();

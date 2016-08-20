@@ -21,16 +21,17 @@
 
 package com.davidbracewell.apollo.ml.clustering.flat;
 
-import com.davidbracewell.apollo.linalg.LabeledVector;
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.clustering.Cluster;
 import com.davidbracewell.apollo.ml.clustering.ClustererTest;
 import com.davidbracewell.apollo.ml.clustering.Clustering;
 import com.davidbracewell.config.Config;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 /**
  * @author David B. Bracewell
@@ -41,15 +42,22 @@ public class DistributedKMeansTest extends ClustererTest {
     super(new DistributedKMeans(2, 100));
   }
 
+  @Override
+  protected boolean isDistributed() {
+    return true;
+  }
+
   @Before
   public void setUp() throws Exception {
     Config.setProperty("spark.master", "local[*]");
+    Logger.getLogger("org.apache.spark").setLevel(Level.WARN);
+    Logger.getLogger("org.eclipse.jetty.server").setLevel(Level.WARN);
   }
 
   @Test
   public void testCluster() throws Exception {
     Clustering c = cluster();
-    assertEquals(c.size(), 2.0, 0.0);
+    assertEquals(2.0, c.size(), 0.0);
 
     Cluster c1 = c.get(0);
     String target = c1.getPoints().get(0).getLabel().toString();

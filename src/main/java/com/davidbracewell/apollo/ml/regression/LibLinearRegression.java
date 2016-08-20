@@ -10,7 +10,7 @@ import de.bwaldvogel.liblinear.*;
 import java.util.Iterator;
 import java.util.List;
 
-import static com.davidbracewell.collection.CollectionHelpers.asArrayList;
+import static com.davidbracewell.collection.list.Lists.asArrayList;
 
 /**
  * The type Lib linear regression.

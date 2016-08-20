@@ -21,7 +21,7 @@
 
 package com.davidbracewell.apollo.linalg;
 
-import com.davidbracewell.collection.EnhancedDoubleStatistics;
+import com.davidbracewell.EnhancedDoubleStatistics;
 
 import java.io.Serializable;
 import java.util.Iterator;

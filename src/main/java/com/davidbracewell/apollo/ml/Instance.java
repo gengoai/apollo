@@ -22,6 +22,7 @@
 package com.davidbracewell.apollo.ml;
 
 import com.davidbracewell.Interner;
+import com.davidbracewell.collection.Streams;
 import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.conversion.Val;
 import com.davidbracewell.io.structured.ElementType;
@@ -36,8 +37,6 @@ import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static com.davidbracewell.collection.CollectionHelpers.asStream;
 
 /**
  * The type Instance.
@@ -227,7 +226,7 @@ public class Instance implements Example, Serializable, Iterable<Feature> {
    * @return the stream
    */
   public Stream<Feature> stream() {
-    return asStream(this);
+    return Streams.asStream(this);
   }
 
   @Override
@@ -275,7 +274,7 @@ public class Instance implements Example, Serializable, Iterable<Feature> {
     return Instance.create(
       features.stream().map(f -> Feature.real(interner.intern(f.getName()), f.getValue())).collect(Collectors.toList()),
       label
-    );
+                          );
   }
 
   @Override

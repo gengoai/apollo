@@ -21,9 +21,9 @@
 
 package com.davidbracewell.apollo.affinity;
 
+import com.davidbracewell.EnhancedDoubleStatistics;
 import com.davidbracewell.apollo.linalg.DenseVector;
 import com.davidbracewell.apollo.linalg.Vector;
-import com.davidbracewell.collection.EnhancedDoubleStatistics;
 import com.google.common.base.Preconditions;
 import lombok.NonNull;
 

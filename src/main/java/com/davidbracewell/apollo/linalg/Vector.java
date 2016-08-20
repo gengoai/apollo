@@ -22,8 +22,9 @@
 package com.davidbracewell.apollo.linalg;
 
 import com.davidbracewell.Copyable;
+import com.davidbracewell.EnhancedDoubleStatistics;
 import com.davidbracewell.apollo.affinity.Correlation;
-import com.davidbracewell.collection.EnhancedDoubleStatistics;
+import com.davidbracewell.collection.Streams;
 import com.google.common.base.Preconditions;
 import com.google.common.util.concurrent.AtomicDouble;
 import lombok.NonNull;
@@ -38,8 +39,6 @@ import java.util.function.DoubleBinaryOperator;
 import java.util.function.DoubleUnaryOperator;
 import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
-
-import static com.davidbracewell.collection.CollectionHelpers.asStream;
 
 /**
  * The interface Vector.
@@ -207,7 +206,7 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
    * @return true if all elements in the vector are finite.
    */
   default boolean isFinite() {
-    return asStream(nonZeroIterator()).mapToDouble(Entry::getValue).allMatch(Double::isFinite);
+    return Streams.asStream(nonZeroIterator()).mapToDouble(Entry::getValue).allMatch(Double::isFinite);
   }
 
   /**
@@ -216,7 +215,7 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
    * @return true if any element in the vector is <code>Infinite</code>
    */
   default boolean isInfinite() {
-    return asStream(nonZeroIterator()).mapToDouble(Entry::getValue).anyMatch(Double::isInfinite);
+    return Streams.asStream(nonZeroIterator()).mapToDouble(Entry::getValue).anyMatch(Double::isInfinite);
   }
 
   /**
@@ -225,7 +224,7 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
    * @return true if any element in the vector is <code>NaN</code>
    */
   default boolean isNaN() {
-    return asStream(nonZeroIterator()).mapToDouble(Entry::getValue).anyMatch(Double::isNaN);
+    return Streams.asStream(nonZeroIterator()).mapToDouble(Entry::getValue).anyMatch(Double::isNaN);
   }
 
   /**
@@ -241,7 +240,7 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
    * @return The L1 norm of the vector
    */
   default double l1Norm() {
-    return asStream(nonZeroIterator()).mapToDouble(Entry::getValue).map(Math::abs).sum();
+    return Streams.asStream(nonZeroIterator()).mapToDouble(Entry::getValue).map(Math::abs).sum();
   }
 
   /**
@@ -250,7 +249,7 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
    * @return The L-Infinity norm of the vector
    */
   default double lInfNorm() {
-    return asStream(nonZeroIterator()).mapToDouble(Entry::getValue).map(Math::abs).max().orElse(0d);
+    return Streams.asStream(nonZeroIterator()).mapToDouble(Entry::getValue).map(Math::abs).max().orElse(0d);
   }
 
 
@@ -260,7 +259,7 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
    * @return the magnitude (L2 norm) of the vector
    */
   default double magnitude() {
-    return Math.sqrt(asStream(nonZeroIterator()).mapToDouble(Entry::getValue).map(d -> d * d).sum());
+    return Math.sqrt(Streams.asStream(nonZeroIterator()).mapToDouble(Entry::getValue).map(d -> d * d).sum());
   }
 
   /**
@@ -406,7 +405,7 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
    * @return The maximum value in this vector.
    */
   default double max() {
-    return asStream(nonZeroIterator()).mapToDouble(Entry::getValue).max().orElse(0d);
+    return Streams.asStream(nonZeroIterator()).mapToDouble(Entry::getValue).max().orElse(0d);
   }
 
   /**
@@ -415,7 +414,7 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
    * @return The minimum value in this vector.
    */
   default double min() {
-    return asStream(nonZeroIterator()).mapToDouble(Entry::getValue).min().orElse(0d);
+    return Streams.asStream(nonZeroIterator()).mapToDouble(Entry::getValue).min().orElse(0d);
   }
 
   /**
@@ -590,7 +589,7 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
    * @return The sum of the values in this vector.
    */
   default double sum() {
-    return asStream(nonZeroIterator()).mapToDouble(Entry::getValue).sum();
+    return Streams.asStream(nonZeroIterator()).mapToDouble(Entry::getValue).sum();
   }
 
   /**
@@ -621,7 +620,7 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
    * @param consumer the consumer
    */
   default void forEachSparse(@NonNull Consumer<Vector.Entry> consumer) {
-    asStream(nonZeroIterator()).forEach(consumer);
+    Streams.asStream(nonZeroIterator()).forEach(consumer);
   }
 
   /**
@@ -630,7 +629,7 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
    * @param consumer the consumer
    */
   default void forEachOrderedSparse(@NonNull Consumer<Vector.Entry> consumer) {
-    asStream(orderedNonZeroIterator()).forEach(consumer);
+    Streams.asStream(orderedNonZeroIterator()).forEach(consumer);
   }
 
 

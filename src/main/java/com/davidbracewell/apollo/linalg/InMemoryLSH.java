@@ -95,7 +95,7 @@ public class InMemoryLSH extends LSH {
     }
 
     @Override
-    public <KEY> VectorStore<KEY> createVectorStore(){
+    public <KEY> VectorStore<KEY> createVectorStore() {
       return new InMemoryLSHVectorStore<>(create());
     }
 

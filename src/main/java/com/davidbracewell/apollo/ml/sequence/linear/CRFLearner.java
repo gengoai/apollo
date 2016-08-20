@@ -22,16 +22,17 @@
 package com.davidbracewell.apollo.ml.sequence.linear;
 
 import com.davidbracewell.apollo.linalg.Vector;
-import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.ml.Feature;
 import com.davidbracewell.apollo.ml.FeatureVector;
 import com.davidbracewell.apollo.ml.Instance;
+import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.ml.sequence.ContextualIterator;
 import com.davidbracewell.apollo.ml.sequence.Sequence;
 import com.davidbracewell.apollo.ml.sequence.SequenceLabeler;
 import com.davidbracewell.apollo.ml.sequence.SequenceLabelerLearner;
 import com.davidbracewell.apollo.ml.sequence.decoder.BeamDecoder;
 import com.davidbracewell.collection.Collect;
+import com.davidbracewell.collection.Streams;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -40,8 +41,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static com.davidbracewell.collection.CollectionHelpers.asStream;
 
 /**
  * The type Crf learner.
@@ -349,9 +348,10 @@ public class CRFLearner extends SequenceLabelerLearner {
 
     private Vector toVector(ContextualIterator<Instance> iterator) {
       return Instance.create(
-        Collect.union(
-          iterator.getCurrent().getFeatures(),
-          asStream(model.getTransitionFeatures().extract(iterator)).map(Feature::TRUE).collect(Collectors.toList())
+        Collect.union(ArrayList::new,
+                      iterator.getCurrent().getFeatures(),
+                      Streams.asStream(model.getTransitionFeatures().extract(iterator)).map(Feature::TRUE)
+                             .collect(Collectors.toList())
         )
       ).toVector(model.getEncoderPair());
     }

@@ -35,6 +35,9 @@ public abstract class FlatClustering implements Clustering, Serializable {
   protected FlatClustering(EncoderPair encoderPair, DistanceMeasure distanceMeasure, List<Cluster> clusterList) {
     this(encoderPair, distanceMeasure);
     this.clusters.addAll(clusterList);
+    for (int i = 0; i < clusters.size(); i++) {
+      clusters.get(i).setId(i);
+    }
   }
 
   @Override

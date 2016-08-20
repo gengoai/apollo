@@ -1,9 +1,9 @@
 package com.davidbracewell.apollo.ml.preprocess.transform;
 
+import com.davidbracewell.EnhancedDoubleStatistics;
 import com.davidbracewell.apollo.ml.Feature;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.preprocess.RestrictedInstancePreprocessor;
-import com.davidbracewell.collection.EnhancedDoubleStatistics;
 import com.davidbracewell.collection.list.PrimitiveArrayList;
 import com.davidbracewell.conversion.Val;
 import com.davidbracewell.io.structured.ElementType;

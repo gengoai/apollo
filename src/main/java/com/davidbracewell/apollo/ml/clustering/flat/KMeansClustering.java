@@ -11,6 +11,7 @@ import java.util.List;
  * @author David B. Bracewell
  */
 public class KMeansClustering extends FlatClustering implements CentroidClustering {
+  private static final long serialVersionUID = 1L;
   /**
    * Instantiates a new Clustering.
    *

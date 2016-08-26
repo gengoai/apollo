@@ -12,7 +12,7 @@ public class JointMultinomial implements Serializable {
   private static final long serialVersionUID = 1L;
   private final double alpha;
   private final int N;
-  private int[][] counts;
+  private final int[][] counts;
   private long sum;
 
   /**

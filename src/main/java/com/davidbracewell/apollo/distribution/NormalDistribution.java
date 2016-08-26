@@ -3,6 +3,8 @@ package com.davidbracewell.apollo.distribution;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
 /**
+ * The type Normal distribution.
+ *
  * @author David B. Bracewell
  */
 public class NormalDistribution implements RealDistribution<NormalDistribution> {
@@ -11,10 +13,19 @@ public class NormalDistribution implements RealDistribution<NormalDistribution> 
   private org.apache.commons.math3.distribution.NormalDistribution wrapped = null;
   private boolean dirty = true;
 
+  /**
+   * Instantiates a new Normal distribution.
+   */
   public NormalDistribution() {
 
   }
 
+  /**
+   * Instantiates a new Normal distribution.
+   *
+   * @param mean              the mean
+   * @param standardDeviation the standard deviation
+   */
   public NormalDistribution(double mean, double standardDeviation) {
     this.statistics = null;
     this.wrapped = new org.apache.commons.math3.distribution.NormalDistribution(mean, standardDeviation);
@@ -49,7 +60,8 @@ public class NormalDistribution implements RealDistribution<NormalDistribution> 
   private org.apache.commons.math3.distribution.NormalDistribution get() {
     if (wrapped == null || dirty) {
       dirty = false;
-      wrapped = new org.apache.commons.math3.distribution.NormalDistribution(statistics.getMean(), statistics.getStandardDeviation());
+      wrapped = new org.apache.commons.math3.distribution.NormalDistribution(statistics.getMean(),
+                                                                             statistics.getStandardDeviation());
     }
     return wrapped;
   }

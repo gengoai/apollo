@@ -146,10 +146,4 @@ public final class Binomial implements DiscreteDistribution<Binomial> {
     return wrapped;
   }
 
-  public double error() {
-    double p = probabilityOfSuccess();
-    double q = 1.0 - p;
-    return Math.sqrt(p * q / getNumberOfTrials());
-  }
-
 }// END OF Binomial

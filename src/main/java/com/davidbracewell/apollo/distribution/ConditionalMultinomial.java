@@ -15,8 +15,8 @@ public class ConditionalMultinomial implements Serializable, Copyable<Conditiona
   private final double alpha;
   private final int N;
   private final int M;
-  private int[][] counts;
-  private int[] sums;
+  private final int[][] counts;
+  private final int[] sums;
 
   /**
    * Instantiates a new Conditional multinomial.
@@ -33,14 +33,29 @@ public class ConditionalMultinomial implements Serializable, Copyable<Conditiona
     this.counts = new int[N][M];
   }
 
+  /**
+   * Gets alpha.
+   *
+   * @return the alpha
+   */
   public double getAlpha() {
     return alpha;
   }
 
+  /**
+   * Gets n.
+   *
+   * @return the n
+   */
   public int getN() {
     return N;
   }
 
+  /**
+   * Gets m.
+   *
+   * @return the m
+   */
   public int getM() {
     return M;
   }
@@ -98,6 +113,13 @@ public class ConditionalMultinomial implements Serializable, Copyable<Conditiona
     return Arrays.copyOf(counts[n], M);
   }
 
+  /**
+   * Count int.
+   *
+   * @param n the n
+   * @param m the m
+   * @return the int
+   */
   public int count(int n, int m){
     return counts[n][m];
   }
@@ -123,6 +145,12 @@ public class ConditionalMultinomial implements Serializable, Copyable<Conditiona
     return (counts[n][m] + alpha) / (sums[n] + M * alpha);
   }
 
+  /**
+   * Probabilities double [ ].
+   *
+   * @param n the n
+   * @return the double [ ]
+   */
   public double[] probabilities(int n) {
     double[] p = new double[M];
     for (int m = 0; m < M; m++) {

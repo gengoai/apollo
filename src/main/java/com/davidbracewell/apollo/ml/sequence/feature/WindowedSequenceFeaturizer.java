@@ -42,11 +42,17 @@ public class WindowedSequenceFeaturizer<E> implements SequenceFeaturizer<E> {
    private final int previousWindow;
    private final int nextWindow;
    private final PredicateFeaturizer<? super E> featurizer;
+   private final boolean includeSequenceBoundaries;
 
    public WindowedSequenceFeaturizer(int previousWindow, int nextWindow, @NonNull PredicateFeaturizer<? super E> featurizer) {
+      this(previousWindow, nextWindow, false, featurizer);
+   }
+
+   public WindowedSequenceFeaturizer(int previousWindow, int nextWindow, boolean includeSequenceBoundaries, @NonNull PredicateFeaturizer<? super E> featurizer) {
       this.previousWindow = Math.abs(previousWindow);
       this.nextWindow = Math.abs(nextWindow);
       this.featurizer = featurizer;
+      this.includeSequenceBoundaries = includeSequenceBoundaries;
    }
 
 
@@ -58,28 +64,25 @@ public class WindowedSequenceFeaturizer<E> implements SequenceFeaturizer<E> {
       features.add(Feature.TRUE(prefix + "[0]", featurizer.extractPredicate(iterator.getCurrent())));
 
       //Add features for previous observation
-      //Always go back at least one unless the window size is 0
-      //Will only add BOS for index -1
       for (int i = 1; i <= previousWindow && (i == 1 || iterator.getPrevious(i).isPresent()); i++) {
          String position = "[-" + i + "]=";
-         features.add(Feature.TRUE(prefix + position,
-                                   iterator.getPrevious(i)
-                                           .map(featurizer::extractPredicate)
-                                           .orElse(BOS)
-                                  ));
-
+         String predicate = iterator.getPrevious(i).map(featurizer::extractPredicate).orElse(includeSequenceBoundaries
+                                                                                             ? BOS
+                                                                                             : null);
+         if (predicate != null) {
+            features.add(Feature.TRUE(featurizer.getPrefix() + position, predicate));
+         }
       }
 
       //Add all features for the next observation(s)
-      //Always go forward at least one unless the window size is 0
-      //Will only add EOS for index = size() + 1
       for (int i = 1; i <= nextWindow && (i == 1 || iterator.getNext(i).isPresent()); i++) {
          String position = "[+" + i + "]=";
-         features.add(Feature.TRUE(prefix + position,
-                                   iterator.getNext(i)
-                                           .map(featurizer::extractPredicate)
-                                           .orElse(EOS)
-                                  ));
+         String predicate = iterator.getNext(i).map(featurizer::extractPredicate).orElse(includeSequenceBoundaries
+                                                                                         ? EOS
+                                                                                         : null);
+         if (predicate != null) {
+            features.add(Feature.TRUE(featurizer.getPrefix() + position, predicate));
+         }
       }
 
       return features;

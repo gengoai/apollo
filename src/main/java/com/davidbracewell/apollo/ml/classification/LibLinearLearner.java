@@ -21,14 +21,10 @@
 
 package com.davidbracewell.apollo.ml.classification;
 
-import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.ml.FeatureVector;
 import com.davidbracewell.apollo.ml.Instance;
-import de.bwaldvogel.liblinear.Feature;
-import de.bwaldvogel.liblinear.Linear;
-import de.bwaldvogel.liblinear.Parameter;
-import de.bwaldvogel.liblinear.Problem;
-import de.bwaldvogel.liblinear.SolverType;
+import com.davidbracewell.apollo.ml.data.Dataset;
+import de.bwaldvogel.liblinear.*;
 
 import java.util.Iterator;
 
@@ -38,130 +34,130 @@ import java.util.Iterator;
  * @author David B. Bracewell
  */
 public class LibLinearLearner extends ClassifierLearner {
-  private static final long serialVersionUID = 6185877887927537722L;
-  private SolverType solver = SolverType.L2R_LR;
-  private double C = 1;
-  private double eps = 0.0001;
-  private boolean bias = false;
-  private boolean verbose = false;
+   private static final long serialVersionUID = 6185877887927537722L;
+   private SolverType solver = SolverType.L2R_LR;
+   private double C = 1;
+   private double eps = 0.0001;
+   private boolean bias = false;
+   private boolean verbose = false;
 
-  @Override
-  protected LibLinearModel trainImpl(Dataset<Instance> dataset) {
-    LibLinearModel model = new LibLinearModel(
-      dataset.getEncoderPair(),
-      dataset.getPreprocessors()
-    );
+   @Override
+   protected LibLinearModel trainImpl(Dataset<Instance> dataset) {
+      LibLinearModel model = new LibLinearModel(
+            dataset.getEncoderPair(),
+            dataset.getPreprocessors()
+      );
 
-    Problem problem = new Problem();
-    problem.l = dataset.size();
-    problem.x = new Feature[problem.l][];
-    problem.y = new double[problem.l];
-    problem.bias = bias ? 0 : -1;
+      Problem problem = new Problem();
+      problem.l = dataset.size();
+      problem.x = new Feature[problem.l][];
+      problem.y = new double[problem.l];
+      problem.bias = bias ? 0 : -1;
 
-    int biasIndex = (bias ? model.numberOfFeatures() : -1);
-    int index = 0;
-    for (Iterator<Instance> iitr = dataset.iterator(); iitr.hasNext(); index++) {
-      FeatureVector vector = iitr.next().toVector(dataset.getEncoderPair());
-      problem.x[index] = LibLinearModel.toFeature(vector, biasIndex);
-      problem.y[index] = vector.getLabel();
-    }
-    problem.n = model.getFeatureEncoder().size() + 1;
+      int biasIndex = (bias ? model.numberOfFeatures() + 1 : -1);
+      int index = 0;
+      for (Iterator<Instance> iitr = dataset.iterator(); iitr.hasNext(); index++) {
+         FeatureVector vector = iitr.next().toVector(dataset.getEncoderPair());
+         problem.x[index] = LibLinearModel.toFeature(vector, biasIndex);
+         problem.y[index] = vector.getLabel();
+      }
+      problem.n = model.getFeatureEncoder().size() + 1;
 
-    if (verbose) {
-      Linear.enableDebugOutput();
-    } else {
-      Linear.disableDebugOutput();
-    }
+      if (verbose) {
+         Linear.enableDebugOutput();
+      } else {
+         Linear.disableDebugOutput();
+      }
 
-    model.model = Linear.train(problem, new Parameter(solver, C, eps));
-    return model;
-  }
-
-
-  /**
-   * Gets solver.
-   *
-   * @return the solver
-   */
-  public SolverType getSolver() {
-    return solver;
-  }
-
-  /**
-   * Sets solver.
-   *
-   * @param solver the solver
-   */
-  public void setSolver(SolverType solver) {
-    this.solver = solver;
-  }
-
-  /**
-   * Gets c.
-   *
-   * @return the c
-   */
-  public double getC() {
-    return C;
-  }
-
-  /**
-   * Sets c.
-   *
-   * @param c the c
-   */
-  public void setC(double c) {
-    C = c;
-  }
-
-  /**
-   * Gets eps.
-   *
-   * @return the eps
-   */
-  public double getEps() {
-    return eps;
-  }
-
-  /**
-   * Sets eps.
-   *
-   * @param eps the eps
-   */
-  public void setEps(double eps) {
-    this.eps = eps;
-  }
-
-  /**
-   * Is verbose boolean.
-   *
-   * @return the boolean
-   */
-  public boolean isVerbose() {
-    return verbose;
-  }
-
-  /**
-   * Sets verbose.
-   *
-   * @param verbose the verbose
-   */
-  public void setVerbose(boolean verbose) {
-    this.verbose = verbose;
-  }
+      model.model = Linear.train(problem, new Parameter(solver, C, eps));
+      return model;
+   }
 
 
-  public boolean getBias() {
-    return bias;
-  }
+   /**
+    * Gets solver.
+    *
+    * @return the solver
+    */
+   public SolverType getSolver() {
+      return solver;
+   }
 
-  public void setBias(boolean bias) {
-    this.bias = bias;
-  }
+   /**
+    * Sets solver.
+    *
+    * @param solver the solver
+    */
+   public void setSolver(SolverType solver) {
+      this.solver = solver;
+   }
 
-  @Override
-  public void reset() {
+   /**
+    * Gets c.
+    *
+    * @return the c
+    */
+   public double getC() {
+      return C;
+   }
 
-  }
+   /**
+    * Sets c.
+    *
+    * @param c the c
+    */
+   public void setC(double c) {
+      C = c;
+   }
+
+   /**
+    * Gets eps.
+    *
+    * @return the eps
+    */
+   public double getEps() {
+      return eps;
+   }
+
+   /**
+    * Sets eps.
+    *
+    * @param eps the eps
+    */
+   public void setEps(double eps) {
+      this.eps = eps;
+   }
+
+   /**
+    * Is verbose boolean.
+    *
+    * @return the boolean
+    */
+   public boolean isVerbose() {
+      return verbose;
+   }
+
+   /**
+    * Sets verbose.
+    *
+    * @param verbose the verbose
+    */
+   public void setVerbose(boolean verbose) {
+      this.verbose = verbose;
+   }
+
+
+   public boolean getBias() {
+      return bias;
+   }
+
+   public void setBias(boolean bias) {
+      this.bias = bias;
+   }
+
+   @Override
+   public void reset() {
+
+   }
 
 }//END OF LibLinearLearner

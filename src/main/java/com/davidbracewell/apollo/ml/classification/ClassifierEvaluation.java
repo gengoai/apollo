@@ -38,13 +38,7 @@ import lombok.NonNull;
 
 import java.io.PrintStream;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -683,7 +677,7 @@ public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, S
         matrix.get(g).sum()
       ))
     );
-    tableFormatter.content(Arrays.asList(
+    tableFormatter.footer(Arrays.asList(
       "micro",
       microPrecision(),
       microRecall(),
@@ -693,7 +687,7 @@ public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, S
       falseNegatives(),
       total
     ));
-    tableFormatter.content(Arrays.asList(
+    tableFormatter.footer(Arrays.asList(
       "macro",
       macroPrecision(),
       macroRecall(),

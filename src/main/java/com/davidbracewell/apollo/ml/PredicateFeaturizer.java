@@ -47,7 +47,7 @@ public abstract class PredicateFeaturizer<INPUT> implements Featurizer<INPUT> {
    }
 
    @Override
-   public final Set<Feature> apply(INPUT input) {
+   public final Set<Feature> apply(@NonNull INPUT input) {
       String predicate = extractPredicate(input);
       if (StringUtils.isNullOrBlank(predicate)) {
          return Collections.emptySet();

@@ -26,6 +26,7 @@ import com.davidbracewell.apollo.ml.PredicateFeaturizer;
 import com.davidbracewell.apollo.ml.sequence.ContextualIterator;
 import com.davidbracewell.apollo.ml.sequence.SequenceFeaturizer;
 import com.davidbracewell.string.StringUtils;
+import com.google.common.base.Preconditions;
 import lombok.NonNull;
 
 import java.util.ArrayList;
@@ -33,7 +34,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static com.davidbracewell.Validations.validateState;
 import static com.davidbracewell.apollo.ml.sequence.Sequence.BOS;
 import static com.davidbracewell.apollo.ml.sequence.Sequence.EOS;
 
@@ -48,7 +48,7 @@ public class NGramSequenceFeaturizer<E> implements SequenceFeaturizer<E> {
    private final PredicateFeaturizer<? super E> featurizer;
 
    public NGramSequenceFeaturizer(int previousWindow, int nextWindow, @NonNull PredicateFeaturizer<? super E> featurizer) {
-      validateState(previousWindow > 0 || nextWindow > 0, "Either previousWindow or nextWindow must be > 0");
+      Preconditions.checkState(previousWindow > 0 || nextWindow > 0, "Either previousWindow or nextWindow must be > 0");
       this.previousWindow = Math.abs(previousWindow);
       this.nextWindow = Math.abs(nextWindow);
       this.featurizer = featurizer;

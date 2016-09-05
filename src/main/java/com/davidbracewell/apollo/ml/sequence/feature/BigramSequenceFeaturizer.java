@@ -31,7 +31,7 @@ import java.util.Set;
 
 import static com.davidbracewell.apollo.ml.sequence.Sequence.BOS;
 import static com.davidbracewell.apollo.ml.sequence.Sequence.EOS;
-import static com.davidbracewell.collection.set.Sets.set;
+import static com.davidbracewell.collection.Sets.set;
 
 /**
  * @author David B. Bracewell

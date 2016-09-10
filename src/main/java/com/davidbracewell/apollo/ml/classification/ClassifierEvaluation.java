@@ -60,7 +60,7 @@ public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, S
     * @return the double
     */
    public double accuracy() {
-      double correct = matrix.items().stream()
+      double correct = matrix.firstKeys().stream()
                              .mapToDouble(k -> matrix.get(k, k))
                              .sum();
       return correct / total;
@@ -134,9 +134,9 @@ public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, S
       Counter<String> f1 = Counters.newCounter();
       Counter<String> p = precisionPerClass();
       Counter<String> r = recallPerClass();
-      matrix.items().forEach(k ->
+      matrix.firstKeys().forEach(k ->
                                 f1.set(k, f1(p.get(k), r.get(k)))
-                            );
+                                );
       return f1;
    }
 
@@ -175,7 +175,7 @@ public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, S
     * @return the double
     */
    public double falseNegatives() {
-      return matrix.items().stream().mapToDouble(k -> matrix.get(k).sum() - matrix.get(k, k)).sum();
+      return matrix.firstKeys().stream().mapToDouble(k -> matrix.get(k).sum() - matrix.get(k, k)).sum();
    }
 
    /**
@@ -220,11 +220,11 @@ public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, S
     * @return the double
     */
    public double falsePositives() {
-      return matrix.items()
+      return matrix.firstKeys()
                    .stream()
                    .mapToDouble(k -> {
                                    double fp = 0;
-                                   for (String o : matrix.items()) {
+                                   for (String o : matrix.firstKeys()) {
                                       if (!o.equals(k)) {
                                          fp += matrix.get(o, k);
                                       }
@@ -242,7 +242,7 @@ public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, S
     */
    public double falsePositives(String label) {
       double fp = 0;
-      for (String o : matrix.items()) {
+      for (String o : matrix.firstKeys()) {
          if (!o.equals(label)) {
             fp += matrix.get(o, label);
          }
@@ -267,7 +267,7 @@ public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, S
     * @return the set
     */
    public Set<String> labels() {
-      return matrix.items();
+      return matrix.firstKeys();
    }
 
    /**
@@ -423,7 +423,7 @@ public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, S
     */
    public Counter<String> precisionPerClass() {
       Counter<String> precisions = Counters.newCounter();
-      matrix.items().forEach(k -> precisions.set(k, precision(k)));
+      matrix.firstKeys().forEach(k -> precisions.set(k, precision(k)));
       return precisions;
    }
 
@@ -449,7 +449,7 @@ public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, S
     */
    public Counter<String> recallPerClass() {
       Counter<String> recalls = Counters.newCounter();
-      matrix.items().forEach(k -> recalls.set(k, recall(k)));
+      matrix.firstKeys().forEach(k -> recalls.set(k, recall(k)));
       return recalls;
    }
 
@@ -508,11 +508,11 @@ public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, S
     * @return the double
     */
    public double trueNegatives() {
-      return matrix.items()
+      return matrix.firstKeys()
                    .stream()
                    .mapToDouble(k -> {
                                    double tn = 0;
-                                   for (String o : matrix.items()) {
+                                   for (String o : matrix.firstKeys()) {
                                       if (!o.equals(k)) {
                                          tn += matrix.get(o).sum() - matrix.get(o, k);
                                       }
@@ -530,7 +530,7 @@ public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, S
     */
    public double trueNegatives(String label) {
       double tn = 0;
-      for (String o : matrix.items()) {
+      for (String o : matrix.firstKeys()) {
          if (!o.equals(label)) {
             tn += matrix.get(o).sum() - matrix.get(o, label);
          }
@@ -583,7 +583,7 @@ public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, S
     * @return the double
     */
    public double truePositives() {
-      return matrix.items().stream().mapToDouble(k -> matrix.get(k, k)).sum();
+      return matrix.firstKeys().stream().mapToDouble(k -> matrix.get(k, k)).sum();
    }
 
    /**
@@ -633,7 +633,7 @@ public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, S
                                         .distinct()
                                         .collect(Collectors.toCollection(TreeSet::new));
 
-      Set<String> sorted = new TreeSet<>(matrix.items());
+      Set<String> sorted = new TreeSet<>(matrix.firstKeys());
 
       TableFormatter tableFormatter = new TableFormatter();
       if (printConfusionMatrix) {
@@ -651,7 +651,7 @@ public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, S
          List<Object> totalRow = new ArrayList<>();
          totalRow.add("Total");
          columns.forEach(c -> {
-            totalRow.add((long) matrix.items().stream()
+            totalRow.add((long) matrix.firstKeys().stream()
                                       .mapToDouble(k -> matrix.get(k, c))
                                       .sum());
          });

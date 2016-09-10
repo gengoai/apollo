@@ -63,7 +63,7 @@ public class ContingencyFeatureSelection implements FilterProcessor<Instance>, I
     for (Object label : labelCounts.value().items()) {
       double labelCount = labelCounts.value().get(label);
       Map<String, Double> featureScores = new HashMap<>();
-      featureLabelCounts.value().items().forEach(feature -> {
+      featureLabelCounts.value().firstKeys().forEach(feature -> {
                                                    double featureLabelCount = featureLabelCounts.value().get(feature, label);
                                                    double featureSum = featureLabelCounts.value().get(feature).sum();
                                                    if (featureLabelCount > 0) {
@@ -73,7 +73,7 @@ public class ContingencyFeatureSelection implements FilterProcessor<Instance>, I
                                                      featureScores.put(feature, score);
                                                    }
                                                  }
-      );
+                                                    );
 
       List<Map.Entry<String, Double>> entryList = featureScores.entrySet()
                                                                .stream()

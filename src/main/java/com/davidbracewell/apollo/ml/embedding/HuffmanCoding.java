@@ -1,8 +1,8 @@
 package com.davidbracewell.apollo.ml.embedding;
 
 import com.davidbracewell.collection.counter.Counter;
-import com.davidbracewell.collection.index.HashMapIndex;
 import com.davidbracewell.collection.index.Index;
+import com.davidbracewell.collection.index.Indexes;
 import lombok.NonNull;
 import lombok.Value;
 
@@ -23,7 +23,7 @@ public class HuffmanCoding implements Serializable {
 
    public HuffmanCoding(@NonNull Counter<String> vocabulary) {
       this.vocabulary = vocabulary;
-      this.index = new HashMapIndex<>(vocabulary.itemsByCount(false));
+      this.index = Indexes.newIndex(vocabulary.itemsByCount(false));
    }
 
    public Map<String, HuffmanNode> encode() {
@@ -53,7 +53,7 @@ public class HuffmanCoding implements Serializable {
       Map<String, HuffmanNode> result = new HashMap<>();
       int nodeIdx = 0;
       for (Map.Entry<String, Double> e : vocabulary.entries()) {
-         int curNodeIdx = index.indexOf(e.getKey());
+         int curNodeIdx = index.getId(e.getKey());
          ArrayList<Byte> code = new ArrayList<>();
          ArrayList<Integer> points = new ArrayList<>();
          while (true) {

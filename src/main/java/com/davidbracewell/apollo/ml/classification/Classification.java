@@ -23,7 +23,7 @@ package com.davidbracewell.apollo.ml.classification;
 
 import com.davidbracewell.apollo.ml.Encoder;
 import com.davidbracewell.collection.counter.Counter;
-import com.davidbracewell.collection.counter.HashMapCounter;
+import com.davidbracewell.collection.counter.Counters;
 import com.davidbracewell.conversion.Cast;
 import lombok.EqualsAndHashCode;
 import lombok.NonNull;
@@ -149,7 +149,7 @@ public class Classification implements Serializable {
 
 
   public Counter<String> asCounter() {
-    Counter<String> counter = new HashMapCounter<>();
+    Counter<String> counter = Counters.newCounter();
     for (int ci = 0; ci < distribution.length; ci++) {
       counter.set(labelEncoder.decode(ci).toString(), distribution[ci]);
     }

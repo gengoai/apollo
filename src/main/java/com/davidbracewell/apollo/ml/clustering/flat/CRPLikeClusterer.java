@@ -26,7 +26,7 @@ import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.clustering.Cluster;
 import com.davidbracewell.apollo.ml.clustering.Clusterer;
 import com.davidbracewell.collection.counter.Counter;
-import com.davidbracewell.collection.counter.HashMapCounter;
+import com.davidbracewell.collection.counter.Counters;
 import com.davidbracewell.logging.Logger;
 import com.davidbracewell.stream.MStream;
 import com.google.common.base.Preconditions;
@@ -78,7 +78,7 @@ public class CRPLikeClusterer extends Clusterer<FlatClustering> {
     for (int i = 1; i < instances.size(); i++) {
       Vector ii = instances.get(i);
 
-      Counter<Integer> distances = new HashMapCounter<>();
+      Counter<Integer> distances = Counters.newCounter();
       for (int ci = 0; ci < clusters.size(); ci++) {
         distances.set(ci, distance(ii, clusters.get(ci)));
       }
@@ -110,7 +110,7 @@ public class CRPLikeClusterer extends Clusterer<FlatClustering> {
       Vector ii = instances.get((int) Math.floor(Math.random() % instances.size()));
       int cci = assignments.remove(ii);
       clusters.get(cci).getPoints().remove(ii);
-      Counter<Integer> distances = new HashMapCounter<>();
+      Counter<Integer> distances = Counters.newCounter();
       for (int ci = 0; ci < clusters.size(); ci++) {
         distances.set(ci, distance(ii, clusters.get(ci)));
       }

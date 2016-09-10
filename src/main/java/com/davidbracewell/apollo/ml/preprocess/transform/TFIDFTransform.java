@@ -4,7 +4,7 @@ import com.davidbracewell.apollo.ml.Feature;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.preprocess.RestrictedInstancePreprocessor;
 import com.davidbracewell.collection.counter.Counter;
-import com.davidbracewell.collection.counter.HashMapCounter;
+import com.davidbracewell.collection.counter.Counters;
 import com.davidbracewell.conversion.Val;
 import com.davidbracewell.io.structured.ElementType;
 import com.davidbracewell.io.structured.StructuredReader;
@@ -28,7 +28,7 @@ import java.util.stream.Stream;
  */
 public class TFIDFTransform extends RestrictedInstancePreprocessor implements TransformProcessor<Instance>, Serializable {
   private static final long serialVersionUID = 1L;
-  private volatile Counter<String> documentFrequencies = new HashMapCounter<>();
+  private volatile Counter<String> documentFrequencies = Counters.newCounter();
   private volatile double totalDocs = 0;
 
   public TFIDFTransform() {

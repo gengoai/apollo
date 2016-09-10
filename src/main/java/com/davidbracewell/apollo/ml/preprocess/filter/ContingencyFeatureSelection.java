@@ -6,7 +6,7 @@ import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.ml.preprocess.InstancePreprocessor;
 import com.davidbracewell.collection.counter.Counter;
-import com.davidbracewell.collection.counter.HashMapCounter;
+import com.davidbracewell.collection.counter.Counters;
 import com.davidbracewell.collection.counter.HashMapMultiCounter;
 import com.davidbracewell.collection.counter.MultiCounter;
 import com.davidbracewell.io.structured.ElementType;
@@ -18,11 +18,7 @@ import lombok.NonNull;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -57,7 +53,7 @@ public class ContingencyFeatureSelection implements FilterProcessor<Instance>, I
       .multiCounterAccumulator();
     dataset.stream().forEach(instance -> {
       Object label = instance.getLabel();
-      labelCounts.add(new HashMapCounter<>(label));
+      labelCounts.add(Counters.newCounter(label));
       MultiCounter<String, Object> localCounts = new HashMapMultiCounter<>();
       instance.getFeatureSpace().forEach(f -> localCounts.increment(f, label));
       featureLabelCounts.add(localCounts);

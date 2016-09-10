@@ -5,7 +5,7 @@ import com.davidbracewell.apollo.ml.EncoderPair;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.collection.counter.Counter;
-import com.davidbracewell.collection.counter.HashMapCounter;
+import com.davidbracewell.collection.counter.Counters;
 import lombok.NonNull;
 
 import java.util.List;
@@ -30,7 +30,7 @@ public class Ensemble extends Classifier {
 
   @Override
   public Classification classify(@NonNull Instance instance) {
-    Counter<String> results = new HashMapCounter<>();
+    Counter<String> results = Counters.newCounter();
     for (Classifier model : models) {
       results.merge(model.classify(instance).asCounter());
     }

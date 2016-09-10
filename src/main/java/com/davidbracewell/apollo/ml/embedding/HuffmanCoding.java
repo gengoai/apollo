@@ -1,7 +1,6 @@
 package com.davidbracewell.apollo.ml.embedding;
 
 import com.davidbracewell.collection.counter.Counter;
-import com.davidbracewell.collection.counter.HashMapCounter;
 import com.davidbracewell.collection.index.HashMapIndex;
 import com.davidbracewell.collection.index.Index;
 import lombok.NonNull;
@@ -13,8 +12,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import static com.davidbracewell.collection.map.Maps.map;
 
 /**
  * @author David B. Bracewell
@@ -29,22 +26,6 @@ public class HuffmanCoding implements Serializable {
       this.index = new HashMapIndex<>(vocabulary.itemsByCount(false));
    }
 
-   public static void main(String[] args) {
-      Counter<String> c = new HashMapCounter<>(
-            map(
-                  "the", 4000,
-                  "ship", 500,
-                  "gold", 2,
-                  "silver", 40
-               )
-      );
-
-      HuffmanCoding coding = new HuffmanCoding(c);
-      coding.encode().forEach((k, v) -> System.out.println(k + " : " + v));
-
-
-   }
-
    public Map<String, HuffmanNode> encode() {
       final int nTokens = vocabulary.size();
       int[] parentNode = new int[nTokens * 2 + 1];
@@ -53,7 +34,7 @@ public class HuffmanCoding implements Serializable {
 
       AtomicInteger i = new AtomicInteger();
       index.forEach(k ->
-                          count[i.getAndIncrement()] = (long) vocabulary.get(k)
+                       count[i.getAndIncrement()] = (long) vocabulary.get(k)
                    );
 
       for (int j = nTokens; j < count.length; j++) {

@@ -1,18 +1,14 @@
 package com.davidbracewell.apollo.ml.embedding;
 
 import com.davidbracewell.apollo.ApolloMath;
-import com.davidbracewell.apollo.linalg.CosineSignature;
-import com.davidbracewell.apollo.linalg.DenseVector;
-import com.davidbracewell.apollo.linalg.InMemoryLSH;
-import com.davidbracewell.apollo.linalg.LabeledVector;
-import com.davidbracewell.apollo.linalg.VectorStore;
+import com.davidbracewell.apollo.linalg.*;
 import com.davidbracewell.apollo.ml.Encoder;
 import com.davidbracewell.apollo.ml.EncoderPair;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.ml.sequence.Sequence;
 import com.davidbracewell.collection.counter.Counter;
-import com.davidbracewell.collection.counter.HashMapCounter;
+import com.davidbracewell.collection.counter.Counters;
 import com.davidbracewell.stream.SparkStream;
 import com.davidbracewell.stream.StreamingContext;
 import lombok.Getter;
@@ -61,7 +57,7 @@ public class SparkLSA extends EmbeddingLearner {
 
     SparkStream<Counter<String>> stream = new SparkStream<>(
       dataset.stream().map(sequence -> {
-        Counter<String> counter = new HashMapCounter<>();
+        Counter<String> counter = Counters.newCounter();
         for (Instance instance : sequence) {
           counter.increment(instance.getFeatures().get(0).getName());
         }

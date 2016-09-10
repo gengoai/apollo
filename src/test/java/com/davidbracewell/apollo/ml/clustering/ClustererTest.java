@@ -27,8 +27,8 @@ import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.ml.data.DatasetType;
 import com.davidbracewell.io.CSV;
+import com.davidbracewell.io.CSVReader;
 import com.davidbracewell.io.Resources;
-import com.davidbracewell.io.structured.csv.CSVReader;
 import lombok.SneakyThrows;
 
 import java.util.ArrayList;

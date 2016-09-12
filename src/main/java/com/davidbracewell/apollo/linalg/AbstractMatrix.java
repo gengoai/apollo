@@ -45,6 +45,163 @@ public abstract class AbstractMatrix implements Matrix, Serializable {
     return new DenseMatrix(this);
   }
 
+  @Override
+  public Matrix diag() {
+    Matrix m = createNew(numberOfRows(), numberOfColumns());
+    for (int r = 0; r < numberOfRows() && r < numberOfColumns(); r++) {
+      m.set(r, r, get(r, r));
+    }
+    return m;
+  }
+
+  @Override
+  public Vector column(int column) {
+    Preconditions.checkElementIndex(column, numberOfColumns());
+    return new ColumnVector(column);
+  }
+
+  @Override
+  public Vector row(int row) {
+    Preconditions.checkElementIndex(row, numberOfRows());
+    return new RowVector(row);
+  }
+
+  @Override
+  public void setColumn(int column, @NonNull Vector vector) {
+    Preconditions.checkElementIndex(column, numberOfColumns());
+    Preconditions.checkArgument(vector.dimension() == numberOfRows(), "Dimension Mismatch");
+    vector.forEach(e -> set(e.index, column, e.value));
+  }
+
+  @Override
+  public void setRow(int row, Vector vector) {
+    Preconditions.checkElementIndex(row, numberOfRows());
+    Preconditions.checkArgument(vector.dimension() == numberOfColumns(), "Dimension Mismatch");
+    vector.forEach(e -> set(row, e.index, e.value));
+  }
+
+  @Override
+  public Matrix addSelf(@NonNull Matrix other) {
+    Preconditions.checkArgument(other.numberOfColumns() == numberOfColumns() && other.numberOfRows() == numberOfRows(),
+                                "Dimension Mismatch");
+    other.forEachSparse(e -> increment(e.row, e.column, e.value));
+    return this;
+  }
+
+  @Override
+  public Matrix subtractSelf(@NonNull Matrix other) {
+    Preconditions.checkArgument(other.numberOfColumns() == numberOfColumns() && other.numberOfRows() == numberOfRows(),
+                                "Dimension Mismatch");
+    other.forEachSparse(e -> decrement(e.row, e.column, e.value));
+    return this;
+  }
+
+  @Override
+  public Matrix scaleSelf(@NonNull Matrix other) {
+    Preconditions.checkArgument(other.numberOfColumns() == numberOfColumns() && other.numberOfRows() == numberOfRows(),
+                                "Dimension Mismatch");
+    other.forEachSparse(e -> scale(e.row, e.column, e.value));
+    return this;
+  }
+
+  @Override
+  public Matrix multiplyVectorRowSelf(@NonNull Vector other) {
+    Preconditions.checkArgument(other.dimension() == numberOfColumns(), "Dimension Mismatch");
+    for (int r = 0; r < numberOfRows(); r++) {
+      for (Vector.Entry e : Collect.asIterable(other.nonZeroIterator())) {
+        increment(r, e.index, e.value);
+      }
+    }
+    return this;
+  }
+
+  @Override
+  public Matrix multiplyVectorColumnSelf(@NonNull Vector other) {
+    Preconditions.checkArgument(other.dimension() == numberOfRows(), "Dimension Mismatch");
+    forEachColumn(c -> c.multiplySelf(other));
+    return this;
+  }
+
+  @Override
+  public Matrix scaleSelf(double value) {
+    forEachSparse(e -> set(e.row, e.column, e.value * value));
+    return this;
+  }
+
+  @Override
+  public Matrix incrementSelf(double value) {
+    forEachRow(row -> row.mapAddSelf(value));
+    return this;
+  }
+
+  @Override
+  public Iterator<Vector> columnIterator() {
+    return new Iterator<Vector>() {
+      private AtomicInteger c = new AtomicInteger(0);
+
+      @Override
+      public boolean hasNext() {
+        return c.get() < numberOfColumns();
+      }
+
+      @Override
+      public Vector next() {
+        if (!hasNext()) {
+          throw new NoSuchElementException();
+        }
+        return column(c.getAndIncrement());
+      }
+    };
+  }
+
+  @Override
+  public Iterator<Vector> rowIterator() {
+    return new Iterator<Vector>() {
+      private AtomicInteger r = new AtomicInteger(0);
+
+      @Override
+      public boolean hasNext() {
+        return r.get() < numberOfRows();
+      }
+
+      @Override
+      public Vector next() {
+        if (!hasNext()) {
+          throw new NoSuchElementException();
+        }
+        return row(r.getAndIncrement());
+      }
+    };
+  }
+
+  @Override
+  public Matrix multiply(@NonNull Matrix m) {
+    Preconditions.checkArgument(numberOfColumns() == m.numberOfRows(), "Dimension Mismatch");
+    Matrix mprime = createNew(numberOfRows(), m.numberOfColumns());
+    IntStream.range(0, numberOfRows()).parallel().forEach(r -> {
+      for (int c = 0; c < m.numberOfColumns(); c++) {
+        for (int k = 0; k < numberOfColumns(); k++) {
+          mprime.increment(r, c, get(r, k) * m.get(k, c));
+        }
+      }
+    });
+    return mprime;
+  }
+
+  @Override
+  public Matrix transpose() {
+    Matrix T = createNew(numberOfColumns(), numberOfRows());
+    forEachSparse(e -> T.set(e.column, e.row, e.value));
+    return T;
+  }
+
+  @Override
+  public double[][] toArray() {
+    double[][] array = new double[numberOfRows()][numberOfColumns()];
+    forEachSparse(e -> array[e.row][e.column] = e.value);
+    return array;
+  }
+
   class ColumnVector implements Vector, Serializable {
     private static final long serialVersionUID = 1L;
     final int column;
@@ -239,152 +396,5 @@ public abstract class AbstractMatrix implements Matrix, Serializable {
       }
       return v;
     }
-  }
-
-  @Override
-  public Vector column(int column) {
-    Preconditions.checkElementIndex(column, numberOfColumns());
-    return new ColumnVector(column);
-  }
-
-  @Override
-  public Vector row(int row) {
-    Preconditions.checkElementIndex(row, numberOfRows());
-    return new RowVector(row);
-  }
-
-
-  @Override
-  public void setColumn(int column, @NonNull Vector vector) {
-    Preconditions.checkElementIndex(column, numberOfColumns());
-    Preconditions.checkArgument(vector.dimension() == numberOfRows(), "Dimension Mismatch");
-    vector.forEach(e -> set(e.index, column, e.value));
-  }
-
-  @Override
-  public void setRow(int row, Vector vector) {
-    Preconditions.checkElementIndex(row, numberOfRows());
-    Preconditions.checkArgument(vector.dimension() == numberOfColumns(), "Dimension Mismatch");
-    vector.forEach(e -> set(row, e.index, e.value));
-  }
-
-
-  @Override
-  public Matrix addSelf(@NonNull Matrix other) {
-    Preconditions.checkArgument(other.numberOfColumns() == numberOfColumns() && other.numberOfRows() == numberOfRows(), "Dimension Mismatch");
-    other.forEachSparse(e -> increment(e.row, e.column, e.value));
-    return this;
-  }
-
-  @Override
-  public Matrix subtractSelf(@NonNull Matrix other) {
-    Preconditions.checkArgument(other.numberOfColumns() == numberOfColumns() && other.numberOfRows() == numberOfRows(), "Dimension Mismatch");
-    other.forEachSparse(e -> decrement(e.row, e.column, e.value));
-    return this;
-  }
-
-  @Override
-  public Matrix scaleSelf(@NonNull Matrix other) {
-    Preconditions.checkArgument(other.numberOfColumns() == numberOfColumns() && other.numberOfRows() == numberOfRows(), "Dimension Mismatch");
-    other.forEachSparse(e -> scale(e.row, e.column, e.value));
-    return this;
-  }
-
-  @Override
-  public Matrix multiplyVectorRowSelf(@NonNull Vector other) {
-    Preconditions.checkArgument(other.dimension() == numberOfColumns(), "Dimension Mismatch");
-    for (int r = 0; r < numberOfRows(); r++) {
-      for (Vector.Entry e : Collect.asIterable(other.nonZeroIterator())) {
-        increment(r, e.index, e.value);
-      }
-    }
-    return this;
-  }
-
-  @Override
-  public Matrix multiplyVectorColumnSelf(@NonNull Vector other) {
-    Preconditions.checkArgument(other.dimension() == numberOfRows(), "Dimension Mismatch");
-    forEachColumn(c -> c.multiplySelf(other));
-    return this;
-  }
-
-  @Override
-  public Matrix scaleSelf(double value) {
-    forEachSparse(e -> set(e.row, e.column, e.value * value));
-    return this;
-  }
-
-  @Override
-  public Matrix incrementSelf(double value) {
-    forEachRow(row -> row.mapAddSelf(value));
-    return this;
-  }
-
-  @Override
-  public Iterator<Vector> columnIterator() {
-    return new Iterator<Vector>() {
-      private AtomicInteger c = new AtomicInteger(0);
-
-      @Override
-      public boolean hasNext() {
-        return c.get() < numberOfColumns();
-      }
-
-      @Override
-      public Vector next() {
-        if (!hasNext()) {
-          throw new NoSuchElementException();
-        }
-        return column(c.getAndIncrement());
-      }
-    };
-  }
-
-  @Override
-  public Iterator<Vector> rowIterator() {
-    return new Iterator<Vector>() {
-      private AtomicInteger r = new AtomicInteger(0);
-
-      @Override
-      public boolean hasNext() {
-        return r.get() < numberOfRows();
-      }
-
-      @Override
-      public Vector next() {
-        if (!hasNext()) {
-          throw new NoSuchElementException();
-        }
-        return row(r.getAndIncrement());
-      }
-    };
-  }
-
-  @Override
-  public Matrix multiply(@NonNull Matrix m) {
-    Preconditions.checkArgument(numberOfColumns() == m.numberOfRows(), "Dimension Mismatch");
-    Matrix mprime = createNew(numberOfRows(), m.numberOfColumns());
-    IntStream.range(0, numberOfRows()).parallel().forEach(r -> {
-      for (int c = 0; c < m.numberOfColumns(); c++) {
-        for (int k = 0; k < numberOfColumns(); k++) {
-          mprime.increment(r, c, get(r, k) * m.get(k, c));
-        }
-      }
-    });
-    return mprime;
-  }
-
-  @Override
-  public Matrix transpose() {
-    Matrix T = createNew(numberOfColumns(), numberOfRows());
-    forEachSparse(e -> T.set(e.column, e.row, e.value));
-    return T;
-  }
-
-  @Override
-  public double[][] toArray() {
-    double[][] array = new double[numberOfRows()][numberOfColumns()];
-    forEachSparse(e -> array[e.row][e.column] = e.value);
-    return array;
   }
 }//END OF AbstractMatrix

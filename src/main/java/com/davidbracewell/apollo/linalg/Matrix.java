@@ -23,6 +23,7 @@ package com.davidbracewell.apollo.linalg;
 
 
 import com.davidbracewell.Copyable;
+import com.davidbracewell.collection.Streams;
 import com.google.common.base.Preconditions;
 import lombok.NonNull;
 import lombok.Value;
@@ -373,10 +374,22 @@ public interface Matrix extends Copyable<Matrix>, Iterable<Matrix.Entry> {
   }
 
 
+  /**
+   * Multiply vector column matrix.
+   *
+   * @param other the other
+   * @return the matrix
+   */
   default Matrix multiplyVectorColumn(@NonNull Vector other) {
     return copy().multiplyVectorColumnSelf(other);
   }
 
+  /**
+   * Multiply vector column self matrix.
+   *
+   * @param other the other
+   * @return the matrix
+   */
   Matrix multiplyVectorColumnSelf(Vector other);
 
   /**
@@ -501,6 +514,21 @@ public interface Matrix extends Copyable<Matrix>, Iterable<Matrix.Entry> {
   default Matrix scale(int r, int c, double amount) {
     set(r, c, get(r, c) * amount);
     return this;
+  }
+
+
+  default Vector diagVector() {
+    Vector diag = new DenseVector(Math.max(numberOfColumns(), numberOfRows()));
+    for (int r = 0; r < numberOfRows() && r < numberOfColumns(); r++) {
+      diag.set(r, get(r, r));
+    }
+    return diag;
+  }
+
+  Matrix diag();
+
+  default double sum() {
+    return Streams.asStream(this).mapToDouble(Entry::getValue).sum();
   }
 
   /**

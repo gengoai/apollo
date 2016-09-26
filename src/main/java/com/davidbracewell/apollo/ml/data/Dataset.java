@@ -39,7 +39,7 @@ import com.davidbracewell.io.structured.json.JSONWriter;
 import com.davidbracewell.logging.Logger;
 import com.davidbracewell.stream.MStream;
 import com.davidbracewell.stream.StreamingContext;
-import com.davidbracewell.stream.accumulator.MAccumulator;
+import com.davidbracewell.stream.accumulator.MCounterAccumulator;
 import com.google.common.base.Preconditions;
 import lombok.NonNull;
 
@@ -496,7 +496,7 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
     * @return the dataset
     */
    public Dataset<T> undersample() {
-      MAccumulator<Counter<Object>> accumulator = getStreamingContext().counterAccumulator();
+      MCounterAccumulator<Object> accumulator = getStreamingContext().counterAccumulator();
       stream().forEach(
          e -> accumulator.add(Counters.newCounter(e.getLabelSpace().collect(Collectors.toList()))));
       Counter<Object> fCount = accumulator.value();
@@ -517,7 +517,7 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
     * @return the dataset
     */
    public Dataset<T> oversample() {
-      MAccumulator<Counter<Object>> accumulator = getStreamingContext().counterAccumulator();
+      MCounterAccumulator<Object> accumulator = getStreamingContext().counterAccumulator();
       stream().forEach(
          e -> accumulator.add(Counters.newCounter(e.getLabelSpace().collect(Collectors.toList()))));
       Counter<Object> fCount = accumulator.value();
@@ -549,8 +549,7 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
     */
    public MStream<FeatureVector> asFeatureVectors() {
       encode();
-      return stream()
-                .flatMap(e -> e.asInstances().stream().map(ii -> ii.toVector(encoders)).collect(Collectors.toList()));
+      return stream().flatMap(e -> e.asInstances().stream().map(ii -> ii.toVector(encoders)));
    }
 
    /**

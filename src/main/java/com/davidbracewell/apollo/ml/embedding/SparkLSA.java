@@ -65,7 +65,7 @@ public class SparkLSA extends EmbeddingLearner {
       })
     );
 
-    JavaPairRDD<String, Double> docFreqs = stream.asRDD()
+    JavaPairRDD<String, Double> docFreqs = stream.getRDD()
       .flatMap(c -> c.items().iterator())
       .mapToPair(s -> new Tuple2<>(s, 1.0))
       .reduceByKey(ApolloMath::add)
@@ -84,11 +84,11 @@ public class SparkLSA extends EmbeddingLearner {
     final Encoder featureEncoder = dataset.getFeatureEncoder().createNew();
     featureEncoder.fit(StreamingContext.local().stream(vocab));
 
-    JavaRDD<Vector> rowVectors = stream.map(c -> {
+    JavaRDD<Vector> rowVectors = stream.getRDD().map(c -> {
         Set<Tuple2<Integer, Double>> filtered = c.filterByKey(vocab::contains).entries().stream().map(e -> new Tuple2<>((int) featureEncoder.get(e.getKey()), idf.getOrDefault(e.getKey(), 1.0) * e.getValue())).collect(Collectors.toSet());
         return Vectors.sparse(vocabSize, filtered);
       }
-    ).asRDD();
+    );
 
     RowMatrix mat = new RowMatrix(rowVectors.rdd());
     SingularValueDecomposition<RowMatrix, Matrix> svd = mat.computeSVD(dimension, true, rCond, Math.max(300, dimension * 3), tolerance, "auto");

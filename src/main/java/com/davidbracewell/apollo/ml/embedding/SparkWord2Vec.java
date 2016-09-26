@@ -1,10 +1,6 @@
 package com.davidbracewell.apollo.ml.embedding;
 
-import com.davidbracewell.apollo.linalg.CosineSignature;
-import com.davidbracewell.apollo.linalg.DenseVector;
-import com.davidbracewell.apollo.linalg.InMemoryLSH;
-import com.davidbracewell.apollo.linalg.LabeledVector;
-import com.davidbracewell.apollo.linalg.VectorStore;
+import com.davidbracewell.apollo.linalg.*;
 import com.davidbracewell.apollo.ml.Encoder;
 import com.davidbracewell.apollo.ml.EncoderPair;
 import com.davidbracewell.apollo.ml.IndexEncoder;
@@ -67,7 +63,7 @@ public class SparkWord2Vec extends EmbeddingLearner {
         return sentence;
       })
     );
-    Word2VecModel model = w2v.fit(sentences.asRDD());
+    Word2VecModel model = w2v.fit(sentences.getRDD());
 
     Encoder encoder = new IndexEncoder();
     VectorStore<String> vectorStore = InMemoryLSH.builder()

@@ -17,7 +17,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
 
 /**
  * An encoder backed by an <code>Index</code> allowing a finite number of objects to be mapped to double values.
@@ -73,11 +72,10 @@ public class IndexEncoder implements Encoder, Serializable, StructuredSerializab
       if (!isFrozen()) {
          this.index.addAll(
             dataset.stream()
-                   .flatMap(ex -> ex.getFeatureSpace().filter(Objects::nonNull).collect(Collectors.toSet()))
+                   .flatMap(ex -> ex.getFeatureSpace().filter(Objects::nonNull))
                    .filter(Objects::nonNull)
                    .distinct()
-                   .collect()
-                          );
+                   .collect());
       }
    }
 

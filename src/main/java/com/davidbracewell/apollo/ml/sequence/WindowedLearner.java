@@ -29,7 +29,7 @@ public class WindowedLearner extends SequenceLabelerLearner {
     );
 
     Dataset<Instance> nd = Dataset.classification()
-      .source(dataset.stream().flatMap(sequence -> getTransitionFeatures().toInstances(sequence)))
+      .source(dataset.stream().flatMap(sequence -> getTransitionFeatures().toInstances(sequence).stream()))
       .build();
 
     dataset.close();

@@ -5,14 +5,13 @@ import com.davidbracewell.apollo.ContingencyTableCalculator;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.ml.preprocess.InstancePreprocessor;
-import com.davidbracewell.collection.counter.Counter;
-import com.davidbracewell.collection.counter.Counters;
 import com.davidbracewell.collection.counter.HashMapMultiCounter;
 import com.davidbracewell.collection.counter.MultiCounter;
 import com.davidbracewell.io.structured.ElementType;
 import com.davidbracewell.io.structured.StructuredReader;
 import com.davidbracewell.io.structured.StructuredWriter;
-import com.davidbracewell.stream.accumulator.MAccumulator;
+import com.davidbracewell.stream.accumulator.MCounterAccumulator;
+import com.davidbracewell.stream.accumulator.MMultiCounterAccumulator;
 import lombok.Getter;
 import lombok.NonNull;
 
@@ -46,17 +45,17 @@ public class ContingencyFeatureSelection implements FilterProcessor<Instance>, I
 
   @Override
   public void fit(@NonNull Dataset<Instance> dataset) {
-    MAccumulator<Counter<Object>> labelCounts = dataset.getType().getStreamingContext().counterAccumulator();
-    MAccumulator<MultiCounter<String, Object>> featureLabelCounts = dataset
+    MCounterAccumulator<Object> labelCounts = dataset.getType().getStreamingContext().counterAccumulator();
+    MMultiCounterAccumulator<String,Object> featureLabelCounts = dataset
       .getType()
       .getStreamingContext()
       .multiCounterAccumulator();
     dataset.stream().forEach(instance -> {
       Object label = instance.getLabel();
-      labelCounts.add(Counters.newCounter(label));
+      labelCounts.add(label);
       MultiCounter<String, Object> localCounts = new HashMapMultiCounter<>();
       instance.getFeatureSpace().forEach(f -> localCounts.increment(f, label));
-      featureLabelCounts.add(localCounts);
+      featureLabelCounts.merge(localCounts);
     });
 
     double totalCount = labelCounts.value().sum();

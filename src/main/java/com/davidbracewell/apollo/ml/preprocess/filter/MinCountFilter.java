@@ -16,7 +16,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -42,11 +41,9 @@ public class MinCountFilter extends RestrictedInstancePreprocessor implements Fi
 
    @Override
    protected void restrictedFitImpl(MStream<List<Feature>> stream) {
-      selectedFeatures = Counters.newCounter(stream
-                                                       .flatMap(l -> l.stream()
-                                                                      .map(Feature::getName)
-                                                                      .collect(Collectors.toList()))
-                                                       .countByValue()
+      selectedFeatures = Counters.newCounter(stream.flatMap(l -> l.stream()
+                                                                  .map(Feature::getName))
+                                                   .countByValue()
                                             )
                                  .filterByValue(v -> v >= minCount)
                                  .items();

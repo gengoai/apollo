@@ -10,26 +10,21 @@ import java.io.Serializable;
 import java.util.stream.Collectors;
 
 /**
+ * The type Sequence preprocessor.
+ *
  * @author David B. Bracewell
  */
 public class SequencePreprocessor implements Preprocessor<Sequence>, Serializable {
    private static final long serialVersionUID = 1L;
    private final Preprocessor<Instance> instancePreprocessor;
 
+   /**
+    * Instantiates a new Sequence preprocessor.
+    *
+    * @param instancePreprocessor the instance preprocessor
+    */
    public SequencePreprocessor(@NonNull Preprocessor<Instance> instancePreprocessor) {
       this.instancePreprocessor = instancePreprocessor;
-   }
-
-   @Override
-   public void fit(Dataset<Sequence> dataset) {
-      instancePreprocessor.fit(
-         new MStreamDataset<>(
-                                dataset.getFeatureEncoder(),
-                                dataset.getLabelEncoder(),
-                                PreprocessorList.empty(),
-                                dataset.stream().flatMap(s -> s.asInstances().stream())
-         )
-                              );
    }
 
    @Override
@@ -38,8 +33,17 @@ public class SequencePreprocessor implements Preprocessor<Sequence>, Serializabl
    }
 
    @Override
-   public boolean trainOnly() {
-      return instancePreprocessor.trainOnly();
+   public String describe() {
+      return instancePreprocessor.describe();
+   }
+
+   @Override
+   public void fit(Dataset<Sequence> dataset) {
+      instancePreprocessor.fit(new MStreamDataset<>(dataset.getFeatureEncoder(),
+                                                    dataset.getLabelEncoder(),
+                                                    PreprocessorList.empty(),
+                                                    dataset.stream().flatMap(s -> s.asInstances().stream()))
+                              );
    }
 
    @Override
@@ -48,8 +52,8 @@ public class SequencePreprocessor implements Preprocessor<Sequence>, Serializabl
    }
 
    @Override
-   public String describe() {
-      return instancePreprocessor.describe();
+   public boolean trainOnly() {
+      return instancePreprocessor.trainOnly();
    }
 
 }// END OF SequencePreprocessor

@@ -25,7 +25,6 @@ import com.davidbracewell.apollo.affinity.Optimum;
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.tuple.Tuple2;
 import lombok.NonNull;
-import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
 import java.math.BigDecimal;
 import java.util.stream.DoubleStream;
@@ -38,257 +37,186 @@ import java.util.stream.IntStream;
  */
 public interface ApolloMath {
 
-  /**
-   * The constant LOG2.
-   */
-  double LOG2 = Math.log(2);
+   /**
+    * The constant LOG2.
+    */
+   double LOG2 = Math.log(2);
 
-  /**
-   * Log 2 double.
-   *
-   * @param number the number
-   * @return the double
-   */
-  static double log2(double number) {
-    return Math.log(number) / LOG2;
-  }
+   /**
+    * Add double.
+    *
+    * @param v1 the v 1
+    * @param v2 the v 2
+    * @return the double
+    */
+   static double add(double v1, double v2) {
+      return v1 + v2;
+   }
 
+   /**
+    * Add squared double.
+    *
+    * @param v1 the v 1
+    * @param v2 the v 2
+    * @return the double
+    */
+   static double addSquared(double v1, double v2) {
+      return v1 * v1 + v2 * v2;
+   }
 
-  /**
-   * Clip double [ ].
-   *
-   * @param values     the values
-   * @param lowerBound the lower bound
-   * @param upperBound the upper bound
-   * @return the double [ ]
-   */
-  static double[] clip(@NonNull double[] values, double lowerBound, double upperBound) {
-    return DoubleStream.of(values).sequential().map(d -> clip(d, lowerBound, upperBound)).toArray();
-  }
+   /**
+    * Arg max tuple 2.
+    *
+    * @param array the array
+    * @return the tuple 2
+    */
+   static Tuple2<Integer, Double> argMax(@NonNull double[] array) {
+      int index = Optimum.MAXIMUM.selectBestIndex(array);
+      return Tuple2.of(index, array[index]);
+   }
 
-  /**
-   * Clip double.
-   *
-   * @param value      the value
-   * @param lowerBound the lower bound
-   * @param upperBound the upper bound
-   * @return the double
-   */
-  static double clip(double value, double lowerBound, double upperBound) {
-    return value < lowerBound ? lowerBound : value > upperBound ? upperBound : value;
-  }
+   /**
+    * Arg max tuple 2.
+    *
+    * @param vector the vector
+    * @return the tuple 2
+    */
+   static Tuple2<Integer, Double> argMax(@NonNull Vector vector) {
+      return argMax(vector.toArray());
+   }
 
+   /**
+    * Arg min tuple 2.
+    *
+    * @param array the array
+    * @return the tuple 2
+    */
+   static Tuple2<Integer, Double> argMin(@NonNull double... array) {
+      int index = Optimum.MINIMUM.selectBestIndex(array);
+      return Tuple2.of(index, array[index]);
+   }
 
-  /**
-   * Rescale double [ ].
-   *
-   * @param values the values
-   * @param newMin the new min
-   * @param newMax the new max
-   * @return the double [ ]
-   */
-  static double[] rescale(@NonNull double[] values, double newMin, double newMax) {
-    final DescriptiveStatistics statistics = new DescriptiveStatistics(values);
-    return rescale(values, statistics.getMin(), statistics.getMax(), newMin, newMax);
-  }
+   /**
+    * Arg min tuple 2.
+    *
+    * @param vector the vector
+    * @return the tuple 2
+    */
+   static Tuple2<Integer, Double> argMin(@NonNull Vector vector) {
+      return argMin(vector.toArray());
+   }
 
-  /**
-   * Rescale double [ ].
-   *
-   * @param values the values
-   * @param oldMin the old min
-   * @param oldMax the old max
-   * @param newMin the new min
-   * @param newMax the new max
-   * @return the double [ ]
-   */
-  static double[] rescale(@NonNull double[] values, double oldMin, double oldMax, double newMin, double newMax) {
-    return DoubleStream.of(values).sequential().map(d -> rescale(d, oldMin, oldMax, newMin, newMax)).toArray();
-  }
+   /**
+    * Average double.
+    *
+    * @param array the array
+    * @return the double
+    */
+   static double average(@NonNull double... array) {
+      return DoubleStream.of(array).average().orElse(Double.NaN);
+   }
 
-  /**
-   * Rescale double.
-   *
-   * @param value  the value
-   * @param oldMin the old min
-   * @param oldMax the old max
-   * @param newMin the new min
-   * @param newMax the new max
-   * @return the double
-   */
-  static double rescale(double value, double oldMin, double oldMax, double newMin, double newMax) {
-    return ((value - oldMin) / (oldMax - oldMin)) * (newMax - newMin) + newMin;
-  }
+   /**
+    * Average double.
+    *
+    * @param array the array
+    * @return the double
+    */
+   static double average(@NonNull int... array) {
+      return IntStream.of(array).average().orElse(Double.NaN);
+   }
 
-  /**
-   * Log sum double.
-   *
-   * @param v the v
-   * @return the double
-   */
-  static double logSum(@NonNull double... v) {
-    double m = v[0];
-    for (int i = 1; i < v.length; ++i) {
-      m = Math.max(m, v[i]);
-    }
-    double s = 0.;
-    for (int i = 0; i < v.length; ++i) {
-      s += Math.exp(-(m - v[i]));
-    }
-    return m + Math.log(s);
-  }
+   /**
+    * Divide double.
+    *
+    * @param v1 the v 1
+    * @param v2 the v 2
+    * @return the double
+    */
+   static double divide(double v1, double v2) {
+      return v1 / v2;
+   }
 
-  /**
-   * Average double.
-   *
-   * @param array the array
-   * @return the double
-   */
-  static double average(@NonNull double... array) {
-    return DoubleStream.of(array).average().orElse(Double.NaN);
-  }
+   /**
+    * Log 2 double.
+    *
+    * @param number the number
+    * @return the double
+    */
+   static double log2(double number) {
+      return Math.log(number) / LOG2;
+   }
 
+   /**
+    * Log sum double.
+    *
+    * @param v the v
+    * @return the double
+    */
+   static double logSum(@NonNull double... v) {
+      double m = v[0];
+      for (int i = 1; i < v.length; ++i) {
+         m = Math.max(m, v[i]);
+      }
+      double s = 0.;
+      for (int i = 0; i < v.length; ++i) {
+         s += Math.exp(-(m - v[i]));
+      }
+      return m + Math.log(s);
+   }
 
-  /**
-   * Add double.
-   *
-   * @param v1 the v 1
-   * @param v2 the v 2
-   * @return the double
-   */
-  static double add(double v1, double v2) {
-    return v1 + v2;
-  }
+   /**
+    * Multiply double.
+    *
+    * @param v1 the v 1
+    * @param v2 the v 2
+    * @return the double
+    */
+   static double multiply(double v1, double v2) {
+      return v1 * v2;
+   }
 
-  /**
-   * Add squared double.
-   *
-   * @param v1 the v 1
-   * @param v2 the v 2
-   * @return the double
-   */
-  static double addSquared(double v1, double v2) {
-    return v1 * v1 + v2 * v2;
-  }
+   /**
+    * Subtract double.
+    *
+    * @param v1 the v 1
+    * @param v2 the v 2
+    * @return the double
+    */
+   static double subtract(double v1, double v2) {
+      return v1 - v2;
+   }
 
-  /**
-   * Subtract double.
-   *
-   * @param v1 the v 1
-   * @param v2 the v 2
-   * @return the double
-   */
-  static double subtract(double v1, double v2) {
-    return v1 - v2;
-  }
+   /**
+    * Sum double.
+    *
+    * @param array the array
+    * @return the double
+    */
+   static double sum(@NonNull double... array) {
+      return DoubleStream.of(array).sum();
+   }
 
-  /**
-   * Multiply double.
-   *
-   * @param v1 the v 1
-   * @param v2 the v 2
-   * @return the double
-   */
-  static double multiply(double v1, double v2) {
-    return v1 * v2;
-  }
+   /**
+    * Sum double.
+    *
+    * @param array the array
+    * @return the double
+    */
+   static double sum(@NonNull int... array) {
+      return IntStream.of(array).sum();
+   }
 
-  /**
-   * Divide double.
-   *
-   * @param v1 the v 1
-   * @param v2 the v 2
-   * @return the double
-   */
-  static double divide(double v1, double v2) {
-    return v1 / v2;
-  }
-
-
-  /**
-   * Sum double.
-   *
-   * @param array the array
-   * @return the double
-   */
-  static double sum(@NonNull double... array) {
-    return DoubleStream.of(array).sum();
-  }
-
-  /**
-   * Sum double.
-   *
-   * @param array the array
-   * @return the double
-   */
-  static double sum(@NonNull int... array) {
-    return IntStream.of(array).sum();
-  }
-
-  /**
-   * Average double.
-   *
-   * @param array the array
-   * @return the double
-   */
-  static double average(@NonNull int... array) {
-    return IntStream.of(array).average().orElse(Double.NaN);
-  }
-
-
-  /**
-   * Arg max tuple 2.
-   *
-   * @param array the array
-   * @return the tuple 2
-   */
-  static Tuple2<Integer, Double> argMax(@NonNull double[] array) {
-    int index = Optimum.MAXIMUM.selectBestIndex(array);
-    return Tuple2.of(index, array[index]);
-  }
-
-  /**
-   * Arg max tuple 2.
-   *
-   * @param vector the vector
-   * @return the tuple 2
-   */
-  static Tuple2<Integer, Double> argMax(@NonNull Vector vector) {
-    return argMax(vector.toArray());
-  }
-
-  /**
-   * Arg min tuple 2.
-   *
-   * @param array the array
-   * @return the tuple 2
-   */
-  static Tuple2<Integer, Double> argMin(@NonNull double... array) {
-    int index = Optimum.MINIMUM.selectBestIndex(array);
-    return Tuple2.of(index, array[index]);
-  }
-
-  /**
-   * Arg min tuple 2.
-   *
-   * @param vector the vector
-   * @return the tuple 2
-   */
-  static Tuple2<Integer, Double> argMin(@NonNull Vector vector) {
-    return argMin(vector.toArray());
-  }
-
-
-  /**
-   * Truncate double.
-   *
-   * @param value     the value
-   * @param precision the precision
-   * @return the double
-   */
-  static double truncate(double value, int precision) {
-    return BigDecimal.valueOf(value).setScale(precision, BigDecimal.ROUND_HALF_UP).doubleValue();
-  }
+   /**
+    * Truncate double.
+    *
+    * @param value     the value
+    * @param precision the precision
+    * @return the double
+    */
+   static double truncate(double value, int precision) {
+      return BigDecimal.valueOf(value).setScale(precision, BigDecimal.ROUND_HALF_UP).doubleValue();
+   }
 
 
 }//END OF ApolloMath

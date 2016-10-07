@@ -16,89 +16,99 @@ import java.util.stream.Stream;
  */
 public interface Encoder extends StructuredSerializable {
 
-  /**
-   * Get double.
-   *
-   * @param object the object
-   * @return the double
-   */
-  double get(Object object);
+   /**
+    * Creates new encoder of the same type as this one.
+    *
+    * @return the encoder
+    */
+   Encoder createNew();
 
-  /**
-   * Fit.
-   *
-   * @param dataset the dataset
-   */
-  void fit(Dataset<? extends Example> dataset);
+   /**
+    * Decodes an object given the encoded value
+    *
+    * @param value the encoded value
+    * @return the object mapped to the encoded value
+    */
+   Object decode(double value);
 
-  /**
-   * Fit.
-   *
-   * @param stream the stream
-   */
-  void fit(MStream<String> stream);
+   /**
+    * Encodes a stream of objects returning a double stream containing the encoded values.
+    *
+    * @param stream the stream to encode
+    */
+   default void encode(@NonNull Stream<?> stream) {
+      stream.forEach(this::encode);
+   }
 
-  /**
-   * Encodes a stream of objects returning a double stream containing the encoded values.
-   *
-   * @param stream the stream to encode
-   */
-  default void encode(@NonNull Stream<?> stream) {
-    stream.forEach(this::encode);
-  }
+   /**
+    * Encodes a single object returning its encoded value
+    *
+    * @param object the object
+    * @return the encoded value
+    */
+   double encode(Object object);
 
-  /**
-   * Encodes a single object returning its encoded value
-   *
-   * @param object the object
-   * @return the encoded value
-   */
-  double encode(Object object);
+   /**
+    * Fit.
+    *
+    * @param dataset the dataset
+    */
+   void fit(Dataset<? extends Example> dataset);
 
-  /**
-   * Decodes an object given the encoded value
-   *
-   * @param value the encoded value
-   * @return the object mapped to the encoded value
-   */
-  Object decode(double value);
+   /**
+    * Fit.
+    *
+    * @param stream the stream
+    */
+   void fit(MStream<String> stream);
 
-  /**
-   * Freezes the encoder restricting new objects from being mapped to values.
-   */
-  void freeze();
+   /**
+    * Freezes the encoder restricting new objects from being mapped to values.
+    */
+   void freeze();
 
-  /**
-   * Unfreezes the encoder allowing new objects to be mapped to values.
-   */
-  void unFreeze();
+   /**
+    * Get double.
+    *
+    * @param object the object
+    * @return the double
+    */
+   double get(Object object);
 
-  /**
-   * Is the encoder currently frozen?
-   *
-   * @return True if frozen
-   */
-  boolean isFrozen();
+   /**
+    * Encodes a single object returning its encoded value as an index (int value)
+    *
+    * @param object the object to encode
+    * @return the index (int value)
+    */
+   default int index(@NonNull Object object) {
+      return (int) encode(object);
+   }
 
-  /**
-   * The number of items that have mappings
-   *
-   * @return the number of items that have mappings
-   */
-  int size();
+   /**
+    * Is the encoder currently frozen?
+    *
+    * @return True if frozen
+    */
+   boolean isFrozen();
 
-  /**
-   * The values that have been encoded
-   *
-   * @return the list of values tha have been encoded
-   */
-  List<Object> values();
+   /**
+    * The number of items that have mappings
+    *
+    * @return the number of items that have mappings
+    */
+   int size();
 
-  /**
-   * Creates new encoder of the same type as this one.
-   *
-   * @return the encoder
-   */
-  Encoder createNew();
+   /**
+    * Unfreezes the encoder allowing new objects to be mapped to values.
+    */
+   void unFreeze();
+
+   /**
+    * The values that have been encoded
+    *
+    * @return the list of values tha have been encoded
+    */
+   List<Object> values();
 
 }// END OF Encoder

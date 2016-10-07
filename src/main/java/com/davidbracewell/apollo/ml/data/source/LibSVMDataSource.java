@@ -14,9 +14,15 @@ import java.util.List;
  * @author David B. Bracewell
  */
 public class LibSVMDataSource extends DataSource<Instance> {
+  public final boolean multiclass;
 
   public LibSVMDataSource(@NonNull Resource resource) {
+    this(resource,false);
+  }
+
+  public LibSVMDataSource(@NonNull Resource resource, boolean multiclass) {
     super(resource);
+    this.multiclass = multiclass;
   }
 
   @Override
@@ -26,17 +32,21 @@ public class LibSVMDataSource extends DataSource<Instance> {
         String[] parts = line.split("\\s+");
         List<Feature> featureList = new ArrayList<>();
         Object target;
-        switch (parts[0]) {
-          case "+1":
-          case "1":
-            target = "true";
-            break;
-          case "-1":
-            target = "false";
-            break;
-          default:
-            target = parts[0];
-            break;
+        if( multiclass ){
+          target = parts[0];
+        } else {
+          switch (parts[0]) {
+            case "+1":
+            case "1":
+              target = "true";
+              break;
+            case "-1":
+              target = "false";
+              break;
+            default:
+              target = parts[0];
+              break;
+          }
         }
         for (int j = 1; j < parts.length; j++) {
           String[] data = parts[j].split(":");

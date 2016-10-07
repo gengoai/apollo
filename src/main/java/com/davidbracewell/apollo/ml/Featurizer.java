@@ -32,6 +32,7 @@ import com.google.common.base.Preconditions;
 import lombok.NonNull;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * <p> A featurizer converts an input into a one or more <code>Feature</code>s which have a name and a value. Specific
@@ -67,6 +68,33 @@ public interface Featurizer<INPUT> extends SerializableFunction<INPUT, Set<Featu
    }
 
    /**
+    * Chain featurizer.
+    *
+    * @param <T>        the type parameter
+    * @param extractors the extractors
+    * @return the featurizer
+    */
+   @SafeVarargs
+   static <T> Featurizer<T> chain(@NonNull Featurizer<? super T>... extractors) {
+      Preconditions.checkState(extractors.length > 0, "No Featurizers have been specified.");
+      if (extractors.length == 1) {
+         return Cast.as(extractors[0]);
+      }
+      return new Featurizer<T>() {
+         private static final long serialVersionUID = 1L;
+         private final Set<Featurizer<? super T>> featurizers = new LinkedHashSet<>(Arrays.asList(extractors));
+
+         @Override
+         @Cached
+         public Set<Feature> apply(T t) {
+            return featurizers.parallelStream()
+                              .flatMap(f -> f.apply(t).stream())
+                              .collect(Collectors.toSet());
+         }
+      };
+   }
+
+   /**
     * Creates a real featurizer that uses a given function that converts the input into a counter of features.
     *
     * @param <T>      the type of the input
@@ -82,6 +110,34 @@ public interface Featurizer<INPUT> extends SerializableFunction<INPUT, Set<Featu
             return function.apply(t);
          }
       };
+   }
+
+   /**
+    * As sequence featurizer sequence featurizer.
+    *
+    * @return the sequence featurizer
+    */
+   default SequenceFeaturizer<INPUT> asSequenceFeaturizer() {
+      return itr -> apply(itr.getCurrent());
+   }
+
+   /**
+    * Cache featurizer.
+    *
+    * @return the featurizer
+    */
+   default Featurizer<INPUT> cache() {
+      return CacheProxy.cache(this);
+   }
+
+   /**
+    * Cache featurizer.
+    *
+    * @param cacheName the cache name
+    * @return the featurizer
+    */
+   default Featurizer<INPUT> cache(String cacheName) {
+      return CacheProxy.cache(this, cacheName);
    }
 
    /**
@@ -106,27 +162,6 @@ public interface Featurizer<INPUT> extends SerializableFunction<INPUT, Set<Featu
    }
 
    /**
-    * Extract instance.
-    *
-    * @param labeledDatum the labeled datum
-    * @return the instance
-    */
-   default Instance extractLabeled(@NonNull LabeledDatum<INPUT> labeledDatum) {
-      return Instance.create(apply(labeledDatum.getData()), labeledDatum.getLabel());
-   }
-
-
-   /**
-    * Extract labeled m stream.
-    *
-    * @param inputStream the input stream
-    * @return the m stream
-    */
-   default MStream<Instance> extractLabeled(@NonNull MStream<LabeledDatum<INPUT>> inputStream) {
-      return inputStream.map(this::extractLabeled);
-   }
-
-   /**
     * Extract m stream.
     *
     * @param inputStream the input stream
@@ -137,58 +172,23 @@ public interface Featurizer<INPUT> extends SerializableFunction<INPUT, Set<Featu
    }
 
    /**
-    * Chain featurizer.
+    * Extract instance.
     *
-    * @param <T>        the type parameter
-    * @param extractors the extractors
-    * @return the featurizer
+    * @param labeledDatum the labeled datum
+    * @return the instance
     */
-   @SafeVarargs
-   static <T> Featurizer<T> chain(@NonNull Featurizer<? super T>... extractors) {
-      Preconditions.checkState(extractors.length > 0, "No Featurizers have been specified.");
-      if (extractors.length == 1) {
-         return Cast.as(extractors[0]);
-      }
-      return new Featurizer<T>() {
-         private static final long serialVersionUID = 1L;
-         private final Set<Featurizer<? super T>> featurizers = new LinkedHashSet<>(Arrays.asList(extractors));
-
-         @Override
-         @Cached
-         public Set<Feature> apply(T t) {
-            Set<Feature> features = new HashSet<>();
-            featurizers.forEach(f -> features.addAll(f.apply(t)));
-            return features;
-         }
-      };
+   default Instance extractLabeled(@NonNull LabeledDatum<INPUT> labeledDatum) {
+      return Instance.create(apply(labeledDatum.getData()), labeledDatum.getLabel());
    }
 
    /**
-    * Cache featurizer.
+    * Extract labeled m stream.
     *
-    * @param cacheName the cache name
-    * @return the featurizer
+    * @param inputStream the input stream
+    * @return the m stream
     */
-   default Featurizer<INPUT> cache(String cacheName) {
-      return CacheProxy.cache(this, cacheName);
-   }
-
-   /**
-    * Cache featurizer.
-    *
-    * @return the featurizer
-    */
-   default Featurizer<INPUT> cache() {
-      return CacheProxy.cache(this);
-   }
-
-   /**
-    * As sequence featurizer sequence featurizer.
-    *
-    * @return the sequence featurizer
-    */
-   default SequenceFeaturizer<INPUT> asSequenceFeaturizer() {
-      return itr -> apply(itr.getCurrent());
+   default MStream<Instance> extractLabeled(@NonNull MStream<LabeledDatum<INPUT>> inputStream) {
+      return inputStream.map(this::extractLabeled);
    }
 
 

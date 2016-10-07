@@ -30,6 +30,6 @@ import com.davidbracewell.apollo.ml.Learner;
  * @author David B. Bracewell
  */
 public abstract class ClassifierLearner extends Learner<Instance, Classifier> {
-  private static final long serialVersionUID = 1L;
+   private static final long serialVersionUID = 1L;
 
 }//END OF ClassifierLearner

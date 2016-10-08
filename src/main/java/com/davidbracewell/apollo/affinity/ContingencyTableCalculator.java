@@ -19,7 +19,7 @@
  * under the License.
  */
 
-package com.davidbracewell.apollo;
+package com.davidbracewell.apollo.affinity;
 
 
 /**

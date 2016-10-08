@@ -19,11 +19,10 @@
  * under the License.
  */
 
-package com.davidbracewell.apollo;
+package com.davidbracewell.apollo.affinity;
 
 
 import com.davidbracewell.tuple.Tuple2;
-import lombok.Getter;
 
 /**
  * The type Contingency table.

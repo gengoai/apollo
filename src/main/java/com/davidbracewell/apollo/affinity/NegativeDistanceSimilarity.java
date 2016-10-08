@@ -21,8 +21,6 @@
 
 package com.davidbracewell.apollo.affinity;
 
-import com.davidbracewell.apollo.ContingencyTable;
-
 import java.util.Map;
 
 /**

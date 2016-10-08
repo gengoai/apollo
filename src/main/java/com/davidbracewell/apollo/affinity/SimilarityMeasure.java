@@ -21,9 +21,6 @@
 
 package com.davidbracewell.apollo.affinity;
 
-import com.davidbracewell.apollo.ContingencyTable;
-import com.davidbracewell.apollo.ContingencyTableCalculator;
-
 /**
  * The type Similarity measure.
  *
@@ -31,6 +28,11 @@ import com.davidbracewell.apollo.ContingencyTableCalculator;
  */
 public interface SimilarityMeasure extends Measure, ContingencyTableCalculator {
 
+  /**
+   * As distance measure distance measure.
+   *
+   * @return the distance measure
+   */
   default DistanceMeasure asDistanceMeasure() {
     return new OneMinusSimilarityDistance(this);
   }

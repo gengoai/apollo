@@ -1,7 +1,7 @@
 package com.davidbracewell.apollo.ml.preprocess.filter;
 
-import com.davidbracewell.apollo.ContingencyTable;
-import com.davidbracewell.apollo.ContingencyTableCalculator;
+import com.davidbracewell.apollo.affinity.ContingencyTable;
+import com.davidbracewell.apollo.affinity.ContingencyTableCalculator;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.ml.preprocess.InstancePreprocessor;

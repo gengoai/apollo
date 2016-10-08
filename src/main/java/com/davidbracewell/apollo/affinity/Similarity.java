@@ -21,7 +21,6 @@
 
 package com.davidbracewell.apollo.affinity;
 
-import com.davidbracewell.apollo.ContingencyTable;
 import com.google.common.base.Preconditions;
 import lombok.NonNull;
 

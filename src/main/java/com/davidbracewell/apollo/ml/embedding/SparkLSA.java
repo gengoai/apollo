@@ -1,6 +1,6 @@
 package com.davidbracewell.apollo.ml.embedding;
 
-import com.davidbracewell.apollo.ApolloMath;
+import com.davidbracewell.Math2;
 import com.davidbracewell.apollo.linalg.*;
 import com.davidbracewell.apollo.ml.Encoder;
 import com.davidbracewell.apollo.ml.EncoderPair;
@@ -68,7 +68,7 @@ public class SparkLSA extends EmbeddingLearner {
     JavaPairRDD<String, Double> docFreqs = stream.getRDD()
       .flatMap(c -> c.items().iterator())
       .mapToPair(s -> new Tuple2<>(s, 1.0))
-      .reduceByKey(ApolloMath::add)
+      .reduceByKey(Math2::add)
       .filter(t -> t._2() >= minCount);
 
     final Set<String> vocab = docFreqs.top(maxVocab, (Serializable & Comparator<Tuple2<String, Double>>) (t1, t2) -> -Double.compare(t1._2(), t2._2()))

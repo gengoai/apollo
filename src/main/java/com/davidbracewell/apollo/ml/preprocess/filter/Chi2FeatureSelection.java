@@ -1,6 +1,6 @@
 package com.davidbracewell.apollo.ml.preprocess.filter;
 
-import com.davidbracewell.apollo.ContingencyMeasures;
+import com.davidbracewell.apollo.affinity.AssociationMeasures;
 
 /**
  * The type Chi squared feature selection.
@@ -17,7 +17,7 @@ public class Chi2FeatureSelection extends ContingencyFeatureSelection {
    * @param threshold                the threshold
    */
   public Chi2FeatureSelection(int numberOfFeaturesPerClass, double threshold) {
-    super(ContingencyMeasures.CHI_SQUARE, numberOfFeaturesPerClass, threshold);
+    super(AssociationMeasures.CHI_SQUARE, numberOfFeaturesPerClass, threshold);
   }
 
   /**
@@ -26,7 +26,7 @@ public class Chi2FeatureSelection extends ContingencyFeatureSelection {
    * @param numberOfFeaturesPerClass the number of features per class
    */
   public Chi2FeatureSelection(int numberOfFeaturesPerClass) {
-    super(ContingencyMeasures.CHI_SQUARE, numberOfFeaturesPerClass, Double.NEGATIVE_INFINITY);
+    super(AssociationMeasures.CHI_SQUARE, numberOfFeaturesPerClass, Double.NEGATIVE_INFINITY);
   }
 
   protected Chi2FeatureSelection() {

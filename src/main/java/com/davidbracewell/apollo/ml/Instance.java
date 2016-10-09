@@ -236,7 +236,7 @@ public class Instance implements Example, Serializable, Iterable<Feature> {
                                      .map(f -> Feature.real(interner.intern(f.getName()), f.getValue()))
                                      .collect(Collectors.toList()),
                              label
-      );
+                            );
    }
 
    /**
@@ -312,6 +312,20 @@ public class Instance implements Example, Serializable, Iterable<Feature> {
       }
       writer.endObject();
       if (inArray) writer.endObject();
+   }
+
+   public static Instance fromVector(@NonNull com.davidbracewell.apollo.linalg.Vector vector) {
+      List<Feature> features = Streams.asStream(vector.nonZeroIterator())
+                                      .map(de -> Feature.real(Integer.toString(de.index), de.value))
+                                      .collect(Collectors.toList());
+      return create(features, vector.getLabel());
+   }
+
+   public static Instance fromVector(@NonNull com.davidbracewell.apollo.linalg.Vector vector, @NonNull Encoder encoder) {
+      List<Feature> features = Streams.asStream(vector.nonZeroIterator())
+                                      .map(de -> Feature.real(encoder.decode(de.index).toString(), de.value))
+                                      .collect(Collectors.toList());
+      return create(features, vector.getLabel());
    }
 
 }//END OF Instance

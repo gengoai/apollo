@@ -27,7 +27,7 @@ package com.davidbracewell.apollo.ml.classification;
 public class NaiveBayesTest extends ClassificationTest {
 
    public NaiveBayesTest() {
-      super(new NaiveBayesLearner());
+      super(new NaiveBayesLearner(), 1, 0.5);
    }
 
 

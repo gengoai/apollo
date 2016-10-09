@@ -21,22 +21,14 @@
 
 package com.davidbracewell.apollo.ml.classification;
 
-import com.davidbracewell.apollo.ml.Instance;
-import com.davidbracewell.apollo.ml.data.Dataset;
-
 /**
  * @author David B. Bracewell
  */
-public class RandomClassifierLearner extends ClassifierLearner {
-   private static final long serialVersionUID = 1L;
+public class ZeroRTest extends ClassificationTest {
 
-   @Override
-   public void reset() {
-
+   public ZeroRTest() {
+      super(new ZeroRLearner(), 0.5, 0.0);
    }
 
-   @Override
-   protected Classifier trainImpl(Dataset<Instance> dataset) {
-      return new RandomClassifier(dataset.getEncoderPair(), dataset.getPreprocessors().getModelProcessors());
-   }
-}//END OF RandomClassifierLearner
+
+}//END OF LibLinearTest

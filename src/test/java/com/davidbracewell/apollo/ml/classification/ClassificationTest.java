@@ -37,10 +37,13 @@ import static org.junit.Assert.*;
 public abstract class ClassificationTest {
 
    private final ClassifierLearner learner;
+   private final double targetAcc;
+   private final double tolerance;
 
-
-   protected ClassificationTest(ClassifierLearner learner) {
+   protected ClassificationTest(ClassifierLearner learner, double targetAcc, double tolerance) {
       this.learner = learner;
+      this.targetAcc = targetAcc;
+      this.tolerance = tolerance;
    }
 
    @SneakyThrows
@@ -58,7 +61,8 @@ public abstract class ClassificationTest {
       Classifier classifier = learner.train(data);
       ClassifierEvaluation evaluation = new ClassifierEvaluation();
       evaluation.evaluate(classifier, data);
-      assertEquals(1.0, evaluation.accuracy(), 0.5);
+      assertEquals(targetAcc, evaluation.accuracy(), tolerance);
+      System.out.println(learner.getClass().getSimpleName() + "\t" + evaluation.accuracy());
    }
 
 

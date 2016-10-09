@@ -27,7 +27,7 @@ package com.davidbracewell.apollo.ml.classification;
 public class LibLinearTest extends ClassificationTest {
 
    public LibLinearTest() {
-      super(new LibLinearLearner());
+      super(new LibLinearLearner(), 1, 0.5);
    }
 
 

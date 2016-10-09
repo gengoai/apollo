@@ -4,8 +4,10 @@ import com.davidbracewell.apollo.ml.Encoder;
 import com.davidbracewell.apollo.ml.Example;
 import com.davidbracewell.apollo.ml.LabelEncoder;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
+import com.davidbracewell.function.SerializableFunction;
 import com.davidbracewell.stream.MStream;
 import com.davidbracewell.stream.StreamingContext;
+import lombok.NonNull;
 
 import java.util.Random;
 
@@ -17,7 +19,7 @@ import java.util.Random;
  */
 public class MStreamDataset<T extends Example> extends Dataset<T> {
    private static final long serialVersionUID = 1L;
-   private final MStream<T> stream;
+   private volatile MStream<T> stream;
 
    /**
     * Instantiates a new Dataset.
@@ -33,13 +35,8 @@ public class MStreamDataset<T extends Example> extends Dataset<T> {
    }
 
    @Override
-   public DatasetType getType() {
-      return DatasetType.Stream;
-   }
+   protected void addAll(MStream<T> stream) {
 
-   @Override
-   public StreamingContext getStreamingContext() {
-      return stream.getContext();
    }
 
    @Override
@@ -48,13 +45,19 @@ public class MStreamDataset<T extends Example> extends Dataset<T> {
    }
 
    @Override
-   protected void addAll(MStream<T> stream) {
-
+   public StreamingContext getStreamingContext() {
+      return stream.getContext();
    }
 
    @Override
-   public MStream<T> stream() {
-      return stream;
+   public DatasetType getType() {
+      return DatasetType.Stream;
+   }
+
+   @Override
+   public Dataset<T> mapSelf(@NonNull SerializableFunction<? super T, T> function) {
+      stream = stream.map(function);
+      return this;
    }
 
    @Override
@@ -63,7 +66,7 @@ public class MStreamDataset<T extends Example> extends Dataset<T> {
                     getFeatureEncoder(),
                     getLabelEncoder(),
                     getPreprocessors()
-                   );
+      );
    }
 
    @Override
@@ -71,5 +74,8 @@ public class MStreamDataset<T extends Example> extends Dataset<T> {
       return (int) stream.count();
    }
 
-
+   @Override
+   public MStream<T> stream() {
+      return stream;
+   }
 }// END OF MStreamDataset

@@ -28,7 +28,6 @@ import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.apollo.ml.sequence.FeatureVectorSequence;
 import com.davidbracewell.apollo.ml.sequence.Sequence;
 import com.davidbracewell.collection.counter.Counter;
-import com.davidbracewell.collection.counter.Counters;
 import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.function.SerializableFunction;
 import com.davidbracewell.function.SerializablePredicate;
@@ -46,7 +45,6 @@ import lombok.NonNull;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.*;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -57,9 +55,8 @@ import java.util.stream.Stream;
  * @author David B. Bracewell
  */
 public abstract class Dataset<T extends Example> implements Iterable<T>, Copyable<Dataset>, Serializable, AutoCloseable {
-   private static final long serialVersionUID = 1L;
    private static final Logger log = Logger.getLogger(Dataset.class);
-
+   private static final long serialVersionUID = 1L;
    private final EncoderPair encoders;
    private final PreprocessorList<T> preprocessors;
 
@@ -85,17 +82,6 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
       return new DatasetBuilder<>(new LabelIndexEncoder(), Instance.class);
    }
 
-
-   /**
-    * Creates a dataset builder with an <code>IndexEncoder</code> for the class labels as is required for classification
-    * problems.
-    *
-    * @return the dataset builder
-    */
-   public static DatasetBuilder<Sequence> sequence() {
-      return new DatasetBuilder<>(new LabelIndexEncoder(), Sequence.class);
-   }
-
    /**
     * Creates a dataset for word embedding tasks.
     *
@@ -112,7 +98,6 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
                 .build();
    }
 
-
    /**
     * Creates a dataset builder with a <code>RealEncoder</code> for the class labels as is required for regression
     * problems.
@@ -124,31 +109,65 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
    }
 
    /**
-    * Gets the dataset type.
+    * Creates a dataset builder with an <code>IndexEncoder</code> for the class labels as is required for classification
+    * problems.
     *
-    * @return the dataset type (e.g. OffHeap, InMemory, Distributed)
+    * @return the dataset builder
     */
-   public abstract DatasetType getType();
-
-   /**
-    * Encodes the example in the dataset using the dataset's encoders.
-    *
-    * @return this dataset
-    */
-   public Dataset<T> encode() {
-      if (!getFeatureEncoder().isFrozen()) {
-         getFeatureEncoder().fit(this);
-      }
-      if (!getLabelEncoder().isFrozen()) {
-         getLabelEncoder().fit(this);
-      }
-      log.info("Encoded {0} Features and {1} Labels", getFeatureEncoder().size(), getLabelEncoder().size());
-      return this;
+   public static DatasetBuilder<Sequence> sequence() {
+      return new DatasetBuilder<>(new LabelIndexEncoder(), Sequence.class);
    }
 
-   @Override
-   public Iterator<T> iterator() {
-      return stream().iterator();
+   /**
+    * Adds all the examples in the stream to the dataset.
+    *
+    * @param stream the stream
+    */
+   protected abstract void addAll(MStream<T> stream);
+
+   /**
+    * Add all the examples in the collection to the dataset
+    *
+    * @param instances the instances
+    */
+   protected void addAll(@NonNull Collection<T> instances) {
+      addAll(getType().getStreamingContext().stream(instances));
+   }
+
+   /**
+    * Add all the examples to the dataset
+    *
+    * @param instances the instances
+    */
+   @SafeVarargs
+   protected final void addAll(@NonNull T... instances) {
+      addAll(Arrays.asList(instances));
+   }
+
+   /**
+    * Creates a stream of {@link FeatureVectorSequence} from the examples in the dataset
+    *
+    * @return the stream of FeatureVectorSequence
+    */
+   public MStream<FeatureVectorSequence> asFeatureVectorSequences() {
+      encode();
+      return stream().parallel().map(e -> {
+         FeatureVectorSequence fvs = new FeatureVectorSequence();
+         for (Instance ii : e.asInstances()) {
+            fvs.add(ii.toVector(encoders));
+         }
+         return fvs;
+      });
+   }
+
+   /**
+    * Creates a stream of {@link FeatureVector} from the examples in the dataset
+    *
+    * @return the stream of FeatureVectors
+    */
+   public MStream<FeatureVector> asFeatureVectors() {
+      encode();
+      return stream().parallel().flatMap(e -> e.asInstances().stream().map(ii -> ii.toVector(encoders)));
    }
 
    /**
@@ -158,62 +177,10 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
 
    }
 
-   /**
-    * Gets streaming context.
-    *
-    * @return the streaming context
-    */
-   public StreamingContext getStreamingContext() {
-      return getType().getStreamingContext();
+   @Override
+   public Dataset<T> copy() {
+      return create(stream().map(e -> Cast.as(e.copy())));
    }
-
-   /**
-    * Preprocess the dataset with the given set of preprocessors.
-    *
-    * @param preprocessors the preprocessors to use.
-    * @return the dataset
-    */
-   public final Dataset<T> preprocess(@NonNull PreprocessorList<T> preprocessors) {
-      Dataset<T> dataset = this;
-      for (Preprocessor<T> preprocessor : preprocessors) {
-         dataset = dataset.preprocess(preprocessor);
-      }
-      return dataset;
-   }
-
-
-   /**
-    * Filters the dataset using the given predicate.
-    *
-    * @param predicate the predicate to use for filtering the dataset
-    * @return the dataset
-    */
-   public final Dataset<T> filter(@NonNull SerializablePredicate<T> predicate) {
-      return create(stream().filter(predicate));
-   }
-
-
-   /**
-    * Preprocesses the dataset with a single preprocessor.
-    *
-    * @param preprocessor the preprocessor
-    * @return the dataset
-    */
-   protected Dataset<T> preprocess(Preprocessor<T> preprocessor) {
-      if (preprocessor == null) {
-         return this;
-      }
-      preprocessor.fit(this);
-      PreprocessorList<T> preprocessorList = new PreprocessorList<>(getPreprocessors());
-      preprocessorList.add(preprocessor);
-      return create(
-         stream().map(preprocessor::apply),
-         getFeatureEncoder().createNew(),
-         getLabelEncoder().createNew(),
-         preprocessorList
-                   );
-   }
-
 
    /**
     * Creates a new dataset from the given stream of instances creating a new feature and label encoder from this
@@ -242,82 +209,29 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
    protected abstract Dataset<T> create(MStream<T> instances, Encoder featureEncoder, LabelEncoder labelEncoder, PreprocessorList<T> preprocessors);
 
    /**
-    * Slices the dataset int a sub stream
+    * Encodes the example in the dataset using the dataset's encoders.
     *
-    * @param start the start
-    * @param end   the end
-    * @return the m stream
+    * @return this dataset
     */
-   public Dataset<T> slice(int start, int end) {
-      return create(stream().skip(start).limit(end - start));
+   public Dataset<T> encode() {
+      if (!getFeatureEncoder().isFrozen()) {
+         getFeatureEncoder().fit(this);
+      }
+      if (!getLabelEncoder().isFrozen()) {
+         getLabelEncoder().fit(this);
+      }
+      log.info("Encoded {0} Features and {1} Labels", getFeatureEncoder().size(), getLabelEncoder().size());
+      return this;
    }
 
    /**
-    * Slices the dataset int a sub stream
+    * Filters the dataset using the given predicate.
     *
-    * @param start the start
-    * @param end   the end
-    * @return the m stream
+    * @param predicate the predicate to use for filtering the dataset
+    * @return the dataset
     */
-   protected MStream<T> streamSlice(int start, int end) {
-      return stream().skip(start).limit(end - start);
-   }
-
-
-   /**
-    * Gets the preprocessors.
-    *
-    * @return the preprocessors
-    */
-   public final PreprocessorList<T> getPreprocessors() {
-      return preprocessors;
-   }
-
-   /**
-    * Adds all the examples in the stream to the dataset.
-    *
-    * @param stream the stream
-    */
-   protected abstract void addAll(MStream<T> stream);
-
-   /**
-    * Add all the examples in the collection to the dataset
-    *
-    * @param instances the instances
-    */
-   protected void addAll(@NonNull Collection<T> instances) {
-      addAll(getType().getStreamingContext().stream(instances));
-   }
-
-   /**
-    * Add all.
-    *
-    * @param instances the instances
-    */
-   @SafeVarargs
-   protected final void addAll(@NonNull T... instances) {
-      addAll(Arrays.asList(instances));
-   }
-
-
-   /**
-    * Split the dataset into a train and test split.
-    *
-    * @param pctTrain the percentage of the dataset to use for training
-    * @return A TestTrainSet of one TestTrain item
-    */
-   public TrainTestSet<T> split(double pctTrain) {
-      Preconditions.checkArgument(pctTrain > 0 && pctTrain < 1, "Percentage should be between 0 and 1");
-      int split = (int) Math.floor(pctTrain * size());
-      TrainTestSet<T> set = new TrainTestSet<>();
-      set.add(TrainTest.of(slice(0, split), slice(split, size())));
-      set.trimToSize();
-      return set;
-   }
-
-   @Override
-   public Dataset<T> copy() {
-      return create(stream().map(e -> Cast.as(e.copy())));
+   public final Dataset<T> filter(@NonNull SerializablePredicate<T> predicate) {
+      return create(stream().filter(predicate));
    }
 
    /**
@@ -335,14 +249,14 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
          MStream<T> train;
          MStream<T> test;
          if (i == 0) {
-            test = streamSlice(0, foldSize);
-            train = streamSlice(foldSize, size());
+            test = stream(0, foldSize);
+            train = stream(foldSize, size());
          } else if (i == numberOfFolds - 1) {
-            test = streamSlice(size() - foldSize, size());
-            train = streamSlice(0, size() - foldSize);
+            test = stream(size() - foldSize, size());
+            train = stream(0, size() - foldSize);
          } else {
-            train = streamSlice(0, foldSize * i).union(streamSlice(foldSize * i + foldSize, size()));
-            test = streamSlice(foldSize * i, foldSize * i + foldSize);
+            train = stream(0, foldSize * i).union(stream(foldSize * i + foldSize, size()));
+            test = stream(foldSize * i, foldSize * i + foldSize);
          }
          folds.add(TrainTest.of(create(train), create(test)));
       }
@@ -351,15 +265,12 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
    }
 
    /**
-    * Samples the dataset creating a new dataset of the given sample size.
+    * Gets the encoder pair used by the dataset to convert feature name into indexes
     *
-    * @param withReplacement the with replacement
-    * @param sampleSize      the sample size
-    * @return the dataset
+    * @return the encoder pair
     */
-   public Dataset<T> sample(boolean withReplacement, int sampleSize) {
-      Preconditions.checkArgument(sampleSize > 0, "Sample size must be > 0");
-      return create(stream().sample(withReplacement, sampleSize).map(e -> Cast.as(e.copy())));
+   public EncoderPair getEncoderPair() {
+      return encoders;
    }
 
    /**
@@ -381,12 +292,33 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
    }
 
    /**
-    * Gets encoder pair.
+    * Gets the preprocessors.
     *
-    * @return the encoder pair
+    * @return the preprocessors
     */
-   public EncoderPair getEncoderPair() {
-      return encoders;
+   public final PreprocessorList<T> getPreprocessors() {
+      return preprocessors;
+   }
+
+   /**
+    * Gets streaming context.
+    *
+    * @return the streaming context
+    */
+   public StreamingContext getStreamingContext() {
+      return getType().getStreamingContext();
+   }
+
+   /**
+    * Gets the dataset type.
+    *
+    * @return the dataset type (e.g. OffHeap, InMemory, Distributed)
+    */
+   public abstract DatasetType getType();
+
+   @Override
+   public Iterator<T> iterator() {
+      return stream().iterator();
    }
 
    /**
@@ -399,55 +331,59 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
    }
 
    /**
-    * Creates a stream of the instances
+    * Applies the given function modifying the instances of this dataset.
     *
-    * @return the stream
+    * @param function The function to apply to the examples
+    * @return This dataset
     */
-   public abstract MStream<T> stream();
+   public abstract Dataset<T> mapSelf(SerializableFunction<? super T, T> function);
 
    /**
-    * Shuffles the dataset creating a new dataset.
+    * Creates a balanced dataset by oversampling the items
     *
-    * @return the dataset
+    * @return the balanced dataset
     */
-   public final Dataset<T> shuffle() {
-      return shuffle(new Random());
-   }
-
-   /**
-    * Shuffles the dataset creating a new one with the given random number generator.
-    *
-    * @param random the random number generator
-    * @return the dataset
-    */
-   public abstract Dataset<T> shuffle(Random random);
-
-   /**
-    * The number of examples in the dataset
-    *
-    * @return the number of examples in the dataset
-    */
-   public abstract int size();
-
-   /**
-    * Writes the dataset to the given resource in JSON format.
-    *
-    * @param resource the resource
-    * @throws IOException Something went wrong writing the dataset
-    */
-   public void write(@NonNull Resource resource) throws IOException {
-      try (JSONWriter writer = new JSONWriter(resource)) {
-         writer.beginDocument();
-         writer.writeKeyValue("preprocessors", preprocessors);
-         writer.beginArray("data");
-         for (T instance : this) {
-            writer.writeValue(instance);
+   public Dataset<T> oversample() {
+      MCounterAccumulator<Object> accumulator = getStreamingContext().counterAccumulator();
+      stream().flatMap(Example::getLabelSpace)
+              .forEach(accumulator::add);
+      Counter<Object> fCount = accumulator.value();
+      int targetCount = (int) fCount.maximumCount();
+      MStream<T> oversample = getStreamingContext().empty();
+      for (Object label : fCount.items()) {
+         MStream<T> fStream = stream()
+                                 .filter(e -> e.getLabelSpace().anyMatch(label::equals))
+                                 .cache();
+         int count = (int) fStream.count();
+         int curCount = 0;
+         while (curCount + count < targetCount) {
+            oversample = oversample.union(fStream);
+            curCount += count;
          }
-         writer.endArray();
-         writer.endDocument();
+         if (curCount < targetCount) {
+            oversample = oversample.union(fStream.sample(false, targetCount - curCount));
+         } else if (count == targetCount) {
+            oversample = oversample.union(fStream);
+         }
       }
+      return create(oversample);
    }
 
+   /**
+    * Preprocess the dataset with the given set of preprocessors. The preprocessing is done in place, meaning the
+    * instances of this dataset will be updated.
+    *
+    * @param preprocessors the preprocessors to use.
+    * @return the dataset
+    */
+   public final Dataset<T> preprocess(@NonNull PreprocessorList<T> preprocessors) {
+      for (Preprocessor<T> preprocessor : preprocessors) {
+         preprocessor.fit(this);
+         preprocessors.add(preprocessor);
+         mapSelf(preprocessor::apply);
+      }
+      return this;
+   }
 
    /**
     * Reads the dataset from the given resource.
@@ -479,82 +415,84 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
    }
 
    /**
-    * Undersample dataset.
+    * Samples the dataset creating a new dataset of the given sample size.
+    *
+    * @param withReplacement the with replacement
+    * @param sampleSize      the sample size
+    * @return the dataset
+    */
+   public Dataset<T> sample(boolean withReplacement, int sampleSize) {
+      Preconditions.checkArgument(sampleSize > 0, "Sample size must be > 0");
+      return create(stream().sample(withReplacement, sampleSize).map(e -> Cast.as(e.copy())));
+   }
+
+   /**
+    * Shuffles the dataset creating a new dataset.
     *
     * @return the dataset
     */
-   public Dataset<T> undersample() {
-      MCounterAccumulator<Object> accumulator = getStreamingContext().counterAccumulator();
-      stream().forEach(
-         e -> accumulator.add(Counters.newCounter(e.getLabelSpace().collect(Collectors.toList()))));
-      Counter<Object> fCount = accumulator.value();
-      int targetCount = (int) fCount.minimumCount();
-      MStream<T> undersample = getStreamingContext().empty();
-      for (Object label : fCount.items()) {
-         undersample = undersample.union(
-            stream().filter(e -> e.getLabelSpace().findFirst().filter(label::equals).isPresent())
-                    .sample(false, targetCount)
-                                        );
-      }
-      return create(undersample);
+   public final Dataset<T> shuffle() {
+      return shuffle(new Random());
    }
 
    /**
-    * Oversample dataset.
+    * Shuffles the dataset creating a new one with the given random number generator.
     *
+    * @param random the random number generator
     * @return the dataset
     */
-   public Dataset<T> oversample() {
-      MCounterAccumulator<Object> accumulator = getStreamingContext().counterAccumulator();
-      stream().forEach(
-         e -> accumulator.add(Counters.newCounter(e.getLabelSpace().collect(Collectors.toList()))));
-      Counter<Object> fCount = accumulator.value();
-      int targetCount = (int) fCount.maximumCount();
-      MStream<T> oversample = getStreamingContext().empty();
-      for (Object label : fCount.items()) {
-         MStream<T> fStream = stream()
-                                 .filter(e -> e.getLabelSpace().findFirst().filter(label::equals).isPresent())
-                                 .cache();
-         int count = (int) fStream.count();
-         int curCount = 0;
-         while (curCount + count < targetCount) {
-            oversample = oversample.union(fStream);
-            curCount += count;
-         }
-         if (curCount < targetCount) {
-            oversample = oversample.union(fStream.sample(false, targetCount - curCount));
-         } else if (count == targetCount) {
-            oversample = oversample.union(fStream);
-         }
-      }
-      return create(oversample);
+   public abstract Dataset<T> shuffle(Random random);
+
+   /**
+    * The number of examples in the dataset
+    *
+    * @return the number of examples in the dataset
+    */
+   public abstract int size();
+
+   /**
+    * Creates a new dataset containing instances from the given <code>start</code> index upto the given <code>end</code>
+    * index.
+    *
+    * @param start the starting item index (Inclusive)
+    * @param end   the ending item index (Exclusive)
+    * @return the dataset
+    */
+   public Dataset<T> slice(int start, int end) {
+      return create(stream().skip(start).limit(end - start));
    }
 
    /**
-    * As feature vectors list.
+    * Split the dataset into a train and test split.
     *
-    * @return the list
+    * @param pctTrain the percentage of the dataset to use for training
+    * @return A TestTrainSet of one TestTrain item
     */
-   public MStream<FeatureVector> asFeatureVectors() {
-      encode();
-      return stream().flatMap(e -> e.asInstances().stream().map(ii -> ii.toVector(encoders)));
+   public TrainTestSet<T> split(double pctTrain) {
+      Preconditions.checkArgument(pctTrain > 0 && pctTrain < 1, "Percentage should be between 0 and 1");
+      int split = (int) Math.floor(pctTrain * size());
+      TrainTestSet<T> set = new TrainTestSet<>();
+      set.add(TrainTest.of(slice(0, split), slice(split, size())));
+      set.trimToSize();
+      return set;
    }
 
    /**
-    * As feature vector sequences list.
+    * Creates a stream of the instances in this dataset
     *
-    * @return the list
+    * @return the stream
     */
-   public MStream<FeatureVectorSequence> asFeatureVectorSequences() {
-      encode();
-      return stream()
-                .map(e -> {
-                   FeatureVectorSequence fvs = new FeatureVectorSequence();
-                   for (Instance ii : e.asInstances()) {
-                      fvs.add(ii.toVector(encoders));
-                   }
-                   return fvs;
-                });
+   public abstract MStream<T> stream();
+
+   /**
+    * Slices the dataset into a sub stream
+    *
+    * @param start the starting item index (Inclusive)
+    * @param end   the ending item index (Exclusive)
+    * @return the stream
+    */
+   protected MStream<T> stream(int start, int end) {
+      return stream().skip(start).limit(end - start);
    }
 
    /**
@@ -565,6 +503,46 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
     */
    public List<T> take(int n) {
       return stream().take(n);
+   }
+
+   /**
+    * Creates a balanced dataset by undersampling the items
+    *
+    * @return the balanced dataset
+    */
+   public Dataset<T> undersample() {
+      MCounterAccumulator<Object> accumulator = getStreamingContext().counterAccumulator();
+      stream().parallel()
+              .map(Example::getLabelSpace)
+              .forEach(accumulator::add);
+      Counter<Object> fCount = accumulator.value();
+      int targetCount = (int) fCount.minimumCount();
+      MStream<T> undersample = getStreamingContext().empty();
+      for (Object label : fCount.items()) {
+         undersample = undersample.union(
+            stream().filter(e -> e.getLabelSpace().anyMatch(label::equals)).sample(false, targetCount)
+         );
+      }
+      return create(undersample);
+   }
+
+   /**
+    * Writes the dataset to the given resource in JSON format.
+    *
+    * @param resource the resource
+    * @throws IOException Something went wrong writing the dataset
+    */
+   public void write(@NonNull Resource resource) throws IOException {
+      try (JSONWriter writer = new JSONWriter(resource)) {
+         writer.beginDocument();
+         writer.writeKeyValue("preprocessors", preprocessors);
+         writer.beginArray("data");
+         for (T instance : this) {
+            writer.writeValue(instance);
+         }
+         writer.endArray();
+         writer.endDocument();
+      }
    }
 
 

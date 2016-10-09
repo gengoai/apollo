@@ -7,6 +7,7 @@ import com.davidbracewell.apollo.ml.LabelEncoder;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.collection.Collect;
 import com.davidbracewell.conversion.Cast;
+import com.davidbracewell.function.SerializableFunction;
 import com.davidbracewell.stream.MStream;
 import com.davidbracewell.stream.StreamingContext;
 import lombok.EqualsAndHashCode;
@@ -89,8 +90,11 @@ public class InMemoryDataset<T extends Example> extends Dataset<T> {
    }
 
    @Override
-   public Spliterator<T> spliterator() {
-      return instances.spliterator();
+   public Dataset<T> mapSelf(@NonNull SerializableFunction<? super T, T> function) {
+      for (int i = 0; i < instances.size(); i++) {
+         instances.set(i, function.apply(instances.get(i)));
+      }
+      return this;
    }
 
    @Override
@@ -110,9 +114,12 @@ public class InMemoryDataset<T extends Example> extends Dataset<T> {
    }
 
    @Override
+   public Spliterator<T> spliterator() {
+      return instances.spliterator();
+   }
+
+   @Override
    public MStream<T> stream() {
       return StreamingContext.local().stream(instances).map(getEncoderPair()::encode);
    }
-
-
 }// END OF InMemoryDataset

@@ -232,12 +232,11 @@ public class Instance implements Example, Serializable, Iterable<Feature> {
 
    @Override
    public Instance intern(Interner<String> interner) {
-      return Instance.create(
-         features.stream()
-                 .map(f -> Feature.real(interner.intern(f.getName()), f.getValue()))
-                 .collect(Collectors.toList()),
-         label
-                            );
+      return Instance.create(features.stream()
+                                     .map(f -> Feature.real(interner.intern(f.getName()), f.getValue()))
+                                     .collect(Collectors.toList()),
+                             label
+      );
    }
 
    /**

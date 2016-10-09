@@ -4,6 +4,7 @@ import com.davidbracewell.apollo.ml.Encoder;
 import com.davidbracewell.apollo.ml.Example;
 import com.davidbracewell.apollo.ml.LabelEncoder;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
+import com.davidbracewell.function.SerializableFunction;
 import com.davidbracewell.stream.MStream;
 import com.davidbracewell.stream.SparkStream;
 import com.davidbracewell.stream.StreamingContext;
@@ -33,6 +34,11 @@ public class DistributedDataset<T extends Example> extends Dataset<T> {
    }
 
    @Override
+   protected void addAll(@NonNull MStream<T> stream) {
+      this.stream = this.stream.union(stream);
+   }
+
+   @Override
    protected Dataset<T> create(MStream<T> instances, Encoder featureEncoder, LabelEncoder labelEncoder, PreprocessorList<T> preprocessors) {
       DistributedDataset<T> dataset = new DistributedDataset<>(featureEncoder, labelEncoder, preprocessors);
       dataset.stream = new SparkStream<>(instances);
@@ -45,13 +51,9 @@ public class DistributedDataset<T extends Example> extends Dataset<T> {
    }
 
    @Override
-   protected void addAll(@NonNull MStream<T> stream) {
-      this.stream = this.stream.union(stream);
-   }
-
-   @Override
-   public MStream<T> stream() {
-      return stream;
+   public Dataset<T> mapSelf(@NonNull SerializableFunction<? super T, T> function) {
+      this.stream = stream.map(function);
+      return this;
    }
 
    @Override
@@ -64,5 +66,8 @@ public class DistributedDataset<T extends Example> extends Dataset<T> {
       return (int) stream.count();
    }
 
-
+   @Override
+   public MStream<T> stream() {
+      return stream;
+   }
 }// END OF DistributedDataset

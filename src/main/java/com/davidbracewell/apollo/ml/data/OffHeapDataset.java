@@ -7,6 +7,7 @@ import com.davidbracewell.apollo.ml.preprocess.Preprocessor;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.collection.Collect;
 import com.davidbracewell.conversion.Cast;
+import com.davidbracewell.function.SerializableFunction;
 import com.davidbracewell.function.Unchecked;
 import com.davidbracewell.io.Resources;
 import com.davidbracewell.io.resource.Resource;
@@ -52,42 +53,21 @@ public class OffHeapDataset<T extends Example> extends Dataset<T> {
                                       "part-" + id.incrementAndGet() + ".json");
                                    writeInstancesTo(StreamingContext.local().stream(list), r);
                                 }
-                               );
-      }
-   }
-
-   private void writeInstancesTo(MStream<T> instances, Resource file) {
-      try (BufferedWriter writer = new BufferedWriter(file.writer())) {
-         for (T instance : Collect.asIterable(instances.iterator())) {
-            clazz = Cast.as(instance.getClass());
-            writer.write(instance.toJson());
-            writer.newLine();
-            size++;
-         }
-      } catch (IOException e) {
-         throw Throwables.propagate(e);
+                  );
       }
    }
 
    @Override
-   protected Dataset<T> preprocess(Preprocessor<T> preprocessor) {
-      if (preprocessor == null) {
-         return this;
-      }
-      preprocessor.fit(this);
-      PreprocessorList<T> preprocessorList = new PreprocessorList<>(getPreprocessors());
-      preprocessorList.add(preprocessor);
-      outputResource.getChildren().forEach(Unchecked.consumer(r -> {
-         InMemoryDataset<T> temp = new InMemoryDataset<>(getFeatureEncoder(), getLabelEncoder(), null);
-         for (String line : r.readLines()) {
-            temp.add(Example.fromJson(line, clazz));
-         }
-         temp = Cast.as(temp.preprocess(preprocessorList));
-         writeInstancesTo(temp.stream(), r);
-      }));
-      return this;
+   public void close() {
+      outputResource.delete();
    }
 
+   @Override
+   protected Dataset<T> create(@NonNull MStream<T> instances, @NonNull Encoder featureEncoder, @NonNull LabelEncoder labelEncoder, PreprocessorList<T> preprocessors) {
+      Dataset<T> dataset = new OffHeapDataset<>(featureEncoder, labelEncoder, preprocessors);
+      dataset.addAll(instances);
+      return dataset;
+   }
 
    @Override
    public DatasetType getType() {
@@ -95,12 +75,16 @@ public class OffHeapDataset<T extends Example> extends Dataset<T> {
    }
 
    @Override
-   public MStream<T> stream() {
-      return StreamingContext.local().stream(outputResource.getChildren().stream()
-                                                           .flatMap(function(r -> r.readLines().stream()))
-                                                           .map(
-                                                              function(line -> Cast.as(Example.fromJson(line, clazz))))
-                                            );
+   public Dataset<T> mapSelf(@NonNull SerializableFunction<? super T, T> function) {
+      outputResource.getChildren().forEach(Unchecked.consumer(r -> {
+         InMemoryDataset<T> temp = new InMemoryDataset<>(getFeatureEncoder(), getLabelEncoder(), null);
+         for (String line : r.readLines()) {
+            temp.add(Example.fromJson(line, clazz));
+         }
+         temp.mapSelf(function);
+         writeInstancesTo(temp.stream(), r);
+      }));
+      return this;
    }
 
    @Override
@@ -114,15 +98,25 @@ public class OffHeapDataset<T extends Example> extends Dataset<T> {
    }
 
    @Override
-   protected Dataset<T> create(@NonNull MStream<T> instances, @NonNull Encoder featureEncoder, @NonNull LabelEncoder labelEncoder, PreprocessorList<T> preprocessors) {
-      Dataset<T> dataset = new OffHeapDataset<>(featureEncoder, labelEncoder, preprocessors);
-      dataset.addAll(instances);
-      return dataset;
+   public MStream<T> stream() {
+      return StreamingContext.local().stream(outputResource.getChildren().stream()
+                                                           .flatMap(function(r -> r.readLines().stream()))
+                                                           .map(
+                                                              function(line -> Cast.as(Example.fromJson(line, clazz))))
+      );
    }
 
-   @Override
-   public void close() {
-      outputResource.delete();
+   private void writeInstancesTo(MStream<T> instances, Resource file) {
+      try (BufferedWriter writer = new BufferedWriter(file.writer())) {
+         for (T instance : Collect.asIterable(instances.iterator())) {
+            clazz = Cast.as(instance.getClass());
+            writer.write(instance.toJson());
+            writer.newLine();
+            size++;
+         }
+      } catch (IOException e) {
+         throw Throwables.propagate(e);
+      }
    }
 
 }// END OF OffHeapDataset

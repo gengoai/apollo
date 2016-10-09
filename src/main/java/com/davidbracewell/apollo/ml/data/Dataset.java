@@ -56,7 +56,7 @@ import java.util.stream.Stream;
  * @param <T> the type parameter
  * @author David B. Bracewell
  */
-public abstract class Dataset<T extends Example> implements Iterable<T>, Copyable<Dataset>, Serializable {
+public abstract class Dataset<T extends Example> implements Iterable<T>, Copyable<Dataset>, Serializable, AutoCloseable {
    private static final long serialVersionUID = 1L;
    private static final Logger log = Logger.getLogger(Dataset.class);
 
@@ -66,9 +66,9 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
    /**
     * Instantiates a new Dataset.
     *
-    * @param featureEncoder the feature encoder
-    * @param labelEncoder   the label encoder
-    * @param preprocessors  the preprocessors
+    * @param featureEncoder the feature encoder to use on the dataset
+    * @param labelEncoder   the label encoder to use on the dataset
+    * @param preprocessors  the preprocessors applied to the dataset
     */
    protected Dataset(Encoder featureEncoder, LabelEncoder labelEncoder, PreprocessorList<T> preprocessors) {
       this.encoders = new EncoderPair(labelEncoder, featureEncoder);
@@ -96,6 +96,15 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
       return new DatasetBuilder<>(new LabelIndexEncoder(), Sequence.class);
    }
 
+   /**
+    * Creates a dataset for word embedding tasks.
+    *
+    * @param <T>       the component type of the streaming to create the dataset from
+    * @param type      the dataset type to create
+    * @param stream    the stream to convert into tokens
+    * @param tokenizer function to use convert items of type <code>T</code> to <code>String</code>
+    * @return the embedding dataset
+    */
    public static <T> Dataset<Sequence> embedding(@NonNull DatasetType type, @NonNull MStream<T> stream, @NonNull SerializableFunction<T, Stream<String>> tokenizer) {
       return sequence()
                 .type(type)
@@ -115,26 +124,16 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
    }
 
    /**
-    * Has the dataset been preprocessed?
+    * Gets the dataset type.
     *
-    * @return True the dataset has been preprocessed
-    */
-   public final boolean isPreprocessed() {
-      return !preprocessors.isEmpty();
-   }
-
-
-   /**
-    * Gets type.
-    *
-    * @return the type
+    * @return the dataset type (e.g. OffHeap, InMemory, Distributed)
     */
    public abstract DatasetType getType();
 
    /**
-    * Encode dataset.
+    * Encodes the example in the dataset using the dataset's encoders.
     *
-    * @return the dataset
+    * @return this dataset
     */
    public Dataset<T> encode() {
       if (!getFeatureEncoder().isFrozen()) {
@@ -148,26 +147,16 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
    }
 
    @Override
-   public final Iterator<T> iterator() {
-      return rawIterator();
+   public Iterator<T> iterator() {
+      return stream().iterator();
    }
 
    /**
-    * Close.
+    * Closes the dataset to free any resources.
     */
    public void close() {
 
    }
-
-   /**
-    * Raw un processed iterator.
-    *
-    * @return the iterator
-    */
-   protected Iterator<T> rawIterator() {
-      return stream().iterator();
-   }
-
 
    /**
     * Gets streaming context.
@@ -179,13 +168,12 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
    }
 
    /**
-    * Preprocess the dataset with the given set of preprocessors. An <code>IllegalStateException</code> is thrown if the
-    * dataset has already been processed.
+    * Preprocess the dataset with the given set of preprocessors.
     *
     * @param preprocessors the preprocessors to use.
     * @return the dataset
     */
-   public Dataset<T> preprocess(@NonNull PreprocessorList<T> preprocessors) {
+   public final Dataset<T> preprocess(@NonNull PreprocessorList<T> preprocessors) {
       Dataset<T> dataset = this;
       for (Preprocessor<T> preprocessor : preprocessors) {
          dataset = dataset.preprocess(preprocessor);
@@ -195,23 +183,23 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
 
 
    /**
-    * Filter dataset.
+    * Filters the dataset using the given predicate.
     *
-    * @param predicate the predicate
+    * @param predicate the predicate to use for filtering the dataset
     * @return the dataset
     */
-   public Dataset<T> filter(@NonNull SerializablePredicate<T> predicate) {
+   public final Dataset<T> filter(@NonNull SerializablePredicate<T> predicate) {
       return create(stream().filter(predicate));
    }
 
 
    /**
-    * Preprocess dataset.
+    * Preprocesses the dataset with a single preprocessor.
     *
     * @param preprocessor the preprocessor
     * @return the dataset
     */
-   public Dataset<T> preprocess(Preprocessor<T> preprocessor) {
+   protected Dataset<T> preprocess(Preprocessor<T> preprocessor) {
       if (preprocessor == null) {
          return this;
       }
@@ -229,14 +217,16 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
 
    /**
     * Creates a new dataset from the given stream of instances creating a new feature and label encoder from this
-    * dataset
-    * and a copy this dataset's preprocessors.
+    * dataset and a copy this dataset's preprocessors.
     *
     * @param instances the stream of instances
     * @return the dataset
     */
    protected final Dataset<T> create(MStream<T> instances) {
-      return create(instances, getFeatureEncoder().createNew(), getLabelEncoder().createNew(), preprocessors);
+      return create(instances,
+                    getFeatureEncoder().createNew(),
+                    getLabelEncoder().createNew(),
+                    new PreprocessorList<>(preprocessors));
    }
 
    /**
@@ -340,7 +330,6 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
       Preconditions.checkArgument(numberOfFolds > 0, "Number of folds must be >= 0");
       Preconditions.checkArgument(size() >= numberOfFolds, "Number of folds must be <= number of examples");
       TrainTestSet<T> folds = new TrainTestSet<>();
-
       int foldSize = size() / numberOfFolds;
       for (int i = 0; i < numberOfFolds; i++) {
          MStream<T> train;
@@ -357,7 +346,6 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
          }
          folds.add(TrainTest.of(create(train), create(test)));
       }
-
       folds.trimToSize();
       return folds;
    }
@@ -365,7 +353,8 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
    /**
     * Samples the dataset creating a new dataset of the given sample size.
     *
-    * @param sampleSize the sample size
+    * @param withReplacement the with replacement
+    * @param sampleSize      the sample size
     * @return the dataset
     */
    public Dataset<T> sample(boolean withReplacement, int sampleSize) {
@@ -432,7 +421,6 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
     * @return the dataset
     */
    public abstract Dataset<T> shuffle(Random random);
-
 
    /**
     * The number of examples in the dataset
@@ -570,10 +558,10 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
    }
 
    /**
-    * Take list.
+    * Takes the first n elements from the dataset
     *
-    * @param n the n
-    * @return the list
+    * @param n the number of items to take
+    * @return the list of items
     */
    public List<T> take(int n) {
       return stream().take(n);

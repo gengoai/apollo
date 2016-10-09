@@ -22,18 +22,21 @@
 package com.davidbracewell.apollo.ml.classification;
 
 import com.davidbracewell.apollo.ml.Instance;
-import com.davidbracewell.apollo.ml.Learner;
+import com.davidbracewell.apollo.ml.data.Dataset;
 
 /**
- * Base class for learners that produce <code>Classifier</code>s and use <code>Instance</code>s as their example type.
- *
  * @author David B. Bracewell
  */
-public abstract class ClassifierLearner extends Learner<Instance, Classifier> {
+public class RandomClassifierLearner extends ClassifierLearner {
    private static final long serialVersionUID = 1L;
 
+   @Override
+   public void reset() {
 
+   }
 
-
-
-}//END OF ClassifierLearner
+   @Override
+   protected Classifier trainImpl(Dataset<Instance> dataset) {
+      return new RandomClassifier(dataset.getEncoderPair(), dataset.getPreprocessors().getModelProcessors());
+   }
+}//END OF RandomClassifierLearner

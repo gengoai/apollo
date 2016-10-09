@@ -74,10 +74,7 @@ public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, S
     * @param predicted the predicted
     */
    public void entry(String gold, String predicted) {
-      matrix.increment(
-         gold,
-         predicted
-                      );
+      matrix.increment(gold, predicted);
       total++;
    }
 
@@ -135,7 +132,7 @@ public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, S
       Counter<String> p = precisionPerClass();
       Counter<String> r = recallPerClass();
       matrix.firstKeys().forEach(k ->
-                                f1.set(k, f1(p.get(k), r.get(k)))
+                                    f1.set(k, f1(p.get(k), r.get(k)))
                                 );
       return f1;
    }
@@ -704,16 +701,19 @@ public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, S
    }
 
 
-   public ClassifierEvaluation crossValidation(@NonNull Dataset<Instance> dataset, @NonNull Supplier<ClassifierLearner> learnerSupplier, int nFolds) {
+   public static ClassifierEvaluation crossValidation(@NonNull Dataset<Instance> dataset, @NonNull Supplier<ClassifierLearner> learnerSupplier, int nFolds) {
+      ClassifierEvaluation evaluation = new ClassifierEvaluation();
       AtomicInteger foldId = new AtomicInteger(0);
       dataset.fold(nFolds).forEach((train, test) -> {
          log.info("Running fold {0}", foldId.incrementAndGet());
          Classifier model = learnerSupplier.get().train(train);
-         evaluate(model, test);
-         log.info("Fold {0}: Cumulative Metrics(microP={1}, microR={2}, microF1={3})", foldId.get(), microPrecision(),
-                  microRecall(), microF1());
+         evaluation.evaluate(model, test);
+         log.info("Fold {0}: Cumulative Metrics(microP={1}, microR={2}, microF1={3})", foldId.get(),
+                  evaluation.microPrecision(),
+                  evaluation.microRecall(),
+                  evaluation.microF1());
       });
-      return this;
+      return evaluation;
    }
 
 }//END OF ClassifierEvaluation

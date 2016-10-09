@@ -25,75 +25,74 @@ import java.util.stream.Stream;
  */
 @Accessors(fluent = true)
 public class DatasetBuilder<T extends Example> {
-  private final LabelEncoder labelEncoder;
-  private final Class<T> exampleType;
-  @Setter(onParam = @_({@NonNull}))
-  private DataSource<T> dataSource;
-  @Setter(onParam = @_({@NonNull}))
-  private DatasetType type = DatasetType.InMemory;
-  @Setter(onParam = @_({@NonNull}))
-  private Encoder featureEncoder = new IndexEncoder();
-  @Setter(onParam = @_({@NonNull}))
-  private MStream<T> source;
-  @Setter(onParam = @_({@NonNull}))
-  private Resource load;
+   private final LabelEncoder labelEncoder;
+   private final Class<T> exampleType;
+   @Setter(onParam = @_({@NonNull}))
+   private DataSource<T> dataSource;
+   @Setter(onParam = @_({@NonNull}))
+   private DatasetType type = DatasetType.InMemory;
+   @Setter(onParam = @_({@NonNull}))
+   private Encoder featureEncoder = new IndexEncoder();
+   @Setter(onParam = @_({@NonNull}))
+   private MStream<T> source;
+   @Setter(onParam = @_({@NonNull}))
+   private Resource load;
 
-  protected DatasetBuilder(@NonNull LabelEncoder labelEncoder, @NonNull Class<T> exampleType) {
-    this.labelEncoder = labelEncoder;
-    this.exampleType = exampleType;
-  }
+   protected DatasetBuilder(@NonNull LabelEncoder labelEncoder, @NonNull Class<T> exampleType) {
+      this.labelEncoder = labelEncoder;
+      this.exampleType = exampleType;
+   }
 
-  /**
-   * Sets the streaming source from a Java Stream.
-   *
-   * @param stream the stream
-   * @return the dataset builder
-   */
-  public DatasetBuilder<T> localSource(@NonNull Stream<T> stream) {
-    this.source = StreamingContext.local().stream(stream);
-    return this;
-  }
+   /**
+    * Sets the streaming source from a Java Stream.
+    *
+    * @param stream the stream
+    * @return the dataset builder
+    */
+   public DatasetBuilder<T> localSource(@NonNull Stream<T> stream) {
+      this.source = StreamingContext.local().stream(stream);
+      return this;
+   }
 
-  /**
-   * Builds the dataset using the provided values.
-   *
-   * @return the dataset
-   */
-  public Dataset<T> build() {
-    Dataset<T> dataset;
-
-    switch (type) {
-      case Distributed:
-        dataset = new DistributedDataset<>(featureEncoder, labelEncoder, PreprocessorList.empty());
-        break;
-      case OffHeap:
-        dataset = new OffHeapDataset<>(featureEncoder, labelEncoder, PreprocessorList.empty());
-        break;
-      default:
-        dataset = new InMemoryDataset<>(featureEncoder, labelEncoder, PreprocessorList.empty());
-    }
-
-
-    if (source != null) {
-      dataset.addAll(source);
-    }
-
-    if (dataSource != null) {
-      dataSource.setStreamingContext(type.getStreamingContext());
-      try {
-        dataset.addAll(dataSource.stream());
-      } catch (IOException e) {
-        throw Throwables.propagate(e);
+   /**
+    * Builds the dataset using the provided values.
+    *
+    * @return the dataset
+    */
+   public Dataset<T> build() {
+      Dataset<T> dataset;
+      switch (type) {
+         case Distributed:
+            dataset = new DistributedDataset<>(featureEncoder, labelEncoder, PreprocessorList.empty());
+            break;
+         case OffHeap:
+            dataset = new OffHeapDataset<>(featureEncoder, labelEncoder, PreprocessorList.empty());
+            break;
+         default:
+            dataset = new InMemoryDataset<>(featureEncoder, labelEncoder, PreprocessorList.empty());
       }
-    } else if (load != null) {
-      try {
-        dataset.read(load, exampleType);
-      } catch (IOException e) {
-        throw Throwables.propagate(e);
-      }
-    }
 
-    return dataset;
-  }
+
+      if (source != null) {
+         dataset.addAll(source);
+      }
+
+      if (dataSource != null) {
+         dataSource.setStreamingContext(type.getStreamingContext());
+         try {
+            dataset.addAll(dataSource.stream());
+         } catch (IOException e) {
+            throw Throwables.propagate(e);
+         }
+      } else if (load != null) {
+         try {
+            dataset.read(load, exampleType);
+         } catch (IOException e) {
+            throw Throwables.propagate(e);
+         }
+      }
+
+      return dataset;
+   }
 
 }// END OF DatasetBuilder

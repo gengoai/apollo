@@ -21,19 +21,33 @@
 
 package com.davidbracewell.apollo.ml.classification;
 
+import com.davidbracewell.apollo.distribution.NormalDistribution;
+import com.davidbracewell.apollo.linalg.Vector;
+import com.davidbracewell.apollo.ml.EncoderPair;
 import com.davidbracewell.apollo.ml.Instance;
-import com.davidbracewell.apollo.ml.Learner;
+import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
+import lombok.NonNull;
 
 /**
- * Base class for learners that produce <code>Classifier</code>s and use <code>Instance</code>s as their example type.
- *
  * @author David B. Bracewell
  */
-public abstract class ClassifierLearner extends Learner<Instance, Classifier> {
+public class RandomClassifier extends Classifier {
    private static final long serialVersionUID = 1L;
+   private final NormalDistribution normal = new NormalDistribution();
 
+   /**
+    * Instantiates a new RandomClassifier.
+    *
+    * @param encoderPair   the pair of encoders to convert feature names into int/double values
+    * @param preprocessors the preprocessors that the classifier will need apply at runtime
+    */
+   protected RandomClassifier(@NonNull EncoderPair encoderPair, @NonNull PreprocessorList<Instance> preprocessors) {
+      super(encoderPair, preprocessors);
+   }
 
+   @Override
+   public Classification classify(Vector vector) {
+      return createResult(normal.sample(getLabelEncoder().size()));
+   }
 
-
-
-}//END OF ClassifierLearner
+}//END OF RandomClassifier

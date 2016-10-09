@@ -82,9 +82,15 @@ public class InMemoryDataset<T extends Example> extends Dataset<T> {
       return DatasetType.InMemory;
    }
 
+
    @Override
-   protected Iterator<T> rawIterator() {
+   public Iterator<T> iterator() {
       return instances.iterator();
+   }
+
+   @Override
+   public Spliterator<T> spliterator() {
+      return instances.spliterator();
    }
 
    @Override

@@ -21,19 +21,14 @@
 
 package com.davidbracewell.apollo.ml.classification;
 
-import com.davidbracewell.apollo.ml.Instance;
-import com.davidbracewell.apollo.ml.Learner;
-
 /**
- * Base class for learners that produce <code>Classifier</code>s and use <code>Instance</code>s as their example type.
- *
  * @author David B. Bracewell
  */
-public abstract class ClassifierLearner extends Learner<Instance, Classifier> {
-   private static final long serialVersionUID = 1L;
+public class AveragedPerceptronTest extends ClassificationTest {
+
+   public AveragedPerceptronTest() {
+      super(new AveragedPerceptronLearner(100,1,0.001));
+   }
 
 
-
-
-
-}//END OF ClassifierLearner
+}//END OF LibLinearTest

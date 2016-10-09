@@ -12,6 +12,7 @@ public class FeatureVector extends SparseVector {
    private static final long serialVersionUID = 1L;
    private final EncoderPair encoderPair;
    private double label = Double.NaN;
+   private double predictedLabel = Double.NaN;
 
    /**
     * Instantiates a new Feature vector.
@@ -28,6 +29,11 @@ public class FeatureVector extends SparseVector {
       return encoderPair.getFeatureEncoder().size();
    }
 
+   /**
+    * Gets decoded label.
+    *
+    * @return the decoded label
+    */
    public Object getDecodedLabel() {
       return encoderPair.decodeLabel(label);
    }
@@ -94,6 +100,11 @@ public class FeatureVector extends SparseVector {
       return feature != null && set(feature.getName(), feature.getValue());
    }
 
+   /**
+    * Sets label.
+    *
+    * @param o the o
+    */
    public void setLabel(Object o) {
       this.label = encoderPair.encodeLabel(o);
       if (this.label == -1) {
@@ -109,15 +120,30 @@ public class FeatureVector extends SparseVector {
     */
    public FeatureVector transform(@NonNull EncoderPair newEncoderPair) {
       FeatureVector newVector = new FeatureVector(newEncoderPair);
-      forEachSparse(entry ->
-                       newVector.set(
-                          encoderPair.decodeFeature(entry.getIndex()).toString(),
-                          entry.getValue()
-                                    )
+      forEachSparse(entry -> newVector.set(encoderPair.decodeFeature(entry.getIndex()).toString(),
+                                           entry.getValue()
+                                          )
                    );
       newVector.setLabel(getDecodedLabel());
       return newVector;
    }
 
 
+   /**
+    * Gets predicted label.
+    *
+    * @return the predicted label
+    */
+   public double getPredictedLabel() {
+      return predictedLabel;
+   }
+
+   /**
+    * Sets predicted label.
+    *
+    * @param predictedLabel the predicted label
+    */
+   public void setPredictedLabel(double predictedLabel) {
+      this.predictedLabel = predictedLabel;
+   }
 }// END OF FeatureVector

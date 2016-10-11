@@ -379,7 +379,6 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
    public final Dataset<T> preprocess(@NonNull PreprocessorList<T> preprocessors) {
       for (Preprocessor<T> preprocessor : preprocessors) {
          preprocessor.fit(this);
-         preprocessors.add(preprocessor);
          mapSelf(preprocessor::apply);
       }
       return this;

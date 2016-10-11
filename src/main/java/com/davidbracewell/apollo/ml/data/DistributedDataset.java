@@ -20,7 +20,7 @@ import java.util.Random;
  */
 public class DistributedDataset<T extends Example> extends Dataset<T> {
    private static final long serialVersionUID = 1L;
-   private volatile MStream<T> stream = StreamingContext.distributed().empty();
+   private volatile MStream<T> stream;
 
    /**
     * Instantiates a new Dataset.
@@ -35,7 +35,7 @@ public class DistributedDataset<T extends Example> extends Dataset<T> {
 
    @Override
    protected void addAll(@NonNull MStream<T> stream) {
-      this.stream = this.stream.union(stream);
+      this.stream = stream.cache();
    }
 
    @Override

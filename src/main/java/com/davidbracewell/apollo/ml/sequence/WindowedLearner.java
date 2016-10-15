@@ -3,6 +3,7 @@ package com.davidbracewell.apollo.ml.sequence;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.classification.ClassifierLearner;
 import com.davidbracewell.apollo.ml.data.Dataset;
+import com.davidbracewell.io.QuietIO;
 import lombok.NonNull;
 
 import java.util.Map;
@@ -32,7 +33,7 @@ public class WindowedLearner extends SequenceLabelerLearner {
       .source(dataset.stream().flatMap(sequence -> getTransitionFeatures().toInstances(sequence).stream()))
       .build();
 
-    dataset.close();
+     QuietIO.closeQuietly(dataset);
     wl.classifier = learner.train(nd);
     wl.encoderPair = wl.classifier.getEncoderPair();
     return wl;

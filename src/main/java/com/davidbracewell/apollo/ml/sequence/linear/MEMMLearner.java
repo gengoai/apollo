@@ -7,6 +7,7 @@ import com.davidbracewell.apollo.ml.sequence.Sequence;
 import com.davidbracewell.apollo.ml.sequence.SequenceLabeler;
 import com.davidbracewell.apollo.ml.sequence.SequenceLabelerLearner;
 import com.davidbracewell.conversion.Cast;
+import com.davidbracewell.io.QuietIO;
 import lombok.NonNull;
 
 import java.util.Map;
@@ -30,7 +31,7 @@ public class MEMMLearner extends SequenceLabelerLearner {
       Dataset<Instance> nd = Dataset.classification()
                                     .source(dataset.stream().flatMap(s -> s.asInstances().stream()))
                                     .build();
-      dataset.close();
+      QuietIO.closeQuietly(dataset);
       model.model = Cast.as(learner.train(nd));
       return model;
    }

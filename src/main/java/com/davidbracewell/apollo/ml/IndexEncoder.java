@@ -8,14 +8,12 @@ import com.davidbracewell.io.structured.StructuredReader;
 import com.davidbracewell.io.structured.StructuredSerializable;
 import com.davidbracewell.io.structured.StructuredWriter;
 import com.davidbracewell.stream.MStream;
+import com.davidbracewell.stream.accumulator.MAccumulator;
 import lombok.NonNull;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -58,24 +56,24 @@ public class IndexEncoder implements Encoder, Serializable, StructuredSerializab
    @Override
    public void fit(MStream<String> stream) {
       if (!isFrozen()) {
-         this.index.addAll(
-            stream
+         MAccumulator<String, Set<String>> accumulator = stream.getContext().setAccumulator();
+         stream.parallel()
                .filter(Objects::nonNull)
-               .distinct()
-               .collect()
-                          );
+               .forEach(accumulator::add);
+         this.index.addAll(accumulator.value());
       }
    }
 
    @Override
    public void fit(@NonNull Dataset<? extends Example> dataset) {
       if (!isFrozen()) {
-         this.index.addAll(
-            dataset.stream()
-                   .flatMap(ex -> ex.getFeatureSpace().filter(Objects::nonNull))
-                   .filter(Objects::nonNull)
-                   .distinct()
-                   .collect());
+         MAccumulator<String, Set<String>> accumulator = dataset.getStreamingContext().setAccumulator();
+         dataset.stream()
+                .parallel()
+                .flatMap(ex -> ex.getFeatureSpace().map(Object::toString))
+                .filter(Objects::nonNull)
+                .forEach(accumulator::add);
+         this.index.addAll(accumulator.value());
       }
    }
 

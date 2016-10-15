@@ -7,7 +7,6 @@ import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.function.SerializableFunction;
 import com.davidbracewell.stream.MStream;
 import com.davidbracewell.stream.SparkStream;
-import com.davidbracewell.stream.StreamingContext;
 import lombok.NonNull;
 
 import java.util.Random;
@@ -69,5 +68,16 @@ public class DistributedDataset<T extends Example> extends Dataset<T> {
    @Override
    public MStream<T> stream() {
       return stream;
+   }
+
+   @Override
+   public Dataset<T> cache() {
+      this.stream = stream.cache();
+      return this;
+   }
+
+   @Override
+   public void close() throws Exception {
+      this.stream.close();
    }
 }// END OF DistributedDataset

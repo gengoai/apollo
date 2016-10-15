@@ -92,10 +92,20 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
     * @return the embedding dataset
     */
    public static <T> Dataset<Sequence> embedding(@NonNull DatasetType type, @NonNull MStream<T> stream, @NonNull SerializableFunction<T, Stream<String>> tokenizer) {
-      return sequence()
+      return new DatasetBuilder<>(new NoOptLabelEncoder(), Sequence.class)
+                .featureEncoder(new NoOptEncoder())
                 .type(type)
                 .source(stream.map(line -> Sequence.toSequence(tokenizer.apply(line))))
                 .build();
+   }
+
+   /**
+    * Caches the computations performed on the dataset.
+    *
+    * @return A cached version of the dataset
+    */
+   public Dataset<T> cache(){
+      return this;
    }
 
    /**
@@ -170,10 +180,8 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
       return stream().parallel().flatMap(e -> e.asInstances().stream().map(ii -> ii.toVector(encoders)));
    }
 
-   /**
-    * Closes the dataset to free any resources.
-    */
-   public void close() {
+   @Override
+   public void close() throws Exception{
 
    }
 
@@ -520,7 +528,7 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
       for (Object label : fCount.items()) {
          undersample = undersample.union(
             stream().filter(e -> e.getLabelSpace().anyMatch(label::equals)).sample(false, targetCount)
-         );
+                                        );
       }
       return create(undersample);
    }

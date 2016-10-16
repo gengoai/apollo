@@ -15,7 +15,7 @@ import static com.davidbracewell.apollo.affinity.Similarity.DotProduct;
  */
 public enum Distance implements DistanceMeasure {
    /**
-    * The Euclidean.
+    * <a href="https://en.wikipedia.org/wiki/Euclidean_distance">Euclidean distance</a>
     */
    Euclidean {
       @Override
@@ -27,7 +27,7 @@ public enum Distance implements DistanceMeasure {
       }
    },
    /**
-    * The Manhattan.
+    * <a href="https://en.wiktionary.org/wiki/Manhattan_distance">Manhattan distance</a>
     */
    Manhattan {
       @Override
@@ -42,7 +42,7 @@ public enum Distance implements DistanceMeasure {
       }
    },
    /**
-    * The Hamming.
+    * <a href="https://en.wikipedia.org/wiki/Hamming_distance">Hamming Distance</a>
     */
    Hamming {
       @Override
@@ -59,7 +59,7 @@ public enum Distance implements DistanceMeasure {
       }
    },
    /**
-    * The Earth movers.
+    * <a href="https://en.wikipedia.org/wiki/Earth_mover%27s_distance">Earth mover's distance</a>
     */
    EarthMovers {
       @Override
@@ -77,7 +77,7 @@ public enum Distance implements DistanceMeasure {
       }
    },
    /**
-    * The Chebyshev.
+    * <a href="https://en.wikipedia.org/wiki/Chebyshev_distance">Chebyshev distance</a>
     */
    Chebyshev {
       @Override
@@ -92,7 +92,7 @@ public enum Distance implements DistanceMeasure {
       }
    },
    /**
-    * The Kl divergence.
+    * <a href="https://en.wikipedia.org/wiki/Kullback%E2%80%93Leibler_divergence">Kullback–Leibler divergence</a>
     */
    KLDivergence {
       @Override
@@ -110,7 +110,7 @@ public enum Distance implements DistanceMeasure {
       }
    },
    /**
-    * The Angular.
+    * <a href="https://en.wikipedia.org/wiki/Angular_distance">Angular distance</a>
     */
    Angular {
       @Override

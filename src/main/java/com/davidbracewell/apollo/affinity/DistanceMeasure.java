@@ -21,6 +21,8 @@
 
 package com.davidbracewell.apollo.affinity;
 
+import com.davidbracewell.apollo.analysis.Optimum;
+
 /**
  * <p>A measure that determines how far apart two items are.</p>
  *

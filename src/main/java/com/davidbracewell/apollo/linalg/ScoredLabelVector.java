@@ -1,6 +1,6 @@
 package com.davidbracewell.apollo.linalg;
 
-import com.davidbracewell.apollo.affinity.Optimum;
+import com.davidbracewell.apollo.analysis.Optimum;
 import lombok.NonNull;
 
 import java.util.Comparator;

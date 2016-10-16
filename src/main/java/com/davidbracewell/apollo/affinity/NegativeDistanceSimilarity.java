@@ -24,27 +24,35 @@ package com.davidbracewell.apollo.affinity;
 import java.util.Map;
 
 /**
+ * <p>Distance measure implementation that is the negated value of a similarity measure</p>
+ *
  * @author David B. Bracewell
  */
 class NegativeDistanceSimilarity implements SimilarityMeasure {
-  private static final long serialVersionUID = 1L;
-  private final DistanceMeasure distanceMeasure;
+   private static final long serialVersionUID = 1L;
+   private final DistanceMeasure distanceMeasure;
 
-  NegativeDistanceSimilarity(DistanceMeasure distanceMeasure) {
-    this.distanceMeasure = distanceMeasure;
-  }
+   /**
+    * Instantiates a new Negative distance similarity.
+    *
+    * @param distanceMeasure the distance measure
+    */
+   NegativeDistanceSimilarity(DistanceMeasure distanceMeasure) {
+      this.distanceMeasure = distanceMeasure;
+   }
 
-  @Override
-  public double calculate(ContingencyTable table) {
-    throw new UnsupportedOperationException();
-  }
+   @Override
+   public double calculate(ContingencyTable table) {
+      throw new UnsupportedOperationException();
+   }
 
-  @Override
-  public double calculate(Map<?, ? extends Number> m1, Map<?, ? extends Number> m2) {
-    return -distanceMeasure.calculate(m1, m2);
-  }
-  @Override
-  public DistanceMeasure asDistanceMeasure() {
-    return distanceMeasure;
-  }
+   @Override
+   public double calculate(Map<?, ? extends Number> m1, Map<?, ? extends Number> m2) {
+      return -distanceMeasure.calculate(m1, m2);
+   }
+
+   @Override
+   public DistanceMeasure asDistanceMeasure() {
+      return distanceMeasure;
+   }
 }//END OF NegativeDistanceSimilarity

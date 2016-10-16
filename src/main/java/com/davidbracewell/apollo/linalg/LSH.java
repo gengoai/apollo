@@ -1,7 +1,7 @@
 package com.davidbracewell.apollo.linalg;
 
 import com.davidbracewell.apollo.affinity.Measure;
-import com.davidbracewell.apollo.affinity.Optimum;
+import com.davidbracewell.apollo.analysis.Optimum;
 import lombok.Getter;
 import lombok.NonNull;
 import org.apache.mahout.math.set.OpenIntHashSet;

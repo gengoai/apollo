@@ -21,31 +21,33 @@
 
 package com.davidbracewell.apollo.affinity;
 
+import com.davidbracewell.apollo.analysis.Optimum;
+
 /**
- * The type Similarity measure.
+ * <p>A measure that determines how close together two items are.</p>
  *
  * @author David B. Bracewell
  */
 public interface SimilarityMeasure extends Measure, ContingencyTableCalculator {
 
-  /**
-   * As distance measure distance measure.
-   *
-   * @return the distance measure
-   */
-  default DistanceMeasure asDistanceMeasure() {
-    return new OneMinusSimilarityDistance(this);
-  }
+   /**
+    * Converts the similarity measure into a distance measure
+    *
+    * @return the distance measure
+    */
+   default DistanceMeasure asDistanceMeasure() {
+      return new OneMinusSimilarityDistance(this);
+   }
 
-  @Override
-  default double calculate(ContingencyTable table) {
-    throw new UnsupportedOperationException();
-  }
+   @Override
+   default double calculate(ContingencyTable table) {
+      throw new UnsupportedOperationException();
+   }
 
-  @Override
-  default Optimum getOptimum() {
-    return Optimum.MAXIMUM;
-  }
+   @Override
+   default Optimum getOptimum() {
+      return Optimum.MAXIMUM;
+   }
 
 
 }//END OF SimilarityMeasure

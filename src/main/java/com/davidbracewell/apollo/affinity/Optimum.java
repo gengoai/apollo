@@ -1,5 +1,6 @@
 package com.davidbracewell.apollo.affinity;
 
+import com.davidbracewell.tuple.Tuple2;
 import lombok.NonNull;
 
 import java.util.Comparator;
@@ -83,6 +84,16 @@ public enum Optimum implements Comparator<Double> {
   public abstract double startingValue();
 
   /**
+   *
+   * @param array
+   * @return
+   */
+  public Tuple2<Integer,Double> selectBest(@NonNull double[] array){
+    int bestIndex = selectBestIndex(array);
+    return Tuple2.of(bestIndex, array[bestIndex]);
+  }
+
+  /**
    * Select best value double.
    *
    * @param array the array
@@ -90,9 +101,9 @@ public enum Optimum implements Comparator<Double> {
    */
   public double selectBestValue(@NonNull double[] array) {
     double val = startingValue();
-    for (int i = 0; i < array.length; i++) {
-      if (test(array[i], val)) {
-        val = array[i];
+    for (double anArray : array) {
+      if (test(anArray, val)) {
+        val = anArray;
       }
     }
     return val;

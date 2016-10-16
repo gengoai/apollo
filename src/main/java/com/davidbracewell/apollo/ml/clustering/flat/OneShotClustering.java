@@ -21,8 +21,8 @@
 
 package com.davidbracewell.apollo.ml.clustering.flat;
 
-import com.davidbracewell.apollo.ApolloMath;
 import com.davidbracewell.apollo.affinity.DistanceMeasure;
+import com.davidbracewell.apollo.affinity.Optimum;
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.EncoderPair;
 import com.davidbracewell.apollo.ml.FeatureVector;
@@ -47,7 +47,7 @@ class OneShotClustering extends FlatClustering {
 
   @Override
   public int hardCluster(@NonNull Instance instance) {
-    return ApolloMath.argMin(softCluster(instance)).v1;
+    return Optimum.MINIMUM.selectBest(softCluster(instance)).v1;
   }
 
   @Override

@@ -24,13 +24,15 @@ package com.davidbracewell.apollo.ml;
 import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.stream.MStream;
 
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 
 /**
  * @author David B. Bracewell
  */
-public class NoOptEncoder implements Encoder {
+public class NoOptEncoder implements Encoder, Serializable {
+   private static final long serialVersionUID = 1L;
 
    @Override
    public Encoder createNew() {

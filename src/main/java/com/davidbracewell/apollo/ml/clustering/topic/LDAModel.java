@@ -81,7 +81,7 @@ public class LDAModel extends FlatClustering {
 
    @Override
    public int hardCluster(@NonNull Instance instance) {
-      return Optimum.MAXIMUM.selectBest(softCluster(instance)).getV1();
+      return Optimum.MAXIMUM.optimum(softCluster(instance)).getV1();
    }
 
    @Override

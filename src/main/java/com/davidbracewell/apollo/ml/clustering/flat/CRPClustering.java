@@ -47,7 +47,7 @@ class CRPClustering extends FlatClustering {
 
   @Override
   public int hardCluster(@NonNull Instance instance) {
-    return Optimum.MINIMUM.selectBest(softCluster(instance)).v1;
+    return Optimum.MINIMUM.optimum(softCluster(instance)).v1;
   }
 
   @Override

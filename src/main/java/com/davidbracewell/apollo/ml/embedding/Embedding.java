@@ -1,23 +1,15 @@
 package com.davidbracewell.apollo.ml.embedding;
 
 import com.davidbracewell.apollo.affinity.Similarity;
-import com.davidbracewell.apollo.linalg.DenseVector;
-import com.davidbracewell.apollo.linalg.ScoredLabelVector;
-import com.davidbracewell.apollo.linalg.SparseVector;
+import com.davidbracewell.apollo.linalg.*;
 import com.davidbracewell.apollo.linalg.Vector;
-import com.davidbracewell.apollo.linalg.VectorComposition;
-import com.davidbracewell.apollo.linalg.VectorStore;
 import com.davidbracewell.apollo.ml.EncoderPair;
 import com.davidbracewell.apollo.ml.Model;
 import com.davidbracewell.tuple.Tuple;
 import lombok.NonNull;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.davidbracewell.tuple.Tuples.$;
@@ -90,6 +82,13 @@ public class Embedding implements Model, Serializable {
     return new DenseVector(getDimension());
   }
 
+  /**
+   * Compose vector.
+   *
+   * @param composition the composition
+   * @param words       the words
+   * @return the vector
+   */
   public Vector compose(@NonNull VectorComposition composition, String... words) {
     if (words == null) {
       return new SparseVector(getDimension());
@@ -151,11 +150,26 @@ public class Embedding implements Model, Serializable {
       .collect(Collectors.toList());
   }
 
+  /**
+   * Nearest list.
+   *
+   * @param v the v
+   * @param K the k
+   * @return the list
+   */
   public List<ScoredLabelVector> nearest(@NonNull Vector v, int K) {
     return nearest(v, K, Double.NEGATIVE_INFINITY);
   }
 
 
+  /**
+   * Nearest list.
+   *
+   * @param v         the v
+   * @param K         the k
+   * @param threshold the threshold
+   * @return the list
+   */
   public List<ScoredLabelVector> nearest(@NonNull Vector v, int K, double threshold) {
     if (v == null) {
       return Collections.emptyList();

@@ -33,71 +33,71 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * The interface Measure.
+ * <p>Calculates a metric between items, such as distance and similarity.</p>
  *
  * @author David B. Bracewell
  */
 public interface Measure extends Serializable {
 
-  /**
-   * Calculate double.
-   *
-   * @param v1 the v 1
-   * @param v2 the v 2
-   * @return the double
-   */
-  default double calculate(@NonNull double[] v1, @NonNull double[] v2) {
-    return calculate(DenseVector.wrap(v1), DenseVector.wrap(v2));
-  }
+   /**
+    * Calculate this measure using two double arrays as the input
+    *
+    * @param v1 the first double array
+    * @param v2 the second double array
+    * @return the metric result
+    */
+   default double calculate(@NonNull double[] v1, @NonNull double[] v2) {
+      return calculate(DenseVector.wrap(v1), DenseVector.wrap(v2));
+   }
 
-  /**
-   * Calculate double.
-   *
-   * @param v1 the v 1
-   * @param v2 the v 2
-   * @return the double
-   */
-  default double calculate(@NonNull Vector v1, @NonNull Vector v2) {
-    return calculate(VectorMap.wrap(v1), VectorMap.wrap(v2));
-  }
+   /**
+    * Calculate this measure using two vectors as the input
+    *
+    * @param v1 the first vector
+    * @param v2 the second vector
+    * @return the metric result
+    */
+   default double calculate(@NonNull Vector v1, @NonNull Vector v2) {
+      return calculate(VectorMap.wrap(v1), VectorMap.wrap(v2));
+   }
 
-  /**
-   * Calculate double.
-   *
-   * @param c1 the c 1
-   * @param c2 the c 2
-   * @return the double
-   */
-  default double calculate(@NonNull Counter<?> c1, @NonNull Counter<?> c2) {
-    return calculate(c1.asMap(), c2.asMap());
-  }
+   /**
+    * Calculate this measure using two counters as the input
+    *
+    * @param c1 the first counter
+    * @param c2 the second counter
+    * @return the metric result
+    */
+   default double calculate(@NonNull Counter<?> c1, @NonNull Counter<?> c2) {
+      return calculate(c1.asMap(), c2.asMap());
+   }
 
-  /**
-   * Calculate double.
-   *
-   * @param c1 the c 1
-   * @param c2 the c 2
-   * @return the double
-   */
-  default double calculate(@NonNull Set<?> c1, @NonNull Set<?> c2) {
-    return calculate(Maps.asMap(c1, d -> 1), Maps.asMap(c2, d -> 1));
-  }
+   /**
+    * Calculate this measure using two sets as the input
+    *
+    * @param c1 the first set
+    * @param c2 the second set
+    * @return the metric result
+    */
+   default double calculate(@NonNull Set<?> c1, @NonNull Set<?> c2) {
+      return calculate(Maps.asMap(c1, d -> 1), Maps.asMap(c2, d -> 1));
+   }
 
-  /**
-   * Calculate double.
-   *
-   * @param m1 the m 1
-   * @param m2 the m 2
-   * @return the double
-   */
-  double calculate(Map<?, ? extends Number> m1, Map<?, ? extends Number> m2);
+   /**
+    * Calculate this measure using two maps as the input
+    *
+    * @param m1 the first map
+    * @param m2 the second map
+    * @return the metric result
+    */
+   double calculate(Map<?, ? extends Number> m1, Map<?, ? extends Number> m2);
 
 
-  /**
-   * Gets optimum.
-   *
-   * @return the optimum
-   */
-  Optimum getOptimum();
+   /**
+    * Gets what kind of optimum should be used with this measure, i.e. is bigger or smaller better.
+    *
+    * @return the optimum
+    */
+   Optimum getOptimum();
 
 }//END OF Measure

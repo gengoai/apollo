@@ -15,6 +15,7 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.stream.Stream;
 
 /**
@@ -51,6 +52,11 @@ public class DatasetBuilder<T extends Example> {
     */
    public DatasetBuilder<T> localSource(@NonNull Stream<T> stream) {
       this.source = StreamingContext.local().stream(stream);
+      return this;
+   }
+
+   public DatasetBuilder<T> data(@NonNull Collection<T> collection) {
+      this.source = StreamingContext.local().stream(collection);
       return this;
    }
 

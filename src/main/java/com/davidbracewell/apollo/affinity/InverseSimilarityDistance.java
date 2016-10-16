@@ -21,29 +21,36 @@
 
 package com.davidbracewell.apollo.affinity;
 
-import com.google.common.base.Preconditions;
+import lombok.NonNull;
 
 import java.util.Map;
 
 /**
+ * <p>Distance function that uses the inverse of the result of a similarity function</p>
+ *
  * @author David B. Bracewell
  */
 class InverseSimilarityDistance implements DistanceMeasure {
-  private static final long serialVersionUID = 1L;
-  private final SimilarityMeasure similarityMeasure;
+   private static final long serialVersionUID = 1L;
+   private final SimilarityMeasure similarityMeasure;
 
-  InverseSimilarityDistance(SimilarityMeasure similarityMeasure) {
-    this.similarityMeasure = Preconditions.checkNotNull(similarityMeasure);
-  }
+   /**
+    * Instantiates a new Inverse similarity distance.
+    *
+    * @param similarityMeasure the similarity measure
+    */
+   InverseSimilarityDistance(@NonNull SimilarityMeasure similarityMeasure) {
+      this.similarityMeasure = similarityMeasure;
+   }
 
-  @Override
-  public double calculate(Map<?, ? extends Number> m1, Map<?, ? extends Number> m2) {
-    return 1d / similarityMeasure.calculate(m1, m2);
-  }
+   @Override
+   public double calculate(Map<?, ? extends Number> m1, Map<?, ? extends Number> m2) {
+      return 1d / similarityMeasure.calculate(m1, m2);
+   }
 
-  @Override
-  public SimilarityMeasure asSimilarityMeasure() {
-    return similarityMeasure;
-  }
+   @Override
+   public SimilarityMeasure asSimilarityMeasure() {
+      return similarityMeasure;
+   }
 
 }//END OF OneMinusSimilarityDistance

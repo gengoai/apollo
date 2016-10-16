@@ -35,7 +35,7 @@ public class Signum implements Activation {
   }
 
   @Override
-  public double gradient(double value) {
+  public double derivative(double value) {
     Preconditions.checkArgument(value != 0, "Not differentiable at 0");
     return 0;
   }

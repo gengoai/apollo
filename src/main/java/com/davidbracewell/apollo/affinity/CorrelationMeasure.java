@@ -32,45 +32,46 @@ import org.apache.commons.math3.distribution.TDistribution;
 import java.util.Map;
 
 /**
- * The interface Correlation measure.
+ * <p>Defines methodology to determine how related two items are.</p>
  *
  * @author David B. Bracewell
  */
 public interface CorrelationMeasure extends SimilarityMeasure {
 
-  @Override
-  default double calculate(@NonNull Map<?, ? extends Number> m1, @NonNull Map<?, ? extends Number> m2) {
-    Index index = Indexes.newIndex(Sets.union(m1.keySet(), m2.keySet()));
-    double[] v1 = new double[index.size()];
-    double[] v2 = new double[index.size()];
-    for (int i = 0; i < index.size(); i++) {
-      v1[i] = m1.containsKey(index.get(i)) ? m1.get(index.get(i)).doubleValue() : 0d;
-      v2[i] = m2.containsKey(index.get(i)) ? m2.get(index.get(i)).doubleValue() : 0d;
-    }
-    return calculate(v1, v2);
-  }
+   @Override
+   default double calculate(@NonNull Map<?, ? extends Number> m1, @NonNull Map<?, ? extends Number> m2) {
+      Index index = Indexes.newIndex(Sets.union(m1.keySet(), m2.keySet()));
+      double[] v1 = new double[index.size()];
+      double[] v2 = new double[index.size()];
+      for (int i = 0; i < index.size(); i++) {
+         v1[i] = m1.containsKey(index.get(i)) ? m1.get(index.get(i)).doubleValue() : 0d;
+         v2[i] = m2.containsKey(index.get(i)) ? m2.get(index.get(i)).doubleValue() : 0d;
+      }
+      return calculate(v1, v2);
+   }
 
-  @Override
-  default double calculate(@NonNull Vector v1, @NonNull Vector v2) {
-    Preconditions.checkArgument(v1.dimension() == v2.dimension(), "Vector dimension mismatch " + v1.dimension() + " != " + v2.dimension());
-    return calculate(v1.toArray(), v2.toArray());
-  }
+   @Override
+   default double calculate(@NonNull Vector v1, @NonNull Vector v2) {
+      Preconditions.checkArgument(v1.dimension() == v2.dimension(),
+                                  "Vector dimension mismatch " + v1.dimension() + " != " + v2.dimension());
+      return calculate(v1.toArray(), v2.toArray());
+   }
 
-  @Override
-  double calculate(double[] v1, double[] v2);
+   @Override
+   double calculate(double[] v1, double[] v2);
 
 
-  /**
-   * Calculates the p-value for the correlation coefficient when N >= 6 using a t-Test.
-   *
-   * @param r the correlation coefficient.
-   * @param N the number of items
-   * @return the non-directional p-value
-   */
-  static double pValue(double r, int N) {
-    Preconditions.checkArgument(N >= 6, "N must be >= 6.");
-    double t = r / Math.sqrt((1 - r * r) / (N - 2));
-    return 1.0 - new TDistribution(N - 2).cumulativeProbability(t);
-  }
+   /**
+    * Calculates the p-value for the correlation coefficient when N >= 6 using a t-Test.
+    *
+    * @param r the correlation coefficient.
+    * @param N the number of items
+    * @return the non-directional p-value
+    */
+   default double pValue(double r, int N) {
+      Preconditions.checkArgument(N >= 6, "N must be >= 6.");
+      double t = r / Math.sqrt((1 - r * r) / (N - 2));
+      return 1.0 - new TDistribution(N - 2).cumulativeProbability(t);
+   }
 
 }//END OF CorrelationMeasure

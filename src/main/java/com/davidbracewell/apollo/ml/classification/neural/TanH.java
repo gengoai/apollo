@@ -35,7 +35,7 @@ public class TanH implements Activation {
   }
 
   @Override
-  public double gradient(double value) {
+  public double derivative(double value) {
     return gradientOfResult(applyAsDouble(value));
   }
 

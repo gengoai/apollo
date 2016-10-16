@@ -33,7 +33,7 @@ public class Linear implements Activation {
   }
 
   @Override
-  public double gradient(double value) {
+  public double derivative(double value) {
     return 1;
   }
 

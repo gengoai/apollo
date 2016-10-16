@@ -21,13 +21,17 @@
 
 package com.davidbracewell.apollo.ml.classification;
 
+import com.davidbracewell.apollo.linalg.DenseVector;
+import com.davidbracewell.apollo.linalg.LabeledVector;
 import com.davidbracewell.apollo.ml.IndexEncoder;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.data.Dataset;
-import com.davidbracewell.apollo.ml.data.source.DenseCSVDataSource;
-import com.davidbracewell.io.Resources;
 import lombok.SneakyThrows;
 import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 
 import static org.junit.Assert.*;
 
@@ -48,11 +52,18 @@ public abstract class ClassificationTest {
 
    @SneakyThrows
    public Dataset<Instance> getData() {
-      return Dataset.classification().dataSource(
-         new DenseCSVDataSource(Resources.fromClasspath("com/davidbracewell/apollo/ml/test.csv"),
-                                true))
+      List<Instance> data = new ArrayList<>();
+      for (int i = 0; i < 1_000; i++) {
+         data.add(Instance.fromVector(new LabeledVector("true", DenseVector.ones(20))));
+      }
+      for (int i = 0; i < 1_000; i++) {
+         data.add(Instance.fromVector(new LabeledVector("false", DenseVector.zeros(20))));
+      }
+      return Dataset.classification()
+                    .data(data)
                     .featureEncoder(new IndexEncoder())
-                    .build();
+                    .build()
+                    .shuffle(new Random(1234));
    }
 
    @Test
@@ -62,7 +73,7 @@ public abstract class ClassificationTest {
       ClassifierEvaluation evaluation = new ClassifierEvaluation();
       evaluation.evaluate(classifier, data);
       assertEquals(targetAcc, evaluation.accuracy(), tolerance);
-      System.out.println(learner.getClass().getSimpleName() + "\t" + evaluation.accuracy());
+      System.out.println(learner.getClass().getSimpleName() + ": " + evaluation.accuracy());
    }
 
 

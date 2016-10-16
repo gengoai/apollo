@@ -24,28 +24,29 @@ package com.davidbracewell.apollo;
 import com.davidbracewell.function.SerializableDoubleUnaryOperator;
 
 /**
- * The interface Differentiable function.
+ * <p>A unary operator that also has methodology to calculate the derivative of the function.</p>
  *
  * @author David B. Bracewell
  */
+@FunctionalInterface
 public interface DifferentiableFunction extends SerializableDoubleUnaryOperator {
-  /**
-   * The constant H.
-   */
-  double H = 1E-5;
-  /**
-   * The constant TWO_H.
-   */
-  double TWO_H = 2.0 * H;
+   /**
+    * Constant used in approximating the derivative
+    */
+   double H = 1E-5;
+   /**
+    * Constant used in approximating the derivative
+    */
+   double TWO_H = 2.0 * H;
 
-  /**
-   * Gradient double.
-   *
-   * @param value the value
-   * @return the double
-   */
-  default double gradient(double value) {
-    return (applyAsDouble(value + H) - applyAsDouble(value - H)) / TWO_H;
-  }
+   /**
+    * Calculates the derivative of the function at the given value
+    *
+    * @param value the value to calculate the derivative at
+    * @return the derivative
+    */
+   default double derivative(double value) {
+      return (applyAsDouble(value + H) - applyAsDouble(value - H)) / TWO_H;
+   }
 
 }//END OF DifferentiableFunction

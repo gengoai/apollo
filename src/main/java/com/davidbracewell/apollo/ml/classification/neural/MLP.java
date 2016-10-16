@@ -17,6 +17,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * The type Mlp.
+ *
  * @author David B. Bracewell
  */
 public class MLP extends ClassifierLearner {
@@ -37,10 +39,20 @@ public class MLP extends ClassifierLearner {
   private boolean verbose = true;
 
 
+  /**
+   * Gets hidden layer size.
+   *
+   * @return the hidden layer size
+   */
   public int getHiddenLayerSize() {
     return hiddenLayers[0];
   }
 
+  /**
+   * Sets hidden layer size.
+   *
+   * @param size the size
+   */
   public void setHiddenLayerSize(int size) {
     hiddenLayers = new int[]{size};
   }

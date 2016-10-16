@@ -32,130 +32,129 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.text.DecimalFormat;
 
 /**
  * @author David B. Bracewell
  */
 public class AveragedPerceptronLearner extends BinaryClassifierLearner {
-  private static final long serialVersionUID = 1L;
-  private static Logger log = Logger.getLogger(AveragedPerceptronLearner.class);
-  @Getter
-  @Setter
-  private int maxIterations;
-  @Getter
-  @Setter
-  private double learningRate;
-  private Vector totalWeights;
-  private Vector stamps;
-  private double totalBias;
-  private double biasStamps;
-  @Getter
-  @Setter
-  private double tolerance;
-  @Getter
-  @Setter
-  private boolean verbose = false;
+   private static final long serialVersionUID = 1L;
+   private static Logger log = Logger.getLogger(AveragedPerceptronLearner.class);
+   @Getter
+   @Setter
+   private int maxIterations;
+   @Getter
+   @Setter
+   private double learningRate;
+   private Vector totalWeights;
+   private Vector stamps;
+   private double totalBias;
+   private double biasStamps;
+   @Getter
+   @Setter
+   private double tolerance;
+   @Getter
+   @Setter
+   private boolean verbose = false;
 
-  public AveragedPerceptronLearner() {
-    this(100, 1.0, 0.0001);
-  }
+   public AveragedPerceptronLearner() {
+      this(100, 1.0, 0.0001);
+   }
 
-  public AveragedPerceptronLearner(int maxIterations, double learningRate, double tolerance) {
-    this.maxIterations = maxIterations;
-    this.learningRate = learningRate;
-    this.tolerance = tolerance;
-  }
+   public AveragedPerceptronLearner(int maxIterations, double learningRate, double tolerance) {
+      this.maxIterations = maxIterations;
+      this.learningRate = learningRate;
+      this.tolerance = tolerance;
+   }
 
-  private double convertY(double real, double trueLabel) {
-    return (real == trueLabel) ? 1.0 : 0.0;
-  }
+   private double convertY(double real, double trueLabel) {
+      return (real == trueLabel) ? 1.0 : 0.0;
+   }
 
-  @Override
-  protected Classifier trainForLabel(Dataset<Instance> dataset, double trueLabel) {
-    BinaryGLM model = new BinaryGLM(
-      dataset.getEncoderPair(),
-      dataset.getPreprocessors()
-    );
+   @Override
+   protected Classifier trainForLabel(Dataset<Instance> dataset, double trueLabel) {
+      BinaryGLM model = new BinaryGLM(
+                                        dataset.getEncoderPair(),
+                                        dataset.getPreprocessors()
+      );
 
-    totalWeights = new FeatureVector(model.getEncoderPair());
-    stamps = new FeatureVector(model.getEncoderPair());
-    model.weights = new FeatureVector(model.getEncoderPair());
+      totalWeights = new FeatureVector(model.getEncoderPair());
+      stamps = new FeatureVector(model.getEncoderPair());
+      model.weights = new FeatureVector(model.getEncoderPair());
 
-    double c = 1d;
-    double oldError = 0;
-    double oldOldError = 0;
-    final DecimalFormat formatter = new DecimalFormat("##0.00%");
-    for (int iteration = 0; iteration < maxIterations; iteration++) {
-      double error = 0;
-      double count = 0;
-      for (Instance instance : dataset) {
-        FeatureVector v = instance.toVector(model.getEncoderPair());
-        count++;
-        double y = convertY(v.getLabel(), trueLabel);
-        double yHat = model.classify(v).getEncodedResult();
+      double c = 1d;
+      double oldError = 0;
+      double oldOldError = 0;
+      for (int iteration = 0; iteration < maxIterations; iteration++) {
+         double error = 0;
+         double count = 0;
+         for (Instance instance : dataset) {
+            FeatureVector v = instance.toVector(model.getEncoderPair());
+            count++;
+            double y = convertY(v.getLabel(), trueLabel);
+            double yHat = model.classify(v).getEncodedResult();
 
-        if (y != yHat) {
-          error++;
-          double eta = learningRate * (y - yHat);
-          for (Vector.Entry entry : Collect.asIterable(v.nonZeroIterator())) {
-            updateFeature(model, entry.getIndex(), c, eta);
-          }
-          double timeSpan = c - biasStamps;
-          totalBias += (timeSpan * model.bias);
-          model.bias += eta;
-          biasStamps = c;
-        }
+            if (y != yHat) {
+               error++;
+               double eta = learningRate * (y - yHat);
+               for (Vector.Entry entry : Collect.asIterable(v.nonZeroIterator())) {
+                  updateFeature(model, entry.getIndex(), c, eta);
+               }
+               double timeSpan = c - biasStamps;
+               totalBias += (timeSpan * model.bias);
+               model.bias += eta;
+               biasStamps = c;
+            }
 
 
-        c++;
+            c++;
+         }
+         if (verbose) {
+            log.info("iteration={0} errorRate={1,number,0.00%} (true={2})", iteration, (error / count),
+                     model.getLabelEncoder().decode(trueLabel));
+         }
+         if (error == 0) {
+            break;
+         }
+         error /= count;
+         if (iteration > 2) {
+            if (error != count && Math.abs(error - oldError) < tolerance && Math.abs(error - oldOldError) < tolerance) {
+               break;
+            }
+         }
+         oldOldError = oldError;
+         oldError = error;
       }
-      if (verbose) {
-        log.info("iteration={0} errorRate={1} (true={2})", iteration, formatter.format(error / count), model.getLabelEncoder().decode(trueLabel));
-      }
-      if (error == 0) {
-        break;
-      }
-      error /= count;
-      if (iteration > 2) {
-        if (Math.abs(error - oldError) < tolerance && Math.abs(error - oldOldError) < tolerance) {
-          break;
-        }
-      }
-      oldOldError = oldError;
-      oldError = error;
-    }
 
-    double time = c;
-    for (Vector.Entry entry : Collect.asIterable(totalWeights.nonZeroIterator())) {
-      double total = totalWeights.get(entry.index);
-      total += (time - stamps.get(entry.index)) * model.weights.get(entry.index);
+      double time = c;
+      for (Vector.Entry entry : Collect.asIterable(totalWeights.nonZeroIterator())) {
+         double total = totalWeights.get(entry.index);
+         total += (time - stamps.get(entry.index)) * model.weights.get(entry.index);
+         total = new BigDecimal(total / time).setScale(3, RoundingMode.HALF_UP).doubleValue();
+         model.weights.set(entry.index, total);
+      }
+      double total = totalBias;
+      total += (time - biasStamps) * model.bias;
       total = new BigDecimal(total / time).setScale(3, RoundingMode.HALF_UP).doubleValue();
-      model.weights.set(entry.index, total);
-    }
-    double total = totalBias;
-    total += (time - biasStamps) * model.bias;
-    total = new BigDecimal(total / time).setScale(3, RoundingMode.HALF_UP).doubleValue();
-    model.bias = total;
+      model.bias = total;
 
-    return model;
-  }
+      return model;
+   }
 
 
-  private void updateFeature(BinaryGLM model, int featureId, double time, double value) {
-    double timeAtWeight = time - stamps.get(featureId);
-    double curWeight = model.weights.get(featureId);
-    totalWeights.increment(featureId, timeAtWeight * curWeight);
-    stamps.set(featureId, time);
-    model.weights.set(featureId, curWeight + value);
-  }
+   private void updateFeature(BinaryGLM model, int featureId, double time, double value) {
+      double timeAtWeight = time - stamps.get(featureId);
+      double curWeight = model.weights.get(featureId);
+      totalWeights.increment(featureId, timeAtWeight * curWeight);
+      stamps.set(featureId, time);
+      model.weights.set(featureId, curWeight + value);
+   }
 
-  @Override
-  public void reset() {
-    this.totalBias = 0;
-    this.biasStamps = 0;
-    this.stamps = null;
-    this.totalWeights = null;
-  }
+   @Override
+   public void reset() {
+      this.totalBias = 0;
+      this.biasStamps = 0;
+      this.stamps = null;
+      this.totalWeights = null;
+   }
 
 }//END OF AveragedPerceptronLearner

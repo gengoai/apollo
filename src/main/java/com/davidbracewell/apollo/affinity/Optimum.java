@@ -84,9 +84,10 @@ public enum Optimum implements Comparator<Double> {
   public abstract double startingValue();
 
   /**
+   * Select best tuple 2.
    *
-   * @param array
-   * @return
+   * @param array the array
+   * @return tuple 2
    */
   public Tuple2<Integer,Double> selectBest(@NonNull double[] array){
     int bestIndex = selectBestIndex(array);

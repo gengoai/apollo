@@ -23,30 +23,31 @@ package com.davidbracewell.apollo.affinity;
 
 
 /**
- * The interface Contingency table calculator.
+ * <p>Calculates a value based on a contingency table. Examples include, affinity measures like mutual information.</p>
  *
  * @author David B. Bracewell
  */
+@FunctionalInterface
 public interface ContingencyTableCalculator {
 
 
-  /**
-   * Calculate double.
-   *
-   * @param table the table
-   * @return the double
-   */
-  double calculate(ContingencyTable table);
+   /**
+    * Calculates the value of this metric.
+    *
+    * @param table the table to calculate on
+    * @return the metric value
+    */
+   double calculate(ContingencyTable table);
 
-  /**
-   * P value double.
-   *
-   * @param table the table
-   * @return the double
-   */
-  default double pValue(ContingencyTable table){
-    throw new UnsupportedOperationException();
-  }
+   /**
+    * If possible, calculates a p-value for the metric to determine the significance of the measure.
+    *
+    * @param table the table to calculate on
+    * @return the p-values
+    */
+   default double pValue(ContingencyTable table) {
+      throw new UnsupportedOperationException();
+   }
 
 
 }//END OF ContingencyTableCalculator

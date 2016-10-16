@@ -27,7 +27,7 @@ package com.davidbracewell.apollo.ml.classification;
 public class AveragedPerceptronTest extends ClassificationTest {
 
    public AveragedPerceptronTest() {
-      super(new AveragedPerceptronLearner(100,1,0.001), 1, 0.5);
+      super(new AveragedPerceptronLearner(100,1,0.00001), 1.0, 0.1);
    }
 
 

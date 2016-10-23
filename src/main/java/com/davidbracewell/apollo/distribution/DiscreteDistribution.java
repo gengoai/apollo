@@ -124,41 +124,41 @@ public interface DiscreteDistribution<T extends DiscreteDistribution> extends De
   /**
    * Increment t.
    *
-   * @param k     the k
-   * @param value the value
+   * @param variable     the k
+   * @param amount the value
    * @return the t
    */
-  T increment(int k, long value);
+  T increment(int variable, int amount);
 
   /**
    * Increment t.
    *
-   * @param k the k
+   * @param variable the k
    * @return the t
    */
-  default T increment(int k) {
-    return increment(k, 1);
+  default T increment(int variable) {
+    return increment(variable, 1);
   }
 
   /**
    * Decrement t.
    *
-   * @param k     the k
-   * @param value the value
+   * @param variable     the k
+   * @param amount the value
    * @return the t
    */
-  default T decrement(int k, long value) {
-    return increment(k, -value);
+  default T decrement(int variable, int amount) {
+    return increment(variable, -amount);
   }
 
   /**
    * Decrement t.
    *
-   * @param k the k
+   * @param variable the k
    * @return the t
    */
-  default T decrement(int k) {
-    return increment(k, -1);
+  default T decrement(int variable) {
+    return increment(variable, -1);
   }
 
 

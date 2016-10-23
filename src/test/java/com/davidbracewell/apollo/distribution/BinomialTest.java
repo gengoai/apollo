@@ -42,13 +42,29 @@ public class BinomialTest {
    @Test
    public void increment() throws Exception {
       Binomial b2 = new Binomial();
-      b2.increment(0,1);
-      b2.increment(6);
-      b2.increment(0,6);
-      b2.decrement(0,1);
-      b2.decrement(1);
-      b2.decrement(0,1);
-      assertEquals(b2.probability(6), binomial.probability(6), 0);
+
+      b2.increment(0, 1); //add one failure
+      b2.increment(1, 6); //add six successes
+      b2.increment(0, 6); //add six failures
+
+      b2.decrement(0, 1); //decrement one failure
+      b2.decrement(1); //decrement one success
+      b2.decrement(0, 1); //decrement one failure
+
+      assertEquals(5, b2.getNumberOfSuccesses());
+      assertEquals(5, b2.getNumberOfFailures());
+      assertEquals(0.5, b2.probabilityOfSuccess(), 0.1);
+      assertEquals(0.205, b2.probability(6), 0.01);
+   }
+
+   @Test
+   public void sample() throws Exception {
+      int sum = 0;
+      for (int i = 0; i < 10; i++) {
+         sum += binomial.sample();
+      }
+      //Expect about 5 successes
+      assertEquals(5.0, sum / 10.0, 1.5);
    }
 
    @Test

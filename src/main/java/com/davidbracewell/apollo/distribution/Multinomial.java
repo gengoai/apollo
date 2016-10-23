@@ -97,8 +97,8 @@ public class Multinomial implements DiscreteDistribution<Multinomial>, Serializa
   }
 
   @Override
-  public Multinomial increment(int index, long amount) {
-    this.values[index] += amount;
+  public Multinomial increment(int variable, int amount) {
+    this.values[variable] += amount;
     sum += amount;
     return this;
   }

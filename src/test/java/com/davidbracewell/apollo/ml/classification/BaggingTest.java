@@ -27,7 +27,7 @@ package com.davidbracewell.apollo.ml.classification;
 public class BaggingTest extends ClassificationTest {
 
    public BaggingTest() {
-      super(new BaggingLearner(LibLinearLearner::new, 10, 2), 0.5, 0.1);
+      super(new BaggingLearner(LibLinearLearner::new, 10, 2), 1.0, 0.1);
    }
 
 

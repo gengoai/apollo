@@ -1,7 +1,6 @@
 package com.davidbracewell.apollo.distribution;
 
 import com.davidbracewell.Copyable;
-import com.google.common.base.Preconditions;
 import lombok.NonNull;
 import org.apache.commons.math3.distribution.BinomialDistribution;
 import org.apache.commons.math3.random.RandomGenerator;
@@ -45,7 +44,6 @@ public final class Binomial implements DiscreteDistribution<Binomial>, Copyable<
     * @param randomGenerator the random generator to use for sampling
     */
    public Binomial(int numberOfSuccess, int numberOfTrials, @NonNull RandomGenerator randomGenerator) {
-      Preconditions.checkArgument(numberOfTrials > 0, "Number of trails must be > 0");
       this.nSuccess = numberOfSuccess;
       this.trials = numberOfTrials;
       this.randomGenerator = randomGenerator;
@@ -91,6 +89,24 @@ public final class Binomial implements DiscreteDistribution<Binomial>, Copyable<
    }
 
    /**
+    * Get number of successes int.
+    *
+    * @return the int
+    */
+   public int getNumberOfSuccesses() {
+      return nSuccess;
+   }
+
+   /**
+    * Gets number of failures.
+    *
+    * @return the number of failures
+    */
+   public int getNumberOfFailures() {
+      return trials - nSuccess;
+   }
+
+   /**
     * Probability of success double.
     *
     * @return the double
@@ -120,12 +136,12 @@ public final class Binomial implements DiscreteDistribution<Binomial>, Copyable<
    }
 
    @Override
-   public Binomial increment(int k, long value) {
-      if (value > 0) {
-         if (k > 0) {
-            nSuccess += value;
+   public Binomial increment(int variable, int amount) {
+      if (amount != 0) {
+         if (variable > 0) {
+            nSuccess += amount;
          }
-         trials += value;
+         trials += amount;
          if (trials < 0) {
             trials = 0;
             nSuccess = 0;

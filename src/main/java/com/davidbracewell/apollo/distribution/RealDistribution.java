@@ -11,51 +11,6 @@ import com.google.common.base.Preconditions;
 public interface RealDistribution<T extends RealDistribution> extends Density {
 
   /**
-   * Probability double.
-   *
-   * @param value the value
-   * @return the double
-   */
-  double probability(double value);
-
-  @Override
-  default double applyAsDouble(double operand) {
-    return probability(operand);
-  }
-
-  @Override
-  default double logApplyAsDouble(double v) {
-    return Math.log(probability(v));
-  }
-
-  /**
-   * Cumulative probability double.
-   *
-   * @param value the value
-   * @return the double
-   */
-  double cumulativeProbability(double value);
-
-  /**
-   * Cumulative probability double.
-   *
-   * @param lowerBound  the lower bound
-   * @param higherBound the higher bound
-   * @return the double
-   */
-  double cumulativeProbability(double lowerBound, double higherBound);
-
-
-  /**
-   * Inverse cumulative probability double.
-   *
-   * @param p the p
-   * @return the double
-   */
-  double inverseCumulativeProbability(double p);
-
-
-  /**
    * Sample double.
    *
    * @return the double

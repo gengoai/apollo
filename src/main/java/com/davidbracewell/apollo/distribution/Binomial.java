@@ -56,8 +56,8 @@ public final class Binomial implements DiscreteDistribution<Binomial>, Copyable<
 
 
    @Override
-   public double probability(int value) {
-      return getDistribution().probability(value);
+   public double probability(double value) {
+      return getDistribution().probability((int) value);
    }
 
 
@@ -114,18 +114,18 @@ public final class Binomial implements DiscreteDistribution<Binomial>, Copyable<
    }
 
    @Override
-   public double logProbability(int value) {
-      return getDistribution().logProbability(value);
+   public double cumulativeProbability(double x) {
+      return getDistribution().cumulativeProbability((int) x);
    }
 
    @Override
-   public double cumulativeProbability(int x) {
-      return getDistribution().cumulativeProbability(x);
+   public double cumulativeProbability(double lowerBound, double higherBound) {
+      return getDistribution().cumulativeProbability((int) lowerBound, (int) higherBound);
    }
 
    @Override
-   public double cumulativeProbability(int lowerBound, int higherBound) {
-      return getDistribution().cumulativeProbability(lowerBound, higherBound);
+   public double inverseCumulativeProbability(double p) {
+      return getDistribution().inverseCumulativeProbability(p);
    }
 
    @Override

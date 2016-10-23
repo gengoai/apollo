@@ -35,7 +35,8 @@ import java.io.Serializable;
  */
 public class UniformDiscrete implements DiscreteDistribution<UniformDiscrete>, Serializable {
    private static final long serialVersionUID = 1L;
-   private final int k;
+   private int max;
+   private int min;
    private final RandomGenerator random;
 
 
@@ -45,7 +46,17 @@ public class UniformDiscrete implements DiscreteDistribution<UniformDiscrete>, S
     * @param k the k
     */
    public UniformDiscrete(int k) {
-      this(k, new Well19937c());
+      this(0, k, new Well19937c());
+   }
+
+   /**
+    * Instantiates a new Uniform discrete.
+    *
+    * @param min the min
+    * @param max the max
+    */
+   public UniformDiscrete(int min, int max) {
+      this(min, max, new Well19937c());
    }
 
    /**
@@ -55,9 +66,39 @@ public class UniformDiscrete implements DiscreteDistribution<UniformDiscrete>, S
     * @param random the random
     */
    public UniformDiscrete(int k, @NonNull RandomGenerator random) {
-      Preconditions.checkArgument(k > 0, "K must be > 0");
-      this.k = k;
+      this(0, k, random);
+   }
+
+   /**
+    * Instantiates a new Uniform discrete.
+    *
+    * @param min    the min
+    * @param max    the max
+    * @param random the random
+    */
+   public UniformDiscrete(int min, int max, @NonNull RandomGenerator random) {
+      Preconditions.checkArgument(min <= max, "Max must be >= min");
+      this.min = min;
+      this.max = max;
       this.random = random;
+   }
+
+   /**
+    * Gets max.
+    *
+    * @return the max
+    */
+   public int getMax() {
+      return max;
+   }
+
+   /**
+    * Gets min.
+    *
+    * @return the min
+    */
+   public int getMin() {
+      return min;
    }
 
    @Override
@@ -67,25 +108,25 @@ public class UniformDiscrete implements DiscreteDistribution<UniformDiscrete>, S
 
    @Override
    public double getMean() {
-      return k / 2.0;
+      return max / 2.0 + min / 2.0;
    }
 
    @Override
    public double getVariance() {
-      return ((k + 1) * (k + 1) - 1.0) / 12;
+      return (range() * range()) / 12;
    }
 
    @Override
-   public double probability(int value) {
-      if (value < 0 || value >= k) {
+   public double probability(double value) {
+      if (value < min || value > max) {
          return 0.0;
       }
-      return 1.0 / k;
+      return 1.0 / range();
    }
 
    @Override
    public int sample() {
-      return random.nextInt(k);
+      return random.nextInt(max - min) + min;
    }
 
    @Override
@@ -94,22 +135,48 @@ public class UniformDiscrete implements DiscreteDistribution<UniformDiscrete>, S
    }
 
    @Override
-   public double cumulativeProbability(int x) {
-      if (x < 0) {
-         return 0;
-      } else if (x >= k) {
+   public double cumulativeProbability(double x) {
+      if (x >= max) {
          return 1.0;
+      } else if (x <= min) {
+         return 0.0;
       }
-      return (double) x / (double) k;
+      return (1.0 - min + x) / range();
+   }
+
+   private int range() {
+      return max - min + 1;
    }
 
    @Override
-   public double cumulativeProbability(int lowerBound, int higherBound) {
-      if (higherBound - lowerBound <= 0) {
-         return 0.0;
-      } else if (lowerBound == 0 && higherBound >= k) {
-         return 1.0;
+   public double inverseCumulativeProbability(double p) {
+      Preconditions.checkArgument(p >= 0 && p <= 1, "Invalid probability");
+      if (p <= 0) {
+         return min;
+      } else if (p >= 1) {
+         return max;
       }
-      return (higherBound - lowerBound) / k;
+      return Math.max(1, Math.ceil((range() * p) + min - 1));
+   }
+
+
+   /**
+    * Sets max.
+    *
+    * @param max the max
+    */
+   public void setMax(int max) {
+      Preconditions.checkArgument(min <= max, "Max must be >= min");
+      this.max = max;
+   }
+
+   /**
+    * Sets min.
+    *
+    * @param min the min
+    */
+   public void setMin(int min) {
+      Preconditions.checkArgument(min <= max, "Max must be >= min");
+      this.min = min;
    }
 }//END OF UniformDiscrete

@@ -1,23 +1,62 @@
 package com.davidbracewell.apollo.distribution;
 
-import com.davidbracewell.function.SerializableDoubleUnaryOperator;
+import com.google.common.base.Preconditions;
+
+import java.io.Serializable;
 
 /**
  * <p>Encapsulates a probability density function.</p>
  *
  * @author David B. Bracewell
  */
-public interface Density extends SerializableDoubleUnaryOperator {
+public interface Density extends Serializable {
 
    /**
-    * Log output of the density function.
+    * Probability double.
     *
-    * @param v the value to calculate density at
-    * @return the then density
+    * @param value the value
+    * @return the double
     */
-   default double logApplyAsDouble(double v) {
-      return Math.log(applyAsDouble(v));
+   double probability(double value);
+
+
+   /**
+    * Log probability double.
+    *
+    * @param value the value
+    * @return the double
+    */
+   default double logProbability(double value) {
+      return Math.log(probability(value));
    }
+
+   /**
+    * Cumulative probability double.
+    *
+    * @param x the x
+    * @return the double
+    */
+   double cumulativeProbability(double x);
+
+   /**
+    * Cumulative probability double.
+    *
+    * @param lowerBound  the lower bound
+    * @param higherBound the higher bound
+    * @return the double
+    */
+   default double cumulativeProbability(double lowerBound, double higherBound) {
+      Preconditions.checkArgument(lowerBound <= higherBound, "Higher bound must be >= lower Bound");
+      return cumulativeProbability(higherBound) - cumulativeProbability(lowerBound);
+   }
+
+   /**
+    * Inverse cumulative probability double.
+    *
+    * @param p the p
+    * @return the double
+    */
+   double inverseCumulativeProbability(double p);
 
    /**
     * Gets the mode of density function
@@ -39,5 +78,6 @@ public interface Density extends SerializableDoubleUnaryOperator {
     * @return the variance
     */
    double getVariance();
+
 
 }// END OF Density

@@ -117,14 +117,6 @@ public class Multinomial implements DiscreteDistribution<Multinomial>, Serializa
    }
 
    @Override
-   public double unnormalizedProbability(int index) {
-      if (index < 0 || index >= values.length) {
-         return 0.0;
-      }
-      return (values[index] + alpha);
-   }
-
-   @Override
    public Multinomial increment(int variable, int amount) {
       this.values[variable] += amount;
       sum += amount;
@@ -132,11 +124,11 @@ public class Multinomial implements DiscreteDistribution<Multinomial>, Serializa
    }
 
    @Override
-   public double probability(int index) {
+   public double probability(double index) {
       if (index < 0 || index >= values.length) {
          return 0.0;
       }
-      return (values[index] + alpha) / (sum + alphaTimesV);
+      return (values[(int) index] + alpha) / (sum + alphaTimesV);
    }
 
    @Override
@@ -159,23 +151,33 @@ public class Multinomial implements DiscreteDistribution<Multinomial>, Serializa
    }
 
    @Override
-   public double cumulativeProbability(int x) {
+   public double cumulativeProbability(double x) {
       return new EnumeratedIntegerDistribution(
                                                  IntStream.range(0, values.length).toArray(),
                                                  IntStream.range(0, values.length)
                                                           .mapToDouble(this::probability)
                                                           .toArray()
-      ).cumulativeProbability(x);
+      ).cumulativeProbability((int) x);
    }
 
    @Override
-   public double cumulativeProbability(int lowerBound, int higherBound) {
+   public double cumulativeProbability(double lowerBound, double higherBound) {
       return new EnumeratedIntegerDistribution(
                                                  IntStream.range(0, values.length).toArray(),
                                                  IntStream.range(0, values.length)
                                                           .mapToDouble(this::probability)
                                                           .toArray()
-      ).cumulativeProbability(lowerBound, higherBound);
+      ).cumulativeProbability((int) lowerBound, (int) higherBound);
    }
 
+
+   @Override
+   public double inverseCumulativeProbability(double p) {
+      return new EnumeratedIntegerDistribution(
+                                                 IntStream.range(0, values.length).toArray(),
+                                                 IntStream.range(0, values.length)
+                                                          .mapToDouble(this::probability)
+                                                          .toArray()
+      ).inverseCumulativeProbability((int) p);
+   }
 }//END OF Multinomial

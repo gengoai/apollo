@@ -36,114 +36,146 @@ import java.util.stream.IntStream;
  * @author David B. Bracewell
  */
 public class Multinomial implements DiscreteDistribution<Multinomial>, Serializable {
-  private static final long serialVersionUID = 1L;
-  private final long[] values;
-  private final double alpha;
-  private final double alphaTimesV;
-  private final Random random;
-  private long sum = 0;
+   private static final long serialVersionUID = 1L;
+   private final int[] values;
+   private final double alpha;
+   private final double alphaTimesV;
+   private final Random random;
+   private int sum = 0;
 
-  /**
-   * Instantiates a new Multinomial.
-   *
-   * @param size   the size
-   * @param alpha  the alpha
-   * @param random the random
-   */
-  public Multinomial(int size, double alpha, @NonNull Random random) {
-    Preconditions.checkArgument(size > 0, "Size must be > 0");
-    Preconditions.checkArgument(Double.isFinite(alpha), "Alpha must be finite");
-    Preconditions.checkArgument(alpha > 0, "Alpha must be > 0");
-    this.values = new long[size];
-    this.alpha = alpha;
-    this.alphaTimesV = alpha * size;
-    this.random = random;
-  }
+   /**
+    * Instantiates a new Multinomial.
+    *
+    * @param size   the size
+    * @param alpha  the alpha
+    * @param random the random
+    */
+   public Multinomial(int size, double alpha, @NonNull Random random) {
+      Preconditions.checkArgument(size > 0, "Size must be > 0");
+      Preconditions.checkArgument(Double.isFinite(alpha), "Alpha must be finite");
+      Preconditions.checkArgument(alpha > 0, "Alpha must be > 0");
+      this.values = new int[size];
+      this.alpha = alpha;
+      this.alphaTimesV = alpha * size;
+      this.random = random;
+   }
 
-  /**
-   * Instantiates a new Multinomial.
-   *
-   * @param size the size
-   */
-  public Multinomial(int size) {
-    this(size, 0, new Random());
-  }
+   /**
+    * Instantiates a new Multinomial.
+    *
+    * @param size the size
+    */
+   public Multinomial(int size) {
+      this(size, 0, new Random());
+   }
 
-  /**
-   * Instantiates a new Multinomial.
-   *
-   * @param size  the size
-   * @param alpha the alpha
-   */
-  public Multinomial(int size, double alpha) {
-    this(size, alpha, new Random());
-  }
+   /**
+    * Instantiates a new Multinomial.
+    *
+    * @param size  the size
+    * @param alpha the alpha
+    */
+   public Multinomial(int size, double alpha) {
+      this(size, alpha, new Random());
+   }
 
-  /**
-   * Sum double.
-   *
-   * @return the double
-   */
-  public double sum(){
-    return sum;
-  }
-
-  @Override
-  public double unnormalizedProbability(int index) {
-    if (index < 0 || index >= values.length) {
-      return 0.0;
-    }
-    return (values[index] + alpha);
-  }
-
-  @Override
-  public Multinomial increment(int variable, int amount) {
-    this.values[variable] += amount;
-    sum += amount;
-    return this;
-  }
-
-  @Override
-  public double probability(int index) {
-    if (index < 0 || index >= values.length) {
-      return 0.0;
-    }
-    return (values[index] + alpha) / (sum + alphaTimesV);
-  }
-
-  @Override
-  public int sample() {
-    double rnd = random.nextDouble() * sum;
-    double sum = 0;
-    for (int i = 0; i < values.length; i++) {
-      double p = values[i];
-      if (rnd < (sum + p)) {
-        return i;
+   @Override
+   public double getMode() {
+      int max = values[0];
+      int maxi = 0;
+      for (int i = 1; i < values.length; i++) {
+         if (values[i] > max) {
+            max = values[i];
+            maxi = i;
+         }
       }
-      sum += p;
-    }
-    return values.length - 1;
-  }
+      return maxi;
+   }
 
-  @Override
-  public String toString() {
-    return Arrays.toString(values);
-  }
+   @Override
+   public double getMean() {
+      return sum / values.length;
+   }
 
-  @Override
-  public double cumulativeProbability(int x) {
-    return new EnumeratedIntegerDistribution(
-      IntStream.range(0, values.length).toArray(),
-      IntStream.range(0, values.length).mapToDouble(this::probability).toArray()
-    ).cumulativeProbability(x);
-  }
+   @Override
+   public double getVariance() {
+      double mean = getMean();
+      double var = 0;
+      for (int value : values) {
+         var += (value - mean) * (value - mean);
+      }
+      return var;
+   }
 
-  @Override
-  public double cumulativeProbability(int lowerBound, int higherBound) {
-    return new EnumeratedIntegerDistribution(
-      IntStream.range(0, values.length).toArray(),
-      IntStream.range(0, values.length).mapToDouble(this::probability).toArray()
-    ).cumulativeProbability(lowerBound, higherBound);
-  }
+   /**
+    * Sum double.
+    *
+    * @return the double
+    */
+   public double sum() {
+      return sum;
+   }
+
+   @Override
+   public double unnormalizedProbability(int index) {
+      if (index < 0 || index >= values.length) {
+         return 0.0;
+      }
+      return (values[index] + alpha);
+   }
+
+   @Override
+   public Multinomial increment(int variable, int amount) {
+      this.values[variable] += amount;
+      sum += amount;
+      return this;
+   }
+
+   @Override
+   public double probability(int index) {
+      if (index < 0 || index >= values.length) {
+         return 0.0;
+      }
+      return (values[index] + alpha) / (sum + alphaTimesV);
+   }
+
+   @Override
+   public int sample() {
+      double rnd = random.nextDouble() * sum;
+      double sum = 0;
+      for (int i = 0; i < values.length; i++) {
+         double p = values[i];
+         if (rnd < (sum + p)) {
+            return i;
+         }
+         sum += p;
+      }
+      return values.length - 1;
+   }
+
+   @Override
+   public String toString() {
+      return Arrays.toString(values);
+   }
+
+   @Override
+   public double cumulativeProbability(int x) {
+      return new EnumeratedIntegerDistribution(
+                                                 IntStream.range(0, values.length).toArray(),
+                                                 IntStream.range(0, values.length)
+                                                          .mapToDouble(this::probability)
+                                                          .toArray()
+      ).cumulativeProbability(x);
+   }
+
+   @Override
+   public double cumulativeProbability(int lowerBound, int higherBound) {
+      return new EnumeratedIntegerDistribution(
+                                                 IntStream.range(0, values.length).toArray(),
+                                                 IntStream.range(0, values.length)
+                                                          .mapToDouble(this::probability)
+                                                          .toArray()
+      ).cumulativeProbability(lowerBound, higherBound);
+   }
 
 }//END OF Multinomial

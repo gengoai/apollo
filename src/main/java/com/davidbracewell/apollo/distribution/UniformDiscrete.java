@@ -61,6 +61,21 @@ public class UniformDiscrete implements DiscreteDistribution<UniformDiscrete>, S
    }
 
    @Override
+   public double getMode() {
+      return Double.NaN;
+   }
+
+   @Override
+   public double getMean() {
+      return k / 2.0;
+   }
+
+   @Override
+   public double getVariance() {
+      return ((k + 1) * (k + 1) - 1.0) / 12;
+   }
+
+   @Override
    public double probability(int value) {
       if (value < 0 || value >= k) {
          return 0.0;

@@ -60,20 +60,18 @@ public final class Binomial implements DiscreteDistribution<Binomial>, Copyable<
       return getDistribution().probability(value);
    }
 
-   /**
-    * Gets mean.
-    *
-    * @return the mean
-    */
+
+   @Override
+   public double getMode() {
+      return Math.floor((trials + 1) * (nSuccess / trials));
+   }
+
+   @Override
    public double getMean() {
       return nSuccess * trials;
    }
 
-   /**
-    * Gets variance.
-    *
-    * @return the variance
-    */
+   @Override
    public double getVariance() {
       return nSuccess * (1.0 - probabilityOfSuccess());
    }

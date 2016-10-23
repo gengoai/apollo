@@ -33,6 +33,21 @@ public class NormalDistribution implements RealDistribution<NormalDistribution> 
    }
 
    @Override
+   public double getMode() {
+      return statistics.getMax();
+   }
+
+   @Override
+   public double getMean() {
+      return statistics.getMean();
+   }
+
+   @Override
+   public double getVariance() {
+      return statistics.getVariance();
+   }
+
+   @Override
    public double probability(double value) {
       return get().probability(value);
    }

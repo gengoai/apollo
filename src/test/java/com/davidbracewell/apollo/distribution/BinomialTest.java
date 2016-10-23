@@ -39,6 +39,17 @@ public class BinomialTest {
       binomial = new Binomial(5, 10);
    }
 
+   @Test
+   public void increment() throws Exception {
+      Binomial b2 = new Binomial();
+      b2.increment(0,1);
+      b2.increment(6);
+      b2.increment(0,6);
+      b2.decrement(0,1);
+      b2.decrement(1);
+      b2.decrement(0,1);
+      assertEquals(b2.probability(6), binomial.probability(6), 0);
+   }
 
    @Test
    public void probability() throws Exception {

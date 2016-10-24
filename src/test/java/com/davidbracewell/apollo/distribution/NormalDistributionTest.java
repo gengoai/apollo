@@ -39,6 +39,7 @@ public class NormalDistributionTest {
 
    @Test
    public void mode() throws Exception {
-      System.out.println(normal.getMode());
+      System.out.println(normal.getMean());
+      System.out.println(normal.getVariance());
    }
 }

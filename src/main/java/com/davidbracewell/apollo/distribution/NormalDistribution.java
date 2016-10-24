@@ -16,7 +16,7 @@ public class NormalDistribution implements RealDistribution<NormalDistribution> 
     * Instantiates a new Normal distribution with mean and standard deviation 0.
     */
    public NormalDistribution() {
-
+      this(0, 1e-25);
    }
 
    /**
@@ -26,8 +26,14 @@ public class NormalDistribution implements RealDistribution<NormalDistribution> 
     * @param standardDeviation the standard deviation
     */
    public NormalDistribution(double mean, double standardDeviation) {
-      this.statistics = null;
       this.wrapped = new org.apache.commons.math3.distribution.NormalDistribution(mean, standardDeviation);
+      if (mean == 0 && standardDeviation <= 1e-15) {
+         this.statistics.addValue(0);
+      } else {
+         for (double v : this.wrapped.sample(100)) {
+            this.statistics.addValue(v);
+         }
+      }
    }
 
    @Override

@@ -56,8 +56,8 @@ public final class Binomial implements DiscreteDistribution<Binomial>, Copyable<
 
 
    @Override
-   public double probability(double value) {
-      return getDistribution().probability((int) value);
+   public double probability(double x) {
+      return getDistribution().probability((int) x);
    }
 
 
@@ -134,12 +134,12 @@ public final class Binomial implements DiscreteDistribution<Binomial>, Copyable<
    }
 
    @Override
-   public Binomial increment(int variable, int amount) {
-      if (amount != 0) {
+   public Binomial increment(int variable, int numberOfObservations) {
+      if (numberOfObservations != 0) {
          if (variable > 0) {
-            nSuccess += amount;
+            nSuccess += numberOfObservations;
          }
-         trials += amount;
+         trials += numberOfObservations;
          if (trials < 0) {
             trials = 0;
             nSuccess = 0;
@@ -153,7 +153,10 @@ public final class Binomial implements DiscreteDistribution<Binomial>, Copyable<
       if (wrapped == null) {
          synchronized (this) {
             if (wrapped == null) {
-               wrapped = new BinomialDistribution(randomGenerator, trials, probabilityOfSuccess());
+               BinomialDistribution binomial = new BinomialDistribution(randomGenerator, trials,
+                                                                        probabilityOfSuccess());
+               wrapped = binomial;
+               return binomial;
             }
          }
       }

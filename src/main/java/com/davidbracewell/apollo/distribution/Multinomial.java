@@ -31,7 +31,7 @@ import java.util.Random;
 import java.util.stream.IntStream;
 
 /**
- * The type Multinomial.
+ * A generalization of a {@link Binomial} distribution to <code>K</code> different choices.
  *
  * @author David B. Bracewell
  */
@@ -42,41 +42,42 @@ public class Multinomial implements DiscreteDistribution<Multinomial>, Serializa
    private final double alphaTimesV;
    private final Random random;
    private int sum = 0;
+   private volatile EnumeratedIntegerDistribution wrapped;
 
    /**
     * Instantiates a new Multinomial.
     *
-    * @param size   the size
-    * @param alpha  the alpha
-    * @param random the random
+    * @param k      the number of possible values the random variable can take
+    * @param alpha  the smoothing parameter
+    * @param random the random number generator to use for sampling
     */
-   public Multinomial(int size, double alpha, @NonNull Random random) {
-      Preconditions.checkArgument(size > 0, "Size must be > 0");
+   public Multinomial(int k, double alpha, @NonNull Random random) {
+      Preconditions.checkArgument(k > 0, "Size must be > 0");
       Preconditions.checkArgument(Double.isFinite(alpha), "Alpha must be finite");
       Preconditions.checkArgument(alpha > 0, "Alpha must be > 0");
-      this.values = new int[size];
+      this.values = new int[k];
       this.alpha = alpha;
-      this.alphaTimesV = alpha * size;
+      this.alphaTimesV = alpha * k;
       this.random = random;
    }
 
    /**
     * Instantiates a new Multinomial.
     *
-    * @param size the size
+    * @param k the number of possible values the random variable can take
     */
-   public Multinomial(int size) {
-      this(size, 0, new Random());
+   public Multinomial(int k) {
+      this(k, 0, new Random());
    }
 
    /**
     * Instantiates a new Multinomial.
     *
-    * @param size  the size
-    * @param alpha the alpha
+    * @param k     the number of possible values the random variable can take
+    * @param alpha the smoothing parameter
     */
-   public Multinomial(int size, double alpha) {
-      this(size, alpha, new Random());
+   public Multinomial(int k, double alpha) {
+      this(k, alpha, new Random());
    }
 
    @Override
@@ -94,55 +95,42 @@ public class Multinomial implements DiscreteDistribution<Multinomial>, Serializa
 
    @Override
    public double getMean() {
-      return sum / values.length;
+      return getDistribution().getNumericalMean();
    }
 
    @Override
    public double getVariance() {
-      double mean = getMean();
-      double var = 0;
-      for (int value : values) {
-         var += (value - mean) * (value - mean);
-      }
-      return var;
+      return getDistribution().getNumericalVariance();
    }
 
    /**
-    * Sum double.
+    * Gets the total number of observations
     *
-    * @return the double
+    * @return the total number of observations
     */
-   public double sum() {
+   public double getTotalObservations() {
       return sum;
    }
 
    @Override
-   public Multinomial increment(int variable, int amount) {
-      this.values[variable] += amount;
-      sum += amount;
+   public Multinomial increment(int variable, int numberOfObservations) {
+      this.values[variable] += numberOfObservations;
+      this.sum += numberOfObservations;
+      this.wrapped = null;
       return this;
    }
 
    @Override
-   public double probability(double index) {
-      if (index < 0 || index >= values.length) {
+   public double probability(double x) {
+      if (x < 0 || x >= values.length) {
          return 0.0;
       }
-      return (values[(int) index] + alpha) / (sum + alphaTimesV);
+      return (values[(int) x] + alpha) / (sum + alphaTimesV);
    }
 
    @Override
    public int sample() {
-      double rnd = random.nextDouble() * sum;
-      double sum = 0;
-      for (int i = 0; i < values.length; i++) {
-         double p = values[i];
-         if (rnd < (sum + p)) {
-            return i;
-         }
-         sum += p;
-      }
-      return values.length - 1;
+      return getDistribution().sample();
    }
 
    @Override
@@ -150,34 +138,36 @@ public class Multinomial implements DiscreteDistribution<Multinomial>, Serializa
       return Arrays.toString(values);
    }
 
+   private EnumeratedIntegerDistribution getDistribution() {
+      if (wrapped == null) {
+         synchronized (this) {
+            if (wrapped == null) {
+               EnumeratedIntegerDistribution eid =
+                  new EnumeratedIntegerDistribution(IntStream.range(0, values.length).toArray(),
+                                                    IntStream.range(0, values.length).mapToDouble(this::probability)
+                                                             .toArray()
+                  );
+               this.wrapped = eid;
+               return eid;
+            }
+         }
+      }
+      return wrapped;
+   }
+
    @Override
    public double cumulativeProbability(double x) {
-      return new EnumeratedIntegerDistribution(
-                                                 IntStream.range(0, values.length).toArray(),
-                                                 IntStream.range(0, values.length)
-                                                          .mapToDouble(this::probability)
-                                                          .toArray()
-      ).cumulativeProbability((int) x);
+      return getDistribution().cumulativeProbability((int) x);
    }
 
    @Override
    public double cumulativeProbability(double lowerBound, double higherBound) {
-      return new EnumeratedIntegerDistribution(
-                                                 IntStream.range(0, values.length).toArray(),
-                                                 IntStream.range(0, values.length)
-                                                          .mapToDouble(this::probability)
-                                                          .toArray()
-      ).cumulativeProbability((int) lowerBound, (int) higherBound);
+      return getDistribution().cumulativeProbability((int) lowerBound, (int) higherBound);
    }
 
 
    @Override
    public double inverseCumulativeProbability(double p) {
-      return new EnumeratedIntegerDistribution(
-                                                 IntStream.range(0, values.length).toArray(),
-                                                 IntStream.range(0, values.length)
-                                                          .mapToDouble(this::probability)
-                                                          .toArray()
-      ).inverseCumulativeProbability((int) p);
+      return getDistribution().inverseCumulativeProbability((int) p);
    }
 }//END OF Multinomial

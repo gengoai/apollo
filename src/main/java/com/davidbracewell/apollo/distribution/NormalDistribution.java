@@ -11,13 +11,12 @@ public class NormalDistribution implements RealDistribution<NormalDistribution> 
    private static final long serialVersionUID = 1L;
    private DescriptiveStatistics statistics = new DescriptiveStatistics();
    private org.apache.commons.math3.distribution.NormalDistribution wrapped = null;
-   private boolean dirty = true;
 
    /**
-    * Instantiates a new Normal distribution.
+    * Instantiates a new Normal distribution with mean and standard deviation 0.
     */
    public NormalDistribution() {
-      this(0, 0);
+
    }
 
    /**
@@ -29,12 +28,11 @@ public class NormalDistribution implements RealDistribution<NormalDistribution> 
    public NormalDistribution(double mean, double standardDeviation) {
       this.statistics = null;
       this.wrapped = new org.apache.commons.math3.distribution.NormalDistribution(mean, standardDeviation);
-      this.dirty = false;
    }
 
    @Override
    public double getMode() {
-      return statistics.getMax();
+      return statistics.getMean();
    }
 
    @Override
@@ -48,48 +46,57 @@ public class NormalDistribution implements RealDistribution<NormalDistribution> 
    }
 
    @Override
-   public double probability(double value) {
-      return get().probability(value);
+   public double probability(double x) {
+      return getDistribution().probability(x);
    }
 
    @Override
    public double cumulativeProbability(double value) {
-      return get().cumulativeProbability(value);
+      return getDistribution().cumulativeProbability(value);
    }
 
    @Override
    public double cumulativeProbability(double lowerBound, double higherBound) {
-      return get().probability(lowerBound, higherBound);
+      return getDistribution().probability(lowerBound, higherBound);
    }
 
    @Override
    public double inverseCumulativeProbability(double p) {
-      return get().inverseCumulativeProbability(p);
+      return getDistribution().inverseCumulativeProbability(p);
    }
 
    @Override
    public double sample() {
-      return get().sample();
+      return getDistribution().sample();
    }
 
-   private org.apache.commons.math3.distribution.NormalDistribution get() {
-      if (wrapped == null || dirty) {
-         dirty = false;
-         wrapped = new org.apache.commons.math3.distribution.NormalDistribution(statistics.getMean(),
-                                                                                statistics.getStandardDeviation());
+   private org.apache.commons.math3.distribution.NormalDistribution getDistribution() {
+      if (wrapped == null) {
+         synchronized (this) {
+            if (wrapped == null) {
+               double mean = statistics.getN() > 0 ? statistics.getMean() : 0;
+               double std = statistics.getN() > 0 ? statistics.getStandardDeviation() : 0;
+               org.apache.commons.math3.distribution.NormalDistribution n =
+                  new org.apache.commons.math3.distribution.NormalDistribution(mean, std);
+               wrapped = n;
+               return n;
+            }
+         }
       }
       return wrapped;
    }
 
    @Override
-   public NormalDistribution increment(double value) {
+   public NormalDistribution addValue(double value) {
+      statistics.removeMostRecentValue();
       if (statistics == null) {
          throw new UnsupportedOperationException("Distribution initialized with a mean and standard deviation");
       }
-      dirty = false;
+      this.wrapped = null;
       statistics.addValue(value);
       return this;
    }
 
 
 }// END OF NormalDistribution
+

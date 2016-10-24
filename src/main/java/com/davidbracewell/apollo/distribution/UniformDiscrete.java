@@ -117,8 +117,8 @@ public class UniformDiscrete implements DiscreteDistribution<UniformDiscrete>, S
    }
 
    @Override
-   public double probability(double value) {
-      if (value < min || value > max) {
+   public double probability(double x) {
+      if (x < min || x > max) {
          return 0.0;
       }
       return 1.0 / range();
@@ -130,7 +130,7 @@ public class UniformDiscrete implements DiscreteDistribution<UniformDiscrete>, S
    }
 
    @Override
-   public UniformDiscrete increment(int variable, int amount) {
+   public UniformDiscrete increment(int variable, int numberOfObservations) {
       return this;
    }
 

@@ -24,74 +24,74 @@ package com.davidbracewell.apollo.distribution;
 import com.google.common.base.Preconditions;
 
 /**
- * The interface Discrete distribution.
+ * A distribution backed whose density is a probability mass function of discrete a random variable <code>X</code>.
  *
- * @param <T> the type parameter
+ * @param <T> Convenience parameter to return instance type
  * @author David B. Bracewell
  */
 public interface DiscreteDistribution<T extends DiscreteDistribution> extends Density {
 
    /**
-    * Sample int.
+    * Draws one random sample from the distribution.
     *
-    * @return the int
+    * @return the randomly drawn discrete random variable
     */
    int sample();
 
    /**
-    * Sample int [ ].
+    * Draws <code>sampleSize</code> number random samples from the distribution.
     *
-    * @param size the size
-    * @return the int [ ]
+    * @param sampleSize the number of samples to take.
+    * @return An array of <code>sampleSize</code> randomly drawn discrete random variables
     */
-   default int[] sample(int size) {
-      Preconditions.checkArgument(size > 0, "Size must be > 0");
-      int[] samples = new int[size];
-      for (int i = 0; i < size; i++) {
+   default int[] sample(int sampleSize) {
+      Preconditions.checkArgument(sampleSize > 0, "Size must be > 0");
+      int[] samples = new int[sampleSize];
+      for (int i = 0; i < sampleSize; i++) {
          samples[i] = sample();
       }
       return samples;
    }
 
    /**
-    * Increment t.
+    * Increments number of times the given variable has been observed by the given amount.
     *
-    * @param variable the k
-    * @param amount   the value
-    * @return the t
+    * @param variable             the variable to increment
+    * @param numberOfObservations the number of times <code>variable</code> was observed.
+    * @return this discrete distribution
     */
-   T increment(int variable, int amount);
+   T increment(int variable, int numberOfObservations);
 
    /**
-    * Increment t.
+    * Increments number of times the given variable has been observed by one.
     *
-    * @param variable the k
-    * @return the t
+    * @param variable the variable to increment
+    * @return this discrete distribution
     */
    default T increment(int variable) {
       return increment(variable, 1);
    }
 
    /**
-    * Decrement t.
+    * Decrements number of times the given variable has been observed by the given amount.
     *
-    * @param variable the k
-    * @param amount   the value
-    * @return the t
+    * @param variable             the variable to decrement
+    * @param numberOfObservations the number of observations of <code>variable</code> to remove
+    * @return this discrete distribution
     */
-   default T decrement(int variable, int amount) {
-      return increment(variable, -amount);
+   default T decrement(int variable, int numberOfObservations) {
+      return increment(variable, -numberOfObservations);
    }
 
    /**
-    * Decrement t.
+    * Decrements number of times the given variable has been observed by one.
     *
-    * @param variable the k
-    * @return the t
+    * @param variable the variable to decrement
+    * @return this discrete distribution
     */
    default T decrement(int variable) {
       return increment(variable, -1);
    }
 
 
-}//END OF Distribution
+}//END OF DiscreteDistribution

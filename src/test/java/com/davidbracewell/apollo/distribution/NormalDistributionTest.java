@@ -19,16 +19,26 @@
  * under the License.
  */
 
-package com.davidbracewell.apollo.ml.classification;
+package com.davidbracewell.apollo.distribution;
+
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  * @author David B. Bracewell
  */
-public class BaggingTest extends ClassificationTest {
+public class NormalDistributionTest {
 
-   public BaggingTest() {
-      super(new BaggingLearner(LibLinearLearner::new, 10, 2), 1.0, 0.5);
+   NormalDistribution normal;
+
+   @Before
+   public void setUp() throws Exception {
+      normal = new NormalDistribution();
    }
 
 
-}//END OF LibLinearTest
+   @Test
+   public void mode() throws Exception {
+      System.out.println(normal.getMode());
+   }
+}

@@ -1,6 +1,10 @@
 package com.davidbracewell.apollo.ml.embedding;
 
-import com.davidbracewell.apollo.linalg.*;
+import com.davidbracewell.apollo.linalg.DenseVector;
+import com.davidbracewell.apollo.linalg.LabeledVector;
+import com.davidbracewell.apollo.linalg.store.CosineSignature;
+import com.davidbracewell.apollo.linalg.store.InMemoryLSH;
+import com.davidbracewell.apollo.linalg.store.VectorStore;
 import com.davidbracewell.apollo.ml.Encoder;
 import com.davidbracewell.apollo.ml.EncoderPair;
 import com.davidbracewell.apollo.ml.IndexEncoder;
@@ -67,9 +71,9 @@ public class SparkWord2Vec extends EmbeddingLearner {
 
     Encoder encoder = new IndexEncoder();
     VectorStore<String> vectorStore = InMemoryLSH.builder()
-      .dimension(dimension)
-      .signatureSupplier(CosineSignature::new)
-      .createVectorStore();
+                                                 .dimension(dimension)
+                                                 .signatureSupplier(CosineSignature::new)
+                                                 .createVectorStore();
     for (Map.Entry<String, float[]> vector : JavaConversions.mapAsJavaMap(model.getVectors()).entrySet()) {
       encoder.encode(vector.getKey());
       vectorStore.add(new LabeledVector(vector.getKey(), new DenseVector(Convert.convert(vector.getValue(), double[].class))));

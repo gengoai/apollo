@@ -1,7 +1,11 @@
 package com.davidbracewell.apollo.ml.embedding;
 
 import com.davidbracewell.Math2;
-import com.davidbracewell.apollo.linalg.*;
+import com.davidbracewell.apollo.linalg.DenseVector;
+import com.davidbracewell.apollo.linalg.LabeledVector;
+import com.davidbracewell.apollo.linalg.store.CosineSignature;
+import com.davidbracewell.apollo.linalg.store.InMemoryLSH;
+import com.davidbracewell.apollo.linalg.store.VectorStore;
 import com.davidbracewell.apollo.ml.Encoder;
 import com.davidbracewell.apollo.ml.EncoderPair;
 import com.davidbracewell.apollo.ml.Instance;

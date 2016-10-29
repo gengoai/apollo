@@ -3,6 +3,7 @@ package com.davidbracewell.apollo.ml.embedding;
 import com.davidbracewell.apollo.affinity.Similarity;
 import com.davidbracewell.apollo.linalg.*;
 import com.davidbracewell.apollo.linalg.Vector;
+import com.davidbracewell.apollo.linalg.store.VectorStore;
 import com.davidbracewell.apollo.ml.EncoderPair;
 import com.davidbracewell.apollo.ml.Model;
 import com.davidbracewell.tuple.Tuple;

@@ -8,7 +8,7 @@ import com.google.common.base.Preconditions;
  * @param <T> the type parameter
  * @author David B. Bracewell
  */
-public interface RealDistribution<T extends RealDistribution> extends Density {
+public interface UnivariateRealDistribution<T extends UnivariateRealDistribution> extends UnivariateDensity {
 
    /**
     * Draws one random values from the distribution.

@@ -7,7 +7,7 @@ import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
  *
  * @author David B. Bracewell
  */
-public class NormalDistribution implements RealDistribution<NormalDistribution> {
+public class NormalDistribution implements UnivariateRealDistribution<NormalDistribution> {
    private static final long serialVersionUID = 1L;
    private DescriptiveStatistics statistics = new DescriptiveStatistics();
    private org.apache.commons.math3.distribution.NormalDistribution wrapped = null;

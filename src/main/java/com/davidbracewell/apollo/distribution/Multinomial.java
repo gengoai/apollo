@@ -35,7 +35,7 @@ import java.util.stream.IntStream;
  *
  * @author David B. Bracewell
  */
-public class Multinomial implements DiscreteDistribution<Multinomial>, Serializable {
+public class Multinomial implements UnivariateDiscreteDistribution<Multinomial>, Serializable {
    private static final long serialVersionUID = 1L;
    private final int[] values;
    private final double alpha;

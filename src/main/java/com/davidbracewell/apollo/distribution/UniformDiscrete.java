@@ -29,11 +29,11 @@ import org.apache.commons.math3.random.Well19937c;
 import java.io.Serializable;
 
 /**
- * The type Uniform discrete.
+ * <p>A Uniform discrete distribution taking values in the range of <code>min</code> to <code>max</code>.</p>
  *
  * @author David B. Bracewell
  */
-public class UniformDiscrete implements DiscreteDistribution<UniformDiscrete>, Serializable {
+public class UniformDiscrete implements UnivariateDiscreteDistribution<UniformDiscrete>, Serializable {
    private static final long serialVersionUID = 1L;
    private int max;
    private int min;
@@ -43,7 +43,7 @@ public class UniformDiscrete implements DiscreteDistribution<UniformDiscrete>, S
    /**
     * Instantiates a new Uniform discrete.
     *
-    * @param k the k
+    * @param k the number of items ranging from <code>0</code> to <code>k</code>
     */
    public UniformDiscrete(int k) {
       this(0, k, new Well19937c());
@@ -52,8 +52,8 @@ public class UniformDiscrete implements DiscreteDistribution<UniformDiscrete>, S
    /**
     * Instantiates a new Uniform discrete.
     *
-    * @param min the min
-    * @param max the max
+    * @param min the minimum range of value
+    * @param max the maximum range of value
     */
    public UniformDiscrete(int min, int max) {
       this(min, max, new Well19937c());
@@ -62,8 +62,8 @@ public class UniformDiscrete implements DiscreteDistribution<UniformDiscrete>, S
    /**
     * Instantiates a new Uniform discrete.
     *
-    * @param k      the k
-    * @param random the random
+    * @param k      the number of items ranging from <code>0</code> to <code>k</code>
+    * @param random the random number generator for sampling
     */
    public UniformDiscrete(int k, @NonNull RandomGenerator random) {
       this(0, k, random);
@@ -72,9 +72,9 @@ public class UniformDiscrete implements DiscreteDistribution<UniformDiscrete>, S
    /**
     * Instantiates a new Uniform discrete.
     *
-    * @param min    the min
-    * @param max    the max
-    * @param random the random
+    * @param min    the minimum range of value
+    * @param max    the maximum range of value
+    * @param random the random number generator for sampling
     */
    public UniformDiscrete(int min, int max, @NonNull RandomGenerator random) {
       Preconditions.checkArgument(min <= max, "Max must be >= min");
@@ -84,7 +84,7 @@ public class UniformDiscrete implements DiscreteDistribution<UniformDiscrete>, S
    }
 
    /**
-    * Gets max.
+    * Gets the maximum range of the distribution
     *
     * @return the max
     */
@@ -93,7 +93,7 @@ public class UniformDiscrete implements DiscreteDistribution<UniformDiscrete>, S
    }
 
    /**
-    * Gets min.
+    * Gets the minimum range of the distribution
     *
     * @return the min
     */

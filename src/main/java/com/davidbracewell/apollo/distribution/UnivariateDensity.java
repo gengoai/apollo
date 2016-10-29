@@ -9,7 +9,7 @@ import java.io.Serializable;
  *
  * @author David B. Bracewell
  */
-public interface Density extends Serializable {
+public interface UnivariateDensity extends Serializable {
 
    /**
     * Calculates the probability, i.e. <code>pmf(x)</code>, of the given value

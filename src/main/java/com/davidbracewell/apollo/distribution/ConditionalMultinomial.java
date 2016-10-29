@@ -2,7 +2,6 @@ package com.davidbracewell.apollo.distribution;
 
 import com.davidbracewell.Copyable;
 
-import java.io.Serializable;
 import java.util.Arrays;
 
 /**
@@ -12,7 +11,7 @@ import java.util.Arrays;
  *
  * @author David B. Bracewell
  */
-public class ConditionalMultinomial implements Serializable, Copyable<ConditionalMultinomial> {
+public class ConditionalMultinomial implements BivariateDensity, Copyable<ConditionalMultinomial> {
    private static final long serialVersionUID = 1L;
    private final double alpha;
    private final int N;
@@ -143,6 +142,7 @@ public class ConditionalMultinomial implements Serializable, Copyable<Conditiona
     * @param m the discrete variable of interest
     * @return the probability of <code>P(E=m|X=n)</code>
     */
+   @Override
    public double probability(int n, int m) {
       return (counts[n][m] + alpha) / (sums[n] + M * alpha);
    }
@@ -159,39 +159,6 @@ public class ConditionalMultinomial implements Serializable, Copyable<Conditiona
          p[m] = probability(n, m);
       }
       return p;
-   }
-
-   /**
-    * Gets the log probability of <code>P(E=m|X=n)</code>
-    *
-    * @param n the conditioned by variable
-    * @param m the discrete variable of interest
-    * @return the log probability of <code>P(E=m|X=n)</code>
-    */
-   public double logProbability(int n, int m) {
-      return Math.log(probability(n, m));
-   }
-
-   /**
-    * Gets the unnormalized probability of <code>P(E=m|X=n)</code>
-    *
-    * @param n the conditioned by variable
-    * @param m the discrete variable of interest
-    * @return the unnormalized probability of <code>P(E=m|X=n)</code>
-    */
-   public double unnormalizedProbability(int n, int m) {
-      return counts[n][m] + alpha;
-   }
-
-   /**
-    * Gets the unnormalized log probability of <code>P(E=m|X=n)</code>
-    *
-    * @param n the conditioned by variable
-    * @param m the discrete variable of interest
-    * @return the unnormalized log probability of <code>P(E=m|X=n)</code>
-    */
-   public double unnormalizedLogProbability(int n, int m) {
-      return Math.log(unnormalizedProbability(n, m));
    }
 
    @Override

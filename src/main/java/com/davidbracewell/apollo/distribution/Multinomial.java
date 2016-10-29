@@ -144,7 +144,8 @@ public class Multinomial implements UnivariateDiscreteDistribution<Multinomial>,
             if (wrapped == null) {
                EnumeratedIntegerDistribution eid =
                   new EnumeratedIntegerDistribution(IntStream.range(0, values.length).toArray(),
-                                                    IntStream.range(0, values.length).mapToDouble(this::probability)
+                                                    IntStream.range(0, values.length)
+                                                             .mapToDouble(this::probability)
                                                              .toArray()
                   );
                this.wrapped = eid;
@@ -165,9 +166,9 @@ public class Multinomial implements UnivariateDiscreteDistribution<Multinomial>,
       return getDistribution().cumulativeProbability((int) lowerBound, (int) higherBound);
    }
 
-
    @Override
    public double inverseCumulativeProbability(double p) {
       return getDistribution().inverseCumulativeProbability((int) p);
    }
+
 }//END OF Multinomial

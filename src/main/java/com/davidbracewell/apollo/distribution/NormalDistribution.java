@@ -16,7 +16,7 @@ public class NormalDistribution implements UnivariateRealDistribution<NormalDist
     * Instantiates a new Normal distribution with mean and standard deviation 0.
     */
    public NormalDistribution() {
-      this(0, 1e-25);
+      this.wrapped = new org.apache.commons.math3.distribution.NormalDistribution(0, 1e-25);
    }
 
    /**
@@ -27,12 +27,8 @@ public class NormalDistribution implements UnivariateRealDistribution<NormalDist
     */
    public NormalDistribution(double mean, double standardDeviation) {
       this.wrapped = new org.apache.commons.math3.distribution.NormalDistribution(mean, standardDeviation);
-      if (mean == 0 && standardDeviation <= 1e-15) {
-         this.statistics.addValue(0);
-      } else {
-         for (double v : this.wrapped.sample(100)) {
-            this.statistics.addValue(v);
-         }
+      for (double v : this.wrapped.sample(100)) {
+         this.statistics.addValue(v);
       }
    }
 
@@ -53,7 +49,7 @@ public class NormalDistribution implements UnivariateRealDistribution<NormalDist
 
    @Override
    public double probability(double x) {
-      return getDistribution().probability(x);
+      return getDistribution().density(x);
    }
 
    @Override
@@ -94,7 +90,6 @@ public class NormalDistribution implements UnivariateRealDistribution<NormalDist
 
    @Override
    public NormalDistribution addValue(double value) {
-      statistics.removeMostRecentValue();
       if (statistics == null) {
          throw new UnsupportedOperationException("Distribution initialized with a mean and standard deviation");
       }

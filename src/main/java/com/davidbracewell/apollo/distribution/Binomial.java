@@ -68,7 +68,7 @@ public final class Binomial implements UnivariateDiscreteDistribution<Binomial>,
 
    @Override
    public double getMean() {
-      return nSuccess * trials;
+      return nSuccess;
    }
 
    @Override

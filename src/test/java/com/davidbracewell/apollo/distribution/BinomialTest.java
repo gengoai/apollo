@@ -55,6 +55,12 @@ public class BinomialTest {
       assertEquals(5, b2.getNumberOfFailures());
       assertEquals(0.5, b2.probabilityOfSuccess(), 0.1);
       assertEquals(0.205, b2.probability(6), 0.01);
+
+
+      b2.decrement(1, 100);
+      assertEquals(0, b2.getNumberOfTrials());
+      assertEquals(0, b2.getNumberOfFailures());
+      assertEquals(0, b2.getNumberOfSuccesses());
    }
 
    @Test
@@ -75,5 +81,24 @@ public class BinomialTest {
    @Test
    public void logProbability() throws Exception {
       assertEquals(Math.log(0.205), binomial.logProbability(6), 0.01);
+   }
+
+   @Test
+   public void cumulativeProbability() throws Exception {
+      assertEquals(0.62, binomial.cumulativeProbability(0, 5), 0.01);
+      assertEquals(0.62, binomial.cumulativeProbability(5), 0.01);
+   }
+
+   @Test
+   public void inverseCumulativeProbability() throws Exception {
+      assertEquals(5, binomial.inverseCumulativeProbability(0.5), 0.01);
+   }
+
+
+   @Test
+   public void stats() throws Exception {
+      assertEquals(5, binomial.getMean(), 0);
+      assertEquals(0, binomial.getMode(), 0);
+      assertEquals(2.5, binomial.getVariance(), 0);
    }
 }

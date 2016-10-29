@@ -44,19 +44,25 @@ public class MultinomialTest {
    }
 
    @Test
-   public void mode() throws Exception {
+   public void stats() throws Exception {
+      assertEquals(10, multinomial.getTotalObservations(), 0);
       assertEquals(0, multinomial.getMode(), 0);
-   }
-
-   @Test
-   public void mean() throws Exception {
       assertEquals(0.85, multinomial.getMean(), 0.01);
-   }
-
-   @Test
-   public void variance() throws Exception {
       assertEquals(0.75, multinomial.getVariance(), 0.01);
    }
+
+
+   @Test
+   public void cumulativeProbability() throws Exception {
+      assertEquals(0.54, multinomial.cumulativeProbability(0, 5), 0.01);
+      assertEquals(1.0, multinomial.cumulativeProbability(5), 0.01);
+   }
+
+   @Test
+   public void inverseCumulativeProbability() throws Exception {
+      assertEquals(0, multinomial.inverseCumulativeProbability(0.8), 0.01);
+   }
+
 
    @Test
    public void sample() throws Exception {

@@ -96,12 +96,24 @@ public abstract class AbstractVectorTest {
 
    @Test
    public void divide() throws Exception {
+      assertEquals(5, v.divide(new DenseVector(10).mapSelf(d -> 2)).sum(), 0);
+      assertEquals(10, v.divide(SparseVector.ones(10)).sum(), 0);
+   }
 
+   @Test(expected = IllegalArgumentException.class)
+   public void divideError() throws Exception {
+      assertEquals(10, v.divide(SparseVector.ones(1)).sum(), 0);
    }
 
    @Test
    public void divideSelf() throws Exception {
+      assertEquals(5, v.divideSelf(new DenseVector(10).mapSelf(d -> 2)).sum(), 0);
+      assertEquals(5, v.divideSelf(SparseVector.ones(10)).sum(), 0);
+   }
 
+   @Test(expected = IllegalArgumentException.class)
+   public void divideSelfError() throws Exception {
+      assertEquals(10, v.divideSelf(SparseVector.ones(1)).sum(), 0);
    }
 
    @Test
@@ -264,27 +276,30 @@ public abstract class AbstractVectorTest {
 
    @Test
    public void scale() throws Exception {
-
+      v.scale(0, 100);
+      assertEquals(100, v.get(0), 0);
    }
 
    @Test
    public void set() throws Exception {
-
+      v.set(0, 100);
+      assertEquals(100, v.get(0), 0);
    }
 
    @Test
    public void size() throws Exception {
-
+      assertEquals(10, v.size(), 0);
    }
 
    @Test
    public void slice() throws Exception {
-
+      Vector slice = v.slice(0, 5);
+      assertEquals(5, slice.sum(), 0);
    }
 
    @Test
    public void statistics() throws Exception {
-
+      assertEquals(1, v.statistics().getAverage(), 0);
    }
 
    @Test
@@ -299,37 +314,45 @@ public abstract class AbstractVectorTest {
 
    @Test
    public void sum() throws Exception {
-
+      assertEquals(10, v.sum(), 0);
    }
 
    @Test
    public void toArray() throws Exception {
-
+      assertArrayEquals(new double[]{1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, v.toArray(), 0);
    }
 
    @Test
    public void zero() throws Exception {
-
+      v = v.zero();
+      assertEquals(0, v.sum(), 0);
    }
 
    @Test
    public void redim() throws Exception {
-
+      v = v.redim(20);
+      assertEquals(20, v.dimension(), 0);
+      assertEquals(10, v.sum(), 0);
    }
 
    @Test
    public void forEachSparse() throws Exception {
-
+      double[] values = new double[10];
+      v.forEachSparse(e -> values[e.index] = e.value);
+      assertArrayEquals(new double[]{1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, values, 0);
    }
 
    @Test
    public void forEachOrderedSparse() throws Exception {
-
+      double[] values = new double[10];
+      v.forEachSparse(e -> values[e.index] = e.value);
+      assertArrayEquals(new double[]{1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, values, 0);
    }
 
    @Test
    public void corr() throws Exception {
-
+      Vector other = SparseVector.zeros(10);
+      assertEquals(1, v.corr(other), 0);
    }
 
 }

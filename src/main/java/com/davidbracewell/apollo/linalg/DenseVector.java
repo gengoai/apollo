@@ -71,9 +71,8 @@ public class DenseVector implements Vector, Serializable {
     *
     * @param vector The vector to copy from
     */
-   public DenseVector(Vector vector) {
-      Preconditions.checkNotNull(vector);
-      this.data = vector.toArray();
+   public DenseVector(@NonNull Vector vector) {
+      this(vector.toArray());
    }
 
    /**

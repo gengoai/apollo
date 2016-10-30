@@ -29,204 +29,211 @@ import java.util.function.DoubleBinaryOperator;
 import java.util.function.DoubleUnaryOperator;
 
 /**
+ * The type Forwarding vector.
+ *
  * @author David B. Bracewell
  */
 public abstract class ForwardingVector implements Vector, Serializable {
 
-  private static final long serialVersionUID = 1L;
+   private static final long serialVersionUID = 1L;
 
-  @Override
-  public Vector addSelf(Vector rhs) {
-    delegate().addSelf(rhs);
-    return this;
-  }
+   @Override
+   public Vector addSelf(Vector rhs) {
+      delegate().addSelf(rhs);
+      return this;
+   }
 
-  @Override
-  public Vector compress() {
-    delegate().compress();
-    return this;
-  }
+   @Override
+   public Vector compress() {
+      delegate().compress();
+      return this;
+   }
 
-  @Override
-  public Vector copy() {
-    return delegate().copy();
-  }
+   @Override
+   public Vector copy() {
+      return delegate().copy();
+   }
 
-  @Override
-  public Vector decrement(int index) {
-    delegate().decrement(index);
-    return this;
-  }
+   @Override
+   public Vector decrement(int index) {
+      delegate().decrement(index);
+      return this;
+   }
 
-  @Override
-  public Vector decrement(int index, double amount) {
-    delegate().decrement(index, amount);
-    return this;
-  }
+   @Override
+   public Vector decrement(int index, double amount) {
+      delegate().decrement(index, amount);
+      return this;
+   }
 
-  protected abstract Vector delegate();
+   /**
+    * Delegate vector.
+    *
+    * @return the vector
+    */
+   protected abstract Vector delegate();
 
-  @Override
-  public int dimension() {
-    return delegate().dimension();
-  }
+   @Override
+   public int dimension() {
+      return delegate().dimension();
+   }
 
-  @Override
-  public Vector divideSelf(Vector rhs) {
-    delegate().divideSelf(rhs);
-    return this;
-  }
+   @Override
+   public Vector divideSelf(Vector rhs) {
+      delegate().divideSelf(rhs);
+      return this;
+   }
 
-  @Override
-  public boolean equals(Object o) {
-    return delegate().equals(o);
-  }
+   @Override
+   public boolean equals(Object o) {
+      return delegate().equals(o);
+   }
 
-  @Override
-  public boolean isSparse() {
-    return delegate().isSparse();
-  }
+   @Override
+   public boolean isSparse() {
+      return delegate().isSparse();
+   }
 
-  @Override
-  public double get(int index) {
-    return delegate().get(index);
-  }
+   @Override
+   public double get(int index) {
+      return delegate().get(index);
+   }
 
-  @Override
-  public int hashCode() {
-    return delegate().hashCode();
-  }
+   @Override
+   public int hashCode() {
+      return delegate().hashCode();
+   }
 
-  @Override
-  public Vector increment(int index) {
-    delegate().increment(index);
-    return this;
-  }
+   @Override
+   public Vector increment(int index) {
+      delegate().increment(index);
+      return this;
+   }
 
-  @Override
-  public Vector increment(int index, double amount) {
-    delegate().increment(index, amount);
-    return this;
-  }
+   @Override
+   public Vector increment(int index, double amount) {
+      delegate().increment(index, amount);
+      return this;
+   }
 
-  @Override
-  public boolean isDense() {
-    return delegate().isDense();
-  }
+   @Override
+   public boolean isDense() {
+      return delegate().isDense();
+   }
 
-  @Override
-  public Iterator<Vector.Entry> iterator() {
-    return delegate().iterator();
-  }
+   @Override
+   public Iterator<Vector.Entry> iterator() {
+      return delegate().iterator();
+   }
 
-  @Override
-  public Vector mapAddSelf(double amount) {
-    delegate().mapAddSelf(amount);
-    return this;
-  }
+   @Override
+   public Vector mapAddSelf(double amount) {
+      delegate().mapAddSelf(amount);
+      return this;
+   }
 
-  @Override
-  public Vector mapDivideSelf(double amount) {
-    delegate().mapDivideSelf(amount);
-    return this;
-  }
+   @Override
+   public Vector mapDivideSelf(double amount) {
+      delegate().mapDivideSelf(amount);
+      return this;
+   }
 
-  @Override
-  public Vector mapMultiplySelf(double amount) {
-    delegate().mapMultiplySelf(amount);
-    return this;
-  }
+   @Override
+   public Vector mapMultiplySelf(double amount) {
+      delegate().mapMultiplySelf(amount);
+      return this;
+   }
 
-  @Override
-  public Vector mapSelf(DoubleUnaryOperator function) {
-    delegate().mapSelf(function);
-    return this;
-  }
+   @Override
+   public Vector mapSelf(DoubleUnaryOperator function) {
+      delegate().mapSelf(function);
+      return this;
+   }
 
-  @Override
-  public Vector mapSelf(Vector v, DoubleBinaryOperator function) {
-    delegate().mapSelf(v, function);
-    return this;
-  }
+   @Override
+   public Vector mapSelf(Vector v, DoubleBinaryOperator function) {
+      delegate().mapSelf(v, function);
+      return this;
+   }
 
-  @Override
-  public Vector mapSubtractSelf(double amount) {
-    delegate().mapSubtractSelf(amount);
-    return this;
-  }
+   @Override
+   public Vector mapSubtractSelf(double amount) {
+      delegate().mapSubtractSelf(amount);
+      return this;
+   }
 
-  @Override
-  public Vector multiplySelf(Vector rhs) {
-    delegate().multiplySelf(rhs);
-    return this;
-  }
+   @Override
+   public Vector multiplySelf(Vector rhs) {
+      delegate().multiplySelf(rhs);
+      return this;
+   }
 
-  @Override
-  public Iterator<Vector.Entry> nonZeroIterator() {
-    return delegate().nonZeroIterator();
-  }
+   @Override
+   public Iterator<Vector.Entry> nonZeroIterator() {
+      return delegate().nonZeroIterator();
+   }
 
-  @Override
-  public Iterator<Vector.Entry> orderedNonZeroIterator() {
-    return delegate().orderedNonZeroIterator();
-  }
+   @Override
+   public Iterator<Vector.Entry> orderedNonZeroIterator() {
+      return delegate().orderedNonZeroIterator();
+   }
 
-  @Override
-  public Vector scale(int index, double amount) {
-    delegate().scale(index, amount);
-    return this;
-  }
+   @Override
+   public Vector scale(int index, double amount) {
+      delegate().scale(index, amount);
+      return this;
+   }
 
-  @Override
-  public Vector set(int index, double value) {
-    delegate().set(index, value);
-    return this;
-  }
+   @Override
+   public Vector set(int index, double value) {
+      delegate().set(index, value);
+      return this;
+   }
 
-  @Override
-  public int size() {
-    return delegate().size();
-  }
+   @Override
+   public int size() {
+      return delegate().size();
+   }
 
-  @Override
-  public Vector slice(int from, int to) {
-    return delegate().slice(from, to);
-  }
+   @Override
+   public Vector slice(int from, int to) {
+      return delegate().slice(from, to);
+   }
 
-  @Override
-  public EnhancedDoubleStatistics statistics() {
-    return delegate().statistics();
-  }
+   @Override
+   public EnhancedDoubleStatistics statistics() {
+      return delegate().statistics();
+   }
 
-  @Override
-  public Vector subtractSelf(Vector rhs) {
-    delegate().subtractSelf(rhs);
-    return this;
-  }
+   @Override
+   public Vector subtractSelf(Vector rhs) {
+      delegate().subtractSelf(rhs);
+      return this;
+   }
 
-  @Override
-  public double sum() {
-    return delegate().sum();
-  }
+   @Override
+   public double sum() {
+      return delegate().sum();
+   }
 
-  @Override
-  public double[] toArray() {
-    return delegate().toArray();
-  }
+   @Override
+   public double[] toArray() {
+      return delegate().toArray();
+   }
 
-  @Override
-  public String toString() {
-    return delegate().toString();
-  }
+   @Override
+   public String toString() {
+      return delegate().toString();
+   }
 
-  @Override
-  public Vector zero() {
-    return delegate().zero();
-  }
+   @Override
+   public Vector zero() {
+      return delegate().zero();
+   }
 
-  @Override
-  public Vector redim(int newDimension) {
-    return delegate().redim(newDimension);
-  }
+   @Override
+   public Vector redim(int newDimension) {
+      return delegate().redim(newDimension);
+   }
 
 }//END OF ForwardingVector

@@ -24,7 +24,7 @@ public class ScoredLabelVector extends LabeledVector implements Comparable<Score
     * @param delegate the delegate
     * @param score    the score
     */
-   public ScoredLabelVector(Object label, Vector delegate, double score) {
+   public ScoredLabelVector(Object label, @NonNull Vector delegate, double score) {
       super(label, delegate);
       this.score = score;
    }
@@ -35,7 +35,7 @@ public class ScoredLabelVector extends LabeledVector implements Comparable<Score
     * @param labeledVector the labeled vector
     * @param score         the score
     */
-   public ScoredLabelVector(LabeledVector labeledVector, double score) {
+   public ScoredLabelVector(@NonNull LabeledVector labeledVector, double score) {
       super(labeledVector.getLabel(), labeledVector);
       this.score = score;
    }
@@ -54,8 +54,7 @@ public class ScoredLabelVector extends LabeledVector implements Comparable<Score
    }
 
    @Override
-   public int compareTo(ScoredLabelVector o) {
-      if (o == null) return -1;
+   public int compareTo(@NonNull ScoredLabelVector o) {
       return Double.compare(score, o.score);
    }
 
@@ -63,4 +62,5 @@ public class ScoredLabelVector extends LabeledVector implements Comparable<Score
    public String toString() {
       return "(" + getLabel() + ", " + score + ')';
    }
+
 }// END OF ScoredLabelVector

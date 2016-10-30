@@ -41,13 +41,14 @@ import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 
 /**
- * The interface Vector.
+ * <p>Interface for vectors </p>
  *
  * @author David B. Bracewell
  */
 public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
+
    /**
-    * Computes the sum of this vector and rhs in an element-by-element fashion.
+    * Constructs a new vector which is the element-wise sum of this vector and <code>rhs</code>.
     *
     * @param rhs the vector to be added.
     * @return A new vector whose elements are the sum of this instance and rhs.
@@ -57,7 +58,7 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
    }
 
    /**
-    * Computes the sum of this vector and rhs in an element-by-element fashion.
+    * Performs ane element-wise addition to the values in this vector using the values of the <code>rhs</code> vector.
     *
     * @param rhs the vector to be added.
     * @return This vector.
@@ -68,16 +69,28 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
       return this;
    }
 
+   /**
+    * Gets the label associated with the vector if one.
+    *
+    * @param <T> the label type
+    * @return the label or null if none
+    */
    default <T> T getLabel() {
       return null;
    }
 
+   /**
+    * Convenience method to create a new labeled vector from this vector with the given label.
+    *
+    * @param label the label to assign to the vector
+    * @return the labeled vector
+    */
    default Vector withLabel(Object label) {
       return new LabeledVector(label, this);
    }
 
    /**
-    * To matrix matrix.
+    * Constructs a new <code>1 x dimension</code> matrix containing this vector.
     *
     * @return the matrix
     */
@@ -86,7 +99,7 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
    }
 
    /**
-    * Transpose matrix.
+    * Transpose the vector into a column of a matrix
     *
     * @return the matrix
     */
@@ -400,7 +413,7 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
    }
 
    /**
-    * Calcualtes the maximum value in this vector.
+    * Calculates the maximum value in this vector.
     *
     * @return The maximum value in this vector.
     */
@@ -616,18 +629,18 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
    Vector redim(int newDimension);
 
    /**
-    * For each sparse.
+    * Applies the given consumer to each non-zero element in this vector
     *
-    * @param consumer the consumer
+    * @param consumer the consumer to run
     */
    default void forEachSparse(@NonNull Consumer<Vector.Entry> consumer) {
       Streams.asStream(nonZeroIterator()).forEach(consumer);
    }
 
    /**
-    * For each ordered sparse.
+    * Applies the given consumer to each non-zero element in this vector with granted order.
     *
-    * @param consumer the consumer
+    * @param consumer the consumer to run
     */
    default void forEachOrderedSparse(@NonNull Consumer<Vector.Entry> consumer) {
       Streams.asStream(orderedNonZeroIterator()).forEach(consumer);
@@ -635,17 +648,17 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
 
 
    /**
-    * Corr double.
+    * Determines the Spearman correlation between this vector and the given other vector
     *
-    * @param other the other
-    * @return the double
+    * @param other the other vector to calculate the correlation lwith
+    * @return the Spearman correlation
     */
    default double corr(@NonNull Vector other) {
       return Correlation.Spearman.calculate(this, other);
    }
 
    /**
-    * The type Entry.
+    * Defines an entry in the vector using its coordinate (index) and its value
     */
    @Value
    class Entry implements Serializable {

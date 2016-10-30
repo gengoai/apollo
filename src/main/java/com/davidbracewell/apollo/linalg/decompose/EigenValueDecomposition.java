@@ -9,21 +9,24 @@ import org.jblas.ComplexDoubleMatrix;
 import java.io.Serializable;
 
 /**
+ * <a href="https://en.wikipedia.org/wiki/Eigendecomposition_of_a_matrix">Eigen decomposition</a>, which is also
+ * commonly refereed to as <code>Spectral decomposition</code>.
+ *
  * @author David B. Bracewell
  */
 public class EigenValueDecomposition implements Decomposition, Serializable {
-  private static final long serialVersionUID = 1L;
+   private static final long serialVersionUID = 1L;
 
-  @Override
-  public Matrix[] decompose(@NonNull Matrix m) {
-    DenseMatrix dense;
-    if (m instanceof DenseMatrix) {
-      dense = Cast.as(m);
-    } else {
-      dense = new DenseMatrix(m);
-    }
-    ComplexDoubleMatrix result = org.jblas.Eigen.eigenvalues(dense.asDoubleMatrix());
-    return new DenseMatrix[]{new DenseMatrix(result.toArray2())};
-  }
+   @Override
+   public Matrix[] decompose(@NonNull Matrix m) {
+      DenseMatrix dense;
+      if (m instanceof DenseMatrix) {
+         dense = Cast.as(m);
+      } else {
+         dense = new DenseMatrix(m);
+      }
+      ComplexDoubleMatrix result = org.jblas.Eigen.eigenvalues(dense.asDoubleMatrix());
+      return new DenseMatrix[]{new DenseMatrix(result.toArray2())};
+   }
 
 }// END OF EigenValueDecomposition

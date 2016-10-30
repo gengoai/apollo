@@ -6,7 +6,7 @@ import java.util.Arrays;
 import java.util.Collection;
 
 /**
- * The interface Vector composition.
+ * <p>Defines a method of combining multiple vectors into one</p>
  *
  * @author David B. Bracewell
  */
@@ -14,22 +14,22 @@ import java.util.Collection;
 public interface VectorComposition {
 
    /**
-    * Compose vector.
+    * Compose the given vectors with given dimension into a single vector.
     *
-    * @param dimension the dimension
-    * @param vectors   the vectors
-    * @return the vector
+    * @param dimension the dimension of the vectors
+    * @param vectors   the vectors to compose
+    * @return the composed vector
     */
    default Vector compose(int dimension, @NonNull Vector... vectors) {
       return compose(dimension, Arrays.asList(vectors));
    }
 
    /**
-    * Compose vector.
+    * Compose the given vectors with given dimension into a single vector.
     *
-    * @param dimension the dimension
-    * @param vectors   the vectors
-    * @return the vector
+    * @param dimension the dimension of the vectors
+    * @param vectors   the vectors to compose
+    * @return the composed vector
     */
    Vector compose(int dimension, Collection<Vector> vectors);
 

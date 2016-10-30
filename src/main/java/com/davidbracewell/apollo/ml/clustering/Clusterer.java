@@ -15,42 +15,42 @@ import lombok.NonNull;
  * @author David B. Bracewell
  */
 public abstract class Clusterer<T extends Clustering> extends Learner<Instance, T> {
-  private static final long serialVersionUID = 1L;
-  private EncoderPair encoderPair;
+   private static final long serialVersionUID = 1L;
+   private EncoderPair encoderPair;
 
 
-  @Override
-  public T train(@NonNull Dataset<Instance> dataset) {
-    return super.train(dataset);
-  }
+   @Override
+   public T train(@NonNull Dataset<Instance> dataset) {
+      return super.train(dataset);
+   }
 
-  @Override
-  protected T trainImpl(Dataset<Instance> dataset) {
-    this.encoderPair = dataset.getEncoderPair();
-    return cluster(dataset.stream().map(i -> i.toVector(dataset.getEncoderPair())));
-  }
+   @Override
+   protected T trainImpl(Dataset<Instance> dataset) {
+      this.encoderPair = dataset.getEncoderPair();
+      return cluster(dataset.stream().map(i -> i.toVector(dataset.getEncoderPair())));
+   }
 
-  /**
-   * Cluster t.
-   *
-   * @param instances the instances
-   * @return the t
-   */
-  public abstract T cluster(MStream<Vector> instances);
+   /**
+    * Cluster t.
+    *
+    * @param instances the instances
+    * @return the t
+    */
+   public abstract T cluster(MStream<Vector> instances);
 
-  @Override
-  public void reset() {
-    this.encoderPair = null;
-  }
+   @Override
+   public void reset() {
+      this.encoderPair = null;
+   }
 
 
-  /**
-   * Gets encoder pair.
-   *
-   * @return the encoder pair
-   */
-  public EncoderPair getEncoderPair() {
-    return encoderPair;
-  }
+   /**
+    * Gets encoder pair.
+    *
+    * @return the encoder pair
+    */
+   public EncoderPair getEncoderPair() {
+      return encoderPair;
+   }
 
 }// END OF Clusterer

@@ -37,81 +37,81 @@ import java.util.List;
  */
 public class Cluster implements Serializable, Iterable<Vector> {
 
-  private static final long serialVersionUID = 1L;
-  private final List<Vector> points = new ArrayList<>();
-  @Getter
-  @Setter
-  private Vector centroid;
-  @Getter
-  @Setter
-  private Cluster parent;
-  @Getter
-  @Setter
-  private Cluster left;
-  @Getter
-  @Setter
-  private Cluster right;
-  @Getter
-  @Setter
-  private double score;
-  @Getter
-  @Setter
-  private int id;
+   private static final long serialVersionUID = 1L;
+   private final List<Vector> points = new ArrayList<>();
+   @Getter
+   @Setter
+   private Vector centroid;
+   @Getter
+   @Setter
+   private Cluster parent;
+   @Getter
+   @Setter
+   private Cluster left;
+   @Getter
+   @Setter
+   private Cluster right;
+   @Getter
+   @Setter
+   private double score;
+   @Getter
+   @Setter
+   private int id;
 
-  /**
-   * Add point.
-   *
-   * @param point the point
-   */
-  public void addPoint(final Vector point) {
-    if (point != null) {
-      points.add(point);
-    }
-  }
+   /**
+    * Add point.
+    *
+    * @param point the point
+    */
+   public void addPoint(final Vector point) {
+      if (point != null) {
+         points.add(point);
+      }
+   }
 
-  /**
-   * Gets score.
-   *
-   * @param vector the vector
-   * @return the score
-   */
-  public double getScore(Vector vector) {
-    return points.contains(vector) ? 1.0 : 0.0;
-  }
+   /**
+    * Gets score.
+    *
+    * @param vector the vector
+    * @return the score
+    */
+   public double getScore(Vector vector) {
+      return points.contains(vector) ? 1.0 : 0.0;
+   }
 
-  /**
-   * Gets points.
-   *
-   * @return the points
-   */
-  public List<Vector> getPoints() {
-    return points;
-  }
+   /**
+    * Gets points.
+    *
+    * @return the points
+    */
+   public List<Vector> getPoints() {
+      return points;
+   }
 
-  @Override
-  public Iterator<Vector> iterator() {
-    return points.iterator();
-  }
+   @Override
+   public Iterator<Vector> iterator() {
+      return points.iterator();
+   }
 
-  /**
-   * Clear void.
-   */
-  public void clear() {
-    points.clear();
-  }
+   /**
+    * Clear void.
+    */
+   public void clear() {
+      points.clear();
+   }
 
-  /**
-   * Size int.
-   *
-   * @return the int
-   */
-  public int size() {
-    return points.size();
-  }
+   /**
+    * Size int.
+    *
+    * @return the int
+    */
+   public int size() {
+      return points.size();
+   }
 
-  @Override
-  public String toString() {
-    return "Cluster(id=" + id + ", size=" + points.size() + ")";
-  }
+   @Override
+   public String toString() {
+      return "Cluster(id=" + id + ", size=" + points.size() + ")";
+   }
 
 }//END OF Cluster

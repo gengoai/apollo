@@ -6,13 +6,13 @@ import java.util.Arrays;
 import java.util.Collection;
 
 /**
- * The enum Vector compositions.
+ * <p>Common vector compositions</p>
  *
  * @author David B. Bracewell
  */
 public enum VectorCompositions implements VectorComposition {
    /**
-    * The Average.
+    * Averages the elements of the vectors
     */
    Average {
       @Override
@@ -32,7 +32,7 @@ public enum VectorCompositions implements VectorComposition {
       }
    },
    /**
-    * The Sum.
+    * Sums the elements of the vectors
     */
    Sum {
       @Override
@@ -46,7 +46,7 @@ public enum VectorCompositions implements VectorComposition {
       }
    },
    /**
-    * The Point wise multiply.
+    * Performs a point-wise multiply of the elements
     */
    PointWiseMultiply {
       @Override
@@ -60,7 +60,7 @@ public enum VectorCompositions implements VectorComposition {
       }
    },
    /**
-    * The Max.
+    * Assigns the maximum element
     */
    Max {
       @Override
@@ -82,7 +82,7 @@ public enum VectorCompositions implements VectorComposition {
       }
    },
    /**
-    * The Min.
+    * Assigns the minimum element
     */
    Min {
       @Override

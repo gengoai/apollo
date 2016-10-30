@@ -19,6 +19,8 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
+ * The type Distributed k means.
+ *
  * @author David B. Bracewell
  */
 public class DistributedKMeans extends Clusterer<FlatClustering> {
@@ -27,9 +29,18 @@ public class DistributedKMeans extends Clusterer<FlatClustering> {
    private int maxIterations = 100;
    private boolean keepPoints = true;
 
+   /**
+    * Instantiates a new Distributed k means.
+    */
    public DistributedKMeans() {
    }
 
+   /**
+    * Instantiates a new Distributed k means.
+    *
+    * @param K             the k
+    * @param maxIterations the max iterations
+    */
    public DistributedKMeans(int K, int maxIterations) {
       this.K = K;
       this.maxIterations = maxIterations;
@@ -76,10 +87,20 @@ public class DistributedKMeans extends Clusterer<FlatClustering> {
    }
 
 
+   /**
+    * Is keep points boolean.
+    *
+    * @return the boolean
+    */
    public boolean isKeepPoints() {
       return keepPoints;
    }
 
+   /**
+    * Sets keep points.
+    *
+    * @param keepPoints the keep points
+    */
    public void setKeepPoints(boolean keepPoints) {
       this.keepPoints = keepPoints;
    }
@@ -89,7 +110,6 @@ public class DistributedKMeans extends Clusterer<FlatClustering> {
     *
     * @return the k
     */
-
    public int getK() {
       return K;
    }

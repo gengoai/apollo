@@ -77,12 +77,15 @@ public abstract class AbstractVectorTest {
 
    @Test
    public void compress() throws Exception {
-
+      v.compress();
    }
 
    @Test
    public void decrement() throws Exception {
-
+      v.decrement(0);
+      assertEquals(0, v.get(0), 0);
+      v.decrement(1, 100);
+      assertEquals(-99, v.get(1), 0);
    }
 
 

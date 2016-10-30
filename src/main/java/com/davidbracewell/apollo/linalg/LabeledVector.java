@@ -1,6 +1,7 @@
 package com.davidbracewell.apollo.linalg;
 
 import com.davidbracewell.conversion.Cast;
+import lombok.EqualsAndHashCode;
 import lombok.NonNull;
 
 import java.util.function.DoubleBinaryOperator;
@@ -11,6 +12,7 @@ import java.util.function.DoubleUnaryOperator;
  *
  * @author David B. Bracewell
  */
+@EqualsAndHashCode(callSuper = false)
 public class LabeledVector extends ForwardingVector {
    private static final long serialVersionUID = 1L;
    private final Vector delegate;

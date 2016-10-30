@@ -1,6 +1,7 @@
 package com.davidbracewell.apollo.linalg;
 
 import com.davidbracewell.apollo.analysis.Optimum;
+import lombok.EqualsAndHashCode;
 import lombok.NonNull;
 
 import java.util.Comparator;
@@ -10,6 +11,7 @@ import java.util.Comparator;
  *
  * @author David B. Bracewell
  */
+@EqualsAndHashCode(callSuper = true)
 public class ScoredLabelVector extends LabeledVector implements Comparable<ScoredLabelVector> {
    private static final long serialVersionUID = 1L;
    private final double score;

@@ -2,7 +2,6 @@ package com.davidbracewell.apollo.linalg.decompose;
 
 import com.davidbracewell.apollo.linalg.DenseMatrix;
 import com.davidbracewell.apollo.linalg.Matrix;
-import com.davidbracewell.conversion.Cast;
 import lombok.NonNull;
 import org.jblas.ComplexDoubleMatrix;
 
@@ -19,13 +18,7 @@ public class EigenValueDecomposition implements Decomposition, Serializable {
 
    @Override
    public Matrix[] decompose(@NonNull Matrix m) {
-      DenseMatrix dense;
-      if (m instanceof DenseMatrix) {
-         dense = Cast.as(m);
-      } else {
-         dense = new DenseMatrix(m);
-      }
-      ComplexDoubleMatrix result = org.jblas.Eigen.eigenvalues(dense.asDoubleMatrix());
+      ComplexDoubleMatrix result = org.jblas.Eigen.eigenvalues(m.toDense().asDoubleMatrix());
       return new DenseMatrix[]{new DenseMatrix(result.toArray2())};
    }
 

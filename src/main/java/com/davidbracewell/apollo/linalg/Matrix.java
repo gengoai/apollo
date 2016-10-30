@@ -39,13 +39,18 @@ import java.util.stream.IntStream;
 import static com.davidbracewell.tuple.Tuples.$;
 
 /**
- * The interface Matrix.
+ * <p>Interface for Matrices</p>
  *
  * @author David B. Bracewell
  */
 public interface Matrix extends Copyable<Matrix>, Iterable<Matrix.Entry> {
 
 
+   /**
+    * The shape of the matrix as <code>number of rows</code>, <code>number of columns</code> tuple
+    *
+    * @return the shape
+    */
    default Tuple2<Integer, Integer> shape() {
       return $(numberOfRows(), numberOfColumns());
    }
@@ -89,7 +94,7 @@ public interface Matrix extends Copyable<Matrix>, Iterable<Matrix.Entry> {
    }
 
    /**
-    * To dense dense matrix.
+    * Converts the matrix to a dense matrix.
     *
     * @return the dense matrix
     */
@@ -524,6 +529,11 @@ public interface Matrix extends Copyable<Matrix>, Iterable<Matrix.Entry> {
    }
 
 
+   /**
+    * Diag vector vector.
+    *
+    * @return the vector
+    */
    default Vector diagVector() {
       Vector diag = new DenseVector(Math.max(numberOfColumns(), numberOfRows()));
       for (int r = 0; r < numberOfRows() && r < numberOfColumns(); r++) {
@@ -532,8 +542,18 @@ public interface Matrix extends Copyable<Matrix>, Iterable<Matrix.Entry> {
       return diag;
    }
 
+   /**
+    * Diag matrix.
+    *
+    * @return the matrix
+    */
    Matrix diag();
 
+   /**
+    * Sum double.
+    *
+    * @return the double
+    */
    default double sum() {
       return Streams.asStream(this).mapToDouble(Entry::getValue).sum();
    }

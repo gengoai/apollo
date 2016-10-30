@@ -6,22 +6,19 @@ import lombok.NonNull;
 import java.util.Comparator;
 
 /**
- * The type Scored label vector.
+ * <p>Associates a score and a label with a vector</p>
  *
  * @author David B. Bracewell
  */
 public class ScoredLabelVector extends LabeledVector implements Comparable<ScoredLabelVector> {
    private static final long serialVersionUID = 1L;
-   /**
-    * The Score.
-    */
-   final double score;
+   private final double score;
 
    /**
-    * Instantiates a new Labeled vector.
+    * Instantiates a new Scored Labeled vector.
     *
     * @param label    the label
-    * @param delegate the delegate
+    * @param delegate the vector to wrap
     * @param score    the score
     */
    public ScoredLabelVector(Object label, @NonNull Vector delegate, double score) {
@@ -45,7 +42,7 @@ public class ScoredLabelVector extends LabeledVector implements Comparable<Score
    }
 
    /**
-    * Gets score.
+    * Gets the score of the vector.
     *
     * @return the score
     */

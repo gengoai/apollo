@@ -214,22 +214,11 @@ public abstract class AbstractMatrix implements Matrix, Serializable {
       return array;
    }
 
-   /**
-    * The type Column vector.
-    */
-   class ColumnVector implements Vector, Serializable {
+   private class ColumnVector implements Vector, Serializable {
       private static final long serialVersionUID = 1L;
-      /**
-       * The Column.
-       */
       final int column;
 
-      /**
-       * Instantiates a new Column vector.
-       *
-       * @param column the column
-       */
-      ColumnVector(int column) {
+      private ColumnVector(int column) {
          this.column = column;
       }
 
@@ -323,22 +312,11 @@ public abstract class AbstractMatrix implements Matrix, Serializable {
       }
    }
 
-   /**
-    * The type Row vector.
-    */
-   class RowVector implements Vector, Serializable {
+   private class RowVector implements Vector, Serializable {
       private static final long serialVersionUID = 1L;
-      /**
-       * The Row.
-       */
-      final int row;
+      private final int row;
 
-      /**
-       * Instantiates a new Row vector.
-       *
-       * @param row the row
-       */
-      RowVector(int row) {
+      private RowVector(int row) {
          this.row = row;
       }
 

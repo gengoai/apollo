@@ -29,12 +29,11 @@ import java.util.function.DoubleBinaryOperator;
 import java.util.function.DoubleUnaryOperator;
 
 /**
- * The type Forwarding vector.
+ * <p>Vector that forwards its calls to a delegate.</p>
  *
  * @author David B. Bracewell
  */
 public abstract class ForwardingVector implements Vector, Serializable {
-
    private static final long serialVersionUID = 1L;
 
    @Override

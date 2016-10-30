@@ -2,7 +2,6 @@ package com.davidbracewell.apollo.linalg.decompose;
 
 import com.davidbracewell.apollo.linalg.DenseMatrix;
 import com.davidbracewell.apollo.linalg.Matrix;
-import com.davidbracewell.conversion.Cast;
 import lombok.NonNull;
 import org.jblas.DoubleMatrix;
 import org.jblas.Singular;
@@ -37,15 +36,9 @@ public class SingularValueDecomposition implements Decomposition, Serializable {
 
    @NonNull
    public Matrix[] decompose(@NonNull Matrix m) {
-      DenseMatrix dense;
-      if (m instanceof DenseMatrix) {
-         dense = Cast.as(m);
-      } else {
-         dense = new DenseMatrix(m);
-      }
       DoubleMatrix[] result = sparse ?
-                              Singular.sparseSVD(dense.asDoubleMatrix()) :
-                              Singular.fullSVD(dense.asDoubleMatrix());
+                              Singular.sparseSVD(m.toDense().asDoubleMatrix()) :
+                              Singular.fullSVD(m.toDense().asDoubleMatrix());
       return new DenseMatrix[]{
          new DenseMatrix(result[0]),
          new DenseMatrix(DoubleMatrix.diag(result[1], m.numberOfRows(), m.numberOfColumns())),

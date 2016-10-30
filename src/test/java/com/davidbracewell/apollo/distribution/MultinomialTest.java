@@ -70,9 +70,9 @@ public class MultinomialTest {
       double zeroCount = IntStream.of(sample).filter(i -> i == 0).count();
       double oneCount = IntStream.of(sample).filter(i -> i == 1).count();
       double twoCount = IntStream.of(sample).filter(i -> i == 2).count();
-      assertEquals(5.0, zeroCount, 2);
-      assertEquals(2.0, oneCount, 2);
-      assertEquals(3.0, twoCount, 2);
+      assertEquals(5.0, zeroCount, 3);
+      assertEquals(2.0, oneCount, 3);
+      assertEquals(3.0, twoCount, 3);
    }
 
 }

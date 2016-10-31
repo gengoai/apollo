@@ -304,11 +304,21 @@ public abstract class AbstractVectorTest {
 
    @Test
    public void subtract() throws Exception {
+      assertEquals(0, v.subtract(DenseVector.ones(10)).sum(), 0);
+   }
+
+   @Test(expected = IllegalArgumentException.class)
+   public void subtractError() throws Exception {
 
    }
 
    @Test
    public void subtractSelf() throws Exception {
+      assertEquals(0, v.subtractSelf(DenseVector.ones(10)).sum(), 0);
+   }
+
+   @Test(expected = IllegalArgumentException.class)
+   public void subtractSelfError() throws Exception {
 
    }
 

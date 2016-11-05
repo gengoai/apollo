@@ -22,6 +22,7 @@
 package com.davidbracewell.apollo.linalg;
 
 import com.davidbracewell.collection.Collect;
+import com.davidbracewell.conversion.Cast;
 import com.google.common.base.Preconditions;
 import lombok.NonNull;
 
@@ -271,7 +272,7 @@ public abstract class AbstractMatrix implements Matrix, Serializable {
 
       @Override
       public Vector slice(int from, int to) {
-         Preconditions.checkArgument(from - to > 0);
+         Preconditions.checkArgument(from < to, from + " must be less than " + to);
          Preconditions.checkElementIndex(to, numberOfRows());
          Vector v = new DenseVector(to - from);
          for (int r = from; r < to; r++) {
@@ -304,6 +305,16 @@ public abstract class AbstractMatrix implements Matrix, Serializable {
             v.set(r, get(r));
          }
          return v;
+      }
+
+      @Override
+      public boolean equals(Object o) {
+         return o != null && o instanceof Vector && Arrays.equals(toArray(), Cast.<Vector>as(o).toArray());
+      }
+
+      @Override
+      public int hashCode() {
+         return Arrays.hashCode(toArray());
       }
 
       @Override
@@ -368,13 +379,23 @@ public abstract class AbstractMatrix implements Matrix, Serializable {
       }
 
       @Override
+      public boolean equals(Object o) {
+         return o != null && o instanceof Vector && Arrays.equals(toArray(), Cast.<Vector>as(o).toArray());
+      }
+
+      @Override
+      public int hashCode() {
+         return Arrays.hashCode(toArray());
+      }
+
+      @Override
       public int size() {
          return numberOfColumns();
       }
 
       @Override
       public Vector slice(int from, int to) {
-         Preconditions.checkArgument(from - to > 0);
+         Preconditions.checkArgument(from < to, from + " must be less than " + to);
          Preconditions.checkElementIndex(to, numberOfColumns());
          Vector v = new DenseVector(to - from);
          for (int r = from; r < to; r++) {
@@ -408,5 +429,27 @@ public abstract class AbstractMatrix implements Matrix, Serializable {
          }
          return v;
       }
+   }
+
+
+   @Override
+   public int hashCode() {
+      return Arrays.hashCode(toArray());
+   }
+
+   @Override
+   public boolean equals(Object o) {
+      if (o != null && o instanceof Matrix) {
+         Matrix m = Cast.as(o);
+         if (m.numberOfColumns() == numberOfColumns() && m.numberOfRows() == numberOfRows()) {
+            for (int r = 0; r < numberOfRows(); r++) {
+               if (!m.row(r).equals(row(r))) {
+                  return false;
+               }
+            }
+            return true;
+         }
+      }
+      return false;
    }
 }//END OF AbstractMatrix

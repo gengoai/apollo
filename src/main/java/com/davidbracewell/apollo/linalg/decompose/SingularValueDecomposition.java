@@ -2,6 +2,7 @@ package com.davidbracewell.apollo.linalg.decompose;
 
 import com.davidbracewell.apollo.linalg.DenseMatrix;
 import com.davidbracewell.apollo.linalg.Matrix;
+import lombok.Getter;
 import lombok.NonNull;
 import org.jblas.DoubleMatrix;
 import org.jblas.Singular;
@@ -16,6 +17,7 @@ import java.io.Serializable;
  */
 public class SingularValueDecomposition implements Decomposition, Serializable {
    private static final long serialVersionUID = 1L;
+   @Getter
    private final boolean sparse;
 
    /**

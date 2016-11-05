@@ -21,8 +21,8 @@
 
 package com.davidbracewell.apollo.linalg;
 
+import com.davidbracewell.conversion.Cast;
 import com.google.common.base.Preconditions;
-import lombok.EqualsAndHashCode;
 import lombok.NonNull;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.commons.math3.random.Well19937c;
@@ -37,7 +37,6 @@ import java.util.stream.IntStream;
  *
  * @author David B. Bracewell
  */
-@EqualsAndHashCode(callSuper = false)
 public class SparseVector implements Vector, Serializable {
    private static final long serialVersionUID = 1L;
    private final OpenIntDoubleHashMap map;
@@ -277,4 +276,13 @@ public class SparseVector implements Vector, Serializable {
    }
 
 
+   @Override
+   public boolean equals(Object o) {
+      return o != null && o instanceof Vector && Arrays.equals(toArray(), Cast.<Vector>as(o).toArray());
+   }
+
+   @Override
+   public int hashCode() {
+      return Arrays.hashCode(toArray());
+   }
 }//END OF SparseVector

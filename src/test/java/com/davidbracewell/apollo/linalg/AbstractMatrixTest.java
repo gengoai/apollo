@@ -117,27 +117,48 @@ public abstract class AbstractMatrixTest {
 
    @Test
    public void scaleSelf() throws Exception {
-
+      assertEquals(new DenseMatrix(new double[][]{
+                      new double[]{3, 3},
+                      new double[]{3, 3}
+                   }),
+                   m.scaleSelf(3));
+      assertEquals(new DenseMatrix(new double[][]{
+                      new double[]{3, 3},
+                      new double[]{3, 3}
+                   }),
+                   m.scaleSelf(SparseMatrix.ones(2, 2)));
+      assertEquals(new DenseMatrix(new double[][]{
+                      new double[]{3, 3},
+                      new double[]{3, 3}
+                   }),
+                   m.scaleSelf(DenseMatrix.ones(2, 2)));
    }
 
-   @Test
-   public void multiplyVectorRowSelf() throws Exception {
-
-   }
-
-   @Test
-   public void multiplyVectorColumnSelf() throws Exception {
-
-   }
-
-   @Test
-   public void scaleSelf1() throws Exception {
-
+   @Test(expected = IllegalArgumentException.class)
+   public void scaleSelfError() throws Exception {
+      assertEquals(new DenseMatrix(new double[][]{
+                      new double[]{1, 1},
+                      new double[]{1, 1}
+                   }),
+                   m.scaleSelf(DenseMatrix.ones(2, 4)));
    }
 
    @Test
    public void incrementSelf() throws Exception {
+      assertEquals(new DenseMatrix(new double[][]{
+                      new double[]{2, 2},
+                      new double[]{2, 2}
+                   }),
+                   m.incrementSelf(1));
+   }
 
+   @Test
+   public void increment() throws Exception {
+      assertEquals(new DenseMatrix(new double[][]{
+                      new double[]{2, 2},
+                      new double[]{2, 2}
+                   }),
+                   m.increment(1));
    }
 
    @Test
@@ -166,7 +187,20 @@ public abstract class AbstractMatrixTest {
 
    @Test
    public void multiply() throws Exception {
+      assertEquals(new DenseMatrix(new double[][]{
+                      new double[]{1, 1},
+                      new double[]{1, 1}
+                   }),
+                   m.scaleSelf(DenseMatrix.ones(2, 2)));
+   }
 
+   @Test(expected = IllegalArgumentException.class)
+   public void multiplyError() throws Exception {
+      assertEquals(new DenseMatrix(new double[][]{
+                      new double[]{1, 1},
+                      new double[]{1, 1}
+                   }),
+                   m.scaleSelf(DenseMatrix.ones(4, 2)));
    }
 
    @Test
@@ -181,4 +215,87 @@ public abstract class AbstractMatrixTest {
       assertTrue(Arrays.equals(new double[]{1, 1}, d[1]));
    }
 
+   @Test
+   public void scale() throws Exception {
+      assertEquals(new DenseMatrix(new double[][]{
+                      new double[]{3, 3},
+                      new double[]{3, 3}
+                   }),
+                   m.scale(3));
+   }
+
+   @Test
+   public void iterator() throws Exception {
+      double sum = 0;
+      for (Iterator<Matrix.Entry> itr = m.iterator(); itr.hasNext(); ) {
+         sum += itr.next().value;
+      }
+      assertEquals(4, sum, 0);
+   }
+
+
+   @Test
+   public void nonZero() throws Exception {
+      double sum = 0;
+      for (Iterator<Matrix.Entry> itr = m.nonZeroIterator(); itr.hasNext(); ) {
+         sum += itr.next().value;
+      }
+      assertEquals(4, sum, 0);
+   }
+
+   @Test
+   public void orderedSparse() throws Exception {
+      double sum = 0;
+      int lastC = 0;
+      int lastR = 0;
+      for (Iterator<Matrix.Entry> itr = m.orderedNonZeroIterator(); itr.hasNext(); ) {
+         Matrix.Entry e = itr.next();
+         sum += e.value;
+         assertEquals(lastC, e.column);
+         assertEquals(lastR, e.row);
+
+         if (e.column == 0) {
+            lastC = 1;
+         } else if (e.column == 1) {
+            lastC = 0;
+            lastR = 1;
+         }
+      }
+      assertEquals(4, sum, 0);
+   }
+
+
+   @Test
+   public void dot() throws Exception {
+      assertEquals(DenseVector.wrap(2, 2), m.dot(DenseVector.ones(2)));
+   }
+
+   @Test(expected = IllegalArgumentException.class)
+   public void dotError() throws Exception {
+      assertEquals(DenseVector.wrap(2, 2), m.dot(DenseVector.ones(4)));
+   }
+
+   @Test
+   public void valueChange() throws Exception {
+      m.increment(1, 1);
+      m.increment(0, 1, 1);
+      m.decrement(1, 1);
+      m.decrement(0, 1, 1);
+      assertEquals(new DenseMatrix(new double[][]{
+                      new double[]{1, 1},
+                      new double[]{1, 1}
+                   }),
+                   m);
+   }
+
+
+   @Test
+   public void sum() throws Exception {
+      assertEquals(4, m.sum(), 0);
+   }
+
+   @Test
+   public void diagVector() throws Exception {
+      assertEquals(DenseVector.ones(2), m.diagVector());
+   }
 }

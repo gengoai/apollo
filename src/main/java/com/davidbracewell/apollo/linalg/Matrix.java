@@ -266,7 +266,7 @@ public interface Matrix extends Copyable<Matrix>, Iterable<Matrix.Entry> {
     * @return the vector
     */
    default Vector dot(@NonNull Vector vector) {
-      Preconditions.checkArgument(vector.dimension() == numberOfColumns());
+      Preconditions.checkArgument(vector.dimension() == numberOfColumns(), "Dimension mismatch");
       SparseVector output = new SparseVector(numberOfRows());
       for (int r = 0; r < numberOfRows(); r++) {
          output.set(r, row(r).dot(vector));
@@ -373,44 +373,6 @@ public interface Matrix extends Copyable<Matrix>, Iterable<Matrix.Entry> {
     * @return the matrix
     */
    Matrix scaleSelf(Matrix other);
-
-
-   /**
-    * Scale matrix.
-    *
-    * @param other the other
-    * @return the matrix
-    */
-   default Matrix multiplyVectorRow(@NonNull Vector other) {
-      return copy().multiplyVectorRowSelf(other);
-   }
-
-
-   /**
-    * Multiply vector column matrix.
-    *
-    * @param other the other
-    * @return the matrix
-    */
-   default Matrix multiplyVectorColumn(@NonNull Vector other) {
-      return copy().multiplyVectorColumnSelf(other);
-   }
-
-   /**
-    * Multiply vector column self matrix.
-    *
-    * @param other the other
-    * @return the matrix
-    */
-   Matrix multiplyVectorColumnSelf(Vector other);
-
-   /**
-    * Scale self matrix.
-    *
-    * @param other the other
-    * @return the matrix
-    */
-   Matrix multiplyVectorRowSelf(Vector other);
 
 
    /**

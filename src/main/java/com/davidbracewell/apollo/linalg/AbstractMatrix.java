@@ -21,7 +21,6 @@
 
 package com.davidbracewell.apollo.linalg;
 
-import com.davidbracewell.collection.Collect;
 import com.davidbracewell.conversion.Cast;
 import com.google.common.base.Preconditions;
 import lombok.NonNull;
@@ -114,24 +113,6 @@ public abstract class AbstractMatrix implements Matrix, Serializable {
          other.numberOfColumns() == numberOfColumns() && other.numberOfRows() == numberOfRows(),
          "Dimension Mismatch");
       other.forEachSparse(e -> scale(e.row, e.column, e.value));
-      return this;
-   }
-
-   @Override
-   public Matrix multiplyVectorRowSelf(@NonNull Vector other) {
-      Preconditions.checkArgument(other.dimension() == numberOfColumns(), "Dimension Mismatch");
-      for (int r = 0; r < numberOfRows(); r++) {
-         for (Vector.Entry e : Collect.asIterable(other.nonZeroIterator())) {
-            increment(r, e.index, e.value);
-         }
-      }
-      return this;
-   }
-
-   @Override
-   public Matrix multiplyVectorColumnSelf(@NonNull Vector other) {
-      Preconditions.checkArgument(other.dimension() == numberOfRows(), "Dimension Mismatch");
-      forEachColumn(c -> c.multiplySelf(other));
       return this;
    }
 

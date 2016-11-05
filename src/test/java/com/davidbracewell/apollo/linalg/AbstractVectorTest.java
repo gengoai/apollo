@@ -309,7 +309,7 @@ public abstract class AbstractVectorTest {
 
    @Test(expected = IllegalArgumentException.class)
    public void subtractError() throws Exception {
-
+      assertEquals(0, v.subtract(DenseVector.ones(1)).sum(), 0);
    }
 
    @Test
@@ -319,7 +319,7 @@ public abstract class AbstractVectorTest {
 
    @Test(expected = IllegalArgumentException.class)
    public void subtractSelfError() throws Exception {
-
+      assertEquals(0, v.subtractSelf(DenseVector.ones(1)).sum(), 0);
    }
 
    @Test

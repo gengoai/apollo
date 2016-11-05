@@ -28,7 +28,7 @@ import java.io.Serializable;
  *
  * @author David B. Bracewell
  */
-public interface BivariateDensity extends Serializable {
+public interface BivariateDistribution extends Serializable {
 
    /**
     * Probability of event with <code>X=x</code> and <code>Y=y</code>
@@ -51,4 +51,4 @@ public interface BivariateDensity extends Serializable {
    }
 
 
-}//END OF BivariateDensity
+}//END OF BivariateDistribution

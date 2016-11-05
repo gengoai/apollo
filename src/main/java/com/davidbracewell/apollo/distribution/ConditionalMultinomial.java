@@ -11,7 +11,7 @@ import java.util.Arrays;
  *
  * @author David B. Bracewell
  */
-public class ConditionalMultinomial implements BivariateDensity, Copyable<ConditionalMultinomial> {
+public class ConditionalMultinomial implements BivariateDistribution, Copyable<ConditionalMultinomial> {
    private static final long serialVersionUID = 1L;
    private final double alpha;
    private final int N;

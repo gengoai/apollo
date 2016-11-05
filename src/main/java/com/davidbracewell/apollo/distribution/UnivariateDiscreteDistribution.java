@@ -29,7 +29,7 @@ import com.google.common.base.Preconditions;
  * @param <T> Convenience parameter to return instance type
  * @author David B. Bracewell
  */
-public interface UnivariateDiscreteDistribution<T extends UnivariateDiscreteDistribution> extends UnivariateDensity {
+public interface UnivariateDiscreteDistribution<T extends UnivariateDiscreteDistribution> extends UnivariateDistribution {
 
    /**
     * Draws one random sample from the distribution.

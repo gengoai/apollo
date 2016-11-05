@@ -24,10 +24,11 @@ package com.davidbracewell.apollo.distribution;
 import com.google.common.base.Preconditions;
 import lombok.NonNull;
 import org.apache.commons.math3.distribution.EnumeratedIntegerDistribution;
+import org.apache.commons.math3.random.RandomGenerator;
+import org.apache.commons.math3.random.Well19937c;
 
 import java.io.Serializable;
 import java.util.Arrays;
-import java.util.Random;
 import java.util.stream.IntStream;
 
 /**
@@ -40,7 +41,7 @@ public class Multinomial implements UnivariateDiscreteDistribution<Multinomial>,
    private final int[] values;
    private final double alpha;
    private final double alphaTimesV;
-   private final Random random;
+   private final RandomGenerator random;
    private int sum = 0;
    private volatile EnumeratedIntegerDistribution wrapped;
 
@@ -51,7 +52,7 @@ public class Multinomial implements UnivariateDiscreteDistribution<Multinomial>,
     * @param alpha  the smoothing parameter
     * @param random the random number generator to use for sampling
     */
-   public Multinomial(int k, double alpha, @NonNull Random random) {
+   public Multinomial(int k, double alpha, @NonNull RandomGenerator random) {
       Preconditions.checkArgument(k > 0, "Size must be > 0");
       Preconditions.checkArgument(Double.isFinite(alpha), "Alpha must be finite");
       Preconditions.checkArgument(alpha > 0, "Alpha must be > 0");
@@ -67,7 +68,7 @@ public class Multinomial implements UnivariateDiscreteDistribution<Multinomial>,
     * @param k the number of possible values the random variable can take
     */
    public Multinomial(int k) {
-      this(k, 0, new Random());
+      this(k, 0, new Well19937c());
    }
 
    /**
@@ -77,7 +78,7 @@ public class Multinomial implements UnivariateDiscreteDistribution<Multinomial>,
     * @param alpha the smoothing parameter
     */
    public Multinomial(int k, double alpha) {
-      this(k, alpha, new Random());
+      this(k, alpha, new Well19937c());
    }
 
    @Override
@@ -143,7 +144,7 @@ public class Multinomial implements UnivariateDiscreteDistribution<Multinomial>,
          synchronized (this) {
             if (wrapped == null) {
                EnumeratedIntegerDistribution eid =
-                  new EnumeratedIntegerDistribution(IntStream.range(0, values.length).toArray(),
+                  new EnumeratedIntegerDistribution(random, IntStream.range(0, values.length).toArray(),
                                                     IntStream.range(0, values.length)
                                                              .mapToDouble(this::probability)
                                                              .toArray()

@@ -23,6 +23,8 @@ package com.davidbracewell.apollo.linalg;
 
 import org.junit.Test;
 
+import java.util.Iterator;
+
 import static com.davidbracewell.tuple.Tuples.$;
 import static org.junit.Assert.*;
 
@@ -190,32 +192,32 @@ public abstract class AbstractVectorTest {
 
    @Test
    public void mapAdd() throws Exception {
-
+      assertEquals(10, v.mapAdd(0).sum(), 0);
    }
 
    @Test
    public void mapAddSelf() throws Exception {
-
+      assertEquals(10, v.mapAddSelf(0).sum(), 0);
    }
 
    @Test
    public void mapDivide() throws Exception {
-
+      assertEquals(10, v.mapDivide(1).sum(), 0);
    }
 
    @Test
    public void mapDivideSelf() throws Exception {
-
+      assertEquals(10, v.mapDivideSelf(1).sum(), 0);
    }
 
    @Test
    public void mapMultiply() throws Exception {
-
+      assertEquals(10, v.mapMultiply(1).sum(), 0);
    }
 
    @Test
    public void mapMultiplySelf() throws Exception {
-
+      assertEquals(10, v.mapMultiplySelf(1).sum(), 0);
    }
 
    @Test
@@ -231,12 +233,12 @@ public abstract class AbstractVectorTest {
 
    @Test
    public void mapSubtract() throws Exception {
-
+      assertEquals(0, v.mapSubtract(1).sum(), 0);
    }
 
    @Test
    public void mapSubtractSelf() throws Exception {
-
+      assertEquals(0, v.mapSubtractSelf(1).sum(), 0);
    }
 
    @Test
@@ -251,27 +253,49 @@ public abstract class AbstractVectorTest {
 
    @Test
    public void multiply() throws Exception {
-
+      assertEquals(10, v.multiply(DenseVector.ones(10)).sum(), 0);
    }
 
    @Test
    public void multiplySelf() throws Exception {
+      assertEquals(10, v.multiplySelf(DenseVector.ones(10)).sum(), 0);
+   }
 
+   @Test(expected = IllegalArgumentException.class)
+   public void multiplyError() throws Exception {
+      assertEquals(10, v.multiply(DenseVector.ones(1)).sum(), 0);
+   }
+
+   @Test(expected = IllegalArgumentException.class)
+   public void multiplySelfError() throws Exception {
+      assertEquals(10, v.multiplySelf(DenseVector.ones(1)).sum(), 0);
    }
 
    @Test
    public void iterator() throws Exception {
-
+      double sum = 0;
+      for (Vector.Entry aV : v) {
+         sum += aV.value;
+      }
+      assertEquals(10, sum, 0);
    }
 
    @Test
    public void nonZeroIterator() throws Exception {
-
+      double sum = 0;
+      for (Iterator<Vector.Entry> itr = v.nonZeroIterator(); itr.hasNext(); ) {
+         sum += itr.next().value;
+      }
+      assertEquals(10, sum, 0);
    }
 
    @Test
    public void orderedNonZeroIterator() throws Exception {
-
+      int last = 0;
+      for (Iterator<Vector.Entry> itr = v.orderedNonZeroIterator(); itr.hasNext(); ) {
+         assertEquals(last, itr.next().getIndex());
+         last++;
+      }
    }
 
    @Test

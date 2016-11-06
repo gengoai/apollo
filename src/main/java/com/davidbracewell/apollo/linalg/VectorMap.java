@@ -68,7 +68,7 @@ public class VectorMap extends AbstractMap<Integer, Double> implements Serializa
 
          @Override
          public int size() {
-            return vector.dimension();
+            return vector.size();
          }
       };
    }

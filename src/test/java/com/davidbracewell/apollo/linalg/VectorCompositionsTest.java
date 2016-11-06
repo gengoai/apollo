@@ -21,8 +21,6 @@
 
 package com.davidbracewell.apollo.linalg;
 
-import com.davidbracewell.apollo.analysis.Optimum;
-import com.davidbracewell.conversion.Cast;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -31,51 +29,54 @@ import static org.junit.Assert.*;
 /**
  * @author David B. Bracewell
  */
-public class ScoredLabeledVectorTest extends AbstractVectorTest {
+public class VectorCompositionsTest {
+
+   Vector v1;
+   Vector v2;
 
    @Before
    public void setUp() throws Exception {
-      v = new ScoredLabelVector("LABELED", SparseVector.ones(10), 20);
+      v1 = SparseVector.ones(3);
+      v2 = DenseVector.wrap(2, 2, 2);
    }
 
 
    @Test
-   public void score() throws Exception {
-      ScoredLabelVector sv = Cast.as(v);
-      assertEquals(20, sv.getScore(), 0);
-      sv.setLabel("ABC");
-      assertEquals("ABC", sv.getLabel());
+   public void average() throws Exception {
+      assertEquals(DenseVector.wrap(1.5, 1.5, 1.5),
+                   VectorCompositions.Average.compose(3, v1, v2));
+
    }
 
 
    @Test
-   public void compare() throws Exception {
-      assertTrue(
-         new ScoredLabelVector(new LabeledVector("LABELED", SparseVector.ones(10)), 10)
-            .compareTo(Cast.as(v)) < 1
-                );
+   public void sum() throws Exception {
+      assertEquals(DenseVector.wrap(3, 3, 3),
+                   VectorCompositions.Sum.compose(3, v1, v2));
+
+   }
+
+
+   @Test
+   public void pointWiseMultiply() throws Exception {
+      assertEquals(DenseVector.wrap(2, 2, 2),
+                   VectorCompositions.PointWiseMultiply.compose(3, v1, v2));
 
    }
 
    @Test
-   public void optimum() throws Exception {
-      ScoredLabelVector other = new ScoredLabelVector(new LabeledVector("LABELED", SparseVector.ones(10)), 10);
-      assertTrue(ScoredLabelVector.comparator(Optimum.MAXIMUM).compare(other, Cast.as(v)) > 0);
-   }
+   public void max() throws Exception {
+      assertEquals(DenseVector.wrap(2, 2, 2),
+                   VectorCompositions.Max.compose(3, v1, v2));
 
-   @Override
-   public void getLabel() throws Exception {
-      assertEquals("LABELED", v.getLabel());
    }
 
    @Test
-   public void isDense() throws Exception {
-      assertFalse(v.isDense());
+   public void min() throws Exception {
+      assertEquals(DenseVector.wrap(1, 1, 1),
+                   VectorCompositions.Min.compose(3, v1, v2));
+
    }
 
-   @Test
-   public void isSparse() throws Exception {
-      assertTrue(v.isSparse());
-   }
 
 }

@@ -75,6 +75,11 @@ public class InMemoryLSH extends LSH {
     this(bands, buckets, dimension, 0.5, signatureSupplier);
   }
 
+  /**
+   * Builder builder.
+   *
+   * @return the builder
+   */
   public static Builder builder() {
     return new Builder();
   }
@@ -103,6 +108,9 @@ public class InMemoryLSH extends LSH {
     vectorStore[band][bucket].add(vid);
   }
 
+  /**
+   * The type Builder.
+   */
   public static class Builder extends LSH.Builder {
 
     @Override

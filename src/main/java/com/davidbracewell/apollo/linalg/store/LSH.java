@@ -97,24 +97,24 @@ public abstract class LSH implements Serializable {
 
 
    /**
-    * Clear.
+    * Clears the vectors being stored.
     */
    public abstract void clear();
 
    /**
-    * Get open int hash set.
+    * Gets the vector ids for the given band and bucket
     *
     * @param band   the band
     * @param bucket the bucket
-    * @return the open int hash set
+    * @return the vector ids
     */
    protected abstract OpenIntHashSet get(int band, int bucket);
 
    /**
-    * Neighbors list.
+    * Gets the ids of vectors close to the given vector
     *
     * @param vector the vector
-    * @return the list
+    * @return the int ids of the nearest vectors
     */
    public OpenIntHashSet query(@NonNull Vector vector) {
       OpenIntHashSet matches = new OpenIntHashSet();
@@ -126,16 +126,16 @@ public abstract class LSH implements Serializable {
    }
 
    /**
-    * Add to table.
+    * Adds the given vector id to the LSH table.
     *
     * @param band   the band
     * @param bucket the bucket
-    * @param vid    the vid
+    * @param vid    the vector id
     */
    protected abstract void addToTable(int band, int bucket, int vid);
 
    /**
-    * Add.
+    * Adds the given vector with the given vector id to the LSH table
     *
     * @param vector   the vector
     * @param vectorID the vector id
@@ -148,7 +148,7 @@ public abstract class LSH implements Serializable {
    }
 
    /**
-    * Remove.
+    * Removes the vector with the given vector id from the LSH table.
     *
     * @param vector   the vector
     * @param vectorID the vector id
@@ -163,7 +163,7 @@ public abstract class LSH implements Serializable {
    }
 
    /**
-    * Remove.
+    * Removes the vector associated with the given vector id from the LSH table.
     *
     * @param vectorID the vector id
     */
@@ -185,6 +185,9 @@ public abstract class LSH implements Serializable {
    private int[] intSignatureHash(final int[] signature) {
       int[] hash = new int[bands];
       int rows = signature.length / bands;
+      if (rows == 0) {
+         rows = 1;
+      }
       for (int index = 0; index < signature.length; index++) {
          int band = Math.min(index / rows, bands - 1);
          hash[band] = (int) ((hash[band] + (long) signature[index] * LARGE_PRIME) % buckets);
@@ -216,7 +219,7 @@ public abstract class LSH implements Serializable {
 
 
    /**
-    * Gets measure.
+    * Gets the measure use to calculate the affinity between query vectors and the vectors in the table
     *
     * @return the measure
     */
@@ -225,7 +228,7 @@ public abstract class LSH implements Serializable {
    }
 
    /**
-    * Gets optimum.
+    * Gets optimum associated with the LSH's measure.
     *
     * @return the optimum
     */
@@ -234,9 +237,9 @@ public abstract class LSH implements Serializable {
    }
 
    /**
-    * The type Builder.
+    * Convenience builder for creating LSH instances.
     */
-   public abstract static class Builder {
+   protected abstract static class Builder {
       /**
        * The Bands.
        */

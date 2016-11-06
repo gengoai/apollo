@@ -11,10 +11,15 @@ import lombok.NonNull;
 import java.util.List;
 
 /**
+ * The type Ensemble.
+ *
  * @author David B. Bracewell
  */
 public class Ensemble extends Classifier {
    private static final long serialVersionUID = 1L;
+   /**
+    * The Models.
+    */
    List<Classifier> models;
 
    /**

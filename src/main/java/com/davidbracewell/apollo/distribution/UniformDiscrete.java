@@ -138,7 +138,7 @@ public class UniformDiscrete implements UnivariateDiscreteDistribution<UniformDi
    public double cumulativeProbability(double x) {
       if (x >= max) {
          return 1.0;
-      } else if (x <= min) {
+      } else if (x < min) {
          return 0.0;
       }
       return (1.0 - min + x) / range();

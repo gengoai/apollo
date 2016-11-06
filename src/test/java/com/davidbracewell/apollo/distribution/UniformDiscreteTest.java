@@ -38,6 +38,46 @@ public class UniformDiscreteTest {
       uniformDiscrete = new UniformDiscrete(1, 5);
    }
 
+   @Test
+   public void probability() throws Exception {
+      assertEquals(0, uniformDiscrete.probability(0), 0.01);
+      assertEquals(0, uniformDiscrete.probability(6), 0.01);
+      assertEquals(0.2, uniformDiscrete.probability(1), 0.01);
+   }
+
+   @Test
+   public void setters() throws Exception {
+      UniformDiscrete ud = new UniformDiscrete(5);
+      ud.setMax(10);
+      ud.setMin(0);
+      assertEquals(0.2, uniformDiscrete.probability(1), 0.01);
+   }
+
+   @Test
+   public void mode() throws Exception {
+      assertTrue(Double.isNaN(uniformDiscrete.getMode()));
+   }
+
+   @Test
+   public void variance() throws Exception {
+      assertEquals(2, uniformDiscrete.getVariance(), 0.1);
+
+   }
+
+   @Test
+   public void mean() throws Exception {
+      assertEquals(3, uniformDiscrete.getMean(), 0);
+   }
+
+   @Test
+   public void max() throws Exception {
+      assertEquals(10, new UniformDiscrete(10).getMax());
+   }
+
+   @Test
+   public void inverseCumulativeProbability() throws Exception {
+      assertEquals(1, uniformDiscrete.inverseCumulativeProbability(0.2), 0.01);
+   }
 
    @Test
    public void cumulativeProbability() throws Exception {

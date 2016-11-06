@@ -27,43 +27,44 @@ import com.davidbracewell.apollo.linalg.Vector;
 import java.io.Serializable;
 
 /**
- * The interface Signature function.
+ * <p>A signature function converts a high dimensional vector into a low dimensional signature vector that allows for
+ * quick nearest neighbor matches.</p>
  *
  * @author David B. Bracewell
  */
 public interface SignatureFunction extends Serializable {
 
    /**
-    * Signature int [ ].
+    * Converts the given vector into a signature
     *
     * @param vector the vector
-    * @return the int [ ]
+    * @return the signature
     */
    int[] signature(Vector vector);
 
    /**
-    * Is binary boolean.
+    * Does this signature function produce real or binary based signatures.
     *
-    * @return the boolean
+    * @return True if creates binary (boolean) based signatures, False otherwise
     */
    boolean isBinary();
 
    /**
-    * Gets dimension.
+    * Gets the dimensions of vectors it can handle.
     *
     * @return the dimension
     */
    int getDimension();
 
    /**
-    * Gets signature size.
+    * Gets the signature size.
     *
     * @return the signature size
     */
    int getSignatureSize();
 
    /**
-    * Gets measure.
+    * Gets the measure that is associated with this signature function.
     *
     * @return the measure
     */

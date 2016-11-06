@@ -32,13 +32,16 @@ import java.io.Serializable;
 import java.util.function.BiFunction;
 
 /**
- * The type Lsh.
+ * <p>Implementation of <a href="https://en.wikipedia.org/wiki/Locality-sensitive_hashing">Locality-sensitive
+ * hashing</a> which reduces high dimensional vectors into a lower dimension using signature functions.  The hash
+ * functions cause similar vectors to be mapped into the same low dimension buckets facilitating fast nearest neighbor
+ * searches.</p>
  *
  * @author David B. Bracewell
  */
 public abstract class LSH implements Serializable {
+   private static final long serialVersionUID = 1L;
    private static final long LARGE_PRIME = 433494437;
-
    @Getter
    private final int bands;
    @Getter
@@ -47,7 +50,6 @@ public abstract class LSH implements Serializable {
    private final int dimension;
    @Getter
    private final SignatureFunction signatureFunction;
-
 
    /**
     * Instantiates a new Lsh.
@@ -231,46 +233,114 @@ public abstract class LSH implements Serializable {
       return signatureFunction.getMeasure().getOptimum();
    }
 
+   /**
+    * The type Builder.
+    */
    public abstract static class Builder {
+      /**
+       * The Bands.
+       */
       protected int bands = 5;
+      /**
+       * The Buckets.
+       */
       protected int buckets = 20;
+      /**
+       * The Threshold.
+       */
       protected double threshold = 0.5;
+      /**
+       * The Dimension.
+       */
       protected int dimension = -1;
+      /**
+       * The Signature function.
+       */
       protected SignatureFunction signatureFunction = null;
+      /**
+       * The Signature supplier.
+       */
       protected BiFunction<Integer, Integer, SignatureFunction> signatureSupplier = CosineSignature::new;
 
+      /**
+       * Bands builder.
+       *
+       * @param bands the bands
+       * @return the builder
+       */
       public Builder bands(int bands) {
          this.bands = bands;
          return this;
       }
 
+      /**
+       * Buckets builder.
+       *
+       * @param buckets the buckets
+       * @return the builder
+       */
       public Builder buckets(int buckets) {
          this.buckets = buckets;
          return this;
       }
 
+      /**
+       * Dimension builder.
+       *
+       * @param dimension the dimension
+       * @return the builder
+       */
       public Builder dimension(int dimension) {
          this.dimension = dimension;
          return this;
       }
 
+      /**
+       * Threshold builder.
+       *
+       * @param threshold the threshold
+       * @return the builder
+       */
       public Builder threshold(double threshold) {
          this.threshold = threshold;
          return this;
       }
 
+      /**
+       * Signature function builder.
+       *
+       * @param signatureFunction the signature function
+       * @return the builder
+       */
       public Builder signatureFunction(SignatureFunction signatureFunction) {
          this.signatureFunction = signatureFunction;
          return this;
       }
 
+      /**
+       * Signature supplier builder.
+       *
+       * @param signatureSupplier the signature supplier
+       * @return the builder
+       */
       public Builder signatureSupplier(BiFunction<Integer, Integer, SignatureFunction> signatureSupplier) {
          this.signatureSupplier = signatureSupplier;
          return this;
       }
 
+      /**
+       * Create lsh.
+       *
+       * @return the lsh
+       */
       public abstract LSH create();
 
+      /**
+       * Create vector store vector store.
+       *
+       * @param <KEY> the type parameter
+       * @return the vector store
+       */
       public abstract <KEY> VectorStore<KEY> createVectorStore();
 
    }

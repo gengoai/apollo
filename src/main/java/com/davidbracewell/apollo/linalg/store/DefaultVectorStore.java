@@ -79,21 +79,21 @@ public class DefaultVectorStore<KEY> implements VectorStore<KEY>, Serializable {
    }
 
    @Override
-   public List<ScoredLabelVector> nearest(Vector vector, double threshold) {
-      Preconditions.checkArgument(vector.dimension() == dimension,
+   public List<ScoredLabelVector> nearest(Vector query, double threshold) {
+      Preconditions.checkArgument(query.dimension() == dimension,
                                   "Dimension mismatch, vector store can only store vectors with dimension of " + dimension);
       return vectorMap.values().parallelStream()
-                      .map(v -> new ScoredLabelVector(v, queryMeasure.calculate(v, vector)))
+                      .map(v -> new ScoredLabelVector(v, queryMeasure.calculate(v, query)))
                       .filter(s -> queryMeasure.getOptimum().test(s.getScore(), threshold))
                       .collect(Collectors.toList());
    }
 
    @Override
-   public List<ScoredLabelVector> nearest(@NonNull Vector vector, int K, double threshold) {
-      Preconditions.checkArgument(vector.dimension() == dimension,
+   public List<ScoredLabelVector> nearest(@NonNull Vector query, int K, double threshold) {
+      Preconditions.checkArgument(query.dimension() == dimension,
                                   "Dimension mismatch, vector store can only store vectors with dimension of " + dimension);
       List<ScoredLabelVector> vectors = vectorMap.values().parallelStream()
-                                                 .map(v -> new ScoredLabelVector(v, queryMeasure.calculate(v, vector)))
+                                                 .map(v -> new ScoredLabelVector(v, queryMeasure.calculate(v, query)))
                                                  .filter(s -> queryMeasure.getOptimum().test(s.getScore(), threshold))
                                                  .sorted((s1, s2) -> queryMeasure.getOptimum()
                                                                                  .compare(s1.getScore(), s2.getScore()))
@@ -102,20 +102,20 @@ public class DefaultVectorStore<KEY> implements VectorStore<KEY>, Serializable {
    }
 
    @Override
-   public List<ScoredLabelVector> nearest(@NonNull Vector vector) {
-      Preconditions.checkArgument(vector.dimension() == dimension,
+   public List<ScoredLabelVector> nearest(@NonNull Vector query) {
+      Preconditions.checkArgument(query.dimension() == dimension,
                                   "Dimension mismatch, vector store can only store vectors with dimension of " + dimension);
       return vectorMap.values().parallelStream()
-                      .map(v -> new ScoredLabelVector(v, queryMeasure.calculate(v, vector)))
+                      .map(v -> new ScoredLabelVector(v, queryMeasure.calculate(v, query)))
                       .collect(Collectors.toList());
    }
 
    @Override
-   public List<ScoredLabelVector> nearest(@NonNull Vector vector, int K) {
-      Preconditions.checkArgument(vector.dimension() == dimension,
+   public List<ScoredLabelVector> nearest(@NonNull Vector query, int K) {
+      Preconditions.checkArgument(query.dimension() == dimension,
                                   "Dimension mismatch, vector store can only store vectors with dimension of " + dimension);
       List<ScoredLabelVector> vectors = vectorMap.values().parallelStream()
-                                                 .map(v -> new ScoredLabelVector(v, queryMeasure.calculate(v, vector)))
+                                                 .map(v -> new ScoredLabelVector(v, queryMeasure.calculate(v, query)))
                                                  .sorted((s1, s2) -> queryMeasure.getOptimum()
                                                                                  .compare(s1.getScore(), s2.getScore()))
                                                  .collect(Collectors.toList());

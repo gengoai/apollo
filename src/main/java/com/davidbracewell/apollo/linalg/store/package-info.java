@@ -20,6 +20,7 @@
  */
 
 /**
- * Implementation of LSH for fast nearest neighbor searches on vectors.
+ * Structures for storing and retrieving vectors by label/key and implementation of LSH for fast nearest neighbor
+ * searches on vectors.
  */
 package com.davidbracewell.apollo.linalg.store;

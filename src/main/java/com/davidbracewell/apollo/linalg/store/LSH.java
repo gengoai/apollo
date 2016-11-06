@@ -239,7 +239,7 @@ public abstract class LSH implements Serializable {
    /**
     * Convenience builder for creating LSH instances.
     */
-   protected abstract static class Builder {
+   public abstract static class Builder {
       /**
        * The Bands.
        */

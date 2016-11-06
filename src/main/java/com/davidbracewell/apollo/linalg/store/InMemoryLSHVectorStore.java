@@ -33,7 +33,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * The type Lsh vector store.
+ * <p>Implementation of an LSH vector store in which vectors are stored in memory.</p>
  *
  * @param <KEY> the type parameter
  * @author David B. Bracewell
@@ -45,14 +45,13 @@ public class InMemoryLSHVectorStore<KEY> extends LSHVectorStore<KEY> {
    private final OpenObjectIntHashMap<KEY> keys = new OpenObjectIntHashMap<>();
 
    /**
-    * Instantiates a new Lsh vector store.
+    * Instantiates a new in-memory LSH vector store
     *
-    * @param lsh the lsh
+    * @param lsh the <code>InMemoryLSH</code> to use to build the vector store.
     */
    public InMemoryLSHVectorStore(@NonNull InMemoryLSH lsh) {
       super(lsh);
    }
-
 
    @Override
    public Set<KEY> keySet() {

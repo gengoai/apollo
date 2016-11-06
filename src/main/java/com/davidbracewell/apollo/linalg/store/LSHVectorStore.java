@@ -42,6 +42,9 @@ import java.util.stream.Collectors;
  */
 public abstract class LSHVectorStore<KEY> implements VectorStore<KEY>, Serializable {
    private static final long serialVersionUID = 1L;
+   /**
+    * The LSH function to use
+    */
    protected final LSH lsh;
 
 
@@ -79,7 +82,7 @@ public abstract class LSHVectorStore<KEY> implements VectorStore<KEY>, Serializa
    }
 
    /**
-    * Remove vector.
+    * Remove vector implementation.
     *
     * @param vector the vector
     * @param id     the id
@@ -87,7 +90,7 @@ public abstract class LSHVectorStore<KEY> implements VectorStore<KEY>, Serializa
    protected abstract void removeVector(LabeledVector vector, int id);
 
    /**
-    * Register vector.
+    * Register vector implementation.
     *
     * @param vector the vector
     * @param id     the id
@@ -95,14 +98,14 @@ public abstract class LSHVectorStore<KEY> implements VectorStore<KEY>, Serializa
    protected abstract void registerVector(LabeledVector vector, int id);
 
    /**
-    * Next unique id int.
+    * Gets the next unique id for assigning to vectors
     *
     * @return the int
     */
    protected abstract int nextUniqueID();
 
    /**
-    * Gets id.
+    * Gets the id of a vector by key.
     *
     * @param key the key
     * @return the id
@@ -110,7 +113,7 @@ public abstract class LSHVectorStore<KEY> implements VectorStore<KEY>, Serializa
    protected abstract int getID(KEY key);
 
    /**
-    * Gets vector by id.
+    * Gets the vector by its id.
     *
     * @param id the id
     * @return the vector by id
@@ -125,7 +128,7 @@ public abstract class LSHVectorStore<KEY> implements VectorStore<KEY>, Serializa
       return lsh.getDimension();
    }
 
-   private final List<LabeledVector> query(@NonNull Vector vector) {
+   private List<LabeledVector> query(@NonNull Vector vector) {
       OpenIntHashSet ids = lsh.query(vector);
       List<LabeledVector> vectors = new ArrayList<>();
       ids.forEachKey(id -> vectors.add(getVectorByID(id)));

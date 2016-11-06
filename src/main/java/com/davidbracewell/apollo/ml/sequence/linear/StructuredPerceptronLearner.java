@@ -1,10 +1,10 @@
 package com.davidbracewell.apollo.ml.sequence.linear;
 
 import com.davidbracewell.apollo.linalg.Vector;
-import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.ml.Feature;
 import com.davidbracewell.apollo.ml.FeatureVector;
 import com.davidbracewell.apollo.ml.Instance;
+import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.ml.sequence.*;
 import com.davidbracewell.collection.Collect;
 import com.davidbracewell.logging.Logger;
@@ -21,7 +21,8 @@ import java.util.List;
  */
 public class StructuredPerceptronLearner extends SequenceLabelerLearner {
   private static final Logger log = Logger.getLogger(StructuredPerceptronLearner.class);
-  private int maxIterations = 10;
+   private static final long serialVersionUID = 1209076471049751899L;
+   private int maxIterations = 10;
   private double tolerance = 0.00001;
   private Vector[] cWeights;
 

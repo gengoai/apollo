@@ -12,7 +12,9 @@ import java.io.IOException;
  * @author David B. Bracewell
  */
 public class JsonSequenceDataSource extends DataSource<Sequence> {
-  /**
+   private static final long serialVersionUID = -3205097831208405630L;
+
+   /**
    * Instantiates a new Data source.
    *
    * @param resource the resource

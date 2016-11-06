@@ -17,7 +17,8 @@ import java.io.Serializable;
  */
 public abstract class DataSource<T extends Example> implements Serializable {
 
-  private final Resource resource;
+   private static final long serialVersionUID = -5449068835846637436L;
+   private final Resource resource;
   private StreamingContext streamingContext = StreamingContext.local();
 
   /**

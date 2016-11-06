@@ -23,6 +23,8 @@ import java.util.Map;
  */
 public abstract class Learner<T extends Example, M extends Model> implements Serializable, StructuredSerializable {
 
+   private static final long serialVersionUID = 605756060816072642L;
+
    /**
     * Builder learner builder.
     *

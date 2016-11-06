@@ -215,7 +215,7 @@ public enum Similarity implements SimilarityMeasure {
       public DistanceMeasure asDistanceMeasure() {
          return Distance.Angular;
       }
-   };
+   }
 
 
 }//END OF SimilarityMeasures

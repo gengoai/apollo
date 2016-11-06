@@ -14,7 +14,8 @@ import java.util.List;
  * @author David B. Bracewell
  */
 public class LibSVMDataSource extends DataSource<Instance> {
-  public final boolean multiclass;
+   private static final long serialVersionUID = -8917299785352538595L;
+   public final boolean multiclass;
 
   public LibSVMDataSource(@NonNull Resource resource) {
     this(resource,false);

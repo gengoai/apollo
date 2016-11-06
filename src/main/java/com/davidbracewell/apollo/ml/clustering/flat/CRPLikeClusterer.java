@@ -46,156 +46,158 @@ import java.util.Map;
  * @author David B. Bracewell
  */
 public class CRPLikeClusterer extends Clusterer<FlatClustering> {
-  private static final Logger log = Logger.getLogger(CRPLikeClusterer.class);
-  private double alpha;
-  private DistanceMeasure distanceMeasure;
-  private Table<Vector, Vector, Double> distanceMatrix;
+   private static final Logger log = Logger.getLogger(CRPLikeClusterer.class);
+   private static final long serialVersionUID = 8347502431469266786L;
+   private double alpha;
+   private DistanceMeasure distanceMeasure;
+   private Table<Vector, Vector, Double> distanceMatrix;
 
-  /**
-   * Instantiates a new Crp like clusterer.
-   *
-   * @param distanceMeasure the distance measure
-   * @param alpha           the alpha
-   */
-  public CRPLikeClusterer(DistanceMeasure distanceMeasure, double alpha) {
-    Preconditions.checkArgument(alpha > 0);
-    this.distanceMeasure = Preconditions.checkNotNull(distanceMeasure);
-    this.alpha = alpha;
-  }
+   /**
+    * Instantiates a new Crp like clusterer.
+    *
+    * @param distanceMeasure the distance measure
+    * @param alpha           the alpha
+    */
+   public CRPLikeClusterer(DistanceMeasure distanceMeasure, double alpha) {
+      Preconditions.checkArgument(alpha > 0);
+      this.distanceMeasure = Preconditions.checkNotNull(distanceMeasure);
+      this.alpha = alpha;
+   }
 
-  @Override
-  public FlatClustering cluster(@NonNull MStream<Vector> instanceStream) {
-    List<Vector> instances = instanceStream.collect();
-    distanceMatrix = HashBasedTable.create();
-    List<Cluster> clusters = new ArrayList<>();
-    clusters.add(new Cluster());
-    clusters.get(0).addPoint(instances.get(0));
-    Map<Vector, Integer> assignments = new HashMap<>();
-    assignments.put(instances.get(0), 0);
+   @Override
+   public FlatClustering cluster(@NonNull MStream<Vector> instanceStream) {
+      List<Vector> instances = instanceStream.collect();
+      distanceMatrix = HashBasedTable.create();
+      List<Cluster> clusters = new ArrayList<>();
+      clusters.add(new Cluster());
+      clusters.get(0).addPoint(instances.get(0));
+      Map<Vector, Integer> assignments = new HashMap<>();
+      assignments.put(instances.get(0), 0);
 
-    int report = instances.size() / 10;
+      int report = instances.size() / 10;
 
-    for (int i = 1; i < instances.size(); i++) {
-      Vector ii = instances.get(i);
+      for (int i = 1; i < instances.size(); i++) {
+         Vector ii = instances.get(i);
 
-      Counter<Integer> distances = Counters.newCounter();
-      for (int ci = 0; ci < clusters.size(); ci++) {
-        distances.set(ci, distance(ii, clusters.get(ci)));
-      }
-      double sum = distances.sum();
+         Counter<Integer> distances = Counters.newCounter();
+         for (int ci = 0; ci < clusters.size(); ci++) {
+            distances.set(ci, distance(ii, clusters.get(ci)));
+         }
+         double sum = distances.sum();
 
-      for (int ci = 0; ci < clusters.size(); ci++) {
-        double n = (double) clusters.get(ci).size() / (i + alpha);
-        distances.set(ci, n * (1d - (distances.get(ci) / sum)));
-      }
+         for (int ci = 0; ci < clusters.size(); ci++) {
+            double n = (double) clusters.get(ci).size() / (i + alpha);
+            distances.set(ci, n * (1d - (distances.get(ci) / sum)));
+         }
 
-      distances.set(clusters.size(), alpha / (i + alpha));
-      distances.divideBySum();
-      int ci = distances.sample();
+         distances.set(clusters.size(), alpha / (i + alpha));
+         distances.divideBySum();
+         int ci = distances.sample();
 
-      if (i % report == 0) {
-        log.info("i={0}, p(new)={1}, chosen={2}, numClusters={3}", i, distances.get(clusters.size()), ci, clusters.size());
-      }
+         if (i % report == 0) {
+            log.info("i={0}, p(new)={1}, chosen={2}, numClusters={3}", i, distances.get(clusters.size()), ci,
+                     clusters.size());
+         }
 
-      while (clusters.size() <= ci) {
-        clusters.add(new Cluster());
-        clusters.get(clusters.size() - 1).setId(clusters.size() - 1);
-      }
-      clusters.get(ci).addPoint(ii);
-      assignments.put(ii, ci);
-    }
-
-    int numP = instances.size() - 1;
-    for (int i = 0; i < 200; i++) {
-      Vector ii = instances.get((int) Math.floor(Math.random() % instances.size()));
-      int cci = assignments.remove(ii);
-      clusters.get(cci).getPoints().remove(ii);
-      Counter<Integer> distances = Counters.newCounter();
-      for (int ci = 0; ci < clusters.size(); ci++) {
-        distances.set(ci, distance(ii, clusters.get(ci)));
-      }
-      double sum = distances.sum();
-
-      for (int ci = 0; ci < clusters.size(); ci++) {
-        double n = (double) clusters.get(ci).size() / (numP + alpha);
-        distances.set(ci, n * (1d - (distances.get(ci) / sum)));
+         while (clusters.size() <= ci) {
+            clusters.add(new Cluster());
+            clusters.get(clusters.size() - 1).setId(clusters.size() - 1);
+         }
+         clusters.get(ci).addPoint(ii);
+         assignments.put(ii, ci);
       }
 
-      distances.set(clusters.size(), alpha / (numP + alpha));
-      distances.divideBySum();
-      int ci = distances.sample();
-      while (clusters.size() <= ci) {
-        clusters.add(new Cluster());
+      int numP = instances.size() - 1;
+      for (int i = 0; i < 200; i++) {
+         Vector ii = instances.get((int) Math.floor(Math.random() % instances.size()));
+         int cci = assignments.remove(ii);
+         clusters.get(cci).getPoints().remove(ii);
+         Counter<Integer> distances = Counters.newCounter();
+         for (int ci = 0; ci < clusters.size(); ci++) {
+            distances.set(ci, distance(ii, clusters.get(ci)));
+         }
+         double sum = distances.sum();
+
+         for (int ci = 0; ci < clusters.size(); ci++) {
+            double n = (double) clusters.get(ci).size() / (numP + alpha);
+            distances.set(ci, n * (1d - (distances.get(ci) / sum)));
+         }
+
+         distances.set(clusters.size(), alpha / (numP + alpha));
+         distances.divideBySum();
+         int ci = distances.sample();
+         while (clusters.size() <= ci) {
+            clusters.add(new Cluster());
+         }
+         clusters.get(ci).addPoint(ii);
+         assignments.put(ii, ci);
       }
-      clusters.get(ci).addPoint(ii);
-      assignments.put(ii, ci);
-    }
 
 
-    CRPClustering clustering = new CRPClustering(getEncoderPair(), distanceMeasure);
-    clusters.stream().filter(c -> c.size() > 0).forEach(clustering::addCluster);
-    return clustering;
-  }
+      CRPClustering clustering = new CRPClustering(getEncoderPair(), distanceMeasure);
+      clusters.stream().filter(c -> c.size() > 0).forEach(clustering::addCluster);
+      return clustering;
+   }
 
-  private double distance(Vector ii, Cluster cluster) {
-    double max = Double.NEGATIVE_INFINITY;
-    for (Vector jj : cluster) {
-      max = Math.max(max, distance(ii, jj));
-    }
-    return max;
-  }
+   private double distance(Vector ii, Cluster cluster) {
+      double max = Double.NEGATIVE_INFINITY;
+      for (Vector jj : cluster) {
+         max = Math.max(max, distance(ii, jj));
+      }
+      return max;
+   }
 
-  private double distance(Vector ii, Vector jj) {
-    if (distanceMatrix.contains(ii, jj)) {
-      return distanceMatrix.get(ii, jj);
-    } else if (distanceMatrix.contains(jj, ii)) {
-      return distanceMatrix.get(jj, ii);
-    }
-    double d = distanceMeasure.calculate(ii, jj);
-    distanceMatrix.put(ii, jj, d);
-    return d;
-  }
+   private double distance(Vector ii, Vector jj) {
+      if (distanceMatrix.contains(ii, jj)) {
+         return distanceMatrix.get(ii, jj);
+      } else if (distanceMatrix.contains(jj, ii)) {
+         return distanceMatrix.get(jj, ii);
+      }
+      double d = distanceMeasure.calculate(ii, jj);
+      distanceMatrix.put(ii, jj, d);
+      return d;
+   }
 
-  /**
-   * Gets alpha.
-   *
-   * @return the alpha
-   */
-  public double getAlpha() {
-    return alpha;
-  }
+   /**
+    * Gets alpha.
+    *
+    * @return the alpha
+    */
+   public double getAlpha() {
+      return alpha;
+   }
 
-  /**
-   * Sets alpha.
-   *
-   * @param alpha the alpha
-   */
-  public void setAlpha(double alpha) {
-    this.alpha = alpha;
-  }
+   /**
+    * Sets alpha.
+    *
+    * @param alpha the alpha
+    */
+   public void setAlpha(double alpha) {
+      this.alpha = alpha;
+   }
 
-  /**
-   * Gets distance measure.
-   *
-   * @return the distance measure
-   */
-  public DistanceMeasure getDistanceMeasure() {
-    return distanceMeasure;
-  }
+   /**
+    * Gets distance measure.
+    *
+    * @return the distance measure
+    */
+   public DistanceMeasure getDistanceMeasure() {
+      return distanceMeasure;
+   }
 
-  /**
-   * Sets distance measure.
-   *
-   * @param distanceMeasure the distance measure
-   */
-  public void setDistanceMeasure(DistanceMeasure distanceMeasure) {
-    this.distanceMeasure = distanceMeasure;
-  }
+   /**
+    * Sets distance measure.
+    *
+    * @param distanceMeasure the distance measure
+    */
+   public void setDistanceMeasure(DistanceMeasure distanceMeasure) {
+      this.distanceMeasure = distanceMeasure;
+   }
 
-  @Override
-  public void reset() {
-    super.reset();
-    this.distanceMatrix.clear();
-  }
+   @Override
+   public void reset() {
+      super.reset();
+      this.distanceMatrix.clear();
+   }
 
 }//END OF CRPLikeClusterer

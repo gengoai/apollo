@@ -25,7 +25,8 @@ import java.util.stream.Collectors;
  */
 public class DenseCSVDataSource extends DataSource<Instance> {
 
-  private final CSV csvFormat;
+   private static final long serialVersionUID = -7352365518937500826L;
+   private final CSV csvFormat;
   @Getter
   @Setter
   private int classIndex = 0;

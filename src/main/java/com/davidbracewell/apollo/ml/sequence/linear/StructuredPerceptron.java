@@ -17,7 +17,8 @@ import java.util.Iterator;
  * @author David B. Bracewell
  */
 public class StructuredPerceptron extends SequenceLabeler {
-  final int numberOfClasses;
+   private static final long serialVersionUID = 7255108354079743179L;
+   final int numberOfClasses;
   Vector[] weights;
 
   /**

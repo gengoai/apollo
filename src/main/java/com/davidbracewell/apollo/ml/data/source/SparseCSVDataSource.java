@@ -25,7 +25,8 @@ import java.util.stream.Collectors;
  */
 public class SparseCSVDataSource extends DataSource<Instance> {
 
-  private final CSV csvFormat;
+   private static final long serialVersionUID = -4154385152800590748L;
+   private final CSV csvFormat;
   @Getter
   @Setter
   private int classIndex = 0;

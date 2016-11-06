@@ -13,7 +13,8 @@ import java.util.Map;
  */
 public class WindowedLearner extends SequenceLabelerLearner {
 
-  private final ClassifierLearner learner;
+   private static final long serialVersionUID = 3783930856969307606L;
+   private final ClassifierLearner learner;
 
   public WindowedLearner(ClassifierLearner learner) {
     this.learner = learner;

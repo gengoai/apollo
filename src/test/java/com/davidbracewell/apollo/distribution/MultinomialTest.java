@@ -21,6 +21,8 @@
 
 package com.davidbracewell.apollo.distribution;
 
+import org.apache.commons.math3.random.JDKRandomGenerator;
+import org.apache.commons.math3.random.RandomGenerator;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -37,7 +39,9 @@ public class MultinomialTest {
 
    @Before
    public void setUp() throws Exception {
-      multinomial = new Multinomial(3, 1);
+      RandomGenerator rng = new JDKRandomGenerator();
+      rng.setSeed(123);
+      multinomial = new Multinomial(3, 1, rng);
       multinomial.increment(0, 5);
       multinomial.increment(1, 2);
       multinomial.increment(2, 3);

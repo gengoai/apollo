@@ -83,7 +83,7 @@ public class Instance implements Example, Serializable, Iterable<Feature> {
    }
 
    /**
-    * Create instance.
+    * Convenience method for creating an instance from a collection of features.
     *
     * @param features the features
     * @return the instance
@@ -92,15 +92,30 @@ public class Instance implements Example, Serializable, Iterable<Feature> {
       return new Instance(features);
    }
 
+
    /**
-    * Create instance.
+    * Convenience method for creating an instance from a collection of features.
     *
     * @param features the features
-    * @param label    the label
+    * @param label    the label of the instance
     * @return the instance
     */
    public static Instance create(@NonNull Collection<Feature> features, Object label) {
       return new Instance(features, label);
+   }
+
+   /**
+    * Convenience method for creating an instance from a vector. Feature names are string representations of the vector
+    * indices.
+    *
+    * @param vector the vector
+    * @return the instance
+    */
+   public static Instance fromVector(@NonNull com.davidbracewell.apollo.linalg.Vector vector) {
+      List<Feature> features = Streams.asStream(vector.nonZeroIterator())
+                                      .map(de -> Feature.real(Integer.toString(de.index), de.value))
+                                      .collect(Collectors.toList());
+      return create(features, vector.getLabel());
    }
 
    @Override
@@ -108,30 +123,18 @@ public class Instance implements Example, Serializable, Iterable<Feature> {
       return Collections.singletonList(this);
    }
 
-   public void compact() {
-      features.trimToSize();
-   }
-
    @Override
    public Instance copy() {
       return new Instance(features.stream().map(Feature::copy).collect(Collectors.toList()), label);
    }
 
-   public Optional<Feature> getFeature(@NonNull String name) {
-      return features.stream().filter(f -> f.getName().equals(name)).findFirst();
-   }
-
-   public Optional<Feature> getFeatureByPrefix(@NonNull String name) {
-      return features.stream().filter(f -> f.getName().startsWith(name)).findFirst();
-   }
-
    @Override
    public Stream<String> getFeatureSpace() {
-      return features.stream().map(Feature::getName).distinct();
+      return features.stream().map(Feature::getName);
    }
 
    /**
-    * Gets features.
+    * Gets the features of the instance.
     *
     * @return the features
     */
@@ -140,17 +143,7 @@ public class Instance implements Example, Serializable, Iterable<Feature> {
    }
 
    /**
-    * Gets features by prefix.
-    *
-    * @param prefix the prefix
-    * @return the features by prefix
-    */
-   public List<Feature> getFeaturesByPrefix(@NonNull String prefix) {
-      return features.stream().filter(f -> f.getName().startsWith(prefix)).collect(Collectors.toList());
-   }
-
-   /**
-    * Gets label.
+    * Gets the label of the instance.
     *
     * @return the label
     */
@@ -159,7 +152,7 @@ public class Instance implements Example, Serializable, Iterable<Feature> {
    }
 
    /**
-    * Sets label.
+    * Sets the label of the instance.
     *
     * @param label the label
     */
@@ -180,7 +173,7 @@ public class Instance implements Example, Serializable, Iterable<Feature> {
    }
 
    /**
-    * Gets label set.
+    * Gets the label as a set. Useful for multilabel classification.
     *
     * @return the label set
     */
@@ -202,36 +195,36 @@ public class Instance implements Example, Serializable, Iterable<Feature> {
    }
 
    /**
-    * Gets value.
+    * Gets the value of the given feature.
     *
-    * @param feature the feature
-    * @return the value
+    * @param feature the feature name to look up
+    * @return the value of the given feature or 0 if not in the instance
     */
    public double getValue(@NonNull String feature) {
       return features.stream().filter(f -> f.getName().equals(feature)).map(Feature::getValue).findFirst().orElse(0d);
    }
 
    /**
-    * Has label boolean.
+    * Determines if the instance has the given label.
     *
-    * @param label the label
-    * @return the boolean
+    * @param label the label to check
+    * @return True if the instance has the given label, False otherwise
     */
    public boolean hasLabel(Object label) {
       return getLabelSet().contains(label);
    }
 
    /**
-    * Has label boolean.
+    * Determines if the instance has a label associated with it or not.
     *
-    * @return the boolean
+    * @return True if the instance has a non-null label, False otherwise
     */
    public boolean hasLabel() {
       return label != null;
    }
 
    @Override
-   public Instance intern(Interner<String> interner) {
+   public Instance intern(@NonNull Interner<String> interner) {
       return Instance.create(features.stream()
                                      .map(f -> Feature.real(interner.intern(f.getName()), f.getValue()))
                                      .collect(Collectors.toList()),
@@ -270,12 +263,12 @@ public class Instance implements Example, Serializable, Iterable<Feature> {
    }
 
    /**
-    * Stream stream.
+    * Gets the features making up the instance as a stream
     *
     * @return the stream
     */
    public Stream<Feature> stream() {
-      return Streams.asStream(this);
+      return features.stream();
    }
 
    /**
@@ -312,20 +305,6 @@ public class Instance implements Example, Serializable, Iterable<Feature> {
       }
       writer.endObject();
       if (inArray) writer.endObject();
-   }
-
-   public static Instance fromVector(@NonNull com.davidbracewell.apollo.linalg.Vector vector) {
-      List<Feature> features = Streams.asStream(vector.nonZeroIterator())
-                                      .map(de -> Feature.real(Integer.toString(de.index), de.value))
-                                      .collect(Collectors.toList());
-      return create(features, vector.getLabel());
-   }
-
-   public static Instance fromVector(@NonNull com.davidbracewell.apollo.linalg.Vector vector, @NonNull Encoder encoder) {
-      List<Feature> features = Streams.asStream(vector.nonZeroIterator())
-                                      .map(de -> Feature.real(encoder.decode(de.index).toString(), de.value))
-                                      .collect(Collectors.toList());
-      return create(features, vector.getLabel());
    }
 
 }//END OF Instance

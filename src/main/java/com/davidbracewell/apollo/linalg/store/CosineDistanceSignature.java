@@ -25,23 +25,26 @@ import com.davidbracewell.apollo.affinity.Measure;
 import com.davidbracewell.apollo.affinity.Similarity;
 
 /**
+ * <p>Signature function for Cosine distance / similarity. Uses the Cosine distance as its measure.</p>
+ *
  * @author David B. Bracewell
  */
 public class CosineDistanceSignature extends CosineSignature {
-  private static final long serialVersionUID = 1L;
-  /**
-   * Instantiates a new Cosine signature.
-   *
-   * @param signatureSize the signature size
-   * @param dimension     the dimension
-   */
-  public CosineDistanceSignature(int signatureSize, int dimension) {
-    super(signatureSize, dimension);
-  }
+   private static final long serialVersionUID = 1L;
 
-  @Override
-  public Measure getMeasure() {
-    return Similarity.Cosine.asDistanceMeasure();
-  }
+   /**
+    * Instantiates a new Cosine signature.
+    *
+    * @param signatureSize the signature size controlling the number of random projections
+    * @param dimension     the dimension of the vector
+    */
+   public CosineDistanceSignature(int signatureSize, int dimension) {
+      super(signatureSize, dimension);
+   }
+
+   @Override
+   public Measure getMeasure() {
+      return Similarity.Cosine.asDistanceMeasure();
+   }
 
 }// END OF CosineDistanceSignature

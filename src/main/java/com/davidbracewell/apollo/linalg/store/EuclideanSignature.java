@@ -21,50 +21,57 @@
 
 package com.davidbracewell.apollo.linalg.store;
 
+import com.davidbracewell.apollo.affinity.Distance;
 import com.davidbracewell.apollo.affinity.Measure;
-import com.davidbracewell.apollo.affinity.Similarity;
 import com.davidbracewell.apollo.linalg.SparseVector;
 import com.davidbracewell.apollo.linalg.Vector;
 
 /**
- * <p>Signature function for Cosine distance / similarity. Uses the Cosine similarity as its measure.</p>
+ * <p>Signature function for Euclidean distance</p>
  *
  * @author David B. Bracewell
  */
-public class CosineSignature implements SignatureFunction {
+public class EuclideanSignature implements SignatureFunction {
    private static final long serialVersionUID = 1L;
-
+   private final Vector[] randomProjections;
+   private final int[] offset;
+   private final int[] w;
    private final int dimension;
    private final int signatureSize;
-   private final Vector[] randomProjections;
 
    /**
-    * Instantiates a new Cosine signature.
+    * Instantiates a new Euclidean signature.
     *
     * @param signatureSize the signature size controlling the number of random projections
     * @param dimension     the dimension of the vector
+    * @param maxW          the maximum value for the W parameter which controls the random projection
     */
-   public CosineSignature(int signatureSize, int dimension) {
+   public EuclideanSignature(int signatureSize, int dimension, int maxW) {
       this.signatureSize = signatureSize;
       this.dimension = dimension;
       this.randomProjections = new Vector[signatureSize];
+      this.w = new int[signatureSize];
+      this.offset = new int[signatureSize];
       for (int i = 0; i < signatureSize; i++) {
          this.randomProjections[i] = SparseVector.randomGaussian(dimension);
+         this.w[i] = (int) Math.round(Math.random() * maxW);
+         this.offset[i] = (int) Math.floor(Math.random() * this.w[i]);
       }
+
    }
 
    @Override
    public int[] signature(Vector vector) {
       int[] sig = new int[randomProjections.length];
       for (int i = 0; i < signatureSize; i++) {
-         sig[i] = randomProjections[i].dot(vector) > 0 ? 1 : 0;
+         sig[i] = (int) Math.round((vector.dot(randomProjections[i]) + offset[i]) / (double) w[i]);
       }
       return sig;
    }
 
    @Override
    public boolean isBinary() {
-      return true;
+      return false;
    }
 
    @Override
@@ -79,7 +86,6 @@ public class CosineSignature implements SignatureFunction {
 
    @Override
    public Measure getMeasure() {
-      return Similarity.Cosine;
+      return Distance.Euclidean;
    }
-
-}// END OF CosineSignature
+}//END OF EuclideanSignature

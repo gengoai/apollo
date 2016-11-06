@@ -33,41 +33,41 @@ import java.io.Serializable;
  */
 public interface SignatureFunction extends Serializable {
 
-  /**
-   * Signature int [ ].
-   *
-   * @param vector the vector
-   * @return the int [ ]
-   */
-  int[] signature(Vector vector);
+   /**
+    * Signature int [ ].
+    *
+    * @param vector the vector
+    * @return the int [ ]
+    */
+   int[] signature(Vector vector);
 
-  /**
-   * Is binary boolean.
-   *
-   * @return the boolean
-   */
-  boolean isBinary();
+   /**
+    * Is binary boolean.
+    *
+    * @return the boolean
+    */
+   boolean isBinary();
 
-  /**
-   * Gets dimension.
-   *
-   * @return the dimension
-   */
-  int getDimension();
+   /**
+    * Gets dimension.
+    *
+    * @return the dimension
+    */
+   int getDimension();
 
-  /**
-   * Gets signature size.
-   *
-   * @return the signature size
-   */
-  int getSignatureSize();
+   /**
+    * Gets signature size.
+    *
+    * @return the signature size
+    */
+   int getSignatureSize();
 
-  /**
-   * Gets measure.
-   *
-   * @return the measure
-   */
-  Measure getMeasure();
+   /**
+    * Gets measure.
+    *
+    * @return the measure
+    */
+   Measure getMeasure();
 
 
 }//END OF HashingFunction

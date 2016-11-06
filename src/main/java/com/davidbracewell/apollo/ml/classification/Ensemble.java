@@ -14,37 +14,33 @@ import java.util.List;
  * @author David B. Bracewell
  */
 public class Ensemble extends Classifier {
-  private static final long serialVersionUID = 1L;
-  List<Classifier> models;
+   private static final long serialVersionUID = 1L;
+   List<Classifier> models;
 
-  /**
-   * Instantiates a new Classifier.
-   *
-   * @param encoderPair   the encoder pair
-   * @param preprocessors the preprocessors
-   */
-  protected Ensemble(@NonNull EncoderPair encoderPair, @NonNull PreprocessorList<Instance> preprocessors) {
-    super(encoderPair, preprocessors);
-  }
+   /**
+    * Instantiates a new Classifier.
+    *
+    * @param encoderPair   the encoder pair
+    * @param preprocessors the preprocessors
+    */
+   protected Ensemble(@NonNull EncoderPair encoderPair, @NonNull PreprocessorList<Instance> preprocessors) {
+      super(encoderPair, preprocessors);
+   }
 
 
-  @Override
-  public Classification classify(@NonNull Instance instance) {
-    Counter<String> results = Counters.newCounter();
-    for (Classifier model : models) {
-      results.merge(model.classify(instance).asCounter());
-    }
-    results = results.divideBySum();
-    double[] dist = new double[numberOfLabels()];
-    for (int ci = 0; ci < numberOfLabels(); ci++) {
-      dist[ci] = results.get(decodeLabel(ci).toString());
-    }
-    return new Classification(dist, getLabelEncoder());
-  }
+   @Override
+   public Classification classify(@NonNull Instance instance) {
+      Counter<String> results = Counters.newCounter();
+      for (Classifier model : models) {
+         results.increment(model.classify(instance).getResult());
+      }
+      results.divideBySum();
+      return createResult(results);
+   }
 
-  @Override
-  public Classification classify(Vector vector) {
-    throw new IllegalAccessError();
-  }
+   @Override
+   public Classification classify(Vector vector) {
+      throw new IllegalAccessError();
+   }
 
 }// END OF Ensemble

@@ -27,6 +27,7 @@ import com.davidbracewell.apollo.ml.IndexEncoder;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.Model;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
+import com.davidbracewell.collection.counter.Counter;
 import com.davidbracewell.collection.counter.MultiCounter;
 import com.google.common.base.Preconditions;
 import lombok.NonNull;
@@ -91,6 +92,13 @@ public abstract class Classifier implements Model {
     */
    protected Classification createResult(double[] distribution) {
       return new Classification(distribution, getLabelEncoder());
+   }
+
+   protected Classification createResult(Counter<String> distribution) {
+      double[] dis = new double[getLabelEncoder().size()];
+      distribution.divideBySum();
+      distribution.forEach((i, v) -> dis[(int) encodeLabel(i)] = v);
+      return new Classification(dis, getLabelEncoder());
    }
 
    @Override

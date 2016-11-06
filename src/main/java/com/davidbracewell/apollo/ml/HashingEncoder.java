@@ -23,10 +23,10 @@ public class HashingEncoder implements Encoder, Serializable {
    private int numberOfFeatures = Integer.MAX_VALUE;
 
    /**
-    * Instantiates a new Hashing encoder.
+    * Instantiates a new Hashing encoder with a default of 3000 features.
     */
    public HashingEncoder() {
-
+      this(3000);
    }
 
    /**

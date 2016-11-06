@@ -27,16 +27,42 @@ import java.io.PrintStream;
 import java.util.Collection;
 
 /**
+ * The interface Evaluation.
+ *
+ * @param <T> the type parameter
+ * @param <M> the type parameter
  * @author David B. Bracewell
  */
 public interface Evaluation<T extends Example, M extends Model> {
 
-  void evaluate(M model, Dataset<T> dataset);
+   /**
+    * Evaluate.
+    *
+    * @param model   the model
+    * @param dataset the dataset
+    */
+   void evaluate(M model, Dataset<T> dataset);
 
-  void evaluate(M model, Collection<T> dataset);
+   /**
+    * Evaluate.
+    *
+    * @param model   the model
+    * @param dataset the dataset
+    */
+   void evaluate(M model, Collection<T> dataset);
 
-  void merge(Evaluation<T, M> evaluation);
+   /**
+    * Merge.
+    *
+    * @param evaluation the evaluation
+    */
+   void merge(Evaluation<T, M> evaluation);
 
-  void output(PrintStream printStream);
+   /**
+    * Output.
+    *
+    * @param printStream the print stream
+    */
+   void output(PrintStream printStream);
 
 }//END OF Evaluation

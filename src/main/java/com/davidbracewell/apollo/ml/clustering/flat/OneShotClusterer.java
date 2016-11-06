@@ -39,101 +39,101 @@ import java.util.List;
  * @author David B. Bracewell
  */
 public class OneShotClusterer extends Clusterer<FlatClustering> {
-  private static final long serialVersionUID = 1L;
-  private DistanceMeasure distanceMeasure;
-  private double threshold;
+   private static final long serialVersionUID = 1L;
+   private DistanceMeasure distanceMeasure;
+   private double threshold;
 
-  /**
-   * Instantiates a new One shot clusterer.
-   *
-   * @param threshold the threshold
-   * @param measure   the measure
-   */
-  public OneShotClusterer(double threshold, DistanceMeasure measure) {
-    this.threshold = threshold;
-    this.distanceMeasure = Preconditions.checkNotNull(measure);
-  }
+   /**
+    * Instantiates a new One shot clusterer.
+    *
+    * @param threshold the threshold
+    * @param measure   the measure
+    */
+   public OneShotClusterer(double threshold, DistanceMeasure measure) {
+      this.threshold = threshold;
+      this.distanceMeasure = Preconditions.checkNotNull(measure);
+   }
 
-  @Override
-  public FlatClustering cluster(@NonNull MStream<Vector> instanceStream) {
-    OneShotClustering clustering = new OneShotClustering(getEncoderPair(), distanceMeasure);
+   @Override
+   public FlatClustering cluster(@NonNull MStream<Vector> instanceStream) {
+      OneShotClustering clustering = new OneShotClustering(getEncoderPair(), distanceMeasure);
 
-    List<Vector> instances = instanceStream.collect();
-    for (Vector ii : instances) {
-      double minD = Double.POSITIVE_INFINITY;
-      int minI = 0;
-      for (int k = 0; k < clustering.size(); k++) {
-        double d = distance(ii, clustering.get(k));
-        if (d < minD) {
-          minD = d;
-          minI = k;
-        }
+      List<Vector> instances = instanceStream.collect();
+      for (Vector ii : instances) {
+         double minD = Double.POSITIVE_INFINITY;
+         int minI = 0;
+         for (int k = 0; k < clustering.size(); k++) {
+            double d = distance(ii, clustering.get(k));
+            if (d < minD) {
+               minD = d;
+               minI = k;
+            }
+         }
+
+         if (minD <= threshold) {
+            clustering.get(minI).addPoint(ii);
+         } else {
+            Cluster newCluster = new Cluster();
+            newCluster.addPoint(ii);
+            clustering.addCluster(newCluster);
+         }
+
       }
 
-      if (minD <= threshold) {
-        clustering.get(minI).addPoint(ii);
-      } else {
-        Cluster newCluster = new Cluster();
-        newCluster.addPoint(ii);
-        clustering.addCluster(newCluster);
+      for (Iterator<Cluster> itr = clustering.iterator(); itr.hasNext(); ) {
+         Cluster c = itr.next();
+         if (c == null || c.size() == 0) {
+            itr.remove();
+         }
       }
 
-    }
+      return clustering;
+   }
 
-    for (Iterator<Cluster> itr = clustering.iterator(); itr.hasNext(); ) {
-      Cluster c = itr.next();
-      if (c == null || c.size() == 0) {
-        itr.remove();
+
+   private double distance(Vector ii, Cluster cluster) {
+      double d = 0;
+      for (Vector jj : cluster) {
+         d += distanceMeasure.calculate(ii, jj);
       }
-    }
+      return d / (double) cluster.size();
+   }
 
-    return clustering;
-  }
+   /**
+    * Gets distance measure.
+    *
+    * @return the distance measure
+    */
+   public DistanceMeasure getDistanceMeasure() {
+      return distanceMeasure;
+   }
 
+   /**
+    * Sets distance measure.
+    *
+    * @param distanceMeasure the distance measure
+    */
+   public void setDistanceMeasure(DistanceMeasure distanceMeasure) {
+      this.distanceMeasure = distanceMeasure;
+   }
 
-  private double distance(Vector ii, Cluster cluster) {
-    double d = 0;
-    for (Vector jj : cluster) {
-      d += distanceMeasure.calculate(ii, jj);
-    }
-    return d / (double) cluster.size();
-  }
+   /**
+    * Gets threshold.
+    *
+    * @return the threshold
+    */
+   public double getThreshold() {
+      return threshold;
+   }
 
-  /**
-   * Gets distance measure.
-   *
-   * @return the distance measure
-   */
-  public DistanceMeasure getDistanceMeasure() {
-    return distanceMeasure;
-  }
-
-  /**
-   * Sets distance measure.
-   *
-   * @param distanceMeasure the distance measure
-   */
-  public void setDistanceMeasure(DistanceMeasure distanceMeasure) {
-    this.distanceMeasure = distanceMeasure;
-  }
-
-  /**
-   * Gets threshold.
-   *
-   * @return the threshold
-   */
-  public double getThreshold() {
-    return threshold;
-  }
-
-  /**
-   * Sets threshold.
-   *
-   * @param threshold the threshold
-   */
-  public void setThreshold(double threshold) {
-    this.threshold = threshold;
-  }
+   /**
+    * Sets threshold.
+    *
+    * @param threshold the threshold
+    */
+   public void setThreshold(double threshold) {
+      this.threshold = threshold;
+   }
 
 
 }//END OF OneShotClusterer

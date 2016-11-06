@@ -21,8 +21,8 @@
 
 package com.davidbracewell.apollo.ml.classification;
 
-import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.ml.Instance;
+import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.reflection.Reflect;
 import com.davidbracewell.reflection.ReflectionException;
@@ -36,43 +36,43 @@ import java.util.Map;
  * @author David B. Bracewell
  */
 public abstract class BinaryClassifierLearner extends ClassifierLearner {
-  private static final long serialVersionUID = 1L;
+   private static final long serialVersionUID = 1L;
 
-  @Override
-  protected Classifier trainImpl(Dataset<Instance> dataset) {
-    return trainForLabel(dataset, 1.0);
-  }
+   @Override
+   protected Classifier trainImpl(Dataset<Instance> dataset) {
+      return trainForLabel(dataset, 1.0);
+   }
 
-  /**
-   * Train from supplier classifier.
-   *
-   * @param dataset   the dataset
-   * @param trueLabel the true label
-   * @return the classifier
-   */
-  protected abstract Classifier trainForLabel(Dataset<Instance> dataset, double trueLabel);
+   /**
+    * Train from supplier classifier.
+    *
+    * @param dataset   the dataset
+    * @param trueLabel the true label
+    * @return the classifier
+    */
+   protected abstract Classifier trainForLabel(Dataset<Instance> dataset, double trueLabel);
 
 
-  /**
-   * One vs rest classifier learner.
-   *
-   * @return the classifier learner
-   */
-  public final ClassifierLearner oneVsRest() {
-    final Map<String, Object> parameters = Cast.as(getParameters());
-    final Class<? extends BinaryClassifierLearner> clazz = this.getClass();
-    return new OneVsRestLearner(() -> {
-      BinaryClassifierLearner learner = null;
-      try {
-        learner = Reflect.onClass(clazz).create().get();
-        learner.setParameters(parameters);
-        return learner;
-      } catch (ReflectionException e) {
-        throw Throwables.propagate(e);
+   /**
+    * One vs rest classifier learner.
+    *
+    * @return the classifier learner
+    */
+   public final ClassifierLearner oneVsRest() {
+      final Map<String, Object> parameters = Cast.as(getParameters());
+      final Class<? extends BinaryClassifierLearner> clazz = this.getClass();
+      return new OneVsRestLearner(() -> {
+         BinaryClassifierLearner learner = null;
+         try {
+            learner = Reflect.onClass(clazz).create().get();
+            learner.setParameters(parameters);
+            return learner;
+         } catch (ReflectionException e) {
+            throw Throwables.propagate(e);
+         }
       }
-    }
-    );
-  }
+      );
+   }
 
 
 }//END OF BinaryClassifierLearner

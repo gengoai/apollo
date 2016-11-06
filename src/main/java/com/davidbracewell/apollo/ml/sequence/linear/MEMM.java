@@ -19,29 +19,29 @@ import java.util.List;
  * @author David B. Bracewell
  */
 public class MEMM extends SequenceLabeler {
-  private static final long serialVersionUID = 1L;
-  LibLinearModel model;
+   private static final long serialVersionUID = 1L;
+   LibLinearModel model;
 
-  /**
-   * Instantiates a new Model.
-   *
-   * @param labelEncoder       the label encoder
-   * @param featureEncoder     the feature encoder
-   * @param preprocessors      the preprocessors
-   * @param transitionFeatures the transition features
-   * @param validator          the Validator
-   */
-  public MEMM(LabelEncoder labelEncoder, Encoder featureEncoder, PreprocessorList<Sequence> preprocessors, TransitionFeatures transitionFeatures, SequenceValidator validator) {
-    super(labelEncoder, featureEncoder, preprocessors, transitionFeatures, validator);
-  }
+   /**
+    * Instantiates a new Model.
+    *
+    * @param labelEncoder       the label encoder
+    * @param featureEncoder     the feature encoder
+    * @param preprocessors      the preprocessors
+    * @param transitionFeatures the transition features
+    * @param validator          the Validator
+    */
+   public MEMM(LabelEncoder labelEncoder, Encoder featureEncoder, PreprocessorList<Sequence> preprocessors, TransitionFeatures transitionFeatures, SequenceValidator validator) {
+      super(labelEncoder, featureEncoder, preprocessors, transitionFeatures, validator);
+   }
 
-  @Override
-  public double[] estimate(Iterator<Feature> observation, Iterator<String> transitions) {
-    List<Feature> features = Lists.newArrayList(observation);
-    while (transitions.hasNext()) {
-      features.add(Feature.TRUE(transitions.next()));
-    }
-    return model.classify(Instance.create(features).toVector(getEncoderPair())).distribution();
-  }
+   @Override
+   public double[] estimate(Iterator<Feature> observation, Iterator<String> transitions) {
+      List<Feature> features = Lists.newArrayList(observation);
+      while (transitions.hasNext()) {
+         features.add(Feature.TRUE(transitions.next()));
+      }
+      return model.classify(Instance.create(features).toVector(getEncoderPair())).distribution();
+   }
 
 }// END OF MEMM

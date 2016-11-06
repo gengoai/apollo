@@ -9,15 +9,15 @@ import java.io.Serializable;
  */
 public interface SequenceValidator extends Serializable {
 
-  SequenceValidator ALWAYS_TRUE = new SequenceValidator() {
-    private static final long serialVersionUID = 1L;
+   SequenceValidator ALWAYS_TRUE = new SequenceValidator() {
+      private static final long serialVersionUID = 1L;
 
-    @Override
-    public boolean isValid(String label, String previousLabel, Instance instance) {
-      return true;
-    }
-  };
+      @Override
+      public boolean isValid(String label, String previousLabel, Instance instance) {
+         return true;
+      }
+   };
 
-  boolean isValid(String label, String previousLabel, Instance instance);
+   boolean isValid(String label, String previousLabel, Instance instance);
 
 }// END OF SequenceValidator

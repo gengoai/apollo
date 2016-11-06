@@ -24,8 +24,6 @@ package com.davidbracewell.apollo.ml.classification;
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.EncoderPair;
 import com.davidbracewell.apollo.ml.Instance;
-import com.davidbracewell.apollo.ml.classification.Classifier;
-import com.davidbracewell.apollo.ml.classification.Classification;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import lombok.NonNull;
 
@@ -35,32 +33,32 @@ import lombok.NonNull;
  * @author David B. Bracewell
  */
 public class BinaryGLM extends Classifier {
-  private static final long serialVersionUID = 1L;
-  /**
-   * The Weights.
-   */
-  Vector weights;
-  /**
-   * The Bias.
-   */
-  double bias;
+   private static final long serialVersionUID = 1L;
+   /**
+    * The Weights.
+    */
+   Vector weights;
+   /**
+    * The Bias.
+    */
+   double bias;
 
-  /**
-   * Instantiates a new Classifier.
-   *
-   * @param encoderPair   the encoder pair
-   * @param preprocessors the preprocessors
-   */
-  protected BinaryGLM(EncoderPair encoderPair, @NonNull PreprocessorList<Instance> preprocessors) {
-    super(encoderPair, preprocessors);
-  }
+   /**
+    * Instantiates a new Classifier.
+    *
+    * @param encoderPair   the encoder pair
+    * @param preprocessors the preprocessors
+    */
+   protected BinaryGLM(EncoderPair encoderPair, @NonNull PreprocessorList<Instance> preprocessors) {
+      super(encoderPair, preprocessors);
+   }
 
-  @Override
-  public Classification classify(Vector vector) {
-    double[] dist = new double[2];
-    dist[1] = weights.dot(vector) + bias;
-    dist[0] = -dist[1];
-    return createResult(dist);
-  }
+   @Override
+   public Classification classify(Vector vector) {
+      double[] dist = new double[2];
+      dist[1] = weights.dot(vector) + bias;
+      dist[0] = -dist[1];
+      return createResult(dist);
+   }
 
 }//END OF BinaryGLM

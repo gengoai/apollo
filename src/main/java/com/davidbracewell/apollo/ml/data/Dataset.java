@@ -104,7 +104,7 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
     *
     * @return A cached version of the dataset
     */
-   public Dataset<T> cache(){
+   public Dataset<T> cache() {
       return this;
    }
 
@@ -181,7 +181,7 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
    }
 
    @Override
-   public void close() throws Exception{
+   public void close() throws Exception {
 
    }
 

@@ -10,26 +10,26 @@ import java.io.Serializable;
  * @author David B. Bracewell
  */
 public class ApacheClusterable implements Clusterable, Serializable {
-  private static final long serialVersionUID = 1L;
-  private volatile Vector vector;
-  private Lazy<double[]> point = new Lazy<>(() -> vector.toArray());
+   private static final long serialVersionUID = 1L;
+   private volatile Vector vector;
+   private Lazy<double[]> point = new Lazy<>(() -> vector.toArray());
 
-  public ApacheClusterable(Vector vector) {
-    this.vector = vector;
-  }
+   public ApacheClusterable(Vector vector) {
+      this.vector = vector;
+   }
 
-  public Vector getVector() {
-    return vector;
-  }
+   public Vector getVector() {
+      return vector;
+   }
 
-  @Override
-  public double[] getPoint() {
-    return point.get();
-  }
+   @Override
+   public double[] getPoint() {
+      return point.get();
+   }
 
-  @Override
-  public String toString() {
-    return vector.toString();
-  }
+   @Override
+   public String toString() {
+      return vector.toString();
+   }
 
 }// END OF ApacheClusterable

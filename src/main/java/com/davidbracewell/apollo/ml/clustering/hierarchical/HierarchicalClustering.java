@@ -42,109 +42,109 @@ import java.util.List;
  * @author David B. Bracewell
  */
 public class HierarchicalClustering implements Clustering, Serializable {
-  private static final long serialVersionUID = 1L;
-  Cluster root;
-  Linkage linkage;
-  private EncoderPair encoderPair;
-  private DistanceMeasure distanceMeasure;
+   private static final long serialVersionUID = 1L;
+   Cluster root;
+   Linkage linkage;
+   private EncoderPair encoderPair;
+   private DistanceMeasure distanceMeasure;
 
-  /**
-   * Instantiates a new Hierarchical clustering.
-   *
-   * @param encoderPair the encoder pair
-   */
-  public HierarchicalClustering(@NonNull EncoderPair encoderPair, @NonNull DistanceMeasure distanceMeasure) {
-    this.encoderPair = encoderPair;
-    this.distanceMeasure = distanceMeasure;
-  }
+   /**
+    * Instantiates a new Hierarchical clustering.
+    *
+    * @param encoderPair the encoder pair
+    */
+   public HierarchicalClustering(@NonNull EncoderPair encoderPair, @NonNull DistanceMeasure distanceMeasure) {
+      this.encoderPair = encoderPair;
+      this.distanceMeasure = distanceMeasure;
+   }
 
 
-  @Override
-  public DistanceMeasure getDistanceMeasure() {
-    return distanceMeasure;
-  }
+   @Override
+   public DistanceMeasure getDistanceMeasure() {
+      return distanceMeasure;
+   }
 
-  @Override
-  public boolean isFlat() {
-    return false;
-  }
+   @Override
+   public boolean isFlat() {
+      return false;
+   }
 
-  @Override
-  public EncoderPair getEncoderPair() {
-    return encoderPair;
-  }
+   @Override
+   public EncoderPair getEncoderPair() {
+      return encoderPair;
+   }
 
-  @Override
-  public int hardCluster(@NonNull Instance instance) {
-    return 0;
-  }
+   @Override
+   public int hardCluster(@NonNull Instance instance) {
+      return 0;
+   }
 
-  @Override
-  public Iterator<Cluster> iterator() {
-    return Collections.singleton(root).iterator();
-  }
+   @Override
+   public Iterator<Cluster> iterator() {
+      return Collections.singleton(root).iterator();
+   }
 
-  /**
-   * Gets root.
-   *
-   * @return the root
-   */
-  public Cluster getRoot() {
-    return root;
-  }
+   /**
+    * Gets root.
+    *
+    * @return the root
+    */
+   public Cluster getRoot() {
+      return root;
+   }
 
-  /**
-   * As flat clustering.
-   *
-   * @param threshold the threshold
-   * @return the clustering
-   */
-  public Clustering asFlat(double threshold) {
-    List<Cluster> flat = new ArrayList<>();
-    process(root, flat, threshold);
-    KMeansClustering kmeans = new KMeansClustering(getEncoderPair(), getDistanceMeasure());
-    flat.forEach(kmeans::addCluster);
-    return kmeans;
-  }
+   /**
+    * As flat clustering.
+    *
+    * @param threshold the threshold
+    * @return the clustering
+    */
+   public Clustering asFlat(double threshold) {
+      List<Cluster> flat = new ArrayList<>();
+      process(root, flat, threshold);
+      KMeansClustering kmeans = new KMeansClustering(getEncoderPair(), getDistanceMeasure());
+      flat.forEach(kmeans::addCluster);
+      return kmeans;
+   }
 
-  @Override
-  public boolean isHierarchical() {
-    return true;
-  }
+   @Override
+   public boolean isHierarchical() {
+      return true;
+   }
 
-  @Override
-  public int size() {
-    return 1;
-  }
+   @Override
+   public int size() {
+      return 1;
+   }
 
-  @Override
-  public Cluster get(int index) {
-    return getClusters().get(index);
-  }
+   @Override
+   public Cluster get(int index) {
+      return getClusters().get(index);
+   }
 
-  @Override
-  public List<Cluster> getClusters() {
-    return Collections.singletonList(root);
-  }
+   @Override
+   public List<Cluster> getClusters() {
+      return Collections.singletonList(root);
+   }
 
-  @Override
-  public double[] softCluster(@NonNull Instance instance) {
-    return new double[]{
-      linkage.calculate(instance.toVector(getEncoderPair()), root, getDistanceMeasure())
-    };
-  }
+   @Override
+   public double[] softCluster(@NonNull Instance instance) {
+      return new double[]{
+         linkage.calculate(instance.toVector(getEncoderPair()), root, getDistanceMeasure())
+      };
+   }
 
-  private void process(Cluster c, List<Cluster> flat, double threshold) {
-    if (c == null) {
-      return;
-    }
-    if (c.getScore() <= threshold) {
-      flat.add(c);
-    } else {
-      process(c.getLeft(), flat, threshold);
-      process(c.getRight(), flat, threshold);
-    }
-  }
+   private void process(Cluster c, List<Cluster> flat, double threshold) {
+      if (c == null) {
+         return;
+      }
+      if (c.getScore() <= threshold) {
+         flat.add(c);
+      } else {
+         process(c.getLeft(), flat, threshold);
+         process(c.getRight(), flat, threshold);
+      }
+   }
 
 
 }//END OF HierarchicalClustering

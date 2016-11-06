@@ -43,92 +43,92 @@ import java.util.stream.Collectors;
  * @author David B. Bracewell
  */
 public class NameFilter implements FilterProcessor<Instance>, InstancePreprocessor, ArrayValue {
-  private static final long serialVersionUID = 1L;
-  private final Set<Pattern> patterns = new HashSet<>();
+   private static final long serialVersionUID = 1L;
+   private final Set<Pattern> patterns = new HashSet<>();
 
-  /**
-   * Instantiates a new Name filter.
-   *
-   * @param patterns the patterns
-   */
-  public NameFilter(@NonNull String... patterns) {
-    for (String pattern : patterns) {
-      this.patterns.add(Pattern.compile(pattern));
-    }
-  }
-
-  protected NameFilter() {
-  }
-
-  @Override
-  public void fit(Dataset<Instance> dataset) {
-  }
-
-  @Override
-  public void reset() {
-  }
-
-  @Override
-  public String describe() {
-    return "NameFilter{patterns=" + patterns + "}";
-  }
-
-
-  @Override
-  public Instance apply(Instance example) {
-    return Instance.create(
-      example.getFeatures().stream().filter(f -> {
-        for (Pattern pattern : patterns) {
-          if (pattern.matcher(f.getName()).find()) {
-            return false;
-          }
-        }
-        return true;
-      }).collect(Collectors.toList()),
-      example.getLabel()
-    );
-  }
-
-  @Override
-  public void write(StructuredWriter writer) throws IOException {
-    for (Pattern pattern : patterns) {
-      writer.beginObject();
-      writer.writeKeyValue("pattern", pattern.toString());
-      writer.writeKeyValue("flags", pattern.flags());
-      writer.endObject();
-    }
-  }
-
-  @Override
-  public boolean requiresFit() {
-    return false;
-  }
-
-  @Override
-  public void read(StructuredReader reader) throws IOException {
-    reset();
-    while (reader.peek() != ElementType.END_ARRAY) {
-      reader.beginObject();
-      int flags = -1;
-      String pattern = StringUtils.EMPTY;
-      while (reader.peek() != ElementType.END_OBJECT) {
-        switch (reader.peekName()) {
-          case "pattern":
-            pattern = reader.nextKeyValue().v2.asString();
-            break;
-          case "flags":
-            flags = reader.nextKeyValue().v2.asIntegerValue();
-            break;
-        }
+   /**
+    * Instantiates a new Name filter.
+    *
+    * @param patterns the patterns
+    */
+   public NameFilter(@NonNull String... patterns) {
+      for (String pattern : patterns) {
+         this.patterns.add(Pattern.compile(pattern));
       }
-      patterns.add(Pattern.compile(pattern, flags));
-      reader.endObject();
-    }
-  }
+   }
 
-  @Override
-  public String toString() {
-    return describe();
-  }
+   protected NameFilter() {
+   }
+
+   @Override
+   public void fit(Dataset<Instance> dataset) {
+   }
+
+   @Override
+   public void reset() {
+   }
+
+   @Override
+   public String describe() {
+      return "NameFilter{patterns=" + patterns + "}";
+   }
+
+
+   @Override
+   public Instance apply(Instance example) {
+      return Instance.create(
+         example.getFeatures().stream().filter(f -> {
+            for (Pattern pattern : patterns) {
+               if (pattern.matcher(f.getName()).find()) {
+                  return false;
+               }
+            }
+            return true;
+         }).collect(Collectors.toList()),
+         example.getLabel()
+                            );
+   }
+
+   @Override
+   public void write(StructuredWriter writer) throws IOException {
+      for (Pattern pattern : patterns) {
+         writer.beginObject();
+         writer.writeKeyValue("pattern", pattern.toString());
+         writer.writeKeyValue("flags", pattern.flags());
+         writer.endObject();
+      }
+   }
+
+   @Override
+   public boolean requiresFit() {
+      return false;
+   }
+
+   @Override
+   public void read(StructuredReader reader) throws IOException {
+      reset();
+      while (reader.peek() != ElementType.END_ARRAY) {
+         reader.beginObject();
+         int flags = -1;
+         String pattern = StringUtils.EMPTY;
+         while (reader.peek() != ElementType.END_OBJECT) {
+            switch (reader.peekName()) {
+               case "pattern":
+                  pattern = reader.nextKeyValue().v2.asString();
+                  break;
+               case "flags":
+                  flags = reader.nextKeyValue().v2.asIntegerValue();
+                  break;
+            }
+         }
+         patterns.add(Pattern.compile(pattern, flags));
+         reader.endObject();
+      }
+   }
+
+   @Override
+   public String toString() {
+      return describe();
+   }
 
 }//END OF RemoveFilter

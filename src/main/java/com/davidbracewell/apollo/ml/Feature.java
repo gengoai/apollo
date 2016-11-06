@@ -68,26 +68,6 @@ public class Feature implements Serializable, Comparable<Feature>, Copyable<Feat
       return new Feature(featureName + "=" + Joiner.on('_').join(featureComponent), 1.0);
    }
 
-   private String removePosition(String n) {
-      return n.replaceAll("\\[[^\\]]+?\\]$", "");
-   }
-
-   public String getPredicate() {
-      int index = name.indexOf('=');
-      if (index > 0) {
-         return name.substring(index + 1);
-      }
-      return name;
-   }
-
-   public String getPrefix() {
-      int index = name.indexOf('=');
-      if (index > 0) {
-         return removePosition(name.substring(0, index));
-      }
-      return StringUtils.EMPTY;
-   }
-
    /**
     * Creates a real valued feature with the given name and value.
     *
@@ -100,13 +80,43 @@ public class Feature implements Serializable, Comparable<Feature>, Copyable<Feat
    }
 
    @Override
-   public int compareTo(Feature o) {
-      return o == null ? 1 : this.name.compareTo(o.name);
+   public int compareTo(@NonNull Feature o) {
+      return this.name.compareTo(o.name);
    }
 
    @Override
    public Feature copy() {
       return new Feature(name, value);
+   }
+
+   /**
+    * Gets predicate.
+    *
+    * @return the predicate
+    */
+   public String getPredicate() {
+      int index = name.indexOf('=');
+      if (index > 0) {
+         return name.substring(index + 1);
+      }
+      return name;
+   }
+
+   /**
+    * Gets prefix.
+    *
+    * @return the prefix
+    */
+   public String getPrefix() {
+      int index = name.indexOf('=');
+      if (index > 0) {
+         return removePosition(name.substring(0, index));
+      }
+      return StringUtils.EMPTY;
+   }
+
+   private String removePosition(String n) {
+      return n.replaceAll("\\[[^\\]]+?\\]$", "");
    }
 
 }//END OF Feature

@@ -5,7 +5,7 @@ package com.davidbracewell.apollo.ml;
  */
 public interface LabelEncoder extends Encoder {
 
-  @Override
-  LabelEncoder createNew();
-  
+   @Override
+   LabelEncoder createNew();
+
 }//END OF LabelEncoder

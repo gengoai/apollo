@@ -3,7 +3,6 @@ package com.davidbracewell.apollo.ml.data;
 import com.davidbracewell.apollo.ml.Encoder;
 import com.davidbracewell.apollo.ml.Example;
 import com.davidbracewell.apollo.ml.LabelEncoder;
-import com.davidbracewell.apollo.ml.preprocess.Preprocessor;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.collection.Collect;
 import com.davidbracewell.conversion.Cast;
@@ -53,7 +52,7 @@ public class OffHeapDataset<T extends Example> extends Dataset<T> {
                                       "part-" + id.incrementAndGet() + ".json");
                                    writeInstancesTo(StreamingContext.local().stream(list), r);
                                 }
-                  );
+                               );
       }
    }
 
@@ -103,7 +102,7 @@ public class OffHeapDataset<T extends Example> extends Dataset<T> {
                                                            .flatMap(function(r -> r.readLines().stream()))
                                                            .map(
                                                               function(line -> Cast.as(Example.fromJson(line, clazz))))
-      );
+                                            );
    }
 
    private void writeInstancesTo(MStream<T> instances, Resource file) {

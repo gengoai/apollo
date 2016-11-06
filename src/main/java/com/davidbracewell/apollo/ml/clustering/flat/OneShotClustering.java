@@ -39,38 +39,38 @@ import static com.davidbracewell.tuple.Tuples.$;
  * @author David B. Bracewell
  */
 class OneShotClustering extends FlatClustering {
-  private static final long serialVersionUID = 1L;
+   private static final long serialVersionUID = 1L;
 
-  OneShotClustering(@NonNull EncoderPair encoderPair, DistanceMeasure distanceMeasure) {
-    super(encoderPair, distanceMeasure);
-  }
+   OneShotClustering(@NonNull EncoderPair encoderPair, DistanceMeasure distanceMeasure) {
+      super(encoderPair, distanceMeasure);
+   }
 
-  @Override
-  public int hardCluster(@NonNull Instance instance) {
-    return Optimum.MINIMUM.optimum(softCluster(instance)).v1;
-  }
+   @Override
+   public int hardCluster(@NonNull Instance instance) {
+      return Optimum.MINIMUM.optimum(softCluster(instance)).v1;
+   }
 
-  @Override
-  public double[] softCluster(Instance instance) {
-    double[] distances = new double[size()];
-    Arrays.fill(distances, Double.POSITIVE_INFINITY);
-    FeatureVector vector = instance.toVector(getEncoderPair());
-    Tuple2<Integer, Double> best = StreamingContext.local().stream(this)
-      .parallel()
-      .map(cluster -> {
-          double d = 0;
-          for (Vector jj : cluster) {
-            d += getDistanceMeasure().calculate(vector, jj);
-          }
-          return $(cluster.getId(), d);
-        }
-      ).min((t1, t2) -> Double.compare(t1.v2, t2.v2))
-      .orElse($(-1, 0.0));
+   @Override
+   public double[] softCluster(Instance instance) {
+      double[] distances = new double[size()];
+      Arrays.fill(distances, Double.POSITIVE_INFINITY);
+      FeatureVector vector = instance.toVector(getEncoderPair());
+      Tuple2<Integer, Double> best = StreamingContext.local().stream(this)
+                                                     .parallel()
+                                                     .map(cluster -> {
+                                                             double d = 0;
+                                                             for (Vector jj : cluster) {
+                                                                d += getDistanceMeasure().calculate(vector, jj);
+                                                             }
+                                                             return $(cluster.getId(), d);
+                                                          }
+                                                         ).min((t1, t2) -> Double.compare(t1.v2, t2.v2))
+                                                     .orElse($(-1, 0.0));
 
-    if (best.v1 != -1) {
-      distances[best.v1] = best.v2;
-    }
-    return distances;
-  }
+      if (best.v1 != -1) {
+         distances[best.v1] = best.v2;
+      }
+      return distances;
+   }
 
 }//END OF OneShotClustering

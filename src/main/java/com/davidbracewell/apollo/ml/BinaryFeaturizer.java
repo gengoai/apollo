@@ -34,25 +34,24 @@ import java.util.stream.Collectors;
  * @author David B. Bracewell
  */
 public abstract class BinaryFeaturizer<T> implements Featurizer<T> {
-  private static final long serialVersionUID = 1L;
+   private static final long serialVersionUID = 1L;
 
-  @Override
-  @Cached
-  public final Set<Feature> apply(T t) {
-    if (t == null) {
-      return Collections.emptySet();
-    }
-    return applyImpl(t).stream().map(Feature::TRUE).collect(Collectors.toSet());
-  }
+   @Override
+   @Cached
+   public final Set<Feature> apply(T t) {
+      if (t == null) {
+         return Collections.emptySet();
+      }
+      return applyImpl(t).stream().map(Feature::TRUE).collect(Collectors.toSet());
+   }
 
-  /**
-   * Simplifies the creation of binary features by allowing child classes to only have to return a set of features
-   * names. Note that the values for all features are assumed to be TRUE, i.e. 1.0
-   *
-   * @param input the input to process
-   * @return the set of feature names
-   */
-  protected abstract Set<String> applyImpl(T input);
-
+   /**
+    * Simplifies the creation of binary features by allowing child classes to only have to return a set of features
+    * names. Note that the values for all features are assumed to be TRUE, i.e. 1.0
+    *
+    * @param input the input to process
+    * @return the set of feature names
+    */
+   protected abstract Set<String> applyImpl(T input);
 
 }//END OF BinaryFeaturizer

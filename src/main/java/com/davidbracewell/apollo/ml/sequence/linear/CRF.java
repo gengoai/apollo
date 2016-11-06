@@ -40,67 +40,66 @@ import java.util.List;
  * @author David B. Bracewell
  */
 public class CRF extends SequenceLabeler {
-  private static final long serialVersionUID = 1L;
-  Vector[] weights;
-  double scale = 0;
+   private static final long serialVersionUID = 1L;
+   Vector[] weights;
+   double scale = 0;
 
-  /**
-   * Instantiates a new Model.
-   *
-   * @param labelEncoder       the label encoder
-   * @param featureEncoder     the feature encoder
-   * @param preprocessors      the preprocessors
-   * @param transitionFeatures the transition features
-   * @param validator
-   */
-  public CRF(LabelEncoder labelEncoder, Encoder featureEncoder, PreprocessorList<Sequence> preprocessors, TransitionFeatures transitionFeatures, SequenceValidator validator) {
-    super(labelEncoder, featureEncoder, preprocessors, transitionFeatures, validator);
-  }
+   /**
+    * Instantiates a new Model.
+    *
+    * @param labelEncoder       the label encoder
+    * @param featureEncoder     the feature encoder
+    * @param preprocessors      the preprocessors
+    * @param transitionFeatures the transition features
+    */
+   public CRF(LabelEncoder labelEncoder, Encoder featureEncoder, PreprocessorList<Sequence> preprocessors, TransitionFeatures transitionFeatures, SequenceValidator validator) {
+      super(labelEncoder, featureEncoder, preprocessors, transitionFeatures, validator);
+   }
 
-  public CRF copy() {
-    CRF copy = new CRF(
-      getLabelEncoder(),
-      getFeatureEncoder(),
-      getPreprocessors(),
-      getTransitionFeatures(),
-      getValidator()
-    );
-    copy.scale = this.scale;
-    copy.weights = new Vector[this.weights.length];
-    for (int i = 0; i < this.weights.length; i++) {
-      copy.weights[i] = this.weights[i].copy();
-    }
-    return copy;
-  }
+   public CRF copy() {
+      CRF copy = new CRF(
+                           getLabelEncoder(),
+                           getFeatureEncoder(),
+                           getPreprocessors(),
+                           getTransitionFeatures(),
+                           getValidator()
+      );
+      copy.scale = this.scale;
+      copy.weights = new Vector[this.weights.length];
+      for (int i = 0; i < this.weights.length; i++) {
+         copy.weights[i] = this.weights[i].copy();
+      }
+      return copy;
+   }
 
-  @Override
-  public double[] estimate(Iterator<Feature> observation, Iterator<String> transitions) {
-    List<Feature> features = Lists.newArrayList(observation);
-    while (transitions.hasNext()) {
-      features.add(Feature.TRUE(transitions.next()));
-    }
-    Vector instance = Instance.create(features).toVector(getEncoderPair());
-    double[] dist = new double[weights.length];
-    for (int i = 0; i < dist.length; i++) {
-      dist[i] = weights[i].dot(instance) * scale;
-    }
-    return dist;
-  }
+   @Override
+   public double[] estimate(Iterator<Feature> observation, Iterator<String> transitions) {
+      List<Feature> features = Lists.newArrayList(observation);
+      while (transitions.hasNext()) {
+         features.add(Feature.TRUE(transitions.next()));
+      }
+      Vector instance = Instance.create(features).toVector(getEncoderPair());
+      double[] dist = new double[weights.length];
+      for (int i = 0; i < dist.length; i++) {
+         dist[i] = weights[i].dot(instance) * scale;
+      }
+      return dist;
+   }
 
-  void rescale() {
-    if (scale != 1.0) {
-      for (Vector v : weights)
-        v.mapMultiplySelf(scale);
-      scale = 1;
-    }
-  }
+   void rescale() {
+      if (scale != 1.0) {
+         for (Vector v : weights)
+            v.mapMultiplySelf(scale);
+         scale = 1;
+      }
+   }
 
-  double mag() {
-    double norm = 0;
-    for (int i = 0; i < weights.length; i++) {
-      norm += weights[i].dot(weights[i]);
-    }
-    return norm * scale * scale;
-  }
+   double mag() {
+      double norm = 0;
+      for (int i = 0; i < weights.length; i++) {
+         norm += weights[i].dot(weights[i]);
+      }
+      return norm * scale * scale;
+   }
 
 }//END OF Crf

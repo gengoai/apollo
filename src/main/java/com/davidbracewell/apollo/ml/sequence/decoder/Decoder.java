@@ -9,6 +9,6 @@ import com.davidbracewell.apollo.ml.sequence.SequenceLabeler;
  */
 public interface Decoder {
 
-  Labeling decode(SequenceLabeler labeler, Sequence sequence);
+   Labeling decode(SequenceLabeler labeler, Sequence sequence);
 
 }//END OF Decoder

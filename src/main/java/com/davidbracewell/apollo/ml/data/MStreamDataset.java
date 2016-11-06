@@ -66,7 +66,7 @@ public class MStreamDataset<T extends Example> extends Dataset<T> {
                     getFeatureEncoder(),
                     getLabelEncoder(),
                     getPreprocessors()
-      );
+                   );
    }
 
    @Override

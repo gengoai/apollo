@@ -8,9 +8,9 @@ import com.davidbracewell.apollo.ml.preprocess.Preprocessor;
  */
 public interface TransformProcessor<T extends Example> extends Preprocessor<T> {
 
-  @Override
-  default boolean trainOnly() {
-    return false;
-  }
+   @Override
+   default boolean trainOnly() {
+      return false;
+   }
 
 }// END OF TransformProcessor

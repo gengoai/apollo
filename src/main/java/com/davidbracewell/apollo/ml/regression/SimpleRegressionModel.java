@@ -12,31 +12,31 @@ import lombok.NonNull;
  * @author David B. Bracewell
  */
 public class SimpleRegressionModel extends Regression {
-  private static final long serialVersionUID = 1L;
-  Vector weights;
-  double bias;
+   private static final long serialVersionUID = 1L;
+   Vector weights;
+   double bias;
 
-  /**
-   * Instantiates a new Regression.
-   *
-   * @param encoderPair   the encoder pair
-   * @param preprocessors the preprocessors
-   */
-  public SimpleRegressionModel(@NonNull EncoderPair encoderPair, @NonNull PreprocessorList<Instance> preprocessors) {
-    super(encoderPair, preprocessors);
-  }
+   /**
+    * Instantiates a new Regression.
+    *
+    * @param encoderPair   the encoder pair
+    * @param preprocessors the preprocessors
+    */
+   public SimpleRegressionModel(@NonNull EncoderPair encoderPair, @NonNull PreprocessorList<Instance> preprocessors) {
+      super(encoderPair, preprocessors);
+   }
 
-  @Override
-  public double estimate(@NonNull Vector vector) {
-    return bias + weights.dot(vector);
-  }
+   @Override
+   public double estimate(@NonNull Vector vector) {
+      return bias + weights.dot(vector);
+   }
 
-  @Override
-  public Counter<String> getFeatureWeights() {
-    Counter<String> out = Counters.newCounter();
-    out.set("***BIAS***", bias);
-    weights.forEachSparse(e -> out.set(decodeFeature(e.index).toString(), e.value));
-    return out;
-  }
+   @Override
+   public Counter<String> getFeatureWeights() {
+      Counter<String> out = Counters.newCounter();
+      out.set("***BIAS***", bias);
+      weights.forEachSparse(e -> out.set(decodeFeature(e.index).toString(), e.value));
+      return out;
+   }
 
 }// END OF SimpleRegressionModel

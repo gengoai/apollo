@@ -26,11 +26,7 @@ import com.davidbracewell.apollo.ml.Feature;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.LabelEncoder;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
-import com.davidbracewell.apollo.ml.sequence.Labeling;
-import com.davidbracewell.apollo.ml.sequence.Sequence;
-import com.davidbracewell.apollo.ml.sequence.SequenceLabeler;
-import com.davidbracewell.apollo.ml.sequence.SequenceValidator;
-import com.davidbracewell.apollo.ml.sequence.TransitionFeatures;
+import com.davidbracewell.apollo.ml.sequence.*;
 import com.davidbracewell.io.Resources;
 import com.davidbracewell.io.resource.Resource;
 import com.github.jcrfsuite.CrfTagger;
@@ -51,65 +47,65 @@ import java.util.List;
  * @author David B. Bracewell
  */
 public class CRFTagger extends SequenceLabeler {
-  private static final long serialVersionUID = 1L;
-  private volatile String modelFile;
-  private transient volatile CrfTagger tagger;
+   private static final long serialVersionUID = 1L;
+   private volatile String modelFile;
+   private transient volatile CrfTagger tagger;
 
-  /**
-   * Instantiates a new Model.
-   *
-   * @param labelEncoder       the label encoder
-   * @param featureEncoder     the feature encoder
-   * @param preprocessors      the preprocessors
-   * @param transitionFeatures the transition features
-   * @param modelFile          the model file
-   */
-  public CRFTagger(@NonNull LabelEncoder labelEncoder, @NonNull Encoder featureEncoder, @NonNull PreprocessorList<Sequence> preprocessors, @NonNull TransitionFeatures transitionFeatures, String modelFile, @NonNull SequenceValidator validator) {
-    super(labelEncoder, featureEncoder, preprocessors, transitionFeatures, validator);
-    this.modelFile = modelFile;
-    this.tagger = new CrfTagger(modelFile);
-  }
+   /**
+    * Instantiates a new Model.
+    *
+    * @param labelEncoder       the label encoder
+    * @param featureEncoder     the feature encoder
+    * @param preprocessors      the preprocessors
+    * @param transitionFeatures the transition features
+    * @param modelFile          the model file
+    */
+   public CRFTagger(@NonNull LabelEncoder labelEncoder, @NonNull Encoder featureEncoder, @NonNull PreprocessorList<Sequence> preprocessors, @NonNull TransitionFeatures transitionFeatures, String modelFile, @NonNull SequenceValidator validator) {
+      super(labelEncoder, featureEncoder, preprocessors, transitionFeatures, validator);
+      this.modelFile = modelFile;
+      this.tagger = new CrfTagger(modelFile);
+   }
 
-  @Override
-  public Labeling label(@NonNull Sequence sequence) {
-    LibraryLoader.INSTANCE.load();
-    ItemSequence seq = new ItemSequence();
-    for (Instance instance : sequence.asInstances()) {
-      Item item = new Item();
-      for (Feature f : instance) {
-        item.add(new Attribute(f.getName(), f.getValue()));
+   @Override
+   public Labeling label(@NonNull Sequence sequence) {
+      LibraryLoader.INSTANCE.load();
+      ItemSequence seq = new ItemSequence();
+      for (Instance instance : sequence.asInstances()) {
+         Item item = new Item();
+         for (Feature f : instance) {
+            item.add(new Attribute(f.getName(), f.getValue()));
+         }
+         seq.add(item);
       }
-      seq.add(item);
-    }
-    List<Pair<String, Double>> tags = tagger.tag(seq);
-    Labeling lr = new Labeling(sequence.size());
-    for (int i = 0; i < tags.size(); i++) {
-      lr.setLabel(i, tags.get(i).first, tags.get(i).second);
-    }
-    return lr;
-  }
+      List<Pair<String, Double>> tags = tagger.tag(seq);
+      Labeling lr = new Labeling(sequence.size());
+      for (int i = 0; i < tags.size(); i++) {
+         lr.setLabel(i, tags.get(i).first, tags.get(i).second);
+      }
+      return lr;
+   }
 
-  @Override
-  public double[] estimate(Iterator<Feature> observation, Iterator<String> transitions) {
-    return null;
-  }
+   @Override
+   public double[] estimate(Iterator<Feature> observation, Iterator<String> transitions) {
+      return null;
+   }
 
-  private void writeObject(java.io.ObjectOutputStream stream) throws IOException {
-    byte[] modelBytes = Base64.getEncoder().encode(Resources.from(modelFile).readBytes());
-    stream.writeInt(modelBytes.length);
-    stream.write(modelBytes);
-  }
+   private void writeObject(java.io.ObjectOutputStream stream) throws IOException {
+      byte[] modelBytes = Base64.getEncoder().encode(Resources.from(modelFile).readBytes());
+      stream.writeInt(modelBytes.length);
+      stream.write(modelBytes);
+   }
 
-  private void readObject(java.io.ObjectInputStream stream) throws IOException, ClassNotFoundException {
-    LibraryLoader.INSTANCE.load();
-    Resource tmp = Resources.temporaryFile();
-    int length = stream.readInt();
-    byte[] bytes = new byte[length];
-    stream.readFully(bytes);
-    tmp.write(Base64.getDecoder().decode(bytes));
-    this.modelFile = tmp.asFile().get().getAbsolutePath();
-    this.tagger = new CrfTagger(modelFile);
-  }
+   private void readObject(java.io.ObjectInputStream stream) throws IOException, ClassNotFoundException {
+      LibraryLoader.INSTANCE.load();
+      Resource tmp = Resources.temporaryFile();
+      int length = stream.readInt();
+      byte[] bytes = new byte[length];
+      stream.readFully(bytes);
+      tmp.write(Base64.getDecoder().decode(bytes));
+      this.modelFile = tmp.asFile().get().getAbsolutePath();
+      this.tagger = new CrfTagger(modelFile);
+   }
 
 
 }// END OF CRFTagger

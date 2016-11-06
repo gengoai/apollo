@@ -19,52 +19,52 @@ public abstract class DataSource<T extends Example> implements Serializable {
 
    private static final long serialVersionUID = -5449068835846637436L;
    private final Resource resource;
-  private StreamingContext streamingContext = StreamingContext.local();
+   private StreamingContext streamingContext = StreamingContext.local();
 
-  /**
-   * Instantiates a new Data source.
-   *
-   * @param resource the resource
-   */
-  public DataSource(Resource resource) {
-    this.resource = resource;
-  }
+   /**
+    * Instantiates a new Data source.
+    *
+    * @param resource the resource
+    */
+   public DataSource(Resource resource) {
+      this.resource = resource;
+   }
 
 
-  /**
-   * Gets resource.
-   *
-   * @return the resource
-   */
-  public Resource getResource() {
-    return resource;
-  }
+   /**
+    * Gets resource.
+    *
+    * @return the resource
+    */
+   public Resource getResource() {
+      return resource;
+   }
 
-  /**
-   * Gets streaming context.
-   *
-   * @return the streaming context
-   */
-  public StreamingContext getStreamingContext() {
-    return streamingContext;
-  }
+   /**
+    * Gets streaming context.
+    *
+    * @return the streaming context
+    */
+   public StreamingContext getStreamingContext() {
+      return streamingContext;
+   }
 
-  /**
-   * Sets streaming context.
-   *
-   * @param streamingContext the streaming context
-   */
-  public void setStreamingContext(@NonNull StreamingContext streamingContext) {
-    this.streamingContext = streamingContext;
-  }
+   /**
+    * Sets streaming context.
+    *
+    * @param streamingContext the streaming context
+    */
+   public void setStreamingContext(@NonNull StreamingContext streamingContext) {
+      this.streamingContext = streamingContext;
+   }
 
-  /**
-   * Read m stream.
-   *
-   * @return the m stream
-   * @throws IOException the io exception
-   */
-  public abstract MStream<T> stream() throws IOException;
+   /**
+    * Read m stream.
+    *
+    * @return the m stream
+    * @throws IOException the io exception
+    */
+   public abstract MStream<T> stream() throws IOException;
 
 
 }//END OF DataProvider

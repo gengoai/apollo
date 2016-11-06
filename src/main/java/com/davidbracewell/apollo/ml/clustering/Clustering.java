@@ -40,95 +40,95 @@ import static com.davidbracewell.tuple.Tuples.$;
  */
 public interface Clustering extends Model, Iterable<Cluster> {
 
-  /**
-   * Gets distance measure.
-   *
-   * @return the distance measure
-   */
-  DistanceMeasure getDistanceMeasure();
+   /**
+    * Gets distance measure.
+    *
+    * @return the distance measure
+    */
+   DistanceMeasure getDistanceMeasure();
 
 
-  /**
-   * Size int.
-   *
-   * @return the int
-   */
-  int size();
+   /**
+    * Size int.
+    *
+    * @return the int
+    */
+   int size();
 
-  /**
-   * Get cluster.
-   *
-   * @param index the index
-   * @return the cluster
-   */
-  Cluster get(int index);
+   /**
+    * Get cluster.
+    *
+    * @param index the index
+    * @return the cluster
+    */
+   Cluster get(int index);
 
-  /**
-   * Is flat boolean.
-   *
-   * @return the boolean
-   */
-  boolean isFlat();
+   /**
+    * Is flat boolean.
+    *
+    * @return the boolean
+    */
+   boolean isFlat();
 
-  /**
-   * Is hierarchical boolean.
-   *
-   * @return the boolean
-   */
-  boolean isHierarchical();
+   /**
+    * Is hierarchical boolean.
+    *
+    * @return the boolean
+    */
+   boolean isHierarchical();
 
-  /**
-   * Gets root.
-   *
-   * @return the root
-   */
-  Cluster getRoot();
+   /**
+    * Gets root.
+    *
+    * @return the root
+    */
+   Cluster getRoot();
 
-  /**
-   * Gets clusters.
-   *
-   * @return the clusters
-   */
-  List<Cluster> getClusters();
+   /**
+    * Gets clusters.
+    *
+    * @return the clusters
+    */
+   List<Cluster> getClusters();
 
-  /**
-   * Hard cluster int.
-   *
-   * @param instance the instance
-   * @return the int
-   */
-  int hardCluster(@NonNull Instance instance);
+   /**
+    * Hard cluster int.
+    *
+    * @param instance the instance
+    * @return the int
+    */
+   int hardCluster(@NonNull Instance instance);
 
-  /**
-   * Soft cluster double [ ].
-   *
-   * @param instance the instance
-   * @return the double [ ]
-   */
-  double[] softCluster(@NonNull Instance instance);
+   /**
+    * Soft cluster double [ ].
+    *
+    * @param instance the instance
+    * @return the double [ ]
+    */
+   double[] softCluster(@NonNull Instance instance);
 
 
-  /**
-   * Hard cluster m pair stream.
-   *
-   * @param dataset the dataset
-   * @return the m pair stream
-   */
-  default MPairStream<Instance, Integer> hardCluster(@NonNull Dataset<Instance> dataset) {
-    return dataset.stream().parallel()
-      .mapToPair(i -> $(i, hardCluster(i)));
-  }
+   /**
+    * Hard cluster m pair stream.
+    *
+    * @param dataset the dataset
+    * @return the m pair stream
+    */
+   default MPairStream<Instance, Integer> hardCluster(@NonNull Dataset<Instance> dataset) {
+      return dataset.stream().parallel()
+                    .mapToPair(i -> $(i, hardCluster(i)));
+   }
 
-  /**
-   * Soft cluster m pair stream.
-   *
-   * @param dataset the dataset
-   * @return the m pair stream
-   */
-  default MPairStream<Instance, double[]> softCluster(@NonNull Dataset<Instance> dataset) {
-    return dataset.stream().parallel()
-      .mapToPair(i -> $(i, softCluster(i)));
-  }
+   /**
+    * Soft cluster m pair stream.
+    *
+    * @param dataset the dataset
+    * @return the m pair stream
+    */
+   default MPairStream<Instance, double[]> softCluster(@NonNull Dataset<Instance> dataset) {
+      return dataset.stream().parallel()
+                    .mapToPair(i -> $(i, softCluster(i)));
+   }
 
 
 }//END OF Clustering

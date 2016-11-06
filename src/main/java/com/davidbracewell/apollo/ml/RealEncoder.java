@@ -20,72 +20,72 @@ import java.util.List;
  * @author David B. Bracewell
  */
 public class RealEncoder implements Serializable, LabelEncoder {
-  private static final long serialVersionUID = 1L;
+   private static final long serialVersionUID = 1L;
 
-  @Override
-  public void read(StructuredReader reader) throws IOException {
+   @Override
+   public void read(StructuredReader reader) throws IOException {
 
-  }
+   }
 
-  @Override
-  public void write(StructuredWriter writer) throws IOException {
+   @Override
+   public void write(StructuredWriter writer) throws IOException {
 
-  }
+   }
 
-  @Override
-  public double get(Object object) {
-    return encode(object);
-  }
+   @Override
+   public double get(Object object) {
+      return encode(object);
+   }
 
-  @Override
-  public void fit(Dataset<? extends Example> dataset) {
+   @Override
+   public void fit(Dataset<? extends Example> dataset) {
 
-  }
+   }
 
-  @Override
-  public void fit(MStream<String> stream) {
+   @Override
+   public void fit(MStream<String> stream) {
 
-  }
+   }
 
-  @Override
-  public double encode(@NonNull Object object) {
-    Preconditions.checkArgument(object instanceof Number, object.getClass() + " is not a valid Number");
-    return Cast.<Number>as(object).doubleValue();
-  }
+   @Override
+   public double encode(@NonNull Object object) {
+      Preconditions.checkArgument(object instanceof Number, object.getClass() + " is not a valid Number");
+      return Cast.<Number>as(object).doubleValue();
+   }
 
-  @Override
-  public Object decode(double value) {
-    return value;
-  }
+   @Override
+   public Object decode(double value) {
+      return value;
+   }
 
-  @Override
-  public void freeze() {
+   @Override
+   public void freeze() {
 
-  }
+   }
 
-  @Override
-  public void unFreeze() {
+   @Override
+   public void unFreeze() {
 
-  }
+   }
 
-  @Override
-  public boolean isFrozen() {
-    return true;
-  }
+   @Override
+   public boolean isFrozen() {
+      return true;
+   }
 
-  @Override
-  public int size() {
-    return 0;
-  }
+   @Override
+   public int size() {
+      return 0;
+   }
 
-  @Override
-  public List<Object> values() {
-    return Collections.emptyList();
-  }
+   @Override
+   public List<Object> values() {
+      return Collections.emptyList();
+   }
 
-  @Override
-  public LabelEncoder createNew() {
-    return new RealEncoder();
-  }
+   @Override
+   public LabelEncoder createNew() {
+      return new RealEncoder();
+   }
 
 }// END OF RealEncoder

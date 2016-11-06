@@ -67,8 +67,8 @@ public class LibLinearRegression extends RegressionLearner {
       Model model = Linear.train(problem, new Parameter(SolverType.L2R_L2LOSS_SVR, C, eps));
 
       SimpleRegressionModel srm = new SimpleRegressionModel(
-            dataset.getEncoderPair(),
-            dataset.getPreprocessors().getModelProcessors()
+                                                              dataset.getEncoderPair(),
+                                                              dataset.getPreprocessors().getModelProcessors()
       );
 
       double[] modelWeights = model.getFeatureWeights();

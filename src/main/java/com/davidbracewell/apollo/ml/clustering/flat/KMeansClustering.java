@@ -11,18 +11,19 @@ import java.util.List;
  * @author David B. Bracewell
  */
 public class KMeansClustering extends FlatClustering implements CentroidClustering {
-  private static final long serialVersionUID = 1L;
-  /**
-   * Instantiates a new Clustering.
-   *
-   * @param encoderPair     the encoder pair
-   * @param distanceMeasure the distance measure
-   */
-  public KMeansClustering(EncoderPair encoderPair, DistanceMeasure distanceMeasure) {
-    super(encoderPair, distanceMeasure);
-  }
+   private static final long serialVersionUID = 1L;
 
-  public KMeansClustering(EncoderPair encoderPair, DistanceMeasure distanceMeasure, List<Cluster> clusterList) {
-    super(encoderPair, distanceMeasure, clusterList);
-  }
+   /**
+    * Instantiates a new Clustering.
+    *
+    * @param encoderPair     the encoder pair
+    * @param distanceMeasure the distance measure
+    */
+   public KMeansClustering(EncoderPair encoderPair, DistanceMeasure distanceMeasure) {
+      super(encoderPair, distanceMeasure);
+   }
+
+   public KMeansClustering(EncoderPair encoderPair, DistanceMeasure distanceMeasure, List<Cluster> clusterList) {
+      super(encoderPair, distanceMeasure, clusterList);
+   }
 }// END OF KMeansClustering

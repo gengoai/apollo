@@ -15,18 +15,18 @@ public class JsonInstanceDataSource extends DataSource<Instance> {
    private static final long serialVersionUID = -5256453124141512217L;
 
    /**
-   * Instantiates a new Data source.
-   *
-   * @param resource the resource
-   */
-  public JsonInstanceDataSource(Resource resource) {
-    super(resource);
-  }
+    * Instantiates a new Data source.
+    *
+    * @param resource the resource
+    */
+   public JsonInstanceDataSource(Resource resource) {
+      super(resource);
+   }
 
-  @Override
-  public MStream<Instance> stream() throws IOException {
-    return getStreamingContext().textFile(getResource().path())
-      .map(Unchecked.function(json -> Example.fromJson(json, Instance.class)));
-  }
+   @Override
+   public MStream<Instance> stream() throws IOException {
+      return getStreamingContext().textFile(getResource().path())
+                                  .map(Unchecked.function(json -> Example.fromJson(json, Instance.class)));
+   }
 
 }// END OF JsonInstanceDataSource

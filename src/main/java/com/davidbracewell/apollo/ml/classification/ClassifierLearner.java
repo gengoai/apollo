@@ -33,7 +33,4 @@ public abstract class ClassifierLearner extends Learner<Instance, Classifier> {
    private static final long serialVersionUID = 1L;
 
 
-
-
-
 }//END OF ClassifierLearner

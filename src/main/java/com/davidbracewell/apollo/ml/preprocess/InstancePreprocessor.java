@@ -10,13 +10,13 @@ import com.davidbracewell.apollo.ml.sequence.Sequence;
  */
 public interface InstancePreprocessor extends Preprocessor<Instance> {
 
-  /**
-   * As sequence processor preprocessor.
-   *
-   * @return the preprocessor
-   */
-  default Preprocessor<Sequence> asSequenceProcessor() {
-    return new SequencePreprocessor(this);
-  }
+   /**
+    * As sequence processor preprocessor.
+    *
+    * @return the preprocessor
+    */
+   default Preprocessor<Sequence> asSequenceProcessor() {
+      return new SequencePreprocessor(this);
+   }
 
 }// END OF InstancePreprocessor

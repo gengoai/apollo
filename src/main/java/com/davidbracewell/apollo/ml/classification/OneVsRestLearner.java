@@ -38,87 +38,88 @@ import java.util.stream.IntStream;
  * @author David B. Bracewell
  */
 public class OneVsRestLearner extends ClassifierLearner {
-  private static final long serialVersionUID = 1L;
-  private final Map<String, Object> parameters = new HashMap<>();
-  private volatile SerializableSupplier<BinaryClassifierLearner> learnerSupplier;
-  private boolean normalize = false;
+   private static final long serialVersionUID = 1L;
+   private final Map<String, Object> parameters = new HashMap<>();
+   private volatile SerializableSupplier<BinaryClassifierLearner> learnerSupplier;
+   private boolean normalize = false;
 
-  /**
-   * Instantiates a new One vs rest learner.
-   *
-   * @param learnerSupplier the learner supplier
-   */
-  public OneVsRestLearner(@NonNull SerializableSupplier<BinaryClassifierLearner> learnerSupplier) {
-    this.learnerSupplier = learnerSupplier;
-    this.parameters.putAll(learnerSupplier.get().getParameters());
-    this.parameters.put("binaryLearner", learnerSupplier.get().getClass());
-    this.parameters.put("normalize", false);
-  }
+   /**
+    * Instantiates a new One vs rest learner.
+    *
+    * @param learnerSupplier the learner supplier
+    */
+   public OneVsRestLearner(@NonNull SerializableSupplier<BinaryClassifierLearner> learnerSupplier) {
+      this.learnerSupplier = learnerSupplier;
+      this.parameters.putAll(learnerSupplier.get().getParameters());
+      this.parameters.put("binaryLearner", learnerSupplier.get().getClass());
+      this.parameters.put("normalize", false);
+   }
 
-  @Override
-  protected Classifier trainImpl(Dataset<Instance> dataset) {
-    OneVsRestClassifier model = new OneVsRestClassifier(
-      dataset.getEncoderPair(),
-      dataset.getPreprocessors()
-    );
-    model.classifiers = IntStream.range(0, dataset.getLabelEncoder().size())
-      .parallel()
-      .mapToObj(i -> {
-          BinaryClassifierLearner bcl = learnerSupplier.get();
-          bcl.setParameters(parameters);
-          bcl.reset();
-          return bcl.trainForLabel(dataset, i);
-        }
-      ).toArray(Classifier[]::new);
+   @Override
+   protected Classifier trainImpl(Dataset<Instance> dataset) {
+      OneVsRestClassifier model = new OneVsRestClassifier(
+                                                            dataset.getEncoderPair(),
+                                                            dataset.getPreprocessors()
+      );
+      model.classifiers = IntStream.range(0, dataset.getLabelEncoder().size())
+                                   .parallel()
+                                   .mapToObj(i -> {
+                                                BinaryClassifierLearner bcl = learnerSupplier.get();
+                                                bcl.setParameters(parameters);
+                                                bcl.reset();
+                                                return bcl.trainForLabel(dataset, i);
+                                             }
+                                            ).toArray(Classifier[]::new);
 
-    return model;
-  }
+      return model;
+   }
 
 
-  @Override
-  public void reset() {
+   @Override
+   public void reset() {
 
-  }
+   }
 
-  @Override
-  public Map<String, ?> getParameters() {
-    return parameters;
-  }
+   @Override
+   public Map<String, ?> getParameters() {
+      return parameters;
+   }
 
-  @Override
-  public void setParameters(@NonNull Map<String, Object> parameters) {
-    if (parameters.containsKey("binaryLearner")) {
-      final BinaryClassifierLearner learner = Val.of(parameters.get("binaryLearner")).as(BinaryClassifierLearner.class);
-      this.learnerSupplier = () -> learner;
-    }
-    if (parameters.containsKey("normalize")) {
-      this.normalize = Val.of(parameters.get("normalize")).asBooleanValue();
-    }
-    this.parameters.clear();
-    this.parameters.putAll(parameters);
-  }
+   @Override
+   public void setParameters(@NonNull Map<String, Object> parameters) {
+      if (parameters.containsKey("binaryLearner")) {
+         final BinaryClassifierLearner learner = Val.of(parameters.get("binaryLearner")).as(
+            BinaryClassifierLearner.class);
+         this.learnerSupplier = () -> learner;
+      }
+      if (parameters.containsKey("normalize")) {
+         this.normalize = Val.of(parameters.get("normalize")).asBooleanValue();
+      }
+      this.parameters.clear();
+      this.parameters.putAll(parameters);
+   }
 
-  @Override
-  public void setParameter(String name, Object value) {
-    if (name.equals("binaryLearner")) {
-      final BinaryClassifierLearner learner = Cast.as(value);
-      this.learnerSupplier = () -> learner;
-    }
-    if (name.equals("normalize")) {
-      this.normalize = Val.of(value).asBooleanValue();
-    }
-    parameters.put(name, value);
-  }
+   @Override
+   public void setParameter(String name, Object value) {
+      if (name.equals("binaryLearner")) {
+         final BinaryClassifierLearner learner = Cast.as(value);
+         this.learnerSupplier = () -> learner;
+      }
+      if (name.equals("normalize")) {
+         this.normalize = Val.of(value).asBooleanValue();
+      }
+      parameters.put(name, value);
+   }
 
-  @Override
-  public Object getParameter(String name) {
-    if (name.equals("normalize")) {
-      return this.normalize;
-    } else if (name.equals("binaryLearner")) {
-      return learnerSupplier.get();
-    }
-    return parameters.get(name);
-  }
+   @Override
+   public Object getParameter(String name) {
+      if (name.equals("normalize")) {
+         return this.normalize;
+      } else if (name.equals("binaryLearner")) {
+         return learnerSupplier.get();
+      }
+      return parameters.get(name);
+   }
 
 
 }//END OF OneVsRestLearner

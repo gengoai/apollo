@@ -10,44 +10,44 @@ import lombok.NonNull;
  * @author David B. Bracewell
  */
 public abstract class SequenceLabelerLearner extends Learner<Sequence, SequenceLabeler> {
-  private static final long serialVersionUID = 1L;
-  protected Decoder decoder = new BeamDecoder(5);
-  protected TransitionFeatures transitionFeatures = TransitionFeatures.FIRST_ORDER;
-  protected SequenceValidator validator = SequenceValidator.ALWAYS_TRUE;
+   private static final long serialVersionUID = 1L;
+   protected Decoder decoder = new BeamDecoder(5);
+   protected TransitionFeatures transitionFeatures = TransitionFeatures.FIRST_ORDER;
+   protected SequenceValidator validator = SequenceValidator.ALWAYS_TRUE;
 
-  public Decoder getDecoder() {
-    return decoder;
-  }
+   public Decoder getDecoder() {
+      return decoder;
+   }
 
-  public void setDecoder(Decoder decoder) {
-    this.decoder = decoder;
-  }
+   public void setDecoder(Decoder decoder) {
+      this.decoder = decoder;
+   }
 
-  public TransitionFeatures getTransitionFeatures() {
-    return transitionFeatures;
-  }
+   public TransitionFeatures getTransitionFeatures() {
+      return transitionFeatures;
+   }
 
-  public void setTransitionFeatures(@NonNull TransitionFeatures transitionFeatures) {
-    this.transitionFeatures = transitionFeatures;
-  }
+   public void setTransitionFeatures(@NonNull TransitionFeatures transitionFeatures) {
+      this.transitionFeatures = transitionFeatures;
+   }
 
-  @Override
-  public SequenceLabeler train(@NonNull Dataset<Sequence> dataset) {
-    dataset.encode();
-    transitionFeatures.fitTransitionsFeatures(dataset);
-    dataset.getEncoderPair().freeze();
-    SequenceLabeler model = trainImpl(dataset);
-    model.finishTraining();
-    model.getFeatureEncoder().freeze();
-    return model;
-  }
+   @Override
+   public SequenceLabeler train(@NonNull Dataset<Sequence> dataset) {
+      dataset.encode();
+      transitionFeatures.fitTransitionsFeatures(dataset);
+      dataset.getEncoderPair().freeze();
+      SequenceLabeler model = trainImpl(dataset);
+      model.finishTraining();
+      model.getFeatureEncoder().freeze();
+      return model;
+   }
 
 
-  public SequenceValidator getValidator() {
-    return validator;
-  }
+   public SequenceValidator getValidator() {
+      return validator;
+   }
 
-  public void setValidator(@NonNull SequenceValidator validator) {
-    this.validator = validator;
-  }
+   public void setValidator(@NonNull SequenceValidator validator) {
+      this.validator = validator;
+   }
 }// END OF SequenceLabelerLearner

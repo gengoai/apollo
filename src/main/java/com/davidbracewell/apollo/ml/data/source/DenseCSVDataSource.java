@@ -27,81 +27,81 @@ public class DenseCSVDataSource extends DataSource<Instance> {
 
    private static final long serialVersionUID = -7352365518937500826L;
    private final CSV csvFormat;
-  @Getter
-  @Setter
-  private int classIndex = 0;
-  @Getter
-  @Setter
-  private String labelName = null;
+   @Getter
+   @Setter
+   private int classIndex = 0;
+   @Getter
+   @Setter
+   private String labelName = null;
 
-  /**
-   * Instantiates a new Data source.
-   *
-   * @param resource the resource
-   */
-  public DenseCSVDataSource(@NonNull Resource resource, boolean hasHeader) {
-    this(resource, CSV.builder().hasHeader(hasHeader));
-  }
+   /**
+    * Instantiates a new Data source.
+    *
+    * @param resource the resource
+    */
+   public DenseCSVDataSource(@NonNull Resource resource, boolean hasHeader) {
+      this(resource, CSV.builder().hasHeader(hasHeader));
+   }
 
-  public DenseCSVDataSource(@NonNull Resource resource) {
-    this(resource, false);
-  }
+   public DenseCSVDataSource(@NonNull Resource resource) {
+      this(resource, false);
+   }
 
 
-  public DenseCSVDataSource(@NonNull Resource resource, @NonNull CSV format) {
-    super(resource);
-    this.csvFormat = format;
-  }
+   public DenseCSVDataSource(@NonNull Resource resource, @NonNull CSV format) {
+      super(resource);
+      this.csvFormat = format;
+   }
 
-  @Override
-  public MStream<Instance> stream() throws IOException {
-    if (getResource().isDirectory()) {
-      MStream<Instance> stream = getStreamingContext().empty();
-      for (MStream<Instance> s : getResource().getChildren(true)
-        .stream()
-        .map(r -> {
-          try {
-            return resourceToStream(r, getStreamingContext());
-          } catch (IOException e) {
-            throw Throwables.propagate(e);
-          }
-        }).collect(Collectors.toList())) {
-        stream = stream.union(s);
+   @Override
+   public MStream<Instance> stream() throws IOException {
+      if (getResource().isDirectory()) {
+         MStream<Instance> stream = getStreamingContext().empty();
+         for (MStream<Instance> s : getResource().getChildren(true)
+                                                 .stream()
+                                                 .map(r -> {
+                                                    try {
+                                                       return resourceToStream(r, getStreamingContext());
+                                                    } catch (IOException e) {
+                                                       throw Throwables.propagate(e);
+                                                    }
+                                                 }).collect(Collectors.toList())) {
+            stream = stream.union(s);
+         }
       }
-    }
-    return resourceToStream(getResource(), getStreamingContext());
-  }
+      return resourceToStream(getResource(), getStreamingContext());
+   }
 
-  private MStream<Instance> resourceToStream(Resource resource, @NonNull StreamingContext context) throws IOException {
-    CSVReader reader = csvFormat.reader(resource);
-    List<String> names = new ArrayList<>();
-    if (reader.getHeader() != null) {
-      names.addAll(reader.getHeader());
-    }
-    if (reader.getHeader() != null && !StringUtils.isNullOrBlank(labelName)) {
-      classIndex = reader.getHeader().indexOf(labelName);
-      if (classIndex == -1) {
-        throw new IllegalStateException(labelName + " is not in the dataset");
+   private MStream<Instance> resourceToStream(Resource resource, @NonNull StreamingContext context) throws IOException {
+      CSVReader reader = csvFormat.reader(resource);
+      List<String> names = new ArrayList<>();
+      if (reader.getHeader() != null) {
+         names.addAll(reader.getHeader());
       }
-    }
-    MStream<Instance> stream = context.stream(Iterators.transform(reader.iterator(), list -> {
-      List<Feature> features = new ArrayList<>();
-      for (int i = 0; i < list.size(); i++) {
-        if (i != classIndex) {
-          features.add(Feature.real(getName(i, names), Double.parseDouble(list.get(i))));
-        }
+      if (reader.getHeader() != null && !StringUtils.isNullOrBlank(labelName)) {
+         classIndex = reader.getHeader().indexOf(labelName);
+         if (classIndex == -1) {
+            throw new IllegalStateException(labelName + " is not in the dataset");
+         }
       }
-      return new Instance(features, list.get(classIndex));
-    }));
-    stream.onClose(() -> QuietIO.closeQuietly(reader));
-    return stream;
-  }
+      MStream<Instance> stream = context.stream(Iterators.transform(reader.iterator(), list -> {
+         List<Feature> features = new ArrayList<>();
+         for (int i = 0; i < list.size(); i++) {
+            if (i != classIndex) {
+               features.add(Feature.real(getName(i, names), Double.parseDouble(list.get(i))));
+            }
+         }
+         return new Instance(features, list.get(classIndex));
+      }));
+      stream.onClose(() -> QuietIO.closeQuietly(reader));
+      return stream;
+   }
 
-  private String getName(int index, List<String> list) {
-    while (index >= list.size()) {
-      list.add(Integer.toString(list.size() - 1));
-    }
-    return list.get(index);
-  }
+   private String getName(int index, List<String> list) {
+      while (index >= list.size()) {
+         list.add(Integer.toString(list.size() - 1));
+      }
+      return list.get(index);
+   }
 
 }// END OF SparseCSVDataFormat

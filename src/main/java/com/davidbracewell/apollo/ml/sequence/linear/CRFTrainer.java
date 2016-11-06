@@ -63,12 +63,12 @@ public class CRFTrainer extends SequenceLabelerLearner {
       trainer.train(tempFile, -1);
       trainer.clear();
       return new CRFTagger(
-            dataset.getLabelEncoder(),
-            dataset.getFeatureEncoder(),
-            dataset.getPreprocessors(),
-            TransitionFeatures.FIRST_ORDER,
-            tempFile,
-            getValidator()
+                             dataset.getLabelEncoder(),
+                             dataset.getFeatureEncoder(),
+                             dataset.getPreprocessors(),
+                             TransitionFeatures.FIRST_ORDER,
+                             tempFile,
+                             getValidator()
       );
    }
 

@@ -9,19 +9,19 @@ import java.io.Serializable;
  * @author David B. Bracewell
  */
 public class ApacheDistanceMeasure implements DistanceMeasure, Serializable {
-  private static final long serialVersionUID = 1L;
-  private final com.davidbracewell.apollo.affinity.DistanceMeasure wrapped;
+   private static final long serialVersionUID = 1L;
+   private final com.davidbracewell.apollo.affinity.DistanceMeasure wrapped;
 
-  public ApacheDistanceMeasure(com.davidbracewell.apollo.affinity.DistanceMeasure wrapped) {
-    this.wrapped = wrapped;
-  }
+   public ApacheDistanceMeasure(com.davidbracewell.apollo.affinity.DistanceMeasure wrapped) {
+      this.wrapped = wrapped;
+   }
 
-  @Override
-  public double compute(double[] doubles, double[] doubles1) throws DimensionMismatchException {
-    return wrapped.calculate(doubles, doubles1);
-  }
+   @Override
+   public double compute(double[] doubles, double[] doubles1) throws DimensionMismatchException {
+      return wrapped.calculate(doubles, doubles1);
+   }
 
-  public com.davidbracewell.apollo.affinity.DistanceMeasure getWrapped() {
-    return wrapped;
-  }
+   public com.davidbracewell.apollo.affinity.DistanceMeasure getWrapped() {
+      return wrapped;
+   }
 }// END OF ApacheDistanceMeasure

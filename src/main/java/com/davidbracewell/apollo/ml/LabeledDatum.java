@@ -31,20 +31,20 @@ import java.io.Serializable;
  */
 @Value
 public class LabeledDatum<T> implements Serializable {
-  private static final long serialVersionUID = 1L;
-  private Object label;
-  private T data;
+   private static final long serialVersionUID = 1L;
+   private Object label;
+   private T data;
 
-  /**
-   * Of labeled data.
-   *
-   * @param <R>   the type parameter
-   * @param label the label
-   * @param data  the data
-   * @return the labeled data
-   */
-  public static <R> LabeledDatum<R> of(Object label, @NonNull R data) {
-    return new LabeledDatum<>(label, data);
-  }
+   /**
+    * Of labeled data.
+    *
+    * @param <R>   the type parameter
+    * @param label the label
+    * @param data  the data
+    * @return the labeled data
+    */
+   public static <R> LabeledDatum<R> of(Object label, @NonNull R data) {
+      return new LabeledDatum<>(label, data);
+   }
 
 }//END OF LabeledDatum

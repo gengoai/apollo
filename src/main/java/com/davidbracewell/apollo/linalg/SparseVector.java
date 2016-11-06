@@ -74,7 +74,11 @@ public class SparseVector implements Vector, Serializable {
     * @return a new <code>SparseVector</code> whose values are 1.
     */
    public static Vector ones(int dimension) {
-      return new SparseVector(dimension).mapSelf(d -> 1);
+      Vector v = new SparseVector(dimension);
+      for (int i = 0; i < dimension; i++) {
+         v.set(i, 1);
+      }
+      return v;
    }
 
    /**

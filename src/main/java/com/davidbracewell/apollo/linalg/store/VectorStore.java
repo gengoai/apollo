@@ -58,14 +58,6 @@ public interface VectorStore<KEY> extends Iterable<LabeledVector> {
    */
   void add(@NonNull LabeledVector vector);
 
-  /**
-   * Query list.
-   *
-   * @param vector the vector
-   * @return the list
-   */
-  List<LabeledVector> query(Vector vector);
-
 
   /**
    * Nearest list.

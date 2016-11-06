@@ -25,7 +25,6 @@ import com.davidbracewell.apollo.affinity.Measure;
 import com.davidbracewell.apollo.linalg.LabeledVector;
 import com.davidbracewell.apollo.linalg.ScoredLabelVector;
 import com.davidbracewell.apollo.linalg.Vector;
-import com.davidbracewell.conversion.Cast;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterators;
 import lombok.NonNull;
@@ -80,13 +79,6 @@ public class DefaultVectorStore<KEY> implements VectorStore<KEY>, Serializable {
    }
 
    @Override
-   public List<LabeledVector> query(@NonNull Vector vector) {
-      Preconditions.checkArgument(vector.dimension() == dimension,
-                                  "Dimension mismatch, vector store can only store vectors with dimension of " + dimension);
-      return Cast.cast(nearest(vector, 0d));
-   }
-
-   @Override
    public List<ScoredLabelVector> nearest(Vector vector, double threshold) {
       Preconditions.checkArgument(vector.dimension() == dimension,
                                   "Dimension mismatch, vector store can only store vectors with dimension of " + dimension);
@@ -120,6 +112,8 @@ public class DefaultVectorStore<KEY> implements VectorStore<KEY>, Serializable {
 
    @Override
    public List<ScoredLabelVector> nearest(@NonNull Vector vector, int K) {
+      Preconditions.checkArgument(vector.dimension() == dimension,
+                                  "Dimension mismatch, vector store can only store vectors with dimension of " + dimension);
       List<ScoredLabelVector> vectors = vectorMap.values().parallelStream()
                                                  .map(v -> new ScoredLabelVector(v, queryMeasure.calculate(v, vector)))
                                                  .sorted((s1, s2) -> queryMeasure.getOptimum()

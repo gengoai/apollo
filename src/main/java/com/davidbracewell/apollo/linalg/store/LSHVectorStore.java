@@ -133,8 +133,7 @@ public abstract class LSHVectorStore<KEY> implements VectorStore<KEY>, Serializa
     return lsh.getDimension();
   }
 
-  @Override
-  public final List<LabeledVector> query(@NonNull Vector vector) {
+  private final List<LabeledVector> query(@NonNull Vector vector) {
     OpenIntHashSet ids = lsh.query(vector);
     List<LabeledVector> vectors = new ArrayList<>();
     ids.forEachKey(id -> vectors.add(getVectorByID(id)));

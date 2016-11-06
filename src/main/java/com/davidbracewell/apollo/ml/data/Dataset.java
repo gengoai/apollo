@@ -115,7 +115,7 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
     * @return the dataset builder
     */
    public static DatasetBuilder<Instance> regression() {
-      return new DatasetBuilder<>(new RealEncoder(), Instance.class);
+      return new DatasetBuilder<>(new RegressionLabelEncoder(), Instance.class);
    }
 
    /**

@@ -49,16 +49,16 @@ public interface Encoder extends StructuredSerializable {
    double encode(Object object);
 
    /**
-    * Fit.
+    * Fits the encoder by processing the entire dataset
     *
-    * @param dataset the dataset
+    * @param dataset the dataset to use for fitting the encoder
     */
    void fit(Dataset<? extends Example> dataset);
 
    /**
-    * Fit.
+    * Fits the encoder by processing the entire dataset
     *
-    * @param stream the stream
+    * @param stream the stream to use for fitting the encoder
     */
    void fit(MStream<String> stream);
 
@@ -68,10 +68,10 @@ public interface Encoder extends StructuredSerializable {
    void freeze();
 
    /**
-    * Get double.
+    * Gets the encoded double value of the given object.
     *
-    * @param object the object
-    * @return the double
+    * @param object the object whose encoded value to retrieve
+    * @return the double or -1 if not encoded and encoder is frozen
     */
    double get(Object object);
 

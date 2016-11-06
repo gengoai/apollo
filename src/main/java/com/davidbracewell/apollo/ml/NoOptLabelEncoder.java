@@ -29,6 +29,8 @@ import java.util.Collections;
 import java.util.List;
 
 /**
+ * <p>Specialized label encoder that doesn't do any encoding. This is mainly useful for word embedding algorithms.</p>
+ *
  * @author David B. Bracewell
  */
 public class NoOptLabelEncoder implements LabelEncoder, Serializable {

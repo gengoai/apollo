@@ -19,22 +19,23 @@ import java.util.List;
  *
  * @author David B. Bracewell
  */
-public class RealEncoder implements Serializable, LabelEncoder {
+public class RegressionLabelEncoder implements Serializable, LabelEncoder {
    private static final long serialVersionUID = 1L;
 
    @Override
-   public void read(StructuredReader reader) throws IOException {
-
+   public LabelEncoder createNew() {
+      return new RegressionLabelEncoder();
    }
 
    @Override
-   public void write(StructuredWriter writer) throws IOException {
-
+   public Object decode(double value) {
+      return value;
    }
 
    @Override
-   public double get(Object object) {
-      return encode(object);
+   public double encode(@NonNull Object object) {
+      Preconditions.checkArgument(object instanceof Number, object.getClass() + " is not a valid Number");
+      return Cast.<Number>as(object).doubleValue();
    }
 
    @Override
@@ -48,24 +49,13 @@ public class RealEncoder implements Serializable, LabelEncoder {
    }
 
    @Override
-   public double encode(@NonNull Object object) {
-      Preconditions.checkArgument(object instanceof Number, object.getClass() + " is not a valid Number");
-      return Cast.<Number>as(object).doubleValue();
-   }
-
-   @Override
-   public Object decode(double value) {
-      return value;
-   }
-
-   @Override
    public void freeze() {
 
    }
 
    @Override
-   public void unFreeze() {
-
+   public double get(Object object) {
+      return encode(object);
    }
 
    @Override
@@ -74,8 +64,18 @@ public class RealEncoder implements Serializable, LabelEncoder {
    }
 
    @Override
+   public void read(StructuredReader reader) throws IOException {
+
+   }
+
+   @Override
    public int size() {
       return 0;
+   }
+
+   @Override
+   public void unFreeze() {
+
    }
 
    @Override
@@ -84,8 +84,8 @@ public class RealEncoder implements Serializable, LabelEncoder {
    }
 
    @Override
-   public LabelEncoder createNew() {
-      return new RealEncoder();
+   public void write(StructuredWriter writer) throws IOException {
+
    }
 
 }// END OF RealEncoder

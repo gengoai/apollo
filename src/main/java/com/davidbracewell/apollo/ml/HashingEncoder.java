@@ -22,7 +22,10 @@ public class HashingEncoder implements Encoder, Serializable {
    private static final long serialVersionUID = 1L;
    private int numberOfFeatures = Integer.MAX_VALUE;
 
-   protected HashingEncoder() {
+   /**
+    * Instantiates a new Hashing encoder.
+    */
+   public HashingEncoder() {
 
    }
 
@@ -37,18 +40,18 @@ public class HashingEncoder implements Encoder, Serializable {
    }
 
    @Override
-   public void read(StructuredReader reader) throws IOException {
-      this.numberOfFeatures = reader.nextKeyValue("numberOfFeatures").asIntegerValue();
+   public Encoder createNew() {
+      return new HashingEncoder(numberOfFeatures);
    }
 
    @Override
-   public void write(StructuredWriter writer) throws IOException {
-      writer.writeKeyValue("numberOfFeatures", numberOfFeatures);
+   public Object decode(double value) {
+      return null;
    }
 
    @Override
-   public double get(Object object) {
-      return encode(object);
+   public double encode(@NonNull Object object) {
+      return (object.hashCode() & 0x7fffffff) % numberOfFeatures;
    }
 
    @Override
@@ -62,23 +65,13 @@ public class HashingEncoder implements Encoder, Serializable {
    }
 
    @Override
-   public double encode(@NonNull Object object) {
-      return (object.hashCode() & 0x7fffffff) % numberOfFeatures;
-   }
-
-   @Override
-   public Object decode(double value) {
-      return null;
-   }
-
-   @Override
    public void freeze() {
 
    }
 
    @Override
-   public void unFreeze() {
-
+   public double get(Object object) {
+      return encode(object);
    }
 
    @Override
@@ -87,8 +80,18 @@ public class HashingEncoder implements Encoder, Serializable {
    }
 
    @Override
+   public void read(StructuredReader reader) throws IOException {
+      this.numberOfFeatures = reader.nextKeyValue("numberOfFeatures").asIntegerValue();
+   }
+
+   @Override
    public int size() {
       return numberOfFeatures;
+   }
+
+   @Override
+   public void unFreeze() {
+
    }
 
    @Override
@@ -97,8 +100,8 @@ public class HashingEncoder implements Encoder, Serializable {
    }
 
    @Override
-   public Encoder createNew() {
-      return new HashingEncoder(numberOfFeatures);
+   public void write(StructuredWriter writer) throws IOException {
+      writer.writeKeyValue("numberOfFeatures", numberOfFeatures);
    }
 
 }// END OF HashingEncoder

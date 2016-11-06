@@ -4,7 +4,7 @@ import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.EncoderPair;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.Model;
-import com.davidbracewell.apollo.ml.RealEncoder;
+import com.davidbracewell.apollo.ml.RegressionLabelEncoder;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.collection.counter.Counter;
 import com.google.common.base.Preconditions;
@@ -28,7 +28,7 @@ public abstract class Regression implements Model {
     */
    public Regression(@NonNull EncoderPair encoderPair, @NonNull PreprocessorList<Instance> preprocessors) {
       this.encoderPair = encoderPair;
-      Preconditions.checkArgument(encoderPair.getLabelEncoder() instanceof RealEncoder,
+      Preconditions.checkArgument(encoderPair.getLabelEncoder() instanceof RegressionLabelEncoder,
                                   "Regression only allows RealEncoder for labels.");
       this.preprocessors = preprocessors.getModelProcessors();
    }

@@ -27,42 +27,50 @@ import java.io.PrintStream;
 import java.util.Collection;
 
 /**
- * The interface Evaluation.
+ * <p>Generic interface for evaluating models.</p>
  *
- * @param <T> the type parameter
- * @param <M> the type parameter
+ * @param <T> the type of example
+ * @param <M> the type of model
  * @author David B. Bracewell
  */
 public interface Evaluation<T extends Example, M extends Model> {
 
    /**
-    * Evaluate.
+    * Evaluate the given model using the given dataset
     *
-    * @param model   the model
-    * @param dataset the dataset
+    * @param model   the model to evaluate
+    * @param dataset the dataset to evaluate over
     */
    void evaluate(M model, Dataset<T> dataset);
 
    /**
-    * Evaluate.
+    * Evaluate the given model using the given set of examples
     *
-    * @param model   the model
-    * @param dataset the dataset
+    * @param model   the model to evaluate
+    * @param dataset the dataset to evaluate over
     */
    void evaluate(M model, Collection<T> dataset);
 
    /**
-    * Merge.
+    * Merge this evaluation with another combining the results.
     *
-    * @param evaluation the evaluation
+    * @param evaluation the other evaluation to combine
     */
    void merge(Evaluation<T, M> evaluation);
 
    /**
-    * Output.
+    * Outputs the evaluation results to the given print stream.
     *
-    * @param printStream the print stream
+    * @param printStream the print stream to write to
     */
    void output(PrintStream printStream);
+
+   /**
+    * Outputs the evaluation results to <code>System.err</code>
+    */
+   default void output() {
+      output(System.err);
+   }
+
 
 }//END OF Evaluation

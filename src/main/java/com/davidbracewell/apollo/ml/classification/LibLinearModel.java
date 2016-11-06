@@ -42,86 +42,90 @@ import java.util.List;
  * @author David B. Bracewell
  */
 public class LibLinearModel extends Classifier {
-  private static final long serialVersionUID = 1L;
-  /**
-   * The Model.
-   */
-  Model model;
-  int biasIndex = 0;
+   private static final long serialVersionUID = 1L;
+   /**
+    * The Model.
+    */
+   Model model;
+   /**
+    * The Bias index.
+    */
+   int biasIndex = 0;
 
-  /**
-   * Instantiates a new Classifier.
-   *
-   * @param encoderPair   the encoder pair
-   * @param preprocessors the preprocessors
-   */
-  protected LibLinearModel(@NonNull EncoderPair encoderPair, @NonNull PreprocessorList<Instance> preprocessors) {
-    super(encoderPair, preprocessors);
-  }
+   /**
+    * Instantiates a new Classifier.
+    *
+    * @param encoderPair   the encoder pair
+    * @param preprocessors the preprocessors
+    */
+   protected LibLinearModel(@NonNull EncoderPair encoderPair, @NonNull PreprocessorList<Instance> preprocessors) {
+      super(encoderPair, preprocessors);
+   }
 
-  /**
-   * To feature feature [ ].
-   *
-   * @param vector the vector
-   * @return the feature [ ]
-   */
-  public static Feature[] toFeature(Vector vector, int biasIndex) {
-    List<Vector.Entry> entries = Lists.newArrayList(vector.orderedNonZeroIterator());
+   /**
+    * To feature feature [ ].
+    *
+    * @param vector    the vector
+    * @param biasIndex the bias index
+    * @return the feature [ ]
+    */
+   public static Feature[] toFeature(Vector vector, int biasIndex) {
+      List<Vector.Entry> entries = Lists.newArrayList(vector.orderedNonZeroIterator());
 
-    int size = entries.size() + (biasIndex > 0 ? 1 : 0);
+      int size = entries.size() + (biasIndex > 0 ? 1 : 0);
 
-    Feature[] feature = new Feature[size];
-    for (int i = 0; i < entries.size(); i++) {
-      feature[i] = new FeatureNode(entries.get(i).index + 1, entries.get(i).value);
-    }
-
-    if (biasIndex > 0) {
-      feature[size - 1] = new FeatureNode(biasIndex, 1.0);
-    }
-
-    return feature;
-  }
-
-  @Override
-  public Classification classify(Vector vector) {
-    double[] p = new double[numberOfLabels()];
-    if (model.isProbabilityModel()) {
-      Linear.predictProbability(model, toFeature(vector, biasIndex), p);
-    } else {
-      Linear.predictValues(model, toFeature(vector, biasIndex), p);
-    }
-
-    //re-arrange the probabilities to match the target feature
-    double[] prime = new double[numberOfLabels()];
-    int[] labels = model.getLabels();
-    for (int i = 0; i < labels.length; i++) {
-      prime[labels[i]] = p[i];
-    }
-
-    return createResult(prime);
-  }
-
-  @Override
-  public MultiCounter<String, String> getModelParameters() {
-    double[] modelWeights = model.getFeatureWeights();
-    int[] labels = model.getLabels();
-    MultiCounter<String, String> weights = new HashMapMultiCounter<>();
-
-    int nrClass = model.getNrClass() - 1;
-    for (int i = 0, index = 0; i < getFeatureEncoder().size(); i++, index += nrClass) {
-      String featureName = getFeatureEncoder().decode(i).toString();
-      for (int j = 0; j < nrClass; j++) {
-        weights.set(featureName, getLabelEncoder().decode(labels[j]).toString(), modelWeights[j + index]);
+      Feature[] feature = new Feature[size];
+      for (int i = 0; i < entries.size(); i++) {
+         feature[i] = new FeatureNode(entries.get(i).index + 1, entries.get(i).value);
       }
-    }
 
-    if (modelWeights.length > (nrClass * model.getNrFeature())) {
-      for (int j = modelWeights.length - nrClass, ci = 0; j < modelWeights.length; j++, ci++) {
-        weights.set("**BIAS**", getLabelEncoder().decode(labels[ci]).toString(), modelWeights[j]);
+      if (biasIndex > 0) {
+         feature[size - 1] = new FeatureNode(biasIndex, 1.0);
       }
-    }
 
-    return weights;
-  }
+      return feature;
+   }
+
+   @Override
+   public Classification classify(Vector vector) {
+      double[] p = new double[numberOfLabels()];
+      if (model.isProbabilityModel()) {
+         Linear.predictProbability(model, toFeature(vector, biasIndex), p);
+      } else {
+         Linear.predictValues(model, toFeature(vector, biasIndex), p);
+      }
+
+      //re-arrange the probabilities to match the target feature
+      double[] prime = new double[numberOfLabels()];
+      int[] labels = model.getLabels();
+      for (int i = 0; i < labels.length; i++) {
+         prime[labels[i]] = p[i];
+      }
+
+      return createResult(prime);
+   }
+
+   @Override
+   public MultiCounter<String, String> getModelParameters() {
+      double[] modelWeights = model.getFeatureWeights();
+      int[] labels = model.getLabels();
+      MultiCounter<String, String> weights = new HashMapMultiCounter<>();
+
+      int nrClass = model.getNrClass() - 1;
+      for (int i = 0, index = 0; i < getFeatureEncoder().size(); i++, index += nrClass) {
+         String featureName = getFeatureEncoder().decode(i).toString();
+         for (int j = 0; j < nrClass; j++) {
+            weights.set(featureName, getLabelEncoder().decode(labels[j]).toString(), modelWeights[j + index]);
+         }
+      }
+
+      if (modelWeights.length > (nrClass * model.getNrFeature())) {
+         for (int j = modelWeights.length - nrClass, ci = 0; j < modelWeights.length; j++, ci++) {
+            weights.set("**BIAS**", getLabelEncoder().decode(labels[ci]).toString(), modelWeights[j]);
+         }
+      }
+
+      return weights;
+   }
 
 }//END OF LibLinearModel

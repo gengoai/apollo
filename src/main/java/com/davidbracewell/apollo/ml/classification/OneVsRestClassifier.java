@@ -34,39 +34,39 @@ import lombok.NonNull;
  * @author David B. Bracewell
  */
 public class OneVsRestClassifier extends Classifier {
-  private static final long serialVersionUID = 1L;
-  /**
-   * The Classifiers.
-   */
-  Classifier[] classifiers;
-  boolean normalize;
+   private static final long serialVersionUID = 1L;
+   /**
+    * The Classifiers.
+    */
+   Classifier[] classifiers;
+   /**
+    * The Normalize.
+    */
+   boolean normalize;
 
-  /**
-   * Instantiates a new Classifier.
-   *
-   * @param encoderPair   the encoder pair
-   * @param preprocessors the preprocessors
-   */
-  protected OneVsRestClassifier(@NonNull EncoderPair encoderPair, @NonNull PreprocessorList<Instance> preprocessors) {
-    super(encoderPair, preprocessors);
-  }
+   /**
+    * Instantiates a new Classifier.
+    *
+    * @param encoderPair   the encoder pair
+    * @param preprocessors the preprocessors
+    */
+   protected OneVsRestClassifier(@NonNull EncoderPair encoderPair, @NonNull PreprocessorList<Instance> preprocessors) {
+      super(encoderPair, preprocessors);
+   }
 
-  @Override
-  public Classification classify(Vector vector) {
-    DenseVector distribution = new DenseVector(numberOfLabels());
-    for (int ci = 0; ci < distribution.dimension(); ci++) {
-      distribution.set(ci, classifiers[ci].classify(vector).distribution()[1]);
-    }
-    if (normalize) {
-      //Softmax normalization and log normaliza
-      distribution
-        .mapSubtractSelf(
-          distribution.max()
-        ).mapSelf(Math::exp);
-      distribution.mapDivideSelf(distribution.sum());
-      distribution.mapSelf(Math::log);
-    }
-    return new Classification(distribution.toArray(), getLabelEncoder());
-  }
+   @Override
+   public Classification classify(Vector vector) {
+      DenseVector distribution = new DenseVector(numberOfLabels());
+      for (int ci = 0; ci < distribution.dimension(); ci++) {
+         distribution.set(ci, classifiers[ci].classify(vector).distribution()[1]);
+      }
+      if (normalize) {
+         //Softmax normalization and log normalization
+         distribution.mapSubtractSelf(distribution.max()).mapSelf(Math::exp);
+         distribution.mapDivideSelf(distribution.sum());
+         distribution.mapSelf(Math::log);
+      }
+      return new Classification(distribution.toArray(), getLabelEncoder());
+   }
 
 }//END OF OneVsRestClassifier

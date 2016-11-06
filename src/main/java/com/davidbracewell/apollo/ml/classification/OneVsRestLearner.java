@@ -21,8 +21,8 @@
 
 package com.davidbracewell.apollo.ml.classification;
 
-import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.ml.Instance;
+import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.conversion.Val;
 import com.davidbracewell.function.SerializableSupplier;
@@ -33,6 +33,8 @@ import java.util.Map;
 import java.util.stream.IntStream;
 
 /**
+ * The type One vs rest learner.
+ *
  * @author David B. Bracewell
  */
 public class OneVsRestLearner extends ClassifierLearner {
@@ -41,6 +43,11 @@ public class OneVsRestLearner extends ClassifierLearner {
   private volatile SerializableSupplier<BinaryClassifierLearner> learnerSupplier;
   private boolean normalize = false;
 
+  /**
+   * Instantiates a new One vs rest learner.
+   *
+   * @param learnerSupplier the learner supplier
+   */
   public OneVsRestLearner(@NonNull SerializableSupplier<BinaryClassifierLearner> learnerSupplier) {
     this.learnerSupplier = learnerSupplier;
     this.parameters.putAll(learnerSupplier.get().getParameters());

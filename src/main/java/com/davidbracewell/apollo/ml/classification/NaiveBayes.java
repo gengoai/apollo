@@ -36,115 +36,151 @@ import lombok.NonNull;
  * @author David B. Bracewell
  */
 public class NaiveBayes extends Classifier {
-  private static final long serialVersionUID = 1L;
-  /**
-   * The Model type.
-   */
-  ModelType modelType;
-  /**
-   * The Priors.
-   */
-  double[] priors;
-  /**
-   * The Conditionals.
-   */
-  double[][] conditionals;
+   private static final long serialVersionUID = 1L;
+   /**
+    * The Model type.
+    */
+   ModelType modelType;
+   /**
+    * The Priors.
+    */
+   double[] priors;
+   /**
+    * The Conditionals.
+    */
+   double[][] conditionals;
 
-  public NaiveBayes(EncoderPair encoderPair, PreprocessorList<Instance> preprocessors) {
-    this(encoderPair, preprocessors, ModelType.Bernoulli);
-  }
+   /**
+    * Instantiates a new Naive bayes.
+    *
+    * @param encoderPair   the encoder pair
+    * @param preprocessors the preprocessors
+    */
+   public NaiveBayes(EncoderPair encoderPair, PreprocessorList<Instance> preprocessors) {
+      this(encoderPair, preprocessors, ModelType.Bernoulli);
+   }
 
-  public NaiveBayes(@NonNull EncoderPair encoderPair, PreprocessorList<Instance> preprocessors, ModelType modelType) {
-    super(encoderPair, preprocessors);
-    this.modelType = modelType;
-  }
+   /**
+    * Instantiates a new Naive bayes.
+    *
+    * @param encoderPair   the encoder pair
+    * @param preprocessors the preprocessors
+    * @param modelType     the model type
+    */
+   public NaiveBayes(@NonNull EncoderPair encoderPair, PreprocessorList<Instance> preprocessors, ModelType modelType) {
+      super(encoderPair, preprocessors);
+      this.modelType = modelType;
+   }
 
-  /**
-   * Gets model type.
-   *
-   * @return the model type
-   */
-  public ModelType getModelType() {
-    return modelType;
-  }
+   /**
+    * Gets model type.
+    *
+    * @return the model type
+    */
+   public ModelType getModelType() {
+      return modelType;
+   }
 
-  @Override
-  public Classification classify(@NonNull Vector instance) {
-    return createResult(modelType.distribution(instance, priors, conditionals));
-  }
+   @Override
+   public Classification classify(@NonNull Vector instance) {
+      return createResult(modelType.distribution(instance, priors, conditionals));
+   }
 
-  @Override
-  public MultiCounter<String, String> getModelParameters() {
-    MultiCounter<String, String> weights = new HashMapMultiCounter<>();
-    for (int fi = 0; fi < numberOfFeatures(); fi++) {
-      String featureName = getFeatureEncoder().decode(fi).toString();
-      for (int ci = 0; ci < numberOfLabels(); ci++) {
-        weights.set(featureName, getLabelEncoder().decode(ci).toString(), conditionals[fi][ci]);
+   @Override
+   public MultiCounter<String, String> getModelParameters() {
+      MultiCounter<String, String> weights = new HashMapMultiCounter<>();
+      for (int fi = 0; fi < numberOfFeatures(); fi++) {
+         String featureName = getFeatureEncoder().decode(fi).toString();
+         for (int ci = 0; ci < numberOfLabels(); ci++) {
+            weights.set(featureName, getLabelEncoder().decode(ci).toString(), conditionals[fi][ci]);
+         }
       }
-    }
-    return weights;
-  }
+      return weights;
+   }
 
-  /**
-   * The enum Model type.
-   */
-  public enum ModelType {
-    /**
-     * Multinomial model type.
-     */
-    Multinomial,
-    /**
-     * Bernoulli model type.
-     */
-    Bernoulli {
-      @Override
-      double convertValue(double value) {
-        return 1.0;
-      }
+   /**
+    * The enum Model type.
+    */
+   public enum ModelType {
+      /**
+       * Multinomial model type.
+       */
+      Multinomial,
+      /**
+       * Bernoulli model type.
+       */
+      Bernoulli {
+         @Override
+         double convertValue(double value) {
+            return 1.0;
+         }
 
-      @Override
-      double normalize(double conditionalCount, double priorCount, double totalLabelCount, double V) {
-        return (conditionalCount + 1) / (priorCount + 2);
-      }
+         @Override
+         double normalize(double conditionalCount, double priorCount, double totalLabelCount, double V) {
+            return (conditionalCount + 1) / (priorCount + 2);
+         }
 
-      @Override
-      double[] distribution(Vector instance, double[] priors, double[][] conditionals) {
-        DenseVector distribution = new DenseVector(priors);
-        for (int i = 0; i < priors.length; i++) {
-          for (int f = 0; f < conditionals.length; f++) {
-            if (instance.get(f) != 0) {
-              distribution.increment(i, Math.log(conditionals[f][i]));
-            } else {
-              distribution.increment(i, Math.log(1 - conditionals[f][i]));
+         @Override
+         double[] distribution(Vector instance, double[] priors, double[][] conditionals) {
+            DenseVector distribution = new DenseVector(priors);
+            for (int i = 0; i < priors.length; i++) {
+               for (int f = 0; f < conditionals.length; f++) {
+                  if (instance.get(f) != 0) {
+                     distribution.increment(i, Math.log(conditionals[f][i]));
+                  } else {
+                     distribution.increment(i, Math.log(1 - conditionals[f][i]));
+                  }
+               }
             }
-          }
-        }
-        distribution.mapSelf(Math::exp);
-        return distribution.toArray();
+            distribution.mapSelf(Math::exp);
+            return distribution.toArray();
+         }
+      },
+      /**
+       * Complementary model type.
+       */
+      Complementary;
+
+      /**
+       * Convert value double.
+       *
+       * @param value the value
+       * @return the double
+       */
+      double convertValue(double value) {
+         return value;
       }
-    },
-    /**
-     * Complementary model type.
-     */
-    Complementary;
 
-    double convertValue(double value) {
-      return value;
-    }
+      /**
+       * Normalize double.
+       *
+       * @param conditionalCount the conditional count
+       * @param priorCount       the prior count
+       * @param totalLabelCount  the total label count
+       * @param V                the v
+       * @return the double
+       */
+      double normalize(double conditionalCount, double priorCount, double totalLabelCount, double V) {
+         return (conditionalCount + 1) / (totalLabelCount + V);
+      }
 
-    double normalize(double conditionalCount, double priorCount, double totalLabelCount, double V) {
-      return (conditionalCount + 1) / (totalLabelCount + V);
-    }
+      /**
+       * Distribution double [ ].
+       *
+       * @param instance     the instance
+       * @param priors       the priors
+       * @param conditionals the conditionals
+       * @return the double [ ]
+       */
+      double[] distribution(Vector instance, double[] priors, double[][] conditionals) {
+         DenseVector distribution = new DenseVector(priors);
+         instance.forEachSparse(entry -> {
+            for (int i = 0; i < priors.length; i++) {
+               distribution.decrement(i, entry.getValue() * conditionals[entry.getIndex()][i]);
+            }
+         });
+         return distribution.mapSelf(Math::exp).toArray();
+      }
 
-    double[] distribution(Vector instance, double[] priors, double[][] conditionals) {
-      DenseVector distribution = new DenseVector(priors);
-      instance.forEachSparse(entry -> {
-        for (int i = 0; i < priors.length; i++) {
-          distribution.decrement(i, entry.getValue() * conditionals[entry.getIndex()][i]);
-        }
-      });
-      return distribution.mapSelf(Math::exp).toArray();
-    }
-
-  }
+   }
 }//END OF NaiveBayes

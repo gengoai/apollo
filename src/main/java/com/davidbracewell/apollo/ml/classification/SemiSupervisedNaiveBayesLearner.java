@@ -11,6 +11,8 @@ import lombok.Setter;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
+ * The type Semi supervised naive bayes learner.
+ *
  * @author David B. Bracewell
  */
 public class SemiSupervisedNaiveBayesLearner extends ClassifierLearner {
@@ -22,10 +24,18 @@ public class SemiSupervisedNaiveBayesLearner extends ClassifierLearner {
   @Setter
   private volatile int maxIterations = 200;
 
+  /**
+   * Instantiates a new Semi supervised naive bayes learner.
+   */
   public SemiSupervisedNaiveBayesLearner() {
     this.modelType = NaiveBayes.ModelType.Bernoulli;
   }
 
+  /**
+   * Instantiates a new Semi supervised naive bayes learner.
+   *
+   * @param modelType the model type
+   */
   public SemiSupervisedNaiveBayesLearner(@NonNull NaiveBayes.ModelType modelType) {
     this.modelType = modelType;
   }

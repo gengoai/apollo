@@ -25,6 +25,9 @@ import com.davidbracewell.apollo.ml.FeatureVector;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.data.Dataset;
 import de.bwaldvogel.liblinear.*;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.Setter;
 
 import java.util.Iterator;
 
@@ -35,18 +38,26 @@ import java.util.Iterator;
  */
 public class LibLinearLearner extends ClassifierLearner {
    private static final long serialVersionUID = 6185877887927537722L;
+   @Getter
+   @Setter(onParam = @_({@NonNull}))
    private SolverType solver = SolverType.L2R_LR;
+   @Getter
+   @Setter
    private double C = 1;
+   @Getter
+   @Setter
    private double eps = 0.0001;
+   @Getter
+   @Setter
    private boolean bias = false;
+   @Getter
+   @Setter
    private boolean verbose = false;
 
    @Override
    protected LibLinearModel trainImpl(Dataset<Instance> dataset) {
-      LibLinearModel model = new LibLinearModel(
-            dataset.getEncoderPair(),
-            dataset.getPreprocessors()
-      );
+      LibLinearModel model = new LibLinearModel(dataset.getEncoderPair(),
+                                                dataset.getPreprocessors());
 
       Problem problem = new Problem();
       problem.l = dataset.size();
@@ -71,88 +82,6 @@ public class LibLinearLearner extends ClassifierLearner {
 
       model.model = Linear.train(problem, new Parameter(solver, C, eps));
       return model;
-   }
-
-
-   /**
-    * Gets solver.
-    *
-    * @return the solver
-    */
-   public SolverType getSolver() {
-      return solver;
-   }
-
-   /**
-    * Sets solver.
-    *
-    * @param solver the solver
-    */
-   public void setSolver(SolverType solver) {
-      this.solver = solver;
-   }
-
-   /**
-    * Gets c.
-    *
-    * @return the c
-    */
-   public double getC() {
-      return C;
-   }
-
-   /**
-    * Sets c.
-    *
-    * @param c the c
-    */
-   public void setC(double c) {
-      C = c;
-   }
-
-   /**
-    * Gets eps.
-    *
-    * @return the eps
-    */
-   public double getEps() {
-      return eps;
-   }
-
-   /**
-    * Sets eps.
-    *
-    * @param eps the eps
-    */
-   public void setEps(double eps) {
-      this.eps = eps;
-   }
-
-   /**
-    * Is verbose boolean.
-    *
-    * @return the boolean
-    */
-   public boolean isVerbose() {
-      return verbose;
-   }
-
-   /**
-    * Sets verbose.
-    *
-    * @param verbose the verbose
-    */
-   public void setVerbose(boolean verbose) {
-      this.verbose = verbose;
-   }
-
-
-   public boolean getBias() {
-      return bias;
-   }
-
-   public void setBias(boolean bias) {
-      this.bias = bias;
    }
 
    @Override

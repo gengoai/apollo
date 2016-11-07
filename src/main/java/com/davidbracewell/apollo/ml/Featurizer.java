@@ -23,16 +23,13 @@ package com.davidbracewell.apollo.ml;
 
 import com.davidbracewell.apollo.ml.sequence.SequenceFeaturizer;
 import com.davidbracewell.cache.CacheProxy;
-import com.davidbracewell.cache.Cached;
-import com.davidbracewell.collection.counter.Counter;
 import com.davidbracewell.conversion.Cast;
-import com.davidbracewell.function.SerializableFunction;
 import com.davidbracewell.stream.MStream;
 import com.google.common.base.Preconditions;
 import lombok.NonNull;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.io.Serializable;
+import java.util.Set;
 
 /**
  * <p> A featurizer converts an input into a one or more <code>Feature</code>s which have a name and a value. Specific
@@ -41,30 +38,31 @@ import java.util.stream.Collectors;
  * @param <INPUT> the type of the input being converted into features
  * @author David B. Bracewell
  */
-public interface Featurizer<INPUT> extends SerializableFunction<INPUT, Set<Feature>> {
+@FunctionalInterface
+public interface Featurizer<INPUT> extends Serializable {
 
 
    /**
-    * Creates a binary featurizer, i.e. one that in which the values returned are all 1.0 (true). The given function
-    * converts the input into a collection of feature names which are assumed to have the value true (1.0).
+    * Applies this featurizer to the given input
     *
-    * @param <T>      the type of the input
-    * @param function the function to use to convert the input int feature names.
-    * @return the featurizer
+    * @param input the input to featurize
+    * @return the set of features
     */
-   static <T> Featurizer<T> binary(@NonNull SerializableFunction<? super T, ? extends Collection<String>> function) {
-      return new BinaryFeaturizer<T>() {
-         private static final long serialVersionUID = 1L;
+   Set<Feature> apply(INPUT input);
 
-         @Override
-         protected Set<String> applyImpl(T t) {
-            Collection<String> c = function.apply(t);
-            if (c instanceof Set) {
-               return Cast.as(c);
-            }
-            return new HashSet<>(c);
-         }
-      };
+
+   /**
+    * Chains this featurizer with another.
+    *
+    * @param featurizer the next featurizer to call
+    * @return the new chain of featurizer
+    */
+   default Featurizer<INPUT> chain(@NonNull Featurizer<? super INPUT> featurizer) {
+      if (this instanceof FeaturizerChain) {
+         Cast.<FeaturizerChain<INPUT>>as(this).addFeaturizer(featurizer);
+         return this;
+      }
+      return new FeaturizerChain<>(this, featurizer);
    }
 
    /**
@@ -80,36 +78,7 @@ public interface Featurizer<INPUT> extends SerializableFunction<INPUT, Set<Featu
       if (extractors.length == 1) {
          return Cast.as(extractors[0]);
       }
-      return new Featurizer<T>() {
-         private static final long serialVersionUID = 1L;
-         private final Set<Featurizer<? super T>> featurizers = new LinkedHashSet<>(Arrays.asList(extractors));
-
-         @Override
-         @Cached
-         public Set<Feature> apply(T t) {
-            return featurizers.parallelStream()
-                              .flatMap(f -> f.apply(t).stream())
-                              .collect(Collectors.toSet());
-         }
-      };
-   }
-
-   /**
-    * Creates a real featurizer that uses a given function that converts the input into a counter of features.
-    *
-    * @param <T>      the type of the input
-    * @param function the function to use to convert the input
-    * @return the featurizer
-    */
-   static <T> Featurizer<T> real(@NonNull SerializableFunction<? super T, ? extends Counter<String>> function) {
-      return new RealFeaturizer<T>() {
-         private static final long serialVersionUID = 1L;
-
-         @Override
-         protected Counter<String> applyImpl(T t) {
-            return function.apply(t);
-         }
-      };
+      return new FeaturizerChain<>(extractors);
    }
 
    /**

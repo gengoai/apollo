@@ -30,6 +30,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
+ * Represents a set of featurizers to run on a given input
+ *
+ * @param <INPUT> the input type parameter
  * @author David B. Bracewell
  */
 class FeaturizerChain<INPUT> implements Featurizer<INPUT> {
@@ -37,12 +40,22 @@ class FeaturizerChain<INPUT> implements Featurizer<INPUT> {
    private final Set<Featurizer<INPUT>> featurizers = new HashSet<>();
 
 
+   /**
+    * Instantiates a new Featurizer chain.
+    *
+    * @param featurizers the featurizers making up the chain
+    */
    @SafeVarargs
    public FeaturizerChain(Featurizer<? super INPUT>... featurizers) {
       this.featurizers.addAll(Cast.cast(Arrays.asList(featurizers)));
    }
 
 
+   /**
+    * Adds a featurizer to the chain.
+    *
+    * @param featurizer the featurizer
+    */
    public void addFeaturizer(Featurizer<? super INPUT> featurizer) {
       this.featurizers.add(Cast.as(featurizer));
    }

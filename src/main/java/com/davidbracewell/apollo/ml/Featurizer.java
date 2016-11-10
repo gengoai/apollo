@@ -23,6 +23,7 @@ package com.davidbracewell.apollo.ml;
 
 import com.davidbracewell.apollo.ml.sequence.SequenceFeaturizer;
 import com.davidbracewell.cache.CacheProxy;
+import com.davidbracewell.cache.Cached;
 import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.stream.MStream;
 import com.google.common.base.Preconditions;
@@ -43,29 +44,6 @@ public interface Featurizer<INPUT> extends Serializable {
 
 
    /**
-    * Applies this featurizer to the given input
-    *
-    * @param input the input to featurize
-    * @return the set of features
-    */
-   Set<Feature> apply(INPUT input);
-
-
-   /**
-    * Chains this featurizer with another.
-    *
-    * @param featurizer the next featurizer to call
-    * @return the new chain of featurizer
-    */
-   default Featurizer<INPUT> chain(@NonNull Featurizer<? super INPUT> featurizer) {
-      if (this instanceof FeaturizerChain) {
-         Cast.<FeaturizerChain<INPUT>>as(this).addFeaturizer(featurizer);
-         return this;
-      }
-      return new FeaturizerChain<>(this, featurizer);
-   }
-
-   /**
     * Chain featurizer.
     *
     * @param <T>        the type parameter
@@ -80,6 +58,15 @@ public interface Featurizer<INPUT> extends Serializable {
       }
       return new FeaturizerChain<>(extractors);
    }
+
+   /**
+    * Applies this featurizer to the given input
+    *
+    * @param input the input to featurize
+    * @return the set of features
+    */
+   @Cached
+   Set<Feature> apply(INPUT input);
 
    /**
     * As sequence featurizer sequence featurizer.
@@ -107,6 +94,20 @@ public interface Featurizer<INPUT> extends Serializable {
     */
    default Featurizer<INPUT> cache(String cacheName) {
       return CacheProxy.cache(this, cacheName);
+   }
+
+   /**
+    * Chains this featurizer with another.
+    *
+    * @param featurizer the next featurizer to call
+    * @return the new chain of featurizer
+    */
+   default Featurizer<INPUT> chain(@NonNull Featurizer<? super INPUT> featurizer) {
+      if (this instanceof FeaturizerChain) {
+         Cast.<FeaturizerChain<INPUT>>as(this).addFeaturizer(featurizer);
+         return this;
+      }
+      return new FeaturizerChain<>(this, featurizer);
    }
 
    /**

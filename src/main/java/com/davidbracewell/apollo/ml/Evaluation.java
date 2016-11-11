@@ -65,12 +65,4 @@ public interface Evaluation<T extends Example, M extends Model> {
     */
    void output(PrintStream printStream);
 
-   /**
-    * Outputs the evaluation results to <code>System.err</code>
-    */
-   default void output() {
-      output(System.err);
-   }
-
-
 }//END OF Evaluation

@@ -47,12 +47,8 @@ public class FeatureVector extends SparseVector {
       return encoderPair;
    }
 
-   /**
-    * Gets label.
-    *
-    * @return the label
-    */
    @SuppressWarnings("unchecked")
+   @Override
    public Double getLabel() {
       return label;
    }

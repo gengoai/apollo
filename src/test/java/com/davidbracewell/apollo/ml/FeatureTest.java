@@ -30,7 +30,6 @@ import static org.junit.Assert.*;
  */
 public class FeatureTest {
 
-
    @Test
    public void componentTest() throws Exception {
       Feature f1 = Feature.TRUE("WORD", "praise");

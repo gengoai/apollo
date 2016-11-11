@@ -2,13 +2,10 @@ package com.davidbracewell.apollo.ml;
 
 import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.conversion.Cast;
-import com.davidbracewell.io.structured.StructuredReader;
-import com.davidbracewell.io.structured.StructuredWriter;
 import com.davidbracewell.stream.MStream;
 import com.google.common.base.Preconditions;
 import lombok.NonNull;
 
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
@@ -64,11 +61,6 @@ public class RegressionLabelEncoder implements Serializable, LabelEncoder {
    }
 
    @Override
-   public void read(StructuredReader reader) throws IOException {
-
-   }
-
-   @Override
    public int size() {
       return 0;
    }
@@ -81,11 +73,6 @@ public class RegressionLabelEncoder implements Serializable, LabelEncoder {
    @Override
    public List<Object> values() {
       return Collections.emptyList();
-   }
-
-   @Override
-   public void write(StructuredWriter writer) throws IOException {
-
    }
 
 }// END OF RealEncoder

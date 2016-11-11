@@ -1,7 +1,6 @@
 package com.davidbracewell.apollo.ml;
 
 import com.davidbracewell.apollo.ml.data.Dataset;
-import com.davidbracewell.io.structured.StructuredSerializable;
 import com.davidbracewell.stream.MStream;
 import lombok.NonNull;
 
@@ -14,7 +13,7 @@ import java.util.stream.Stream;
  *
  * @author David B. Bracewell
  */
-public interface Encoder extends StructuredSerializable {
+public interface Encoder {
 
    /**
     * Creates new encoder of the same type as this one.

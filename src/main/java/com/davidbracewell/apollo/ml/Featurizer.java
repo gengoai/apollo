@@ -25,8 +25,6 @@ import com.davidbracewell.apollo.ml.sequence.SequenceFeaturizer;
 import com.davidbracewell.cache.CacheProxy;
 import com.davidbracewell.cache.Cached;
 import com.davidbracewell.conversion.Cast;
-import com.davidbracewell.stream.MStream;
-import com.google.common.base.Preconditions;
 import lombok.NonNull;
 
 import java.io.Serializable;
@@ -44,19 +42,19 @@ public interface Featurizer<INPUT> extends Serializable {
 
 
    /**
-    * Chain featurizer.
+    * Chains multiple featurizers together with each being called on the input data.
     *
-    * @param <T>        the type parameter
-    * @param extractors the extractors
-    * @return the featurizer
+    * @param <T>           the example type parameter
+    * @param featurizerOne the first featurizer
+    * @param featurizers   the featurizers to chain together
+    * @return the Chained featurizers
     */
    @SafeVarargs
-   static <T> Featurizer<T> chain(@NonNull Featurizer<? super T>... extractors) {
-      Preconditions.checkState(extractors.length > 0, "No Featurizers have been specified.");
-      if (extractors.length == 1) {
-         return Cast.as(extractors[0]);
+   static <T> Featurizer<T> chain(@NonNull Featurizer<? super T> featurizerOne, Featurizer<? super T>... featurizers) {
+      if (featurizers.length == 0) {
+         return Cast.as(featurizerOne);
       }
-      return new FeaturizerChain<>(extractors);
+      return new FeaturizerChain<>(featurizerOne, featurizers);
    }
 
    /**
@@ -68,17 +66,9 @@ public interface Featurizer<INPUT> extends Serializable {
    @Cached
    Set<Feature> apply(INPUT input);
 
-   /**
-    * As sequence featurizer sequence featurizer.
-    *
-    * @return the sequence featurizer
-    */
-   default SequenceFeaturizer<INPUT> asSequenceFeaturizer() {
-      return itr -> apply(itr.getCurrent());
-   }
 
    /**
-    * Cache featurizer.
+    * Caches the call to featurizer.
     *
     * @return the featurizer
     */
@@ -102,7 +92,7 @@ public interface Featurizer<INPUT> extends Serializable {
     * @param featurizer the next featurizer to call
     * @return the new chain of featurizer
     */
-   default Featurizer<INPUT> chain(@NonNull Featurizer<? super INPUT> featurizer) {
+   default Featurizer<INPUT> and(@NonNull Featurizer<? super INPUT> featurizer) {
       if (this instanceof FeaturizerChain) {
          Cast.<FeaturizerChain<INPUT>>as(this).addFeaturizer(featurizer);
          return this;
@@ -116,7 +106,7 @@ public interface Featurizer<INPUT> extends Serializable {
     * @param object the input
     * @return the instance
     */
-   default Instance extract(@NonNull INPUT object) {
+   default Instance extractInstance(@NonNull INPUT object) {
       return Instance.create(apply(object));
    }
 
@@ -127,39 +117,29 @@ public interface Featurizer<INPUT> extends Serializable {
     * @param label  the label to assign the input
     * @return the instance
     */
-   default Instance extract(@NonNull INPUT object, Object label) {
+   default Instance extractInstance(@NonNull INPUT object, Object label) {
       return Instance.create(apply(object), label);
    }
 
    /**
-    * Extract m stream.
+    * Converts the given input into features and creates an <code>Instance</code> from the features.
     *
-    * @param inputStream the input stream
-    * @return the m stream
-    */
-   default MStream<Instance> extract(@NonNull MStream<INPUT> inputStream) {
-      return inputStream.map(this::extract);
-   }
-
-   /**
-    * Extract instance.
-    *
-    * @param labeledDatum the labeled datum
+    * @param labeledDatum the labeled datum to featurize
     * @return the instance
     */
-   default Instance extractLabeled(@NonNull LabeledDatum<INPUT> labeledDatum) {
+   default Instance extractInstance(@NonNull LabeledDatum<INPUT> labeledDatum) {
       return Instance.create(apply(labeledDatum.getData()), labeledDatum.getLabel());
    }
 
-   /**
-    * Extract labeled m stream.
-    *
-    * @param inputStream the input stream
-    * @return the m stream
-    */
-   default MStream<Instance> extractLabeled(@NonNull MStream<LabeledDatum<INPUT>> inputStream) {
-      return inputStream.map(this::extractLabeled);
-   }
 
+   /**
+    * Converts this instance featurizer into a <code>SequenceFeaturizer</code> that acts on the current item in the
+    * sequence.
+    *
+    * @return the sequence featurizer
+    */
+   default SequenceFeaturizer<INPUT> asSequenceFeaturizer() {
+      return itr -> apply(itr.getCurrent());
+   }
 
 }//END OF Featurizer

@@ -1,14 +1,8 @@
 package com.davidbracewell.apollo.ml;
 
-import com.davidbracewell.io.structured.ElementType;
-import com.davidbracewell.io.structured.StructuredReader;
-import com.davidbracewell.io.structured.StructuredSerializable;
-import com.davidbracewell.io.structured.StructuredWriter;
-import com.davidbracewell.reflection.Reflect;
-import com.davidbracewell.reflection.ReflectionException;
 import lombok.EqualsAndHashCode;
+import lombok.NonNull;
 
-import java.io.IOException;
 import java.io.Serializable;
 
 /**
@@ -17,7 +11,7 @@ import java.io.Serializable;
  * @author David B. Bracewell
  */
 @EqualsAndHashCode(callSuper = false)
-public final class EncoderPair implements Serializable, StructuredSerializable {
+public final class EncoderPair implements Serializable {
    private static final long serialVersionUID = 1L;
    private final LabelEncoder labelEncoder;
    private final Encoder featureEncoder;
@@ -28,59 +22,46 @@ public final class EncoderPair implements Serializable, StructuredSerializable {
     * @param labelEncoder   the label encoder
     * @param featureEncoder the feature encoder
     */
-   public EncoderPair(LabelEncoder labelEncoder, Encoder featureEncoder) {
+   public EncoderPair(@NonNull LabelEncoder labelEncoder, @NonNull Encoder featureEncoder) {
       this.labelEncoder = labelEncoder;
       this.featureEncoder = featureEncoder;
    }
 
-   protected EncoderPair() {
-      this.labelEncoder = null;
-      this.featureEncoder = null;
-   }
-
-   private Object createEncoder(StructuredReader reader) throws IOException {
-      reader.beginObject();
-      Class<?> clazz = reader.nextKeyValue("class").asClass();
-      Object o = reader.nextKeyValue("encoder", clazz);
-      reader.endObject();
-      return o;
-   }
-
    /**
-    * Create new encoder pair.
+    * Creates a new Encoder pair with the same type of label and feature encoder
     *
-    * @return the encoder pair
+    * @return the new and empty encoder pair
     */
    public EncoderPair createNew() {
       return new EncoderPair(labelEncoder.createNew(), featureEncoder.createNew());
    }
 
    /**
-    * Decode feature object.
+    * Decodes the double into a feature.
     *
-    * @param value the value
-    * @return the object
+    * @param value the encoded value
+    * @return the feature associated with the value or null if none
     */
    public Object decodeFeature(double value) {
       return featureEncoder.decode(value);
    }
 
    /**
-    * Decode label object.
+    * Decodes the double into a label.
     *
-    * @param value the value
-    * @return the object
+    * @param value the encoded value
+    * @return the label associated with the value or null if none
     */
    public Object decodeLabel(double value) {
       return labelEncoder.decode(value);
    }
 
    /**
-    * Encode t.
+    * Encodes both the label space and the feature space of the given example
     *
-    * @param <T>     the type parameter
+    * @param <T>     the example type parameter
     * @param example the example
-    * @return the t
+    * @return the example for fluent interface
     */
    public <T extends Example> T encode(T example) {
       if (example != null) {
@@ -91,20 +72,20 @@ public final class EncoderPair implements Serializable, StructuredSerializable {
    }
 
    /**
-    * Encode feature double.
+    * Encodes the given feature into a double
     *
     * @param feature the feature
-    * @return the double
+    * @return the encoded value
     */
    public double encodeFeature(Object feature) {
       return featureEncoder.encode(feature);
    }
 
    /**
-    * Encode label double.
+    * Encodes the given label into a double
     *
     * @param label the label
-    * @return the double
+    * @return the encoded value
     */
    public double encodeLabel(Object label) {
       return labelEncoder.encode(label);
@@ -121,7 +102,7 @@ public final class EncoderPair implements Serializable, StructuredSerializable {
    }
 
    /**
-    * Freeze.
+    * Freezes the label and feature encoders restricting new objects from being mapped to values.
     */
    public void freeze() {
       this.labelEncoder.freeze();
@@ -129,7 +110,7 @@ public final class EncoderPair implements Serializable, StructuredSerializable {
    }
 
    /**
-    * Gets feature encoder.
+    * Gets the feature encoder.
     *
     * @return the feature encoder
     */
@@ -138,7 +119,7 @@ public final class EncoderPair implements Serializable, StructuredSerializable {
    }
 
    /**
-    * Gets label encoder.
+    * Gets the label encoder.
     *
     * @return the label encoder
     */
@@ -157,54 +138,21 @@ public final class EncoderPair implements Serializable, StructuredSerializable {
    }
 
    /**
-    * Number of features int.
+    * Gets the number of features in the feature encoder
     *
-    * @return the int
+    * @return the number of features
     */
    public int numberOfFeatures() {
       return featureEncoder.size();
    }
 
    /**
-    * Number of labels int.
+    * Gets the number of labels in the label encoder
     *
-    * @return the int
+    * @return the number of labels
     */
    public int numberOfLabels() {
       return labelEncoder.size();
-   }
-
-   @Override
-   public void read(StructuredReader reader) throws IOException {
-      try {
-         while (reader.peek() != ElementType.END_OBJECT) {
-            switch (reader.peekName()) {
-               case "features":
-                  Reflect.onObject(this).allowPrivilegedAccess().set("featureEncoder", createEncoder(reader));
-                  break;
-               case "labels":
-                  Reflect.onObject(this).allowPrivilegedAccess().set("labelEncoder", createEncoder(reader));
-                  break;
-               default:
-                  throw new IOException("Unexpected " + reader.peekName() + " [" + reader.peek() + "]");
-            }
-         }
-      } catch (ReflectionException e) {
-         throw new IOException(e);
-      }
-   }
-
-   @Override
-   public void write(StructuredWriter writer) throws IOException {
-      writer
-         .beginObject("features")
-         .writeKeyValue("class", featureEncoder.getClass().getName())
-         .writeKeyValue("encoder", featureEncoder)
-         .endObject()
-         .beginObject("labels")
-         .writeKeyValue("class", labelEncoder.getClass().getName())
-         .writeKeyValue("encoder", labelEncoder)
-         .endObject();
    }
 
 }// END OF EncoderPair

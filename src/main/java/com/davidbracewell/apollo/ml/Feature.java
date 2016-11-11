@@ -31,7 +31,7 @@ import java.io.Serializable;
 
 /**
  * <p>A feature is made up of a name and double value.</p>
- * <p>convention for binary predicates is <code>PREFIX=PREDICATE</code> and when position is important
+ * <p>Convention for binary predicates is <code>PREFIX=PREDICATE</code> and when position is important
  * <code>PREFIX[POSITION]=PREDICATE</code>.</p>
  *
  * @author David B. Bracewell
@@ -58,14 +58,15 @@ public class Feature implements Serializable, Comparable<Feature>, Copyable<Feat
    }
 
    /**
-    * True feature.
+    * Creates a binary feature made up a prefix and one or more components with the value of TRUE (1.0). Feature name
+    * will be in the form of <code>PREFIX=COMPONENT[1]_COMPONENT[2]_..._COMPONENT[N]</code>
     *
-    * @param featureName      the feature name
-    * @param featureComponent the feature component
+    * @param featurePrefix     the feature prefix
+    * @param featureComponents the feature components
     * @return the feature
     */
-   public static Feature TRUE(@NonNull String featureName, @NonNull String... featureComponent) {
-      return new Feature(featureName + "=" + Joiner.on('_').join(featureComponent), 1.0);
+   public static Feature TRUE(@NonNull String featurePrefix, @NonNull String... featureComponents) {
+      return new Feature(featurePrefix + "=" + Joiner.on('_').join(featureComponents), 1.0);
    }
 
    /**
@@ -90,9 +91,9 @@ public class Feature implements Serializable, Comparable<Feature>, Copyable<Feat
    }
 
    /**
-    * Gets predicate.
+    * Gets the predicate part of the feature.
     *
-    * @return the predicate
+    * @return the predicate or the full name if no predicate is found
     */
    public String getPredicate() {
       int index = name.indexOf('=');
@@ -103,16 +104,23 @@ public class Feature implements Serializable, Comparable<Feature>, Copyable<Feat
    }
 
    /**
-    * Gets prefix.
+    * Gets the feature prefix.
     *
-    * @return the prefix
+    * @return the prefix or an empty string if no prefix is specified
     */
    public String getPrefix() {
-      int index = name.indexOf('=');
-      if (index > 0) {
-         return removePosition(name.substring(0, index));
+      int eqIndex = name.indexOf('=');
+      int brIndex = name.indexOf('[');
+
+      if (eqIndex <= 0 && brIndex <= 0) {
+         return StringUtils.EMPTY;
+      } else if (eqIndex <= 0) {
+         return removePosition(name.substring(0, brIndex));
+      } else if (brIndex <= 0) {
+         return removePosition(name.substring(0, eqIndex));
+      } else {
+         return removePosition(name.substring(0, Math.min(eqIndex, brIndex)));
       }
-      return StringUtils.EMPTY;
    }
 
    private String removePosition(String n) {

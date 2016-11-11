@@ -103,11 +103,15 @@ public interface SequenceFeaturizer<INPUT> extends Featurizer<ContextualIterator
       ArrayList<Instance> instances = new ArrayList<>();
       while (iterator.hasNext()) {
          iterator.next();
-         instances.add(extract(iterator, iterator.getLabel()));
+         instances.add(extractInstance(iterator, iterator.getLabel()));
       }
       instances.trimToSize();
       return new Sequence(instances);
    }
 
+   @Override
+   default SequenceFeaturizer<ContextualIterator<INPUT>> asSequenceFeaturizer() {
+      return Cast.as(this);
+   }
 
 }// END OF SequenceFeaturizer

@@ -43,11 +43,15 @@ class FeaturizerChain<INPUT> implements Featurizer<INPUT> {
    /**
     * Instantiates a new Featurizer chain.
     *
-    * @param featurizers the featurizers making up the chain
+    * @param featurizerOne the first featurizer
+    * @param featurizers   the featurizers making up the chain
     */
    @SafeVarargs
-   public FeaturizerChain(Featurizer<? super INPUT>... featurizers) {
-      this.featurizers.addAll(Cast.cast(Arrays.asList(featurizers)));
+   public FeaturizerChain(@NonNull Featurizer<? super INPUT> featurizerOne, Featurizer<? super INPUT>... featurizers) {
+      this.featurizers.add(Cast.as(featurizerOne));
+      if (featurizers != null && featurizers.length > 0) {
+         this.featurizers.addAll(Cast.cast(Arrays.asList(featurizers)));
+      }
    }
 
 

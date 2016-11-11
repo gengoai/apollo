@@ -19,16 +19,33 @@
  * under the License.
  */
 
-package com.davidbracewell.apollo.ml.classification;
+package com.davidbracewell.apollo.ml;
+
+import org.junit.Test;
+
+import static org.junit.Assert.*;
 
 /**
  * @author David B. Bracewell
  */
-public class AveragedPerceptronTest extends ClassificationTest {
+public class FeatureTest {
 
-   public AveragedPerceptronTest() {
-      super(new AveragedPerceptronLearner(100, 1, 0.00001), 1.0, 0.1);
+
+   @Test
+   public void componentTest() throws Exception {
+      Feature f1 = Feature.TRUE("WORD", "praise");
+      assertEquals("WORD=praise", f1.getName());
+      assertEquals("WORD", f1.getPrefix());
+      assertEquals("praise", f1.getPredicate());
+   }
+
+   @Test
+   public void trueTest() throws Exception {
+      Feature f1 = Feature.TRUE("WORD[-1]=praise");
+      assertEquals("WORD[-1]=praise", f1.getName());
+      assertEquals("WORD", f1.getPrefix());
+      assertEquals("praise", f1.getPredicate());
    }
 
 
-}//END OF LibLinearTest
+}

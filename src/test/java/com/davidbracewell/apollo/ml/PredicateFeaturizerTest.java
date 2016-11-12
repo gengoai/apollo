@@ -19,15 +19,41 @@
  * under the License.
  */
 
-package com.davidbracewell.apollo.ml.classification;
+package com.davidbracewell.apollo.ml;
+
+import org.junit.Test;
+
+import java.util.Collections;
+
+import static org.junit.Assert.*;
 
 /**
  * @author David B. Bracewell
  */
-public class AveragedPerceptronTest extends ClassificationTest {
+public class PredicateFeaturizerTest {
 
-   public AveragedPerceptronTest() {
-      super(new AveragedPerceptronLearner(100, 1, 0.00001).oneVsRest(), 0.33, 0.1);
+   PredicateFeaturizer<String> pf = new PredicateFeaturizer<String>("LOWER") {
+      private static final long serialVersionUID = 1L;
+
+      @Override
+      public String extractPredicate(String s) {
+         return s.toLowerCase();
+      }
+   };
+
+   @Test
+   public void apply() throws Exception {
+      assertEquals(Collections.singleton(Feature.TRUE("LOWER=test")), pf.apply("TEST"));
    }
 
-}//END OF LibLinearTest
+   @Test
+   public void extractPredicate() throws Exception {
+      assertEquals("test", pf.extractPredicate("TesT"));
+   }
+
+   @Test
+   public void getPrefix() throws Exception {
+      assertEquals("LOWER", pf.getPrefix());
+   }
+
+}

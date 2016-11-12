@@ -13,29 +13,19 @@ import java.io.Serializable;
 import java.util.Map;
 
 /**
- * The type Learner.
+ * <p>Base class for methods to learn (train) a model of a specific type.</p>
  *
- * @param <T> the type parameter
- * @param <M> the type parameter
+ * @param <T> the example type parameter
+ * @param <M> the model type parameter
  * @author David B. Bracewell
  */
 public abstract class Learner<T extends Example, M extends Model> implements Serializable {
 
    private static final long serialVersionUID = 605756060816072642L;
 
-   /**
-    * Builder learner builder.
-    *
-    * @param <T> the type parameter
-    * @param <M> the type parameter
-    * @return the learner builder
-    */
-   public static <T extends Example, M extends Model> LearnerBuilder<T, M> builder() {
-      return new LearnerBuilder<>();
-   }
 
    /**
-    * Classification learner builder.
+    * Creates a builder for constructing Classification learners
     *
     * @return the learner builder
     */
@@ -44,7 +34,7 @@ public abstract class Learner<T extends Example, M extends Model> implements Ser
    }
 
    /**
-    * Regression learner builder.
+    * Creates a builder for constructing Regression learners
     *
     * @return the learner builder
     */
@@ -53,7 +43,7 @@ public abstract class Learner<T extends Example, M extends Model> implements Ser
    }
 
    /**
-    * sequence learner builder.
+    * Creates a builder for constructing Sequence learners
     *
     * @return the learner builder
     */
@@ -62,10 +52,10 @@ public abstract class Learner<T extends Example, M extends Model> implements Ser
    }
 
    /**
-    * Gets parameter.
+    * Gets the value of the given parameter.
     *
-    * @param name the name
-    * @return the parameter
+    * @param name the name of the parameter
+    * @return the parameter's value or null
     */
    @Ignore
    public Object getParameter(String name) {
@@ -73,7 +63,7 @@ public abstract class Learner<T extends Example, M extends Model> implements Ser
    }
 
    /**
-    * Gets parameters.
+    * Gets the  parameters that can be set/retrieved on this learner.
     *
     * @return the parameters
     */
@@ -83,7 +73,7 @@ public abstract class Learner<T extends Example, M extends Model> implements Ser
    }
 
    /**
-    * Sets parameters.
+    * Sets the parameters of this learner using the supplied parameter map.
     *
     * @param parameters the parameters
     */
@@ -93,15 +83,15 @@ public abstract class Learner<T extends Example, M extends Model> implements Ser
    }
 
    /**
-    * Reset.
+    * Resets any saved state in the learner.
     */
    public abstract void reset();
 
    /**
-    * Sets parameter.
+    * Sets the value of the given parameter.
     *
-    * @param name  the name
-    * @param value the value
+    * @param name  the name of the parameter
+    * @param value the value to set the parameter to
     */
    @Ignore
    public void setParameter(String name, Object value) {
@@ -109,10 +99,10 @@ public abstract class Learner<T extends Example, M extends Model> implements Ser
    }
 
    /**
-    * Train classifier.
+    * Trains a model using the given dataset.
     *
-    * @param dataset the dataset
-    * @return the classifier
+    * @param dataset the dataset to use for training
+    * @return the trained model
     */
    public M train(@NonNull Dataset<T> dataset) {
       dataset.encode();
@@ -122,10 +112,10 @@ public abstract class Learner<T extends Example, M extends Model> implements Ser
    }
 
    /**
-    * Train m.
+    * Actual training implementation to be defined by individual learners
     *
-    * @param dataset the dataset
-    * @return the m
+    * @param dataset the dataset to use for training
+    * @return the trained model
     */
    protected abstract M trainImpl(Dataset<T> dataset);
 

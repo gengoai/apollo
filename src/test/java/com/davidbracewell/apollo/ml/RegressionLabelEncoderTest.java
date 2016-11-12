@@ -19,13 +19,12 @@
  * under the License.
  */
 
-package com.davidbracewell.apollo.ml.classification;
+package com.davidbracewell.apollo.ml;
 
 import com.davidbracewell.apollo.linalg.DenseVector;
 import com.davidbracewell.apollo.linalg.LabeledVector;
-import com.davidbracewell.apollo.ml.IndexEncoder;
-import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.data.Dataset;
+import com.davidbracewell.stream.StreamingContext;
 import lombok.SneakyThrows;
 import org.junit.Test;
 
@@ -38,17 +37,9 @@ import static org.junit.Assert.*;
 /**
  * @author David B. Bracewell
  */
-public abstract class ClassificationTest {
+public class RegressionLabelEncoderTest {
 
-   private final ClassifierLearner learner;
-   private final double targetAcc;
-   private final double tolerance;
-
-   protected ClassificationTest(ClassifierLearner learner, double targetAcc, double tolerance) {
-      this.learner = learner;
-      this.targetAcc = targetAcc;
-      this.tolerance = tolerance;
-   }
+   Encoder encoder = new RegressionLabelEncoder();
 
    @SneakyThrows
    public Dataset<Instance> getData() {
@@ -57,10 +48,7 @@ public abstract class ClassificationTest {
          data.add(Instance.fromVector(new LabeledVector("true", DenseVector.ones(20))));
       }
       for (int i = 0; i < 1_000; i++) {
-         data.add(Instance.fromVector(new LabeledVector("false", DenseVector.zeros(20).mapAddSelf(0.1))));
-      }
-      for (int i = 0; i < 1_000; i++) {
-         data.add(Instance.fromVector(new LabeledVector("maybe", DenseVector.zeros(20).mapAddSelf(0.5))));
+         data.add(Instance.fromVector(new LabeledVector("false", DenseVector.zeros(20))));
       }
       return Dataset.classification()
                     .data(data)
@@ -70,24 +58,64 @@ public abstract class ClassificationTest {
    }
 
    @Test
-   public void testClassification() throws Exception {
-      Dataset<Instance> data = getData();
-      Classifier classifier = learner.train(data);
+   public void createNew() throws Exception {
+      assertTrue(encoder.createNew() instanceof RegressionLabelEncoder);
+   }
 
-      //Make sure we can decode 2 labels
-      assertNotNull(classifier.decodeLabel(0));
-      assertNotNull(classifier.decodeLabel(1));
-      assertNull(classifier.decodeLabel(3));
+   @Test
+   public void decode() throws Exception {
+      assertEquals(20d, encoder.decode(20));
+   }
 
-      assertNotNull(classifier.decodeFeature(1));
-      assertTrue(classifier.encodeFeature("1") != -1);
+   @Test(expected = IllegalArgumentException.class)
+   public void encodeError() throws Exception {
+      assertEquals(-1, encoder.encode("20"), 0);
+   }
 
-
-      ClassifierEvaluation evaluation = new ClassifierEvaluation();
-      evaluation.evaluate(classifier, data);
-      assertEquals(targetAcc, evaluation.accuracy(), tolerance);
-      System.out.println(learner.getClass().getSimpleName() + ": " + evaluation.accuracy());
+   @Test
+   public void encode() throws Exception {
+      assertEquals(20.0, encoder.encode(20), 0);
    }
 
 
-}//END OF ClassificationTest
+   @Test
+   public void fit() throws Exception {
+      encoder.fit(StreamingContext.local().stream("20"));
+   }
+
+   @Test
+   public void fit1() throws Exception {
+      encoder.fit(getData());
+   }
+
+   @Test
+   public void freeze() throws Exception {
+      assertTrue(encoder.isFrozen());
+      encoder.unFreeze();
+      assertTrue(encoder.isFrozen());
+      encoder.freeze();
+      assertTrue(encoder.isFrozen());
+   }
+
+   @Test(expected = IllegalArgumentException.class)
+   public void getError() throws Exception {
+      assertEquals(-1, encoder.get("20"), 0);
+   }
+
+   @Test
+   public void get() throws Exception {
+      assertEquals(20.0, encoder.get(20), 0);
+   }
+
+
+   @Test
+   public void size() throws Exception {
+      assertEquals(0, encoder.size());
+   }
+
+   @Test
+   public void values() throws Exception {
+      assertTrue(encoder.values().isEmpty());
+   }
+
+}

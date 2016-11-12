@@ -21,7 +21,6 @@
 
 package com.davidbracewell.apollo.ml.classification;
 
-import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.Learner;
 
 /**
@@ -30,7 +29,7 @@ import com.davidbracewell.apollo.ml.Learner;
 public class LibLinearTest extends ClassificationTest {
 
    public LibLinearTest() {
-      super(Learner.<Instance, Classifier>builder()
+      super(Learner.classification()
                .learnerClass(LibLinearLearner.class)
                .parameter("C", 1.0)
                .parameter("eps", 0.001)

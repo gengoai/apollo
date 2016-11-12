@@ -1,7 +1,5 @@
 package com.davidbracewell.apollo.ml;
 
-import com.davidbracewell.apollo.ml.classification.ClassifierLearner;
-import com.davidbracewell.apollo.ml.classification.OneVsRestLearner;
 import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.reflection.BeanMap;
 import com.davidbracewell.reflection.Reflect;
@@ -18,10 +16,10 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 /**
- * The type Learner builder.
+ * <p>Builder for Learners</p>
  *
- * @param <T> the type parameter
- * @param <M> the type parameter
+ * @param <T> the example type parameter for what type of examples the learner accepts
+ * @param <M> the model type parameter for what type of models the learner trains
  * @author David B. Bracewell
  */
 @Accessors(fluent = true)
@@ -33,10 +31,10 @@ public class LearnerBuilder<T extends Example, M extends Model> implements Seria
 
 
    /**
-    * Parameter learner builder.
+    * Sets the given parameter to the given value
     *
-    * @param name  the name
-    * @param value the value
+    * @param name  the name of the parameter to set
+    * @param value the value to the set the parameter to
     * @return the learner builder
     */
    public LearnerBuilder<T, M> parameter(String name, Object value) {
@@ -45,19 +43,10 @@ public class LearnerBuilder<T extends Example, M extends Model> implements Seria
    }
 
    /**
-    * One vs rest classifier learner.
+    * Builds a learner using the configured learner class and parameters
     *
-    * @return the classifier learner
-    */
-   public ClassifierLearner oneVsRest() {
-      return new OneVsRestLearner(() -> Cast.as(this.build()));
-   }
-
-   /**
-    * Build r.
-    *
-    * @param <R> the type parameter
-    * @return the r
+    * @param <R> the learner type parameter
+    * @return the learner
     */
    public <R extends Learner<T, M>> R build() {
       Preconditions.checkNotNull(learnerClass, "Learner was not set");
@@ -71,9 +60,9 @@ public class LearnerBuilder<T extends Example, M extends Model> implements Seria
    }
 
    /**
-    * Supplier supplier.
+    * Creates a supplier from this builder that calls build on each request.
     *
-    * @param <R> the type parameter
+    * @param <R> the learner type parameter
     * @return the supplier
     */
    public <R extends Learner<T, M>> Supplier<R> supplier() {

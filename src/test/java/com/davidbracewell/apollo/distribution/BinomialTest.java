@@ -70,7 +70,7 @@ public class BinomialTest {
          sum += binomial.sample();
       }
       //Expect about 5 successes
-      assertEquals(5.0, sum / 10.0, 1.5);
+      assertEquals(5.0, sum / 10.0, 2.0);
    }
 
    @Test

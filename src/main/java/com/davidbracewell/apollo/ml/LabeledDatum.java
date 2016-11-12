@@ -36,9 +36,9 @@ public class LabeledDatum<T> implements Serializable {
    private T data;
 
    /**
-    * Of labeled data.
+    * Convenience method for creating a labeled data point
     *
-    * @param <R>   the type parameter
+    * @param <R>   the data type parameter
     * @param label the label
     * @param data  the data
     * @return the labeled data

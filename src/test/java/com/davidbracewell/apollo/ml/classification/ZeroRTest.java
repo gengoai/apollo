@@ -27,7 +27,7 @@ package com.davidbracewell.apollo.ml.classification;
 public class ZeroRTest extends ClassificationTest {
 
    public ZeroRTest() {
-      super(new ZeroRLearner(), 0.5, 0.0);
+      super(new ZeroRLearner(), 0.33, 0.1);
    }
 
 

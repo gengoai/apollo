@@ -29,9 +29,11 @@ import java.util.Collections;
 import java.util.Set;
 
 /**
- * The type Predicate featurizer.
+ * <p>Specialized featurizer that produces one feature in the form <code>PREFIX=PREDICATE</code> allowing access to the
+ * prefix and predicate separately. This is of most use for sequence labeling where features need positional elements
+ * attached.</p>
  *
- * @param <INPUT> the type parameter
+ * @param <INPUT> the input type parameter
  * @author David B. Bracewell
  */
 public abstract class PredicateFeaturizer<INPUT> implements Featurizer<INPUT> {
@@ -56,10 +58,10 @@ public abstract class PredicateFeaturizer<INPUT> implements Featurizer<INPUT> {
    }
 
    /**
-    * Extract predicate string.
+    * Implementation to extract a single predicate from the given input.
     *
     * @param input the input
-    * @return the string
+    * @return the predicate feature name
     */
    public abstract String extractPredicate(INPUT input);
 

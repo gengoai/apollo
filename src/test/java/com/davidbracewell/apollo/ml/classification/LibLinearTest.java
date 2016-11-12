@@ -30,11 +30,11 @@ public class LibLinearTest extends ClassificationTest {
 
    public LibLinearTest() {
       super(Learner.classification()
-               .learnerClass(LibLinearLearner.class)
-               .parameter("C", 1.0)
-               .parameter("eps", 0.001)
-               .parameter("bias", true)
-               .build(),
+                   .learnerClass(LibLinearLearner.class)
+                   .parameter("C", 10.0)
+                   .parameter("eps", 0.001)
+                   .parameter("bias", false)
+                   .build(),
             0.5,
             0.5);
    }

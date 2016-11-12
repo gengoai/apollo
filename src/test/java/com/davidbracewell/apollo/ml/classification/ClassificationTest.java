@@ -21,16 +21,16 @@
 
 package com.davidbracewell.apollo.ml.classification;
 
-import com.davidbracewell.apollo.linalg.DenseVector;
-import com.davidbracewell.apollo.linalg.LabeledVector;
-import com.davidbracewell.apollo.ml.IndexEncoder;
 import com.davidbracewell.apollo.ml.Instance;
+import com.davidbracewell.apollo.ml.TrainTestSet;
 import com.davidbracewell.apollo.ml.data.Dataset;
+import com.davidbracewell.apollo.ml.data.source.DenseCSVDataSource;
+import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
+import com.davidbracewell.apollo.ml.preprocess.transform.ZScoreTransform;
+import com.davidbracewell.io.Resources;
 import lombok.SneakyThrows;
 import org.junit.Test;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Random;
 
 import static org.junit.Assert.*;
@@ -52,41 +52,40 @@ public abstract class ClassificationTest {
 
    @SneakyThrows
    public Dataset<Instance> getData() {
-      List<Instance> data = new ArrayList<>();
-      for (int i = 0; i < 1_000; i++) {
-         data.add(Instance.fromVector(new LabeledVector("true", DenseVector.ones(20))));
-      }
-      for (int i = 0; i < 1_000; i++) {
-         data.add(Instance.fromVector(new LabeledVector("false", DenseVector.zeros(20).mapAddSelf(0.1))));
-      }
-      for (int i = 0; i < 1_000; i++) {
-         data.add(Instance.fromVector(new LabeledVector("maybe", DenseVector.zeros(20).mapAddSelf(0.5))));
-      }
+      DenseCSVDataSource irisData = new DenseCSVDataSource(Resources.fromClasspath(
+         "com/davidbracewell/apollo/ml/iris.csv"), true);
+      irisData.setClassIndex(4);
       return Dataset.classification()
-                    .data(data)
-                    .featureEncoder(new IndexEncoder())
+                    .dataSource(irisData)
                     .build()
                     .shuffle(new Random(1234));
    }
 
    @Test
    public void testClassification() throws Exception {
-      Dataset<Instance> data = getData();
-      Classifier classifier = learner.train(data);
+      TrainTestSet<Instance> trainTestSplits = getData().split(0.8);
+      trainTestSplits.preprocess(() -> PreprocessorList.create(
+         new ZScoreTransform("sepal_length"),
+         new ZScoreTransform("petal_length")));
 
-      //Make sure we can decode 2 labels
-      assertNotNull(classifier.decodeLabel(0));
-      assertNotNull(classifier.decodeLabel(1));
-      assertNull(classifier.decodeLabel(3));
+      trainTestSplits.forEach((train, test) -> {
+         Classifier classifier = learner.train(train);
+         //Make sure we can decode 2 labels
+         assertNotNull(classifier.decodeLabel(0));
+         assertNotNull(classifier.decodeLabel(1));
+         assertNotNull(classifier.decodeLabel(2));
+         assertNull(classifier.decodeLabel(3));
 
-      assertNotNull(classifier.decodeFeature(1));
-      assertTrue(classifier.encodeFeature("1") != -1);
+         assertNotNull(classifier.decodeFeature(1));
+         assertTrue(classifier.encodeFeature("sepal_length") != -1);
 
 
-      ClassifierEvaluation evaluation = new ClassifierEvaluation();
-      evaluation.evaluate(classifier, data);
-      assertEquals(targetAcc, evaluation.accuracy(), tolerance);
-      System.out.println(learner.getClass().getSimpleName() + ": " + evaluation.accuracy());
+         ClassifierEvaluation evaluation = new ClassifierEvaluation();
+         evaluation.evaluate(classifier, test);
+         assertEquals(targetAcc, evaluation.accuracy(), tolerance);
+         System.out.println(learner.getClass().getSimpleName() + ": " + evaluation.accuracy());
+         evaluation.output(System.out);
+      });
    }
 
 

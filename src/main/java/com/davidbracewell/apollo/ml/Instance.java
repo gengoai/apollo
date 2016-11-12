@@ -233,9 +233,9 @@ public class Instance implements Example, Serializable, Iterable<Feature> {
    }
 
    /**
-    * Is multi labeled boolean.
+    * Checks if this instance has a collection of labels.
     *
-    * @return the boolean
+    * @return True if the instances has multiple labels, false if not
     */
    public boolean isMultiLabeled() {
       return this.label != null && (this.label instanceof Collection);
@@ -272,7 +272,8 @@ public class Instance implements Example, Serializable, Iterable<Feature> {
    }
 
    /**
-    * To vector vector.
+    * Converts the instance into a feature vector using the given encoder pair to map feature names and labels to double
+    * values
     *
     * @param encoderPair the encoder pair
     * @return the vector

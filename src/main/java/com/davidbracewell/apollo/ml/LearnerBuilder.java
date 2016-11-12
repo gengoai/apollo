@@ -45,17 +45,6 @@ public class LearnerBuilder<T extends Example, M extends Model> implements Seria
    }
 
    /**
-    * Parameters learner builder.
-    *
-    * @param parameters the parameters
-    * @return the learner builder
-    */
-   public LearnerBuilder<T, M> parameters(Map<String, ?> parameters) {
-      this.parameters.putAll(parameters);
-      return this;
-   }
-
-   /**
     * One vs rest classifier learner.
     *
     * @return the classifier learner
@@ -79,15 +68,6 @@ public class LearnerBuilder<T extends Example, M extends Model> implements Seria
       } catch (ReflectionException e) {
          throw Throwables.propagate(e);
       }
-   }
-
-   /**
-    * Gets learner class.
-    *
-    * @return the learner class
-    */
-   public Class<? extends Learner<T, M>> getLearnerClass() {
-      return learnerClass;
    }
 
    /**

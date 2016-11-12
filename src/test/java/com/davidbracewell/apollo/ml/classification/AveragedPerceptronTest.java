@@ -30,5 +30,4 @@ public class AveragedPerceptronTest extends ClassificationTest {
       super(new AveragedPerceptronLearner(100, 1, 0.00001), 1.0, 0.1);
    }
 
-
 }//END OF LibLinearTest

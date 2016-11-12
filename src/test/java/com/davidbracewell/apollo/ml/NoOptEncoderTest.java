@@ -32,15 +32,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-import static junit.framework.TestCase.*;
+import static org.junit.Assert.*;
 
 /**
  * @author David B. Bracewell
  */
-public abstract class AbstractEncoderTest {
+public class NoOptEncoderTest {
 
-   Encoder encoder;
-   Dataset<Instance> dataset = getData();
+   Encoder encoder = new NoOptEncoder();
 
    @SneakyThrows
    public Dataset<Instance> getData() {
@@ -58,48 +57,54 @@ public abstract class AbstractEncoderTest {
                     .shuffle(new Random(1234));
    }
 
-
    @Test
-   public void get() throws Exception {
-      encoder.fit(dataset);
-      assertTrue(encoder.get("1") != -1);
-   }
-
-   @Test
-   public void index() throws Exception {
-      encoder.fit(dataset);
-      assertTrue(encoder.index("1") != -1);
-   }
-
-   @Test
-   public void encode() throws Exception {
-      encoder.fit(StreamingContext.local().stream("1", "2"));
-      assertTrue(encoder.encode("1") != -1);
+   public void createNew() throws Exception {
+      assertTrue(encoder.createNew() instanceof NoOptEncoder);
    }
 
    @Test
    public void decode() throws Exception {
-      encoder.fit(dataset);
-      int id = encoder.index("1");
-      assertEquals("1", encoder.decode(id));
+      assertEquals(null, encoder.decode(20));
+   }
+
+   @Test
+   public void encode() throws Exception {
+      assertEquals(-1, encoder.encode("20"), 0);
+   }
+
+   @Test
+   public void fit() throws Exception {
+      encoder.fit(StreamingContext.local().stream("test"));
+   }
+
+   @Test
+   public void fit1() throws Exception {
+      encoder.fit(getData());
    }
 
    @Test
    public void freeze() throws Exception {
-      encoder.fit(dataset);
-      Encoder e = encoder.createNew();
-      e.freeze();
-      assertTrue(e.isFrozen());
+      assertTrue(encoder.isFrozen());
+      encoder.unFreeze();
+      assertTrue(encoder.isFrozen());
+      encoder.freeze();
+      assertTrue(encoder.isFrozen());
    }
 
    @Test
-   public void unFreeze() throws Exception {
-      encoder.fit(dataset);
-      Encoder e = encoder.createNew();
-      e.freeze();
-      e.unFreeze();
-      assertFalse(e.isFrozen());
+   public void get() throws Exception {
+      assertEquals(-1, encoder.get("20"), 0);
    }
 
 
-}//END OF AbstractEncoderTest
+   @Test
+   public void size() throws Exception {
+      assertEquals(0, encoder.size());
+   }
+
+   @Test
+   public void values() throws Exception {
+      assertTrue(encoder.values().isEmpty());
+   }
+
+}

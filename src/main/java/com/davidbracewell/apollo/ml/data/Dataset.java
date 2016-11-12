@@ -266,9 +266,8 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
             train = stream(0, foldSize * i).union(stream(foldSize * i + foldSize, size()));
             test = stream(foldSize * i, foldSize * i + foldSize);
          }
-         folds.add(TrainTest.of(create(train), create(test)));
+         folds.add(TrainTestSplit.of(create(train), create(test)));
       }
-      folds.trimToSize();
       return folds;
    }
 
@@ -479,8 +478,7 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
       Preconditions.checkArgument(pctTrain > 0 && pctTrain < 1, "Percentage should be between 0 and 1");
       int split = (int) Math.floor(pctTrain * size());
       TrainTestSet<T> set = new TrainTestSet<>();
-      set.add(TrainTest.of(slice(0, split), slice(split, size())));
-      set.trimToSize();
+      set.add(TrainTestSplit.of(slice(0, split), slice(split, size())));
       return set;
    }
 

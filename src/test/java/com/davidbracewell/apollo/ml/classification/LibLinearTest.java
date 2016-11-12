@@ -21,13 +21,23 @@
 
 package com.davidbracewell.apollo.ml.classification;
 
+import com.davidbracewell.apollo.ml.Instance;
+import com.davidbracewell.apollo.ml.Learner;
+
 /**
  * @author David B. Bracewell
  */
 public class LibLinearTest extends ClassificationTest {
 
    public LibLinearTest() {
-      super(new LibLinearLearner(), 0.5, 0.1);
+      super(Learner.<Instance, Classifier>builder()
+               .learnerClass(LibLinearLearner.class)
+               .parameter("C", 1.0)
+               .parameter("eps", 0.001)
+               .parameter("bias", true)
+               .build(),
+            0.5,
+            0.5);
    }
 
 }//END OF LibLinearTest

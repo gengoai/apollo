@@ -21,6 +21,7 @@
 
 package com.davidbracewell.apollo.ml;
 
+import com.davidbracewell.stream.StreamingContext;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -51,7 +52,7 @@ public class LabelIndexEncoderTest extends AbstractEncoderTest {
 
    @Test
    public void encode() throws Exception {
-      encoder.fit(dataset);
+      encoder.fit(StreamingContext.local().stream("true"));
       assertTrue(encoder.encode("true") != -1);
    }
 

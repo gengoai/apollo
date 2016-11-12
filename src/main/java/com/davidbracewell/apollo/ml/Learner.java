@@ -2,15 +2,13 @@ package com.davidbracewell.apollo.ml;
 
 import com.davidbracewell.apollo.ml.classification.Classifier;
 import com.davidbracewell.apollo.ml.data.Dataset;
+import com.davidbracewell.apollo.ml.regression.Regression;
 import com.davidbracewell.apollo.ml.sequence.Sequence;
 import com.davidbracewell.apollo.ml.sequence.SequenceLabeler;
-import com.davidbracewell.io.structured.StructuredSerializable;
-import com.davidbracewell.io.structured.StructuredWriter;
 import com.davidbracewell.reflection.BeanMap;
 import com.davidbracewell.reflection.Ignore;
 import lombok.NonNull;
 
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.Map;
 
@@ -21,7 +19,7 @@ import java.util.Map;
  * @param <M> the type parameter
  * @author David B. Bracewell
  */
-public abstract class Learner<T extends Example, M extends Model> implements Serializable, StructuredSerializable {
+public abstract class Learner<T extends Example, M extends Model> implements Serializable {
 
    private static final long serialVersionUID = 605756060816072642L;
 
@@ -46,11 +44,20 @@ public abstract class Learner<T extends Example, M extends Model> implements Ser
    }
 
    /**
-    * Sequence labeling learner builder.
+    * Regression learner builder.
     *
     * @return the learner builder
     */
-   public static LearnerBuilder<Sequence, SequenceLabeler> sequenceLabeling() {
+   public static LearnerBuilder<Instance, Regression> regression() {
+      return new LearnerBuilder<>();
+   }
+
+   /**
+    * sequence learner builder.
+    *
+    * @return the learner builder
+    */
+   public static LearnerBuilder<Sequence, SequenceLabeler> sequence() {
       return new LearnerBuilder<>();
    }
 
@@ -122,10 +129,5 @@ public abstract class Learner<T extends Example, M extends Model> implements Ser
     */
    protected abstract M trainImpl(Dataset<T> dataset);
 
-   @Override
-   public void write(StructuredWriter writer) throws IOException {
-      writer.writeKeyValue("class", getClass().getName());
-      writer.writeKeyValue("parameters", getParameters());
-   }
 
 }// END OF Learner

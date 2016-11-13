@@ -1,10 +1,14 @@
 package com.davidbracewell.apollo.ml;
 
 import com.davidbracewell.apollo.linalg.SparseVector;
+import com.davidbracewell.conversion.Cast;
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.Setter;
 
 /**
- * The type Feature vector.
+ * <p>A specialized sparse vector that stores an encoded label and an optionally an encoded predicted label. The
+ * dimension of the vector is dynamic and depends on the underlying feature encoder.</p>
  *
  * @author David B. Bracewell
  */
@@ -12,7 +16,11 @@ public class FeatureVector extends SparseVector {
    private static final long serialVersionUID = 1L;
    private final EncoderPair encoderPair;
    private double label = Double.NaN;
+   @Getter
    private double predictedLabel = Double.NaN;
+   @Getter
+   @Setter
+   private double weight = 1.0;
 
    /**
     * Instantiates a new Feature vector.
@@ -30,18 +38,18 @@ public class FeatureVector extends SparseVector {
    }
 
    /**
-    * Gets decoded label.
+    * Decodes the label returning its string form
     *
     * @return the decoded label
     */
-   public Object getDecodedLabel() {
-      return encoderPair.decodeLabel(label);
+   public String getDecodedLabel() {
+      return Cast.as(encoderPair.decodeLabel(label));
    }
 
    /**
-    * Gets feature encoder.
+    * Gets the encoder pair used by the feature vector.
     *
-    * @return the feature encoder
+    * @return the encoder pair
     */
    public EncoderPair getEncoderPair() {
       return encoderPair;
@@ -54,29 +62,32 @@ public class FeatureVector extends SparseVector {
    }
 
    /**
-    * Sets label.
+    * Sets the label of the vector.
     *
     * @param label the label
     */
-   public void setLabel(double label) {
-      this.label = label;
+   public void setLabel(Object label) {
+      this.label = encoderPair.encodeLabel(label);
+      if (this.label == -1) {
+         this.label = Double.NaN;
+      }
    }
 
    /**
-    * Has label boolean.
+    * Checks if the vector has a label assigned to it
     *
-    * @return the boolean
+    * @return True if the vector has a label, False otherwise
     */
    public boolean hasLabel() {
       return Double.isFinite(label);
    }
 
    /**
-    * Set boolean.
+    * Sets the given feature to the given value.
     *
     * @param featureName  the feature name
     * @param featureValue the feature value
-    * @return the boolean
+    * @return True if the feature name was valid and the value was set
     */
    public boolean set(String featureName, double featureValue) {
       int index = (int) encoderPair.encodeFeature(featureName);
@@ -88,29 +99,47 @@ public class FeatureVector extends SparseVector {
    }
 
    /**
-    * Set boolean.
+    * Sets the value of the given feature.
     *
     * @param feature the feature
-    * @return the boolean
+    * @return True if the feature is valid and its value set
     */
    public boolean set(Feature feature) {
       return feature != null && set(feature.getName(), feature.getValue());
    }
 
    /**
-    * Sets label.
+    * Sets the label of the vector.
     *
-    * @param o the o
+    * @param label the label
     */
-   public void setLabel(Object o) {
-      this.label = encoderPair.encodeLabel(o);
-      if (this.label == -1) {
-         this.label = Double.NaN;
+   public void setLabel(double label) {
+      this.label = label;
+   }
+
+   /**
+    * Sets the predicted label of the vector.
+    *
+    * @param label the predicted label
+    */
+   public void setPredictedLabel(double label) {
+      this.predictedLabel = label;
+   }
+
+   /**
+    * Sets the predicted label of the vector.
+    *
+    * @param label the predicted label
+    */
+   public void setPredictedLabel(Object label) {
+      this.predictedLabel = encoderPair.encodeLabel(label);
+      if (this.predictedLabel == -1) {
+         this.predictedLabel = Double.NaN;
       }
    }
 
    /**
-    * Transform feature vector.
+    * Transforms the feature vector using a new encoder pair.
     *
     * @param newEncoderPair the new feature encoder
     * @return the feature vector
@@ -125,22 +154,4 @@ public class FeatureVector extends SparseVector {
       return newVector;
    }
 
-
-   /**
-    * Gets predicted label.
-    *
-    * @return the predicted label
-    */
-   public double getPredictedLabel() {
-      return predictedLabel;
-   }
-
-   /**
-    * Sets predicted label.
-    *
-    * @param predictedLabel the predicted label
-    */
-   public void setPredictedLabel(double predictedLabel) {
-      this.predictedLabel = predictedLabel;
-   }
 }// END OF FeatureVector

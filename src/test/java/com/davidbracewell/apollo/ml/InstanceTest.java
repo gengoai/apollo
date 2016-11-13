@@ -145,14 +145,14 @@ public class InstanceTest {
 
    @Test
    public void read() throws Exception {
-      Instance ii2 = Example.fromJson("{\"label\":\"LABEL\",\"features\":{\"F1\":1.0,\"F2\":2.0,\"PREFIX=WORD\":1.0}}",
+      Instance ii2 = Example.fromJson("{\"label\":\"LABEL\",\"weight\":1.0,\"features\":{\"F1\":1.0,\"F2\":2.0,\"PREFIX=WORD\":1.0}}",
                                       Instance.class);
       assertEquals(ii.toString(), ii2.toString());
    }
 
    @Test
    public void write() throws Exception {
-      assertEquals("{\"label\":\"LABEL\",\"features\":{\"F1\":1.0,\"F2\":2.0,\"PREFIX=WORD\":1.0}}",
+      assertEquals("{\"label\":\"LABEL\",\"weight\":1.0,\"features\":{\"F1\":1.0,\"F2\":2.0,\"PREFIX=WORD\":1.0}}",
                    ii.toJson());
    }
 

@@ -147,7 +147,7 @@ public class Classification implements Serializable {
     *
     * @return all labels in the classification
     */
-   public List<Object> getLabels() {
+   public List<String> getLabels() {
       return Cast.cast(labelEncoder.values());
    }
 

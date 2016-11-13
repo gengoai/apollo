@@ -23,7 +23,6 @@ package com.davidbracewell.apollo.ml.classification;
 
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.data.Dataset;
-import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.conversion.Val;
 import com.davidbracewell.function.SerializableSupplier;
 import lombok.NonNull;
@@ -42,6 +41,10 @@ public class OneVsRestLearner extends ClassifierLearner {
    private final Map<String, Object> parameters = new HashMap<>();
    private volatile SerializableSupplier<BinaryClassifierLearner> learnerSupplier;
    private boolean normalize = false;
+
+   public OneVsRestLearner() {
+
+   }
 
    /**
     * Instantiates a new One vs rest learner.
@@ -87,23 +90,19 @@ public class OneVsRestLearner extends ClassifierLearner {
 
    @Override
    public void setParameters(@NonNull Map<String, Object> parameters) {
-      if (parameters.containsKey("binaryLearner")) {
-         final BinaryClassifierLearner learner = Val.of(parameters.get("binaryLearner")).as(
-            BinaryClassifierLearner.class);
-         this.learnerSupplier = () -> learner;
-      }
-      if (parameters.containsKey("normalize")) {
-         this.normalize = Val.of(parameters.get("normalize")).asBooleanValue();
-      }
       this.parameters.clear();
-      this.parameters.putAll(parameters);
+      parameters.forEach(this::setParameter);
    }
 
    @Override
    public void setParameter(String name, Object value) {
       if (name.equals("binaryLearner")) {
-         final BinaryClassifierLearner learner = Cast.as(value);
-         this.learnerSupplier = () -> learner;
+         this.learnerSupplier = () -> {
+            final BinaryClassifierLearner learner = Val.of(parameters.get("binaryLearner")).as(
+               BinaryClassifierLearner.class);
+            System.out.println(learner);
+            return learner;
+         };
       }
       if (name.equals("normalize")) {
          this.normalize = Val.of(value).asBooleanValue();

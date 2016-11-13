@@ -1,7 +1,5 @@
 package com.davidbracewell.apollo.ml;
 
-import com.davidbracewell.conversion.Cast;
-import com.davidbracewell.reflection.BeanMap;
 import com.davidbracewell.reflection.Reflect;
 import com.davidbracewell.reflection.ReflectionException;
 import com.google.common.base.Preconditions;
@@ -51,9 +49,9 @@ public class LearnerBuilder<T extends Example, M extends Model> implements Seria
    public <R extends Learner<T, M>> R build() {
       Preconditions.checkNotNull(learnerClass, "Learner was not set");
       try {
-         BeanMap beanMap = new BeanMap(Reflect.onClass(learnerClass).create().get());
-         beanMap.putAll(parameters);
-         return Cast.as(beanMap.getBean());
+         R learner = Reflect.onClass(learnerClass).create().get();
+         learner.setParameters(parameters);
+         return learner;
       } catch (ReflectionException e) {
          throw Throwables.propagate(e);
       }

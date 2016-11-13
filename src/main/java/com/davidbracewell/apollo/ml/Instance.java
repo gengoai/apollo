@@ -250,9 +250,8 @@ public class Instance implements Example, Serializable, Iterable<Feature> {
    public void read(StructuredReader reader) throws IOException {
       this.label = null;
       this.features.clear();
-      if (reader.peek() == ElementType.NAME) {
-         this.label = reader.nextKeyValue("label");
-      }
+      this.label = reader.nextKeyValue("label").cast();
+      this.weight = reader.nextKeyValue("weight").asDoubleValue(1.0);
       reader.beginObject();
       while (reader.peek() != ElementType.END_OBJECT) {
          Tuple2<String, Val> fv = reader.nextKeyValue();
@@ -292,6 +291,7 @@ public class Instance implements Example, Serializable, Iterable<Feature> {
          }
       });
       vector.setLabel(encoderPair.encodeLabel(label));
+      vector.setWeight(weight);
       return vector;
    }
 
@@ -300,6 +300,7 @@ public class Instance implements Example, Serializable, Iterable<Feature> {
       boolean inArray = writer.inArray();
       if (inArray) writer.beginObject();
       writer.writeKeyValue("label", label);
+      writer.writeKeyValue("weight", weight);
       writer.beginObject("features");
       for (Feature f : features) {
          writer.writeKeyValue(f.getName(), f.getValue());

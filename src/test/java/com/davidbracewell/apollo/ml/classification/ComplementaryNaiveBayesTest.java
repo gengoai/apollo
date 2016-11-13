@@ -24,11 +24,10 @@ package com.davidbracewell.apollo.ml.classification;
 /**
  * @author David B. Bracewell
  */
-public class NaiveBayesTest extends ClassificationTest {
+public class ComplementaryNaiveBayesTest extends ClassificationTest {
 
-   public NaiveBayesTest() {
-      super(new NaiveBayesLearner(), 0.33, 0.1);
+   public ComplementaryNaiveBayesTest() {
+      super(new NaiveBayesLearner(NaiveBayes.ModelType.Complementary), 0.33, 0.1);
    }
 
-
-}//END OF LibLinearTest
+}//END OF ComplementaryNaiveBayesTest

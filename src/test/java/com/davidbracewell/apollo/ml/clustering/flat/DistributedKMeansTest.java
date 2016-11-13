@@ -38,37 +38,38 @@ import static org.junit.Assert.*;
  */
 public class DistributedKMeansTest extends ClustererTest {
 
-  public DistributedKMeansTest() {
-    super(new DistributedKMeans(2, 100));
-  }
+   public DistributedKMeansTest() {
+      super(new DistributedKMeans(2, 100));
+   }
 
-  @Override
-  protected boolean isDistributed() {
-    return true;
-  }
+   @Override
+   protected boolean isDistributed() {
+      return true;
+   }
 
-  @Before
-  public void setUp() throws Exception {
-    Config.setProperty("spark.master", "local[*]");
-    Logger.getLogger("org.apache.spark").setLevel(Level.WARN);
-    Logger.getLogger("org.eclipse.jetty.server").setLevel(Level.WARN);
-  }
+   @Before
+   public void setUp() throws Exception {
+      Config.initializeTest();
+      Config.setProperty("spark.master", "local[*]");
+      Logger.getLogger("org.apache.spark").setLevel(Level.WARN);
+      Logger.getLogger("org.eclipse.jetty.server").setLevel(Level.WARN);
+   }
 
-  @Test
-  public void testCluster() throws Exception {
-    Clustering c = cluster();
-    assertEquals(2.0, c.size(), 0.0);
+   @Test
+   public void testCluster() throws Exception {
+      Clustering c = cluster();
+      assertEquals(2.0, c.size(), 0.0);
 
-    Cluster c1 = c.get(0);
-    String target = c1.getPoints().get(0).getLabel().toString();
-    for (Vector point : c1.getPoints()) {
-      assertEquals(target, point.getLabel().toString());
-    }
+      Cluster c1 = c.get(0);
+      String target = c1.getPoints().get(0).getLabel().toString();
+      for (Vector point : c1.getPoints()) {
+         assertEquals(target, point.getLabel().toString());
+      }
 
-    Cluster c2 = c.get(1);
-    target = c2.getPoints().get(0).getLabel().toString();
-    for (Vector point : c2.getPoints()) {
-      assertEquals(target, point.getLabel().toString());
-    }
-  }
+      Cluster c2 = c.get(1);
+      target = c2.getPoints().get(0).getLabel().toString();
+      for (Vector point : c2.getPoints()) {
+         assertEquals(target, point.getLabel().toString());
+      }
+   }
 }

@@ -48,6 +48,7 @@ public class BaggingLearner extends ClassifierLearner {
       this.bagSize = bagSize;
    }
 
+   @Override
    protected Classifier trainImpl(Dataset<Instance> dataset) {
       Ensemble model = new Ensemble(dataset.getEncoderPair(),
                                     dataset.getPreprocessors());

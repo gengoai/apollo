@@ -7,6 +7,9 @@ import com.davidbracewell.apollo.ml.clustering.Clusterer;
 import com.davidbracewell.collection.Collect;
 import com.davidbracewell.logging.Logger;
 import com.davidbracewell.stream.MStream;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.Setter;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.commons.math3.random.Well19937c;
 
@@ -22,14 +25,32 @@ public class GibbsLDA extends Clusterer<LDAModel> {
    private static final long serialVersionUID = 1L;
    private static final Logger log = Logger.getLogger(GibbsLDA.class);
 
+   @Getter
+   @Setter
    private int K = 100;
+   @Getter
+   @Setter
    private double alpha = 0;
+   @Getter
+   @Setter
    private double beta = 0;
+   @Getter
+   @Setter
    private int maxIterations = 1000;
+   @Getter
+   @Setter
    private int burnin = 250;
+   @Getter
+   @Setter
    private int sampleLag = 25;
+   @Getter
+   @Setter
    private boolean verbose = true;
+   @Getter
+   @Setter
    private boolean keepDocumentTopicAssignments = false;
+   @Getter
+   @Setter(onParam = @_({@NonNull}))
    private RandomGenerator randomGenerator = new Well19937c();
 
 
@@ -210,59 +231,6 @@ public class GibbsLDA extends Clusterer<LDAModel> {
       return topic;
    }
 
-   /**
-    * Gets k.
-    *
-    * @return the k
-    */
-   public int getK() {
-      return K;
-   }
-
-   /**
-    * Sets k.
-    *
-    * @param k the k
-    */
-   public void setK(int k) {
-      K = k;
-   }
-
-   /**
-    * Gets alpha.
-    *
-    * @return the alpha
-    */
-   public double getAlpha() {
-      return alpha;
-   }
-
-   /**
-    * Sets alpha.
-    *
-    * @param alpha the alpha
-    */
-   public void setAlpha(double alpha) {
-      this.alpha = alpha;
-   }
-
-   /**
-    * Gets beta.
-    *
-    * @return the beta
-    */
-   public double getBeta() {
-      return beta;
-   }
-
-   /**
-    * Sets beta.
-    *
-    * @param beta the beta
-    */
-   public void setBeta(double beta) {
-      this.beta = beta;
-   }
 
    @Override
    public void reset() {
@@ -278,101 +246,5 @@ public class GibbsLDA extends Clusterer<LDAModel> {
       numstats = 0;
    }
 
-   /**
-    * Gets random generator.
-    *
-    * @return the random generator
-    */
-   public RandomGenerator getRandomGenerator() {
-      return randomGenerator;
-   }
 
-   /**
-    * Sets random generator.
-    *
-    * @param randomGenerator the random generator
-    */
-   public void setRandomGenerator(RandomGenerator randomGenerator) {
-      this.randomGenerator = randomGenerator;
-   }
-
-   /**
-    * Is verbose boolean.
-    *
-    * @return the boolean
-    */
-   public boolean isVerbose() {
-      return verbose;
-   }
-
-   /**
-    * Sets verbose.
-    *
-    * @param verbose the verbose
-    */
-   public void setVerbose(boolean verbose) {
-      this.verbose = verbose;
-   }
-
-   /**
-    * Gets sample lag.
-    *
-    * @return the sample lag
-    */
-   public int getSampleLag() {
-      return sampleLag;
-   }
-
-   /**
-    * Sets sample lag.
-    *
-    * @param sampleLag the sample lag
-    */
-   public void setSampleLag(int sampleLag) {
-      this.sampleLag = sampleLag;
-   }
-
-   /**
-    * Gets burnin.
-    *
-    * @return the burnin
-    */
-   public int getBurnin() {
-      return burnin;
-   }
-
-   /**
-    * Sets burnin.
-    *
-    * @param burnin the burnin
-    */
-   public void setBurnin(int burnin) {
-      this.burnin = burnin;
-   }
-
-   /**
-    * Gets max iterations.
-    *
-    * @return the max iterations
-    */
-   public int getMaxIterations() {
-      return maxIterations;
-   }
-
-   /**
-    * Sets max iterations.
-    *
-    * @param maxIterations the max iterations
-    */
-   public void setMaxIterations(int maxIterations) {
-      this.maxIterations = maxIterations;
-   }
-
-   public boolean isKeepDocumentTopicAssignments() {
-      return keepDocumentTopicAssignments;
-   }
-
-   public void setKeepDocumentTopicAssignments(boolean keepDocumentTopicAssignments) {
-      this.keepDocumentTopicAssignments = keepDocumentTopicAssignments;
-   }
 }// END OF GibbsLDA

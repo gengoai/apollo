@@ -19,34 +19,7 @@
  * under the License.
  */
 
-package com.davidbracewell.apollo.ml;
-
-import lombok.NonNull;
-import lombok.Value;
-
-import java.io.Serializable;
-
 /**
- * Simple container for an object and its associated label
- *
- * @author David B. Bracewell
+ * Components for building machine learning models
  */
-@Value
-public class LabeledDatum<T> implements Serializable {
-   private static final long serialVersionUID = 1L;
-   private Object label;
-   private T data;
-
-   /**
-    * Convenience method for creating a labeled data point
-    *
-    * @param <R>   the data type parameter
-    * @param label the label
-    * @param data  the data
-    * @return the labeled data
-    */
-   public static <R> LabeledDatum<R> of(Object label, @NonNull R data) {
-      return new LabeledDatum<>(label, data);
-   }
-
-}//END OF LabeledDatum
+package com.davidbracewell.apollo.ml;

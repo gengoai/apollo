@@ -39,7 +39,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * The type Instance.
+ * <p>A container for a set of features, associated label, and weight.</p>
  *
  * @author David B. Bracewell
  */

@@ -5,7 +5,6 @@ import com.davidbracewell.reflection.ReflectionException;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import lombok.NonNull;
-import lombok.Setter;
 import lombok.experimental.Accessors;
 
 import java.io.Serializable;
@@ -23,22 +22,8 @@ import java.util.function.Supplier;
 @Accessors(fluent = true)
 public class LearnerBuilder<T extends Example, M extends Model> implements Serializable {
    private static final long serialVersionUID = 1L;
-   @Setter(onParam = @_({@NonNull}))
    private Class<? extends Learner<T, M>> learnerClass;
    private Map<String, Object> parameters = new HashMap<>();
-
-
-   /**
-    * Sets the given parameter to the given value
-    *
-    * @param name  the name of the parameter to set
-    * @param value the value to the set the parameter to
-    * @return the learner builder
-    */
-   public LearnerBuilder<T, M> parameter(String name, Object value) {
-      parameters.put(name, value);
-      return this;
-   }
 
    /**
     * Builds a learner using the configured learner class and parameters
@@ -55,6 +40,28 @@ public class LearnerBuilder<T extends Example, M extends Model> implements Seria
       } catch (ReflectionException e) {
          throw Throwables.propagate(e);
       }
+   }
+
+   /**
+    * Sets the given parameter to the given value
+    *
+    * @param name  the name of the parameter to set
+    * @param value the value to the set the parameter to
+    * @return the learner builder
+    */
+   public LearnerBuilder<T, M> parameter(String name, Object value) {
+      parameters.put(name, value);
+      return this;
+   }
+
+   /**
+    * Sets the class of learner that we are building.
+    *
+    * @param learnerClass the learner class
+    */
+   public LearnerBuilder<T, M> learnerClass(@NonNull Class<? extends Learner<T, M>> learnerClass) {
+      this.learnerClass = learnerClass;
+      return this;
    }
 
    /**

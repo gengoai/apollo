@@ -17,6 +17,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
+ * The type Fuzzy k means.
+ *
  * @author David B. Bracewell
  */
 public class FuzzyKMeans extends Clusterer<FlatClustering> {
@@ -26,33 +28,44 @@ public class FuzzyKMeans extends Clusterer<FlatClustering> {
    private int K;
    @Getter
    @Setter
-   private int maxIterations;
+   private int maxIterations = -1;
    @Getter
    @Setter
    private double fuzziness;
    @Getter
    @Setter
-   private double epsilon;
+   private double epsilon = 1e-3;
    @Getter
    @Setter(onParam = @_({@NonNull}))
-   private DistanceMeasure distanceMeasure;
+   private DistanceMeasure distanceMeasure = Distance.Euclidean;
 
+   /**
+    * Instantiates a new Fuzzy k means.
+    */
    public FuzzyKMeans() {
-      this(Distance.Euclidean, 2);
+      this(2, 2.0);
    }
 
-   public FuzzyKMeans(DistanceMeasure distanceMeasure, int K) {
-      this(distanceMeasure, K, 1.1);
+   /**
+    * Instantiates a new Fuzzy k means.
+    *
+    * @param k         the k
+    * @param fuzziness the fuzziness
+    */
+   public FuzzyKMeans(int k, double fuzziness) {
+      this.fuzziness = fuzziness;
+      this.K = k;
    }
 
-   public FuzzyKMeans(DistanceMeasure distanceMeasure, int K, double fuzziness) {
-      this(distanceMeasure, K, 100, fuzziness, 1e-3);
-   }
-
-   public FuzzyKMeans(DistanceMeasure distanceMeasure, int K, int maxIterations, double fuzziness) {
-      this(distanceMeasure, K, maxIterations, fuzziness, 1e-3);
-   }
-
+   /**
+    * Instantiates a new Fuzzy k means.
+    *
+    * @param distanceMeasure the distance measure
+    * @param K               the k
+    * @param maxIterations   the max iterations
+    * @param fuzziness       the fuzziness
+    * @param epsilon         the epsilon
+    */
    public FuzzyKMeans(@NonNull DistanceMeasure distanceMeasure, int K, int maxIterations, double fuzziness, double epsilon) {
       this.distanceMeasure = distanceMeasure;
       this.K = K;

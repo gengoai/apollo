@@ -11,6 +11,8 @@ import java.util.Arrays;
 import static com.davidbracewell.tuple.Tuples.$;
 
 /**
+ * <p>A clustering where new items are clustered based on the centroid of the individual clusters.</p>
+ *
  * @author David B. Bracewell
  */
 public interface CentroidClustering extends Clustering {

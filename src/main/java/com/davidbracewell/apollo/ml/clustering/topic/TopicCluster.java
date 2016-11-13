@@ -19,8 +19,8 @@ public class TopicCluster extends Cluster {
    }
 
    @Override
-   public double getScore(Vector vector) {
-      return scores.getOrDefault(vector, 0.0);
+   public double getScore(Vector point) {
+      return scores.getOrDefault(point, 0.0);
    }
 
    @Override

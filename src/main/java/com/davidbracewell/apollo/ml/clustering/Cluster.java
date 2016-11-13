@@ -31,7 +31,8 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * The type Cluster.
+ * <p>Represents a cluster which minimally is a collection of vectors. May also include a centroid and in the case of
+ * hierarchical clusters a parent, left, and right child.</p>
  *
  * @author David B. Bracewell
  */
@@ -59,7 +60,7 @@ public class Cluster implements Serializable, Iterable<Vector> {
    private int id;
 
    /**
-    * Add point.
+    * Adds a point to the cluster
     *
     * @param point the point
     */
@@ -70,19 +71,18 @@ public class Cluster implements Serializable, Iterable<Vector> {
    }
 
    /**
-    * Gets score.
+    * Gets the score of the given vector respective to the cluster
     *
-    * @param vector the vector
-    * @return the score
+    * @param point The point whose score we want
     */
-   public double getScore(Vector vector) {
-      return points.contains(vector) ? 1.0 : 0.0;
+   public double getScore(Vector point) {
+      return points.contains(point) ? 1.0 : 0.0;
    }
 
    /**
-    * Gets points.
+    * Gets the points in the cluster as a list.
     *
-    * @return the points
+    * @return the points as a list
     */
    public List<Vector> getPoints() {
       return points;
@@ -94,16 +94,16 @@ public class Cluster implements Serializable, Iterable<Vector> {
    }
 
    /**
-    * Clear void.
+    * Clears the cluster, removing all points
     */
    public void clear() {
       points.clear();
    }
 
    /**
-    * Size int.
+    * The number of points in the cluster
     *
-    * @return the int
+    * @return the number of points in the cluster
     */
    public int size() {
       return points.size();

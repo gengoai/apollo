@@ -7,6 +7,8 @@ import org.apache.commons.math3.ml.clustering.Clusterable;
 import java.io.Serializable;
 
 /**
+ * The type Apache clusterable.
+ *
  * @author David B. Bracewell
  */
 public class ApacheClusterable implements Clusterable, Serializable {
@@ -14,10 +16,20 @@ public class ApacheClusterable implements Clusterable, Serializable {
    private volatile Vector vector;
    private Lazy<double[]> point = new Lazy<>(() -> vector.toArray());
 
+   /**
+    * Instantiates a new Apache clusterable.
+    *
+    * @param vector the vector
+    */
    public ApacheClusterable(Vector vector) {
       this.vector = vector;
    }
 
+   /**
+    * Gets vector.
+    *
+    * @return the vector
+    */
    public Vector getVector() {
       return vector;
    }

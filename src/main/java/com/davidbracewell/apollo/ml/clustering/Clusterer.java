@@ -6,16 +6,20 @@ import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.Learner;
 import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.stream.MStream;
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.Setter;
 
 /**
- * The type Clusterer.
+ * <p>Base class for clusterer learners.</p>
  *
- * @param <T> the type parameter
+ * @param <T> the clustering type parameter
  * @author David B. Bracewell
  */
 public abstract class Clusterer<T extends Clustering> extends Learner<Instance, T> {
    private static final long serialVersionUID = 1L;
+   @Getter
+   @Setter
    private EncoderPair encoderPair;
 
 
@@ -31,26 +35,16 @@ public abstract class Clusterer<T extends Clustering> extends Learner<Instance, 
    }
 
    /**
-    * Cluster t.
+    * Clusters a stream of vectors.
     *
     * @param instances the instances
-    * @return the t
+    * @return the clustering model
     */
    public abstract T cluster(MStream<Vector> instances);
 
    @Override
    public void reset() {
       this.encoderPair = null;
-   }
-
-
-   /**
-    * Gets encoder pair.
-    *
-    * @return the encoder pair
-    */
-   public EncoderPair getEncoderPair() {
-      return encoderPair;
    }
 
 }// END OF Clusterer

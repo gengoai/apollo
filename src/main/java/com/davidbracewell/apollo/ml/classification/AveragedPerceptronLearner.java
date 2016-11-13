@@ -34,6 +34,8 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 
 /**
+ * <p>Trains a binary Averaged Perceptron linear model.</p>
+ *
  * @author David B. Bracewell
  */
 public class AveragedPerceptronLearner extends BinaryClassifierLearner {
@@ -56,10 +58,20 @@ public class AveragedPerceptronLearner extends BinaryClassifierLearner {
    @Setter
    private boolean verbose = false;
 
+   /**
+    * Instantiates a new Averaged perceptron learner.
+    */
    public AveragedPerceptronLearner() {
       this(100, 1.0, 0.0001);
    }
 
+   /**
+    * Instantiates a new Averaged perceptron learner.
+    *
+    * @param maxIterations the maximum number of iterations (default 100)
+    * @param learningRate  the learning rate to control how fast weights are changed (default 1.0)
+    * @param tolerance     the error tolerance used to determine if the algorithm has converged (default 0.0001)
+    */
    public AveragedPerceptronLearner(int maxIterations, double learningRate, double tolerance) {
       this.maxIterations = maxIterations;
       this.learningRate = learningRate;
@@ -72,10 +84,8 @@ public class AveragedPerceptronLearner extends BinaryClassifierLearner {
 
    @Override
    protected Classifier trainForLabel(Dataset<Instance> dataset, double trueLabel) {
-      BinaryGLM model = new BinaryGLM(
-                                        dataset.getEncoderPair(),
-                                        dataset.getPreprocessors()
-      );
+      BinaryGLM model = new BinaryGLM(dataset.getEncoderPair(),
+                                      dataset.getPreprocessors());
 
       totalWeights = new FeatureVector(model.getEncoderPair());
       stamps = new FeatureVector(model.getEncoderPair());
@@ -104,10 +114,9 @@ public class AveragedPerceptronLearner extends BinaryClassifierLearner {
                model.bias += eta;
                biasStamps = c;
             }
-
-
             c++;
          }
+
          if (verbose) {
             log.info("iteration={0} errorRate={1,number,0.00%} (true={2})", iteration, (error / count),
                      model.getLabelEncoder().decode(trueLabel));

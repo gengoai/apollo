@@ -17,7 +17,6 @@ import java.util.ArrayList;
 public class BaggingLearner extends ClassifierLearner {
    private static final long serialVersionUID = 1L;
    @Getter
-   @Setter(onParam = @_({@NonNull}))
    private SerializableSupplier<ClassifierLearner> learnerSupplier;
    @Getter
    @Setter
@@ -49,6 +48,20 @@ public class BaggingLearner extends ClassifierLearner {
    }
 
    @Override
+   public void reset() {
+
+   }
+
+   /**
+    * Sets the supplier to use to generate weak learners
+    *
+    * @param learnerSupplier the learner supplier
+    */
+   public void setLearnerSupplier(@NonNull SerializableSupplier<ClassifierLearner> learnerSupplier) {
+      this.learnerSupplier = learnerSupplier;
+   }
+
+   @Override
    protected Classifier trainImpl(Dataset<Instance> dataset) {
       Ensemble model = new Ensemble(dataset.getEncoderPair(),
                                     dataset.getPreprocessors());
@@ -59,11 +72,6 @@ public class BaggingLearner extends ClassifierLearner {
          model.models.add(learnerSupplier.get().train(dataset.sample(true, targetBagSize)));
       }
       return model;
-   }
-
-   @Override
-   public void reset() {
-
    }
 
 

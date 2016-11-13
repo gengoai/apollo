@@ -28,7 +28,7 @@ import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import lombok.NonNull;
 
 /**
- * The type Binary glm.
+ * <p>A binary class generalized linear model.</p>
  *
  * @author David B. Bracewell
  */

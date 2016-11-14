@@ -42,6 +42,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Provides various common metrics for measuring the quality of classifiers.
@@ -385,28 +386,29 @@ public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, S
    }
 
    /**
-    * Negative likelihood ratio double.
+    * Calculates the negative likelihood ratio, which is <code>False Positive Rate / Specificity</code>
     *
-    * @return the double
+    * @return the negative likelihood ratio
     */
    public double negativeLikelihoodRatio() {
       return falseNegativeRate() / specificity();
    }
 
    /**
-    * Negative likelihood ratio double.
+    * Calculates the negative likelihood ratio of the given label
     *
-    * @param label the label
-    * @return the double
+    * @param label the label to calculate the negative likelihood ratio for
+    * @return the negative likelihood ratio
     */
    public double negativeLikelihoodRatio(String label) {
       return falseNegativeRate(label) / specificity(label);
    }
 
    /**
-    * Output.
+    * Outputs the results of the classification as per-class Precision, Recall, and F1 and also includes the confusion
+    * matrix.
     *
-    * @param printStream the print stream
+    * @param printStream the print stream to write to
     */
    @Override
    public void output(@NonNull PrintStream printStream) {
@@ -414,15 +416,16 @@ public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, S
    }
 
    /**
-    * Output.
+    * Outputs the results of the classification as per-class Precision, Recall, and F1 and optionally the confusion
+    * matrix.
     *
-    * @param printStream          the print stream
-    * @param printConfusionMatrix the print confusion matrix
+    * @param printStream          the print stream to write to
+    * @param printConfusionMatrix True print the confusion matrix, False do not print the confusion matrix.
     */
    public void output(@NonNull PrintStream printStream, boolean printConfusionMatrix) {
 
       final Set<String> columns = matrix.entries().stream()
-                                        .flatMap(e -> Arrays.asList(e.v1, e.v2).stream())
+                                        .flatMap(e -> Stream.of(e.v1, e.v2))
                                         .distinct()
                                         .collect(Collectors.toCollection(TreeSet::new));
 
@@ -443,11 +446,9 @@ public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, S
          });
          List<Object> totalRow = new ArrayList<>();
          totalRow.add("Total");
-         columns.forEach(c -> {
-            totalRow.add((long) matrix.firstKeys().stream()
-                                      .mapToDouble(k -> matrix.get(k, c))
-                                      .sum());
-         });
+         columns.forEach(c -> totalRow.add((long) matrix.firstKeys().stream()
+                                                        .mapToDouble(k -> matrix.get(k, c))
+                                                        .sum()));
          totalRow.add((long) matrix.sum());
          tableFormatter.content(totalRow);
          tableFormatter.print(printStream);
@@ -497,29 +498,30 @@ public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, S
    }
 
    /**
-    * Positive likelihood ratio double.
+    * Calculates the positive likelihood ratio, which is <code>True Positive Rate / False Positive Rate</code>
     *
-    * @return the double
+    * @return the positive likelihood ratio
     */
    public double positiveLikelihoodRatio() {
-      return microRecall() / falsePositiveRate();
+      return truePositiveRate() / falsePositiveRate();
    }
 
    /**
-    * Positive likelihood ratio double.
+    * Calculates the positive likelihood ratio of the given label
     *
-    * @param label the label
-    * @return the double
+    * @param label the label to calculate the positive likelihood ratio for
+    * @return the positive likelihood ratio
     */
    public double positiveLikelihoodRatio(String label) {
-      return recall(label) / falsePositiveRate(label);
+      return truePositiveRate(label) / falsePositiveRate(label);
    }
 
    /**
-    * Precision double.
+    * Calculates the precision of the given label, which is <code>True Positives / (True Positives + False
+    * Positives)</code>
     *
-    * @param label the label
-    * @return the double
+    * @param label the label to calculate the precision of
+    * @return the precision
     */
    public double precision(String label) {
       double tp = truePositives(label);
@@ -531,9 +533,9 @@ public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, S
    }
 
    /**
-    * Precision per class counter.
+    * Creates a counter where the items are labels and their values are their precision
     *
-    * @return the counter
+    * @return the counter of precision values
     */
    public Counter<String> precisionPerClass() {
       Counter<String> precisions = Counters.newCounter();
@@ -542,10 +544,10 @@ public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, S
    }
 
    /**
-    * Recall double.
+    * Calculates the recall of the given label, which is <code>True Positives / (True Positives + True Negatives)</code>
     *
-    * @param label the label
-    * @return the double
+    * @param label the label to calculate the recall of
+    * @return the recall
     */
    public double recall(String label) {
       double tp = truePositives(label);
@@ -557,9 +559,9 @@ public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, S
    }
 
    /**
-    * Recall per class counter.
+    * Creates a counter where the items are labels and their values are their recall
     *
-    * @return the counter
+    * @return the counter of recall values
     */
    public Counter<String> recallPerClass() {
       Counter<String> recalls = Counters.newCounter();
@@ -568,28 +570,28 @@ public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, S
    }
 
    /**
-    * Sensitivity double.
+    * Calculates the sensitivity (same as the micro-averaged recall)
     *
-    * @return the double
+    * @return the sensitivity
     */
    public double sensitivity() {
       return microRecall();
    }
 
    /**
-    * Sensitivity double.
+    * Calculates the sensitivity of the given label (same as the micro-averaged recall)
     *
-    * @param label the label
-    * @return the double
+    * @param label the label to calculate the sensitivity of
+    * @return the sensitivity
     */
    public double sensitivity(String label) {
       return recall(label);
    }
 
    /**
-    * Specificity double.
+    * Calculates the specificity, which is <code>True Negatives / (True Negatives + False Positives)</code>
     *
-    * @return the double
+    * @return the specificity
     */
    public double specificity() {
       double tn = trueNegatives();
@@ -601,10 +603,10 @@ public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, S
    }
 
    /**
-    * Specificity double.
+    * Calculates the specificity of the given label
     *
-    * @param label the label
-    * @return the double
+    * @param label the label to calculate the specificity of
+    * @return the specificity
     */
    public double specificity(String label) {
       double tn = trueNegatives(label);
@@ -616,28 +618,28 @@ public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, S
    }
 
    /**
-    * True negative rate double.
+    * Calculates the true negative rate (or specificity)
     *
-    * @return the double
+    * @return the true negative rate
     */
    public double trueNegativeRate() {
       return specificity();
    }
 
    /**
-    * True negative rate double.
+    * Calculates the true negative rate (or specificity) of the given label
     *
-    * @param label the label
-    * @return the double
+    * @param label the label to calculate the true negative rate of
+    * @return the true negative rate
     */
    public double trueNegativeRate(String label) {
       return specificity(label);
    }
 
    /**
-    * True negatives double.
+    * Counts the number of true negatives
     *
-    * @return the double
+    * @return the number of true negatives
     */
    public double trueNegatives() {
       return matrix.firstKeys()
@@ -655,10 +657,10 @@ public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, S
    }
 
    /**
-    * True negatives double.
+    * Counts the number of true negatives for the given label
     *
     * @param label the label
-    * @return the double
+    * @return the number of true negatvies
     */
    public double trueNegatives(String label) {
       double tn = 0;
@@ -671,38 +673,38 @@ public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, S
    }
 
    /**
-    * True positive rate double.
+    * Calculates the true positive rate (same as micro recall).
     *
-    * @return the double
+    * @return the true positive rate
     */
    public double truePositiveRate() {
       return microRecall();
    }
 
    /**
-    * True positive rate double.
+    * Calculates the true positive rate if the given label
     *
     * @param label the label
-    * @return the double
+    * @return the true positive rate
     */
    public double truePositiveRate(String label) {
       return recall(label);
    }
 
    /**
-    * True positives double.
+    * Calculates the number of true positives.
     *
-    * @return the double
+    * @return the number of true positive
     */
    public double truePositives() {
       return matrix.firstKeys().stream().mapToDouble(k -> matrix.get(k, k)).sum();
    }
 
    /**
-    * True positives double.
+    * Calculates the number of true positive for the given label
     *
     * @param label the label
-    * @return the double
+    * @return the number of true positive
     */
    public double truePositives(String label) {
       return matrix.get(label, label);

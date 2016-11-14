@@ -10,7 +10,8 @@ import lombok.Setter;
 import java.util.ArrayList;
 
 /**
- * The type Bagging learner.
+ * <p>Learner which takes random samples (with replacement) of the data to build a number of weaker models that each
+ * vote in one ensemble model.</p>
  *
  * @author David B. Bracewell
  */
@@ -37,9 +38,9 @@ public class BaggingLearner extends ClassifierLearner {
    /**
     * Instantiates a new Bagging learner.
     *
-    * @param learnerSupplier the learner supplier
-    * @param numberOfBags    the number of bags
-    * @param bagSize         the bag size
+    * @param learnerSupplier Supplier for the weak learner
+    * @param numberOfBags    the number of bags, or weak learners, to generate
+    * @param bagSize         the size of each random sample
     */
    public BaggingLearner(@NonNull SerializableSupplier<ClassifierLearner> learnerSupplier, int numberOfBags, int bagSize) {
       this.learnerSupplier = learnerSupplier;

@@ -44,20 +44,43 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
- * The type Classifier evaluation.
+ * Provides various common metrics for measuring the quality of classifiers.
  *
  * @author David B. Bracewell
  */
 public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, Serializable {
-   private static final long serialVersionUID = 1L;
    private static final Logger log = Logger.getLogger(ClassifierEvaluation.class);
+   private static final long serialVersionUID = 1L;
    private final MultiCounter<String, String> matrix = new HashMapMultiCounter<>();
    private double total = 0;
 
    /**
-    * Accuracy double.
+    * Cross validation classifier evaluation.
     *
-    * @return the double
+    * @param dataset         the dataset
+    * @param learnerSupplier the learner supplier
+    * @param nFolds          the n folds
+    * @return the classifier evaluation
+    */
+   public static ClassifierEvaluation crossValidation(@NonNull Dataset<Instance> dataset, @NonNull Supplier<ClassifierLearner> learnerSupplier, int nFolds) {
+      ClassifierEvaluation evaluation = new ClassifierEvaluation();
+      AtomicInteger foldId = new AtomicInteger(0);
+      dataset.fold(nFolds).forEach((train, test) -> {
+         log.info("Running fold {0}", foldId.incrementAndGet());
+         Classifier model = learnerSupplier.get().train(train);
+         evaluation.evaluate(model, test);
+         log.info("Fold {0}: Cumulative Metrics(microP={1}, microR={2}, microF1={3})", foldId.get(),
+                  evaluation.microPrecision(),
+                  evaluation.microRecall(),
+                  evaluation.microF1());
+      });
+      return evaluation;
+   }
+
+   /**
+    * <p>Calculates the accuracy, which is the percentage of items correctly classified.</p>
+    *
+    * @return the accuracy
     */
    public double accuracy() {
       double correct = matrix.firstKeys().stream()
@@ -66,35 +89,37 @@ public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, S
       return correct / total;
    }
 
-
    /**
-    * Add entry.
+    * <p>Calculate the diagnostic odds ratio which is <code> positive likelihood ration / negative likelihood
+    * ratio</code>. The diagnostic odds ratio is taken from the medical field and measures the effectiveness of a
+    * medical tests. The measure works for binary classifications and provides the odds of being classified true when
+    * the correct classification is false.</p>
     *
-    * @param gold      the gold
-    * @param predicted the predicted
-    */
-   public void entry(String gold, String predicted) {
-      matrix.increment(gold, predicted);
-      total++;
-   }
-
-   /**
-    * Diagnostic odds ratio double.
-    *
-    * @return the double
+    * @return the diagnostic odds ratio
     */
    public double diagnosticOddsRatio() {
       return positiveLikelihoodRatio() / negativeLikelihoodRatio();
    }
 
    /**
-    * Diagnostic odds ratio double.
+    * Calculate the diagnostic odds ratio for the given label
     *
-    * @param label the label
-    * @return the double
+    * @param label the label to calculate the diagnostic odds ratio for.
+    * @return the diagnostic odds ratio
     */
    public double diagnosticOddsRatio(String label) {
       return positiveLikelihoodRatio(label) / negativeLikelihoodRatio(label);
+   }
+
+   /**
+    * Adds a prediction entry to the evaluation.
+    *
+    * @param gold      the gold, or actual, label
+    * @param predicted the model predicted label
+    */
+   public void entry(String gold, String predicted) {
+      matrix.increment(gold, predicted);
+      total++;
    }
 
    @Override
@@ -111,8 +136,8 @@ public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, S
                          entry(
                             instance.getLabel().toString(),
                             model.classify(instance).getResult()
-                              )
-                     );
+                         )
+      );
    }
 
    private double f1(double p, double r) {
@@ -123,25 +148,34 @@ public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, S
    }
 
    /**
-    * F 1 l per class counter.
+    * Calculates the F1-measure for the given label, which is calculated as <code>(2 * precision(label) * recall(label))
+    * / (precision(label) + recall(label)</code>
     *
-    * @return the counter
+    * @param label the label to calculate the F1 measure for
+    * @return the f1 measure
+    */
+   public double f1(String label) {
+      return f1(precision(label), recall(label));
+   }
+
+   /**
+    * Calculates the F1 measure for each class
+    *
+    * @return a Counter where the items are labels and the values are F1 scores
     */
    public Counter<String> f1PerClass() {
       Counter<String> f1 = Counters.newCounter();
       Counter<String> p = precisionPerClass();
       Counter<String> r = recallPerClass();
-      matrix.firstKeys().forEach(k ->
-                                    f1.set(k, f1(p.get(k), r.get(k)))
-                                );
+      matrix.firstKeys().forEach(k -> f1.set(k, f1(p.get(k), r.get(k))));
       return f1;
    }
 
    /**
-    * False negative rate double.
+    * Calculates the false negative rate of the given label
     *
-    * @param label the label
-    * @return the double
+    * @param label the label to calculate the false negative rate of
+    * @return the false negative rate
     */
    public double falseNegativeRate(String label) {
       double tp = truePositives(label);
@@ -153,9 +187,10 @@ public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, S
    }
 
    /**
-    * False negative rate double.
+    * Calculates the false negative rate, which is calculated as <code>False Positives / (True Positives + False
+    * Positives)</code>
     *
-    * @return the double
+    * @return the false negative rate
     */
    public double falseNegativeRate() {
       double tp = truePositives();
@@ -167,29 +202,44 @@ public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, S
    }
 
    /**
-    * False negatives double.
+    * Calculates the number of false negatives
     *
-    * @return the double
+    * @return the number of false negatives
     */
    public double falseNegatives() {
       return matrix.firstKeys().stream().mapToDouble(k -> matrix.get(k).sum() - matrix.get(k, k)).sum();
    }
 
    /**
-    * False negatives double.
+    * Calculates the number of false negatives for the given label
     *
-    * @param label the label
-    * @return the double
+    * @param label the label to calculate the number of false negatives of
+    * @return the number of false negatives
     */
    public double falseNegatives(String label) {
       return matrix.get(label).sum() - matrix.get(label, label);
    }
 
    /**
-    * False positive rate double.
+    * Calculates the false omission rate (or Negative Predictive Value), which is calculated as <code>False Negatives /
+    * (False Negatives + True Negatives)</code>
     *
-    * @param label the label
-    * @return the double
+    * @return the false omission rate
+    */
+   public double falseOmissionRate() {
+      double fn = falseNegatives();
+      double tn = trueNegatives();
+      if (tn + fn == 0) {
+         return 0.0;
+      }
+      return fn / (fn + tn);
+   }
+
+   /**
+    * Calculates the false positive rate of the given label
+    *
+    * @param label the label to calculate the false positive rate for
+    * @return the false positive rate
     */
    public double falsePositiveRate(String label) {
       double tn = trueNegatives(label);
@@ -201,20 +251,24 @@ public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, S
    }
 
    /**
-    * False positive rate double.
+    * Calculates the false positive rate which is calculated as <code>False Positives / (True Negatives + False
+    * Positives)</code>
     *
-    * @return the double
+    * @return the false positive rate
     */
    public double falsePositiveRate() {
       double tn = trueNegatives();
       double fp = falsePositives();
+      if (tn + fp == 0) {
+         return 0.0;
+      }
       return fp / (tn + fp);
    }
 
    /**
-    * False positives double.
+    * Calculates the number of false positives
     *
-    * @return the double
+    * @return the number of false positives
     */
    public double falsePositives() {
       return matrix.firstKeys()
@@ -228,14 +282,14 @@ public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, S
                                    }
                                    return fp;
                                 }
-                               ).sum();
+                   ).sum();
    }
 
    /**
-    * False positives double.
+    * Calculates the number of false positives for the given label
     *
-    * @param label the label
-    * @return the double
+    * @param label the label to calculate the number of false positives for
+    * @return the number of false positives
     */
    public double falsePositives(String label) {
       double fp = 0;
@@ -248,47 +302,36 @@ public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, S
    }
 
    /**
-    * False omission rate double.
+    * Gets the set of labels in the classification
     *
-    * @return the double
-    */
-   public double falseOmissionRate() {
-      double fn = falseNegatives();
-      double tn = trueNegatives();
-      return fn / (fn + tn);
-   }
-
-   /**
-    * Labels set.
-    *
-    * @return the set
+    * @return the set of labels
     */
    public Set<String> labels() {
       return matrix.firstKeys();
    }
 
    /**
-    * Macro f 1 double.
+    * Calculates the macro F1-measure
     *
-    * @return the double
+    * @return the macro F1-measure
     */
    public double macroF1() {
       return f1(macroPrecision(), macroRecall());
    }
 
    /**
-    * Macro precision double.
+    * Calculates the macro precision (average of all labels).
     *
-    * @return the double
+    * @return the macro precision
     */
    public double macroPrecision() {
       return precisionPerClass().average();
    }
 
    /**
-    * Micro recall.
+    * Calculates the macro recall (average of all labels).
     *
-    * @return the double
+    * @return the macro recall
     */
    public double macroRecall() {
       return recallPerClass().average();
@@ -305,18 +348,18 @@ public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, S
    }
 
    /**
-    * Micro f 1 double.
+    * Calculates the micro F1-measure
     *
-    * @return the double
+    * @return the micro F1-measure
     */
    public double microF1() {
       return f1(microPrecision(), microRecall());
    }
 
    /**
-    * Micro precision double.
+    * Calculates the micro precision.
     *
-    * @return the double
+    * @return the micro precision
     */
    public double microPrecision() {
       double tp = truePositives();
@@ -328,9 +371,9 @@ public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, S
    }
 
    /**
-    * Micro recall.
+    * Calculates the micro recall.
     *
-    * @return the double
+    * @return the micro recall
     */
    public double microRecall() {
       double tp = truePositives();
@@ -361,6 +404,99 @@ public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, S
    }
 
    /**
+    * Output.
+    *
+    * @param printStream the print stream
+    */
+   @Override
+   public void output(@NonNull PrintStream printStream) {
+      output(printStream, true);
+   }
+
+   /**
+    * Output.
+    *
+    * @param printStream          the print stream
+    * @param printConfusionMatrix the print confusion matrix
+    */
+   public void output(@NonNull PrintStream printStream, boolean printConfusionMatrix) {
+
+      final Set<String> columns = matrix.entries().stream()
+                                        .flatMap(e -> Arrays.asList(e.v1, e.v2).stream())
+                                        .distinct()
+                                        .collect(Collectors.toCollection(TreeSet::new));
+
+      Set<String> sorted = new TreeSet<>(matrix.firstKeys());
+
+      TableFormatter tableFormatter = new TableFormatter();
+      if (printConfusionMatrix) {
+         tableFormatter.title("Confusion Matrix");
+         tableFormatter.header(Collections.singleton(StringUtils.EMPTY));
+         tableFormatter.header(columns);
+         tableFormatter.header(Collections.singleton("Total"));
+         sorted.forEach(gold -> {
+            List<Object> row = new ArrayList<>();
+            row.add(gold);
+            columns.forEach(c -> row.add((long) matrix.get(gold, c)));
+            row.add((long) matrix.get(gold).sum());
+            tableFormatter.content(row);
+         });
+         List<Object> totalRow = new ArrayList<>();
+         totalRow.add("Total");
+         columns.forEach(c -> {
+            totalRow.add((long) matrix.firstKeys().stream()
+                                      .mapToDouble(k -> matrix.get(k, c))
+                                      .sum());
+         });
+         totalRow.add((long) matrix.sum());
+         tableFormatter.content(totalRow);
+         tableFormatter.print(printStream);
+         printStream.println();
+      }
+
+      tableFormatter.clear();
+      tableFormatter
+         .title("Classification Metrics")
+         .header(Arrays.asList(StringUtils.EMPTY, "Precision", "Recall", "F1-Measure", "Correct", "Incorrect", "Missed",
+                               "Total"));
+
+      sorted.forEach(g ->
+                        tableFormatter.content(Arrays.asList(
+                           g,
+                           precision(g),
+                           recall(g),
+                           f1(g),
+                           matrix.get(g, g),
+                           falsePositives(g),
+                           matrix.get(g).sum() - matrix.get(g, g),
+                           matrix.get(g).sum()
+                        ))
+      );
+      tableFormatter.footer(Arrays.asList(
+         "micro",
+         microPrecision(),
+         microRecall(),
+         microF1(),
+         truePositives(),
+         falsePositives(),
+         falseNegatives(),
+         total
+      ));
+      tableFormatter.footer(Arrays.asList(
+         "macro",
+         macroPrecision(),
+         macroRecall(),
+         macroF1(),
+         "-",
+         "-",
+         "-",
+         "-"
+      ));
+      tableFormatter.print(printStream);
+
+   }
+
+   /**
     * Positive likelihood ratio double.
     *
     * @return the double
@@ -377,25 +513,6 @@ public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, S
     */
    public double positiveLikelihoodRatio(String label) {
       return recall(label) / falsePositiveRate(label);
-   }
-
-   /**
-    * Positive predictve value double.
-    *
-    * @return the double
-    */
-   public double positivePredictveValue() {
-      return microPrecision();
-   }
-
-   /**
-    * Positive predictve value double.
-    *
-    * @param label the label
-    * @return the double
-    */
-   public double positivePredictveValue(String label) {
-      return precision(label);
    }
 
    /**
@@ -498,6 +615,24 @@ public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, S
       return tn / (tn + fp);
    }
 
+   /**
+    * True negative rate double.
+    *
+    * @return the double
+    */
+   public double trueNegativeRate() {
+      return specificity();
+   }
+
+   /**
+    * True negative rate double.
+    *
+    * @param label the label
+    * @return the double
+    */
+   public double trueNegativeRate(String label) {
+      return specificity(label);
+   }
 
    /**
     * True negatives double.
@@ -516,7 +651,7 @@ public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, S
                                    }
                                    return tn;
                                 }
-                               ).sum();
+                   ).sum();
    }
 
    /**
@@ -533,25 +668,6 @@ public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, S
          }
       }
       return tn;
-   }
-
-   /**
-    * True negative rate double.
-    *
-    * @return the double
-    */
-   public double trueNegativeRate() {
-      return specificity();
-   }
-
-   /**
-    * True negative rate double.
-    *
-    * @param label the label
-    * @return the double
-    */
-   public double trueNegativeRate(String label) {
-      return specificity(label);
    }
 
    /**
@@ -573,7 +689,6 @@ public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, S
       return recall(label);
    }
 
-
    /**
     * True positives double.
     *
@@ -591,129 +706,6 @@ public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, S
     */
    public double truePositives(String label) {
       return matrix.get(label, label);
-   }
-
-   private String middleCMBar(String hbar, int nC) {
-      StringBuilder builder = new StringBuilder();
-      builder.append("├").append(hbar);
-      for (int i = 1; i <= nC; i++) {
-         builder.append("┼").append(hbar);
-      }
-      builder.append("┤");
-      return builder.toString();
-   }
-
-   /**
-    * Output.
-    *
-    * @param printStream the print stream
-    */
-   @Override
-   public void output(@NonNull PrintStream printStream) {
-      output(printStream, true);
-   }
-
-   public double f1(String label) {
-      return f1(precision(label), recall(label));
-   }
-
-   /**
-    * Output.
-    *
-    * @param printStream          the print stream
-    * @param printConfusionMatrix the print confusion matrix
-    */
-   public void output(@NonNull PrintStream printStream, boolean printConfusionMatrix) {
-
-      final Set<String> columns = matrix.entries().stream()
-                                        .flatMap(e -> Arrays.asList(e.v1, e.v2).stream())
-                                        .distinct()
-                                        .collect(Collectors.toCollection(TreeSet::new));
-
-      Set<String> sorted = new TreeSet<>(matrix.firstKeys());
-
-      TableFormatter tableFormatter = new TableFormatter();
-      if (printConfusionMatrix) {
-         tableFormatter.title("Confusion Matrix");
-         tableFormatter.header(Collections.singleton(StringUtils.EMPTY));
-         tableFormatter.header(columns);
-         tableFormatter.header(Collections.singleton("Total"));
-         sorted.forEach(gold -> {
-            List<Object> row = new ArrayList<>();
-            row.add(gold);
-            columns.forEach(c -> row.add((long) matrix.get(gold, c)));
-            row.add((long) matrix.get(gold).sum());
-            tableFormatter.content(row);
-         });
-         List<Object> totalRow = new ArrayList<>();
-         totalRow.add("Total");
-         columns.forEach(c -> {
-            totalRow.add((long) matrix.firstKeys().stream()
-                                      .mapToDouble(k -> matrix.get(k, c))
-                                      .sum());
-         });
-         totalRow.add((long) matrix.sum());
-         tableFormatter.content(totalRow);
-         tableFormatter.print(printStream);
-         printStream.println();
-      }
-
-      tableFormatter.clear();
-      tableFormatter
-         .title("Classification Metrics")
-         .header(Arrays.asList(StringUtils.EMPTY, "Precision", "Recall", "F1-Measure", "Correct", "Incorrect", "Missed",
-                               "Total"));
-
-      sorted.forEach(g ->
-                        tableFormatter.content(Arrays.asList(
-                           g,
-                           precision(g),
-                           recall(g),
-                           f1(g),
-                           matrix.get(g, g),
-                           falsePositives(g),
-                           matrix.get(g).sum() - matrix.get(g, g),
-                           matrix.get(g).sum()
-                                                            ))
-                    );
-      tableFormatter.footer(Arrays.asList(
-         "micro",
-         microPrecision(),
-         microRecall(),
-         microF1(),
-         truePositives(),
-         falsePositives(),
-         falseNegatives(),
-         total
-                                         ));
-      tableFormatter.footer(Arrays.asList(
-         "macro",
-         macroPrecision(),
-         macroRecall(),
-         macroF1(),
-         "-",
-         "-",
-         "-",
-         "-"
-                                         ));
-      tableFormatter.print(printStream);
-
-   }
-
-
-   public static ClassifierEvaluation crossValidation(@NonNull Dataset<Instance> dataset, @NonNull Supplier<ClassifierLearner> learnerSupplier, int nFolds) {
-      ClassifierEvaluation evaluation = new ClassifierEvaluation();
-      AtomicInteger foldId = new AtomicInteger(0);
-      dataset.fold(nFolds).forEach((train, test) -> {
-         log.info("Running fold {0}", foldId.incrementAndGet());
-         Classifier model = learnerSupplier.get().train(train);
-         evaluation.evaluate(model, test);
-         log.info("Fold {0}: Cumulative Metrics(microP={1}, microR={2}, microF1={3})", foldId.get(),
-                  evaluation.microPrecision(),
-                  evaluation.microRecall(),
-                  evaluation.microF1());
-      });
-      return evaluation;
    }
 
 }//END OF ClassifierEvaluation

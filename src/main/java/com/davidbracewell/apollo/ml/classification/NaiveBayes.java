@@ -31,24 +31,15 @@ import com.davidbracewell.collection.counter.MultiCounter;
 import lombok.NonNull;
 
 /**
- * The type Naive bayes.
+ * Naive Bayes model specifically designed for text classification problems
  *
  * @author David B. Bracewell
  */
 public class NaiveBayes extends Classifier {
    private static final long serialVersionUID = 1L;
-   /**
-    * The Model type.
-    */
-   ModelType modelType;
-   /**
-    * The Priors.
-    */
-   double[] priors;
-   /**
-    * The Conditionals.
-    */
-   double[][] conditionals;
+   protected ModelType modelType;
+   protected double[] priors;
+   protected double[][] conditionals;
 
    /**
     * Instantiates a new Naive bayes.
@@ -67,18 +58,9 @@ public class NaiveBayes extends Classifier {
     * @param preprocessors the preprocessors
     * @param modelType     the model type
     */
-   public NaiveBayes(@NonNull EncoderPair encoderPair, PreprocessorList<Instance> preprocessors, ModelType modelType) {
+   public NaiveBayes(EncoderPair encoderPair, PreprocessorList<Instance> preprocessors, @NonNull ModelType modelType) {
       super(encoderPair, preprocessors);
       this.modelType = modelType;
-   }
-
-   /**
-    * Gets model type.
-    *
-    * @return the model type
-    */
-   public ModelType getModelType() {
-      return modelType;
    }
 
    @Override
@@ -99,20 +81,30 @@ public class NaiveBayes extends Classifier {
    }
 
    /**
-    * The enum Model type.
+    * Gets the type of Naive Bayes model being used.
+    *
+    * @return the model type
+    */
+   public ModelType getModelType() {
+      return modelType;
+   }
+
+   /**
+    * Three types of Naive Bayes models are supported each of which have their own potential pros and cons and may work
+    * better or worse for different types of data.
     */
    public enum ModelType {
       /**
-       * Multinomial model type.
+       * Multinomial Naive Bayes using Laplace Smoothing
        */
       Multinomial,
       /**
-       * Bernoulli model type.
+       * Bernoulli Naive Bayes where each feature is treated as being binary
        */
       Bernoulli {
          @Override
          double convertValue(double value) {
-            return 1.0;
+            return value > 0 ? 1.0 : 0.0;
          }
 
          @Override
@@ -137,40 +129,29 @@ public class NaiveBayes extends Classifier {
          }
       },
       /**
-       * Complementary model type.
+       * Complementary Naive Bayes which works similarly to the Multinomial version, but is trained differently to
+       * better handle label imbalance.
        */
       Complementary;
 
       /**
-       * Convert value double.
+       * Converts a features value.
        *
        * @param value the value
-       * @return the double
+       * @return the converted value
        */
       double convertValue(double value) {
          return value;
       }
 
       /**
-       * Normalize double.
+       * Calculates a distribution of probabilities over the labels given a vector instance and the model priors and
+       * conditionals.
        *
-       * @param conditionalCount the conditional count
-       * @param priorCount       the prior count
-       * @param totalLabelCount  the total label count
-       * @param V                the v
-       * @return the double
-       */
-      double normalize(double conditionalCount, double priorCount, double totalLabelCount, double V) {
-         return (conditionalCount + 1) / (totalLabelCount + V);
-      }
-
-      /**
-       * Distribution double [ ].
-       *
-       * @param instance     the instance
-       * @param priors       the priors
-       * @param conditionals the conditionals
-       * @return the double [ ]
+       * @param instance     the instance to calculate the distribution for
+       * @param priors       the label priors
+       * @param conditionals the feature-label conditional probabilities
+       * @return the distribution as an array
        */
       double[] distribution(Vector instance, double[] priors, double[][] conditionals) {
          DenseVector distribution = new DenseVector(priors);
@@ -180,6 +161,20 @@ public class NaiveBayes extends Classifier {
             }
          });
          return distribution.mapSelf(Math::exp).toArray();
+      }
+
+      /**
+       * Normalizes (smooths) the conditional probability given the conditional count, prior count, total label count,
+       * and vocabulary size.
+       *
+       * @param conditionalCount the conditional count
+       * @param priorCount       the prior count
+       * @param totalLabelCount  the total label count
+       * @param V                the vocabulary size
+       * @return the normalized  (smoothed) conditional probability
+       */
+      double normalize(double conditionalCount, double priorCount, double totalLabelCount, double V) {
+         return (conditionalCount + 1) / (totalLabelCount + V);
       }
 
    }

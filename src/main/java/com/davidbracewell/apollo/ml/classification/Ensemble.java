@@ -11,15 +11,12 @@ import lombok.NonNull;
 import java.util.List;
 
 /**
- * The type Ensemble.
+ * A classifier made up of multiple "weak" classifiers that are combined using a majority vote strategy.
  *
  * @author David B. Bracewell
  */
 public class Ensemble extends Classifier {
    private static final long serialVersionUID = 1L;
-   /**
-    * The Models.
-    */
    List<Classifier> models;
 
    /**

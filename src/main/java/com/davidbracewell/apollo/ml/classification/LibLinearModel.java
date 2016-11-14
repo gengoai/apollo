@@ -27,30 +27,23 @@ import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.collection.counter.HashMapMultiCounter;
 import com.davidbracewell.collection.counter.MultiCounter;
-import com.google.common.collect.Lists;
 import de.bwaldvogel.liblinear.Feature;
 import de.bwaldvogel.liblinear.FeatureNode;
 import de.bwaldvogel.liblinear.Linear;
 import de.bwaldvogel.liblinear.Model;
 import lombok.NonNull;
 
-import java.util.List;
+import java.util.Iterator;
 
 /**
- * The type Lib linear model.
+ * A model trained using LibLinear
  *
  * @author David B. Bracewell
  */
 public class LibLinearModel extends Classifier {
    private static final long serialVersionUID = 1L;
-   /**
-    * The Model.
-    */
-   Model model;
-   /**
-    * The Bias index.
-    */
-   int biasIndex = 0;
+   protected Model model;
+   protected int biasIndex = 0;
 
    /**
     * Instantiates a new Classifier.
@@ -63,26 +56,23 @@ public class LibLinearModel extends Classifier {
    }
 
    /**
-    * To feature feature [ ].
+    * Converts an Apollo vector into an array of LibLinear feature nodes
     *
-    * @param vector    the vector
-    * @param biasIndex the bias index
-    * @return the feature [ ]
+    * @param vector    the vector to convert
+    * @param biasIndex the index of the bias variable (<0 for no bias)
+    * @return the feature node array
     */
    public static Feature[] toFeature(Vector vector, int biasIndex) {
-      List<Vector.Entry> entries = Lists.newArrayList(vector.orderedNonZeroIterator());
-
-      int size = entries.size() + (biasIndex > 0 ? 1 : 0);
-
-      Feature[] feature = new Feature[size];
-      for (int i = 0; i < entries.size(); i++) {
-         feature[i] = new FeatureNode(entries.get(i).index + 1, entries.get(i).value);
+      int size = vector.size() + (biasIndex > 0 ? 1 : 0);
+      final Feature[] feature = new Feature[size];
+      int index = 0;
+      for (Iterator<Vector.Entry> itr = vector.orderedNonZeroIterator(); itr.hasNext(); index++) {
+         Vector.Entry entry = itr.next();
+         feature[index] = new FeatureNode(entry.index + 1, entry.value);
       }
-
       if (biasIndex > 0) {
          feature[size - 1] = new FeatureNode(biasIndex, 1.0);
       }
-
       return feature;
    }
 

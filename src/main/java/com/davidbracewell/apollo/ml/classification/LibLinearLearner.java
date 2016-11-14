@@ -32,14 +32,13 @@ import lombok.Setter;
 import java.util.Iterator;
 
 /**
- * The type Lib linear learner.
+ * A learner that uses LibLinear to train a logistic regression or SVM model
  *
  * @author David B. Bracewell
  */
 public class LibLinearLearner extends ClassifierLearner {
    private static final long serialVersionUID = 6185877887927537722L;
    @Getter
-   @Setter(onParam = @_({@NonNull}))
    private SolverType solver = SolverType.L2R_LR;
    @Getter
    @Setter
@@ -55,6 +54,20 @@ public class LibLinearLearner extends ClassifierLearner {
    private boolean verbose = false;
 
    @Override
+   public void reset() {
+
+   }
+
+   /**
+    * Sets the type of solver to use
+    *
+    * @param solver The solve to use
+    */
+   public void setSolver(@NonNull SolverType solver) {
+      this.solver = solver;
+   }
+
+   @Override
    protected LibLinearModel trainImpl(Dataset<Instance> dataset) {
       LibLinearModel model = new LibLinearModel(dataset.getEncoderPair(),
                                                 dataset.getPreprocessors());
@@ -66,6 +79,7 @@ public class LibLinearLearner extends ClassifierLearner {
       problem.bias = bias ? 0 : -1;
 
       int biasIndex = (bias ? model.numberOfFeatures() + 1 : -1);
+
       int index = 0;
       for (Iterator<Instance> iitr = dataset.iterator(); iitr.hasNext(); index++) {
          FeatureVector vector = iitr.next().toVector(dataset.getEncoderPair());
@@ -80,13 +94,9 @@ public class LibLinearLearner extends ClassifierLearner {
          Linear.disableDebugOutput();
       }
 
+      model.biasIndex = biasIndex;
       model.model = Linear.train(problem, new Parameter(solver, C, eps));
       return model;
-   }
-
-   @Override
-   public void reset() {
-
    }
 
 }//END OF LibLinearLearner

@@ -33,7 +33,7 @@ public class LibLinearTest extends ClassificationTest {
                    .learnerClass(LibLinearLearner.class)
                    .parameter("C", 10.0)
                    .parameter("eps", 0.001)
-                   .parameter("bias", false)
+                   .parameter("bias", true)
                    .build(),
             0.5,
             0.5);

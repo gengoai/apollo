@@ -28,26 +28,34 @@ import com.davidbracewell.apollo.ml.clustering.Cluster;
 import com.davidbracewell.apollo.ml.clustering.Clusterer;
 import com.davidbracewell.stream.MStream;
 import com.google.common.base.Preconditions;
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.Setter;
 
 import java.util.Iterator;
 import java.util.List;
 
 /**
- * The type One shot clusterer.
+ * <p>Implementation of the one-shot clustering algorithm, which passes over the data one time assigning each instance
+ * to its closest cluster based on average distance or creating a new cluster if no existing cluster is within a
+ * predefined distance.</p>
  *
  * @author David B. Bracewell
  */
 public class OneShotClusterer extends Clusterer<FlatClustering> {
    private static final long serialVersionUID = 1L;
+   @Getter
    private DistanceMeasure distanceMeasure;
+   @Getter
+   @Setter
    private double threshold;
 
    /**
     * Instantiates a new One shot clusterer.
     *
-    * @param threshold the threshold
-    * @param measure   the measure
+    * @param threshold the threshold in which the distance between an instance and cluster causes the instance to be
+    *                  added to the cluster
+    * @param measure   the distance measure to use.
     */
    public OneShotClusterer(double threshold, DistanceMeasure measure) {
       this.threshold = threshold;
@@ -100,40 +108,12 @@ public class OneShotClusterer extends Clusterer<FlatClustering> {
    }
 
    /**
-    * Gets distance measure.
-    *
-    * @return the distance measure
-    */
-   public DistanceMeasure getDistanceMeasure() {
-      return distanceMeasure;
-   }
-
-   /**
-    * Sets distance measure.
+    * Sets the distance measure to use.
     *
     * @param distanceMeasure the distance measure
     */
-   public void setDistanceMeasure(DistanceMeasure distanceMeasure) {
+   public void setDistanceMeasure(@NonNull DistanceMeasure distanceMeasure) {
       this.distanceMeasure = distanceMeasure;
    }
-
-   /**
-    * Gets threshold.
-    *
-    * @return the threshold
-    */
-   public double getThreshold() {
-      return threshold;
-   }
-
-   /**
-    * Sets threshold.
-    *
-    * @param threshold the threshold
-    */
-   public void setThreshold(double threshold) {
-      this.threshold = threshold;
-   }
-
 
 }//END OF OneShotClusterer

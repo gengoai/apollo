@@ -12,7 +12,7 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * The type Flat clustering.
+ * Base class for flat clusterings
  *
  * @author David B. Bracewell
  */
@@ -23,7 +23,7 @@ public abstract class FlatClustering implements Clustering, Serializable {
    private EncoderPair encoderPair;
 
    /**
-    * Instantiates a new Clustering.
+    * Instantiates a new flat clustering.
     *
     * @param encoderPair     the encoder pair
     * @param distanceMeasure the distance measure
@@ -84,7 +84,7 @@ public abstract class FlatClustering implements Clustering, Serializable {
    }
 
    /**
-    * Add cluster.
+    * Adds a cluster to the clustering.
     *
     * @param cluster the cluster
     */

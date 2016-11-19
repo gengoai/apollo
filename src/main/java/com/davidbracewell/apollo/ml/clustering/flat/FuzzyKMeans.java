@@ -13,13 +13,14 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 import org.apache.commons.math3.ml.clustering.FuzzyKMeansClusterer;
-import org.apache.commons.math3.random.JDKRandomGenerator;
+import org.apache.commons.math3.random.Well19937c;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * The type Fuzzy k means.
+ * Clusters using Apache Math's implementation of the <a href="https://www.cs.princeton.edu/courses/archive/fall08/cos436/Duda/C/fk_means.htm">Fuzzy
+ * K-Means</a> algorithm.
  *
  * @author David B. Bracewell
  */
@@ -41,18 +42,15 @@ public class FuzzyKMeans extends Clusterer<FlatClustering> {
    @Setter(onParam = @_({@NonNull}))
    private DistanceMeasure distanceMeasure = Distance.Euclidean;
 
-   /**
-    * Instantiates a new Fuzzy k means.
-    */
-   public FuzzyKMeans() {
+   private FuzzyKMeans() {
       this(2, 2.0);
    }
 
    /**
-    * Instantiates a new Fuzzy k means.
+    * Instantiates a new Fuzzy K-means clusterer.
     *
-    * @param k         the k
-    * @param fuzziness the fuzziness
+    * @param k         the number of clusters
+    * @param fuzziness the fuzziness factor, must be > 1.0
     */
    public FuzzyKMeans(int k, double fuzziness) {
       this.fuzziness = fuzziness;
@@ -60,13 +58,13 @@ public class FuzzyKMeans extends Clusterer<FlatClustering> {
    }
 
    /**
-    * Instantiates a new Fuzzy k means.
+    * Instantiates a new Fuzzy K-means clusterer.
     *
-    * @param distanceMeasure the distance measure
-    * @param K               the k
-    * @param maxIterations   the max iterations
-    * @param fuzziness       the fuzziness
-    * @param epsilon         the epsilon
+    * @param distanceMeasure the distance measure to use (default Euclidean)
+    * @param K               the number of clusters
+    * @param maxIterations   the maximum number of iterations to run the algorithm
+    * @param fuzziness       the fuzziness factor, must be > 1.0
+    * @param epsilon         the convergence criteria (default is 1e-3)
     */
    public FuzzyKMeans(@NonNull DistanceMeasure distanceMeasure, int K, int maxIterations, double fuzziness, double epsilon) {
       this.distanceMeasure = distanceMeasure;
@@ -78,13 +76,12 @@ public class FuzzyKMeans extends Clusterer<FlatClustering> {
 
    @Override
    public FlatClustering cluster(MStream<Vector> instances) {
-      FuzzyKMeansClusterer<ApacheClusterable> clusterer = new FuzzyKMeansClusterer<>(
-                                                                                       this.K,
-                                                                                       this.fuzziness,
-                                                                                       this.maxIterations,
-                                                                                       new ApacheDistanceMeasure(this.distanceMeasure),
-                                                                                       this.epsilon,
-                                                                                       new JDKRandomGenerator()
+      FuzzyKMeansClusterer<ApacheClusterable> clusterer = new FuzzyKMeansClusterer<>(this.K,
+                                                                                     this.fuzziness,
+                                                                                     this.maxIterations,
+                                                                                     new ApacheDistanceMeasure(this.distanceMeasure),
+                                                                                     this.epsilon,
+                                                                                     new Well19937c()
       );
       List<Cluster> clusters = clusterer.cluster(instances.map(ApacheClusterable::new).collect())
                                         .stream()

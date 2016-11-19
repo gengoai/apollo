@@ -30,7 +30,9 @@ import com.davidbracewell.apollo.ml.clustering.Cluster;
 import com.davidbracewell.apollo.ml.clustering.Clusterer;
 import com.davidbracewell.stream.MStream;
 import com.google.common.base.Preconditions;
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.Setter;
 
 import java.util.List;
 import java.util.Map;
@@ -45,30 +47,35 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public class KMeans extends Clusterer<FlatClustering> {
    private static final long serialVersionUID = 1L;
+   @Getter
+   @Setter
    private int K;
+   @Getter
+   @Setter
    private int maxIterations;
+   @Getter
    private DistanceMeasure distanceMeasure;
 
    private KMeans() {
-      this(1, Distance.Euclidean, 10);
+      this(1, Distance.Euclidean, 20);
    }
 
    /**
-    * Instantiates a new K means.
+    * Instantiates a new K-Means clusterer
     *
-    * @param k               the k
-    * @param distanceMeasure the distance measure
+    * @param k               the number of clusters
+    * @param distanceMeasure the distance measure to use
     */
    public KMeans(int k, DistanceMeasure distanceMeasure) {
-      this(k, distanceMeasure, Integer.MAX_VALUE);
+      this(k, distanceMeasure, 20);
    }
 
    /**
-    * Instantiates a new K means.
+    * Instantiates a new K-Means clusterer
     *
-    * @param k               the k
-    * @param distanceMeasure the distance measure
-    * @param maxIterations   the max iterations
+    * @param k               the number of clusters
+    * @param distanceMeasure the distance measure to use (default Euclidean)
+    * @param maxIterations   the maximum number of iterations to run the algorithm (default 20)
     */
    public KMeans(int k, DistanceMeasure distanceMeasure, int maxIterations) {
       Preconditions.checkArgument(k > 0);
@@ -134,58 +141,14 @@ public class KMeans extends Clusterer<FlatClustering> {
       return clustering;
    }
 
-   /**
-    * Gets distance measure.
-    *
-    * @return the distance measure
-    */
-   public DistanceMeasure getDistanceMeasure() {
-      return distanceMeasure;
-   }
 
    /**
-    * Sets distance measure.
+    * Sets the distance measure to use.
     *
     * @param distanceMeasure the distance measure
     */
-   public void setDistanceMeasure(DistanceMeasure distanceMeasure) {
+   public void setDistanceMeasure(@NonNull DistanceMeasure distanceMeasure) {
       this.distanceMeasure = distanceMeasure;
-   }
-
-   /**
-    * Gets k.
-    *
-    * @return the k
-    */
-   public int getK() {
-      return K;
-   }
-
-   /**
-    * Sets k.
-    *
-    * @param k the k
-    */
-   public void setK(int k) {
-      K = k;
-   }
-
-   /**
-    * Gets max iterations.
-    *
-    * @return the max iterations
-    */
-   public int getMaxIterations() {
-      return maxIterations;
-   }
-
-   /**
-    * Sets max iterations.
-    *
-    * @param maxIterations the max iterations
-    */
-   public void setMaxIterations(int maxIterations) {
-      this.maxIterations = maxIterations;
    }
 
    private Vector[] initCentroids(List<Vector> instances) {

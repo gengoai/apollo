@@ -32,7 +32,9 @@ import com.davidbracewell.stream.MStream;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -41,24 +43,27 @@ import java.util.Map;
 
 
 /**
- * The type Crp like clusterer.
+ * <p>Clusters using a modified Chinese Restaurant Process.</p>
  *
  * @author David B. Bracewell
  */
-public class CRPLikeClusterer extends Clusterer<FlatClustering> {
-   private static final Logger log = Logger.getLogger(CRPLikeClusterer.class);
+public class CRPClusterer extends Clusterer<FlatClustering> {
+   private static final Logger log = Logger.getLogger(CRPClusterer.class);
    private static final long serialVersionUID = 8347502431469266786L;
+   @Getter
+   @Setter
    private double alpha;
+   @Getter
    private DistanceMeasure distanceMeasure;
    private Table<Vector, Vector, Double> distanceMatrix;
 
    /**
-    * Instantiates a new Crp like clusterer.
+    * Instantiates a new CRP clusterer.
     *
     * @param distanceMeasure the distance measure
     * @param alpha           the alpha
     */
-   public CRPLikeClusterer(DistanceMeasure distanceMeasure, double alpha) {
+   public CRPClusterer(DistanceMeasure distanceMeasure, double alpha) {
       Preconditions.checkArgument(alpha > 0);
       this.distanceMeasure = Preconditions.checkNotNull(distanceMeasure);
       this.alpha = alpha;
@@ -159,38 +164,11 @@ public class CRPLikeClusterer extends Clusterer<FlatClustering> {
    }
 
    /**
-    * Gets alpha.
-    *
-    * @return the alpha
-    */
-   public double getAlpha() {
-      return alpha;
-   }
-
-   /**
-    * Sets alpha.
-    *
-    * @param alpha the alpha
-    */
-   public void setAlpha(double alpha) {
-      this.alpha = alpha;
-   }
-
-   /**
-    * Gets distance measure.
-    *
-    * @return the distance measure
-    */
-   public DistanceMeasure getDistanceMeasure() {
-      return distanceMeasure;
-   }
-
-   /**
-    * Sets distance measure.
+    * Sets the distance measure to use for clustering.
     *
     * @param distanceMeasure the distance measure
     */
-   public void setDistanceMeasure(DistanceMeasure distanceMeasure) {
+   public void setDistanceMeasure(@NonNull DistanceMeasure distanceMeasure) {
       this.distanceMeasure = distanceMeasure;
    }
 

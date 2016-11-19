@@ -8,7 +8,7 @@ import com.davidbracewell.apollo.ml.clustering.Cluster;
 import java.util.List;
 
 /**
- * The type K means clustering.
+ * A clustering that is flat and based on centroids
  *
  * @author David B. Bracewell
  */
@@ -16,7 +16,7 @@ public class FlatCentroidClustering extends FlatClustering implements CentroidCl
    private static final long serialVersionUID = 1L;
 
    /**
-    * Instantiates a new Clustering.
+    * Instantiates a new flat centroid clustering.
     *
     * @param encoderPair     the encoder pair
     * @param distanceMeasure the distance measure
@@ -26,7 +26,7 @@ public class FlatCentroidClustering extends FlatClustering implements CentroidCl
    }
 
    /**
-    * Instantiates a new K means clustering.
+    * Instantiates a new flat centroid clustering.
     *
     * @param encoderPair     the encoder pair
     * @param distanceMeasure the distance measure

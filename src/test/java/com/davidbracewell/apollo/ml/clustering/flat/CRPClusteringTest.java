@@ -38,7 +38,7 @@ import static org.junit.Assert.*;
 public class CRPClusteringTest extends ClustererTest {
 
    public CRPClusteringTest() {
-      super(new CRPLikeClusterer(Distance.Euclidean, 0.0000001));
+      super(new CRPClusterer(Distance.Euclidean, 0.0000001));
    }
 
    @Test

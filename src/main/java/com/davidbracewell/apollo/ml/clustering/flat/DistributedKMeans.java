@@ -7,6 +7,8 @@ import com.davidbracewell.apollo.ml.clustering.Clusterer;
 import com.davidbracewell.collection.list.Lists;
 import com.davidbracewell.stream.MStream;
 import com.davidbracewell.stream.SparkStream;
+import lombok.Getter;
+import lombok.Setter;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.mllib.clustering.KMeansModel;
@@ -19,27 +21,33 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * The type Distributed k means.
+ * Wrapper around Spark's implementation of K-Means.
  *
  * @author David B. Bracewell
  */
 public class DistributedKMeans extends Clusterer<FlatClustering> {
    private static final long serialVersionUID = 1L;
+   @Getter
+   @Setter
    private int K = 2;
+   @Getter
+   @Setter
    private int maxIterations = 100;
+   @Getter
+   @Setter
    private boolean keepPoints = true;
 
    /**
-    * Instantiates a new Distributed k means.
+    * Instantiates a new Distributed K-means.
     */
    public DistributedKMeans() {
    }
 
    /**
-    * Instantiates a new Distributed k means.
+    * Instantiates a new Distributed K-means.
     *
-    * @param K             the k
-    * @param maxIterations the max iterations
+    * @param K             the number of clusters
+    * @param maxIterations the maximum number of iterations to run the algorithm
     */
    public DistributedKMeans(int K, int maxIterations) {
       this.K = K;
@@ -85,61 +93,5 @@ public class DistributedKMeans extends Clusterer<FlatClustering> {
 
       return new FlatCentroidClustering(getEncoderPair(), Distance.Euclidean, clusters);
    }
-
-
-   /**
-    * Is keep points boolean.
-    *
-    * @return the boolean
-    */
-   public boolean isKeepPoints() {
-      return keepPoints;
-   }
-
-   /**
-    * Sets keep points.
-    *
-    * @param keepPoints the keep points
-    */
-   public void setKeepPoints(boolean keepPoints) {
-      this.keepPoints = keepPoints;
-   }
-
-   /**
-    * Gets k.
-    *
-    * @return the k
-    */
-   public int getK() {
-      return K;
-   }
-
-   /**
-    * Sets k.
-    *
-    * @param k the k
-    */
-   public void setK(int k) {
-      K = k;
-   }
-
-   /**
-    * Gets max iterations.
-    *
-    * @return the max iterations
-    */
-   public int getMaxIterations() {
-      return maxIterations;
-   }
-
-   /**
-    * Sets max iterations.
-    *
-    * @param maxIterations the max iterations
-    */
-   public void setMaxIterations(int maxIterations) {
-      this.maxIterations = maxIterations;
-   }
-
 
 }// END OF DistributedKMeans

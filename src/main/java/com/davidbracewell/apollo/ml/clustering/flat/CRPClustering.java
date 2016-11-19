@@ -36,11 +36,19 @@ import java.util.Arrays;
 import static com.davidbracewell.tuple.Tuples.$;
 
 /**
+ * Clustering produced by the {@link CRPClusterer}
+ *
  * @author David B. Bracewell
  */
 class CRPClustering extends FlatClustering {
    private static final long serialVersionUID = 1L;
 
+   /**
+    * Instantiates a new CRP clustering.
+    *
+    * @param encoderPair     the encoder pair
+    * @param distanceMeasure the distance measure
+    */
    CRPClustering(@NonNull EncoderPair encoderPair, DistanceMeasure distanceMeasure) {
       super(encoderPair, distanceMeasure);
    }

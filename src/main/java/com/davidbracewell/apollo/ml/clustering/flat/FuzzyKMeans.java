@@ -4,6 +4,8 @@ import com.davidbracewell.apollo.affinity.Distance;
 import com.davidbracewell.apollo.affinity.DistanceMeasure;
 import com.davidbracewell.apollo.linalg.DenseVector;
 import com.davidbracewell.apollo.linalg.Vector;
+import com.davidbracewell.apollo.ml.clustering.ApacheClusterable;
+import com.davidbracewell.apollo.ml.clustering.ApacheDistanceMeasure;
 import com.davidbracewell.apollo.ml.clustering.Cluster;
 import com.davidbracewell.apollo.ml.clustering.Clusterer;
 import com.davidbracewell.stream.MStream;

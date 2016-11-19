@@ -21,6 +21,7 @@
 
 package com.davidbracewell.apollo.ml.classification;
 
+import com.davidbracewell.apollo.analysis.Optimum;
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.EncoderPair;
 import com.davidbracewell.apollo.ml.Instance;
@@ -59,5 +60,14 @@ public class DecisionStump extends Classifier {
          distribution = lowerDecision;
       }
       return createResult(distribution);
+   }
+
+   @Override
+   public String toString() {
+      String lowerAnswer = decodeLabel(Optimum.MAXIMUM.optimumIndex(lowerDecision)).toString();
+      String upperAnswer = decodeLabel(Optimum.MAXIMUM.optimumIndex(upperDecision)).toString();
+      return "DecisionStump: IF(" + decodeFeature(featureId)
+                + " > " + featureValue + ") THEN "
+                + upperAnswer + " ELSE " + lowerAnswer + "";
    }
 }//END OF DecisionStump

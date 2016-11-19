@@ -24,39 +24,33 @@ package com.davidbracewell.apollo.ml.clustering;
 import com.davidbracewell.apollo.affinity.DistanceMeasure;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.Model;
-import com.davidbracewell.apollo.ml.data.Dataset;
-import com.davidbracewell.stream.MPairStream;
 import lombok.NonNull;
-
-import java.util.List;
-
-import static com.davidbracewell.tuple.Tuples.$;
 
 
 /**
- * The type Clustering.
+ * <p>Represents the results of clustering. Is treated as a {@link Model} and allows for determining the cluster of new
+ * instances.</p>
  *
  * @author David B. Bracewell
  */
 public interface Clustering extends Model, Iterable<Cluster> {
 
    /**
-    * Gets distance measure.
+    * Gets the distance measure used to create the clustering.
     *
     * @return the distance measure
     */
    DistanceMeasure getDistanceMeasure();
 
-
    /**
-    * Size int.
+    * The number of clusters
     *
-    * @return the int
+    * @return the number of clusters
     */
    int size();
 
    /**
-    * Get cluster.
+    * Gets the  cluster for the given index.
     *
     * @param index the index
     * @return the cluster
@@ -64,71 +58,41 @@ public interface Clustering extends Model, Iterable<Cluster> {
    Cluster get(int index);
 
    /**
-    * Is flat boolean.
+    * Checks if the clustering is flat
     *
-    * @return the boolean
+    * @return True if flat, False otherwise
     */
    boolean isFlat();
 
    /**
-    * Is hierarchical boolean.
+    * Checks if the clustering is hierarchical
     *
-    * @return the boolean
+    * @return True if hierarchical, False otherwise
     */
    boolean isHierarchical();
 
    /**
-    * Gets root.
+    * Gets the root of the hierarchical cluster.
     *
     * @return the root
     */
    Cluster getRoot();
 
    /**
-    * Gets clusters.
-    *
-    * @return the clusters
-    */
-   List<Cluster> getClusters();
-
-   /**
-    * Hard cluster int.
+    * Performs a hard clustering, which determines the single cluster the given instance belongs to
     *
     * @param instance the instance
-    * @return the int
+    * @return the index of the cluster that the instance belongs to
     */
    int hardCluster(@NonNull Instance instance);
 
    /**
-    * Soft cluster double [ ].
+    * Performs a soft clustering, which provides a membership probability of the given instance to the clusters
     *
     * @param instance the instance
-    * @return the double [ ]
+    * @return membership probability of the given instance to the clusters
     */
    double[] softCluster(@NonNull Instance instance);
-
-
-   /**
-    * Hard cluster m pair stream.
-    *
-    * @param dataset the dataset
-    * @return the m pair stream
-    */
-   default MPairStream<Instance, Integer> hardCluster(@NonNull Dataset<Instance> dataset) {
-      return dataset.stream().parallel()
-                    .mapToPair(i -> $(i, hardCluster(i)));
-   }
-
-   /**
-    * Soft cluster m pair stream.
-    *
-    * @param dataset the dataset
-    * @return the m pair stream
-    */
-   default MPairStream<Instance, double[]> softCluster(@NonNull Dataset<Instance> dataset) {
-      return dataset.stream().parallel()
-                    .mapToPair(i -> $(i, softCluster(i)));
-   }
 
 
 }//END OF Clustering

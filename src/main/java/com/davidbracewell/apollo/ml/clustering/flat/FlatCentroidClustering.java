@@ -12,7 +12,7 @@ import java.util.List;
  *
  * @author David B. Bracewell
  */
-public class KMeansClustering extends FlatClustering implements CentroidClustering {
+public class FlatCentroidClustering extends FlatClustering implements CentroidClustering {
    private static final long serialVersionUID = 1L;
 
    /**
@@ -21,7 +21,7 @@ public class KMeansClustering extends FlatClustering implements CentroidClusteri
     * @param encoderPair     the encoder pair
     * @param distanceMeasure the distance measure
     */
-   public KMeansClustering(EncoderPair encoderPair, DistanceMeasure distanceMeasure) {
+   public FlatCentroidClustering(EncoderPair encoderPair, DistanceMeasure distanceMeasure) {
       super(encoderPair, distanceMeasure);
    }
 
@@ -32,7 +32,7 @@ public class KMeansClustering extends FlatClustering implements CentroidClusteri
     * @param distanceMeasure the distance measure
     * @param clusterList     the cluster list
     */
-   public KMeansClustering(EncoderPair encoderPair, DistanceMeasure distanceMeasure, List<Cluster> clusterList) {
+   public FlatCentroidClustering(EncoderPair encoderPair, DistanceMeasure distanceMeasure, List<Cluster> clusterList) {
       super(encoderPair, distanceMeasure, clusterList);
    }
-}// END OF KMeansClustering
+}// END OF FlatCentroidClustering

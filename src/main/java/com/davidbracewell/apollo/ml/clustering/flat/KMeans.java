@@ -80,7 +80,7 @@ public class KMeans extends Clusterer<FlatClustering> {
 
    @Override
    public FlatClustering cluster(@NonNull MStream<Vector> instanceStream) {
-      KMeansClustering clustering = new KMeansClustering(getEncoderPair(), distanceMeasure);
+      FlatCentroidClustering clustering = new FlatCentroidClustering(getEncoderPair(), distanceMeasure);
 
       List<Vector> instances = instanceStream.collect();
       for (Vector centroid : initCentroids(instances)) {

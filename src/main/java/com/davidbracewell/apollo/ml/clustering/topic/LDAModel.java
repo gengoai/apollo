@@ -16,7 +16,6 @@ import lombok.NonNull;
 import org.apache.commons.math3.random.RandomGenerator;
 
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * The type Lda model.
@@ -72,11 +71,6 @@ public class LDAModel extends FlatClustering {
    @Override
    public Cluster getRoot() {
       return clusters.get(0);
-   }
-
-   @Override
-   public List<Cluster> getClusters() {
-      return clusters;
    }
 
    @Override

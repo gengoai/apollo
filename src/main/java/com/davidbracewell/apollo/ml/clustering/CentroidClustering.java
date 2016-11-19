@@ -3,6 +3,7 @@ package com.davidbracewell.apollo.ml.clustering;
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.FeatureVector;
 import com.davidbracewell.apollo.ml.Instance;
+import com.davidbracewell.collection.Streams;
 import com.davidbracewell.tuple.Tuple2;
 import lombok.NonNull;
 
@@ -20,7 +21,7 @@ public interface CentroidClustering extends Clustering {
    @Override
    default int hardCluster(@NonNull Instance instance) {
       Vector vector = instance.toVector(getEncoderPair());
-      return getClusters().parallelStream()
+      return Streams.asParallelStream(this)
                           .map(c -> $(c.getId(), getDistanceMeasure().calculate(vector, c.getCentroid())))
                           .min((t1, t2) -> Double.compare(t1.getValue(), t2.getValue()))
                           .map(Tuple2::getKey)

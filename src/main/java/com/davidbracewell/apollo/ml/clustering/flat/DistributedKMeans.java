@@ -83,7 +83,7 @@ public class DistributedKMeans extends Clusterer<FlatClustering> {
          clusters.set(i, cluster);
       }
 
-      return new KMeansClustering(getEncoderPair(), Distance.Euclidean, clusters);
+      return new FlatCentroidClustering(getEncoderPair(), Distance.Euclidean, clusters);
    }
 
 

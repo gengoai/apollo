@@ -27,7 +27,7 @@ import com.davidbracewell.apollo.ml.EncoderPair;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.clustering.Cluster;
 import com.davidbracewell.apollo.ml.clustering.Clustering;
-import com.davidbracewell.apollo.ml.clustering.flat.KMeansClustering;
+import com.davidbracewell.apollo.ml.clustering.flat.FlatCentroidClustering;
 import lombok.NonNull;
 
 import java.io.Serializable;
@@ -102,7 +102,7 @@ public class HierarchicalClustering implements Clustering, Serializable {
    public Clustering asFlat(double threshold) {
       List<Cluster> flat = new ArrayList<>();
       process(root, flat, threshold);
-      KMeansClustering kmeans = new KMeansClustering(getEncoderPair(), getDistanceMeasure());
+      FlatCentroidClustering kmeans = new FlatCentroidClustering(getEncoderPair(), getDistanceMeasure());
       flat.forEach(kmeans::addCluster);
       return kmeans;
    }
@@ -119,12 +119,10 @@ public class HierarchicalClustering implements Clustering, Serializable {
 
    @Override
    public Cluster get(int index) {
-      return getClusters().get(index);
-   }
-
-   @Override
-   public List<Cluster> getClusters() {
-      return Collections.singletonList(root);
+      if (index == 0) {
+         return root;
+      }
+      throw new IndexOutOfBoundsException();
    }
 
    @Override

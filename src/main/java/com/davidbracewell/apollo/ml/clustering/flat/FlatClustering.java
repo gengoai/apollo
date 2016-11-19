@@ -8,11 +8,12 @@ import lombok.NonNull;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
 /**
+ * The type Flat clustering.
+ *
  * @author David B. Bracewell
  */
 public abstract class FlatClustering implements Clustering, Serializable {
@@ -32,6 +33,13 @@ public abstract class FlatClustering implements Clustering, Serializable {
       this.distanceMeasure = distanceMeasure;
    }
 
+   /**
+    * Instantiates a new Flat clustering.
+    *
+    * @param encoderPair     the encoder pair
+    * @param distanceMeasure the distance measure
+    * @param clusterList     the cluster list
+    */
    protected FlatClustering(EncoderPair encoderPair, DistanceMeasure distanceMeasure, List<Cluster> clusterList) {
       this(encoderPair, distanceMeasure);
       this.clusters.addAll(clusterList);
@@ -71,22 +79,21 @@ public abstract class FlatClustering implements Clustering, Serializable {
    }
 
    @Override
-   public List<Cluster> getClusters() {
-      return Collections.unmodifiableList(clusters);
-   }
-
-   @Override
    public EncoderPair getEncoderPair() {
       return encoderPair;
    }
 
+   /**
+    * Add cluster.
+    *
+    * @param cluster the cluster
+    */
    public void addCluster(@NonNull Cluster cluster) {
       this.clusters.add(cluster);
    }
 
    @Override
    public Iterator<Cluster> iterator() {
-      return getClusters().iterator();
+      return clusters.iterator();
    }
-
 }// END OF FlatClustering

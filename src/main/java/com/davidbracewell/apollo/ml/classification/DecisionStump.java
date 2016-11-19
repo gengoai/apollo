@@ -28,6 +28,9 @@ import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import lombok.NonNull;
 
 /**
+ * <p>A decision stump, or Zero-One rule, classifier which makes its classification based on the value of a single
+ * feature. Acts as weak learner for ensemble techniques like {@link BaggingLearner}</p>
+ *
  * @author David B. Bracewell
  */
 public class DecisionStump extends Classifier {

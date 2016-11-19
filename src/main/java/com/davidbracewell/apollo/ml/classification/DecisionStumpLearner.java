@@ -28,6 +28,9 @@ import com.davidbracewell.apollo.ml.data.Dataset;
 import java.util.List;
 
 /**
+ * <p>Learner for decision stumps, or Zero-1 Rules. Acts as weak learner for ensemble techniques like {@link
+ * BaggingLearner}</p>
+ *
  * @author David B. Bracewell
  */
 public class DecisionStumpLearner extends ClassifierLearner {

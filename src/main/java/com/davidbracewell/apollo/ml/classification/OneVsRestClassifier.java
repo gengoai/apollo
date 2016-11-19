@@ -29,7 +29,8 @@ import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import lombok.NonNull;
 
 /**
- * The type One vs rest classifier.
+ * <p>Classifier tha employs a one-vs-rest strategy of combining binary classifiers to produce a multi-class
+ * classifier.</p>
  *
  * @author David B. Bracewell
  */

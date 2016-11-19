@@ -11,7 +11,7 @@ import lombok.Setter;
 import java.util.Arrays;
 
 /**
- * The type Naive bayes learner.
+ * <p>Trains three variations of Naive Bayes models specifically suited for text classification.</p>
  *
  * @author David B. Bracewell
  */
@@ -35,6 +35,11 @@ public class NaiveBayesLearner extends ClassifierLearner {
     */
    public NaiveBayesLearner(@NonNull NaiveBayes.ModelType modelType) {
       this.modelType = modelType;
+   }
+
+   @Override
+   public void reset() {
+
    }
 
    @Override
@@ -87,11 +92,6 @@ public class NaiveBayesLearner extends ClassifierLearner {
       }
 
       return model;
-   }
-
-   @Override
-   public void reset() {
-
    }
 
 }// END OF NaiveBayesLearner

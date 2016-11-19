@@ -34,7 +34,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 
 /**
- * <p>Trains a binary Averaged Perceptron linear model.</p>
+ * <p>Trains a binary Averaged Perceptron model.</p>
  *
  * @author David B. Bracewell
  */
@@ -80,6 +80,14 @@ public class AveragedPerceptronLearner extends BinaryClassifierLearner {
 
    private double convertY(double real, double trueLabel) {
       return (real == trueLabel) ? 1.0 : 0.0;
+   }
+
+   @Override
+   public void reset() {
+      this.totalBias = 0;
+      this.biasStamps = 0;
+      this.stamps = null;
+      this.totalWeights = null;
    }
 
    @Override
@@ -149,21 +157,12 @@ public class AveragedPerceptronLearner extends BinaryClassifierLearner {
       return model;
    }
 
-
    private void updateFeature(BinaryGLM model, int featureId, double time, double value) {
       double timeAtWeight = time - stamps.get(featureId);
       double curWeight = model.weights.get(featureId);
       totalWeights.increment(featureId, timeAtWeight * curWeight);
       stamps.set(featureId, time);
       model.weights.set(featureId, curWeight + value);
-   }
-
-   @Override
-   public void reset() {
-      this.totalBias = 0;
-      this.biasStamps = 0;
-      this.stamps = null;
-      this.totalWeights = null;
    }
 
 }//END OF AveragedPerceptronLearner

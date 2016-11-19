@@ -32,7 +32,7 @@ import java.util.Map;
 import java.util.stream.IntStream;
 
 /**
- * The type One vs rest learner.
+ * <p>Learner that learns K binary classifiers, where K is the number of labels, and produces a multi-class model.</p>
  *
  * @author David B. Bracewell
  */
@@ -42,14 +42,17 @@ public class OneVsRestLearner extends ClassifierLearner {
    private volatile SerializableSupplier<BinaryClassifierLearner> learnerSupplier;
    private boolean normalize = false;
 
+   /**
+    * Instantiates a new One vs rest learner.
+    */
    public OneVsRestLearner() {
-
+      this(AveragedPerceptronLearner::new);
    }
 
    /**
     * Instantiates a new One vs rest learner.
     *
-    * @param learnerSupplier the learner supplier
+    * @param learnerSupplier the binary classifier learner supplier
     */
    public OneVsRestLearner(@NonNull SerializableSupplier<BinaryClassifierLearner> learnerSupplier) {
       this.learnerSupplier = learnerSupplier;
@@ -59,28 +62,13 @@ public class OneVsRestLearner extends ClassifierLearner {
    }
 
    @Override
-   protected Classifier trainImpl(Dataset<Instance> dataset) {
-      OneVsRestClassifier model = new OneVsRestClassifier(
-                                                            dataset.getEncoderPair(),
-                                                            dataset.getPreprocessors()
-      );
-      model.classifiers = IntStream.range(0, dataset.getLabelEncoder().size())
-                                   .parallel()
-                                   .mapToObj(i -> {
-                                                BinaryClassifierLearner bcl = learnerSupplier.get();
-                                                bcl.setParameters(parameters);
-                                                bcl.reset();
-                                                return bcl.trainForLabel(dataset, i);
-                                             }
-                                            ).toArray(Classifier[]::new);
-
-      return model;
-   }
-
-
-   @Override
-   public void reset() {
-
+   public Object getParameter(String name) {
+      if (name.equals("normalize")) {
+         return this.normalize;
+      } else if (name.equals("binaryLearner")) {
+         return learnerSupplier.get();
+      }
+      return parameters.get(name);
    }
 
    @Override
@@ -92,6 +80,30 @@ public class OneVsRestLearner extends ClassifierLearner {
    public void setParameters(@NonNull Map<String, Object> parameters) {
       this.parameters.clear();
       parameters.forEach(this::setParameter);
+   }
+
+   /**
+    * Is the resulting label distribution normalized using softmax to create a probability distribution.
+    *
+    * @return True normalized, False not normalized
+    */
+   public boolean isNormalize() {
+      return normalize;
+   }
+
+   /**
+    * Sets whether or not  the resulting label distribution normalized using softmax to create a probability
+    * distribution..
+    *
+    * @param normalize True normalized, False not normalized
+    */
+   public void setNormalize(boolean normalize) {
+      this.normalize = normalize;
+   }
+
+   @Override
+   public void reset() {
+
    }
 
    @Override
@@ -111,13 +123,20 @@ public class OneVsRestLearner extends ClassifierLearner {
    }
 
    @Override
-   public Object getParameter(String name) {
-      if (name.equals("normalize")) {
-         return this.normalize;
-      } else if (name.equals("binaryLearner")) {
-         return learnerSupplier.get();
-      }
-      return parameters.get(name);
+   protected Classifier trainImpl(Dataset<Instance> dataset) {
+      OneVsRestClassifier model = new OneVsRestClassifier(dataset.getEncoderPair(),
+                                                          dataset.getPreprocessors());
+      model.classifiers = IntStream.range(0, dataset.getLabelEncoder().size())
+                                   .parallel()
+                                   .mapToObj(i -> {
+                                                BinaryClassifierLearner bcl = learnerSupplier.get();
+                                                bcl.setParameters(parameters);
+                                                bcl.reset();
+                                                return bcl.trainForLabel(dataset, i);
+                                             }
+                                   ).toArray(Classifier[]::new);
+      model.normalize = normalize;
+      return model;
    }
 
 

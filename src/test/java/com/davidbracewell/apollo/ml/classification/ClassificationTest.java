@@ -43,11 +43,13 @@ public abstract class ClassificationTest {
    private final ClassifierLearner learner;
    private final double targetAcc;
    private final double tolerance;
+   private final boolean normalize;
 
-   protected ClassificationTest(ClassifierLearner learner, double targetAcc, double tolerance) {
+   protected ClassificationTest(ClassifierLearner learner, double targetAcc, double tolerance, boolean normalize) {
       this.learner = learner;
       this.targetAcc = targetAcc;
       this.tolerance = tolerance;
+      this.normalize = normalize;
    }
 
    @SneakyThrows
@@ -64,9 +66,11 @@ public abstract class ClassificationTest {
    @Test
    public void testClassification() throws Exception {
       TrainTestSet<Instance> trainTestSplits = getData().split(0.8);
-      trainTestSplits.preprocess(() -> PreprocessorList.create(
-         new ZScoreTransform("sepal_length"),
-         new ZScoreTransform("petal_length")));
+      if (normalize) {
+         trainTestSplits.preprocess(() -> PreprocessorList.create(
+            new ZScoreTransform("sepal_length"),
+            new ZScoreTransform("petal_length")));
+      }
 
       trainTestSplits.forEach((train, test) -> {
          Classifier classifier = learner.train(train);

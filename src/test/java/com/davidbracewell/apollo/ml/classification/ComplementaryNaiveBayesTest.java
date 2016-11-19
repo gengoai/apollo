@@ -27,7 +27,7 @@ package com.davidbracewell.apollo.ml.classification;
 public class ComplementaryNaiveBayesTest extends ClassificationTest {
 
    public ComplementaryNaiveBayesTest() {
-      super(new NaiveBayesLearner(NaiveBayes.ModelType.Complementary), 0.33, 0.1);
+      super(new NaiveBayesLearner(NaiveBayes.ModelType.Complementary), 0.33, 0.1, true);
    }
 
 }//END OF ComplementaryNaiveBayesTest

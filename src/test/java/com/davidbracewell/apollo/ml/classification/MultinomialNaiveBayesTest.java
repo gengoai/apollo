@@ -27,7 +27,7 @@ package com.davidbracewell.apollo.ml.classification;
 public class MultinomialNaiveBayesTest extends ClassificationTest {
 
    public MultinomialNaiveBayesTest() {
-      super(new NaiveBayesLearner(NaiveBayes.ModelType.Multinomial), 0.33, 0.1);
+      super(new NaiveBayesLearner(NaiveBayes.ModelType.Multinomial), 0.33, 0.1, true);
    }
 
 }//END OF MultinomialNaiveBayesTest

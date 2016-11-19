@@ -38,7 +38,7 @@ public class OneVsRestTest extends ClassificationTest {
                    .parameter("bias", false)
                    .build(),
             0.5,
-            0.5);
+            0.5, true);
    }
 
 }//END OF LibLinearTest

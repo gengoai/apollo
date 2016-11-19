@@ -36,7 +36,7 @@ public class LibLinearTest extends ClassificationTest {
                    .parameter("bias", true)
                    .build(),
             0.5,
-            0.5);
+            0.5, true);
    }
 
 }//END OF LibLinearTest

@@ -228,7 +228,7 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
       if (!getLabelEncoder().isFrozen()) {
          getLabelEncoder().fit(this);
       }
-      log.info("Encoded {0} Features and {1} Labels", getFeatureEncoder().size(), getLabelEncoder().size());
+      log.fine("Encoded {0} Features and {1} Labels", getFeatureEncoder().size(), getLabelEncoder().size());
       return this;
    }
 

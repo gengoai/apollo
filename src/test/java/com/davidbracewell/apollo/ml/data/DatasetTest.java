@@ -23,6 +23,8 @@ package com.davidbracewell.apollo.ml.data;
 
 import com.davidbracewell.apollo.ml.Feature;
 import com.davidbracewell.apollo.ml.Instance;
+import com.davidbracewell.apollo.ml.classification.ClassifierEvaluation;
+import com.davidbracewell.apollo.ml.classification.LibLinearLearner;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.apollo.ml.preprocess.filter.NameFilter;
 import com.davidbracewell.io.resource.Resource;
@@ -92,6 +94,15 @@ public abstract class DatasetTest {
    }
 
    @Test
+   public void cache() throws Exception {
+      Dataset<Instance> cached = dataset.cache();
+      long trueCount = cached.stream().filter(ii -> ii.getLabel().equals("true")).count();
+      long falseCount = cached.stream().filter(ii -> ii.getLabel().equals("false")).count();
+      assertEquals(10, trueCount);
+      assertEquals(20, falseCount);
+   }
+
+   @Test
    public void readWrite() throws Exception {
       Resource resource = new StringResource();
       Dataset<Instance> copy = dataset.copy();
@@ -104,5 +115,11 @@ public abstract class DatasetTest {
       assertEquals(10, trueCount);
       assertEquals(20, falseCount);
       assertEquals(0, toDeleteCount);
+   }
+
+
+   @Test
+   public void fold() throws Exception {
+      ClassifierEvaluation.crossValidation(dataset, LibLinearLearner::new, 10);
    }
 }

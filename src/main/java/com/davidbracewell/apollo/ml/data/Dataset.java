@@ -254,19 +254,20 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
       TrainTestSet<T> folds = new TrainTestSet<>();
       int foldSize = size() / numberOfFolds;
       for (int i = 0; i < numberOfFolds; i++) {
-         MStream<T> train;
-         MStream<T> test;
+         Dataset<T> train = create(getStreamingContext().empty());
+         Dataset<T> test = create(getStreamingContext().empty());
          if (i == 0) {
-            test = stream(0, foldSize);
-            train = stream(foldSize, size());
+            test.addAll(stream(0, foldSize));
+            train.addAll(stream(foldSize, size()));
          } else if (i == numberOfFolds - 1) {
-            test = stream(size() - foldSize, size());
-            train = stream(0, size() - foldSize);
+            test.addAll(stream(size() - foldSize, size()));
+            train.addAll(stream(0, size() - foldSize));
          } else {
-            train = stream(0, foldSize * i).union(stream(foldSize * i + foldSize, size()));
-            test = stream(foldSize * i, foldSize * i + foldSize);
+            test.addAll(stream(0, foldSize * i));
+            test.addAll(stream(foldSize * i + foldSize, size()));
+            train.addAll(stream(foldSize * i, foldSize * i + foldSize));
          }
-         folds.add(TrainTestSplit.of(create(train), create(test)));
+         folds.add(TrainTestSplit.of(train, test));
       }
       return folds;
    }
@@ -497,7 +498,7 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
     * @return the stream
     */
    protected MStream<T> stream(int start, int end) {
-      return stream().skip(start).limit(end - start);
+      return stream().skip(start).limit(end - start).cache();
    }
 
    /**

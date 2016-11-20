@@ -7,12 +7,20 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
+ * Specialized cluster to allow fast lookup of vector scores.
+ *
  * @author David B. Bracewell
  */
-public class TopicCluster extends Cluster {
+class TopicCluster extends Cluster {
    private static final long serialVersionUID = 1L;
    private final Map<Vector, Double> scores = new HashMap<>();
 
+   /**
+    * Adds a point (vector) to the cluster
+    *
+    * @param vector the vector to add
+    * @param score  the score of the vector
+    */
    public void addPoint(Vector vector, double score) {
       super.addPoint(vector);
       scores.put(vector, score);

@@ -18,39 +18,21 @@ import org.apache.commons.math3.random.RandomGenerator;
 import java.util.ArrayList;
 
 /**
- * The type Lda model.
+ * <p>A flat clustering for the result of LDA topic models</p>
  *
  * @author David B. Bracewell
  */
 public class LDAModel extends FlatClustering {
    private static final long serialVersionUID = 1L;
-   /**
-    * The Clusters.
-    */
    ArrayList<Cluster> clusters;
-   /**
-    * The Word topic.
-    */
    ConditionalMultinomial wordTopic;
-   /**
-    * The K.
-    */
    int K;
-   /**
-    * The Random generator.
-    */
    RandomGenerator randomGenerator;
-   /**
-    * The Alpha.
-    */
    double alpha;
-   /**
-    * The Beta.
-    */
    double beta;
 
    /**
-    * Instantiates a new Clustering.
+    * Instantiates a new LDAModel.
     *
     * @param encoderPair the encoder pair
     */
@@ -138,7 +120,7 @@ public class LDAModel extends FlatClustering {
    }
 
    /**
-    * Gets topic words.
+    * Gets the words and their probabilities for a given topic
     *
     * @param topic the topic
     * @return the topic words
@@ -146,20 +128,18 @@ public class LDAModel extends FlatClustering {
    public Counter<String> getTopicWords(int topic) {
       Counter<String> counter = Counters.newCounter();
       for (int i = 0; i < getFeatureEncoder().size(); i++) {
-         counter.set(
-            getFeatureEncoder().decode(i).toString(),
-            wordTopic.probability(topic, i)
-                    );
+         counter.set(getFeatureEncoder().decode(i).toString(),
+                     wordTopic.probability(topic, i));
       }
       return counter;
    }
 
 
    /**
-    * Get topic distribution double [ ].
+    * Gets the distribution across topics for a given feature.
     *
-    * @param feature the feature
-    * @return the double [ ]
+    * @param feature the feature (word) whose topic distribution is desired
+    * @return the distribution across topics for the given feature
     */
    public double[] getTopicDistribution(String feature) {
       double[] distribution = new double[clusters.size()];

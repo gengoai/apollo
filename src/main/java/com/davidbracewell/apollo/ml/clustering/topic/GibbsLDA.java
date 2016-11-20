@@ -17,7 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * The type Gibbs lda.
+ * <p>Basic LDA using Gibbs sampling</p>
  *
  * @author David B. Bracewell
  */

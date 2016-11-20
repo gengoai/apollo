@@ -36,11 +36,19 @@ import java.util.Arrays;
 import static com.davidbracewell.tuple.Tuples.$;
 
 /**
+ * Clustering specific to one-shot clustering
+ *
  * @author David B. Bracewell
  */
 class OneShotClustering extends FlatClustering {
    private static final long serialVersionUID = 1L;
 
+   /**
+    * Instantiates a new One shot clustering.
+    *
+    * @param encoderPair     the encoder pair
+    * @param distanceMeasure the distance measure
+    */
    OneShotClustering(@NonNull EncoderPair encoderPair, DistanceMeasure distanceMeasure) {
       super(encoderPair, distanceMeasure);
    }

@@ -27,6 +27,18 @@ public enum Distance implements DistanceMeasure {
       }
    },
    /**
+    * Variation on Euclidean distance that doesn't take the square root of the sum of squared differences
+    */
+   SquaredEuclidean {
+      @Override
+      public double calculate(@NonNull Map<?, ? extends Number> m1, @NonNull Map<?, ? extends Number> m2) {
+         double m1Sq = DotProduct.calculate(m1, m1);
+         double m2Sq = DotProduct.calculate(m2, m2);
+         double m12Sq = DotProduct.calculate(m1, m2);
+         return m1Sq + m2Sq - 2 * m12Sq;
+      }
+   },
+   /**
     * <a href="https://en.wiktionary.org/wiki/Manhattan_distance">Manhattan distance</a>
     */
    Manhattan {

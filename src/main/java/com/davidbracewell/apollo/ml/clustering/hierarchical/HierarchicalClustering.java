@@ -37,7 +37,7 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * The type Hierarchical clustering.
+ * <p>A clustering for hierarchical clustering techniques where clusters form a tree.</p>
  *
  * @author David B. Bracewell
  */
@@ -51,7 +51,8 @@ public class HierarchicalClustering implements Clustering, Serializable {
    /**
     * Instantiates a new Hierarchical clustering.
     *
-    * @param encoderPair the encoder pair
+    * @param encoderPair     the encoder pair
+    * @param distanceMeasure the distance measure
     */
    public HierarchicalClustering(@NonNull EncoderPair encoderPair, @NonNull DistanceMeasure distanceMeasure) {
       this.encoderPair = encoderPair;
@@ -84,20 +85,17 @@ public class HierarchicalClustering implements Clustering, Serializable {
       return Collections.singleton(root).iterator();
    }
 
-   /**
-    * Gets root.
-    *
-    * @return the root
-    */
+   @Override
    public Cluster getRoot() {
       return root;
    }
 
    /**
-    * As flat clustering.
+    * Converts the hierarchical clustering into a flat clustering using the given threshold. Each subtree whose
+    * inter-cluster distance is less than the given threshold will be flattened into one cluster.
     *
-    * @param threshold the threshold
-    * @return the clustering
+    * @param threshold the threshold to determine how to flatten clusters
+    * @return the flat clustering
     */
    public Clustering asFlat(double threshold) {
       List<Cluster> flat = new ArrayList<>();

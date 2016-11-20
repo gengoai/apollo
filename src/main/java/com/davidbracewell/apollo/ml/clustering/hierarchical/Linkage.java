@@ -8,6 +8,7 @@ import lombok.NonNull;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.DoubleStream;
 
 /**
@@ -17,76 +18,77 @@ import java.util.stream.DoubleStream;
  */
 public enum Linkage {
    /**
-    * The Min.
+    * Single link, which calculates the minimum distance between elements
     */
-   Min {
+   Single {
       @Override
       public double calculate(@NonNull DoubleStream doubleStream) {
-         return doubleStream.min().getAsDouble();
+         return doubleStream.min().orElse(Double.POSITIVE_INFINITY);
       }
    },
    /**
-    * The Max.
+    * Complete link, which calculates the maximum distance between elements
     */
-   Max {
+   Complete {
       @Override
       public double calculate(@NonNull DoubleStream doubleStream) {
-         return doubleStream.max().getAsDouble();
+         return doubleStream.max().orElse(Double.POSITIVE_INFINITY);
       }
    },
    /**
-    * The Average.
+    * Average link, which calculates the mean distance between elements
     */
    Average {
       @Override
       public double calculate(@NonNull DoubleStream doubleStream) {
-         return doubleStream.average().getAsDouble();
+         return doubleStream.average().orElse(Double.POSITIVE_INFINITY);
       }
    };
 
    /**
-    * Calculate double.
+    * Calculates a value over the given stream of doubles which represents a stream of distances between an instance and
+    * a cluster.
     *
     * @param doubleStream the double stream
-    * @return the double
+    * @return the calculated value
     */
    public abstract double calculate(DoubleStream doubleStream);
 
    /**
-    * Calculate double.
+    * Calculates the linkage metric between two clusters
     *
-    * @param c1              the c 1
-    * @param c2              the c 2
-    * @param distanceMeasure the distance measure
-    * @return the double
+    * @param c1              the first cluster
+    * @param c2              the second cluster
+    * @param distanceMeasure the distance measure to use
+    * @return the linkage metric
     */
    public final double calculate(@NonNull Cluster c1, @NonNull Cluster c2, @NonNull DistanceMeasure distanceMeasure) {
       List<Double> distances = new ArrayList<>();
       for (Vector t1 : flatten(c1)) {
-         for (Vector t2 : flatten(c2)) {
-            distances.add(distanceMeasure.calculate(t1, t2));
-         }
+         distances.addAll(flatten(c2).stream()
+                                     .map(t2 -> distanceMeasure.calculate(t1, t2))
+                                     .collect(Collectors.toList()));
       }
       return calculate(distances.stream().mapToDouble(Double::doubleValue));
    }
 
    /**
-    * Calculate double.
+    * Calculates the linkage metric between a vector and a cluster
     *
-    * @param v               the v
+    * @param v               the vector
     * @param cluster         the cluster
-    * @param distanceMeasure the distance measure
-    * @return the double
+    * @param distanceMeasure the distance measure to use
+    * @return the linkage metric
     */
    public final double calculate(@NonNull Vector v, @NonNull Cluster cluster, @NonNull DistanceMeasure distanceMeasure) {
       return calculate(cluster.getPoints().stream().mapToDouble(v2 -> distanceMeasure.calculate(v, v2)));
    }
 
    /**
-    * Flatten list.
+    * Flattens a cluster down to a single list of vectors
     *
-    * @param c the c
-    * @return the list
+    * @param c the cluster
+    * @return the list of vectors
     */
    protected List<Vector> flatten(Cluster c) {
       if (c == null) {

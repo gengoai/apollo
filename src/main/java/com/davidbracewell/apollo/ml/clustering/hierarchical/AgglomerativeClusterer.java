@@ -31,20 +31,24 @@ import com.davidbracewell.tuple.Tuple2;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Table;
+import lombok.Getter;
 import lombok.NonNull;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * The type Agglomerative clusterer.
+ * <p>Implementation of Hierarchical Agglomerative Clustering with options for Single, Complete, and Average link
+ * clustering.</p>
  *
  * @author David B. Bracewell
  */
 public class AgglomerativeClusterer extends Clusterer<HierarchicalClustering> {
    private static final long serialVersionUID = 1L;
+   @Getter
    private DistanceMeasure distanceMeasure = Distance.Euclidean;
-   private Linkage linkage = Linkage.Min;
+   @Getter
+   private Linkage linkage = Linkage.Single;
 
    /**
     * Instantiates a new Agglomerative clusterer.
@@ -56,47 +60,29 @@ public class AgglomerativeClusterer extends Clusterer<HierarchicalClustering> {
    /**
     * Instantiates a new Agglomerative clusterer.
     *
-    * @param distanceMeasure the distance measure
-    * @param linkage         the linkage
+    * @param distanceMeasure the distance measure to use (default Euclidean)
+    * @param linkage         the linkage type to use (default Single link)
     */
-   public AgglomerativeClusterer(DistanceMeasure distanceMeasure, Linkage linkage) {
+   public AgglomerativeClusterer(@NonNull DistanceMeasure distanceMeasure, @NonNull Linkage linkage) {
       this.distanceMeasure = distanceMeasure;
       this.linkage = linkage;
    }
 
    /**
-    * Gets distance measure.
-    *
-    * @return the distance measure
-    */
-   public DistanceMeasure getDistanceMeasure() {
-      return distanceMeasure;
-   }
-
-   /**
-    * Sets distance measure.
+    * Sets the distance measure to use.
     *
     * @param distanceMeasure the distance measure
     */
-   public void setDistanceMeasure(DistanceMeasure distanceMeasure) {
+   public void setDistanceMeasure(@NonNull DistanceMeasure distanceMeasure) {
       this.distanceMeasure = distanceMeasure;
    }
 
    /**
-    * Gets linkage.
-    *
-    * @return the linkage
-    */
-   public Linkage getLinkage() {
-      return linkage;
-   }
-
-   /**
-    * Sets linkage.
+    * Sets the linkage to use.
     *
     * @param linkage the linkage
     */
-   public void setLinkage(Linkage linkage) {
+   public void setLinkage(@NonNull Linkage linkage) {
       this.linkage = linkage;
    }
 

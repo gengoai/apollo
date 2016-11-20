@@ -356,7 +356,7 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
               .forEach(accumulator::add);
       Counter<Object> fCount = accumulator.value();
       int targetCount = (int) fCount.maximumCount();
-      MStream<T> oversample = getStreamingContext().empty();
+      Dataset<T> dataset = create(getStreamingContext().empty());
       for (Object label : fCount.items()) {
          MStream<T> fStream = stream()
                                  .filter(e -> e.getLabelSpace().anyMatch(label::equals))
@@ -364,16 +364,16 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
          int count = (int) fStream.count();
          int curCount = 0;
          while (curCount + count < targetCount) {
-            oversample = oversample.union(fStream);
+            dataset.addAll(fStream);
             curCount += count;
          }
          if (curCount < targetCount) {
-            oversample = oversample.union(fStream.sample(false, targetCount - curCount));
+            dataset.addAll(fStream.sample(false, targetCount - curCount));
          } else if (count == targetCount) {
-            oversample = oversample.union(fStream);
+            dataset.addAll(fStream);
          }
       }
-      return create(oversample);
+      return dataset;
    }
 
    /**
@@ -518,17 +518,16 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
    public Dataset<T> undersample() {
       MCounterAccumulator<Object> accumulator = getStreamingContext().counterAccumulator();
       stream().parallel()
-              .map(Example::getLabelSpace)
+              .flatMap(Example::getLabelSpace)
               .forEach(accumulator::add);
       Counter<Object> fCount = accumulator.value();
       int targetCount = (int) fCount.minimumCount();
-      MStream<T> undersample = getStreamingContext().empty();
+      Dataset<T> dataset = create(getStreamingContext().empty());
       for (Object label : fCount.items()) {
-         undersample = undersample.union(
-            stream().filter(e -> e.getLabelSpace().anyMatch(label::equals)).sample(false, targetCount)
-                                        );
+         MStream<T> sample = stream().filter(e -> e.getLabelSpace().anyMatch(label::equals)).sample(false, targetCount);
+         dataset.addAll(sample);
       }
-      return create(undersample);
+      return dataset;
    }
 
    /**

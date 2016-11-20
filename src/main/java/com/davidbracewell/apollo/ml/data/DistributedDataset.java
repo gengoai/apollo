@@ -33,8 +33,12 @@ public class DistributedDataset<T extends Example> extends Dataset<T> {
    }
 
    @Override
-   protected void addAll(@NonNull MStream<T> stream) {
-      this.stream = stream.cache();
+   protected void addAll(@NonNull MStream<T> otherStream) {
+      if (this.stream == null) {
+         this.stream = new SparkStream<>(otherStream.cache());
+      } else {
+         this.stream = this.stream.union(otherStream);
+      }
    }
 
    @Override

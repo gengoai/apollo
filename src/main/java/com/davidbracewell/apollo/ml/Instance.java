@@ -92,7 +92,6 @@ public class Instance implements Example, Serializable, Iterable<Feature> {
       return new Instance(features);
    }
 
-
    /**
     * Convenience method for creating an instance from a collection of features.
     *

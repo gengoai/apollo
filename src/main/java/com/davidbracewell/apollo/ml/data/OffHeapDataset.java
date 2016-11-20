@@ -4,7 +4,6 @@ import com.davidbracewell.apollo.ml.Encoder;
 import com.davidbracewell.apollo.ml.Example;
 import com.davidbracewell.apollo.ml.LabelEncoder;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
-import com.davidbracewell.collection.Collect;
 import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.function.SerializableFunction;
 import com.davidbracewell.function.Unchecked;
@@ -98,21 +97,38 @@ public class OffHeapDataset<T extends Example> extends Dataset<T> {
 
    @Override
    public MStream<T> stream() {
-      return StreamingContext.local().stream(outputResource.getChildren().stream()
-                                                           .flatMap(function(r -> r.readLines().stream()))
-                                                           .map(
-                                                              function(line -> Cast.as(Example.fromJson(line, clazz))))
-                                            );
+      return StreamingContext.local()
+                             .stream(outputResource.getChildren().stream()
+                                                   .flatMap(function(r -> r.readLines().stream()))
+                                                   .map(function(line -> Cast.as(Example.fromJson(line, clazz))))
+                                    );
+   }
+
+   @Override
+   public Dataset<T> copy() {
+      OffHeapDataset<T> copy = Cast.as(create(getStreamingContext().empty()));
+      for (Resource child : outputResource.getChildren()) {
+         try {
+            copy.outputResource.getChild(child.baseName())
+                               .write(child.readToString());
+         } catch (IOException e) {
+            throw Throwables.propagate(e);
+         }
+      }
+      copy.size = this.size;
+      copy.id.set(this.id.longValue());
+      copy.clazz = this.clazz;
+      return copy;
    }
 
    private void writeInstancesTo(MStream<T> instances, Resource file) {
       try (BufferedWriter writer = new BufferedWriter(file.writer())) {
-         for (T instance : Collect.asIterable(instances.iterator())) {
-            clazz = Cast.as(instance.getClass());
-            writer.write(instance.toJson());
+         instances.forEach(Unchecked.consumer(ii -> {
+            clazz = Cast.as(ii.getClass());
+            writer.write(ii.toJson());
             writer.newLine();
             size++;
-         }
+         }));
       } catch (IOException e) {
          throw Throwables.propagate(e);
       }

@@ -39,6 +39,12 @@ public class DatasetBuilder<T extends Example> {
    @Setter(onParam = @_({@NonNull}))
    private Resource load;
 
+   /**
+    * Instantiates a new Dataset builder.
+    *
+    * @param labelEncoder the label encoder
+    * @param exampleType  the example type
+    */
    protected DatasetBuilder(@NonNull LabelEncoder labelEncoder, @NonNull Class<T> exampleType) {
       this.labelEncoder = labelEncoder;
       this.exampleType = exampleType;
@@ -55,6 +61,12 @@ public class DatasetBuilder<T extends Example> {
       return this;
    }
 
+   /**
+    * Data dataset builder.
+    *
+    * @param collection the collection
+    * @return the dataset builder
+    */
    public DatasetBuilder<T> data(@NonNull Collection<T> collection) {
       this.source = StreamingContext.local().stream(collection);
       return this;

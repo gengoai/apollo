@@ -95,8 +95,7 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
       return new DatasetBuilder<>(new NoOptLabelEncoder(), Sequence.class)
                 .featureEncoder(new NoOptEncoder())
                 .type(type)
-                .source(stream.map(line -> Sequence.toSequence(tokenizer.apply(line))))
-                .build();
+                .source(stream.map(line -> Sequence.toSequence(tokenizer.apply(line))));
    }
 
    /**

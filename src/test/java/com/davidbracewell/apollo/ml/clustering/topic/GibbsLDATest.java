@@ -106,7 +106,7 @@ public class GibbsLDATest {
                                       ));
 
       }
-      Dataset<Instance> dataset = Dataset.classification().localSource(instances.stream()).build();
+      Dataset<Instance> dataset = Dataset.classification().source(instances.stream());
 
       LDAModel model = clusterer.train(dataset);
 

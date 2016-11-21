@@ -108,7 +108,7 @@ public abstract class DatasetTest {
       Dataset<Instance> copy = dataset.copy();
       copy = copy.preprocess(PreprocessorList.create(new NameFilter("toDelete")));
       copy.write(resource);
-      copy = Dataset.classification().load(resource).build();
+      copy = Dataset.classification().load(resource);
       long trueCount = copy.stream().filter(ii -> ii.getLabel().equals("true")).count();
       long falseCount = copy.stream().filter(ii -> ii.getLabel().equals("false")).count();
       long toDeleteCount = copy.stream().filter(ii -> ii.getFeatureSpace().anyMatch(s -> s.equals("toDelete"))).count();

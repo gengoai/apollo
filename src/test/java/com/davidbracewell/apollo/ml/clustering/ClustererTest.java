@@ -46,8 +46,7 @@ public abstract class ClustererTest {
       DenseCSVDataSource csvDataSource = new DenseCSVDataSource(Resources.fromClasspath(
          "com/davidbracewell/apollo/ml/clustering/sample.csv"), true);
       return Dataset.classification()
-                    .dataSource(csvDataSource)
-                    .build();
+                    .source(csvDataSource);
    }
 
    public Clustering cluster() {

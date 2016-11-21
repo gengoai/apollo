@@ -29,8 +29,7 @@ public class MEMMLearner extends SequenceLabelerLearner {
                               getValidator()
       );
       Dataset<Instance> nd = Dataset.classification()
-                                    .source(dataset.stream().flatMap(s -> s.asInstances().stream()))
-                                    .build();
+                                    .source(dataset.stream().flatMap(s -> s.asInstances().stream()));
       QuietIO.closeQuietly(dataset);
       model.model = Cast.as(learner.train(nd));
       return model;

@@ -51,9 +51,8 @@ public class NoOptEncoderTest {
          data.add(Instance.fromVector(new LabeledVector("false", DenseVector.zeros(20))));
       }
       return Dataset.classification()
-                    .data(data)
                     .featureEncoder(new IndexEncoder())
-                    .build()
+                    .source(data)
                     .shuffle(new Random(1234));
    }
 

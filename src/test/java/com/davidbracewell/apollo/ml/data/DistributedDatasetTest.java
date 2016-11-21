@@ -34,7 +34,6 @@ public class DistributedDatasetTest extends DatasetTest {
       Config.setProperty("spark.master", "local[*]");
       dataset = Dataset.classification()
                        .type(DatasetType.Distributed)
-                       .data(createInstances())
-                       .build();
+                       .source(createInstances());
    }
 }//END OF InMemoryDatasetTest

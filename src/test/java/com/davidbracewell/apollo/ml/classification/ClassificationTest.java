@@ -58,8 +58,7 @@ public abstract class ClassificationTest {
          "com/davidbracewell/apollo/ml/iris.csv"), true);
       irisData.setClassIndex(4);
       return Dataset.classification()
-                    .dataSource(irisData)
-                    .build()
+                    .source(irisData)
                     .shuffle(new Random(1234));
    }
 

@@ -31,7 +31,6 @@ public class InMemoryDatasetTest extends DatasetTest {
    public void setUp() throws Exception {
       dataset = Dataset.classification()
                        .type(DatasetType.InMemory)
-                       .data(createInstances())
-                       .build();
+                       .source(createInstances());
    }
 }//END OF InMemoryDatasetTest

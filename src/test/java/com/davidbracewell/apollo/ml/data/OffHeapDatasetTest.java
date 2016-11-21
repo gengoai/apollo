@@ -33,7 +33,6 @@ public class OffHeapDatasetTest extends DatasetTest {
       Config.initializeTest();
       dataset = Dataset.classification()
                        .type(DatasetType.OffHeap)
-                       .data(createInstances())
-                       .build();
+                       .source(createInstances());
    }
 }//END OF InMemoryDatasetTest

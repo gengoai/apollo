@@ -11,8 +11,6 @@ import com.davidbracewell.stream.MStream;
 import com.davidbracewell.stream.StreamingContext;
 import com.google.common.base.Throwables;
 import lombok.NonNull;
-import lombok.Setter;
-import lombok.experimental.Accessors;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -21,22 +19,16 @@ import java.util.stream.Stream;
 /**
  * <p>Builder for datasets</p>
  *
- * @param <T> the type parameter
+ * @param <T> the example type parameter
  * @author David B. Bracewell
  */
-@Accessors(fluent = true)
 public class DatasetBuilder<T extends Example> {
    private final LabelEncoder labelEncoder;
    private final Class<T> exampleType;
-   @Setter(onParam = @_({@NonNull}))
    private DataSource<T> dataSource;
-   @Setter(onParam = @_({@NonNull}))
    private DatasetType type = DatasetType.InMemory;
-   @Setter(onParam = @_({@NonNull}))
    private Encoder featureEncoder = new IndexEncoder();
-   @Setter(onParam = @_({@NonNull}))
    private MStream<T> source;
-   @Setter(onParam = @_({@NonNull}))
    private Resource load;
 
    /**
@@ -50,67 +42,103 @@ public class DatasetBuilder<T extends Example> {
       this.exampleType = exampleType;
    }
 
+
+   private Dataset<T> createDataset() {
+      switch (type) {
+         case Distributed:
+            return new DistributedDataset<>(featureEncoder, labelEncoder, PreprocessorList.empty());
+         case OffHeap:
+            return new OffHeapDataset<>(featureEncoder, labelEncoder, PreprocessorList.empty());
+         default:
+            return new InMemoryDataset<>(featureEncoder, labelEncoder, PreprocessorList.empty());
+      }
+   }
+
+   /**
+    * Sets the feature encoder to use.
+    *
+    * @param featureEncoder the feature encoder
+    */
+   public DatasetBuilder<T> featureEncoder(@NonNull Encoder featureEncoder) {
+      this.featureEncoder = featureEncoder;
+      return this;
+   }
+
+   /**
+    * Sets the feature encoder to use.
+    *
+    * @param datasetFile the feature encoder
+    */
+   public Dataset<T> load(@NonNull Resource datasetFile) {
+      try {
+         return createDataset().read(datasetFile, exampleType);
+      } catch (IOException e) {
+         throw Throwables.propagate(e);
+      }
+   }
+
    /**
     * Sets the streaming source from a Java Stream.
     *
     * @param stream the stream
     * @return the dataset builder
     */
-   public DatasetBuilder<T> localSource(@NonNull Stream<T> stream) {
-      this.source = StreamingContext.local().stream(stream);
-      return this;
+   public Dataset<T> source(@NonNull Stream<T> stream) {
+      Dataset<T> dataset = createDataset();
+      dataset.addAll(StreamingContext.local().stream(stream));
+      return dataset;
    }
 
    /**
-    * Data dataset builder.
+    * Sets the streaming source from a collection of examples.
     *
-    * @param collection the collection
+    * @param collection the collection of examples
     * @return the dataset builder
     */
-   public DatasetBuilder<T> data(@NonNull Collection<T> collection) {
-      this.source = StreamingContext.local().stream(collection);
-      return this;
+   public Dataset<T> source(@NonNull Collection<T> collection) {
+      Dataset<T> dataset = createDataset();
+      dataset.addAll(StreamingContext.local().stream(collection));
+      return dataset;
    }
 
    /**
-    * Builds the dataset using the provided values.
+    * Sets the examples to be read in from the given data source.
     *
-    * @return the dataset
+    * @param dataSource the data source
+    * @return the dataset builder
     */
-   public Dataset<T> build() {
-      Dataset<T> dataset;
-      switch (type) {
-         case Distributed:
-            dataset = new DistributedDataset<>(featureEncoder, labelEncoder, PreprocessorList.empty());
-            break;
-         case OffHeap:
-            dataset = new OffHeapDataset<>(featureEncoder, labelEncoder, PreprocessorList.empty());
-            break;
-         default:
-            dataset = new InMemoryDataset<>(featureEncoder, labelEncoder, PreprocessorList.empty());
+   public Dataset<T> source(@NonNull DataSource<T> dataSource) {
+      Dataset<T> dataset = createDataset();
+      dataSource.setStreamingContext(type.getStreamingContext());
+      try {
+         dataset.addAll(dataSource.stream());
+      } catch (IOException e) {
+         throw Throwables.propagate(e);
       }
-
-
-      if (source != null) {
-         dataset.addAll(source);
-      }
-
-      if (dataSource != null) {
-         dataSource.setStreamingContext(type.getStreamingContext());
-         try {
-            dataset.addAll(dataSource.stream());
-         } catch (IOException e) {
-            throw Throwables.propagate(e);
-         }
-      } else if (load != null) {
-         try {
-            dataset.read(load, exampleType);
-         } catch (IOException e) {
-            throw Throwables.propagate(e);
-         }
-      }
-
       return dataset;
+   }
+
+   /**
+    * Sets the streaming source from a Mango Stream.
+    *
+    * @param stream the stream
+    * @return the dataset builder
+    */
+   public Dataset<T> source(@NonNull MStream<T> stream) {
+      Dataset<T> dataset = createDataset();
+      dataset.addAll(stream);
+      return dataset;
+   }
+
+   /**
+    * Sets the type (In-Memory, Distributed, or Off Heap) of the dataset
+    *
+    * @param type the type
+    * @return the dataset builder
+    */
+   public DatasetBuilder<T> type(@NonNull DatasetType type) {
+      this.type = type;
+      return this;
    }
 
 }// END OF DatasetBuilder

@@ -21,11 +21,12 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
+ * <p>Reads data from a dense CSV format where every field has a value (empty features have a 0).</p>
+ *
  * @author David B. Bracewell
  */
 public class DenseCSVDataSource extends DataSource<Instance> {
-
-   private static final long serialVersionUID = -7352365518937500826L;
+   private static final long serialVersionUID = 1L;
    private final CSV csvFormat;
    @Getter
    @Setter
@@ -35,19 +36,31 @@ public class DenseCSVDataSource extends DataSource<Instance> {
    private String labelName = null;
 
    /**
-    * Instantiates a new Data source.
+    * Instantiates a new Dense CSV data source.
     *
-    * @param resource the resource
+    * @param resource  the resource containing the data
+    * @param hasHeader True if the csv file has a header, False if not
     */
    public DenseCSVDataSource(@NonNull Resource resource, boolean hasHeader) {
       this(resource, CSV.builder().hasHeader(hasHeader));
    }
 
+   /**
+    * Instantiates a new Dense CSV data source. Assumes that there is no header in the file.
+    *
+    * @param resource the resource containing the data
+    */
    public DenseCSVDataSource(@NonNull Resource resource) {
       this(resource, false);
    }
 
 
+   /**
+    * Instantiates a new Dense CSV data source
+    *
+    * @param resource the resource containing the data
+    * @param format   the CSV format to use for parsing the data
+    */
    public DenseCSVDataSource(@NonNull Resource resource, @NonNull CSV format) {
       super(resource);
       this.csvFormat = format;

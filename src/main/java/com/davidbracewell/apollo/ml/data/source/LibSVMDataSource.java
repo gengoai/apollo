@@ -4,6 +4,7 @@ import com.davidbracewell.apollo.ml.Feature;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.io.resource.Resource;
 import com.davidbracewell.stream.MStream;
+import lombok.Getter;
 import lombok.NonNull;
 
 import java.io.IOException;
@@ -11,16 +12,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * The type Lib svm data source.
+ * <p>Reads datasets in LibSVM format</p>
  *
  * @author David B. Bracewell
  */
 public class LibSVMDataSource extends DataSource<Instance> {
-   private static final long serialVersionUID = -8917299785352538595L;
-   /**
-    * The Multiclass.
-    */
-   public final boolean multiclass;
+   private static final long serialVersionUID = 1L;
+   @Getter
+   private final boolean multiclass;
 
    /**
     * Instantiates a new Lib svm data source.
@@ -35,7 +34,7 @@ public class LibSVMDataSource extends DataSource<Instance> {
     * Instantiates a new Lib svm data source.
     *
     * @param resource   the resource
-    * @param multiclass the multiclass
+    * @param multiclass True if the dataset is multiclass, False if it is binary
     */
    public LibSVMDataSource(@NonNull Resource resource, boolean multiclass) {
       super(resource);

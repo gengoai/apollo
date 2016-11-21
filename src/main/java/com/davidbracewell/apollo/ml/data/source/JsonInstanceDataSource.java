@@ -9,15 +9,17 @@ import com.davidbracewell.stream.MStream;
 import java.io.IOException;
 
 /**
+ * <p>Reads individual instances stored one json per line using the {@link Example#toJson()}</p>
+ *
  * @author David B. Bracewell
  */
 public class JsonInstanceDataSource extends DataSource<Instance> {
-   private static final long serialVersionUID = -5256453124141512217L;
+   private static final long serialVersionUID = 1L;
 
    /**
-    * Instantiates a new Data source.
+    * Instantiates a new Json Instance data source.
     *
-    * @param resource the resource
+    * @param resource the resource to read from
     */
    public JsonInstanceDataSource(Resource resource) {
       super(resource);

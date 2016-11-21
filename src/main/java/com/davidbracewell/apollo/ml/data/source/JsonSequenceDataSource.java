@@ -9,13 +9,15 @@ import com.davidbracewell.stream.MStream;
 import java.io.IOException;
 
 /**
+ * <p>Reads individual sequences stored one json per line using the {@link Example#toJson()}</p>
+ *
  * @author David B. Bracewell
  */
 public class JsonSequenceDataSource extends DataSource<Sequence> {
-   private static final long serialVersionUID = -3205097831208405630L;
+   private static final long serialVersionUID = 1L;
 
    /**
-    * Instantiates a new Data source.
+    * Instantiates a new Json Sequence Data source.
     *
     * @param resource the resource
     */

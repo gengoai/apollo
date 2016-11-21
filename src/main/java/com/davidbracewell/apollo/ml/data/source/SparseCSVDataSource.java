@@ -21,6 +21,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
+ * The type Sparse csv data source.
+ *
  * @author David B. Bracewell
  */
 public class SparseCSVDataSource extends DataSource<Instance> {
@@ -37,17 +39,29 @@ public class SparseCSVDataSource extends DataSource<Instance> {
    /**
     * Instantiates a new Data source.
     *
-    * @param resource the resource
+    * @param resource  the resource
+    * @param hasHeader the has header
     */
    public SparseCSVDataSource(@NonNull Resource resource, boolean hasHeader) {
       this(resource, CSV.builder().hasHeader(hasHeader));
    }
 
+   /**
+    * Instantiates a new Sparse csv data source.
+    *
+    * @param resource the resource
+    */
    public SparseCSVDataSource(@NonNull Resource resource) {
       this(resource, false);
    }
 
 
+   /**
+    * Instantiates a new Sparse csv data source.
+    *
+    * @param resource the resource
+    * @param format   the format
+    */
    public SparseCSVDataSource(@NonNull Resource resource, @NonNull CSV format) {
       super(resource);
       this.csvFormat = format;

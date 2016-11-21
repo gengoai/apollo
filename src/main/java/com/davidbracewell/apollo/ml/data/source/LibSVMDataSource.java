@@ -11,16 +11,32 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * The type Lib svm data source.
+ *
  * @author David B. Bracewell
  */
 public class LibSVMDataSource extends DataSource<Instance> {
    private static final long serialVersionUID = -8917299785352538595L;
+   /**
+    * The Multiclass.
+    */
    public final boolean multiclass;
 
+   /**
+    * Instantiates a new Lib svm data source.
+    *
+    * @param resource the resource
+    */
    public LibSVMDataSource(@NonNull Resource resource) {
       this(resource, false);
    }
 
+   /**
+    * Instantiates a new Lib svm data source.
+    *
+    * @param resource   the resource
+    * @param multiclass the multiclass
+    */
    public LibSVMDataSource(@NonNull Resource resource, boolean multiclass) {
       super(resource);
       this.multiclass = multiclass;

@@ -36,7 +36,11 @@ public class MStreamDataset<T extends Example> extends Dataset<T> {
 
    @Override
    protected void addAll(MStream<T> stream) {
-
+      if (this.stream == null) {
+         this.stream = stream;
+      } else {
+         this.stream = this.stream.union(stream);
+      }
    }
 
    @Override

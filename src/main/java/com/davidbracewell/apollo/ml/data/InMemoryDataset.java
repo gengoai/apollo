@@ -10,9 +10,7 @@ import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.function.SerializableFunction;
 import com.davidbracewell.stream.MStream;
 import com.davidbracewell.stream.StreamingContext;
-import lombok.EqualsAndHashCode;
 import lombok.NonNull;
-import lombok.ToString;
 
 import java.util.*;
 
@@ -20,19 +18,16 @@ import java.util.*;
  * <p>A Dataset that stores all examples in memory. Feature names are interned to conserve memory. In addition, methods
  * for adding examples are public.</p>
  *
- * @param <T> the type parameter
+ * @param <T> the example type parameter
  * @author David B. Bracewell
  */
-@EqualsAndHashCode(callSuper = false)
-@ToString
 public class InMemoryDataset<T extends Example> extends Dataset<T> {
-
+   private static final long serialVersionUID = 1L;
    private static final Interner<String> interner = new Interner<>();
-   private static final long serialVersionUID = -2963374694212507463L;
    private final List<T> instances = new ArrayList<>();
 
    /**
-    * Instantiates a new In memory dataset.
+    * Instantiates a new In-memory dataset.
     *
     * @param featureEncoder the feature encoder
     * @param labelEncoder   the label encoder
@@ -43,7 +38,7 @@ public class InMemoryDataset<T extends Example> extends Dataset<T> {
    }
 
    /**
-    * Adds an example
+    * Adds an example to the dataset
     *
     * @param example the example
     */
@@ -121,6 +116,6 @@ public class InMemoryDataset<T extends Example> extends Dataset<T> {
 
    @Override
    public MStream<T> stream() {
-      return StreamingContext.local().stream(instances).map(getEncoderPair()::encode);
+      return StreamingContext.local().stream(instances);
    }
 }// END OF InMemoryDataset

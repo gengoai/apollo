@@ -12,9 +12,9 @@ import lombok.NonNull;
 import java.util.Random;
 
 /**
- * The type Distributed dataset.
+ * <p>A distributed dataset using Apache Spark.</p>
  *
- * @param <T> the type parameter
+ * @param <T> the example type parameter
  * @author David B. Bracewell
  */
 public class DistributedDataset<T extends Example> extends Dataset<T> {
@@ -22,7 +22,7 @@ public class DistributedDataset<T extends Example> extends Dataset<T> {
    private volatile MStream<T> stream;
 
    /**
-    * Instantiates a new Dataset.
+    * Instantiates a new Distributed Dataset.
     *
     * @param featureEncoder the feature encoder
     * @param labelEncoder   the label encoder

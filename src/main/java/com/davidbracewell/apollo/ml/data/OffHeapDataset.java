@@ -23,6 +23,9 @@ import java.util.concurrent.atomic.AtomicLong;
 import static com.davidbracewell.function.Unchecked.function;
 
 /**
+ * <p>Creates a dataset that streams examples off disk to save memory.</p>
+ *
+ * @param <T> the example type parameter
  * @author David B. Bracewell
  */
 public class OffHeapDataset<T extends Example> extends Dataset<T> {
@@ -32,6 +35,13 @@ public class OffHeapDataset<T extends Example> extends Dataset<T> {
    private Class<T> clazz;
    private int size = 0;
 
+   /**
+    * Instantiates a new Off heap dataset.
+    *
+    * @param featureEncoder the feature encoder
+    * @param labelEncoder   the label encoder
+    * @param preprocessors  the preprocessors
+    */
    protected OffHeapDataset(Encoder featureEncoder, LabelEncoder labelEncoder, PreprocessorList<T> preprocessors) {
       super(featureEncoder, labelEncoder, preprocessors);
       outputResource.deleteOnExit();

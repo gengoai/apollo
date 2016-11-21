@@ -12,7 +12,7 @@ import lombok.NonNull;
 import java.util.Random;
 
 /**
- * The type M stream dataset.
+ * <p>A dataset wrapping a Mango Stream.</p>
  *
  * @param <T> the type parameter
  * @author David B. Bracewell
@@ -22,7 +22,7 @@ public class MStreamDataset<T extends Example> extends Dataset<T> {
    private volatile MStream<T> stream;
 
    /**
-    * Instantiates a new Dataset.
+    * Instantiates a new MStream Dataset.
     *
     * @param featureEncoder the feature encoder
     * @param labelEncoder   the label encoder

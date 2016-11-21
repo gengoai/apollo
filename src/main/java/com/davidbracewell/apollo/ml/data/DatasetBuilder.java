@@ -17,7 +17,7 @@ import java.util.Collection;
 import java.util.stream.Stream;
 
 /**
- * <p>Builder for datasets</p>
+ * <p>Builder for {@link Dataset}</p>
  *
  * @param <T> the example type parameter
  * @author David B. Bracewell

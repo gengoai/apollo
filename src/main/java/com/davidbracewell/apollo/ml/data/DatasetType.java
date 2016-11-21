@@ -3,11 +3,13 @@ package com.davidbracewell.apollo.ml.data;
 import com.davidbracewell.stream.StreamingContext;
 
 /**
- * The dataset type.
+ * Defines how the dataset is stored/processed.
+ *
+ * @author David B. Bracewell
  */
 public enum DatasetType {
    /**
-    * Distributed type.
+    * Distributed using Apache Spark
     */
    Distributed {
       @Override
@@ -16,21 +18,21 @@ public enum DatasetType {
       }
    },
    /**
-    * In memory type.
+    * All data is stored in-memory on local machine.
     */
    InMemory,
    /**
-    * Off heap type.
+    * Data is stored on disk
     */
    OffHeap,
    /**
-    * Stream dataset type.
+    * Data is stored in a Mango stream, what kind may not be known.
     */
    Stream;
 
 
    /**
-    * Gets streaming context.
+    * Gets the streaming context.
     *
     * @return the streaming context
     */

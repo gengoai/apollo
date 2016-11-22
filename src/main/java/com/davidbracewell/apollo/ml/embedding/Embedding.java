@@ -1,6 +1,5 @@
 package com.davidbracewell.apollo.ml.embedding;
 
-import com.davidbracewell.apollo.affinity.Similarity;
 import com.davidbracewell.apollo.linalg.*;
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.linalg.store.VectorStore;
@@ -16,7 +15,7 @@ import java.util.stream.Collectors;
 import static com.davidbracewell.tuple.Tuples.$;
 
 /**
- * The type Embedding.
+ * <p>A word/feature embedding model where words/features have been mapped into vectors.</p>
  *
  * @author David B. Bracewell
  */
@@ -32,7 +31,7 @@ public class Embedding implements Model, Serializable {
     * @param encoderPair the encoder pair
     * @param vectorStore the vector store
     */
-   public Embedding(EncoderPair encoderPair, VectorStore<String> vectorStore) {
+   public Embedding(@NonNull EncoderPair encoderPair, @NonNull VectorStore<String> vectorStore) {
       this.encoderPair = encoderPair;
       this.vectorStore = vectorStore;
    }
@@ -44,38 +43,38 @@ public class Embedding implements Model, Serializable {
 
 
    /**
-    * Gets dimension.
+    * Gets the dimension of the vectors in the embedding.
     *
-    * @return the dimension
+    * @return the vector dimension
     */
    public int getDimension() {
       return vectorStore.dimension();
    }
 
    /**
-    * Gets vocab.
+    * Gets the vocabulary of words/features with vectors.
     *
-    * @return the vocab
+    * @return the vocabulary
     */
    public Set<String> getVocab() {
       return vectorStore.keySet();
    }
 
    /**
-    * Contains boolean.
+    * Checks if the given word/feature is present in the embedding
     *
-    * @param word the word
-    * @return the boolean
+    * @param word the word/feature to check
+    * @return True if the word/feature is in the embedding, False otherwise
     */
    public boolean contains(String word) {
       return vectorStore.containsKey(word);
    }
 
    /**
-    * Gets vector.
+    * Gets the vector for the given word/feature.
     *
-    * @param word the word
-    * @return the vector
+    * @param word the word/feature whose vector is to be retrieved
+    * @return the vector for the given word/feature or a zero-vector if the word/feature is not in the embedding.
     */
    public Vector getVector(String word) {
       if (contains(word)) {
@@ -85,11 +84,11 @@ public class Embedding implements Model, Serializable {
    }
 
    /**
-    * Compose vector.
+    * Creates a vector using the given vector composition for the given words.
     *
-    * @param composition the composition
-    * @param words       the words
-    * @return the vector
+    * @param composition the composition function to use
+    * @param words       the words whose vectors we want to compose
+    * @return a composite vector consisting of the given words and calculated using the given vector composition
     */
    public Vector compose(@NonNull VectorComposition composition, String... words) {
       if (words == null) {
@@ -106,39 +105,23 @@ public class Embedding implements Model, Serializable {
 
 
    /**
-    * Similarity double.
+    * Finds the closest K vectors to the given word/feature in the embedding
     *
-    * @param word1 the word 1
-    * @param word2 the word 2
-    * @return the double
-    */
-   public double similarity(@NonNull String word1, @NonNull String word2) {
-      Vector v1 = vectorStore.get(word1);
-      Vector v2 = vectorStore.get(word2);
-      if (v1 == null || v2 == null) {
-         return Double.NEGATIVE_INFINITY;
-      }
-      return Similarity.Cosine.calculate(v1, v2);
-   }
-
-   /**
-    * Nearest list.
-    *
-    * @param word the word
-    * @param K    the k
-    * @return the list
+    * @param word the word/feature whose neighbors we want
+    * @param K    the maximum number of neighbors to return
+    * @return the list of scored K-nearest vectors
     */
    public List<ScoredLabelVector> nearest(@NonNull String word, int K) {
       return nearest(word, K, Double.NEGATIVE_INFINITY);
    }
 
    /**
-    * Nearest list.
+    * Finds the closest K vectors to the given word/feature in the embedding
     *
-    * @param word      the word
-    * @param K         the k
-    * @param threshold the threshold
-    * @return the list
+    * @param word      the word/feature whose neighbors we want
+    * @param K         the maximum number of neighbors to return
+    * @param threshold threshold for selecting vectors
+    * @return the list of scored K-nearest vectors
     */
    public List<ScoredLabelVector> nearest(@NonNull String word, int K, double threshold) {
       Vector v1 = vectorStore.get(word);
@@ -152,12 +135,13 @@ public class Embedding implements Model, Serializable {
                 .collect(Collectors.toList());
    }
 
+
    /**
-    * Nearest list.
+    * Finds the closest K vectors to the given vector in the embedding
     *
-    * @param v the v
-    * @param K the k
-    * @return the list
+    * @param v the vector whose neighbors we want
+    * @param K the maximum number of neighbors to return
+    * @return the list of scored K-nearest vectors
     */
    public List<ScoredLabelVector> nearest(@NonNull Vector v, int K) {
       return nearest(v, K, Double.NEGATIVE_INFINITY);
@@ -165,12 +149,12 @@ public class Embedding implements Model, Serializable {
 
 
    /**
-    * Nearest list.
+    * Finds the closest K vectors to the vector in the embedding
     *
-    * @param v         the v
-    * @param K         the k
-    * @param threshold the threshold
-    * @return the list
+    * @param v         the vector whose neighbors we want
+    * @param K         the maximum number of neighbors to return
+    * @param threshold threshold for selecting vectors
+    * @return the list of scored K-nearest vectors
     */
    public List<ScoredLabelVector> nearest(@NonNull Vector v, int K, double threshold) {
       if (v == null) {
@@ -181,24 +165,28 @@ public class Embedding implements Model, Serializable {
 
 
    /**
-    * Nearest list.
+    * Finds the closest K vectors to the given tuple of words/features in the embedding
     *
-    * @param words the words
-    * @param K     the k
-    * @return the list
+    * @param words a tuple of words/features (the individual vectors are composed using vector addition) whose neighbors
+    *              we want
+    * @param K     the maximum number of neighbors to return
+    * @return the list of scored K-nearest vectors
     */
    public List<ScoredLabelVector> nearest(@NonNull Tuple words, int K) {
       return nearest(words, $(), K, Double.NEGATIVE_INFINITY);
    }
 
    /**
-    * Nearest list.
+    * Finds the closest K vectors to the given positive tuple of words/features and not near the negative tuple of
+    * words/features in the embedding
     *
-    * @param positive  the positive
-    * @param negative  the negative
-    * @param K         the k
-    * @param threshold the threshold
-    * @return the list
+    * @param positive  a tuple of words/features (the individual vectors are composed using vector addition) whose
+    *                  neighbors we want
+    * @param negative  a tuple of words/features (the individual vectors are composed using vector addition) subtracted
+    *                  from the positive vectors.
+    * @param K         the maximum number of neighbors to return
+    * @param threshold threshold for selecting vectors
+    * @return the list of scored K-nearest vectors
     */
    public List<ScoredLabelVector> nearest(@NonNull Tuple positive, @NonNull Tuple negative, int K, double threshold) {
       Vector pVec = new DenseVector(getDimension());

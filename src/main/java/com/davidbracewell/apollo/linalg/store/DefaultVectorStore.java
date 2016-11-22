@@ -51,7 +51,8 @@ public class DefaultVectorStore<KEY> implements VectorStore<KEY>, Serializable {
     * @param dimension    the dimension
     * @param queryMeasure the query measure
     */
-   public DefaultVectorStore(int dimension, Measure queryMeasure) {
+   public DefaultVectorStore(int dimension, @NonNull Measure queryMeasure) {
+      Preconditions.checkArgument(dimension > 0, "Dimension must be > 0");
       this.dimension = dimension;
       this.queryMeasure = queryMeasure;
    }

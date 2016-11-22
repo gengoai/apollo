@@ -157,9 +157,6 @@ public class Embedding implements Model, Serializable {
     * @return the list of scored K-nearest vectors
     */
    public List<ScoredLabelVector> nearest(@NonNull Vector v, int K, double threshold) {
-      if (v == null) {
-         return Collections.emptyList();
-      }
       return vectorStore.nearest(v, K, threshold);
    }
 

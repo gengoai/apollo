@@ -61,7 +61,7 @@ public class MinCountFilter extends RestrictedInstancePreprocessor implements Fi
 
    @Override
    public String describe() {
-      if (acceptAll()) {
+      if (applyToAll()) {
          return "MinCountFilter{minCount=" + minCount + "}";
       }
       return "CountFilter[" + getRestriction() + "]{minCount=" + minCount + "}";
@@ -69,7 +69,7 @@ public class MinCountFilter extends RestrictedInstancePreprocessor implements Fi
 
    @Override
    public void write(@NonNull StructuredWriter writer) throws IOException {
-      if (!acceptAll()) {
+      if (!applyToAll()) {
          writer.writeKeyValue("restriction", getRestriction());
       }
       writer.writeKeyValue("minCount", minCount);

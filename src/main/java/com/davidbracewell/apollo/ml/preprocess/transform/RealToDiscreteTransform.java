@@ -88,7 +88,7 @@ public class RealToDiscreteTransform extends RestrictedInstancePreprocessor impl
 
    @Override
    public String describe() {
-      if (acceptAll()) {
+      if (applyToAll()) {
          return "RealToDiscreteTransform{numberOfBins=" + bins.length + "}";
       }
       return "RealToDiscreteTransform[" + getRestriction() + "]{numberOfBins=" + bins.length + "}";
@@ -96,7 +96,7 @@ public class RealToDiscreteTransform extends RestrictedInstancePreprocessor impl
 
    @Override
    public void write(@NonNull StructuredWriter writer) throws IOException {
-      if (!acceptAll()) {
+      if (!applyToAll()) {
          writer.writeKeyValue("restriction", getRestriction());
       }
       writer.writeKeyValue("bins", new PrimitiveArrayList<>(bins, Double.class));

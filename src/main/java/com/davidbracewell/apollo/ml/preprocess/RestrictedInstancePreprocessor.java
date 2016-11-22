@@ -5,6 +5,7 @@ import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.stream.MStream;
 import com.davidbracewell.string.StringUtils;
+import lombok.NonNull;
 
 import java.io.Serializable;
 import java.util.List;
@@ -12,17 +13,19 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * The type Restricted instance preprocessor.
+ * <p>An instance preprocessor that is only applied to a restricted set of features based on the prefix of the feature
+ * name, e.g. if the restriction was <code>WORD=</code>, only features beginning with the prefix <code>WORD=</code>
+ * would have the preprocessor applied.</p></p>
  *
  * @author David B. Bracewell
  */
-public abstract class RestrictedInstancePreprocessor implements Restricted, InstancePreprocessor, Serializable {
+public abstract class RestrictedInstancePreprocessor implements InstancePreprocessor, Serializable {
    private static final long serialVersionUID = 1L;
    private String featureNamePrefix;
    private boolean acceptAll;
 
    /**
-    * Instantiates a new Restricted filter.
+    * Instantiates a new Restricted filter. Null or blank strings cause the preprocessor to be applied to all features.
     *
     * @param featureNamePrefix the feature name prefix
     */
@@ -39,62 +42,67 @@ public abstract class RestrictedInstancePreprocessor implements Restricted, Inst
       this.acceptAll = true;
    }
 
-   @Override
-   public boolean acceptAll() {
+   /**
+    * Checks if the preprocessor should be applied to all features, i.e. no restriction
+    *
+    * @return True apply to all features, False apply the restriction
+    */
+   public boolean applyToAll() {
       return acceptAll;
    }
 
    @Override
    public final Instance apply(Instance example) {
-      if (acceptAll()) {
+      if (applyToAll()) {
          return Instance.create(restrictedProcessImpl(example.stream(), example).collect(Collectors.toList()),
                                 example.getLabel());
       }
-      return Instance.create(
-         Stream.concat(
-            restrictedProcessImpl(filterPositive(example), example),
-            filterNegative(example)
-                      ).collect(Collectors.toList()),
-         example.getLabel()
+      return Instance.create(Stream.concat(restrictedProcessImpl(shouldFilter(example), example),
+                                           shouldNotFilter(example)).collect(Collectors.toList()),
+                             example.getLabel()
                             );
    }
 
    /**
-    * Filter negative stream.
+    * Gets the features from the given example that do not match the restriction.
     *
     * @param example the example
-    * @return the stream
+    * @return the stream of features that do not match the restriction
     */
-   public final Stream<Feature> filterNegative(Instance example) {
-      return example.getFeatures().stream().filter(f -> !acceptAll() && !f.getName().startsWith(getRestriction()));
+   private Stream<Feature> shouldNotFilter(@NonNull Instance example) {
+      return example.getFeatures().stream().filter(f -> !applyToAll() && !f.getName().startsWith(getRestriction()));
    }
 
    /**
-    * Filter positive stream.
+    * Gets the features from the given example that  match the restriction.
     *
     * @param example the example
-    * @return the stream
+    * @return the stream of features that match the restriction
     */
-   public final Stream<Feature> filterPositive(Instance example) {
-      return example.getFeatures().stream().filter(f -> acceptAll() || f.getName().startsWith(getRestriction()));
+   private Stream<Feature> shouldFilter(Instance example) {
+      return example.getFeatures().stream().filter(f -> applyToAll() || f.getName().startsWith(getRestriction()));
    }
 
    @Override
    public final void fit(Dataset<Instance> dataset) {
       if (requiresFit()) {
-         restrictedFitImpl(dataset.stream().map(i -> filterPositive(i).collect(Collectors.toList())));
+         restrictedFitImpl(dataset.stream().map(i -> shouldFilter(i).collect(Collectors.toList())));
       }
    }
 
-   @Override
+   /**
+    * Gets the restriction.
+    *
+    * @return the restriction
+    */
    public String getRestriction() {
       return featureNamePrefix;
    }
 
    /**
-    * Sets restriction.
+    * Sets the restriction.
     *
-    * @param prefix the prefix
+    * @param prefix the feature name prefix
     */
    protected final void setRestriction(String prefix) {
       this.featureNamePrefix = prefix;
@@ -102,9 +110,9 @@ public abstract class RestrictedInstancePreprocessor implements Restricted, Inst
    }
 
    /**
-    * Restricted fit.
+    * Implementation of the preprocessors fit only against features that should be restricted.
     *
-    * @param stream the stream
+    * @param stream the stream of features
     */
    protected abstract void restrictedFitImpl(MStream<List<Feature>> stream);
 

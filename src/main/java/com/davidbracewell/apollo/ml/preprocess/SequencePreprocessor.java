@@ -10,7 +10,7 @@ import java.io.Serializable;
 import java.util.stream.Collectors;
 
 /**
- * The type Sequence preprocessor.
+ * Preprocessor fo {@link Sequence} examples that wraps an {@link InstancePreprocessor}.
  *
  * @author David B. Bracewell
  */

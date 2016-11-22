@@ -77,7 +77,7 @@ public class TFIDFTransform extends RestrictedInstancePreprocessor implements Tr
 
    @Override
    public String describe() {
-      if (acceptAll()) {
+      if (applyToAll()) {
          return "TFIDFTransform{totalDocuments=" + totalDocs + ", vocabSize=" + documentFrequencies.size() + "}";
       }
       return "TFIDFTransform[" + getRestriction() + "]{totalDocuments=" + totalDocs + ", vocabSize=" + documentFrequencies
@@ -86,7 +86,7 @@ public class TFIDFTransform extends RestrictedInstancePreprocessor implements Tr
 
    @Override
    public void write(@NonNull StructuredWriter writer) throws IOException {
-      if (!acceptAll()) {
+      if (!applyToAll()) {
          writer.writeKeyValue("restriction", getRestriction());
       }
       writer.writeKeyValue("totalDocuments", totalDocs);

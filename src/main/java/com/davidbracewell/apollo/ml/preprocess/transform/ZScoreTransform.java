@@ -65,7 +65,7 @@ public class ZScoreTransform extends RestrictedInstancePreprocessor implements T
 
    @Override
    public String describe() {
-      if (acceptAll()) {
+      if (applyToAll()) {
          return "ZScoreTransform{mean=" + mean + ", std=" + standardDeviation + "}";
       }
       return "ZScoreTransform[" + getRestriction() + "]{mean=" + mean + ", std=" + standardDeviation + "}";
@@ -73,7 +73,7 @@ public class ZScoreTransform extends RestrictedInstancePreprocessor implements T
 
    @Override
    public void write(@NonNull StructuredWriter writer) throws IOException {
-      if (!acceptAll()) {
+      if (!applyToAll()) {
          writer.writeKeyValue("restriction", getRestriction());
       }
       writer.writeKeyValue("mean", mean);

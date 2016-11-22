@@ -12,69 +12,67 @@ import java.util.Collection;
 import java.util.stream.Collectors;
 
 /**
- * The type Preprocessor list.
+ * <p>Specialized list of {@link Preprocessor}s with added methods for reading, writing, and applying.</p>
  *
- * @param <T> the type parameter
+ * @param <T> the  example type parameter
  */
-public class PreprocessorList<T extends Example> extends ArrayList<Preprocessor<T>> implements StructuredSerializable, ArrayValue {
+public final class PreprocessorList<T extends Example> extends ArrayList<Preprocessor<T>> implements StructuredSerializable, ArrayValue {
    private static final long serialVersionUID = 1L;
 
 
    /**
-    * Instantiates a new Preprocessor list.
+    * Instantiates a new empty Preprocessor list.
     */
    public PreprocessorList() {
 
    }
 
    /**
-    * Instantiates a new Preprocessor list.
+    * Instantiates a new preprocessor list using the given collection of preprocessors.
     *
-    * @param preprocessors the preprocessors
+    * @param preprocessors the preprocessors to add to the list
     */
    public PreprocessorList(@NonNull Collection<Preprocessor<T>> preprocessors) {
       super(preprocessors);
    }
 
    /**
-    * Empty preprocessor list.
+    * Convenience method for creating an empty preprocessor list
     *
-    * @param <T> the type parameter
-    * @return the preprocessor list
+    * @param <T> the example type parameter
+    * @return the empty preprocessor list
     */
    public static <T extends Example> PreprocessorList<T> empty() {
       return new PreprocessorList<>();
    }
 
    /**
-    * Create preprocessor list.
+    * Creates a new preprocessor list from the given preprocessor.
     *
-    * @param <T>           the type parameter
+    * @param <T>           the example type parameter
     * @param preprocessors the preprocessors
     * @return the preprocessor list
     */
    @SafeVarargs
    public static <T extends Example> PreprocessorList<T> create(Preprocessor<T>... preprocessors) {
-      PreprocessorList<T> list;
       if (preprocessors == null) {
-         list = new PreprocessorList<>();
+         return empty();
       } else {
-         list = new PreprocessorList<T>(Arrays.asList(preprocessors));
+         return new PreprocessorList<>(Arrays.asList(preprocessors));
       }
-      return list;
    }
 
    /**
-    * Apply t.
+    * Applies the preprocess in sequential order the given example
     *
-    * @param example the example
-    * @return the t
+    * @param example the example to preprocess
+    * @return the preprocessed example
     */
    public T apply(T example) {
       if (isEmpty()) {
          return example;
       }
-      T transformed = Cast.as(example);
+      T transformed = example;
       for (Preprocessor<T> preprocessor : this) {
          transformed = preprocessor.apply(transformed);
       }
@@ -82,19 +80,18 @@ public class PreprocessorList<T extends Example> extends ArrayList<Preprocessor<
    }
 
    /**
-    * Gets runtime only.
+    * Creates a new preprocessor list containing only the preprocessors that are needed when applying the model.
     *
-    * @return the runtime only
+    * @return the preprocessors required by the model
     */
    public PreprocessorList<T> getModelProcessors() {
-      return new PreprocessorList<>(
-                                      stream()
-                                         .filter(p -> !p.trainOnly())
-                                         .collect(Collectors.toList()));
+      return new PreprocessorList<>(stream()
+                                       .filter(p -> !p.trainOnly())
+                                       .collect(Collectors.toList()));
    }
 
    /**
-    * Reset.
+    * Resets all the preprocessors to an initial state.
     */
    public void reset() {
       forEach(Preprocessor::reset);

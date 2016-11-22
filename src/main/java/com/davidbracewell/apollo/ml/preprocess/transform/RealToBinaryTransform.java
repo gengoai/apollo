@@ -54,7 +54,7 @@ public class RealToBinaryTransform extends RestrictedInstancePreprocessor implem
 
    @Override
    public String describe() {
-      if (acceptAll()) {
+      if (applyToAll()) {
          return "RealToBinaryTransform{threshold=" + threshold + "}";
       }
       return "RealToBinaryTransform[" + getRestriction() + "]{threshold=" + threshold + "}";
@@ -78,7 +78,7 @@ public class RealToBinaryTransform extends RestrictedInstancePreprocessor implem
 
    @Override
    public void write(@NonNull StructuredWriter writer) throws IOException {
-      if (!acceptAll()) {
+      if (!applyToAll()) {
          writer.writeKeyValue("restriction", getRestriction());
       }
       writer.writeKeyValue("threshold", threshold);

@@ -5,6 +5,7 @@ import com.davidbracewell.apollo.ml.sequence.Sequence;
 import com.davidbracewell.function.Unchecked;
 import com.davidbracewell.io.resource.Resource;
 import com.davidbracewell.stream.MStream;
+import lombok.NonNull;
 
 import java.io.IOException;
 
@@ -21,13 +22,13 @@ public class JsonSequenceDataSource extends DataSource<Sequence> {
     *
     * @param resource the resource
     */
-   public JsonSequenceDataSource(Resource resource) {
+   public JsonSequenceDataSource(@NonNull Resource resource) {
       super(resource);
    }
 
    @Override
    public MStream<Sequence> stream() throws IOException {
-      return getStreamingContext().textFile(getResource().path())
+      return getStreamingContext().textFile(getResource())
                                   .map(Unchecked.function(json -> Example.fromJson(json, Sequence.class)));
    }
 

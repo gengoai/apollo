@@ -34,13 +34,21 @@ import static com.davidbracewell.apollo.ml.sequence.Sequence.EOS;
 import static com.davidbracewell.collection.Sets.set;
 
 /**
+ * <p>Constructs Bigram predicate features with positions <code>[-1,0]</code> and <code>[0,+1]</code> using the given
+ * {@link PredicateFeaturizer}</p>
+ *
+ * @param <E> the input type parameter
  * @author David B. Bracewell
  */
 public class BigramSequenceFeaturizer<E> implements SequenceFeaturizer<E> {
    private static final long serialVersionUID = 1L;
-
    private final PredicateFeaturizer<? super E> featurizer;
 
+   /**
+    * Instantiates a new Bigram sequence featurizer.
+    *
+    * @param featurizer the predicate featurizer to use for extracting features
+    */
    public BigramSequenceFeaturizer(@NonNull PredicateFeaturizer<? super E> featurizer) {
       this.featurizer = featurizer;
    }
@@ -53,4 +61,4 @@ public class BigramSequenceFeaturizer<E> implements SequenceFeaturizer<E> {
       return set(Feature.TRUE(featurizer.getPrefix() + "[-1,0]", p1, c0),
                  Feature.TRUE(featurizer.getPrefix() + "[0,+1]", c0, n1));
    }
-}//END OF WindowedFeaturizer
+}//END OF BigramSequenceFeaturizer

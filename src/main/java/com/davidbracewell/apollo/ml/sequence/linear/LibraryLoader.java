@@ -5,12 +5,17 @@ import com.github.jcrfsuite.util.CrfSuiteLoader;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
+ * Takes care of loading the CRFSuite native libraries once.
+ *
  * @author David B. Bracewell
  */
 public enum LibraryLoader {
    INSTANCE;
    private volatile AtomicBoolean done = new AtomicBoolean(false);
 
+   /**
+    * Loads the library.
+    */
    public void load() {
       if (!done.get()) {
          synchronized (this) {

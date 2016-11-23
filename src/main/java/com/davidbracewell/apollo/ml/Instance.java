@@ -120,6 +120,31 @@ public class Instance implements Example, Serializable, Iterable<Feature> {
 
 
    /**
+    * Creates an instance from a map containing feature name (keys) and their values.
+    *
+    * @param features the feature map
+    * @return the instance
+    */
+   public static Instance create(@NonNull Map<String,Double> features) {
+      return create(features, null);
+   }
+
+   /**
+    * Creates an instance from a map containing feature name (keys) and their values.
+    *
+    * @param features the feature map
+    * @param label    the instance label
+    * @return the instance
+    */
+   public static Instance create(@NonNull Map<String, Double> features, Object label) {
+      List<Feature> featureList = features.entrySet()
+                                          .stream()
+                                          .map(e -> Feature.real(e.getKey(), e.getValue()))
+                                          .collect(Collectors.toList());
+      return create(featureList, label);
+   }
+
+   /**
     * Convenience method for creating an instance from a collection of features.
     *
     * @param features the features

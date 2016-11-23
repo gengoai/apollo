@@ -9,6 +9,8 @@ import lombok.NonNull;
 import java.util.Map;
 
 /**
+ * <p>Greedy learner that wraps a {@link ClassifierLearner}.</p>
+ *
  * @author David B. Bracewell
  */
 public class WindowedLearner extends SequenceLabelerLearner {
@@ -16,25 +18,27 @@ public class WindowedLearner extends SequenceLabelerLearner {
    private static final long serialVersionUID = 3783930856969307606L;
    private final ClassifierLearner learner;
 
+   /**
+    * Instantiates a new Windowed learner.
+    *
+    * @param learner the learner
+    */
    public WindowedLearner(ClassifierLearner learner) {
       this.learner = learner;
    }
 
    @Override
    protected SequenceLabeler trainImpl(Dataset<Sequence> dataset) {
-      WindowedLabeler wl = new WindowedLabeler(
-                                                 dataset.getLabelEncoder(),
-                                                 dataset.getFeatureEncoder(),
-                                                 dataset.getPreprocessors(),
-                                                 getTransitionFeatures(),
-                                                 getValidator()
-      );
+      WindowedLabeler wl = new WindowedLabeler(dataset.getLabelEncoder(),
+                                               dataset.getFeatureEncoder(),
+                                               dataset.getPreprocessors(),
+                                               getTransitionFeatures(),
+                                               getValidator());
 
       Dataset<Instance> nd = Dataset.classification()
                                     .source(dataset.stream()
                                                    .flatMap(sequence -> getTransitionFeatures().toInstances(sequence)
                                                                                                .stream()));
-
       QuietIO.closeQuietly(dataset);
       wl.classifier = learner.train(nd);
       wl.encoderPair = wl.classifier.getEncoderPair();

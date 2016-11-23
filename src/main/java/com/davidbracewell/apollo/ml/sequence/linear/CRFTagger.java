@@ -42,7 +42,7 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * The type Crf tagger.
+ * <p>Sequence Labeler wrapping CRFSuite.</p>
  *
  * @author David B. Bracewell
  */
@@ -59,6 +59,7 @@ public class CRFTagger extends SequenceLabeler {
     * @param preprocessors      the preprocessors
     * @param transitionFeatures the transition features
     * @param modelFile          the model file
+    * @param validator          the validator
     */
    public CRFTagger(@NonNull LabelEncoder labelEncoder, @NonNull Encoder featureEncoder, @NonNull PreprocessorList<Sequence> preprocessors, @NonNull TransitionFeatures transitionFeatures, String modelFile, @NonNull SequenceValidator validator) {
       super(labelEncoder, featureEncoder, preprocessors, transitionFeatures, validator);

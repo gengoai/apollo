@@ -14,19 +14,29 @@ import lombok.NonNull;
 import java.util.Iterator;
 
 /**
+ * <p>Structured Perceptron, or Collins Tagger, implementation.</p>
+ *
  * @author David B. Bracewell
  */
 public class StructuredPerceptron extends SequenceLabeler {
    private static final long serialVersionUID = 7255108354079743179L;
+   /**
+    * The Number of classes.
+    */
    final int numberOfClasses;
+   /**
+    * The Weights.
+    */
    Vector[] weights;
 
    /**
-    * Instantiates a new Model.
+    * Instantiates a new Structured perceptron.
     *
-    * @param labelEncoder   the label encoder
-    * @param featureEncoder the feature encoder
-    * @param preprocessors  the preprocessors
+    * @param labelEncoder       the label encoder
+    * @param featureEncoder     the feature encoder
+    * @param preprocessors      the preprocessors
+    * @param transitionFeatures the transition features
+    * @param validator          the validator
     */
    public StructuredPerceptron(@NonNull LabelEncoder labelEncoder, @NonNull Encoder featureEncoder, @NonNull PreprocessorList<Sequence> preprocessors, @NonNull TransitionFeatures transitionFeatures, @NonNull SequenceValidator validator) {
       super(labelEncoder, featureEncoder, preprocessors, transitionFeatures, validator);

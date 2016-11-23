@@ -28,17 +28,25 @@ import com.davidbracewell.apollo.ml.sequence.SequenceLabeler;
 import com.davidbracewell.apollo.ml.sequence.SequenceLabelerLearner;
 import com.davidbracewell.apollo.ml.sequence.TransitionFeatures;
 import com.davidbracewell.io.Resources;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.Setter;
 import third_party.org.chokkan.crfsuite.*;
 
 /**
- * The type Crf trainer.
+ * <p>Trains a CRF model using CRFSuite.</p>
  *
  * @author David B. Bracewell
  */
 public class CRFTrainer extends SequenceLabelerLearner {
    private static final long serialVersionUID = 1L;
+   @Getter
    private Solver solver = Solver.LBFGS;
+   @Getter
+   @Setter
    private int maxIterations = 100;
+   @Getter
+   @Setter
    private double c2 = 1.0;
 
    @Override
@@ -77,57 +85,14 @@ public class CRFTrainer extends SequenceLabelerLearner {
 
    }
 
-   /**
-    * Gets solver.
-    *
-    * @return the solver
-    */
-   public Solver getSolver() {
-      return solver;
-   }
 
    /**
-    * Sets solver.
+    * Sets the type of solver to use for optimization.
     *
     * @param solver the solver
     */
-   public void setSolver(Solver solver) {
+   public void setSolver(@NonNull Solver solver) {
       this.solver = solver;
    }
 
-   /**
-    * Gets max iterations.
-    *
-    * @return the max iterations
-    */
-   public int getMaxIterations() {
-      return maxIterations;
-   }
-
-   /**
-    * Sets max iterations.
-    *
-    * @param maxIterations the max iterations
-    */
-   public void setMaxIterations(int maxIterations) {
-      this.maxIterations = maxIterations;
-   }
-
-   /**
-    * Gets c 2.
-    *
-    * @return the c 2
-    */
-   public double getC2() {
-      return c2;
-   }
-
-   /**
-    * Sets c 2.
-    *
-    * @param c2 the c 2
-    */
-   public void setC2(double c2) {
-      this.c2 = c2;
-   }
 }// END OF CRFTrainer

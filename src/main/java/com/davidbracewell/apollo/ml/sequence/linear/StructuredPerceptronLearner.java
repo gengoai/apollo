@@ -15,7 +15,7 @@ import java.text.DecimalFormat;
 import java.util.List;
 
 /**
- * The type Structured perceptron learner.
+ * <p>Trains {@link StructuredPerceptron}, or Collin's Tagger, models</p>
  *
  * @author David B. Bracewell
  */
@@ -29,14 +29,11 @@ public class StructuredPerceptronLearner extends SequenceLabelerLearner {
 
    @Override
    protected SequenceLabeler trainImpl(Dataset<Sequence> dataset) {
-
-      StructuredPerceptron model = new StructuredPerceptron(
-                                                              dataset.getLabelEncoder(),
-                                                              dataset.getFeatureEncoder(),
-                                                              dataset.getPreprocessors(),
-                                                              transitionFeatures,
-                                                              getValidator()
-      );
+      StructuredPerceptron model = new StructuredPerceptron(dataset.getLabelEncoder(),
+                                                            dataset.getFeatureEncoder(),
+                                                            dataset.getPreprocessors(),
+                                                            transitionFeatures,
+                                                            getValidator());
       model.setDecoder(getDecoder());
 
       int nC = model.numberOfLabels();
@@ -145,7 +142,6 @@ public class StructuredPerceptronLearner extends SequenceLabelerLearner {
     *
     * @return the max iterations
     */
-
    public int getMaxIterations() {
       return maxIterations;
    }

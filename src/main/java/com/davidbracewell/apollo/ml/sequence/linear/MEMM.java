@@ -16,20 +16,23 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
+ * <p>Implementation of Maximum Entropy Markov Model using LibLinear</p>
+ *
  * @author David B. Bracewell
  */
 public class MEMM extends SequenceLabeler {
    private static final long serialVersionUID = 1L;
    LibLinearModel model;
 
+
    /**
-    * Instantiates a new Model.
+    * Instantiates a new MEMM.
     *
     * @param labelEncoder       the label encoder
     * @param featureEncoder     the feature encoder
     * @param preprocessors      the preprocessors
     * @param transitionFeatures the transition features
-    * @param validator          the Validator
+    * @param validator          the validator
     */
    public MEMM(LabelEncoder labelEncoder, Encoder featureEncoder, PreprocessorList<Sequence> preprocessors, TransitionFeatures transitionFeatures, SequenceValidator validator) {
       super(labelEncoder, featureEncoder, preprocessors, transitionFeatures, validator);

@@ -6,6 +6,8 @@ import com.davidbracewell.apollo.ml.FeatureVector;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.data.Dataset;
 import de.bwaldvogel.liblinear.*;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.Iterator;
 import java.util.List;
@@ -13,24 +15,23 @@ import java.util.List;
 import static com.davidbracewell.collection.list.Lists.asArrayList;
 
 /**
- * The type Lib linear regression.
+ * <p>Trains a regression model using LibLinear (L2R_L2LOSS_SVR)</p>
  *
  * @author David B. Bracewell
  */
 public class LibLinearRegression extends RegressionLearner {
    private static final long serialVersionUID = 1L;
+   @Getter
+   @Setter
    private double C = 1;
+   @Getter
+   @Setter
    private double eps = 0.0001;
+   @Getter
+   @Setter
    private boolean verbose = false;
 
-   /**
-    * To feature feature [ ].
-    *
-    * @param vector    the vector
-    * @param biasIndex the bias index
-    * @return the feature [ ]
-    */
-   static Feature[] toFeature(Vector vector, int biasIndex) {
+   private static Feature[] toFeature(Vector vector, int biasIndex) {
       List<Vector.Entry> entries = asArrayList(vector.orderedNonZeroIterator());
       Feature[] feature = new Feature[entries.size() + 1];
       for (int i = 0; i < entries.size(); i++) {
@@ -85,58 +86,4 @@ public class LibLinearRegression extends RegressionLearner {
 
    }
 
-
-   /**
-    * Gets c.
-    *
-    * @return the c
-    */
-   public double getC() {
-      return C;
-   }
-
-   /**
-    * Sets c.
-    *
-    * @param c the c
-    */
-   public void setC(double c) {
-      C = c;
-   }
-
-   /**
-    * Gets eps.
-    *
-    * @return the eps
-    */
-   public double getEps() {
-      return eps;
-   }
-
-   /**
-    * Sets eps.
-    *
-    * @param eps the eps
-    */
-   public void setEps(double eps) {
-      this.eps = eps;
-   }
-
-   /**
-    * Is verbose boolean.
-    *
-    * @return the boolean
-    */
-   public boolean isVerbose() {
-      return verbose;
-   }
-
-   /**
-    * Sets verbose.
-    *
-    * @param verbose the verbose
-    */
-   public void setVerbose(boolean verbose) {
-      this.verbose = verbose;
-   }
 }// END OF LibLinearRegression

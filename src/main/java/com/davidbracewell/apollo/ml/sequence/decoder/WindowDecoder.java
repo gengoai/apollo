@@ -9,6 +9,8 @@ import com.davidbracewell.apollo.ml.sequence.SequenceLabeler;
 import java.io.Serializable;
 
 /**
+ * <p>Greedy decoder that optimizes locally instead of globally.</p>
+ *
  * @author David B. Bracewell
  */
 public class WindowDecoder implements Decoder, Serializable {
@@ -46,11 +48,7 @@ public class WindowDecoder implements Decoder, Serializable {
          }
          previousLabel = label;
          result.setLabel(iterator.getIndex(), label, max);
-         state = new DecoderState(
-                                    state,
-                                    max,
-                                    label
-         );
+         state = new DecoderState(state, max, label);
       }
       return result;
    }

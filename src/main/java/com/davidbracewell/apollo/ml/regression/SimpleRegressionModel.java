@@ -9,15 +9,23 @@ import com.davidbracewell.collection.counter.Counters;
 import lombok.NonNull;
 
 /**
+ * Simple regression model implementation
+ *
  * @author David B. Bracewell
  */
 public class SimpleRegressionModel extends Regression {
    private static final long serialVersionUID = 1L;
+   /**
+    * The Weights.
+    */
    Vector weights;
+   /**
+    * The Bias.
+    */
    double bias;
 
    /**
-    * Instantiates a new Regression.
+    * Instantiates a new model.
     *
     * @param encoderPair   the encoder pair
     * @param preprocessors the preprocessors

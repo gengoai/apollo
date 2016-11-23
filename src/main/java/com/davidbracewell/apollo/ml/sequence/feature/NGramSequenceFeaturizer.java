@@ -38,6 +38,10 @@ import static com.davidbracewell.apollo.ml.sequence.Sequence.BOS;
 import static com.davidbracewell.apollo.ml.sequence.Sequence.EOS;
 
 /**
+ * <p>Constructs NGram predicate features for all size n-grams (except unigrams) from <code>previousWindow</code>  to
+ * <code>nextWindow</code> using the given {@link PredicateFeaturizer}</p>
+ *
+ * @param <E> the input type parameter
  * @author David B. Bracewell
  */
 public class NGramSequenceFeaturizer<E> implements SequenceFeaturizer<E> {
@@ -47,6 +51,13 @@ public class NGramSequenceFeaturizer<E> implements SequenceFeaturizer<E> {
    private final int nextWindow;
    private final PredicateFeaturizer<? super E> featurizer;
 
+   /**
+    * Instantiates a new N gram sequence featurizer.
+    *
+    * @param previousWindow the previous window
+    * @param nextWindow     the next window
+    * @param featurizer     the featurizer
+    */
    public NGramSequenceFeaturizer(int previousWindow, int nextWindow, @NonNull PredicateFeaturizer<? super E> featurizer) {
       Preconditions.checkState(previousWindow > 0 || nextWindow > 0, "Either previousWindow or nextWindow must be > 0");
       this.previousWindow = Math.abs(previousWindow);
@@ -98,11 +109,5 @@ public class NGramSequenceFeaturizer<E> implements SequenceFeaturizer<E> {
       }
 
       return features;
-
-//      String position = "[-" + previous.size() + "...+" + next.size() + "]=";
-//      return Collections.singleton(Feature.TRUE(prefix + position +
-//                                                      StringUtils.join(previous, "_") +
-//                                                      "_" + c0 + "_" +
-//                                                      StringUtils.join(next, "_")));
    }
-}//END OF WindowedFeaturizer
+}//END OF NGramSequenceFeaturizer

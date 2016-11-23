@@ -13,6 +13,9 @@ import lombok.NonNull;
 import java.util.Iterator;
 
 /**
+ * <p>Greedy sequence labeler that wraps a standard {@link Classifier} and optimizing for local instead of global
+ * structure.</p>
+ *
  * @author David B. Bracewell
  */
 public class WindowedLabeler extends SequenceLabeler {
@@ -26,6 +29,7 @@ public class WindowedLabeler extends SequenceLabeler {
     * @param featureEncoder     the feature encoder
     * @param preprocessors      the preprocessors
     * @param transitionFeatures the transition features
+    * @param validator          the validator
     */
    public WindowedLabeler(@NonNull LabelEncoder labelEncoder, @NonNull Encoder featureEncoder, @NonNull PreprocessorList<Sequence> preprocessors, @NonNull TransitionFeatures transitionFeatures, @NonNull SequenceValidator validator) {
       super(labelEncoder, featureEncoder, preprocessors, transitionFeatures, validator);

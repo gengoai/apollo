@@ -34,6 +34,10 @@ import static com.davidbracewell.apollo.ml.sequence.Sequence.BOS;
 import static com.davidbracewell.apollo.ml.sequence.Sequence.EOS;
 
 /**
+ * <p>Constructs unigram predicate features for a window around the given context using the given {@link
+ * PredicateFeaturizer}.</p>
+ *
+ * @param <E> the input type parameter
  * @author David B. Bracewell
  */
 public class WindowedSequenceFeaturizer<E> implements SequenceFeaturizer<E> {
@@ -44,10 +48,25 @@ public class WindowedSequenceFeaturizer<E> implements SequenceFeaturizer<E> {
    private final PredicateFeaturizer<? super E> featurizer;
    private final boolean includeSequenceBoundaries;
 
+   /**
+    * Instantiates a new Windowed sequence featurizer.
+    *
+    * @param previousWindow the previous window
+    * @param nextWindow     the next window
+    * @param featurizer     the featurizer
+    */
    public WindowedSequenceFeaturizer(int previousWindow, int nextWindow, @NonNull PredicateFeaturizer<? super E> featurizer) {
       this(previousWindow, nextWindow, false, featurizer);
    }
 
+   /**
+    * Instantiates a new Windowed sequence featurizer.
+    *
+    * @param previousWindow            the previous window
+    * @param nextWindow                the next window
+    * @param includeSequenceBoundaries the include sequence boundaries
+    * @param featurizer                the featurizer
+    */
    public WindowedSequenceFeaturizer(int previousWindow, int nextWindow, boolean includeSequenceBoundaries, @NonNull PredicateFeaturizer<? super E> featurizer) {
       this.previousWindow = Math.abs(previousWindow);
       this.nextWindow = Math.abs(nextWindow);

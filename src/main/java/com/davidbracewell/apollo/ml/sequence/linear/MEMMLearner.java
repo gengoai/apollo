@@ -13,6 +13,8 @@ import lombok.NonNull;
 import java.util.Map;
 
 /**
+ * <p>Trains a Maximum Entropy Markov Model using LibLinear.</p>
+ *
  * @author David B. Bracewell
  */
 public class MEMMLearner extends SequenceLabelerLearner {
@@ -21,12 +23,11 @@ public class MEMMLearner extends SequenceLabelerLearner {
 
    @Override
    protected SequenceLabeler trainImpl(Dataset<Sequence> dataset) {
-      MEMM model = new MEMM(
-                              dataset.getLabelEncoder(),
-                              dataset.getFeatureEncoder(),
-                              dataset.getPreprocessors().getModelProcessors(),
-                              getTransitionFeatures(),
-                              getValidator()
+      MEMM model = new MEMM(dataset.getLabelEncoder(),
+                            dataset.getFeatureEncoder(),
+                            dataset.getPreprocessors().getModelProcessors(),
+                            getTransitionFeatures(),
+                            getValidator()
       );
       Dataset<Instance> nd = Dataset.classification()
                                     .source(dataset.stream().flatMap(s -> s.asInstances().stream()));

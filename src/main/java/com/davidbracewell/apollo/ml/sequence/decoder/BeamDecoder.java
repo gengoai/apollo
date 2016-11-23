@@ -8,6 +8,7 @@ import com.davidbracewell.apollo.ml.sequence.SequenceLabeler;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.MinMaxPriorityQueue;
 import com.google.common.collect.Ordering;
+import lombok.Getter;
 import lombok.NonNull;
 
 import java.io.Serializable;
@@ -15,23 +16,24 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- * The type Beam decoder.
+ * <p>Implementation of a Beam search decoder.</p>
  *
  * @author David B. Bracewell
  */
 public class BeamDecoder implements Decoder, Serializable {
    private static final long serialVersionUID = 1L;
+   @Getter
    private int beamSize;
 
    /**
-    * Instantiates a new Beam decoder.
+    * Instantiates a new Beam decoder with beam size of 3.
     */
    public BeamDecoder() {
       this(3);
    }
 
    /**
-    * Instantiates a new Beam decoder.
+    * Instantiates a new Beam decoder with the given beam size.
     *
     * @param beamSize the beam size
     */
@@ -88,16 +90,7 @@ public class BeamDecoder implements Decoder, Serializable {
    }
 
    /**
-    * Gets beam size.
-    *
-    * @return the beam size
-    */
-   public int getBeamSize() {
-      return beamSize;
-   }
-
-   /**
-    * Sets beam size.
+    * Sets the beam size.
     *
     * @param beamSize the beam size
     */

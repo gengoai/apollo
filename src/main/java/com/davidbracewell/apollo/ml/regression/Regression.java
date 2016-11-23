@@ -11,7 +11,7 @@ import com.google.common.base.Preconditions;
 import lombok.NonNull;
 
 /**
- * The type Regression.
+ * <p>Base regression model that produces a real-value for an input instance.</p>
  *
  * @author David B. Bracewell
  */
@@ -21,7 +21,7 @@ public abstract class Regression implements Model {
    private EncoderPair encoderPair;
 
    /**
-    * Instantiates a new Regression.
+    * Instantiates a new Regression model.
     *
     * @param encoderPair   the encoder pair
     * @param preprocessors the preprocessors
@@ -35,10 +35,10 @@ public abstract class Regression implements Model {
 
 
    /**
-    * Estimate double.
+    * Estimates a real-value based on the input instance.
     *
     * @param instance the instance
-    * @return the double
+    * @return the estimated value
     */
    public final double estimate(@NonNull Instance instance) {
       return estimate(preprocessors.apply(instance).toVector(getEncoderPair()));
@@ -46,15 +46,15 @@ public abstract class Regression implements Model {
 
 
    /**
-    * Estimate double.
+    * Estimates a real-value based on the input vector.
     *
     * @param vector the vector
-    * @return the double
+    * @return the estimated value
     */
    public abstract double estimate(Vector vector);
 
    /**
-    * Gets feature weights.
+    * Gets the feature weights for the model.
     *
     * @return the feature weights
     */

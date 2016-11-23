@@ -137,8 +137,8 @@ public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, S
                          entry(
                             instance.getLabel().toString(),
                             model.classify(instance).getResult()
-                         )
-      );
+                              )
+                     );
    }
 
    private double f1(double p, double r) {
@@ -283,7 +283,7 @@ public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, S
                                    }
                                    return fp;
                                 }
-                   ).sum();
+                               ).sum();
    }
 
    /**
@@ -471,8 +471,8 @@ public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, S
                            falsePositives(g),
                            matrix.get(g).sum() - matrix.get(g, g),
                            matrix.get(g).sum()
-                        ))
-      );
+                                                            ))
+                    );
       tableFormatter.footer(Arrays.asList(
          "micro",
          microPrecision(),
@@ -482,7 +482,7 @@ public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, S
          falsePositives(),
          falseNegatives(),
          total
-      ));
+                                         ));
       tableFormatter.footer(Arrays.asList(
          "macro",
          macroPrecision(),
@@ -492,7 +492,7 @@ public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, S
          "-",
          "-",
          "-"
-      ));
+                                         ));
       tableFormatter.print(printStream);
 
    }
@@ -653,7 +653,7 @@ public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, S
                                    }
                                    return tn;
                                 }
-                   ).sum();
+                               ).sum();
    }
 
    /**

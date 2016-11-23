@@ -16,7 +16,7 @@ import java.util.Collection;
 import java.util.stream.DoubleStream;
 
 /**
- * The type Regression evaluation.
+ * <p>Evaluation for regression models.</p>
  *
  * @author David B. Bracewell
  */
@@ -55,9 +55,9 @@ public class RegressionEvaluation implements Evaluation<Instance, Regression> {
    }
 
    /**
-    * Squared error double.
+    * Calculates the squared error
     *
-    * @return the double
+    * @return the squared error
     */
    public double squaredError() {
       double error = 0;
@@ -67,28 +67,29 @@ public class RegressionEvaluation implements Evaluation<Instance, Regression> {
       return error;
    }
 
+
    /**
-    * Mean squared error double.
+    * Calculates the mean squared error
     *
-    * @return the double
+    * @return the mean squared error
     */
    public double meanSquaredError() {
       return squaredError() / gold.size();
    }
 
    /**
-    * Root mean squared error double.
+    * Calculates the root mean squared error
     *
-    * @return the double
+    * @return the root mean squared error
     */
    public double rootMeanSquaredError() {
       return Math.sqrt(meanSquaredError());
    }
 
    /**
-    * Adjusted r 2 double.
+    * Calculates the adjusted r2
     *
-    * @return the double
+    * @return the adjusted r2
     */
    public double adjustedR2() {
       double r2 = r2();
@@ -96,9 +97,9 @@ public class RegressionEvaluation implements Evaluation<Instance, Regression> {
    }
 
    /**
-    * R 2 double.
+    * Calculates the r2
     *
-    * @return the double
+    * @return the r2
     */
    public double r2() {
       double yMean = DoubleStream.of(gold.elements()).parallel().sum() / gold.size();
@@ -111,20 +112,20 @@ public class RegressionEvaluation implements Evaluation<Instance, Regression> {
    }
 
    /**
-    * Entry.
+    * Adds an entry to the evaluation
     *
-    * @param predicted the predicted
-    * @param gold      the gold
+    * @param gold      the gold value
+    * @param predicted the predicted value
     */
-   public void entry(double predicted, double gold) {
+   public void entry(double gold, double predicted) {
       this.gold.add(gold);
       this.predicted.add(predicted);
    }
 
    /**
-    * Sets p.
+    * Sets the total number of predictor variables (i.e. features)
     *
-    * @param p the p
+    * @param p the number of predictor variables
     */
    public void setP(double p) {
       this.p = p;

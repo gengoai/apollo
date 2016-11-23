@@ -2,8 +2,6 @@ package com.davidbracewell.apollo.ml.sequence;
 
 import com.davidbracewell.apollo.ml.*;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
-import com.davidbracewell.apollo.ml.sequence.decoder.BeamDecoder;
-import com.davidbracewell.apollo.ml.sequence.decoder.Decoder;
 import lombok.Getter;
 import lombok.NonNull;
 

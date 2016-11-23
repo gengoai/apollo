@@ -6,8 +6,6 @@ import com.davidbracewell.apollo.ml.FeatureVector;
 import com.davidbracewell.apollo.ml.LabelEncoder;
 import com.davidbracewell.apollo.ml.classification.Classifier;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
-import com.davidbracewell.apollo.ml.sequence.decoder.Decoder;
-import com.davidbracewell.apollo.ml.sequence.decoder.WindowDecoder;
 import lombok.NonNull;
 
 import java.util.Iterator;

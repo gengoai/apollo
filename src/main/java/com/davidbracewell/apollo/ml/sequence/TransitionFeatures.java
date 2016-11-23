@@ -4,7 +4,6 @@ import com.davidbracewell.Interner;
 import com.davidbracewell.apollo.ml.Feature;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.data.Dataset;
-import com.davidbracewell.apollo.ml.sequence.decoder.DecoderState;
 import com.davidbracewell.string.StringUtils;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;

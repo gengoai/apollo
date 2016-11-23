@@ -19,14 +19,13 @@
  * under the License.
  */
 
-package com.davidbracewell.apollo.ml.sequence.linear;
+package com.davidbracewell.apollo.ml.sequence;
 
 import com.davidbracewell.apollo.ml.Encoder;
 import com.davidbracewell.apollo.ml.Feature;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.LabelEncoder;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
-import com.davidbracewell.apollo.ml.sequence.*;
 import com.davidbracewell.io.Resources;
 import com.davidbracewell.io.resource.Resource;
 import com.github.jcrfsuite.CrfTagger;

@@ -19,14 +19,10 @@
  * under the License.
  */
 
-package com.davidbracewell.apollo.ml.sequence.linear;
+package com.davidbracewell.apollo.ml.sequence;
 
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.data.Dataset;
-import com.davidbracewell.apollo.ml.sequence.Sequence;
-import com.davidbracewell.apollo.ml.sequence.SequenceLabeler;
-import com.davidbracewell.apollo.ml.sequence.SequenceLabelerLearner;
-import com.davidbracewell.apollo.ml.sequence.TransitionFeatures;
 import com.davidbracewell.io.Resources;
 import lombok.Getter;
 import lombok.NonNull;

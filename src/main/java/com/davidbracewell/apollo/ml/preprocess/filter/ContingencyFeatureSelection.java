@@ -1,5 +1,6 @@
 package com.davidbracewell.apollo.ml.preprocess.filter;
 
+import com.davidbracewell.apollo.affinity.AssociationMeasures;
 import com.davidbracewell.apollo.affinity.ContingencyTable;
 import com.davidbracewell.apollo.affinity.ContingencyTableCalculator;
 import com.davidbracewell.apollo.ml.Instance;
@@ -111,7 +112,7 @@ public class ContingencyFeatureSelection implements FilterProcessor<Instance>, I
 
    @Override
    public void write(@NonNull StructuredWriter writer) throws IOException {
-      writer.writeKeyValue("calculator", calculator.getClass().getName());
+      writer.writeKeyValue("calculator", calculator.toString());
       writer.writeKeyValue("numFeaturesPerClass", numFeaturesPerClass);
       writer.writeKeyValue("threshold", threshold);
    }
@@ -122,7 +123,7 @@ public class ContingencyFeatureSelection implements FilterProcessor<Instance>, I
       while (reader.peek() != ElementType.END_OBJECT) {
          switch (reader.peekName()) {
             case "calculator":
-               this.calculator = reader.nextKeyValue().v2.as(ContingencyTableCalculator.class);
+               this.calculator = AssociationMeasures.valueOf(reader.nextKeyValue().v2.asString());
                break;
             case "threshold":
                this.threshold = reader.nextKeyValue().v2.asDoubleValue();

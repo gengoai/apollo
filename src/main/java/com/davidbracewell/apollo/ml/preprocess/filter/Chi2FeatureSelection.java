@@ -30,7 +30,7 @@ public class Chi2FeatureSelection extends ContingencyFeatureSelection {
    }
 
    protected Chi2FeatureSelection() {
-
+      super(AssociationMeasures.CHI_SQUARE, Integer.MAX_VALUE, Double.NEGATIVE_INFINITY);
    }
 
    @Override

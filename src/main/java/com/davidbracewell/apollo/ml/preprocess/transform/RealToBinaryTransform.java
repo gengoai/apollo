@@ -7,6 +7,7 @@ import com.davidbracewell.io.structured.ElementType;
 import com.davidbracewell.io.structured.StructuredReader;
 import com.davidbracewell.io.structured.StructuredWriter;
 import com.davidbracewell.stream.MStream;
+import com.davidbracewell.string.StringUtils;
 import lombok.NonNull;
 
 import java.io.IOException;
@@ -15,7 +16,8 @@ import java.util.List;
 import java.util.stream.Stream;
 
 /**
- * The type Real to binary transform.
+ * <p>Converts a real value feature into a binary feature by converting values greater than or equal to a given
+ * threshold "true" and others "false"</p>
  *
  * @author David B. Bracewell
  */
@@ -24,9 +26,9 @@ public class RealToBinaryTransform extends RestrictedInstancePreprocessor implem
    private double threshold;
 
    /**
-    * Instantiates a new Real to binary transform.
+    * Instantiates a new Real to binary transform with no feature restriction.
     *
-    * @param threshold the threshold
+    * @param threshold the threshold with which a feature value must be <codE>>=</codE> to become a binary "true"
     */
    public RealToBinaryTransform(double threshold) {
       this.threshold = threshold;
@@ -35,8 +37,9 @@ public class RealToBinaryTransform extends RestrictedInstancePreprocessor implem
    /**
     * Instantiates a new Real to binary transform.
     *
-    * @param featureNamePrefix the feature name prefix
-    * @param threshold         the threshold
+    * @param featureNamePrefix the feature name prefix to restrict
+    * @param threshold         the threshold with which a feature value must be <codE>>=</codE> to become a binary
+    *                          "true"
     */
    public RealToBinaryTransform(@NonNull String featureNamePrefix, double threshold) {
       super(featureNamePrefix);
@@ -44,7 +47,7 @@ public class RealToBinaryTransform extends RestrictedInstancePreprocessor implem
    }
 
    protected RealToBinaryTransform() {
-
+      this(StringUtils.EMPTY, 0);
    }
 
 

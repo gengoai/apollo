@@ -19,6 +19,8 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 /**
+ * <p>Removes features that occur in less than a given number of instances.</p>
+ *
  * @author David B. Bracewell
  */
 public class MinCountFilter extends RestrictedInstancePreprocessor implements FilterProcessor<Instance>, Serializable {
@@ -26,25 +28,37 @@ public class MinCountFilter extends RestrictedInstancePreprocessor implements Fi
    private long minCount;
    private volatile Set<String> selectedFeatures = Collections.emptySet();
 
+   /**
+    * Instantiates a new Min count filter.
+    *
+    * @param featurePrefix the feature prefix to restrict the filter to
+    * @param minCount      the minimum number of instances a feature must be present in to be kept
+    */
    public MinCountFilter(@NonNull String featurePrefix, long minCount) {
       super(featurePrefix);
       this.minCount = minCount;
    }
 
+   /**
+    * Instantiates a new Min count filter with no restriction.
+    *
+    * @param minCount the minimum number of instances a feature must be present in to be kept
+    */
    public MinCountFilter(long minCount) {
       this.minCount = minCount;
    }
 
+   /**
+    * Instantiates a new Min count filter.
+    */
    protected MinCountFilter() {
       this.minCount = 0;
    }
 
    @Override
    protected void restrictedFitImpl(MStream<List<Feature>> stream) {
-      selectedFeatures = Counters.newCounter(stream.flatMap(l -> l.stream()
-                                                                  .map(Feature::getName))
-                                                   .countByValue()
-                                            )
+      selectedFeatures = Counters.newCounter(stream.flatMap(l -> l.stream().map(Feature::getName))
+                                                   .countByValue())
                                  .filterByValue(v -> v >= minCount)
                                  .items();
    }
@@ -93,4 +107,4 @@ public class MinCountFilter extends RestrictedInstancePreprocessor implements Fi
          }
       }
    }
-}// END OF CountFilter
+}// END OF MinCountFilter

@@ -38,7 +38,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
- * The type Name filter.
+ * <p>Removes all features whose name match any of the given regular expressions.</p>
  *
  * @author David B. Bracewell
  */
@@ -49,7 +49,7 @@ public class NameFilter implements FilterProcessor<Instance>, InstancePreprocess
    /**
     * Instantiates a new Name filter.
     *
-    * @param patterns the patterns
+    * @param patterns the patterns of feature names to remove
     */
    public NameFilter(@NonNull String... patterns) {
       for (String pattern : patterns) {
@@ -57,6 +57,9 @@ public class NameFilter implements FilterProcessor<Instance>, InstancePreprocess
       }
    }
 
+   /**
+    * Instantiates a new Name filter.
+    */
    protected NameFilter() {
    }
 
@@ -131,4 +134,4 @@ public class NameFilter implements FilterProcessor<Instance>, InstancePreprocess
       return describe();
    }
 
-}//END OF RemoveFilter
+}//END OF NameFilter

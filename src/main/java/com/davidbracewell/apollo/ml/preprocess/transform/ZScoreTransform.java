@@ -18,6 +18,8 @@ import java.util.List;
 import java.util.stream.Stream;
 
 /**
+ * <p>Transforms features values to Z-Scores.</p>
+ *
  * @author David B. Bracewell
  */
 public class ZScoreTransform extends RestrictedInstancePreprocessor implements TransformProcessor<Instance>, Serializable {
@@ -26,10 +28,18 @@ public class ZScoreTransform extends RestrictedInstancePreprocessor implements T
    private double mean = 0;
    private double standardDeviation = 0;
 
+   /**
+    * Instantiates a new Z-Score transform calculating statistics for all features.
+    */
    public ZScoreTransform() {
       super(StringUtils.EMPTY);
    }
 
+   /**
+    * Instantiates a new Z-Score transform.
+    *
+    * @param featureNamePrefix the feature name prefix to restrict the transformation to
+    */
    public ZScoreTransform(String featureNamePrefix) {
       super(featureNamePrefix);
    }
@@ -44,15 +54,11 @@ public class ZScoreTransform extends RestrictedInstancePreprocessor implements T
    @Override
    protected void restrictedFitImpl(MStream<List<Feature>> stream) {
       MStatisticsAccumulator stats = stream.getContext().statisticsAccumulator();
-      stream.forEach(instance ->
-                        stats.combine(instance.stream()
-                                              .mapToDouble(Feature::getValue)
-                                              .collect(EnhancedDoubleStatistics::new,
-                                                       EnhancedDoubleStatistics::accept,
-                                                       EnhancedDoubleStatistics::combine
-                                                      )
-                                     )
-                    );
+      stream.forEach(instance -> stats.combine(instance.stream()
+                                                       .mapToDouble(Feature::getValue)
+                                                       .collect(EnhancedDoubleStatistics::new,
+                                                                EnhancedDoubleStatistics::accept,
+                                                                EnhancedDoubleStatistics::combine)));
       this.mean = stats.value().getAverage();
       this.standardDeviation = stats.value().getSampleStandardDeviation();
    }

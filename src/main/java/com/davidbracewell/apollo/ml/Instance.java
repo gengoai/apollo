@@ -23,6 +23,7 @@ package com.davidbracewell.apollo.ml;
 
 import com.davidbracewell.Interner;
 import com.davidbracewell.collection.Streams;
+import com.davidbracewell.collection.counter.Counter;
 import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.conversion.Val;
 import com.davidbracewell.io.structured.ElementType;
@@ -91,6 +92,32 @@ public class Instance implements Example, Serializable, Iterable<Feature> {
    public static Instance create(@NonNull Collection<Feature> features) {
       return new Instance(features);
    }
+
+   /**
+    * Creates an instance from a counter containing feature name (keys) and their values.
+    *
+    * @param features the feature counter
+    * @return the instance
+    */
+   public static Instance create(@NonNull Counter<String> features) {
+      return create(features, null);
+   }
+
+   /**
+    * Creates an instance from a counter containing feature name (keys) and their values.
+    *
+    * @param features the feature counter
+    * @param label    the instance label
+    * @return the instance
+    */
+   public static Instance create(@NonNull Counter<String> features, Object label) {
+      List<Feature> featureList = features.entries()
+                                          .stream()
+                                          .map(e -> Feature.real(e.getKey(), e.getValue()))
+                                          .collect(Collectors.toList());
+      return create(featureList, label);
+   }
+
 
    /**
     * Convenience method for creating an instance from a collection of features.

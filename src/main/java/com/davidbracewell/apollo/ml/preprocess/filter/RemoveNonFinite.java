@@ -7,7 +7,7 @@ import com.davidbracewell.apollo.ml.preprocess.InstancePreprocessor;
 import java.util.stream.Collectors;
 
 /**
- * A filter implementation that removes features with non-finite values
+ * A filter implementation that removes features with non-finite or Nan values
  *
  * @author David B. Bracewell
  */

@@ -23,6 +23,8 @@ import java.util.Objects;
 import java.util.stream.Stream;
 
 /**
+ * <p>Transform values using <a href="https://en.wikipedia.org/wiki/Tf%E2%80%93idf">Tf-idf</a> </p>
+ *
  * @author David B. Bracewell
  */
 public class TFIDFTransform extends RestrictedInstancePreprocessor implements TransformProcessor<Instance>, Serializable {
@@ -30,11 +32,19 @@ public class TFIDFTransform extends RestrictedInstancePreprocessor implements Tr
    private volatile Counter<String> documentFrequencies = Counters.newCounter();
    private volatile double totalDocs = 0;
 
+   /**
+    * Instantiates a new Tfidf transform.
+    */
    public TFIDFTransform() {
       super(StringUtils.EMPTY);
    }
 
 
+   /**
+    * Instantiates a new Tfidf transform.
+    *
+    * @param featureNamePrefix the feature name prefix
+    */
    public TFIDFTransform(String featureNamePrefix) {
       super(featureNamePrefix);
    }
@@ -42,11 +52,9 @@ public class TFIDFTransform extends RestrictedInstancePreprocessor implements Tr
 
    @Override
    protected Stream<Feature> restrictedProcessImpl(Stream<Feature> featureStream, Instance originalExample) {
-      double dSum = originalExample.getFeatures().size();
-      return featureStream.map(f ->
-                               {
-                                  double value = f.getValue() / dSum * Math.log(
-                                     totalDocs / (documentFrequencies.get(f.getName()) + 1.0));
+      double dSum = originalExample.getFeatures().stream().mapToDouble(Feature::getValue).sum();
+      return featureStream.map(f -> {
+                                  double value = f.getValue() / dSum * Math.log(totalDocs / documentFrequencies.get(f.getName()));
                                   if (value != 0) {
                                      return Feature.real(f.getName(), value);
                                   }
@@ -59,12 +67,11 @@ public class TFIDFTransform extends RestrictedInstancePreprocessor implements Tr
    @Override
    protected void restrictedFitImpl(MStream<List<Feature>> stream) {
       MDoubleAccumulator docCount = stream.getContext().doubleAccumulator(0d);
-      this.documentFrequencies.merge(
-         stream.flatMap(instance -> {
-                           docCount.add(1d);
-                           return instance.stream().map(Feature::getName).distinct();
-                        }
-                       ).countByValue()
+      this.documentFrequencies.merge(stream.flatMap(instance -> {
+                                                       docCount.add(1d);
+                                                       return instance.stream().map(Feature::getName).distinct();
+                                                    }
+                                                   ).countByValue()
                                     );
       this.totalDocs = docCount.value();
    }

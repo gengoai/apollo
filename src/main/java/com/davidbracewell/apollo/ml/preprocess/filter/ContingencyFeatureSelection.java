@@ -22,6 +22,9 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
+ * <p>Uses a {@link ContingencyTableCalculator} to perform feature selection by taking the top N features per label
+ * based on the calculator measure.</p>
+ *
  * @author David B. Bracewell
  */
 public class ContingencyFeatureSelection implements FilterProcessor<Instance>, InstancePreprocessor, Serializable {
@@ -33,12 +36,22 @@ public class ContingencyFeatureSelection implements FilterProcessor<Instance>, I
    @Getter
    private double threshold;
 
+   /**
+    * Instantiates a new Contingency feature selection.
+    *
+    * @param calculator          the calculator to use to generate statistics about features and labels
+    * @param numFeaturesPerClass the num features per label
+    * @param threshold           the minimum value from the calculator to accept
+    */
    public ContingencyFeatureSelection(@NonNull ContingencyTableCalculator calculator, int numFeaturesPerClass, double threshold) {
       this.calculator = calculator;
       this.numFeaturesPerClass = numFeaturesPerClass;
       this.threshold = threshold;
    }
 
+   /**
+    * Instantiates a new Contingency feature selection.
+    */
    protected ContingencyFeatureSelection() {
 
    }

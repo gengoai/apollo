@@ -11,6 +11,7 @@ import com.davidbracewell.io.structured.StructuredReader;
 import com.davidbracewell.io.structured.StructuredWriter;
 import com.davidbracewell.stream.MStream;
 import com.davidbracewell.stream.accumulator.MStatisticsAccumulator;
+import com.davidbracewell.string.StringUtils;
 import com.google.common.base.Preconditions;
 import lombok.NonNull;
 
@@ -21,45 +22,58 @@ import java.util.List;
 import java.util.stream.Stream;
 
 /**
+ * <p>Converts a real valued feature into a number of binary features by creating a <code>bin</code> number of new
+ * binary features. Creates <code>bin</code> number of equal sized bins that the feature values can fall into.</p>
+ *
  * @author David B. Bracewell
  */
-public class RealToDiscreteTransform extends RestrictedInstancePreprocessor implements TransformProcessor<Instance>, Serializable {
+public class BinTransform extends RestrictedInstancePreprocessor implements TransformProcessor<Instance>, Serializable {
    private static final long serialVersionUID = 1L;
    private double[] bins;
 
 
-   public RealToDiscreteTransform(int numberOfBins) {
+   /**
+    * Instantiates a new BinTransform with no restriction
+    *
+    * @param numberOfBins the number of bins to convert the feature into
+    */
+   public BinTransform(int numberOfBins) {
       Preconditions.checkArgument(numberOfBins > 0, "Number of bins must be > 0.");
       this.bins = new double[numberOfBins];
    }
 
-   public RealToDiscreteTransform(@NonNull String featureNamePrefix, int numberOfBins) {
+   /**
+    * Instantiates a new BinTransform.
+    *
+    * @param featureNamePrefix the feature name prefix to restrict to
+    * @param numberOfBins      the number of bins to convert the feature into
+    */
+   public BinTransform(@NonNull String featureNamePrefix, int numberOfBins) {
       super(featureNamePrefix);
       Preconditions.checkArgument(numberOfBins > 0, "Number of bins must be > 0.");
       this.bins = new double[numberOfBins];
    }
 
-   protected RealToDiscreteTransform() {
-
+   /**
+    * Instantiates a new Real to discrete transform.
+    */
+   protected BinTransform() {
+      this(StringUtils.EMPTY, 1);
    }
 
    @Override
    protected void restrictedFitImpl(MStream<List<Feature>> stream) {
       MStatisticsAccumulator stats = stream.getContext().statisticsAccumulator();
-      stream.forEach(instance ->
-                        stats.combine(instance.stream()
-                                              .mapToDouble(Feature::getValue)
-                                              .collect(EnhancedDoubleStatistics::new,
-                                                       EnhancedDoubleStatistics::accept,
-                                                       EnhancedDoubleStatistics::combine
-                                                      )
-                                     )
-                    );
+      stream.forEach(instance -> stats.combine(instance.stream()
+                                                       .mapToDouble(Feature::getValue)
+                                                       .collect(EnhancedDoubleStatistics::new,
+                                                                EnhancedDoubleStatistics::accept,
+                                                                EnhancedDoubleStatistics::combine)));
       EnhancedDoubleStatistics statistics = stats.value();
       double max = statistics.getMax();
       double min = statistics.getMin();
       double binSize = ((max - min) / bins.length);
-      double sum = 0;
+      double sum = min;
       for (int i = 0; i < bins.length; i++) {
          sum += binSize;
          bins[i] = sum;
@@ -89,9 +103,9 @@ public class RealToDiscreteTransform extends RestrictedInstancePreprocessor impl
    @Override
    public String describe() {
       if (applyToAll()) {
-         return "RealToDiscreteTransform{numberOfBins=" + bins.length + "}";
+         return "BinTransform{numberOfBins=" + bins.length + "}";
       }
-      return "RealToDiscreteTransform[" + getRestriction() + "]{numberOfBins=" + bins.length + "}";
+      return "BinTransform[" + getRestriction() + "]{numberOfBins=" + bins.length + "}";
    }
 
    @Override

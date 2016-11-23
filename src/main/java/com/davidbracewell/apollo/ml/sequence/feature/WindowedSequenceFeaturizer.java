@@ -23,7 +23,7 @@ package com.davidbracewell.apollo.ml.sequence.feature;
 
 import com.davidbracewell.apollo.ml.Feature;
 import com.davidbracewell.apollo.ml.PredicateFeaturizer;
-import com.davidbracewell.apollo.ml.sequence.ContextualIterator;
+import com.davidbracewell.apollo.ml.sequence.Context;
 import com.davidbracewell.apollo.ml.sequence.SequenceFeaturizer;
 import lombok.NonNull;
 
@@ -76,7 +76,7 @@ public class WindowedSequenceFeaturizer<E> implements SequenceFeaturizer<E> {
 
 
    @Override
-   public Set<Feature> apply(ContextualIterator<E> iterator) {
+   public Set<Feature> apply(Context<E> iterator) {
       Set<Feature> features = new HashSet<>();
       final String prefix = featurizer.getPrefix();
 

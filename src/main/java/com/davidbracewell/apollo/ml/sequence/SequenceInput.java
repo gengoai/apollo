@@ -96,11 +96,11 @@ public class SequenceInput<T> implements Serializable {
     *
     * @return the contextual iterator
     */
-   public ContextualIterator<T> iterator() {
+   public Context<T> iterator() {
       return new Itr();
    }
 
-   private class Itr extends ContextualIterator<T> {
+   private class Itr extends Context<T> {
       private static final long serialVersionUID = 1L;
 
       @Override

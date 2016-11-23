@@ -18,7 +18,7 @@ import java.util.*;
  * @param <INPUT> the type parameter
  * @author David B. Bracewell
  */
-public interface SequenceFeaturizer<INPUT> extends Featurizer<ContextualIterator<INPUT>> {
+public interface SequenceFeaturizer<INPUT> extends Featurizer<Context<INPUT>> {
 
    /**
     * Feature set set.
@@ -37,14 +37,14 @@ public interface SequenceFeaturizer<INPUT> extends Featurizer<ContextualIterator
     * @param function the function
     * @return the sequence featurizer
     */
-   static <T> SequenceFeaturizer<T> of(@NonNull SerializableFunction<ContextualIterator<T>, ? extends Collection<Feature>> function) {
+   static <T> SequenceFeaturizer<T> of(@NonNull SerializableFunction<Context<T>, ? extends Collection<Feature>> function) {
       return new SequenceFeaturizer<T>() {
          private static final long serialVersionUID = 1L;
 
          @Override
          @Cached
-         public Set<Feature> apply(ContextualIterator<T> tContextualIterator) {
-            return new HashSet<>(function.apply(tContextualIterator));
+         public Set<Feature> apply(Context<T> tContext) {
+            return new HashSet<>(function.apply(tContext));
          }
       };
    }
@@ -75,9 +75,9 @@ public interface SequenceFeaturizer<INPUT> extends Featurizer<ContextualIterator
 
          @Override
          @Cached
-         public Set<Feature> apply(ContextualIterator<T> tContextualIterator) {
+         public Set<Feature> apply(Context<T> tContext) {
             Set<Feature> features = new HashSet<>();
-            extractors.forEach(ex -> features.addAll(ex.apply(Cast.as(tContextualIterator))));
+            extractors.forEach(ex -> features.addAll(ex.apply(Cast.as(tContext))));
             return features;
          }
       };
@@ -89,7 +89,7 @@ public interface SequenceFeaturizer<INPUT> extends Featurizer<ContextualIterator
     * @param stream the stream
     * @return the m stream
     */
-   default MStream<Sequence> extractSequence(@NonNull MStream<ContextualIterator<INPUT>> stream) {
+   default MStream<Sequence> extractSequence(@NonNull MStream<Context<INPUT>> stream) {
       return stream.map(this::extractSequence);
    }
 
@@ -99,7 +99,7 @@ public interface SequenceFeaturizer<INPUT> extends Featurizer<ContextualIterator
     * @param iterator the iterator
     * @return the sequence
     */
-   default Sequence extractSequence(@NonNull ContextualIterator<INPUT> iterator) {
+   default Sequence extractSequence(@NonNull Context<INPUT> iterator) {
       ArrayList<Instance> instances = new ArrayList<>();
       while (iterator.hasNext()) {
          iterator.next();
@@ -110,7 +110,7 @@ public interface SequenceFeaturizer<INPUT> extends Featurizer<ContextualIterator
    }
 
    @Override
-   default SequenceFeaturizer<ContextualIterator<INPUT>> asSequenceFeaturizer() {
+   default SequenceFeaturizer<Context<INPUT>> asSequenceFeaturizer() {
       return Cast.as(this);
    }
 

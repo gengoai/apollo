@@ -83,7 +83,7 @@ public class StructuredPerceptronLearner extends SequenceLabelerLearner {
             Labeling lblResult = model.label(sequence);
 
             double diff = 0;
-            for (ContextualIterator<Instance> iterator = sequence.iterator(); iterator.hasNext(); ) {
+            for (Context<Instance> iterator = sequence.iterator(); iterator.hasNext(); ) {
                count++;
                if (!iterator.next().getLabel().equals(lblResult.getLabel(iterator.getIndex()))) {
                   diff++;
@@ -94,7 +94,7 @@ public class StructuredPerceptronLearner extends SequenceLabelerLearner {
 
 
             if (diff > 0) {
-               for (ContextualIterator<Instance> iterator = sequence.iterator(); iterator.hasNext(); ) {
+               for (Context<Instance> iterator = sequence.iterator(); iterator.hasNext(); ) {
                   Instance instance = iterator.next();
                   int y = (int) model.getLabelEncoder().encode(instance.getLabel());
                   int yHat = (int) model.getLabelEncoder().encode(lblResult.getLabel(iterator.getIndex()));

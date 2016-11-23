@@ -70,7 +70,7 @@ public class BeamDecoder implements Decoder, Serializable {
                                                    .create();
       queue.add(new DecoderState(0, null));
       List<DecoderState> newStates = new LinkedList<>();
-      ContextualIterator<Instance> iterator = sequence.iterator();
+      Context<Instance> iterator = sequence.iterator();
       while (iterator.hasNext()) {
          iterator.next();
          newStates.clear();

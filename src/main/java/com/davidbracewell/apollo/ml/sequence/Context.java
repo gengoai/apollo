@@ -6,43 +6,43 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 
 /**
- * The type Ctxt iterator.
+ * <p>A specialized iterator for working with sequences that allows access to the context of the current element.</p>
  *
- * @param <T> the type parameter
+ * @param <T> the input type parameter
  * @author David B. Bracewell
  */
-public abstract class ContextualIterator<T> implements Iterator<T>, Serializable {
+public abstract class Context<T> implements Iterator<T>, Serializable {
    private static final long serialVersionUID = 1L;
    private int index = -1;
 
    /**
-    * Size int.
+    * The number of items in the iterator
     *
-    * @return the int
+    * @return the number of items in the iterator
     */
    public abstract int size();
 
    /**
-    * Gets context at.
+    * Gets the element at the given index (absolute)
     *
     * @param index the index
-    * @return the context at
+    * @return the context
     */
    protected abstract Optional<T> getContextAt(int index);
 
    /**
-    * Gets label at.
+    * Gets the label for the element at the given index (absolute)
     *
     * @param index the index
-    * @return the label at
+    * @return the label
     */
    protected abstract Optional<String> getLabelAt(int index);
 
 
    /**
-    * Index int.
+    * Gets the index of the current item in the iterator
     *
-    * @return the int
+    * @return the index of the current item
     */
    public int getIndex() {
       return index;
@@ -55,9 +55,9 @@ public abstract class ContextualIterator<T> implements Iterator<T>, Serializable
    }
 
    /**
-    * Next boolean.
+    * Gets the next item in the context
     *
-    * @return the boolean
+    * @return the next item in the context
     */
    @Override
    public T next() {
@@ -66,31 +66,27 @@ public abstract class ContextualIterator<T> implements Iterator<T>, Serializable
    }
 
    /**
-    * Gets current.
+    * Gets the current item.
     *
-    * @return the current
+    * @return the current item
     */
    public T getCurrent() {
       return getContextAt(index).orElseThrow(NoSuchElementException::new);
    }
 
-   public boolean hasLabel() {
-      return getLabelAt(index).isPresent();
-   }
-
    /**
-    * Gets label.
+    * Gets the label of the current item.
     *
-    * @return the label
+    * @return the label or null if none
     */
    public String getLabel() {
       return getLabelAt(index).orElse(null);
    }
 
    /**
-    * Gets context.
+    * Gets the context relative to the current item.
     *
-    * @param relative the relative
+    * @param relative the relative index (negative numbers mean previous, positive mean next)
     * @return the context
     */
    public Optional<T> getContext(int relative) {
@@ -98,19 +94,19 @@ public abstract class ContextualIterator<T> implements Iterator<T>, Serializable
    }
 
    /**
-    * Gets context label.
+    * Gets the label relative to the current item.
     *
-    * @param relative the relative
-    * @return the context label
+    * @param relative the relative index (negative numbers mean previous, positive mean next)
+    * @return the label
     */
    public Optional<String> getContextLabel(int relative) {
       return getLabelAt(index + relative);
    }
 
    /**
-    * Gets previous label.
+    * Gets the <code>relative</code> previous label.
     *
-    * @param relative the relative
+    * @param relative the relative index
     * @return the previous label
     */
    public Optional<String> getPreviousLabel(int relative) {
@@ -118,9 +114,9 @@ public abstract class ContextualIterator<T> implements Iterator<T>, Serializable
    }
 
    /**
-    * Gets next label.
+    * Gets the <code>relative</code> next label.
     *
-    * @param relative the relative
+    * @param relative the relative index
     * @return the next label
     */
    public Optional<String> getNextLabel(int relative) {
@@ -128,34 +124,23 @@ public abstract class ContextualIterator<T> implements Iterator<T>, Serializable
    }
 
    /**
-    * Gets previous.
+    * Gets the <code>relative</code> previous element.
     *
-    * @param relative the relative
-    * @return the previous
+    * @param relative the relative index
+    * @return the previous element
     */
    public Optional<T> getPrevious(int relative) {
       return getContext(-Math.abs(relative));
    }
 
    /**
-    * Gets next.
+    * Gets the <code>relative</code> next element.
     *
-    * @param relative the relative
-    * @return the next
+    * @param relative the relative index
+    * @return the next element
     */
    public Optional<T> getNext(int relative) {
       return getContext(Math.abs(relative));
    }
 
-   /**
-    * Has context boolean.
-    *
-    * @param relative the relative
-    * @return the boolean
-    */
-   public boolean hasContext(int relative) {
-      return getLabelAt(index + relative).isPresent();
-   }
-
-
-}// END OF ContextualIterator
+}// END OF Context

@@ -103,7 +103,7 @@ public class Sequence implements Example, Serializable, Iterable<Instance> {
     *
     * @return the sequence iterator
     */
-   public ContextualIterator<Instance> iterator() {
+   public Context<Instance> iterator() {
       return new SequenceIterator();
    }
 
@@ -129,7 +129,7 @@ public class Sequence implements Example, Serializable, Iterable<Instance> {
       writer.writeKeyValue("sequence", sequence);
    }
 
-   private class SequenceIterator extends ContextualIterator<Instance> {
+   private class SequenceIterator extends Context<Instance> {
       private static final long serialVersionUID = 1L;
 
       @Override

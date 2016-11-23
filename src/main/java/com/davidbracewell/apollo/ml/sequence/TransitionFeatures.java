@@ -36,7 +36,7 @@ public class TransitionFeatures implements Serializable {
 
 
    public List<Instance> toInstances(Sequence sequence) {
-      ContextualIterator<Instance> itr = sequence.iterator();
+      Context<Instance> itr = sequence.iterator();
       List<Instance> instances = new ArrayList<>();
       while (itr.hasNext()) {
          Instance instance = itr.next();
@@ -54,7 +54,7 @@ public class TransitionFeatures implements Serializable {
       dataset.getFeatureEncoder().fit(
          dataset.stream()
                 .flatMap(sequence -> {
-                            ContextualIterator<Instance> ci = sequence.iterator();
+                            Context<Instance> ci = sequence.iterator();
                             Set<String> features = new HashSet<>();
                             while (ci.hasNext()) {
                                ci.next();
@@ -74,7 +74,7 @@ public class TransitionFeatures implements Serializable {
    }
 
 
-   public Iterator<String> extract(final ContextualIterator<Instance> iterator) {
+   public Iterator<String> extract(final Context<Instance> iterator) {
       return new Iterator<String>() {
          int templateIndex = -1;
 

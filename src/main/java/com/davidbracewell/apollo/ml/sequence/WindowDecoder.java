@@ -39,7 +39,7 @@ public class WindowDecoder implements Decoder, Serializable {
       DecoderState state = null;
       String previousLabel = null;
 
-      for (ContextualIterator<Instance> iterator = sequence.iterator(); iterator.hasNext(); ) {
+      for (Context<Instance> iterator = sequence.iterator(); iterator.hasNext(); ) {
          double[] results = labeler.estimate(
             iterator.next().getFeatures().iterator(),
             labeler.getTransitionFeatures().extract(state)

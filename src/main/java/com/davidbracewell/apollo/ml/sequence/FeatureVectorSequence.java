@@ -46,11 +46,11 @@ public class FeatureVectorSequence implements Serializable, Iterable<FeatureVect
    }
 
    @Override
-   public ContextualIterator<FeatureVector> iterator() {
+   public Context<FeatureVector> iterator() {
       return new Iterator();
    }
 
-   private class Iterator extends ContextualIterator<FeatureVector> {
+   private class Iterator extends Context<FeatureVector> {
       private static final long serialVersionUID = 1L;
 
       @Override

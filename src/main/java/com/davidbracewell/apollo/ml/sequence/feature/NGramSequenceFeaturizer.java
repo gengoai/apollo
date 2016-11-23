@@ -23,7 +23,7 @@ package com.davidbracewell.apollo.ml.sequence.feature;
 
 import com.davidbracewell.apollo.ml.Feature;
 import com.davidbracewell.apollo.ml.PredicateFeaturizer;
-import com.davidbracewell.apollo.ml.sequence.ContextualIterator;
+import com.davidbracewell.apollo.ml.sequence.Context;
 import com.davidbracewell.apollo.ml.sequence.SequenceFeaturizer;
 import com.davidbracewell.string.StringUtils;
 import com.google.common.base.Preconditions;
@@ -67,7 +67,7 @@ public class NGramSequenceFeaturizer<E> implements SequenceFeaturizer<E> {
 
 
    @Override
-   public Set<Feature> apply(ContextualIterator<E> iterator) {
+   public Set<Feature> apply(Context<E> iterator) {
       final String prefix = featurizer.getPrefix();
 
       final String c0 = featurizer.extractPredicate(iterator.getCurrent());

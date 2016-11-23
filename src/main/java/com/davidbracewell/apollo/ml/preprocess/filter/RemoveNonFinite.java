@@ -16,7 +16,9 @@ public class RemoveNonFinite implements FilterProcessor<Instance>, InstancePrepr
 
    @Override
    public Instance apply(Instance example) {
-      return Instance.create(example.stream().filter(i -> !Double.isFinite(i.getValue())).collect(Collectors.toList()));
+      return Instance.create(example.stream()
+                                    .filter(i -> !Double.isNaN(i.getValue()) && Double.isFinite(i.getValue()))
+                                    .collect(Collectors.toList()), example.getLabel());
    }
 
    @Override

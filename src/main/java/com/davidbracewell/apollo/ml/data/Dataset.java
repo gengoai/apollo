@@ -25,7 +25,6 @@ import com.davidbracewell.Copyable;
 import com.davidbracewell.apollo.ml.*;
 import com.davidbracewell.apollo.ml.preprocess.Preprocessor;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
-import com.davidbracewell.apollo.ml.sequence.FeatureVectorSequence;
 import com.davidbracewell.apollo.ml.sequence.Sequence;
 import com.davidbracewell.collection.counter.Counter;
 import com.davidbracewell.conversion.Cast;
@@ -95,7 +94,7 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
       return new DatasetBuilder<>(new NoOptLabelEncoder(), Sequence.class)
                 .featureEncoder(new NoOptEncoder())
                 .type(type)
-                .source(stream.map(line -> Sequence.toSequence(tokenizer.apply(line))));
+                .source(stream.map(line -> Sequence.create(tokenizer.apply(line))));
    }
 
    /**
@@ -151,22 +150,6 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
    @SafeVarargs
    protected final void addAll(@NonNull T... instances) {
       addAll(Arrays.asList(instances));
-   }
-
-   /**
-    * Creates a stream of {@link FeatureVectorSequence} from the examples in the dataset
-    *
-    * @return the stream of FeatureVectorSequence
-    */
-   public MStream<FeatureVectorSequence> asFeatureVectorSequences() {
-      encode();
-      return stream().parallel().map(e -> {
-         FeatureVectorSequence fvs = new FeatureVectorSequence();
-         for (Instance ii : e.asInstances()) {
-            fvs.add(ii.toVector(encoders));
-         }
-         return fvs;
-      });
    }
 
    /**

@@ -21,8 +21,6 @@ public abstract class SequenceLabeler implements Model {
    protected EncoderPair encoderPair;
    private volatile Decoder decoder = new BeamDecoder();
 
-//  private Featurizer featurizer;
-
    /**
     * Instantiates a new Model.
     *
@@ -72,12 +70,29 @@ public abstract class SequenceLabeler implements Model {
       this.decoder = decoder;
    }
 
+   /**
+    * Estimate double [ ].
+    *
+    * @param observation the observation
+    * @param transitions the transitions
+    * @return the double [ ]
+    */
    public abstract double[] estimate(Iterator<Feature> observation, Iterator<String> transitions);
 
+   /**
+    * Gets validator.
+    *
+    * @return the validator
+    */
    public SequenceValidator getValidator() {
       return validator;
    }
 
+   /**
+    * Gets transition features.
+    *
+    * @return the transition features
+    */
    public TransitionFeatures getTransitionFeatures() {
       return transitionFeatures;
    }

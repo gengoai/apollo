@@ -6,6 +6,7 @@ import com.davidbracewell.apollo.ml.Feature;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.io.structured.StructuredReader;
 import com.davidbracewell.io.structured.StructuredWriter;
+import com.davidbracewell.tuple.Tuple;
 import lombok.NonNull;
 
 import java.io.IOException;
@@ -15,20 +16,25 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * The type Sequence.
+ * <p>A sequence is represented as an iterable of instances where each instance represents a single step or token.</p>
  *
  * @author David B. Bracewell
  */
 public class Sequence implements Example, Serializable, Iterable<Instance> {
-
+   /**
+    * Signifies the Beginning of the sequence
+    */
    public static final String BOS = "****START****";
+   /**
+    * Signifies the End of the sequence
+    */
    public static final String EOS = "****END****";
 
    private static final long serialVersionUID = 1L;
    private final ArrayList<Instance> sequence;
 
    /**
-    * Instantiates a new Sequence.
+    * Instantiates a new sequence from a list of instances.
     *
     * @param sequence the sequence
     */
@@ -37,23 +43,65 @@ public class Sequence implements Example, Serializable, Iterable<Instance> {
       this.sequence.trimToSize();
    }
 
-   public Sequence(@NonNull Instance... words) {
-      this.sequence = new ArrayList<>(Arrays.asList(words));
+   /**
+    * Instantiates a new sequence from a variable length array of instances.
+    *
+    * @param instances the instances making up the sequences
+    */
+   public Sequence(@NonNull Instance... instances) {
+      this.sequence = new ArrayList<>(Arrays.asList(instances));
       this.sequence.trimToSize();
    }
 
+   /**
+    * Instantiates a new empty sequence.
+    */
    public Sequence() {
       this.sequence = new ArrayList<>();
    }
 
-   public static Sequence toSequence(String... words) {
-      return toSequence(Stream.of(words));
+   /**
+    * Creates a new sequence from variable length array of strings representing the words (instances) in the sequence.
+    * Each word becomes a binary predicate set to true.
+    *
+    * @param words the words (instances) in the sequence.
+    * @return the sequence
+    */
+   public static Sequence create(@NonNull String... words) {
+      return create(Stream.of(words));
    }
 
-   public static Sequence toSequence(Stream<String> words) {
+   /**
+    * Creates a new sequence from stream of strings representing the words (instances) in the sequence. Each word
+    * becomes a binary predicate set to true.
+    *
+    * @param words the words (instances) in the sequence.
+    * @return the sequence
+    */
+   public static Sequence create(@NonNull Stream<String> words) {
       return new Sequence(words.map(w -> Instance.create(Collections.singleton(Feature.TRUE(w))))
                                .collect(Collectors.toList()));
    }
+
+   /**
+    * Creates a new sequence from stream of tuples representing the words and their labels in the sequence. Each word
+    * becomes a binary predicate set to true.
+    *
+    * @param labeledWords the words (instances) in the sequence.
+    * @return the sequence
+    */
+   public static Sequence create(@NonNull Tuple... labeledWords) {
+      return new Sequence(Stream.of(labeledWords)
+                                .map(tuple -> {
+                                   String name = tuple.get(0);
+                                   if (tuple.degree() == 1) {
+                                      return Instance.create(Collections.singleton(Feature.TRUE(name)));
+                                   }
+                                   return Instance.create(Collections.singleton(Feature.TRUE(name)), tuple.get(1));
+                                })
+                                .collect(Collectors.toList()));
+   }
+
 
    @Override
    public Stream<String> getFeatureSpace() {
@@ -67,42 +115,35 @@ public class Sequence implements Example, Serializable, Iterable<Instance> {
 
    @Override
    public Sequence intern(Interner<String> interner) {
-      return new Sequence(
-                            sequence.stream().map(instance -> instance.intern(interner)).collect(Collectors.toList())
-      );
+      return new Sequence(sequence.stream().map(instance -> instance.intern(interner)).collect(Collectors.toList()));
    }
 
    @Override
    public Sequence copy() {
-      return new Sequence(
-                            sequence.stream().map(Instance::copy).collect(Collectors.toList())
-      );
+      return new Sequence(sequence.stream().map(Instance::copy).collect(Collectors.toList()));
    }
 
    /**
-    * Get instance.
+    * Get the instance at the given index.
     *
-    * @param index the index
+    * @param index the index of the instance to retrieve
     * @return the instance
+    * @throws IndexOutOfBoundsException if the index is not in the sequence
     */
    public Instance get(int index) {
       return sequence.get(index);
    }
 
    /**
-    * Size int.
+    * The number of instances in the sequence
     *
-    * @return the int
+    * @return the size, in terms of instances, of the sequence.
     */
    public int size() {
       return sequence.size();
    }
 
-   /**
-    * Iterator sequence iterator.
-    *
-    * @return the sequence iterator
-    */
+   @Override
    public Context<Instance> iterator() {
       return new SequenceIterator();
    }

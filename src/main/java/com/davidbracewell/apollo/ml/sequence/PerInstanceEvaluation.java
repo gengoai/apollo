@@ -11,10 +11,16 @@ import java.io.PrintStream;
 import java.util.Collection;
 
 /**
+ * Sequence evaluation that calculates metrics using each element of the sequence wrapping a {@link
+ * ClassifierEvaluation}
+ *
  * @author David B. Bracewell
  */
 public class PerInstanceEvaluation implements Evaluation<Sequence, SequenceLabeler> {
-   ClassifierEvaluation eval = new ClassifierEvaluation();
+   /**
+    * The wrapped classifier evaluation
+    */
+   public final ClassifierEvaluation eval = new ClassifierEvaluation();
 
    @Override
    public void evaluate(@NonNull SequenceLabeler model, @NonNull Dataset<Sequence> dataset) {
@@ -47,6 +53,13 @@ public class PerInstanceEvaluation implements Evaluation<Sequence, SequenceLabel
       eval.output(printStream, false);
    }
 
+   /**
+    * Outputs the results of the classification as per-class Precision, Recall, and F1 and optionally the confusion
+    * matrix.
+    *
+    * @param printStream          the print stream to write to
+    * @param printConfusionMatrix True print the confusion matrix, False do not print the confusion matrix.
+    */
    public void output(@NonNull PrintStream printStream, boolean printConfusionMatrix) {
       eval.output(printStream, printConfusionMatrix);
    }

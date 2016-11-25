@@ -39,6 +39,25 @@ import org.apache.commons.math.distribution.TDistributionImpl;
  */
 public enum AssociationMeasures implements ContingencyTableCalculator {
    /**
+    * Measures based on Mikolov et. al's "Distributed Representations of Words and Phrases and their Compositionality"
+    */
+   Mikolov {
+      @Override
+      public double calculate(ContingencyTable table) {
+         Preconditions.checkArgument(table.rowCount() == table.columnCount() && table.rowCount() == 2,
+                                     "Only supports 2x2 contingency tables.");
+         double cooc = table.get(0, 0);
+         double w1Count = table.get(0, 1);
+         double w2Count = table.get(1, 0);
+         double minCount = Math.min(w1Count, w2Count);
+         double score = (cooc - minCount) / (w1Count * w2Count);
+         if (Double.isFinite(score)) {
+            return score;
+         }
+         return Double.MAX_VALUE;
+      }
+   },
+   /**
     * <a href="https://en.wikipedia.org/wiki/Mutual_information">Mutual Information</a>
     */
    MI {

@@ -25,8 +25,8 @@ import com.davidbracewell.Copyable;
 import com.davidbracewell.EnhancedDoubleStatistics;
 import com.davidbracewell.apollo.affinity.Correlation;
 import com.davidbracewell.collection.Streams;
-import com.google.common.base.Preconditions;
-import com.google.common.util.concurrent.AtomicDouble;
+import com.davidbracewell.guava.common.base.Preconditions;
+import com.davidbracewell.guava.common.util.concurrent.AtomicDouble;
 import lombok.NonNull;
 import lombok.Value;
 

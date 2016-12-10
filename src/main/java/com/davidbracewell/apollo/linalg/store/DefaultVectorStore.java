@@ -25,8 +25,8 @@ import com.davidbracewell.apollo.affinity.Measure;
 import com.davidbracewell.apollo.linalg.LabeledVector;
 import com.davidbracewell.apollo.linalg.ScoredLabelVector;
 import com.davidbracewell.apollo.linalg.Vector;
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Iterators;
+import com.davidbracewell.guava.common.base.Preconditions;
+import com.davidbracewell.guava.common.collect.Iterators;
 import lombok.NonNull;
 
 import java.io.Serializable;

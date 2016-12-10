@@ -22,7 +22,7 @@
 package com.davidbracewell.apollo.linalg;
 
 import com.davidbracewell.conversion.Cast;
-import com.google.common.base.Preconditions;
+import com.davidbracewell.guava.common.base.Preconditions;
 import lombok.NonNull;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.commons.math3.random.Well19937c;

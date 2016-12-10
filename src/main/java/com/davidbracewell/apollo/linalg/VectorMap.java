@@ -22,8 +22,8 @@
 package com.davidbracewell.apollo.linalg;
 
 import com.davidbracewell.conversion.Cast;
+import com.davidbracewell.guava.common.collect.Iterators;
 import com.davidbracewell.tuple.Tuple2;
-import com.google.common.collect.Iterators;
 import lombok.NonNull;
 
 import java.io.Serializable;

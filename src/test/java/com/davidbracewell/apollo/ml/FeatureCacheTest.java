@@ -7,7 +7,7 @@ import com.davidbracewell.collection.counter.Counter;
 import com.davidbracewell.collection.counter.Counters;
 import com.davidbracewell.config.Config;
 import com.davidbracewell.conversion.Cast;
-import com.google.common.collect.Iterables;
+import com.davidbracewell.guava.common.collect.Iterables;
 import org.junit.Before;
 import org.junit.Test;
 

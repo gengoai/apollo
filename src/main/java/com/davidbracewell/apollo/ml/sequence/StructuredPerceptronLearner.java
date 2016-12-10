@@ -27,9 +27,9 @@ import com.davidbracewell.apollo.ml.FeatureVector;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.collection.Collect;
+import com.davidbracewell.guava.common.base.Stopwatch;
+import com.davidbracewell.guava.common.collect.Lists;
 import com.davidbracewell.logging.Logger;
-import com.google.common.base.Stopwatch;
-import com.google.common.collect.Lists;
 
 import java.text.DecimalFormat;
 import java.util.List;

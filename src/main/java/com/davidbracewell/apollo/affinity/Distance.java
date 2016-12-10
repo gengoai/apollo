@@ -1,7 +1,7 @@
 package com.davidbracewell.apollo.affinity;
 
 
-import com.google.common.collect.Sets;
+import com.davidbracewell.guava.common.collect.Sets;
 import lombok.NonNull;
 
 import java.util.Map;

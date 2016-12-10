@@ -2,14 +2,14 @@ package com.davidbracewell.apollo.ml;
 
 import com.davidbracewell.Copyable;
 import com.davidbracewell.Interner;
+import com.davidbracewell.guava.common.base.Preconditions;
+import com.davidbracewell.guava.common.base.Throwables;
 import com.davidbracewell.io.Resources;
 import com.davidbracewell.io.resource.Resource;
 import com.davidbracewell.io.structured.StructuredSerializable;
 import com.davidbracewell.io.structured.json.JSONReader;
 import com.davidbracewell.io.structured.json.JSONWriter;
 import com.davidbracewell.string.StringUtils;
-import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
 import lombok.NonNull;
 
 import java.io.IOException;

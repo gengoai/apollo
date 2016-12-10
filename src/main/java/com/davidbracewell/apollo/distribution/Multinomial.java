@@ -21,7 +21,7 @@
 
 package com.davidbracewell.apollo.distribution;
 
-import com.google.common.base.Preconditions;
+import com.davidbracewell.guava.common.base.Preconditions;
 import lombok.NonNull;
 import org.apache.commons.math3.distribution.EnumeratedIntegerDistribution;
 import org.apache.commons.math3.random.RandomGenerator;

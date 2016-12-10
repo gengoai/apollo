@@ -21,7 +21,7 @@
 
 package com.davidbracewell.apollo.distribution;
 
-import com.google.common.base.Preconditions;
+import com.davidbracewell.guava.common.base.Preconditions;
 
 /**
  * A distribution backed whose density is a probability mass function of discrete a random variable <code>X</code>.

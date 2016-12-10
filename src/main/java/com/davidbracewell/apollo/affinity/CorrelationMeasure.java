@@ -24,8 +24,8 @@ package com.davidbracewell.apollo.affinity;
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.collection.index.Index;
 import com.davidbracewell.collection.index.Indexes;
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Sets;
+import com.davidbracewell.guava.common.base.Preconditions;
+import com.davidbracewell.guava.common.collect.Sets;
 import lombok.NonNull;
 import org.apache.commons.math3.distribution.TDistribution;
 

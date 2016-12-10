@@ -6,10 +6,10 @@ import com.davidbracewell.apollo.ml.IndexEncoder;
 import com.davidbracewell.apollo.ml.LabelEncoder;
 import com.davidbracewell.apollo.ml.data.source.DataSource;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
+import com.davidbracewell.guava.common.base.Throwables;
 import com.davidbracewell.io.resource.Resource;
 import com.davidbracewell.stream.MStream;
 import com.davidbracewell.stream.StreamingContext;
-import com.google.common.base.Throwables;
 import lombok.NonNull;
 
 import java.io.IOException;

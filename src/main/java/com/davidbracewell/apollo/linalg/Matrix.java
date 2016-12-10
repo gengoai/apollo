@@ -24,8 +24,8 @@ package com.davidbracewell.apollo.linalg;
 
 import com.davidbracewell.Copyable;
 import com.davidbracewell.collection.Streams;
+import com.davidbracewell.guava.common.base.Preconditions;
 import com.davidbracewell.tuple.Tuple2;
-import com.google.common.base.Preconditions;
 import lombok.NonNull;
 import lombok.Value;
 

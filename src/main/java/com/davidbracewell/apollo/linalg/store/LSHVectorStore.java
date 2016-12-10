@@ -25,7 +25,7 @@ import com.davidbracewell.apollo.affinity.Measure;
 import com.davidbracewell.apollo.linalg.LabeledVector;
 import com.davidbracewell.apollo.linalg.ScoredLabelVector;
 import com.davidbracewell.apollo.linalg.Vector;
-import com.google.common.collect.MinMaxPriorityQueue;
+import com.davidbracewell.guava.common.collect.MinMaxPriorityQueue;
 import lombok.NonNull;
 import org.apache.mahout.math.set.OpenIntHashSet;
 

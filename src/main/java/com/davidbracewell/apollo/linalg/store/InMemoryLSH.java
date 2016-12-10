@@ -21,7 +21,7 @@
 
 package com.davidbracewell.apollo.linalg.store;
 
-import com.google.common.base.Preconditions;
+import com.davidbracewell.guava.common.base.Preconditions;
 import lombok.NonNull;
 import org.apache.mahout.math.set.OpenIntHashSet;
 

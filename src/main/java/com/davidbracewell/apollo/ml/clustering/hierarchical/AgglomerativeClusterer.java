@@ -26,11 +26,11 @@ import com.davidbracewell.apollo.affinity.DistanceMeasure;
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.clustering.Cluster;
 import com.davidbracewell.apollo.ml.clustering.Clusterer;
+import com.davidbracewell.guava.common.collect.HashBasedTable;
+import com.davidbracewell.guava.common.collect.Iterables;
+import com.davidbracewell.guava.common.collect.Table;
 import com.davidbracewell.stream.MStream;
 import com.davidbracewell.tuple.Tuple2;
-import com.google.common.collect.HashBasedTable;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Table;
 import lombok.Getter;
 import lombok.NonNull;
 

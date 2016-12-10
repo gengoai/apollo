@@ -7,7 +7,7 @@ import com.davidbracewell.apollo.ml.Model;
 import com.davidbracewell.apollo.ml.RegressionLabelEncoder;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.collection.counter.Counter;
-import com.google.common.base.Preconditions;
+import com.davidbracewell.guava.common.base.Preconditions;
 import lombok.NonNull;
 
 /**

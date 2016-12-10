@@ -1,9 +1,9 @@
 package com.davidbracewell.apollo.ml;
 
+import com.davidbracewell.guava.common.base.Preconditions;
+import com.davidbracewell.guava.common.base.Throwables;
 import com.davidbracewell.reflection.Reflect;
 import com.davidbracewell.reflection.ReflectionException;
-import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
 

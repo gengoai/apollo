@@ -22,9 +22,9 @@
 package com.davidbracewell.apollo.affinity;
 
 import com.davidbracewell.apollo.distribution.NormalDistribution;
-import com.google.common.base.Preconditions;
-import com.google.common.math.DoubleMath;
-import com.google.common.primitives.Doubles;
+import com.davidbracewell.guava.common.base.Preconditions;
+import com.davidbracewell.guava.common.math.DoubleMath;
+import com.davidbracewell.guava.common.primitives.Doubles;
 import lombok.NonNull;
 import org.apache.commons.math.MathException;
 import org.apache.commons.math.distribution.ChiSquaredDistribution;

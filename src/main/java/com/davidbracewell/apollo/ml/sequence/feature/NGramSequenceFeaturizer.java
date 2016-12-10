@@ -25,8 +25,8 @@ import com.davidbracewell.apollo.ml.Feature;
 import com.davidbracewell.apollo.ml.PredicateFeaturizer;
 import com.davidbracewell.apollo.ml.sequence.Context;
 import com.davidbracewell.apollo.ml.sequence.SequenceFeaturizer;
+import com.davidbracewell.guava.common.base.Preconditions;
 import com.davidbracewell.string.StringUtils;
-import com.google.common.base.Preconditions;
 import lombok.NonNull;
 
 import java.util.ArrayList;

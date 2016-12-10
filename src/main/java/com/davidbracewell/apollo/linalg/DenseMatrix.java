@@ -1,6 +1,6 @@
 package com.davidbracewell.apollo.linalg;
 
-import com.google.common.base.Preconditions;
+import com.davidbracewell.guava.common.base.Preconditions;
 import lombok.NonNull;
 import org.jblas.ComplexDouble;
 import org.jblas.DoubleMatrix;

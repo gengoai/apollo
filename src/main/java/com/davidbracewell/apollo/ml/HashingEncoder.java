@@ -1,8 +1,8 @@
 package com.davidbracewell.apollo.ml;
 
 import com.davidbracewell.apollo.ml.data.Dataset;
+import com.davidbracewell.guava.common.base.Preconditions;
 import com.davidbracewell.stream.MStream;
-import com.google.common.base.Preconditions;
 import lombok.NonNull;
 
 import java.io.Serializable;

@@ -2,6 +2,9 @@ package com.davidbracewell.apollo.ml.data.source;
 
 import com.davidbracewell.apollo.ml.Feature;
 import com.davidbracewell.apollo.ml.Instance;
+import com.davidbracewell.guava.common.base.Preconditions;
+import com.davidbracewell.guava.common.base.Throwables;
+import com.davidbracewell.guava.common.collect.Iterators;
 import com.davidbracewell.io.CSV;
 import com.davidbracewell.io.CSVReader;
 import com.davidbracewell.io.QuietIO;
@@ -9,9 +12,6 @@ import com.davidbracewell.io.resource.Resource;
 import com.davidbracewell.stream.MStream;
 import com.davidbracewell.stream.StreamingContext;
 import com.davidbracewell.string.StringUtils;
-import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
-import com.google.common.collect.Iterators;
 import lombok.Getter;
 import lombok.NonNull;
 

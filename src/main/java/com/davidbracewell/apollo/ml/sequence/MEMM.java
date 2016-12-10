@@ -27,7 +27,7 @@ import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.LabelEncoder;
 import com.davidbracewell.apollo.ml.classification.LibLinearModel;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
-import com.google.common.collect.Lists;
+import com.davidbracewell.guava.common.collect.Lists;
 
 import java.util.Iterator;
 import java.util.List;

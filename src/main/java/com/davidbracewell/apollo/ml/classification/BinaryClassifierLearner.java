@@ -24,9 +24,9 @@ package com.davidbracewell.apollo.ml.classification;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.conversion.Cast;
+import com.davidbracewell.guava.common.base.Throwables;
 import com.davidbracewell.reflection.Reflect;
 import com.davidbracewell.reflection.ReflectionException;
-import com.google.common.base.Throwables;
 
 import java.util.Map;
 

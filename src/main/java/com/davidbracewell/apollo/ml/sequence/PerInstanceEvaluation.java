@@ -4,7 +4,7 @@ import com.davidbracewell.apollo.ml.Evaluation;
 import com.davidbracewell.apollo.ml.classification.ClassifierEvaluation;
 import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.conversion.Cast;
-import com.google.common.base.Preconditions;
+import com.davidbracewell.guava.common.base.Preconditions;
 import lombok.NonNull;
 
 import java.io.PrintStream;

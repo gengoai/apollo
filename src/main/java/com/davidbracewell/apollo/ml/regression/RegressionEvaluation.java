@@ -5,8 +5,8 @@ import com.davidbracewell.apollo.ml.FeatureVector;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.conversion.Cast;
+import com.davidbracewell.guava.common.base.Preconditions;
 import com.davidbracewell.string.TableFormatter;
-import com.google.common.base.Preconditions;
 import lombok.NonNull;
 import org.apache.mahout.math.list.DoubleArrayList;
 

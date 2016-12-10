@@ -6,13 +6,13 @@ import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.preprocess.RestrictedInstancePreprocessor;
 import com.davidbracewell.collection.list.PrimitiveArrayList;
 import com.davidbracewell.conversion.Val;
+import com.davidbracewell.guava.common.base.Preconditions;
 import com.davidbracewell.io.structured.ElementType;
 import com.davidbracewell.io.structured.StructuredReader;
 import com.davidbracewell.io.structured.StructuredWriter;
 import com.davidbracewell.stream.MStream;
 import com.davidbracewell.stream.accumulator.MStatisticsAccumulator;
 import com.davidbracewell.string.StringUtils;
-import com.google.common.base.Preconditions;
 import lombok.NonNull;
 
 import java.io.IOException;

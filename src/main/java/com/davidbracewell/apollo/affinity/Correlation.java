@@ -24,7 +24,7 @@ package com.davidbracewell.apollo.affinity;
 import com.davidbracewell.EnhancedDoubleStatistics;
 import com.davidbracewell.apollo.linalg.DenseVector;
 import com.davidbracewell.apollo.linalg.Vector;
-import com.google.common.base.Preconditions;
+import com.davidbracewell.guava.common.base.Preconditions;
 import lombok.NonNull;
 import org.apache.commons.math3.stat.correlation.KendallsCorrelation;
 

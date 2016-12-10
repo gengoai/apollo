@@ -22,8 +22,8 @@
 package com.davidbracewell.apollo.ml;
 
 import com.davidbracewell.Copyable;
+import com.davidbracewell.guava.common.base.Joiner;
 import com.davidbracewell.string.StringUtils;
-import com.google.common.base.Joiner;
 import lombok.NonNull;
 import lombok.Value;
 

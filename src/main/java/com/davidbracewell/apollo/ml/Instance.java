@@ -26,11 +26,11 @@ import com.davidbracewell.collection.Streams;
 import com.davidbracewell.collection.counter.Counter;
 import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.conversion.Val;
+import com.davidbracewell.guava.common.collect.Sets;
 import com.davidbracewell.io.structured.ElementType;
 import com.davidbracewell.io.structured.StructuredReader;
 import com.davidbracewell.io.structured.StructuredWriter;
 import com.davidbracewell.tuple.Tuple2;
-import com.google.common.collect.Sets;
 import lombok.*;
 
 import java.io.IOException;

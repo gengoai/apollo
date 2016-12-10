@@ -29,11 +29,11 @@ import com.davidbracewell.collection.counter.Counters;
 import com.davidbracewell.collection.counter.HashMapMultiCounter;
 import com.davidbracewell.collection.counter.MultiCounter;
 import com.davidbracewell.conversion.Cast;
+import com.davidbracewell.guava.common.base.Preconditions;
 import com.davidbracewell.logging.Logger;
 import com.davidbracewell.string.StringUtils;
 import com.davidbracewell.string.TableFormatter;
 import com.davidbracewell.tuple.Tuple2;
-import com.google.common.base.Preconditions;
 import lombok.NonNull;
 
 import java.io.PrintStream;

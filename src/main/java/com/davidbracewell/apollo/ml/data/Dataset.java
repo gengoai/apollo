@@ -30,6 +30,7 @@ import com.davidbracewell.collection.counter.Counter;
 import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.function.SerializableFunction;
 import com.davidbracewell.function.SerializablePredicate;
+import com.davidbracewell.guava.common.base.Preconditions;
 import com.davidbracewell.io.resource.Resource;
 import com.davidbracewell.io.structured.ElementType;
 import com.davidbracewell.io.structured.json.JSONReader;
@@ -38,7 +39,6 @@ import com.davidbracewell.logging.Logger;
 import com.davidbracewell.stream.MStream;
 import com.davidbracewell.stream.StreamingContext;
 import com.davidbracewell.stream.accumulator.MCounterAccumulator;
-import com.google.common.base.Preconditions;
 import lombok.NonNull;
 
 import java.io.IOException;

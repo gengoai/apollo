@@ -21,7 +21,7 @@
 
 package com.davidbracewell.apollo.affinity;
 
-import com.google.common.base.Preconditions;
+import com.davidbracewell.guava.common.base.Preconditions;
 import lombok.NonNull;
 
 import java.util.Map;

@@ -4,9 +4,9 @@ import com.davidbracewell.Interner;
 import com.davidbracewell.apollo.ml.Feature;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.data.Dataset;
+import com.davidbracewell.guava.common.base.Preconditions;
+import com.davidbracewell.guava.common.collect.Lists;
 import com.davidbracewell.string.StringUtils;
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
 
 import java.io.Serializable;
 import java.util.*;

@@ -22,9 +22,9 @@
 package com.davidbracewell.apollo.ml.sequence;
 
 import com.davidbracewell.apollo.ml.Instance;
-import com.google.common.base.Preconditions;
-import com.google.common.collect.MinMaxPriorityQueue;
-import com.google.common.collect.Ordering;
+import com.davidbracewell.guava.common.base.Preconditions;
+import com.davidbracewell.guava.common.collect.MinMaxPriorityQueue;
+import com.davidbracewell.guava.common.collect.Ordering;
 import lombok.Getter;
 import lombok.NonNull;
 

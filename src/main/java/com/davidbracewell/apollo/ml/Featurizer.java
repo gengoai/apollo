@@ -39,7 +39,7 @@ import java.util.Set;
  */
 @FunctionalInterface
 public interface Featurizer<INPUT> extends Serializable {
-
+   long serialVersionUID = 1L;
 
    /**
     * Chains multiple featurizers together with each being called on the input data.

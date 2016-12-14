@@ -19,7 +19,7 @@ import java.util.*;
  * @author David B. Bracewell
  */
 public interface SequenceFeaturizer<INPUT> extends Featurizer<Context<INPUT>> {
-
+   long serialVersionUID = 1L;
    /**
     * Feature set set.
     *

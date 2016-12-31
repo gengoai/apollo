@@ -26,11 +26,8 @@ import com.davidbracewell.guava.common.base.Preconditions;
 import com.davidbracewell.guava.common.math.DoubleMath;
 import com.davidbracewell.guava.common.primitives.Doubles;
 import lombok.NonNull;
-import org.apache.commons.math.MathException;
-import org.apache.commons.math.distribution.ChiSquaredDistribution;
-import org.apache.commons.math.distribution.ChiSquaredDistributionImpl;
-import org.apache.commons.math.distribution.TDistribution;
-import org.apache.commons.math.distribution.TDistributionImpl;
+import org.apache.commons.math3.distribution.ChiSquaredDistribution;
+import org.apache.commons.math3.distribution.TDistribution;
 
 /**
  * Common measures to determine the association, or dependence, of variables in a contingency table.
@@ -117,12 +114,8 @@ public enum AssociationMeasures implements ContingencyTableCalculator {
 
       @Override
       public double pValue(@NonNull ContingencyTable table) {
-         TDistribution distribution = new TDistributionImpl(table.degreesOfFreedom());
-         try {
-            return 1.0 - distribution.cumulativeProbability(calculate(table));
-         } catch (MathException e) {
-            return Double.POSITIVE_INFINITY;
-         }
+         TDistribution distribution = new TDistribution(table.degreesOfFreedom());
+         return 1.0 - distribution.cumulativeProbability(calculate(table));
       }
 
    },
@@ -171,12 +164,8 @@ public enum AssociationMeasures implements ContingencyTableCalculator {
 
       @Override
       public double pValue(@NonNull ContingencyTable table) {
-         ChiSquaredDistribution distribution = new ChiSquaredDistributionImpl(table.degreesOfFreedom());
-         try {
-            return 1.0 - distribution.cumulativeProbability(calculate(table));
-         } catch (MathException e) {
-            return Double.POSITIVE_INFINITY;
-         }
+         ChiSquaredDistribution distribution = new ChiSquaredDistribution(table.degreesOfFreedom());
+         return 1.0 - distribution.cumulativeProbability(calculate(table));
       }
    },
    /**
@@ -196,12 +185,8 @@ public enum AssociationMeasures implements ContingencyTableCalculator {
 
       @Override
       public double pValue(@NonNull ContingencyTable table) {
-         ChiSquaredDistribution distribution = new ChiSquaredDistributionImpl(table.degreesOfFreedom());
-         try {
-            return 1.0 - distribution.cumulativeProbability(calculate(table));
-         } catch (MathException e) {
-            return Double.POSITIVE_INFINITY;
-         }
+         ChiSquaredDistribution distribution = new ChiSquaredDistribution(table.degreesOfFreedom());
+         return 1.0 - distribution.cumulativeProbability(calculate(table));
       }
    },
    /**

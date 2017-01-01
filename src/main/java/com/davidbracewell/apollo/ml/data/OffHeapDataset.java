@@ -12,6 +12,7 @@ import com.davidbracewell.io.Resources;
 import com.davidbracewell.io.resource.Resource;
 import com.davidbracewell.stream.MStream;
 import com.davidbracewell.stream.StreamingContext;
+import com.davidbracewell.string.StringUtils;
 import com.davidbracewell.tuple.Tuples;
 import lombok.NonNull;
 
@@ -49,16 +50,22 @@ public class OffHeapDataset<T extends Example> extends Dataset<T> {
 
    @Override
    protected void addAll(@NonNull MStream<T> instances) {
-      long binSize = instances.count() / 5000;
+      //TODO: Rewrite using MultiFileWriter
+      final long binSize;
+      if (instances.isReusable()) {
+         binSize = instances.count() / 5000;
+      } else {
+         binSize = -1;
+      }
       if (binSize <= 1) {
          writeInstancesTo(instances,
-                          outputResource.setIsCompressed(true).getChild("part-" + id.incrementAndGet() + ".json"));
+                          outputResource.getChild("part-" + id.incrementAndGet() + ".json").setIsCompressed(true));
       } else {
          instances.mapToPair(i -> Tuples.$((long) Math.floor(Math.random() * binSize), i))
                   .groupByKey()
                   .forEachLocal((key, list) -> {
-                                   Resource r = outputResource.setIsCompressed(true).getChild(
-                                      "part-" + id.incrementAndGet() + ".json");
+                                   Resource r = outputResource.getChild("part-" + id.incrementAndGet() + ".json")
+                                                              .setIsCompressed(true);
                                    writeInstancesTo(StreamingContext.local().stream(list), r);
                                 }
                                );
@@ -108,10 +115,10 @@ public class OffHeapDataset<T extends Example> extends Dataset<T> {
    @Override
    public MStream<T> stream() {
       return StreamingContext.local()
-                             .stream(outputResource.getChildren().stream()
-                                                   .flatMap(function(r -> r.readLines().stream()))
-                                                   .map(function(line -> Cast.as(Example.fromJson(line, clazz))))
-                                    );
+                             .stream(outputResource.getChildren().parallelStream()
+                                                   .flatMap(function(r -> r.lines().javaStream()))
+                                                   .filter(StringUtils::isNotNullOrBlank)
+                                                   .map(function(line -> Cast.as(Example.fromJson(line, clazz)))));
    }
 
    @Override
@@ -135,9 +142,11 @@ public class OffHeapDataset<T extends Example> extends Dataset<T> {
       try (BufferedWriter writer = new BufferedWriter(file.writer())) {
          instances.forEach(Unchecked.consumer(ii -> {
             clazz = Cast.as(ii.getClass());
-            writer.write(ii.toJson());
-            writer.newLine();
-            size++;
+            if (ii.getFeatureSpace().count() > 0) {
+               writer.write(ii.toJson());
+               writer.newLine();
+               size++;
+            }
          }));
       } catch (IOException e) {
          throw Throwables.propagate(e);

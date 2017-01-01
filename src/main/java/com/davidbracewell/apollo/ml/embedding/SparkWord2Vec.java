@@ -64,7 +64,8 @@ public class SparkWord2Vec extends EmbeddingLearner {
       w2v.setNumIterations(numIterations);
       w2v.setWindowSize(windowSize);
       w2v.setSeed(randomSeed);
-      SparkStream<Iterable<String>> sentences = new SparkStream<>(dataset.stream().map(sequence -> {
+      SparkStream<Iterable<String>> sentences = new SparkStream<>(dataset.stream()
+                                                                         .map(sequence -> {
          List<String> sentence = new ArrayList<>();
          for (Instance instance : sequence) {
             sentence.add(instance.getFeatures().get(0).getName());

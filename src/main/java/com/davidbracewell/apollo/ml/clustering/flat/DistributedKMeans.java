@@ -59,15 +59,17 @@ public class DistributedKMeans extends Clusterer<FlatClustering> {
       SparkStream<com.davidbracewell.apollo.linalg.Vector> sparkStream = new SparkStream<>(instanceStream);
       JavaRDD<Vector> rdd = sparkStream.getRDD().map(v -> (Vector) new DenseVector(v.toArray())).cache();
       JavaRDD<String> labels = sparkStream.getRDD()
-                                          .map(o -> getEncoderPair().decodeLabel(o.getLabel()).toString())
+                                          .map(o -> {
+                                             if (o.getLabel() instanceof Number) {
+                                                return getEncoderPair().decodeLabel(o.getLabel()).toString();
+                                             }
+                                             return o.getLabel().toString();
+                                          })
                                           .cache();
 
       JavaPairRDD<String, Vector> pair = labels.zip(rdd);
 
-      KMeansModel model = org.apache.spark.mllib.clustering.KMeans.train(rdd.rdd(),
-                                                                         K,
-                                                                         maxIterations
-                                                                        );
+      KMeansModel model = org.apache.spark.mllib.clustering.KMeans.train(rdd.rdd(), K, maxIterations);
 
       Vector[] centroids = model.clusterCenters();
       List<Cluster> clusters = new ArrayList<>();

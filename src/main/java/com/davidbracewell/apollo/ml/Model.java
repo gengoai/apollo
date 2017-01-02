@@ -6,145 +6,122 @@ import lombok.NonNull;
 import java.io.Serializable;
 
 /**
- * The type Model.
+ * <p>A generic interface to classification, regression, and sequence models</p>
  *
  * @author David B. Bracewell
  */
-public abstract class Model implements Serializable {
-  private static final long serialVersionUID = 1L;
-  private final EncoderPair encoderPair;
+public interface Model extends Serializable {
 
-  /**
-   * Instantiates a new Model.
-   *
-   * @param labelEncoder   the label encoder
-   * @param featureEncoder the feature encoder
-   */
-  public Model(@NonNull Encoder labelEncoder, @NonNull Encoder featureEncoder) {
-    this.encoderPair = new EncoderPair(labelEncoder, featureEncoder);
-  }
+   /**
+    * Reads the model from the given resource
+    *
+    * @param <T>           the type of model to read
+    * @param modelResource the resource containing the serialized model
+    * @return the deserialized model
+    * @throws Exception Something went wrong reading the model
+    */
+   static <T extends Model> T read(@NonNull Resource modelResource) throws Exception {
+      return modelResource.readObject();
+   }
 
-  /**
-   * Instantiates a new Model.
-   *
-   * @param encoderPair the encoder pair
-   */
-  public Model(@NonNull EncoderPair encoderPair) {
-    this.encoderPair = encoderPair;
-  }
+   /**
+    * Convenience method for decoding an encoded feature value into an Object
+    *
+    * @param value the encoded feature value
+    * @return the decoded object
+    */
+   default Object decodeFeature(double value) {
+      return getEncoderPair().decodeFeature(value);
+   }
 
-  /**
-   * Read model classifier.
-   *
-   * @param <T>           the type parameter
-   * @param modelResource the model resource
-   * @return the classifier
-   * @throws Exception the exception
-   */
-  public static <T extends Model> T read(@NonNull Resource modelResource) throws Exception {
-    return modelResource.readObject();
-  }
+   /**
+    * Convenience method for decoding an encoded label value into an Object
+    *
+    * @param value the encoded label value
+    * @return the decoded object
+    */
+   default Object decodeLabel(double value) {
+      return getEncoderPair().decodeLabel(value);
+   }
 
-  /**
-   * Number of labels int.
-   *
-   * @return the int
-   */
-  public int numberOfLabels() {
-    return encoderPair.numberOfLabels();
-  }
+   /**
+    * Convenience method for encoding a feature into a double value
+    *
+    * @param feature the feature to encode
+    * @return the encoded double value
+    */
+   default double encodeFeature(Object feature) {
+      return getEncoderPair().encodeFeature(feature);
+   }
 
-  /**
-   * Number of features int.
-   *
-   * @return the int
-   */
-  public int numberOfFeatures() {
-    return encoderPair.numberOfFeatures();
-  }
+   /**
+    * Convenience method for encoding a label into a double value
+    *
+    * @param label the label to encode
+    * @return the encoded double value
+    */
+   default double encodeLabel(Object label) {
+      return getEncoderPair().encodeLabel(label);
+   }
 
-  /**
-   * Gets label encoder.
-   *
-   * @return the label encoder
-   */
-  public Encoder getLabelEncoder() {
-    return encoderPair.getLabelEncoder();
-  }
+   /**
+    * Signal that training of this model has finished.
+    */
+   default void finishTraining() {
+      getEncoderPair().freeze();
+   }
 
-  /**
-   * Gets feature encoder.
-   *
-   * @return the feature encoder
-   */
-  public Encoder getFeatureEncoder() {
-    return encoderPair.getFeatureEncoder();
-  }
+   /**
+    * Gets the encoder pair this model uses.
+    *
+    * @return the encoder pair
+    */
+   EncoderPair getEncoderPair();
 
-  /**
-   * Gets encoder pair.
-   *
-   * @return the encoder pair
-   */
-  public EncoderPair getEncoderPair() {
-    return encoderPair;
-  }
+   /**
+    * Convenience method for retrieving the feature encoder.
+    *
+    * @return the feature encoder
+    */
+   default Encoder getFeatureEncoder() {
+      return getEncoderPair().getFeatureEncoder();
+   }
 
-  /**
-   * Write model.
-   *
-   * @param modelResource the model resource
-   * @throws Exception the exception
-   */
-  public void write(@NonNull Resource modelResource) throws Exception {
-    modelResource.setIsCompressed(true).writeObject(this);
-  }
+   /**
+    * Convenience method for retrieving the label encoder
+    *
+    * @return the label encoder
+    */
+   default LabelEncoder getLabelEncoder() {
+      return getEncoderPair().getLabelEncoder();
+   }
 
-  /**
-   * Encode label double.
-   *
-   * @param label the label
-   * @return the double
-   */
-  public double encodeLabel(Object label) {
-    return encoderPair.encodeLabel(label);
-  }
+   /**
+    * Convenience method for retrieving the total number of features.
+    *
+    * @return the number of model features
+    */
+   default int numberOfFeatures() {
+      return getEncoderPair().numberOfFeatures();
+   }
 
-  /**
-   * Decode label object.
-   *
-   * @param value the value
-   * @return the object
-   */
-  public Object decodeLabel(double value) {
-    return encoderPair.decodeLabel(value);
-  }
+   /**
+    * Convenience method for retrieving the total number of labels
+    *
+    * @return the number of possible labels
+    */
+   default int numberOfLabels() {
+      return getEncoderPair().numberOfLabels();
+   }
 
-  /**
-   * Encode feature double.
-   *
-   * @param feature the feature
-   * @return the double
-   */
-  public double encodeFeature(Object feature) {
-    return encoderPair.encodeFeature(feature);
-  }
-
-  /**
-   * Decode feature object.
-   *
-   * @param value the value
-   * @return the object
-   */
-  public Object decodeFeature(double value) {
-    return encoderPair.decodeFeature(value);
-  }
-
-  /**
-   * Finish training.
-   */
-  protected void finishTraining() {
-    encoderPair.freeze();
-  }
+   /**
+    * Serializes the model to the given resource.
+    *
+    * @param modelResource the resource to serialize the model to
+    * @throws Exception Something went wrong serializing the model
+    */
+   default void write(@NonNull Resource modelResource) throws Exception {
+      modelResource.setIsCompressed(true).writeObject(this);
+   }
 
 }// END OF Model

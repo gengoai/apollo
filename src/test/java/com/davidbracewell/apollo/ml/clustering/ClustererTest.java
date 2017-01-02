@@ -21,53 +21,36 @@
 
 package com.davidbracewell.apollo.ml.clustering;
 
-import com.davidbracewell.apollo.ml.Dataset;
-import com.davidbracewell.apollo.ml.Feature;
-import com.davidbracewell.apollo.ml.IndexEncoder;
 import com.davidbracewell.apollo.ml.Instance;
-import com.davidbracewell.io.CSV;
+import com.davidbracewell.apollo.ml.data.Dataset;
+import com.davidbracewell.apollo.ml.data.source.DenseCSVDataSource;
 import com.davidbracewell.io.Resources;
-import com.davidbracewell.io.structured.csv.CSVReader;
-import com.google.common.base.Throwables;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import lombok.SneakyThrows;
 
 /**
  * @author David B. Bracewell
  */
 public abstract class ClustererTest {
-  private Clusterer algorithm;
+   private Clusterer algorithm;
 
-  public ClustererTest(Clusterer algorithm) {
-    this.algorithm = algorithm;
-  }
+   public ClustererTest(Clusterer algorithm) {
+      this.algorithm = algorithm;
+   }
 
-  public Dataset<Instance> getData() {
-    List<Instance> instances = new ArrayList<>();
-    try (CSVReader reader = CSV.builder().reader(Resources.fromClasspath("com/davidbracewell/apollo/ml/clustering/sample.csv"))) {
-      reader.stream().forEach(row ->
-        instances.add(
-          Instance.create(
-            Arrays.asList(
-              Feature.real("X", Double.valueOf(row.get(1))),
-              Feature.real("Y", Double.valueOf(row.get(2)))
-            ),
-            row.get(0)
-          )
-        ));
-    } catch (Exception e) {
-      throw Throwables.propagate(e);
-    }
-    return Dataset.classification()
-      .featureEncoder(new IndexEncoder())
-      .localSource(instances.stream())
-      .build();
-  }
+   protected boolean isDistributed() {
+      return false;
+   }
 
-  public Clustering cluster() {
-    return this.algorithm.train(getData());
-  }
+   @SneakyThrows
+   public Dataset<Instance> getData() {
+      DenseCSVDataSource csvDataSource = new DenseCSVDataSource(Resources.fromClasspath(
+         "com/davidbracewell/apollo/ml/clustering/sample.csv"), true);
+      return Dataset.classification()
+                    .source(csvDataSource);
+   }
+
+   public Clustering cluster() {
+      return this.algorithm.train(getData());
+   }
 
 }

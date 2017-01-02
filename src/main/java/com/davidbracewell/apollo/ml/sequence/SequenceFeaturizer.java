@@ -18,96 +18,100 @@ import java.util.*;
  * @param <INPUT> the type parameter
  * @author David B. Bracewell
  */
-public interface SequenceFeaturizer<INPUT> extends Featurizer<ContextualIterator<INPUT>> {
+public interface SequenceFeaturizer<INPUT> extends Featurizer<Context<INPUT>> {
+   long serialVersionUID = 1L;
+   /**
+    * Feature set set.
+    *
+    * @param features the features
+    * @return the set
+    */
+   static Set<Feature> featureSet(Feature... features) {
+      return new HashSet<>(Arrays.asList(features));
+   }
 
-  /**
-   * Feature set set.
-   *
-   * @param features the features
-   * @return the set
-   */
-  static Set<Feature> featureSet(Feature... features) {
-    return new HashSet<>(Arrays.asList(features));
-  }
+   /**
+    * Of sequence featurizer.
+    *
+    * @param <T>      the type parameter
+    * @param function the function
+    * @return the sequence featurizer
+    */
+   static <T> SequenceFeaturizer<T> of(@NonNull SerializableFunction<Context<T>, ? extends Collection<Feature>> function) {
+      return new SequenceFeaturizer<T>() {
+         private static final long serialVersionUID = 1L;
 
-  /**
-   * Of sequence featurizer.
-   *
-   * @param <T>      the type parameter
-   * @param function the function
-   * @return the sequence featurizer
-   */
-  static <T> SequenceFeaturizer<T> of(@NonNull SerializableFunction<ContextualIterator<T>, ? extends Collection<Feature>> function) {
-    return new SequenceFeaturizer<T>() {
-      private static final long serialVersionUID = 1L;
+         @Override
+         @Cached
+         public Set<Feature> apply(Context<T> tContext) {
+            return new HashSet<>(function.apply(tContext));
+         }
+      };
+   }
 
-      @Override
-      @Cached
-      public Set<Feature> apply(ContextualIterator<T> tContextualIterator) {
-        return new HashSet<>(function.apply(tContextualIterator));
+   @Override
+   default SequenceFeaturizer<INPUT> cache(String cacheName) {
+      return CacheProxy.cache(this, cacheName);
+   }
+
+   @Override
+   default SequenceFeaturizer<INPUT> cache() {
+      return CacheProxy.cache(this);
+   }
+
+
+   /**
+    * Chain sequence featurizer.
+    *
+    * @param <T>         the type parameter
+    * @param featurizers the featurizers
+    * @return the sequence featurizer
+    */
+   @SafeVarargs
+   static <T> SequenceFeaturizer<T> chain(@NonNull SequenceFeaturizer<? super T>... featurizers) {
+      return new SequenceFeaturizer<T>() {
+         private static final long serialVersionUID = 1L;
+         final Set<SequenceFeaturizer<? super T>> extractors = new LinkedHashSet<>(Arrays.asList(featurizers));
+
+         @Override
+         @Cached
+         public Set<Feature> apply(Context<T> tContext) {
+            Set<Feature> features = new HashSet<>();
+            extractors.forEach(ex -> features.addAll(ex.apply(Cast.as(tContext))));
+            return features;
+         }
+      };
+   }
+
+   /**
+    * Extract sequence m stream.
+    *
+    * @param stream the stream
+    * @return the m stream
+    */
+   default MStream<Sequence> extractSequence(@NonNull MStream<Context<INPUT>> stream) {
+      return stream.map(this::extractSequence);
+   }
+
+   /**
+    * Extract sequence sequence.
+    *
+    * @param iterator the iterator
+    * @return the sequence
+    */
+   default Sequence extractSequence(@NonNull Context<INPUT> iterator) {
+      ArrayList<Instance> instances = new ArrayList<>();
+      while (iterator.hasNext()) {
+         iterator.next();
+         instances.add(extractInstance(iterator, iterator.getLabel()));
       }
-    };
-  }
+      instances.trimToSize();
+      return new Sequence(instances);
+   }
 
-  @Override
-  default SequenceFeaturizer<INPUT> cache(String cacheName) {
-    return CacheProxy.cache(this, cacheName);
-  }
-
-  @Override
-  default SequenceFeaturizer<INPUT> cache() {
-    return CacheProxy.cache(this);
-  }
-
-
-  /**
-   * Chain sequence featurizer.
-   *
-   * @param <T>         the type parameter
-   * @param featurizers the featurizers
-   * @return the sequence featurizer
-   */
-  @SafeVarargs
-  static <T> SequenceFeaturizer<T> chain(@NonNull SequenceFeaturizer<? super T>... featurizers) {
-    return new SequenceFeaturizer<T>() {
-      private static final long serialVersionUID = 1L;
-      final Set<SequenceFeaturizer<? super T>> extractors = new LinkedHashSet<>(Arrays.asList(featurizers));
-
-      @Override
-      @Cached
-      public Set<Feature> apply(ContextualIterator<T> tContextualIterator) {
-        Set<Feature> features = new HashSet<>();
-        extractors.forEach(ex -> features.addAll(ex.apply(Cast.as(tContextualIterator))));
-        return features;
-      }
-    };
-  }
-
-  /**
-   * Extract sequence m stream.
-   *
-   * @param stream the stream
-   * @return the m stream
-   */
-  default MStream<Sequence> extractSequence(@NonNull MStream<ContextualIterator<INPUT>> stream) {
-    return stream.map(this::extractSequence);
-  }
-
-  /**
-   * Extract sequence sequence.
-   *
-   * @param iterator the iterator
-   * @return the sequence
-   */
-  default Sequence extractSequence(@NonNull ContextualIterator<INPUT> iterator) {
-    ArrayList<Instance> instances = new ArrayList<>();
-    while (iterator.hasNext()) {
-      iterator.next();
-      instances.add(extract(iterator, iterator.getLabel()));
-    }
-    instances.trimToSize();
-    return new Sequence(instances);
-  }
-
+   @Override
+   default SequenceFeaturizer<Context<INPUT>> asSequenceFeaturizer() {
+      return Cast.as(this);
+   }
 
 }// END OF SequenceFeaturizer

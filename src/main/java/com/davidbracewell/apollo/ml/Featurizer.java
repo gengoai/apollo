@@ -21,16 +21,14 @@
 
 package com.davidbracewell.apollo.ml;
 
+import com.davidbracewell.apollo.ml.sequence.SequenceFeaturizer;
 import com.davidbracewell.cache.CacheProxy;
 import com.davidbracewell.cache.Cached;
-import com.davidbracewell.collection.Counter;
 import com.davidbracewell.conversion.Cast;
-import com.davidbracewell.function.SerializableFunction;
-import com.davidbracewell.stream.MStream;
-import com.google.common.base.Preconditions;
 import lombok.NonNull;
 
-import java.util.*;
+import java.io.Serializable;
+import java.util.Set;
 
 /**
  * <p> A featurizer converts an input into a one or more <code>Feature</code>s which have a name and a value. Specific
@@ -39,147 +37,109 @@ import java.util.*;
  * @param <INPUT> the type of the input being converted into features
  * @author David B. Bracewell
  */
-public interface Featurizer<INPUT> extends SerializableFunction<INPUT, Set<Feature>> {
+@FunctionalInterface
+public interface Featurizer<INPUT> extends Serializable {
+   long serialVersionUID = 1L;
 
-
-  /**
-   * Creates a binary featurizer, i.e. one that in which the values returned are all 1.0 (true). The given function
-   * converts the input into a collection of feature names which are assumed to have the value true (1.0).
-   *
-   * @param <T>      the type of the input
-   * @param function the function to use to convert the input int feature names.
-   * @return the featurizer
-   */
-  static <T> Featurizer<T> binary(@NonNull SerializableFunction<? super T, ? extends Collection<String>> function) {
-    return new BinaryFeaturizer<T>() {
-      private static final long serialVersionUID = 1L;
-
-      @Override
-      protected Set<String> applyImpl(T t) {
-        Collection<String> c = function.apply(t);
-        if (c instanceof Set) {
-          return Cast.as(c);
-        }
-        return new HashSet<>(c);
+   /**
+    * Chains multiple featurizers together with each being called on the input data.
+    *
+    * @param <T>           the example type parameter
+    * @param featurizerOne the first featurizer
+    * @param featurizers   the featurizers to chain together
+    * @return the Chained featurizers
+    */
+   @SafeVarargs
+   static <T> Featurizer<T> chain(@NonNull Featurizer<? super T> featurizerOne, Featurizer<? super T>... featurizers) {
+      if (featurizers.length == 0) {
+         return Cast.as(featurizerOne);
       }
-    };
-  }
+      return new FeaturizerChain<>(featurizerOne, featurizers);
+   }
 
-  /**
-   * Creates a real featurizer that uses a given function that converts the input into a counter of features.
-   *
-   * @param <T>      the type of the input
-   * @param function the function to use to convert the input
-   * @return the featurizer
-   */
-  static <T> Featurizer<T> real(@NonNull SerializableFunction<? super T, ? extends Counter<String>> function) {
-    return new RealFeaturizer<T>() {
-      private static final long serialVersionUID = 1L;
+   /**
+    * Applies this featurizer to the given input
+    *
+    * @param input the input to featurize
+    * @return the set of features
+    */
+   @Cached
+   Set<Feature> apply(INPUT input);
 
-      @Override
-      protected Counter<String> applyImpl(T t) {
-        return function.apply(t);
+
+   /**
+    * Caches the call to featurizer.
+    *
+    * @return the featurizer
+    */
+   default Featurizer<INPUT> cache() {
+      return CacheProxy.cache(this);
+   }
+
+   /**
+    * Cache featurizer.
+    *
+    * @param cacheName the cache name
+    * @return the featurizer
+    */
+   default Featurizer<INPUT> cache(String cacheName) {
+      return CacheProxy.cache(this, cacheName);
+   }
+
+   /**
+    * Chains this featurizer with another.
+    *
+    * @param featurizer the next featurizer to call
+    * @return the new chain of featurizer
+    */
+   default Featurizer<INPUT> and(@NonNull Featurizer<? super INPUT> featurizer) {
+      if (this instanceof FeaturizerChain) {
+         Cast.<FeaturizerChain<INPUT>>as(this).addFeaturizer(featurizer);
+         return this;
       }
-    };
-  }
+      return new FeaturizerChain<>(this, featurizer);
+   }
 
-  /**
-   * Converts the given input into features and creates an <code>Instance</code> from the features.
-   *
-   * @param object the input
-   * @return the instance
-   */
-  default Instance extract(@NonNull INPUT object) {
-    return Instance.create(apply(object));
-  }
+   /**
+    * Converts the given input into features and creates an <code>Instance</code> from the features.
+    *
+    * @param object the input
+    * @return the instance
+    */
+   default Instance extractInstance(@NonNull INPUT object) {
+      return Instance.create(apply(object));
+   }
 
-  /**
-   * Converts the given input into features and creates an <code>Instance</code> from the features.
-   *
-   * @param object the input
-   * @param label  the label to assign the input
-   * @return the instance
-   */
-  default Instance extract(@NonNull INPUT object, Object label) {
-    return Instance.create(apply(object), label);
-  }
+   /**
+    * Converts the given input into features and creates an <code>Instance</code> from the features.
+    *
+    * @param object the input
+    * @param label  the label to assign the input
+    * @return the instance
+    */
+   default Instance extractInstance(@NonNull INPUT object, Object label) {
+      return Instance.create(apply(object), label);
+   }
 
-  /**
-   * Extract instance.
-   *
-   * @param labeledDatum the labeled datum
-   * @return the instance
-   */
-  default Instance extractLabeled(@NonNull LabeledDatum<INPUT> labeledDatum) {
-    return Instance.create(apply(labeledDatum.getData()), labeledDatum.getLabel());
-  }
+   /**
+    * Converts the given input into features and creates an <code>Instance</code> from the features.
+    *
+    * @param labeledDatum the labeled datum to featurize
+    * @return the instance
+    */
+   default Instance extractInstance(@NonNull LabeledDatum<INPUT> labeledDatum) {
+      return Instance.create(apply(labeledDatum.getData()), labeledDatum.getLabel());
+   }
 
 
-  /**
-   * Extract labeled m stream.
-   *
-   * @param inputStream the input stream
-   * @return the m stream
-   */
-  default MStream<Instance> extractLabeled(@NonNull MStream<LabeledDatum<INPUT>> inputStream) {
-    return inputStream.map(this::extractLabeled);
-  }
-
-  /**
-   * Extract m stream.
-   *
-   * @param inputStream the input stream
-   * @return the m stream
-   */
-  default MStream<Instance> extract(@NonNull MStream<INPUT> inputStream) {
-    return inputStream.map(this::extract);
-  }
-
-  /**
-   * Chain featurizer.
-   *
-   * @param <T>        the type parameter
-   * @param extractors the extractors
-   * @return the featurizer
-   */
-  @SafeVarargs
-  static <T> Featurizer<T> chain(@NonNull Featurizer<? super T>... extractors) {
-    Preconditions.checkState(extractors.length > 0, "No Featurizers have been specified.");
-    if (extractors.length == 1) {
-      return Cast.as(extractors[0]);
-    }
-    return new Featurizer<T>() {
-      private static final long serialVersionUID = 1L;
-      private final Set<Featurizer<? super T>> featurizers = new LinkedHashSet<>(Arrays.asList(extractors));
-
-      @Override
-      @Cached
-      public Set<Feature> apply(T t) {
-        Set<Feature> features = new HashSet<>();
-        featurizers.forEach(f -> features.addAll(f.apply(t)));
-        return features;
-      }
-    };
-  }
-
-  /**
-   * Cache featurizer.
-   *
-   * @param cacheName the cache name
-   * @return the featurizer
-   */
-  default Featurizer<INPUT> cache(String cacheName) {
-    return CacheProxy.cache(this, cacheName);
-  }
-
-  /**
-   * Cache featurizer.
-   *
-   * @return the featurizer
-   */
-  default Featurizer<INPUT> cache() {
-    return CacheProxy.cache(this);
-  }
-
+   /**
+    * Converts this instance featurizer into a <code>SequenceFeaturizer</code> that acts on the current item in the
+    * sequence.
+    *
+    * @return the sequence featurizer
+    */
+   default SequenceFeaturizer<INPUT> asSequenceFeaturizer() {
+      return itr -> apply(itr.getCurrent());
+   }
 
 }//END OF Featurizer

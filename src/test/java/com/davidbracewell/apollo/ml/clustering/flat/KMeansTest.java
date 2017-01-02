@@ -22,40 +22,51 @@
 package com.davidbracewell.apollo.ml.clustering.flat;
 
 import com.davidbracewell.apollo.affinity.Distance;
-import com.davidbracewell.apollo.linalg.LabeledVector;
+import com.davidbracewell.apollo.linalg.Vector;
+import com.davidbracewell.apollo.ml.Feature;
+import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.clustering.Cluster;
 import com.davidbracewell.apollo.ml.clustering.ClustererTest;
 import com.davidbracewell.apollo.ml.clustering.Clustering;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
+import java.util.Arrays;
+
+import static org.junit.Assert.*;
 
 /**
  * @author David B. Bracewell
  */
 public class KMeansTest extends ClustererTest {
 
-  public KMeansTest() {
-    super(new KMeans(2, Distance.Manhattan, 100));
-  }
+   public KMeansTest() {
+      super(new KMeans(2, Distance.Manhattan, 100));
+   }
 
-  @Test
-  public void testCluster() throws Exception {
-    Clustering c = cluster();
-    assertEquals(c.size(), 2.0, 0.0);
+   @Test
+   public void testCluster() throws Exception {
+      Clustering c = cluster();
+      assertEquals(2.0, c.size(), 0.0);
 
-    Cluster c1 = c.get(0);
-    String target = c1.getPoints().get(0).getLabel().toString();
-    for (LabeledVector point : c1.getPoints()) {
-      assertEquals(target, point.getLabel().toString());
-    }
+      Cluster c1 = c.get(0);
+      String target = c1.getPoints().get(0).getLabel().toString();
+      for (Vector point : c1.getPoints()) {
+         assertEquals(target, point.getLabel().toString());
+      }
 
-    Cluster c2 = c.get(1);
-    target = c2.getPoints().get(0).getLabel().toString();
-    for (LabeledVector point : c2.getPoints()) {
-      assertEquals(target, point.getLabel().toString());
-    }
+      Cluster c2 = c.get(1);
+      target = c2.getPoints().get(0).getLabel().toString();
+      for (Vector point : c2.getPoints()) {
+         assertEquals(target, point.getLabel().toString());
+      }
 
 
-  }
+      double[] dist = c.softCluster(Instance.create(Arrays.asList(
+         Feature.real("F1", 0.5),
+         Feature.real("F2", 1.5))));
+      assertTrue((Double.isInfinite(dist[0]) && !Double.isInfinite(dist[1]))
+                    || (!Double.isInfinite(dist[0]) && Double.isInfinite(dist[1]))
+                );
+
+   }
 }

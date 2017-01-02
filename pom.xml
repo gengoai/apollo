@@ -22,7 +22,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.davidbracewell</groupId>
     <artifactId>apollo</artifactId>
-    <version>0.2</version>
+    <version>0.3</version>
     <packaging>jar</packaging>
     <name>${project.groupId}:${project.artifactId}</name>
     <description>A machine learning library for Java.</description>
@@ -34,7 +34,7 @@
         <connection>scm:git:git@github.com:dbracewell/apollo.git</connection>
         <developerConnection>scm:git:git@github.com:dbracewell/apollo.git</developerConnection>
         <url>git@github.com:dbracewell/apollo.git</url>
-        <tag>apollo-0.2</tag>
+        <tag>apollo-0.3</tag>
     </scm>
     <developers>
         <developer>
@@ -56,7 +56,7 @@
         <dependency>
             <groupId>com.davidbracewell</groupId>
             <artifactId>mango</artifactId>
-            <version>0.3</version>
+            <version>0.4</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
@@ -66,7 +66,7 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.16.8</version>
+            <version>1.16.12</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -94,6 +94,18 @@
             <artifactId>junit</artifactId>
             <version>4.12</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.spark</groupId>
+            <artifactId>spark-mllib_2.11</artifactId>
+            <version>2.0.1</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.spark</groupId>
+            <artifactId>spark-core_2.11</artifactId>
+            <version>2.0.1</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
     <profiles>
@@ -125,7 +137,7 @@
                 <inherited>true</inherited>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.3</version>
+                <version>3.5.1</version>
                 <configuration>
                     <source>1.8</source>
                     <target>1.8</target>

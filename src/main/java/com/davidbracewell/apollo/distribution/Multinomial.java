@@ -21,124 +21,155 @@
 
 package com.davidbracewell.apollo.distribution;
 
-import com.google.common.base.Preconditions;
+import com.davidbracewell.guava.common.base.Preconditions;
 import lombok.NonNull;
 import org.apache.commons.math3.distribution.EnumeratedIntegerDistribution;
+import org.apache.commons.math3.random.RandomGenerator;
+import org.apache.commons.math3.random.Well19937c;
 
 import java.io.Serializable;
 import java.util.Arrays;
-import java.util.Random;
 import java.util.stream.IntStream;
 
 /**
- * The type Multinomial.
+ * A generalization of a {@link Binomial} distribution to <code>K</code> different choices.
  *
  * @author David B. Bracewell
  */
-public class Multinomial implements DiscreteDistribution<Multinomial>, Serializable {
-  private static final long serialVersionUID = 1L;
-  private final long[] values;
-  private final double alpha;
-  private final double alphaTimesV;
-  private final Random random;
-  private long sum = 0;
+public class Multinomial implements UnivariateDiscreteDistribution<Multinomial>, Serializable {
+   private static final long serialVersionUID = 1L;
+   private final int[] values;
+   private final double alpha;
+   private final double alphaTimesV;
+   private final RandomGenerator random;
+   private int sum = 0;
+   private volatile EnumeratedIntegerDistribution wrapped;
 
-  /**
-   * Instantiates a new Multinomial.
-   *
-   * @param size   the size
-   * @param alpha  the alpha
-   * @param random the random
-   */
-  public Multinomial(int size, double alpha, @NonNull Random random) {
-    Preconditions.checkArgument(size > 0, "Size must be > 0");
-    Preconditions.checkArgument(Double.isFinite(alpha), "Alpha must be finite");
-    Preconditions.checkArgument(alpha > 0, "Alpha must be > 0");
-    this.values = new long[size];
-    this.alpha = alpha;
-    this.alphaTimesV = alpha * size;
-    this.random = random;
-  }
+   /**
+    * Instantiates a new Multinomial.
+    *
+    * @param k      the number of possible values the random variable can take
+    * @param alpha  the smoothing parameter
+    * @param random the random number generator to use for sampling
+    */
+   public Multinomial(int k, double alpha, @NonNull RandomGenerator random) {
+      Preconditions.checkArgument(k > 0, "Size must be > 0");
+      Preconditions.checkArgument(Double.isFinite(alpha), "Alpha must be finite");
+      Preconditions.checkArgument(alpha > 0, "Alpha must be > 0");
+      this.values = new int[k];
+      this.alpha = alpha;
+      this.alphaTimesV = alpha * k;
+      this.random = random;
+   }
 
-  /**
-   * Instantiates a new Multinomial.
-   *
-   * @param size the size
-   */
-  public Multinomial(int size) {
-    this(size, 0, new Random());
-  }
+   /**
+    * Instantiates a new Multinomial.
+    *
+    * @param k the number of possible values the random variable can take
+    */
+   public Multinomial(int k) {
+      this(k, 0, new Well19937c());
+   }
 
-  /**
-   * Instantiates a new Multinomial.
-   *
-   * @param size  the size
-   * @param alpha the alpha
-   */
-  public Multinomial(int size, double alpha) {
-    this(size, alpha, new Random());
-  }
+   /**
+    * Instantiates a new Multinomial.
+    *
+    * @param k     the number of possible values the random variable can take
+    * @param alpha the smoothing parameter
+    */
+   public Multinomial(int k, double alpha) {
+      this(k, alpha, new Well19937c());
+   }
 
-  public double sum(){
-    return sum;
-  }
-
-  @Override
-  public double unnormalizedProbability(int index) {
-    if (index < 0 || index >= values.length) {
-      return 0.0;
-    }
-    return (values[index] + alpha);
-  }
-
-  @Override
-  public Multinomial increment(int index, long amount) {
-    this.values[index] += amount;
-    sum += amount;
-    return this;
-  }
-
-  @Override
-  public double probability(int index) {
-    if (index < 0 || index >= values.length) {
-      return 0.0;
-    }
-    return (values[index] + alpha) / (sum + alphaTimesV);
-  }
-
-  @Override
-  public int sample() {
-    double rnd = random.nextDouble() * sum;
-    double sum = 0;
-    for (int i = 0; i < values.length; i++) {
-      double p = values[i];
-      if (rnd < (sum + p)) {
-        return i;
+   @Override
+   public double getMode() {
+      int max = values[0];
+      int maxi = 0;
+      for (int i = 1; i < values.length; i++) {
+         if (values[i] > max) {
+            max = values[i];
+            maxi = i;
+         }
       }
-      sum += p;
-    }
-    return values.length - 1;
-  }
+      return maxi;
+   }
 
-  @Override
-  public String toString() {
-    return Arrays.toString(values);
-  }
+   @Override
+   public double getMean() {
+      return getDistribution().getNumericalMean();
+   }
 
-  @Override
-  public double cumulativeProbability(int x) {
-    return new EnumeratedIntegerDistribution(
-      IntStream.range(0, values.length).toArray(),
-      IntStream.range(0, values.length).mapToDouble(this::probability).toArray()
-    ).cumulativeProbability(x);
-  }
+   @Override
+   public double getVariance() {
+      return getDistribution().getNumericalVariance();
+   }
 
-  @Override
-  public double cumulativeProbability(int lowerBound, int higherBound) {
-    return new EnumeratedIntegerDistribution(
-      IntStream.range(0, values.length).toArray(),
-      IntStream.range(0, values.length).mapToDouble(this::probability).toArray()
-    ).cumulativeProbability(lowerBound, higherBound);
-  }
+   /**
+    * Gets the total number of observations
+    *
+    * @return the total number of observations
+    */
+   public double getTotalObservations() {
+      return sum;
+   }
+
+   @Override
+   public Multinomial increment(int variable, int numberOfObservations) {
+      this.values[variable] += numberOfObservations;
+      this.sum += numberOfObservations;
+      this.wrapped = null;
+      return this;
+   }
+
+   @Override
+   public double probability(double x) {
+      if (x < 0 || x >= values.length) {
+         return 0.0;
+      }
+      return (values[(int) x] + alpha) / (sum + alphaTimesV);
+   }
+
+   @Override
+   public int sample() {
+      return getDistribution().sample();
+   }
+
+   @Override
+   public String toString() {
+      return Arrays.toString(values);
+   }
+
+   private EnumeratedIntegerDistribution getDistribution() {
+      if (wrapped == null) {
+         synchronized (this) {
+            if (wrapped == null) {
+               EnumeratedIntegerDistribution eid =
+                  new EnumeratedIntegerDistribution(random, IntStream.range(0, values.length).toArray(),
+                                                    IntStream.range(0, values.length)
+                                                             .mapToDouble(this::probability)
+                                                             .toArray()
+                  );
+               this.wrapped = eid;
+               return eid;
+            }
+         }
+      }
+      return wrapped;
+   }
+
+   @Override
+   public double cumulativeProbability(double x) {
+      return getDistribution().cumulativeProbability((int) x);
+   }
+
+   @Override
+   public double cumulativeProbability(double lowerBound, double higherBound) {
+      return getDistribution().cumulativeProbability((int) lowerBound, (int) higherBound);
+   }
+
+   @Override
+   public double inverseCumulativeProbability(double p) {
+      return getDistribution().inverseCumulativeProbability((int) p);
+   }
 
 }//END OF Multinomial

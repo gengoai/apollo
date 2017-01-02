@@ -1,23 +1,21 @@
 package com.davidbracewell.apollo.ml.preprocess;
 
 import com.davidbracewell.apollo.ml.Instance;
-import com.davidbracewell.apollo.ml.sequence.Sequence;
 
 /**
- * The interface Instance preprocessor.
+ * Preprocessor for instance based examples
  *
  * @author David B. Bracewell
  */
 public interface InstancePreprocessor extends Preprocessor<Instance> {
 
-
-  /**
-   * As sequence processor preprocessor.
-   *
-   * @return the preprocessor
-   */
-  default Preprocessor<Sequence> asSequenceProcessor() {
-    return new SequencePreprocessor(this);
-  }
+   /**
+    * Converts the instance preprocessor into a sequence processor
+    *
+    * @return the sequence preprocessor
+    */
+   default SequencePreprocessor asSequenceProcessor() {
+      return new SequencePreprocessor(this);
+   }
 
 }// END OF InstancePreprocessor

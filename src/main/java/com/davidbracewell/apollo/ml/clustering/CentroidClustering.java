@@ -1,0 +1,45 @@
+package com.davidbracewell.apollo.ml.clustering;
+
+import com.davidbracewell.apollo.linalg.Vector;
+import com.davidbracewell.apollo.ml.FeatureVector;
+import com.davidbracewell.apollo.ml.Instance;
+import com.davidbracewell.collection.Streams;
+import com.davidbracewell.tuple.Tuple2;
+import lombok.NonNull;
+
+import java.util.Arrays;
+import java.util.Comparator;
+
+import static com.davidbracewell.tuple.Tuples.$;
+
+/**
+ * <p>A clustering where new items are clustered based on the centroid of the individual clusters.</p>
+ *
+ * @author David B. Bracewell
+ */
+public interface CentroidClustering extends Clustering {
+
+   @Override
+   default int hardCluster(@NonNull Instance instance) {
+      Vector vector = instance.toVector(getEncoderPair());
+      return Streams.asParallelStream(this)
+                    .map(c -> $(c.getId(), getDistanceMeasure().calculate(vector, c.getCentroid())))
+                    .min(Comparator.comparingDouble(Tuple2::getValue))
+                    .map(Tuple2::getKey)
+                    .orElse(-1);
+   }
+
+   @Override
+   default double[] softCluster(@NonNull Instance instance) {
+      double[] distances = new double[size()];
+      Arrays.fill(distances, Double.POSITIVE_INFINITY);
+      FeatureVector vector = instance.toVector(getEncoderPair());
+      int assignment = hardCluster(instance);
+      if (assignment >= 0) {
+         distances[assignment] = getDistanceMeasure().calculate(get(assignment).getCentroid(), vector);
+      }
+      return distances;
+   }
+
+
+}// END OF CentroidClustering

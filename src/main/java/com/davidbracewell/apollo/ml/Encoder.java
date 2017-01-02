@@ -1,5 +1,7 @@
 package com.davidbracewell.apollo.ml;
 
+import com.davidbracewell.apollo.ml.data.Dataset;
+import com.davidbracewell.stream.MStream;
 import lombok.NonNull;
 
 import java.util.List;
@@ -13,70 +15,99 @@ import java.util.stream.Stream;
  */
 public interface Encoder {
 
-  double get(Object object);
+   /**
+    * Creates new encoder of the same type as this one.
+    *
+    * @return the encoder
+    */
+   Encoder createNew();
 
-  /**
-   * Encodes a stream of objects returning a double stream containing the encoded values.
-   *
-   * @param stream the stream to encode
-   * @return the stream of encoded values
-   */
-  default void encode(@NonNull Stream<?> stream) {
-    stream.forEach(this::encode);
-  }
+   /**
+    * Decodes an object given the encoded value
+    *
+    * @param value the encoded value
+    * @return the object mapped to the encoded value
+    */
+   Object decode(double value);
 
-  /**
-   * Encodes a single object returning its encoded value
-   *
-   * @param object the object
-   * @return the encoded value
-   */
-  double encode(Object object);
+   /**
+    * Encodes a stream of objects returning a double stream containing the encoded values.
+    *
+    * @param stream the stream to encode
+    */
+   default void encode(@NonNull Stream<?> stream) {
+      stream.forEach(this::encode);
+   }
 
-  /**
-   * Decodes an object given the encoded value
-   *
-   * @param value the encoded value
-   * @return the object mapped to the encoded value
-   */
-  Object decode(double value);
+   /**
+    * Encodes a single object returning its encoded value
+    *
+    * @param object the object
+    * @return the encoded value
+    */
+   double encode(Object object);
 
-  /**
-   * Freezes the encoder restricting new objects from being mapped to values.
-   */
-  void freeze();
+   /**
+    * Fits the encoder by processing the entire dataset
+    *
+    * @param dataset the dataset to use for fitting the encoder
+    */
+   void fit(Dataset<? extends Example> dataset);
 
-  /**
-   * Unfreezes the encoder allowing new objects to be mapped to values.
-   */
-  void unFreeze();
+   /**
+    * Fits the encoder by processing the entire dataset
+    *
+    * @param stream the stream to use for fitting the encoder
+    */
+   void fit(MStream<String> stream);
 
-  /**
-   * Is the encoder currently frozen?
-   *
-   * @return True if frozen
-   */
-  boolean isFrozen();
+   /**
+    * Freezes the encoder restricting new objects from being mapped to values.
+    */
+   void freeze();
 
-  /**
-   * The number of items that have mappings
-   *
-   * @return the number of items that have mappings
-   */
-  int size();
+   /**
+    * Gets the encoded double value of the given object.
+    *
+    * @param object the object whose encoded value to retrieve
+    * @return the double or -1 if not encoded and encoder is frozen
+    */
+   double get(Object object);
 
-  /**
-   * The values that have been encoded
-   *
-   * @return the list of values tha have been encoded
-   */
-  List<Object> values();
+   /**
+    * Encodes a single object returning its encoded value as an index (int value)
+    *
+    * @param object the object to encode
+    * @return the index (int value)
+    */
+   default int index(@NonNull Object object) {
+      return (int) encode(object);
+   }
 
-  /**
-   * Creates new encoder of the same type as this one.
-   *
-   * @return the encoder
-   */
-  Encoder createNew();
+   /**
+    * Is the encoder currently frozen?
+    *
+    * @return True if frozen
+    */
+   boolean isFrozen();
+
+   /**
+    * The number of items that have mappings
+    *
+    * @return the number of items that have mappings
+    */
+   int size();
+
+   /**
+    * Unfreezes the encoder allowing new objects to be mapped to values.
+    */
+   void unFreeze();
+
+   /**
+    * The values that have been encoded
+    *
+    * @return the list of values tha have been encoded
+    */
+   List<Object> values();
 
 }// END OF Encoder

@@ -24,10 +24,18 @@ package com.davidbracewell.apollo.linalg.decompose;
 import com.davidbracewell.apollo.linalg.Matrix;
 
 /**
+ * <p>Defines a methodology for breaking down, i.e. decomposing, a matrix into one or more other matrices</p>
+ *
  * @author David B. Bracewell
  */
 public interface Decomposition {
 
-  Matrix[] decompose(Matrix input);
+   /**
+    * Decomposes the given matrix
+    *
+    * @param input the matrix to decompose
+    * @return the result of decomposition
+    */
+   Matrix[] decompose(Matrix input);
 
 }//END OF Decomposition

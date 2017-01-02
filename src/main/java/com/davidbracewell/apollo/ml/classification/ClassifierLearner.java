@@ -25,11 +25,12 @@ import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.Learner;
 
 /**
- * The interface Classifier learner.
+ * Base class for learners that produce <code>Classifier</code>s and use <code>Instance</code>s as their example type.
  *
  * @author David B. Bracewell
  */
 public abstract class ClassifierLearner extends Learner<Instance, Classifier> {
-  private static final long serialVersionUID = 1L;
+   private static final long serialVersionUID = 1L;
+
 
 }//END OF ClassifierLearner

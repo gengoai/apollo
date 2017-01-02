@@ -1,6 +1,7 @@
 package com.davidbracewell.apollo.ml;
 
 import lombok.EqualsAndHashCode;
+import lombok.NonNull;
 
 import java.io.Serializable;
 
@@ -11,114 +12,147 @@ import java.io.Serializable;
  */
 @EqualsAndHashCode(callSuper = false)
 public final class EncoderPair implements Serializable {
-  private final Encoder labelEncoder;
-  private final Encoder featureEncoder;
+   private static final long serialVersionUID = 1L;
+   private final LabelEncoder labelEncoder;
+   private final Encoder featureEncoder;
 
-  /**
-   * Instantiates a new Encoder pair.
-   *
-   * @param labelEncoder   the label encoder
-   * @param featureEncoder the feature encoder
-   */
-  public EncoderPair(Encoder labelEncoder, Encoder featureEncoder) {
-    this.labelEncoder = labelEncoder;
-    this.featureEncoder = featureEncoder;
-  }
+   /**
+    * Instantiates a new Encoder pair.
+    *
+    * @param labelEncoder   the label encoder
+    * @param featureEncoder the feature encoder
+    */
+   public EncoderPair(@NonNull LabelEncoder labelEncoder, @NonNull Encoder featureEncoder) {
+      this.labelEncoder = labelEncoder;
+      this.featureEncoder = featureEncoder;
+   }
 
-  public <T extends Example> T encode(T example) {
-    if (example != null) {
-      labelEncoder.encode(example.getLabelSpace());
-      featureEncoder.encode(example.getFeatureSpace());
-    }
-    return example;
-  }
+   /**
+    * Creates a new Encoder pair with the same type of label and feature encoder
+    *
+    * @return the new and empty encoder pair
+    */
+   public EncoderPair createNew() {
+      return new EncoderPair(labelEncoder.createNew(), featureEncoder.createNew());
+   }
 
-  /**
-   * Encode label double.
-   *
-   * @param label the label
-   * @return the double
-   */
-  public double encodeLabel(Object label) {
-    return labelEncoder.encode(label);
-  }
+   /**
+    * Decodes the double into a feature.
+    *
+    * @param value the encoded value
+    * @return the feature associated with the value or null if none
+    */
+   public Object decodeFeature(double value) {
+      return featureEncoder.decode(value);
+   }
 
-  /**
-   * Decode label object.
-   *
-   * @param value the value
-   * @return the object
-   */
-  public Object decodeLabel(double value) {
-    return labelEncoder.decode(value);
-  }
+   /**
+    * Decodes the double into a label.
+    *
+    * @param value the encoded value
+    * @return the label associated with the value or null if none
+    */
+   public Object decodeLabel(double value) {
+      return labelEncoder.decode(value);
+   }
 
-  /**
-   * Encode feature double.
-   *
-   * @param feature the feature
-   * @return the double
-   */
-  public double encodeFeature(Object feature) {
-    return featureEncoder.encode(feature);
-  }
+   /**
+    * Encodes both the label space and the feature space of the given example
+    *
+    * @param <T>     the example type parameter
+    * @param example the example
+    * @return the example for fluent interface
+    */
+   public <T extends Example> T encode(T example) {
+      if (example != null) {
+         labelEncoder.encode(example.getLabelSpace());
+         featureEncoder.encode(example.getFeatureSpace());
+      }
+      return example;
+   }
 
-  /**
-   * Decode feature object.
-   *
-   * @param value the value
-   * @return the object
-   */
-  public Object decodeFeature(double value) {
-    return featureEncoder.decode(value);
-  }
+   /**
+    * Encodes the given feature into a double
+    *
+    * @param feature the feature
+    * @return the encoded value
+    */
+   public double encodeFeature(Object feature) {
+      return featureEncoder.encode(feature);
+   }
 
-  /**
-   * Number of features int.
-   *
-   * @return the int
-   */
-  public int numberOfFeatures() {
-    return featureEncoder.size();
-  }
+   /**
+    * Encodes the given label into a double
+    *
+    * @param label the label
+    * @return the encoded value
+    */
+   public double encodeLabel(Object label) {
+      return labelEncoder.encode(label);
+   }
 
-  /**
-   * Number of labels int.
-   *
-   * @return the int
-   */
-  public int numberOfLabels() {
-    return labelEncoder.size();
-  }
+   /**
+    * Gets the index of the given feature
+    *
+    * @param featureName the feature to lookup
+    * @return the index (int value) of the encoded feature
+    */
+   public int featureIndex(Object featureName) {
+      return featureEncoder.index(featureName);
+   }
 
-  /**
-   * Gets label encoder.
-   *
-   * @return the label encoder
-   */
-  public Encoder getLabelEncoder() {
-    return labelEncoder;
-  }
+   /**
+    * Freezes the label and feature encoders restricting new objects from being mapped to values.
+    */
+   public void freeze() {
+      this.labelEncoder.freeze();
+      this.featureEncoder.freeze();
+   }
 
-  /**
-   * Gets feature encoder.
-   *
-   * @return the feature encoder
-   */
-  public Encoder getFeatureEncoder() {
-    return featureEncoder;
-  }
+   /**
+    * Gets the feature encoder.
+    *
+    * @return the feature encoder
+    */
+   public Encoder getFeatureEncoder() {
+      return featureEncoder;
+   }
 
-  /**
-   * Freeze.
-   */
-  public void freeze() {
-    this.labelEncoder.freeze();
-    this.featureEncoder.freeze();
-  }
+   /**
+    * Gets the label encoder.
+    *
+    * @return the label encoder
+    */
+   public LabelEncoder getLabelEncoder() {
+      return labelEncoder;
+   }
 
-  public EncoderPair createNew() {
-    return new EncoderPair(labelEncoder.createNew(), featureEncoder.createNew());
-  }
+   /**
+    * Gets the index of the given label
+    *
+    * @param label the label to lookup
+    * @return the index (int value) of the encoded label
+    */
+   public int labelIndex(Object label) {
+      return labelEncoder.index(label);
+   }
+
+   /**
+    * Gets the number of features in the feature encoder
+    *
+    * @return the number of features
+    */
+   public int numberOfFeatures() {
+      return featureEncoder.size();
+   }
+
+   /**
+    * Gets the number of labels in the label encoder
+    *
+    * @return the number of labels
+    */
+   public int numberOfLabels() {
+      return labelEncoder.size();
+   }
 
 }// END OF EncoderPair

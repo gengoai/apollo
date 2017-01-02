@@ -21,20 +21,48 @@
 
 package com.davidbracewell.apollo.ml;
 
+import com.davidbracewell.apollo.ml.data.Dataset;
+
 import java.io.PrintStream;
 import java.util.Collection;
 
 /**
+ * <p>Generic interface for evaluating models.</p>
+ *
+ * @param <T> the type of example
+ * @param <M> the type of model
  * @author David B. Bracewell
  */
 public interface Evaluation<T extends Example, M extends Model> {
 
-  void evaluate(M model, Dataset<T> dataset);
+   /**
+    * Evaluate the given model using the given dataset
+    *
+    * @param model   the model to evaluate
+    * @param dataset the dataset to evaluate over
+    */
+   void evaluate(M model, Dataset<T> dataset);
 
-  void evaluate(M model, Collection<T> dataset);
+   /**
+    * Evaluate the given model using the given set of examples
+    *
+    * @param model   the model to evaluate
+    * @param dataset the dataset to evaluate over
+    */
+   void evaluate(M model, Collection<T> dataset);
 
-  void merge(Evaluation<T, M> evaluation);
+   /**
+    * Merge this evaluation with another combining the results.
+    *
+    * @param evaluation the other evaluation to combine
+    */
+   void merge(Evaluation<T, M> evaluation);
 
-  void output(PrintStream printStream);
+   /**
+    * Outputs the evaluation results to the given print stream.
+    *
+    * @param printStream the print stream to write to
+    */
+   void output(PrintStream printStream);
 
 }//END OF Evaluation

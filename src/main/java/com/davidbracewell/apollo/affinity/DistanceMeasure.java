@@ -21,15 +21,27 @@
 
 package com.davidbracewell.apollo.affinity;
 
+import com.davidbracewell.apollo.analysis.Optimum;
+
 /**
- * The type Distance measure.
+ * <p>A measure that determines how far apart two items are.</p>
  *
  * @author David B. Bracewell
  */
 public interface DistanceMeasure extends Measure {
 
-  default SimilarityMeasure asSimilarityMeasure() {
-    return new NegativeDistanceSimilarity(this);
-  }
+   /**
+    * Converts the distance measure to a similarity measure.
+    *
+    * @return the similarity measure
+    */
+   default SimilarityMeasure asSimilarityMeasure() {
+      return new NegativeDistanceSimilarity(this);
+   }
+
+   @Override
+   default Optimum getOptimum() {
+      return Optimum.MINIMUM;
+   }
 
 }//END OF DistanceMeasure

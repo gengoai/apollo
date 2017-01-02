@@ -1,124 +1,157 @@
 package com.davidbracewell.apollo.ml;
 
 import com.davidbracewell.apollo.linalg.SparseVector;
+import com.davidbracewell.conversion.Cast;
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.Setter;
 
 /**
- * The type Feature vector.
+ * <p>A specialized sparse vector that stores an encoded label and an optionally an encoded predicted label. The
+ * dimension of the vector is dynamic and depends on the underlying feature encoder.</p>
  *
  * @author David B. Bracewell
  */
 public class FeatureVector extends SparseVector {
-  private static final long serialVersionUID = 1L;
-  private final EncoderPair encoderPair;
-  private double label = Double.NaN;
+   private static final long serialVersionUID = 1L;
+   private final EncoderPair encoderPair;
+   private double label = Double.NaN;
+   @Getter
+   private double predictedLabel = Double.NaN;
+   @Getter
+   @Setter
+   private double weight = 1.0;
 
-  @Override
-  public int dimension() {
-    return encoderPair.getFeatureEncoder().size();
-  }
+   /**
+    * Instantiates a new Feature vector.
+    *
+    * @param encoderPair the feature encoder
+    */
+   public FeatureVector(@NonNull EncoderPair encoderPair) {
+      super(0);
+      this.encoderPair = encoderPair;
+   }
 
-  /**
-   * Instantiates a new Feature vector.
-   *
-   * @param encoderPair the feature encoder
-   */
-  public FeatureVector(@NonNull EncoderPair encoderPair) {
-    super(0);
-    this.encoderPair = encoderPair;
-  }
+   @Override
+   public int dimension() {
+      return encoderPair.getFeatureEncoder().size();
+   }
 
-  /**
-   * Gets feature encoder.
-   *
-   * @return the feature encoder
-   */
-  public EncoderPair getEncoderPair() {
-    return encoderPair;
-  }
+   /**
+    * Decodes the label returning its string form
+    *
+    * @return the decoded label
+    */
+   public String getDecodedLabel() {
+      return Cast.as(encoderPair.decodeLabel(label));
+   }
 
+   /**
+    * Gets the encoder pair used by the feature vector.
+    *
+    * @return the encoder pair
+    */
+   public EncoderPair getEncoderPair() {
+      return encoderPair;
+   }
 
-  /**
-   * Has label boolean.
-   *
-   * @return the boolean
-   */
-  public boolean hasLabel() {
-    return Double.isFinite(label);
-  }
+   @SuppressWarnings("unchecked")
+   @Override
+   public Double getLabel() {
+      return label;
+   }
 
-  /**
-   * Gets label.
-   *
-   * @return the label
-   */
-  public double getLabel() {
-    return label;
-  }
+   /**
+    * Sets the label of the vector.
+    *
+    * @param label the label
+    */
+   public void setLabel(Object label) {
+      this.label = encoderPair.encodeLabel(label);
+      if (this.label == -1) {
+         this.label = Double.NaN;
+      }
+   }
 
-  /**
-   * Sets label.
-   *
-   * @param label the label
-   */
-  public void setLabel(double label) {
-    this.label = label;
-  }
+   /**
+    * Checks if the vector has a label assigned to it
+    *
+    * @return True if the vector has a label, False otherwise
+    */
+   public boolean hasLabel() {
+      return Double.isFinite(label);
+   }
 
-  public void setLabel(Object o) {
-    this.label = encoderPair.encodeLabel(o);
-    if (this.label == -1) {
-      this.label = Double.NaN;
-    }
-  }
+   /**
+    * Sets the given feature to the given value.
+    *
+    * @param featureName  the feature name
+    * @param featureValue the feature value
+    * @return True if the feature name was valid and the value was set
+    */
+   public boolean set(String featureName, double featureValue) {
+      int index = (int) encoderPair.encodeFeature(featureName);
+      if (index < 0) {
+         return false;
+      }
+      set(index, featureValue);
+      return true;
+   }
 
-  public Object getDecodedLabel() {
-    return encoderPair.decodeLabel(label);
-  }
+   /**
+    * Sets the value of the given feature.
+    *
+    * @param feature the feature
+    * @return True if the feature is valid and its value set
+    */
+   public boolean set(Feature feature) {
+      return feature != null && set(feature.getName(), feature.getValue());
+   }
 
-  /**
-   * Set boolean.
-   *
-   * @param featureName  the feature name
-   * @param featureValue the feature value
-   * @return the boolean
-   */
-  public boolean set(String featureName, double featureValue) {
-    int index = (int) encoderPair.encodeFeature(featureName);
-    if (index < 0) {
-      return false;
-    }
-    set(index, featureValue);
-    return true;
-  }
+   /**
+    * Sets the label of the vector.
+    *
+    * @param label the label
+    */
+   public void setLabel(double label) {
+      this.label = label;
+   }
 
-  /**
-   * Set boolean.
-   *
-   * @param feature the feature
-   * @return the boolean
-   */
-  public boolean set(Feature feature) {
-    return feature != null && set(feature.getName(), feature.getValue());
-  }
+   /**
+    * Sets the predicted label of the vector.
+    *
+    * @param label the predicted label
+    */
+   public void setPredictedLabel(double label) {
+      this.predictedLabel = label;
+   }
 
-  /**
-   * Transform feature vector.
-   *
-   * @param newEncoderPair the new feature encoder
-   * @return the feature vector
-   */
-  public FeatureVector transform(@NonNull EncoderPair newEncoderPair) {
-    FeatureVector newVector = new FeatureVector(newEncoderPair);
-    forEachSparse(entry ->
-      newVector.set(
-        encoderPair.decodeFeature(entry.getIndex()).toString(),
-        entry.getValue()
-      )
-    );
-    newVector.setLabel(getDecodedLabel());
-    return newVector;
-  }
+   /**
+    * Sets the predicted label of the vector.
+    *
+    * @param label the predicted label
+    */
+   public void setPredictedLabel(Object label) {
+      this.predictedLabel = encoderPair.encodeLabel(label);
+      if (this.predictedLabel == -1) {
+         this.predictedLabel = Double.NaN;
+      }
+   }
 
+   /**
+    * Transforms the feature vector using a new encoder pair.
+    *
+    * @param newEncoderPair the new feature encoder
+    * @return the feature vector
+    */
+   public FeatureVector transform(@NonNull EncoderPair newEncoderPair) {
+      FeatureVector newVector = new FeatureVector(newEncoderPair);
+      forEachSparse(entry -> newVector.set(encoderPair.decodeFeature(entry.getIndex()).toString(),
+                                           entry.getValue()
+                                          )
+                   );
+      newVector.setLabel(getDecodedLabel());
+      return newVector;
+   }
 
 }// END OF FeatureVector

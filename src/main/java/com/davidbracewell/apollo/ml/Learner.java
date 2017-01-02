@@ -1,135 +1,134 @@
 package com.davidbracewell.apollo.ml;
 
 import com.davidbracewell.apollo.ml.classification.Classifier;
+import com.davidbracewell.apollo.ml.clustering.Clustering;
+import com.davidbracewell.apollo.ml.data.Dataset;
+import com.davidbracewell.apollo.ml.regression.Regression;
 import com.davidbracewell.apollo.ml.sequence.Sequence;
 import com.davidbracewell.apollo.ml.sequence.SequenceLabeler;
-import com.davidbracewell.conversion.Cast;
-import com.davidbracewell.io.structured.StructuredReader;
-import com.davidbracewell.io.structured.StructuredWriter;
-import com.davidbracewell.io.structured.Writable;
 import com.davidbracewell.reflection.BeanMap;
 import com.davidbracewell.reflection.Ignore;
 import lombok.NonNull;
 
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.Map;
 
 /**
- * The type Learner.
+ * <p>Base class for methods to learn (train) a model of a specific type.</p>
  *
- * @param <T> the type parameter
- * @param <M> the type parameter
+ * @param <T> the example type parameter
+ * @param <M> the model type parameter
  * @author David B. Bracewell
  */
-public abstract class Learner<T extends Example, M extends Model> implements Serializable, Writable {
+public abstract class Learner<T extends Example, M extends Model> implements Serializable {
 
-  /**
-   * Builder learner builder.
-   *
-   * @param <T> the type parameter
-   * @param <M> the type parameter
-   * @return the learner builder
-   */
-  public static <T extends Example, M extends Model> LearnerBuilder<T, M> builder() {
-    return new LearnerBuilder<>();
-  }
+   private static final long serialVersionUID = 605756060816072642L;
 
-  /**
-   * Classification learner builder.
-   *
-   * @return the learner builder
-   */
-  public static LearnerBuilder<Instance, Classifier> classification() {
-    return new LearnerBuilder<>();
-  }
 
-  /**
-   * Sequence labeling learner builder.
-   *
-   * @return the learner builder
-   */
-  public static LearnerBuilder<Sequence, SequenceLabeler> sequenceLabeling() {
-    return new LearnerBuilder<>();
-  }
+   /**
+    * Creates a builder for constructing Classification learners
+    *
+    * @return the learner builder
+    */
+   public static LearnerBuilder<Instance, Classifier> classification() {
+      return new LearnerBuilder<>();
+   }
 
-  public static <T extends Example, M extends Model, R extends Learner<T, M>> R read(StructuredReader reader) throws IOException {
-    Class<?> clazz = reader.nextKeyValue("class").asClass();
-    return Cast.as(builder().learnerClass(Cast.as(clazz)).parameters(reader.nextMap("parameters")).build());
-  }
+   /**
+    * Creates a builder for constructing Regression learners
+    *
+    * @return the learner builder
+    */
+   public static LearnerBuilder<Instance, Regression> regression() {
+      return new LearnerBuilder<>();
+   }
 
-  /**
-   * Train classifier.
-   *
-   * @param dataset the dataset
-   * @return the classifier
-   */
-  public M train(@NonNull Dataset<T> dataset) {
-    dataset.encode();
-    M model = trainImpl(dataset);
-    model.finishTraining();
-    return model;
-  }
+   /**
+    * Creates a builder for constructing Sequence learners
+    *
+    * @return the learner builder
+    */
+   public static LearnerBuilder<Sequence, SequenceLabeler> sequence() {
+      return new LearnerBuilder<>();
+   }
 
-  /**
-   * Train m.
-   *
-   * @param dataset the dataset
-   * @return the m
-   */
-  protected abstract M trainImpl(Dataset<T> dataset);
 
-  /**
-   * Gets parameters.
-   *
-   * @return the parameters
-   */
-  @Ignore
-  public Map<String, ?> getParameters() {
-    return new BeanMap(this);
-  }
+   /**
+    * Creates a builder for constructing clusterers
+    *
+    * @return the learner builder
+    */
+   public static <T extends Clustering> LearnerBuilder<Instance, T> clustering() {
+      return new LearnerBuilder<>();
+   }
 
-  /**
-   * Sets parameters.
-   *
-   * @param parameters the parameters
-   */
-  @Ignore
-  public void setParameters(@NonNull Map<String, Object> parameters) {
-    new BeanMap(this).putAll(parameters);
-  }
+   /**
+    * Gets the value of the given parameter.
+    *
+    * @param name the name of the parameter
+    * @return the parameter's value or null
+    */
+   @Ignore
+   public Object getParameter(String name) {
+      return new BeanMap(this).get(name);
+   }
 
-  /**
-   * Sets parameter.
-   *
-   * @param name  the name
-   * @param value the value
-   */
-  @Ignore
-  public void setParameter(String name, Object value) {
-    new BeanMap(this).put(name, value);
-  }
+   /**
+    * Gets the  parameters that can be set/retrieved on this learner.
+    *
+    * @return the parameters
+    */
+   @Ignore
+   public Map<String, ?> getParameters() {
+      return new BeanMap(this);
+   }
 
-  /**
-   * Gets parameter.
-   *
-   * @param name the name
-   * @return the parameter
-   */
-  @Ignore
-  public Object getParameter(String name) {
-    return new BeanMap(this).get(name);
-  }
+   /**
+    * Sets the parameters of this learner using the supplied parameter map.
+    *
+    * @param parameters the parameters
+    */
+   @Ignore
+   public void setParameters(@NonNull Map<String, Object> parameters) {
+      new BeanMap(this).putAll(parameters);
+   }
 
-  /**
-   * Reset.
-   */
-  public abstract void reset();
+   /**
+    * Resets any saved state in the learner.
+    */
+   public abstract void reset();
 
-  @Override
-  public void write(StructuredWriter writer) throws IOException {
-    writer.writeKeyValue("class", getClass().getName());
-    writer.writeKeyValue("parameters", getParameters());
-  }
+   /**
+    * Sets the value of the given parameter.
+    *
+    * @param name  the name of the parameter
+    * @param value the value to set the parameter to
+    */
+   @Ignore
+   public void setParameter(String name, Object value) {
+      new BeanMap(this).put(name, value);
+   }
+
+   /**
+    * Trains a model using the given dataset.
+    *
+    * @param dataset the dataset to use for training
+    * @return the trained model
+    */
+   public M train(@NonNull Dataset<T> dataset) {
+      dataset.encode();
+      M model = trainImpl(dataset);
+      model.finishTraining();
+      return model;
+   }
+
+   /**
+    * Actual training implementation to be defined by individual learners
+    *
+    * @param dataset the dataset to use for training
+    * @return the trained model
+    */
+   protected abstract M trainImpl(Dataset<T> dataset);
+
 
 }// END OF Learner

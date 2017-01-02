@@ -1,63 +1,74 @@
 package com.davidbracewell.apollo.ml.sequence;
 
-import com.davidbracewell.apollo.ml.Dataset;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.classification.ClassifierLearner;
+import com.davidbracewell.apollo.ml.data.Dataset;
+import com.davidbracewell.io.QuietIO;
 import lombok.NonNull;
 
 import java.util.Map;
 
 /**
+ * <p>Greedy learner that wraps a {@link ClassifierLearner}.</p>
+ *
  * @author David B. Bracewell
  */
 public class WindowedLearner extends SequenceLabelerLearner {
 
-  private final ClassifierLearner learner;
+   private static final long serialVersionUID = 3783930856969307606L;
+   private final ClassifierLearner learner;
 
-  public WindowedLearner(ClassifierLearner learner) {
-    this.learner = learner;
-  }
+   /**
+    * Instantiates a new Windowed learner.
+    *
+    * @param learner the learner
+    */
+   public WindowedLearner(ClassifierLearner learner) {
+      this.learner = learner;
+   }
 
-  @Override
-  protected SequenceLabeler trainImpl(Dataset<Sequence> dataset) {
-    WindowedLabeler wl = new WindowedLabeler(
-      dataset.getLabelEncoder(),
-      dataset.getFeatureEncoder(),
-      dataset.getPreprocessors(),
-      getTransitionFeatures(),
-      getValidator()
-    );
-    Dataset<Instance> nd = Dataset.classification()
-      .source(dataset.stream().flatMap(Sequence::asInstances))
-      .build();
-    dataset.close();
-    wl.classifier = learner.train(nd);
-    return wl;
-  }
+   @Override
+   protected SequenceLabeler trainImpl(Dataset<Sequence> dataset) {
+      WindowedLabeler wl = new WindowedLabeler(dataset.getLabelEncoder(),
+                                               dataset.getFeatureEncoder(),
+                                               dataset.getPreprocessors(),
+                                               getTransitionFeatures(),
+                                               getValidator());
 
-  @Override
-  public void reset() {
+      Dataset<Instance> nd = Dataset.classification()
+                                    .source(dataset.stream()
+                                                   .flatMap(sequence -> getTransitionFeatures().toInstances(sequence)
+                                                                                               .stream()));
+      QuietIO.closeQuietly(dataset);
+      wl.classifier = learner.train(nd);
+      wl.encoderPair = wl.classifier.getEncoderPair();
+      return wl;
+   }
 
-  }
+   @Override
+   public void reset() {
+      learner.reset();
+   }
 
-  @Override
-  public Map<String, ?> getParameters() {
-    return learner.getParameters();
-  }
 
-  @Override
-  public void setParameters(@NonNull Map<String, Object> parameters) {
-    learner.setParameters(parameters);
-  }
+   @Override
+   public Map<String, ?> getParameters() {
+      return learner.getParameters();
+   }
 
-  @Override
-  public void setParameter(String name, Object value) {
-    learner.setParameter(name, value);
-  }
+   @Override
+   public void setParameters(@NonNull Map<String, Object> parameters) {
+      learner.setParameters(parameters);
+   }
 
-  @Override
-  public Object getParameter(String name) {
-    return learner.getParameter(name);
-  }
+   @Override
+   public void setParameter(String name, Object value) {
+      learner.setParameter(name, value);
+   }
+
+   @Override
+   public Object getParameter(String name) {
+      return learner.getParameter(name);
+   }
 
 }// END OF WindowedLearner

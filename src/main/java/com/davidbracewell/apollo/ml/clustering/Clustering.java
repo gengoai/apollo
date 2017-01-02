@@ -21,109 +21,78 @@
 
 package com.davidbracewell.apollo.ml.clustering;
 
-import com.davidbracewell.apollo.ApolloMath;
 import com.davidbracewell.apollo.affinity.DistanceMeasure;
-import com.davidbracewell.apollo.ml.EncoderPair;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.Model;
 import lombok.NonNull;
 
-import java.util.List;
-
 
 /**
- * The type Clustering.
+ * <p>Represents the results of clustering. Is treated as a {@link Model} and allows for determining the cluster of new
+ * instances.</p>
  *
  * @author David B. Bracewell
  */
-public abstract class Clustering extends Model {
-  private static final long serialVersionUID = 1L;
-  private final DistanceMeasure distanceMeasure;
+public interface Clustering extends Model, Iterable<Cluster> {
 
-  /**
-   * Instantiates a new Clustering.
-   *
-   * @param encoderPair     the encoder pair
-   * @param distanceMeasure the distance measure
-   */
-  protected Clustering(EncoderPair encoderPair, DistanceMeasure distanceMeasure) {
-    super(encoderPair);
-    this.distanceMeasure = distanceMeasure;
-  }
+   /**
+    * Gets the distance measure used to create the clustering.
+    *
+    * @return the distance measure
+    */
+   DistanceMeasure getDistanceMeasure();
 
-  /**
-   * Gets distance measure.
-   *
-   * @return the distance measure
-   */
-  public DistanceMeasure getDistanceMeasure() {
-    return distanceMeasure;
-  }
+   /**
+    * The number of clusters
+    *
+    * @return the number of clusters
+    */
+   int size();
 
-  /**
-   * Size int.
-   *
-   * @return the int
-   */
-  public abstract int size();
+   /**
+    * Gets the  cluster for the given index.
+    *
+    * @param index the index
+    * @return the cluster
+    */
+   Cluster get(int index);
 
-  /**
-   * Get cluster.
-   *
-   * @param index the index
-   * @return the cluster
-   */
-  public abstract Cluster get(int index);
+   /**
+    * Checks if the clustering is flat
+    *
+    * @return True if flat, False otherwise
+    */
+   boolean isFlat();
 
-  /**
-   * Is flat boolean.
-   *
-   * @return the boolean
-   */
-  public boolean isFlat() {
-    return false;
-  }
+   /**
+    * Checks if the clustering is hierarchical
+    *
+    * @return True if hierarchical, False otherwise
+    */
+   boolean isHierarchical();
 
-  /**
-   * Is hierarchical boolean.
-   *
-   * @return the boolean
-   */
-  public boolean isHierarchical() {
-    return false;
-  }
+   /**
+    * Gets the root of the hierarchical cluster.
+    *
+    * @return the root
+    */
+   Cluster getRoot();
 
-  /**
-   * Gets root.
-   *
-   * @return the root
-   */
-  public abstract Cluster getRoot();
+   /**
+    * Performs a hard clustering, which determines the single cluster the given instance belongs to
+    *
+    * @param instance the instance
+    * @return the index of the cluster that the instance belongs to
+    */
+   int hardCluster(@NonNull Instance instance);
 
-  /**
-   * Gets clusters.
-   *
-   * @return the clusters
-   */
-  public abstract List<Cluster> getClusters();
-
-  /**
-   * Hard cluster int.
-   *
-   * @param instance the instance
-   * @return the int
-   */
-  public int hardCluster(@NonNull Instance instance) {
-    return ApolloMath.argMin(softCluster(instance)).getV1();
-  }
-
-  /**
-   * Soft cluster double [ ].
-   *
-   * @param instance the instance
-   * @return the double [ ]
-   */
-  public abstract double[] softCluster(Instance instance);
+   /**
+    * Performs a soft clustering, which provides a membership probability of the given instance to the clusters
+    *
+    * @param instance the instance
+    * @return membership probability of the given instance to the clusters
+    */
+   double[] softCluster(@NonNull Instance instance);
 
 
 }//END OF Clustering

@@ -21,42 +21,65 @@
 
 package com.davidbracewell.apollo.ml.clustering.flat;
 
-import com.davidbracewell.apollo.ApolloMath;
 import com.davidbracewell.apollo.affinity.DistanceMeasure;
+import com.davidbracewell.apollo.analysis.Optimum;
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.EncoderPair;
 import com.davidbracewell.apollo.ml.FeatureVector;
 import com.davidbracewell.apollo.ml.Instance;
+import com.davidbracewell.stream.StreamingContext;
+import com.davidbracewell.tuple.Tuple2;
 import lombok.NonNull;
 
+import java.util.Arrays;
+
+import static com.davidbracewell.tuple.Tuples.$;
+
 /**
+ * Clustering produced by the {@link CRPClusterer}
+ *
  * @author David B. Bracewell
  */
-class CRPClustering extends FlatHardClustering {
-  private static final long serialVersionUID = 1L;
+class CRPClustering extends FlatClustering {
+   private static final long serialVersionUID = 1L;
 
-  CRPClustering(@NonNull EncoderPair encoderPair, DistanceMeasure distanceMeasure) {
-    super(encoderPair, distanceMeasure);
-  }
+   /**
+    * Instantiates a new CRP clustering.
+    *
+    * @param encoderPair     the encoder pair
+    * @param distanceMeasure the distance measure
+    */
+   CRPClustering(@NonNull EncoderPair encoderPair, DistanceMeasure distanceMeasure) {
+      super(encoderPair, distanceMeasure);
+   }
 
-  @Override
-  public double[] softCluster(Instance instance) {
-    double[] distances = new double[size()];
-    FeatureVector vector = instance.toVector(getEncoderPair());
-    for (int i = 0; i < distances.length; i++) {
-      double max = Double.NEGATIVE_INFINITY;
-      for (Vector jj : clusters.get(i)) {
-        max = Math.max(max, getDistanceMeasure().calculate(vector, jj));
+   @Override
+   public int hardCluster(@NonNull Instance instance) {
+      return Optimum.MINIMUM.optimum(softCluster(instance)).v1;
+   }
+
+   @Override
+   public double[] softCluster(Instance instance) {
+      double[] distances = new double[size()];
+      Arrays.fill(distances, Double.POSITIVE_INFINITY);
+      FeatureVector vector = instance.toVector(getEncoderPair());
+      Tuple2<Integer, Double> best = StreamingContext.local().stream(this)
+                                                     .parallel()
+                                                     .map(cluster -> {
+                                                             double max = 0;
+                                                             for (Vector jj : cluster) {
+                                                                max = Math.max(max,
+                                                                               getDistanceMeasure().calculate(vector, jj));
+                                                             }
+                                                             return $(cluster.getId(), max);
+                                                          }
+                                                         ).min((t1, t2) -> Double.compare(t1.v2, t2.v2))
+                                                     .orElse($(-1, 0.0));
+
+      if (best.v1 != -1) {
+         distances[best.v1] = best.v2;
       }
-      distances[i] = max;
-    }
-    int min = ApolloMath.argMin(distances).getV1();
-    for (int i = 0; i < distances.length; i++) {
-      if (i != min) {
-        distances[i] = Double.POSITIVE_INFINITY;
-      }
-    }
-    return distances;
-  }
+      return distances;
+   }
 
 }//END OF CRPClustering

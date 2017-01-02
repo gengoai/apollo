@@ -22,7 +22,8 @@
 package com.davidbracewell.apollo.ml;
 
 import com.davidbracewell.Copyable;
-import com.google.common.base.Joiner;
+import com.davidbracewell.guava.common.base.Joiner;
+import com.davidbracewell.string.StringUtils;
 import lombok.NonNull;
 import lombok.Value;
 
@@ -30,53 +31,100 @@ import java.io.Serializable;
 
 /**
  * <p>A feature is made up of a name and double value.</p>
+ * <p>Convention for binary predicates is <code>PREFIX=PREDICATE</code> and when position is important
+ * <code>PREFIX[POSITION]=PREDICATE</code>.</p>
  *
  * @author David B. Bracewell
  */
 @Value
 public class Feature implements Serializable, Comparable<Feature>, Copyable<Feature> {
-  private static final long serialVersionUID = 1L;
-  private String name;
-  private double value;
+   private static final long serialVersionUID = 1L;
+   private String name;
+   private double value;
 
-  private Feature(String name, double value) {
-    this.name = name;
-    this.value = value;
-  }
+   private Feature(String name, double value) {
+      this.name = name;
+      this.value = value;
+   }
 
-  /**
-   * Creates a binary feature with the value of TRUE (1.0)
-   *
-   * @param name the feature name
-   * @return the feature
-   */
-  public static Feature TRUE(@NonNull String name) {
-    return new Feature(name, 1.0);
-  }
+   /**
+    * Creates a binary feature with the value of TRUE (1.0)
+    *
+    * @param name the feature name
+    * @return the feature
+    */
+   public static Feature TRUE(@NonNull String name) {
+      return new Feature(name, 1.0);
+   }
 
-  public static Feature TRUE(@NonNull String featureName, @NonNull String... featureComponent) {
-    return new Feature(featureName + "=" + Joiner.on('_').join(featureComponent), 1.0);
-  }
+   /**
+    * Creates a binary feature made up a prefix and one or more components with the value of TRUE (1.0). Feature name
+    * will be in the form of <code>PREFIX=COMPONENT[1]_COMPONENT[2]_..._COMPONENT[N]</code>
+    *
+    * @param featurePrefix     the feature prefix
+    * @param featureComponents the feature components
+    * @return the feature
+    */
+   public static Feature TRUE(@NonNull String featurePrefix, @NonNull String... featureComponents) {
+      return new Feature(featurePrefix + "=" + Joiner.on('_').join(featureComponents), 1.0);
+   }
 
-  /**
-   * Creates a real valued feature with the given name and value.
-   *
-   * @param name  the feature name
-   * @param value the feature value
-   * @return the feature
-   */
-  public static Feature real(@NonNull String name, double value) {
-    return new Feature(name, value);
-  }
+   /**
+    * Creates a real valued feature with the given name and value.
+    *
+    * @param name  the feature name
+    * @param value the feature value
+    * @return the feature
+    */
+   public static Feature real(@NonNull String name, double value) {
+      return new Feature(name, value);
+   }
 
-  @Override
-  public int compareTo(Feature o) {
-    return o == null ? 1 : this.name.compareTo(o.name);
-  }
+   @Override
+   public int compareTo(@NonNull Feature o) {
+      return this.name.compareTo(o.name);
+   }
 
-  @Override
-  public Feature copy() {
-    return new Feature(name, value);
-  }
+   @Override
+   public Feature copy() {
+      return new Feature(name, value);
+   }
+
+   /**
+    * Gets the predicate part of the feature.
+    *
+    * @return the predicate or the full name if no predicate is found
+    */
+   public String getPredicate() {
+      int index = name.indexOf('=');
+      if (index > 0) {
+         return name.substring(index + 1);
+      }
+      return name;
+   }
+
+   /**
+    * Gets the feature prefix.
+    *
+    * @return the prefix or an empty string if no prefix is specified
+    */
+   public String getPrefix() {
+      int eqIndex = name.indexOf('=');
+      int brIndex = name.indexOf('[');
+
+      if (eqIndex <= 0 && brIndex <= 0) {
+         return StringUtils.EMPTY;
+      } else if (eqIndex <= 0) {
+         return removePosition(name.substring(0, brIndex));
+      } else if (brIndex <= 0) {
+         return removePosition(name.substring(0, eqIndex));
+      } else {
+         return removePosition(name.substring(0, Math.min(eqIndex, brIndex)));
+      }
+   }
+
+   private String removePosition(String n) {
+      return n.replaceAll("\\[[^\\]]+?\\]$", "");
+   }
 
 }//END OF Feature

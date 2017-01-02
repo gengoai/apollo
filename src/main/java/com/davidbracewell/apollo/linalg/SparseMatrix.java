@@ -21,243 +21,287 @@
 
 package com.davidbracewell.apollo.linalg;
 
-import com.davidbracewell.stream.Streams;
-import com.google.common.base.Preconditions;
+import com.davidbracewell.guava.common.base.Preconditions;
 import lombok.NonNull;
 import org.apache.mahout.math.map.OpenIntDoubleHashMap;
 
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.PrimitiveIterator;
+import java.util.*;
 import java.util.stream.IntStream;
 
 /**
+ * <p>Sparse implementation of Matrix stored in row-major order.</p>
+ *
  * @author David B. Bracewell
  */
 public class SparseMatrix extends AbstractMatrix {
-  private static final long serialVersionUID = -3802597548916836308L;
-  final private int numberOfRows;
-  final private int colDimension;
-  private volatile OpenIntDoubleHashMap matrix;
+   private static final long serialVersionUID = -3802597548916836308L;
+   final private int numberOfRows;
+   final private int colDimension;
+   private volatile OpenIntDoubleHashMap matrix;
 
-  public SparseMatrix(int numRows, int numColumns) {
-    this.colDimension = numColumns;
-    this.numberOfRows = numRows;
-    this.matrix = new OpenIntDoubleHashMap();
-  }
+   /**
+    * Instantiates a new Sparse matrix.
+    *
+    * @param numRows    the number of rows
+    * @param numColumns the number of columns
+    */
+   public SparseMatrix(int numRows, int numColumns) {
+      this.colDimension = numColumns;
+      this.numberOfRows = numRows;
+      this.matrix = new OpenIntDoubleHashMap();
+   }
 
-  public SparseMatrix(@NonNull Matrix matrix) {
-    this(matrix.numberOfRows(), matrix.numberOfColumns());
-    matrix.forEachSparse(e -> set(e.row, e.column, e.value));
-  }
+   /**
+    * Instantiates a new Sparse matrix.
+    *
+    * @param matrix the matrix to copy
+    */
+   public SparseMatrix(@NonNull Matrix matrix) {
+      this(matrix.numberOfRows(), matrix.numberOfColumns());
+      matrix.forEachSparse(e -> set(e.row, e.column, e.value));
+   }
 
-  public SparseMatrix(Vector... vectors) {
-    this(Arrays.asList(Preconditions.checkNotNull(vectors)));
-  }
+   /**
+    * Instantiates a new Sparse matrix from a number of row vectors.
+    *
+    * @param vectors the vectors
+    */
+   public SparseMatrix(@NonNull Vector... vectors) {
+      this(Arrays.asList(vectors));
+   }
 
-  public SparseMatrix(List<Vector> vectors) {
-    Preconditions.checkNotNull(vectors);
-    if (vectors.size() == 0) {
-      this.colDimension = 0;
-      this.numberOfRows = 0;
-    } else {
-      this.colDimension = vectors.get(0).dimension();
-      this.numberOfRows = vectors.size();
-    }
-    this.matrix = new OpenIntDoubleHashMap();
-    for (int i = 0; i < vectors.size(); i++) {
-      setRow(i, vectors.get(i));
-    }
-  }
+   /**
+    * Instantiates a new Sparse matrix from a number of row vectors.
+    *
+    * @param vectors the vectors
+    */
+   public SparseMatrix(@NonNull List<Vector> vectors) {
+      if (vectors.size() == 0) {
+         this.colDimension = 0;
+         this.numberOfRows = 0;
+      } else {
+         this.colDimension = vectors.get(0).dimension();
+         this.numberOfRows = vectors.size();
+      }
+      this.matrix = new OpenIntDoubleHashMap();
+      for (int i = 0; i < vectors.size(); i++) {
+         setRow(i, vectors.get(i));
+      }
+   }
 
-  public static Matrix zeroes(int numberOfRows, int numberOfColumns) {
-    return new SparseMatrix(numberOfRows, numberOfColumns);
-  }
+   /**
+    * Zeroes matrix.
+    *
+    * @param numberOfRows    the number of rows
+    * @param numberOfColumns the number of columns
+    * @return the matrix
+    */
+   public static Matrix zeroes(int numberOfRows, int numberOfColumns) {
+      return new SparseMatrix(numberOfRows, numberOfColumns);
+   }
 
-  public static Matrix ones(int numberOfRows, int numberOfColumns) {
-    return new SparseMatrix(numberOfRows, numberOfColumns).incrementSelf(1);
-  }
+   /**
+    * Ones matrix.
+    *
+    * @param numberOfRows    the number of rows
+    * @param numberOfColumns the number of columns
+    * @return the matrix
+    */
+   public static Matrix ones(int numberOfRows, int numberOfColumns) {
+      return new SparseMatrix(numberOfRows, numberOfColumns).incrementSelf(1);
+   }
 
-  public static Matrix unit(int size) {
-    Matrix m = new SparseMatrix(size, size);
-    for (int r = 0; r < size; r++) {
-      m.set(r, r, 1d);
-    }
-    return m;
-  }
+   /**
+    * Unit matrix.
+    *
+    * @param size the size
+    * @return the matrix
+    */
+   public static Matrix unit(int size) {
+      Matrix m = new SparseMatrix(size, size);
+      for (int r = 0; r < size; r++) {
+         m.set(r, r, 1d);
+      }
+      return m;
+   }
 
-  public static Matrix random(int numberOfRows, int numberOfColumns) {
-    Matrix m = new SparseMatrix(numberOfRows, numberOfColumns);
-    Streams.range(0, numberOfRows)
-      .parallel()
-      .forEach(r -> {
-        for (int c = 0; c < numberOfColumns; c++) {
-          m.set(r, c, Math.random());
-        }
-      });
-    return m;
-  }
+   /**
+    * Random matrix.
+    *
+    * @param numberOfRows    the number of rows
+    * @param numberOfColumns the number of columns
+    * @return the matrix
+    */
+   public static Matrix random(int numberOfRows, int numberOfColumns) {
+      Matrix m = new SparseMatrix(numberOfRows, numberOfColumns);
+      IntStream.range(0, numberOfRows)
+               .parallel()
+               .forEach(r -> {
+                  for (int c = 0; c < numberOfColumns; c++) {
+                     m.set(r, c, Math.random());
+                  }
+               });
+      return m;
+   }
 
 
-  @Override
-  protected Matrix createNew(int nRows, int nCols) {
-    return new SparseMatrix(nRows, nCols);
-  }
+   @Override
+   protected Matrix createNew(int nRows, int nCols) {
+      return new SparseMatrix(nRows, nCols);
+   }
 
-  @Override
-  public Iterator<Entry> nonZeroIterator() {
-    return new Iterator<Entry>() {
-      private PrimitiveIterator.OfInt rowItr = IntStream.range(0, numberOfRows).iterator();
-      private int row;
-      private Integer currentColumn = null;
-      private Iterator<Vector.Entry> colItr;
+   @Override
+   public Iterator<Entry> nonZeroIterator() {
+      return new Iterator<Entry>() {
+         private PrimitiveIterator.OfInt rowItr = IntStream.range(0, numberOfRows).iterator();
+         private int row;
+         private Integer currentColumn = null;
+         private Iterator<Vector.Entry> colItr;
 
-      private boolean advance() {
+         private boolean advance() {
 
-        while (currentColumn == null) {
-          if (colItr == null && !rowItr.hasNext()) {
-            return false;
-          } else if (colItr == null) {
-            row = rowItr.next();
-            colItr = row(row).nonZeroIterator();
-          } else if (colItr.hasNext()) {
-            currentColumn = colItr.next().getIndex();
-          } else {
+            while (currentColumn == null) {
+               if (colItr == null && !rowItr.hasNext()) {
+                  return false;
+               } else if (colItr == null) {
+                  row = rowItr.next();
+                  colItr = row(row).nonZeroIterator();
+               } else if (colItr.hasNext()) {
+                  currentColumn = colItr.next().getIndex();
+               } else {
+                  currentColumn = null;
+                  colItr = null;
+               }
+            }
+
+            return currentColumn != null;
+         }
+
+         @Override
+         public boolean hasNext() {
+            return advance();
+         }
+
+         @Override
+         public Entry next() {
+            if (!advance()) {
+               throw new NoSuchElementException();
+            }
+            int c = currentColumn;
             currentColumn = null;
-            colItr = null;
-          }
-        }
+            return new Matrix.Entry(row, c, get(row, c));
+         }
+      };
+   }
 
-        return currentColumn != null;
-      }
+   @Override
+   public Iterator<Entry> orderedNonZeroIterator() {
+      return new Iterator<Entry>() {
+         private PrimitiveIterator.OfInt rowItr = IntStream.range(0, numberOfRows).iterator();
+         private int row;
+         private Integer currentColumn = null;
+         private Iterator<Vector.Entry> colItr;
 
-      @Override
-      public boolean hasNext() {
-        return advance();
-      }
+         private boolean advance() {
 
-      @Override
-      public Entry next() {
-        if (!advance()) {
-          throw new NoSuchElementException();
-        }
-        int c = currentColumn;
-        currentColumn = null;
-        return new Matrix.Entry(row, c, get(row, c));
-      }
-    };
-  }
+            while (currentColumn == null) {
+               if (colItr == null && !rowItr.hasNext()) {
+                  return false;
+               } else if (colItr == null) {
+                  row = rowItr.next();
+                  colItr = row(row).orderedNonZeroIterator();
+               } else if (colItr.hasNext()) {
+                  currentColumn = colItr.next().getIndex();
+               } else {
+                  currentColumn = null;
+                  colItr = null;
+               }
+            }
 
-  @Override
-  public Iterator<Entry> orderedNonZeroIterator() {
-    return new Iterator<Entry>() {
-      private PrimitiveIterator.OfInt rowItr = IntStream.range(0, numberOfRows).iterator();
-      private int row;
-      private Integer currentColumn = null;
-      private Iterator<Vector.Entry> colItr;
+            return currentColumn != null;
+         }
 
-      private boolean advance() {
+         @Override
+         public boolean hasNext() {
+            return advance();
+         }
 
-        while (currentColumn == null) {
-          if (colItr == null && !rowItr.hasNext()) {
-            return false;
-          } else if (colItr == null) {
-            row = rowItr.next();
-            colItr = row(row).orderedNonZeroIterator();
-          } else if (colItr.hasNext()) {
-            currentColumn = colItr.next().getIndex();
-          } else {
+         @Override
+         public Entry next() {
+            if (!advance()) {
+               throw new NoSuchElementException();
+            }
+            int c = currentColumn;
             currentColumn = null;
-            colItr = null;
-          }
-        }
+            return new Matrix.Entry(row, c, get(row, c));
+         }
+      };
+   }
 
-        return currentColumn != null;
+   @Override
+   public double get(int row, int column) {
+      Preconditions.checkElementIndex(row, numberOfRows());
+      Preconditions.checkElementIndex(column, numberOfColumns());
+      return matrix.get(encode(row, column));
+   }
+
+   @Override
+   public void set(int row, int column, double value) {
+      Preconditions.checkElementIndex(row, numberOfRows());
+      Preconditions.checkElementIndex(column, numberOfColumns());
+      synchronized (this) {
+         matrix.put(encode(row, column), value);
       }
+   }
 
-      @Override
-      public boolean hasNext() {
-        return advance();
+   @Override
+   public int numberOfRows() {
+      return numberOfRows;
+   }
+
+   @Override
+   public int numberOfColumns() {
+      return colDimension;
+   }
+
+   @Override
+   public boolean isSparse() {
+      return true;
+   }
+
+   private int encode(int row, int col) {
+      return (row * numberOfColumns()) + col;
+   }
+
+   @Override
+   public Matrix increment(int row, int col, double amount) {
+      Preconditions.checkElementIndex(row, numberOfRows());
+      Preconditions.checkElementIndex(col, numberOfColumns());
+      synchronized (this) {
+         matrix.adjustOrPutValue(encode(row, col), amount, amount);
       }
+      return this;
+   }
 
-      @Override
-      public Entry next() {
-        if (!advance()) {
-          throw new NoSuchElementException();
-        }
-        int c = currentColumn;
-        currentColumn = null;
-        return new Matrix.Entry(row, c, get(row, c));
+   @Override
+   public String toString() {
+      if (numberOfRows() > 10 || numberOfColumns() > 10) {
+         return numberOfRows() + "x" + numberOfColumns();
       }
-    };
-  }
-
-  @Override
-  public double get(int row, int column) {
-    Preconditions.checkElementIndex(row, numberOfRows());
-    Preconditions.checkElementIndex(column, numberOfColumns());
-    return matrix.get(encode(row, column));
-  }
-
-  @Override
-  public void set(int row, int column, double value) {
-    Preconditions.checkElementIndex(row, numberOfRows());
-    Preconditions.checkElementIndex(column, numberOfColumns());
-    synchronized (this) {
-      matrix.put(encode(row, column), value);
-    }
-  }
-
-  @Override
-  public int numberOfRows() {
-    return numberOfRows;
-  }
-
-  @Override
-  public int numberOfColumns() {
-    return colDimension;
-  }
-
-  @Override
-  public boolean isSparse() {
-    return true;
-  }
-
-  public int encode(int row, int col) {
-    return (row * numberOfColumns()) + col;
-  }
-
-  @Override
-  public Matrix increment(int row, int col, double amount) {
-    Preconditions.checkElementIndex(row, numberOfRows());
-    Preconditions.checkElementIndex(col, numberOfColumns());
-    synchronized (this) {
-      matrix.adjustOrPutValue(encode(row, col), amount, amount);
-    }
-    return this;
-  }
-
-  @Override
-  public String toString() {
-    if (numberOfRows() > 10 || numberOfColumns() > 10) {
-      return numberOfRows() + "x" + numberOfColumns();
-    }
-    StringBuilder builder = new StringBuilder("[ ");
-    for (int row = 0; row < numberOfRows(); row++) {
-      builder.append("[ ");
-      for (int col = 0; col < numberOfColumns(); col++) {
-        builder.append(get(row, col)).append(", ");
+      StringBuilder builder = new StringBuilder("[ ");
+      for (int row = 0; row < numberOfRows(); row++) {
+         builder.append("[ ");
+         for (int col = 0; col < numberOfColumns(); col++) {
+            builder.append(get(row, col)).append(", ");
+         }
+         builder.append("] ");
       }
-      builder.append("] ");
-    }
-    return builder.append("]").toString();
-  }
+      return builder.append("]").toString();
+   }
 
-  @Override
-  public Matrix copy() {
-    return new SparseMatrix(this);
-  }
+   @Override
+   public Matrix copy() {
+      return new SparseMatrix(this);
+   }
 
 }//END OF SparseMatrix

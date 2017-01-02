@@ -1,55 +1,107 @@
 package com.davidbracewell.apollo.ml.preprocess.transform;
 
-import com.davidbracewell.apollo.ml.Encoder;
+import com.davidbracewell.EnhancedDoubleStatistics;
 import com.davidbracewell.apollo.ml.Feature;
-import com.davidbracewell.collection.EnhancedDoubleStatistics;
+import com.davidbracewell.apollo.ml.Instance;
+import com.davidbracewell.apollo.ml.preprocess.RestrictedInstancePreprocessor;
+import com.davidbracewell.io.structured.ElementType;
+import com.davidbracewell.io.structured.StructuredReader;
+import com.davidbracewell.io.structured.StructuredWriter;
+import com.davidbracewell.stream.MStream;
+import com.davidbracewell.stream.accumulator.MStatisticsAccumulator;
 import com.davidbracewell.string.StringUtils;
+import lombok.NonNull;
 
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.List;
 import java.util.stream.Stream;
 
 /**
+ * <p>Transforms features values to Z-Scores.</p>
+ *
  * @author David B. Bracewell
  */
-public class ZScoreTransform extends RestrictedTransform {
-  private static final long serialVersionUID = 1L;
-  private final EnhancedDoubleStatistics statistics = new EnhancedDoubleStatistics();
-  private volatile AtomicBoolean finished = new AtomicBoolean(false);
+public class ZScoreTransform extends RestrictedInstancePreprocessor implements TransformProcessor<Instance>, Serializable {
 
-  public ZScoreTransform() {
-    super(StringUtils.EMPTY);
-  }
+   private static final long serialVersionUID = 1L;
+   private double mean = 0;
+   private double standardDeviation = 0;
 
-  public ZScoreTransform(String featureNamePrefix) {
-    super(featureNamePrefix);
-  }
+   /**
+    * Instantiates a new Z-Score transform calculating statistics for all features.
+    */
+   public ZScoreTransform() {
+      super(StringUtils.EMPTY);
+   }
 
-  @Override
-  protected void visitImpl(Stream<Feature> featureStream) {
-    if (!finished.get()) {
-      featureStream.mapToDouble(Feature::getValue).forEach(statistics::accept);
-    }
-  }
+   /**
+    * Instantiates a new Z-Score transform.
+    *
+    * @param featureNamePrefix the feature name prefix to restrict the transformation to
+    */
+   public ZScoreTransform(String featureNamePrefix) {
+      super(featureNamePrefix);
+   }
 
-  @Override
-  protected Stream<Feature> processImpl(Stream<Feature> featureStream) {
-    return featureStream.map(feature -> Feature.real(feature.getName(), (feature.getValue() - statistics.getAverage()) / statistics.getSampleStandardDeviation()));
-  }
+   @Override
+   protected Stream<Feature> restrictedProcessImpl(Stream<Feature> featureStream, Instance originalExample) {
+      return featureStream.map(feature -> Feature.real(feature.getName(),
+                                                       (feature.getValue() - mean) / standardDeviation));
+   }
 
-  @Override
-  public void finish() {
-    finished.set(true);
-  }
 
-  @Override
-  public void reset() {
-    finished.set(false);
-    statistics.clear();
-  }
+   @Override
+   protected void restrictedFitImpl(MStream<List<Feature>> stream) {
+      MStatisticsAccumulator stats = stream.getContext().statisticsAccumulator();
+      stream.forEach(instance -> stats.combine(instance.stream()
+                                                       .mapToDouble(Feature::getValue)
+                                                       .collect(EnhancedDoubleStatistics::new,
+                                                                EnhancedDoubleStatistics::accept,
+                                                                EnhancedDoubleStatistics::combine)));
+      this.mean = stats.value().getAverage();
+      this.standardDeviation = stats.value().getSampleStandardDeviation();
+   }
 
-  @Override
-  public void trimToSize(Encoder encoder) {
+   @Override
+   public void reset() {
+      this.mean = 0;
+      this.standardDeviation = 0;
+   }
 
-  }
+   @Override
+   public String describe() {
+      if (applyToAll()) {
+         return "ZScoreTransform{mean=" + mean + ", std=" + standardDeviation + "}";
+      }
+      return "ZScoreTransform[" + getRestriction() + "]{mean=" + mean + ", std=" + standardDeviation + "}";
+   }
+
+   @Override
+   public void write(@NonNull StructuredWriter writer) throws IOException {
+      if (!applyToAll()) {
+         writer.writeKeyValue("restriction", getRestriction());
+      }
+      writer.writeKeyValue("mean", mean);
+      writer.writeKeyValue("stddev", standardDeviation);
+   }
+
+   @Override
+   public void read(@NonNull StructuredReader reader) throws IOException {
+      reset();
+      while (reader.peek() != ElementType.END_OBJECT) {
+         switch (reader.peekName()) {
+            case "restriction":
+               setRestriction(reader.nextKeyValue().v2.asString());
+               break;
+            case "mean":
+               this.mean = reader.nextKeyValue().v2.asDoubleValue();
+               break;
+            case "stddev":
+               this.standardDeviation = reader.nextKeyValue().v2.asDoubleValue();
+               break;
+         }
+      }
+   }
 
 }// END OF ZScoreTransform

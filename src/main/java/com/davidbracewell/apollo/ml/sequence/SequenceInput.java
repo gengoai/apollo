@@ -14,111 +14,109 @@ import java.util.Optional;
  * @author David B. Bracewell
  */
 public class SequenceInput<T> implements Serializable {
-  private static final long serialVersionUID = 1L;
-  private final ArrayList<T> list = new ArrayList<>();
-  private final ArrayList<String> labels = new ArrayList<>();
+   private static final long serialVersionUID = 1L;
+   private final ArrayList<T> list = new ArrayList<>();
+   private final ArrayList<String> labels = new ArrayList<>();
 
-  /**
-   * Instantiates a new Sequence input.
-   */
-  public SequenceInput() {
+   /**
+    * Instantiates a new Sequence input.
+    */
+   public SequenceInput() {
 
-  }
+   }
 
-  /**
-   * Instantiates a new Sequence input.
-   *
-   * @param collection the collection
-   */
-  public SequenceInput(@NonNull Collection<T> collection) {
-    list.addAll(collection);
-  }
-
-  /**
-   * Gets label.
-   *
-   * @param index the index
-   * @return the label
-   */
-  public String getLabel(int index) {
-    if (index < 0 || index >= labels.size()) {
-      return null;
-    }
-    return labels.get(index);
-  }
-
-  /**
-   * Get t.
-   *
-   * @param index the index
-   * @return the t
-   */
-  public T get(int index) {
-    if (index < 0 || index >= list.size()) {
-      return null;
-    }
-    return list.get(index);
-  }
+   /**
+    * Instantiates a new Sequence input.
+    *
+    * @param collection the collection
+    */
+   public SequenceInput(@NonNull Collection<T> collection) {
+      list.addAll(collection);
+   }
 
 
-  /**
-   * Add.
-   *
-   * @param observation the observation
-   * @param label       the label
-   */
-  public void add(T observation, String label) {
-    list.add(observation);
-    labels.add(label);
-  }
+   /**
+    * Gets label.
+    *
+    * @param index the index
+    * @return the label
+    */
+   public String getLabel(int index) {
+      if (index < 0 || index >= labels.size()) {
+         return null;
+      }
+      return labels.get(index);
+   }
 
-  /**
-   * Add.
-   *
-   * @param observation the observation
-   */
-  public void add(T observation) {
-    list.add(observation);
-    labels.add(null);
-  }
+   /**
+    * Get t.
+    *
+    * @param index the index
+    * @return the t
+    */
+   public T get(int index) {
+      if (index < 0 || index >= list.size()) {
+         return null;
+      }
+      return list.get(index);
+   }
 
-  /**
-   * Size int.
-   *
-   * @return the int
-   */
-  public int size() {
-    return list.size();
-  }
+   /**
+    * Add.
+    *
+    * @param observation the observation
+    * @param label       the label
+    */
+   public void add(T observation, String label) {
+      list.add(observation);
+      labels.add(label);
+   }
 
-  /**
-   * Iterator contextual iterator.
-   *
-   * @return the contextual iterator
-   */
-  public ContextualIterator<T> iterator() {
-    return new Itr();
-  }
+   /**
+    * Add.
+    *
+    * @param observation the observation
+    */
+   public void add(T observation) {
+      list.add(observation);
+      labels.add(null);
+   }
 
+   /**
+    * Size int.
+    *
+    * @return the int
+    */
+   public int size() {
+      return list.size();
+   }
 
-  private class Itr extends ContextualIterator<T> {
-    private static final long serialVersionUID = 1L;
+   /**
+    * Iterator contextual iterator.
+    *
+    * @return the contextual iterator
+    */
+   public Context<T> iterator() {
+      return new Itr();
+   }
 
-    @Override
-    public int size() {
-      return SequenceInput.this.size();
-    }
+   private class Itr extends Context<T> {
+      private static final long serialVersionUID = 1L;
 
-    @Override
-    protected Optional<T> getContextAt(int index) {
-      return Optional.ofNullable(SequenceInput.this.get(index));
-    }
+      @Override
+      public int size() {
+         return SequenceInput.this.size();
+      }
 
-    @Override
-    protected Optional<String> getLabelAt(int index) {
-      return Optional.ofNullable(SequenceInput.this.getLabel(index));
-    }
-  }
+      @Override
+      protected Optional<T> getContextAt(int index) {
+         return Optional.ofNullable(SequenceInput.this.get(index));
+      }
 
+      @Override
+      protected Optional<String> getLabelAt(int index) {
+         return Optional.ofNullable(SequenceInput.this.getLabel(index));
+      }
+   }
 
 }// END OF SequenceInput

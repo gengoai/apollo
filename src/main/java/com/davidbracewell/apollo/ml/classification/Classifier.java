@@ -22,94 +22,88 @@
 package com.davidbracewell.apollo.ml.classification;
 
 import com.davidbracewell.apollo.linalg.Vector;
-import com.davidbracewell.apollo.ml.*;
+import com.davidbracewell.apollo.ml.EncoderPair;
+import com.davidbracewell.apollo.ml.IndexEncoder;
+import com.davidbracewell.apollo.ml.Instance;
+import com.davidbracewell.apollo.ml.Model;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
-import com.davidbracewell.collection.MultiCounter;
-import com.davidbracewell.conversion.Cast;
-import com.google.common.base.Preconditions;
+import com.davidbracewell.collection.counter.Counter;
+import com.davidbracewell.collection.counter.MultiCounter;
+import com.davidbracewell.guava.common.base.Preconditions;
 import lombok.NonNull;
 
 /**
- * The interface Classifier.
+ * Base class for classifiers that predicts the label, or class, for a set of features.
  *
  * @author David B. Bracewell
  */
-public abstract class Classifier extends Model {
-  private static final long serialVersionUID = 1L;
-  private final PreprocessorList<Instance> preprocessors;
-  private Featurizer<?> featurizer;
+public abstract class Classifier implements Model {
+   private static final long serialVersionUID = 1L;
+   private final PreprocessorList<Instance> preprocessors;
+   private EncoderPair encoderPair;
 
-  /**
-   * Instantiates a new Classifier.
-   *
-   * @param encoderPair   the encoder pair
-   * @param preprocessors the preprocessors
-   */
-  protected Classifier(@NonNull EncoderPair encoderPair, @NonNull PreprocessorList<Instance> preprocessors) {
-    super(encoderPair);
-    Preconditions.checkArgument(encoderPair.getLabelEncoder() instanceof IndexEncoder, "Classifiers only allow IndexEncoders for labels.");
-    this.preprocessors = preprocessors.getModelProcessors();
-  }
-
-
-  @Override
-  protected void finishTraining() {
-    super.finishTraining();
-    preprocessors.trimToSize(getFeatureEncoder());
-  }
-
-  /**
-   * Classifier result classifier result.
-   *
-   * @param input the input
-   * @return the classifier result
-   */
-  @SuppressWarnings("unchecked")
-  public Classification classify(@NonNull Object input) {
-    Preconditions.checkNotNull(featurizer, "Featurizer has not been set on the classifier");
-    return classify(featurizer.extract(Cast.as(input)));
-  }
+   /**
+    * Instantiates a new Classifier.
+    *
+    * @param encoderPair   the pair of encoders to convert feature names into int/double values
+    * @param preprocessors the preprocessors that the classifier will need apply at runtime
+    */
+   protected Classifier(@NonNull EncoderPair encoderPair, @NonNull PreprocessorList<Instance> preprocessors) {
+      this.encoderPair = encoderPair;
+      Preconditions.checkArgument(encoderPair.getLabelEncoder() instanceof IndexEncoder,
+                                  "Classifiers only allow IndexEncoders for labels.");
+      this.preprocessors = preprocessors.getModelProcessors();
+   }
 
 
-  /**
-   * Classify classifier result.
-   *
-   * @param instance the instance
-   * @return the classifier result
-   */
-  public final Classification classify(@NonNull Instance instance) {
-    return classify(preprocessors.apply(instance).toVector(getEncoderPair()));
-  }
+   /**
+    * Predicts the label, or class, of the given instance
+    *
+    * @param instance the instance whose class we want to predict
+    * @return the classification result
+    */
+   public Classification classify(@NonNull Instance instance) {
+      return classify(preprocessors.apply(instance).toVector(getEncoderPair()));
+   }
 
-  /**
-   * Classify classifier result.
-   *
-   * @param vector the vector
-   * @return the classifier result
-   */
-  public abstract Classification classify(Vector vector);
+   /**
+    * Predicts the label, or class, of the given vector. Note, that all preprocessing must already be performed on the
+    * vector.
+    *
+    * @param vector the vector whose class we want to predict
+    * @return the classification result
+    */
+   public abstract Classification classify(Vector vector);
 
-  /**
-   * Sets featurizer.
-   *
-   * @param featurizer the featurizer
-   */
-  public void setFeaturizer(Featurizer featurizer) {
-    this.featurizer = featurizer;
-  }
+   /**
+    * Gets the parameters of the model. Typically these will be Feature-Class-Weight triplets.
+    *
+    * @return the model parameters
+    */
+   public MultiCounter<String, String> getModelParameters() {
+      throw new UnsupportedOperationException();
+   }
 
-  /**
-   * Gets model parameters.
-   *
-   * @return the model parameters
-   */
-  public MultiCounter<String, String> getModelParameters() {
-    throw new UnsupportedOperationException();
-  }
+   /**
+    * Convenience method for creating classification results.
+    *
+    * @param distribution the distribution of probabilities
+    * @return the classification result
+    */
+   protected Classification createResult(double[] distribution) {
+      return new Classification(distribution, getLabelEncoder());
+   }
 
-  protected Classification createResult(double[] distribution) {
-    return new Classification(distribution, getLabelEncoder());
-  }
+   protected Classification createResult(Counter<String> distribution) {
+      double[] dis = new double[getLabelEncoder().size()];
+      distribution.divideBySum();
+      distribution.forEach((i, v) -> dis[(int) encodeLabel(i)] = v);
+      return new Classification(dis, getLabelEncoder());
+   }
 
+   @Override
+   public EncoderPair getEncoderPair() {
+      return encoderPair;
+   }
 
 }//END OF Classifier

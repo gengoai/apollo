@@ -1,45 +1,50 @@
 package com.davidbracewell.apollo.ml.clustering;
 
-import com.davidbracewell.apollo.linalg.LabeledVector;
-import com.davidbracewell.apollo.ml.Dataset;
+import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.EncoderPair;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.Learner;
+import com.davidbracewell.apollo.ml.data.Dataset;
+import com.davidbracewell.stream.MStream;
+import lombok.Getter;
 import lombok.NonNull;
-
-import java.util.LinkedList;
-import java.util.List;
+import lombok.Setter;
 
 /**
+ * <p>Base class for clusterer learners.</p>
+ *
+ * @param <T> the clustering type parameter
  * @author David B. Bracewell
  */
 public abstract class Clusterer<T extends Clustering> extends Learner<Instance, T> {
-  private static final long serialVersionUID = 1L;
-  private EncoderPair encoderPair;
-
-  @Override
-  public T train(@NonNull Dataset<Instance> dataset) {
-    return super.train(dataset);
-  }
-
-  @Override
-  protected T trainImpl(Dataset<Instance> dataset) {
-    this.encoderPair = dataset.getEncoderPair();
-    List<LabeledVector> instances = new LinkedList<>();
-    dataset.forEach(i -> instances.add(new LabeledVector(i.getLabel(), i.toVector(dataset.getEncoderPair()))));
-    return cluster(instances);
-  }
-
-  public abstract T cluster(List<LabeledVector> instances);
-
-  @Override
-  public void reset() {
-    this.encoderPair = null;
-  }
+   private static final long serialVersionUID = 1L;
+   @Getter
+   @Setter
+   private EncoderPair encoderPair;
 
 
-  public EncoderPair getEncoderPair() {
-    return encoderPair;
-  }
+   @Override
+   public T train(@NonNull Dataset<Instance> dataset) {
+      return super.train(dataset);
+   }
+
+   @Override
+   protected T trainImpl(Dataset<Instance> dataset) {
+      this.encoderPair = dataset.getEncoderPair();
+      return cluster(dataset.stream().map(i -> i.toVector(dataset.getEncoderPair())));
+   }
+
+   /**
+    * Clusters a stream of vectors.
+    *
+    * @param instances the instances
+    * @return the clustering model
+    */
+   public abstract T cluster(MStream<Vector> instances);
+
+   @Override
+   public void reset() {
+      this.encoderPair = null;
+   }
 
 }// END OF Clusterer

@@ -21,29 +21,36 @@
 
 package com.davidbracewell.apollo.affinity;
 
-import com.google.common.base.Preconditions;
+import com.davidbracewell.guava.common.base.Preconditions;
 
 import java.util.Map;
 
 /**
+ * <p>Distance measure implementation that is the one minus the value of a similarity measure</p>
+ *
  * @author David B. Bracewell
  */
 class OneMinusSimilarityDistance implements DistanceMeasure {
-  private static final long serialVersionUID = 1L;
-  private final SimilarityMeasure similarityMeasure;
+   private static final long serialVersionUID = 1L;
+   private final SimilarityMeasure similarityMeasure;
 
-  OneMinusSimilarityDistance(SimilarityMeasure similarityMeasure) {
-    this.similarityMeasure = Preconditions.checkNotNull(similarityMeasure);
-  }
+   /**
+    * Instantiates a new One minus similarity distance.
+    *
+    * @param similarityMeasure the similarity measure
+    */
+   OneMinusSimilarityDistance(SimilarityMeasure similarityMeasure) {
+      this.similarityMeasure = Preconditions.checkNotNull(similarityMeasure);
+   }
 
-  @Override
-  public double calculate(Map<?, ? extends Number> m1, Map<?, ? extends Number> m2) {
-    return 1d - similarityMeasure.calculate(m1, m2);
-  }
+   @Override
+   public double calculate(Map<?, ? extends Number> m1, Map<?, ? extends Number> m2) {
+      return 1d - similarityMeasure.calculate(m1, m2);
+   }
 
-  @Override
-  public SimilarityMeasure asSimilarityMeasure() {
-    return similarityMeasure;
-  }
+   @Override
+   public SimilarityMeasure asSimilarityMeasure() {
+      return similarityMeasure;
+   }
 
 }//END OF OneMinusSimilarityDistance

@@ -27,24 +27,26 @@ import lombok.Value;
 import java.io.Serializable;
 
 /**
+ * Simple container for an object and its associated label
+ *
  * @author David B. Bracewell
  */
 @Value
 public class LabeledDatum<T> implements Serializable {
-  private static final long serialVersionUID = 1L;
-  private Object label;
-  private T data;
+   private static final long serialVersionUID = 1L;
+   private Object label;
+   private T data;
 
-  /**
-   * Of labeled data.
-   *
-   * @param <R>   the type parameter
-   * @param label the label
-   * @param data  the data
-   * @return the labeled data
-   */
-  public static <R> LabeledDatum<R> of(Object label, @NonNull R data) {
-    return new LabeledDatum<>(label, data);
-  }
+   /**
+    * Convenience method for creating a labeled data point
+    *
+    * @param <R>   the data type parameter
+    * @param label the label
+    * @param data  the data
+    * @return the labeled data
+    */
+   public static <R> LabeledDatum<R> of(Object label, @NonNull R data) {
+      return new LabeledDatum<>(label, data);
+   }
 
 }//END OF LabeledDatum

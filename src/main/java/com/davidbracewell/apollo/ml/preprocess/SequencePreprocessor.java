@@ -1,8 +1,8 @@
 package com.davidbracewell.apollo.ml.preprocess;
 
-import com.davidbracewell.apollo.ml.Encoder;
 import com.davidbracewell.apollo.ml.Instance;
-import com.davidbracewell.apollo.ml.preprocess.Preprocessor;
+import com.davidbracewell.apollo.ml.data.Dataset;
+import com.davidbracewell.apollo.ml.data.MStreamDataset;
 import com.davidbracewell.apollo.ml.sequence.Sequence;
 import lombok.NonNull;
 
@@ -10,51 +10,50 @@ import java.io.Serializable;
 import java.util.stream.Collectors;
 
 /**
+ * Preprocessor fo {@link Sequence} examples that wraps an {@link InstancePreprocessor}.
+ *
  * @author David B. Bracewell
  */
 public class SequencePreprocessor implements Preprocessor<Sequence>, Serializable {
-  private static final long serialVersionUID = 1L;
-  private final Preprocessor<Instance> instancePreprocessor;
+   private static final long serialVersionUID = 1L;
+   private final Preprocessor<Instance> instancePreprocessor;
 
-  public SequencePreprocessor(Preprocessor<Instance> instancePreprocessor) {
-    this.instancePreprocessor = instancePreprocessor;
-  }
+   /**
+    * Instantiates a new Sequence preprocessor.
+    *
+    * @param instancePreprocessor the instance preprocessor
+    */
+   public SequencePreprocessor(@NonNull Preprocessor<Instance> instancePreprocessor) {
+      this.instancePreprocessor = instancePreprocessor;
+   }
 
-  @Override
-  public void visit(Sequence example) {
-    if (example != null) {
-      example.asInstances().forEach(instancePreprocessor::visit);
-    }
-  }
+   @Override
+   public Sequence apply(Sequence example) {
+      return new Sequence(example.asInstances().stream().map(instancePreprocessor::apply).collect(Collectors.toList()));
+   }
 
-  @Override
-  public Sequence process(@NonNull Sequence example) {
-    return new Sequence(example.asInstances().stream().map(instancePreprocessor::process).collect(Collectors.toList()));
-  }
+   @Override
+   public String describe() {
+      return instancePreprocessor.describe();
+   }
 
-  @Override
-  public void finish() {
-    instancePreprocessor.finish();
-  }
+   @Override
+   public void fit(Dataset<Sequence> dataset) {
+      instancePreprocessor.fit(new MStreamDataset<>(dataset.getFeatureEncoder(),
+                                                    dataset.getLabelEncoder(),
+                                                    PreprocessorList.empty(),
+                                                    dataset.stream().flatMap(s -> s.asInstances().stream()))
+                              );
+   }
 
-  @Override
-  public boolean trainOnly() {
-    return instancePreprocessor.trainOnly();
-  }
+   @Override
+   public void reset() {
+      instancePreprocessor.reset();
+   }
 
-  @Override
-  public void reset() {
-    instancePreprocessor.reset();
-  }
-
-  @Override
-  public void trimToSize(Encoder encoder) {
-    instancePreprocessor.trimToSize(encoder);
-  }
-
-  @Override
-  public String describe() {
-    return instancePreprocessor.describe();
-  }
+   @Override
+   public boolean trainOnly() {
+      return instancePreprocessor.trainOnly();
+   }
 
 }// END OF SequencePreprocessor

@@ -61,7 +61,7 @@ public class CRPClusterer extends Clusterer<FlatClustering> {
     * Instantiates a new CRP clusterer.
     *
     * @param distanceMeasure the distance measure
-    * @param alpha           the alpha
+    * @param alpha           the alpha smoothing parameter
     */
    public CRPClusterer(DistanceMeasure distanceMeasure, double alpha) {
       Preconditions.checkArgument(alpha > 0);

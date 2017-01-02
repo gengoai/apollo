@@ -86,7 +86,7 @@ public class KMeans extends Clusterer<FlatClustering> {
    }
 
    @Override
-   public FlatClustering cluster(@NonNull MStream<Vector> instanceStream) {
+   public FlatCentroidClustering cluster(@NonNull MStream<Vector> instanceStream) {
       FlatCentroidClustering clustering = new FlatCentroidClustering(getEncoderPair(), distanceMeasure);
 
       List<Vector> instances = instanceStream.collect();
@@ -103,7 +103,6 @@ public class KMeans extends Clusterer<FlatClustering> {
       for (int itr = 0; itr < maxIterations; itr++) {
          clustering.forEach(Cluster::clear);
          numMoved.set(0);
-
          instances.parallelStream()
                   .forEach(ii -> {
                               int minI = 0;
@@ -136,6 +135,14 @@ public class KMeans extends Clusterer<FlatClustering> {
                }
             }
             c.mapDivideSelf((double) clustering.get(i).size());
+            double average = 0;
+            for (Vector ii : clustering.get(i)) {
+               if (ii != null) {
+                  average += distanceMeasure.calculate(ii, c);
+               }
+            }
+            clustering.get(i).setId(i);
+            clustering.get(i).setScore(average / clustering.get(i).size());
          }
       }
 

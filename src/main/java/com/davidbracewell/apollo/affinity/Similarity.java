@@ -21,6 +21,7 @@
 
 package com.davidbracewell.apollo.affinity;
 
+import com.davidbracewell.Math2;
 import com.davidbracewell.guava.common.base.Preconditions;
 import lombok.NonNull;
 
@@ -190,7 +191,7 @@ public enum Similarity implements SimilarityMeasure {
             mag2 += Math.pow(m2.get(key).doubleValue(), 2);
          }
 
-         return dp / Math.min(mag1, mag2);
+         return Math2.clip(dp / Math.min(mag1, mag2), -1, 1);
       }
 
       @Override

@@ -8,6 +8,7 @@ import com.davidbracewell.tuple.Tuple2;
 import lombok.NonNull;
 
 import java.util.Arrays;
+import java.util.Comparator;
 
 import static com.davidbracewell.tuple.Tuples.$;
 
@@ -22,10 +23,10 @@ public interface CentroidClustering extends Clustering {
    default int hardCluster(@NonNull Instance instance) {
       Vector vector = instance.toVector(getEncoderPair());
       return Streams.asParallelStream(this)
-                          .map(c -> $(c.getId(), getDistanceMeasure().calculate(vector, c.getCentroid())))
-                          .min((t1, t2) -> Double.compare(t1.getValue(), t2.getValue()))
-                          .map(Tuple2::getKey)
-                          .orElse(-1);
+                    .map(c -> $(c.getId(), getDistanceMeasure().calculate(vector, c.getCentroid())))
+                    .min(Comparator.comparingDouble(Tuple2::getValue))
+                    .map(Tuple2::getKey)
+                    .orElse(-1);
    }
 
    @Override

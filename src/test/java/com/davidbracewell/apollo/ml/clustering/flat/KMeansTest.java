@@ -64,8 +64,9 @@ public class KMeansTest extends ClustererTest {
       double[] dist = c.softCluster(Instance.create(Arrays.asList(
          Feature.real("F1", 0.5),
          Feature.real("F2", 1.5))));
-      assertFalse(Double.isInfinite(dist[0]));
-      assertTrue(Double.isInfinite(dist[1]));
+      assertTrue((Double.isInfinite(dist[0]) && !Double.isInfinite(dist[1]))
+                    || (!Double.isInfinite(dist[0]) && Double.isInfinite(dist[1]))
+                );
 
    }
 }

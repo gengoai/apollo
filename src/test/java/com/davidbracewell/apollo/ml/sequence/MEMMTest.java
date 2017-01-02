@@ -27,7 +27,7 @@ package com.davidbracewell.apollo.ml.sequence;
 public class MEMMTest extends BaseSequenceLabelerTest {
 
    public MEMMTest() {
-      super(new MEMMLearner(), 0.9, 0.1);
+      super(new MEMMLearner(), 0.9, 0.4);
    }
 
 }

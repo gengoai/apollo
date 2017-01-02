@@ -128,13 +128,17 @@ public class KMeans extends Clusterer<FlatClustering> {
          }
 
          for (int i = 0; i < K; i++) {
-            Vector c = clustering.get(i).getCentroid().zero();
-            for (Vector ii : clustering.get(i)) {
-               if (ii != null) {
-                  c.addSelf(ii);
+            if (clustering.get(i).size() == 0) {
+               clustering.get(i).setCentroid(SparseVector.random(instances.get(0).dimension(), -1, 1));
+            } else {
+               Vector c = clustering.get(i).getCentroid().zero();
+               for (Vector ii : clustering.get(i)) {
+                  if (ii != null) {
+                     c.addSelf(ii);
+                  }
                }
+               c.mapDivideSelf((double) clustering.get(i).size());
             }
-            c.mapDivideSelf((double) clustering.get(i).size());
          }
       }
 

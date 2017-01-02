@@ -135,15 +135,18 @@ public class KMeans extends Clusterer<FlatClustering> {
                }
             }
             c.mapDivideSelf((double) clustering.get(i).size());
-            double average = 0;
-            for (Vector ii : clustering.get(i)) {
-               if (ii != null) {
-                  average += distanceMeasure.calculate(ii, c);
-               }
-            }
-            clustering.get(i).setId(i);
-            clustering.get(i).setScore(average / clustering.get(i).size());
          }
+      }
+
+      for (int i = 0; i < clustering.size(); i++) {
+         Cluster cluster = clustering.get(i);
+         double average = cluster.getPoints().parallelStream()
+                                 .flatMapToDouble(p1 -> cluster.getPoints()
+                                                               .stream()
+                                                               .mapToDouble(p2 -> distanceMeasure.calculate(p1, p2)))
+                                 .summaryStatistics().getAverage();
+         cluster.setId(i);
+         cluster.setScore(average);
       }
 
       return clustering;

@@ -38,8 +38,6 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- *
- *
  * @author David B. Bracewell
  */
 public class DivisiveKMeans extends Clusterer<FlatClustering> implements Loggable {
@@ -81,7 +79,9 @@ public class DivisiveKMeans extends Clusterer<FlatClustering> implements Loggabl
    }
 
    private List<Cluster> doClusterRound(Cluster cluster) {
-      if (cluster.size() >= minPointsInCluster && cluster.getScore() <= maxDistance) {
+      if (cluster.size() == 0) {
+         logInfo("Ignoring empty cluster");
+      } else if (cluster.size() >= minPointsInCluster && cluster.getScore() <= maxDistance) {
          if (verbose) {
             logInfo("Added cluster with size={0} and avg. distance={1}", cluster.size(), cluster.getScore());
          }

@@ -56,7 +56,7 @@
         <dependency>
             <groupId>com.davidbracewell</groupId>
             <artifactId>mango</artifactId>
-            <version>0.4</version>
+            <version>0.5-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
@@ -74,11 +74,11 @@
             <artifactId>liblinear</artifactId>
             <version>1.95</version>
         </dependency>
-        <dependency>
-            <groupId>org.apache.mahout</groupId>
-            <artifactId>mahout-collections</artifactId>
-            <version>1.0</version>
-        </dependency>
+        <!--<dependency>-->
+            <!--<groupId>org.apache.mahout</groupId>-->
+            <!--<artifactId>mahout-collections</artifactId>-->
+            <!--<version>1.0</version>-->
+        <!--</dependency>-->
         <dependency>
             <groupId>com.github.vinhkhuc</groupId>
             <artifactId>jcrfsuite</artifactId>

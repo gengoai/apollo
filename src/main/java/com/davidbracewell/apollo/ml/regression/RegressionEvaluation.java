@@ -7,8 +7,8 @@ import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.guava.common.base.Preconditions;
 import com.davidbracewell.string.TableFormatter;
+import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import lombok.NonNull;
-import org.apache.mahout.math.list.DoubleArrayList;
 
 import java.io.PrintStream;
 import java.util.Arrays;
@@ -50,8 +50,8 @@ public class RegressionEvaluation implements Evaluation<Instance, Regression> {
    public void merge(@NonNull Evaluation<Instance, Regression> evaluation) {
       Preconditions.checkArgument(evaluation instanceof RegressionEvaluation);
       RegressionEvaluation re = Cast.as(evaluation);
-      gold.addAllOf(re.gold);
-      predicted.addAllOf(re.predicted);
+      gold.addAll(re.gold);
+      predicted.addAll(re.predicted);
    }
 
    /**

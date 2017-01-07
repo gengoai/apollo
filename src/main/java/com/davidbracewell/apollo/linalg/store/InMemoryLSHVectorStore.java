@@ -22,9 +22,9 @@
 package com.davidbracewell.apollo.linalg.store;
 
 import com.davidbracewell.apollo.linalg.LabeledVector;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lombok.NonNull;
-import org.apache.mahout.math.map.OpenIntObjectHashMap;
-import org.apache.mahout.math.map.OpenObjectIntHashMap;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -41,8 +41,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class InMemoryLSHVectorStore<KEY> extends LSHVectorStore<KEY> {
    private static final long serialVersionUID = 1L;
    private final AtomicInteger vectorIDGenerator = new AtomicInteger();
-   private final OpenIntObjectHashMap<LabeledVector> vectorIDMap = new OpenIntObjectHashMap<>();
-   private final OpenObjectIntHashMap<KEY> keys = new OpenObjectIntHashMap<>();
+   private final Int2ObjectOpenHashMap<LabeledVector> vectorIDMap = new Int2ObjectOpenHashMap<>();
+   private final Object2IntOpenHashMap<KEY> keys = new Object2IntOpenHashMap<>();
 
    /**
     * Instantiates a new in-memory LSH vector store
@@ -55,7 +55,7 @@ public class InMemoryLSHVectorStore<KEY> extends LSHVectorStore<KEY> {
 
    @Override
    public Set<KEY> keySet() {
-      return new HashSet<>(keys.keys());
+      return new HashSet<>(keys.keySet());
    }
 
    @Override
@@ -65,8 +65,8 @@ public class InMemoryLSHVectorStore<KEY> extends LSHVectorStore<KEY> {
 
    @Override
    protected void removeVector(LabeledVector vector, int id) {
-      vectorIDMap.removeKey(id);
-      keys.removeKey(vector.getLabel());
+      vectorIDMap.remove(id);
+      keys.removeInt(vector.getLabel());
    }
 
    @Override

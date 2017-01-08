@@ -12,16 +12,29 @@ import java.io.Serializable;
 import java.util.*;
 
 /**
+ * The type Transition features.
+ *
  * @author David B. Bracewell
  */
 public class TransitionFeatures implements Serializable {
+   /**
+    * The constant FIRST_ORDER.
+    */
    public static final TransitionFeatures FIRST_ORDER = new TransitionFeatures("-1");
+   /**
+    * The constant SECOND_ORDER.
+    */
    public static final TransitionFeatures SECOND_ORDER = new TransitionFeatures("-2,-1");
    private static final long serialVersionUID = 1L;
    private static final Interner<String> INTERNER = new Interner<>();
    private final int[][] featureTemplates;
    private int historySize;
 
+   /**
+    * Instantiates a new Transition features.
+    *
+    * @param templates the templates
+    */
    public TransitionFeatures(String... templates) {
       this.featureTemplates = new int[Preconditions.checkNotNull(templates).length][];
       for (int i = 0; i < templates.length; i++) {
@@ -35,6 +48,12 @@ public class TransitionFeatures implements Serializable {
    }
 
 
+   /**
+    * To instances list.
+    *
+    * @param sequence the sequence
+    * @return the list
+    */
    public List<Instance> toInstances(Sequence sequence) {
       Context<Instance> itr = sequence.iterator();
       List<Instance> instances = new ArrayList<>();
@@ -50,6 +69,11 @@ public class TransitionFeatures implements Serializable {
       return instances;
    }
 
+   /**
+    * Fit transitions features.
+    *
+    * @param dataset the dataset
+    */
    public void fitTransitionsFeatures(Dataset<Sequence> dataset) {
       dataset.getFeatureEncoder().fit(
          dataset.stream()
@@ -69,11 +93,22 @@ public class TransitionFeatures implements Serializable {
                                      );
    }
 
+   /**
+    * Gets history size.
+    *
+    * @return the history size
+    */
    public int getHistorySize() {
       return historySize;
    }
 
 
+   /**
+    * Extract iterator.
+    *
+    * @param iterator the iterator
+    * @return the iterator
+    */
    public Iterator<String> extract(final Context<Instance> iterator) {
       return new Iterator<String>() {
          int templateIndex = -1;
@@ -99,6 +134,13 @@ public class TransitionFeatures implements Serializable {
       };
    }
 
+   /**
+    * Extract iterator.
+    *
+    * @param result the result
+    * @param index  the index
+    * @return the iterator
+    */
    public Iterator<String> extract(final Labeling result, final int index) {
       return new Iterator<String>() {
          int templateIndex = -1;
@@ -136,6 +178,12 @@ public class TransitionFeatures implements Serializable {
       return state.tag;
    }
 
+   /**
+    * Extract iterator.
+    *
+    * @param prevState the prev state
+    * @return the iterator
+    */
    public Iterator<String> extract(final DecoderState prevState) {
       return new Iterator<String>() {
          int templateIndex = -1;

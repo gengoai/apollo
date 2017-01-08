@@ -26,8 +26,8 @@ import com.davidbracewell.apollo.linalg.LabeledVector;
 import com.davidbracewell.apollo.linalg.ScoredLabelVector;
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.guava.common.collect.MinMaxPriorityQueue;
-import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import lombok.NonNull;
+import org.eclipse.collections.impl.set.mutable.primitive.IntHashSet;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -129,7 +129,7 @@ public abstract class LSHVectorStore<KEY> implements VectorStore<KEY>, Serializa
    }
 
    private List<LabeledVector> query(@NonNull Vector vector) {
-      IntOpenHashSet ids = lsh.query(vector);
+      IntHashSet ids = lsh.query(vector);
       List<LabeledVector> vectors = new ArrayList<>();
       ids.forEach(id -> vectors.add(getVectorByID(id)));
       return vectors;

@@ -7,8 +7,8 @@ import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.guava.common.base.Preconditions;
 import com.davidbracewell.string.TableFormatter;
-import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import lombok.NonNull;
+import org.eclipse.collections.impl.list.mutable.primitive.DoubleArrayList;
 
 import java.io.PrintStream;
 import java.util.Arrays;
@@ -102,8 +102,8 @@ public class RegressionEvaluation implements Evaluation<Instance, Regression> {
     * @return the r2
     */
    public double r2() {
-      double yMean = DoubleStream.of(gold.elements()).parallel().sum() / gold.size();
-      double SStot = DoubleStream.of(gold.elements()).parallel().map(d -> Math.pow(d - yMean, 2)).sum();
+      double yMean = gold.average(); ;
+      double SStot = DoubleStream.of(gold.toArray()).parallel().map(d -> Math.pow(d - yMean, 2)).sum();
       double SSres = 0;
       for (int i = 0; i < gold.size(); i++) {
          SSres += Math.pow(gold.get(i) - predicted.get(i), 2);

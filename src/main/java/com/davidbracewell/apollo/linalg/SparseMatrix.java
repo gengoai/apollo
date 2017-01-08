@@ -22,8 +22,8 @@
 package com.davidbracewell.apollo.linalg;
 
 import com.davidbracewell.guava.common.base.Preconditions;
-import it.unimi.dsi.fastutil.ints.Int2DoubleOpenHashMap;
 import lombok.NonNull;
+import org.eclipse.collections.impl.map.mutable.primitive.IntDoubleHashMap;
 
 import java.util.*;
 import java.util.stream.IntStream;
@@ -37,7 +37,7 @@ public class SparseMatrix extends AbstractMatrix {
    private static final long serialVersionUID = -3802597548916836308L;
    final private int numberOfRows;
    final private int colDimension;
-   private volatile Int2DoubleOpenHashMap matrix;
+   private volatile IntDoubleHashMap matrix;
 
    /**
     * Instantiates a new Sparse matrix.
@@ -48,7 +48,7 @@ public class SparseMatrix extends AbstractMatrix {
    public SparseMatrix(int numRows, int numColumns) {
       this.colDimension = numColumns;
       this.numberOfRows = numRows;
-      this.matrix = new Int2DoubleOpenHashMap();
+      this.matrix = new IntDoubleHashMap();
    }
 
    /**
@@ -83,7 +83,7 @@ public class SparseMatrix extends AbstractMatrix {
          this.colDimension = vectors.get(0).dimension();
          this.numberOfRows = vectors.size();
       }
-      this.matrix = new Int2DoubleOpenHashMap();
+      this.matrix = new IntDoubleHashMap();
       for (int i = 0; i < vectors.size(); i++) {
          setRow(i, vectors.get(i));
       }
@@ -278,7 +278,7 @@ public class SparseMatrix extends AbstractMatrix {
       Preconditions.checkElementIndex(row, numberOfRows());
       Preconditions.checkElementIndex(col, numberOfColumns());
       synchronized (this) {
-         matrix.addTo(encode(row, col), amount);
+         matrix.addToValue(encode(row, col), amount);
       }
       return this;
    }

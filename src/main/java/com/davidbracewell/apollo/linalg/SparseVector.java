@@ -23,10 +23,11 @@ package com.davidbracewell.apollo.linalg;
 
 import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.guava.common.base.Preconditions;
-import it.unimi.dsi.fastutil.ints.Int2DoubleOpenHashMap;
 import lombok.NonNull;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.commons.math3.random.Well19937c;
+import org.eclipse.collections.api.iterator.MutableIntIterator;
+import org.eclipse.collections.impl.map.mutable.primitive.IntDoubleHashMap;
 
 import java.io.Serializable;
 import java.util.Arrays;
@@ -41,7 +42,7 @@ import java.util.Random;
  */
 public class SparseVector implements Vector, Serializable {
    private static final long serialVersionUID = 1L;
-   private final Int2DoubleOpenHashMap map;
+   private final IntDoubleHashMap map;
    private final int dimension;
 
    /**
@@ -52,7 +53,7 @@ public class SparseVector implements Vector, Serializable {
    public SparseVector(int dimension) {
       Preconditions.checkArgument(dimension >= 0, "Dimension must be non-negative.");
       this.dimension = dimension;
-      this.map = new Int2DoubleOpenHashMap();
+      this.map = new IntDoubleHashMap();
    }
 
    /**
@@ -62,7 +63,7 @@ public class SparseVector implements Vector, Serializable {
     */
    public SparseVector(@NonNull Vector vector) {
       this.dimension = vector.dimension();
-      this.map = new Int2DoubleOpenHashMap(vector.size());
+      this.map = new IntDoubleHashMap(vector.size());
       for (Iterator<Vector.Entry> itr = vector.nonZeroIterator(); itr.hasNext(); ) {
          Vector.Entry de = itr.next();
          this.map.put(de.index, de.value);
@@ -145,7 +146,7 @@ public class SparseVector implements Vector, Serializable {
 
    @Override
    public Vector compress() {
-      map.trim();
+      map.compact();
       return this;
    }
 
@@ -167,7 +168,7 @@ public class SparseVector implements Vector, Serializable {
 
    @Override
    public Vector increment(int index, double amount) {
-      map.addTo(index, amount);
+      map.addToValue(index, amount);
       return this;
    }
 
@@ -184,7 +185,7 @@ public class SparseVector implements Vector, Serializable {
    @Override
    public Iterator<Vector.Entry> nonZeroIterator() {
       return new Iterator<Vector.Entry>() {
-         private final Iterator<Integer> indexIter = map.keySet().iterator();
+         private final MutableIntIterator indexIter = map.keySet().intIterator();
 
          @Override
          public boolean hasNext() {
@@ -205,7 +206,7 @@ public class SparseVector implements Vector, Serializable {
    @Override
    public Iterator<Vector.Entry> orderedNonZeroIterator() {
       return new Iterator<Vector.Entry>() {
-         private final Iterator<Integer> indexIter = map.keySet().stream().sorted().iterator();
+         private final MutableIntIterator indexIter = map.keySet().toSortedList().intIterator();
 
          @Override
          public boolean hasNext() {
@@ -253,7 +254,7 @@ public class SparseVector implements Vector, Serializable {
    @Override
    public double[] toArray() {
       final double[] d = new double[dimension()];
-      map.forEach((i, v) -> d[i] = v);
+      map.keyValuesView().forEach(e -> d[e.getOne()] = e.getTwo());
       return d;
    }
 

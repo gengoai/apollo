@@ -26,18 +26,25 @@ import com.davidbracewell.apollo.affinity.DistanceMeasure;
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.clustering.Cluster;
 import com.davidbracewell.apollo.ml.clustering.Clusterer;
-import com.davidbracewell.guava.common.base.Throwables;
-import com.davidbracewell.guava.common.cache.Cache;
-import com.davidbracewell.guava.common.cache.CacheBuilder;
+import com.davidbracewell.guava.common.util.concurrent.AtomicDouble;
 import com.davidbracewell.stream.MStream;
 import com.davidbracewell.tuple.Tuple2;
+import lombok.Data;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
+import lombok.experimental.Accessors;
+import org.eclipse.collections.api.set.primitive.MutableIntSet;
+import org.eclipse.collections.impl.map.mutable.primitive.IntIntHashMap;
+import org.eclipse.collections.impl.set.mutable.primitive.IntHashSet;
 
-import java.util.Comparator;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.IntStream;
 
 import static com.davidbracewell.tuple.Tuples.$;
 
@@ -73,87 +80,101 @@ public class KMedoids extends Clusterer<FlatClustering> {
       this.K = K;
    }
 
-   @Override
-   public FlatClustering cluster(@NonNull MStream<Vector> instances) {
-      Cache<Tuple2<Vector, Vector>, Double> distances = CacheBuilder.newBuilder().build();
-      List<Cluster> clusters = instances.sample(false, K)
-                                        .map(v -> {
-                                           Cluster c = new Cluster();
-                                           c.setCentroid(v);
-                                           return c;
-                                        }).collect();
 
+   /**
+    * Instantiates a new K medoids.
+    *
+    * @param K the k
+    */
+   public KMedoids(int K, @NonNull DistanceMeasure distanceMeasure) {
+      this.K = K;
+      this.distanceMeasure = distanceMeasure;
+   }
+
+   @Override
+   public FlatClustering cluster(@NonNull MStream<Vector> instanceStream) {
+      final List<Vector> instances = instanceStream.collect();
+      Map<Tuple2<Integer, Integer>, Double> distanceCache = new ConcurrentHashMap<>();
+
+      List<TempCluster> tempClusters = new ArrayList<>();
+      IntHashSet seen = new IntHashSet();
+      while (seen.size() < K) {
+         seen.add((int) Math.round(Math.random() % K));
+      }
+      seen.forEach(i -> tempClusters.add(new TempCluster().centroid(i)));
+
+      IntIntHashMap assignments = new IntIntHashMap();
 
       for (int iteration = 0; iteration < maxIterations; iteration++) {
-         instances.parallel()
-                  .forEach(v -> {
-                              int minC = -1;
-                              double minD = Double.POSITIVE_INFINITY;
-                              for (int i = 0; i < clusters.size(); i++) {
-                                 Cluster cluster = clusters.get(i);
-                                 if (cluster.getCentroid() == v) {
-                                    minC = i;
-                                    minD = 0;
-                                    break;
-                                 }
-                                 Double dist = null;
-                                 try {
-                                    dist = distances.get($(v, cluster.getCentroid()),
-                                                         () -> distanceMeasure.calculate(v, cluster.getCentroid()));
-                                 } catch (ExecutionException e) {
-                                    throw Throwables.propagate(e);
-                                 }
-                                 if (dist < minD) {
-                                    minC = i;
-                                    minD = 0;
-                                 }
-                              }
-                              clusters.get(minC).addPoint(v);
-                           }
-                          );
+         AtomicLong numChanged = new AtomicLong();
+         tempClusters.forEach(c -> c.points().clear());
+         IntStream.range(0, instances.size()).parallel()
+                  .forEach((int i) -> {
+                     double minDistance = Double.POSITIVE_INFINITY;
+                     int minC = -1;
+                     for (int c = 0; c < tempClusters.size(); c++) {
+                        TempCluster cluster = tempClusters.get(c);
+                        double d = distance(i, cluster.centroid, instances, distanceCache);
+                        if (d < minDistance || cluster.centroid == i) {
+                           minC = c;
+                           minDistance = d;
+                        }
+                     }
+                     int old = assignments.getIfAbsent(i, -1);
+                     assignments.put(i, minC);
+                     if (old != minC) {
+                        numChanged.incrementAndGet();
+                        tempClusters.get(minC).points().add(i);
+                     }
+                  });
 
-         clusters.forEach(c ->
-                             c.setCentroid(c.getPoints()
-                                            .parallelStream()
-                                            .map(v -> $(v, c.getPoints()
-                                                            .stream()
-                                                            .mapToDouble(v2 -> {
-                                                               Double dist = null;
-                                                               try {
-                                                                  dist = distances.get($(v, v2),
-                                                                                       () -> distanceMeasure.calculate(
-                                                                                          v, v2));
-                                                               } catch (ExecutionException e) {
-                                                                  throw Throwables.propagate(e);
-                                                               }
-                                                               return dist;
-                                                            })
-                                                            .sum()))
-                                            .min(Comparator.comparingDouble(Tuple2::getValue))
-                                            .map(Tuple2::getKey)
-                                            .orElse(c.getCentroid()))
-                         );
+         if (numChanged.get() == 0) {
+            break;
+         }
+
+         tempClusters.parallelStream()
+                     .forEach(c -> {
+                        AtomicInteger minPoint = new AtomicInteger();
+                        AtomicDouble minDistance = new AtomicDouble(Double.POSITIVE_INFINITY);
+                        c.points().forEach(i -> {
+                           AtomicDouble sum = new AtomicDouble();
+                           AtomicLong total = new AtomicLong();
+                           c.points().forEach(j -> {
+                              total.incrementAndGet();
+                              sum.addAndGet(distance(i, j, instances, distanceCache));
+                           });
+                           double avg = sum.get() / total.get();
+                           if (avg < minDistance.get()) {
+                              minDistance.set(avg);
+                              minPoint.set(i);
+                           }
+                        });
+                        c.centroid(minPoint.get());
+                     });
       }
 
-      clusters.forEach(c -> c.setScore(c.getPoints()
-                                        .parallelStream()
-                                        .flatMapToDouble(v -> c.getPoints()
-                                                               .stream()
-                                                               .mapToDouble(v2 -> {
-                                                                  Double dist = null;
-                                                                  try {
-                                                                     dist = distances.get($(v, v2),
-                                                                                          () -> distanceMeasure.calculate(
-                                                                                             v, v2));
-                                                                  } catch (ExecutionException e) {
-                                                                     throw Throwables.propagate(e);
-                                                                  }
-                                                                  return dist;
-                                                               }))
-                                        .average().orElse(0d))
-                      );
+      List<Cluster> finalClusters = new ArrayList<>();
+      tempClusters.forEach(tc -> {
+         Cluster c = new Cluster();
+         c.setCentroid(instances.get(tc.centroid));
+         AtomicDouble sum = new AtomicDouble();
+         AtomicLong total = new AtomicLong();
+         tc.points().forEach(i -> {
+            c.addPoint(instances.get(i));
+            tc.points().forEach(j -> {
+               total.incrementAndGet();
+               sum.addAndGet(distance(i, j, instances, distanceCache));
+            });
+         });
+         c.setScore(sum.get() / total.get());
+      });
 
-      return new FlatCentroidClustering(getEncoderPair(), getDistanceMeasure(), clusters);
+
+      return new FlatCentroidClustering(getEncoderPair(), getDistanceMeasure(), finalClusters);
+   }
+
+   private double distance(int i, int j, List<Vector> instances, Map<Tuple2<Integer, Integer>, Double> distances) {
+      return distances.computeIfAbsent($(i, j), t -> distanceMeasure.calculate(instances.get(i), instances.get(j)));
    }
 
    /**
@@ -163,6 +184,13 @@ public class KMedoids extends Clusterer<FlatClustering> {
     */
    public void setDistanceMeasure(@NonNull DistanceMeasure distanceMeasure) {
       this.distanceMeasure = distanceMeasure;
+   }
+
+   @Data
+   @Accessors(fluent = true)
+   private static class TempCluster {
+      int centroid;
+      MutableIntSet points = new IntHashSet();
    }
 
 }//END OF KMedoids

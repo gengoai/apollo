@@ -22,8 +22,8 @@
 package com.davidbracewell.apollo.linalg.store;
 
 import com.davidbracewell.apollo.linalg.LabeledVector;
-import io.netty.util.collection.IntObjectHashMap;
 import lombok.NonNull;
+import org.eclipse.collections.impl.map.mutable.primitive.IntObjectHashMap;
 import org.eclipse.collections.impl.map.mutable.primitive.ObjectIntHashMap;
 
 import java.util.Collections;

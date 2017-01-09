@@ -62,6 +62,9 @@ public class DivisiveKMeans extends Clusterer<FlatClustering> implements Loggabl
    @Getter
    @Setter
    private int kMeansIterations = 20;
+   @Getter
+   @Setter
+   private int maxClusterSize = Integer.MAX_VALUE;
 
    @Override
    public FlatClustering cluster(@NonNull MStream<Vector> instances) {
@@ -81,6 +84,17 @@ public class DivisiveKMeans extends Clusterer<FlatClustering> implements Loggabl
    private List<Cluster> doClusterRound(Cluster cluster) {
       if (cluster.size() == 0) {
          logInfo("Ignoring empty cluster");
+      } else if (cluster.size() > maxClusterSize) {
+         if (verbose) {
+            logInfo("Dividing with size={0} and avg. distance={1} into {2} new clusters",
+                    cluster.size(),
+                    cluster.getScore(),
+                    splitSize);
+         }
+         List<Cluster> clusterList = new ArrayList<>();
+         kmeans(StreamingContext.local().stream(cluster.getPoints()), splitSize)
+            .forEach(c -> clusterList.addAll(doClusterRound(c)));
+         return clusterList;
       } else if (cluster.size() >= minPointsInCluster && cluster.getScore() <= maxDistance) {
          if (verbose) {
             logInfo("Added cluster with size={0} and avg. distance={1}", cluster.size(), cluster.getScore());
@@ -89,7 +103,7 @@ public class DivisiveKMeans extends Clusterer<FlatClustering> implements Loggabl
       } else if (cluster.size() >= minPointsInCluster
                     && (cluster.size() / splitSize) >= (minPointsInCluster / 2.0)) {
          if (verbose) {
-            logInfo("Dividing with size={0} and avg. distance={1} into {1} new clusters",
+            logInfo("Dividing with size={0} and avg. distance={1} into {2} new clusters",
                     cluster.size(),
                     cluster.getScore(),
                     splitSize);

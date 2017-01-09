@@ -147,6 +147,7 @@ public class KMeans extends Clusterer<FlatClustering> {
          double average = cluster.getPoints().parallelStream()
                                  .flatMapToDouble(p1 -> cluster.getPoints()
                                                                .stream()
+                                                               .filter(p2 -> p2 != p1)
                                                                .mapToDouble(p2 -> distanceMeasure.calculate(p1, p2)))
                                  .summaryStatistics().getAverage();
          cluster.setId(i);

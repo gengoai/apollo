@@ -99,13 +99,14 @@ public class KMedoids extends Clusterer<FlatClustering> {
       List<TempCluster> tempClusters = new ArrayList<>();
       IntHashSet seen = new IntHashSet();
       while (seen.size() < K) {
-         seen.add((int) Math.round(Math.random() % K));
+         seen.add((int) Math.round(Math.random() * K));
       }
       seen.forEach(i -> tempClusters.add(new TempCluster().centroid(i)));
 
       IntIntHashMap assignments = new IntIntHashMap();
 
       for (int iteration = 0; iteration < maxIterations; iteration++) {
+         System.err.println("iteration " + iteration);
          AtomicLong numChanged = new AtomicLong();
          tempClusters.forEach(c -> c.points().clear());
          IntStream.range(0, instances.size()).parallel()
@@ -114,8 +115,12 @@ public class KMedoids extends Clusterer<FlatClustering> {
                      int minC = -1;
                      for (int c = 0; c < tempClusters.size(); c++) {
                         TempCluster cluster = tempClusters.get(c);
+                        if (cluster.centroid == i) {
+                           minC = c;
+                           break;
+                        }
                         double d = distance(i, cluster.centroid, instances, distanceCache);
-                        if (d < minDistance || cluster.centroid == i) {
+                        if (d < minDistance) {
                            minC = c;
                            minDistance = d;
                         }
@@ -131,6 +136,7 @@ public class KMedoids extends Clusterer<FlatClustering> {
          if (numChanged.get() == 0) {
             break;
          }
+
 
          tempClusters.parallelStream()
                      .forEach(c -> {
@@ -154,8 +160,10 @@ public class KMedoids extends Clusterer<FlatClustering> {
       }
 
       List<Cluster> finalClusters = new ArrayList<>();
+      AtomicInteger cid = new AtomicInteger();
       tempClusters.forEach(tc -> {
          Cluster c = new Cluster();
+         c.setId(cid.getAndIncrement());
          c.setCentroid(instances.get(tc.centroid));
          AtomicDouble sum = new AtomicDouble();
          AtomicLong total = new AtomicLong();
@@ -167,6 +175,7 @@ public class KMedoids extends Clusterer<FlatClustering> {
             });
          });
          c.setScore(sum.get() / total.get());
+         finalClusters.add(c);
       });
 
 

@@ -65,7 +65,7 @@ public class GibbsLDA extends Clusterer<LDAModel> {
    private int numstats = 0;
 
    @Override
-   public LDAModel cluster(MStream<Vector> instanceStrream) {
+   public LDAModel cluster(@NonNull MStream<Vector> instanceStrream) {
       List<Vector> instances = instanceStrream.collect();
       V = getEncoderPair().numberOfFeatures();
       M = instances.size();

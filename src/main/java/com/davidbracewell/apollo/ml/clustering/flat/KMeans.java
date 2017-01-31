@@ -36,6 +36,7 @@ import lombok.Setter;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
@@ -128,6 +129,7 @@ public class KMeans extends Clusterer<FlatClustering> {
          }
 
          for (int i = 0; i < K; i++) {
+            clustering.get(i).getPoints().removeIf(Objects::isNull);
             if (clustering.get(i).size() == 0) {
                clustering.get(i).setCentroid(SparseVector.random(instances.get(0).dimension(), -1, 1));
             } else {
@@ -144,14 +146,20 @@ public class KMeans extends Clusterer<FlatClustering> {
 
       for (int i = 0; i < clustering.size(); i++) {
          Cluster cluster = clustering.get(i);
-         double average = cluster.getPoints().parallelStream()
-                                 .flatMapToDouble(p1 -> cluster.getPoints()
-                                                               .stream()
-                                                               .filter(p2 -> p2 != p1)
-                                                               .mapToDouble(p2 -> distanceMeasure.calculate(p1, p2)))
-                                 .summaryStatistics().getAverage();
          cluster.setId(i);
-         cluster.setScore(average);
+         if (cluster.size() > 0) {
+            cluster.getPoints().removeIf(Objects::isNull);
+            double average = cluster.getPoints().parallelStream()
+                                    .flatMapToDouble(p1 -> cluster.getPoints()
+                                                                  .stream()
+                                                                  .filter(p2 -> p2 != p1)
+                                                                  .mapToDouble(p2 -> distanceMeasure.calculate(p1, p2)))
+                                    .summaryStatistics()
+                                    .getAverage();
+            cluster.setScore(average);
+         } else {
+            cluster.setScore(Double.MAX_VALUE);
+         }
       }
 
       return clustering;

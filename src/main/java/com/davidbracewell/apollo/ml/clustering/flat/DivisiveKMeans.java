@@ -83,7 +83,9 @@ public class DivisiveKMeans extends Clusterer<FlatClustering> implements Loggabl
 
    private List<Cluster> doClusterRound(Cluster cluster) {
       if (cluster.size() == 0) {
-         logInfo("Ignoring empty cluster");
+         if (verbose) {
+            logInfo("Ignoring empty cluster");
+         }
       } else if (cluster.size() > maxClusterSize) {
          if (verbose) {
             logInfo("Dividing with size={0} and avg. distance={1} into {2} new clusters",

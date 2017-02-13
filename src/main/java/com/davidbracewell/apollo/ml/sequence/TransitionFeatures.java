@@ -89,8 +89,7 @@ public class TransitionFeatures implements Serializable {
                             }
                             return features.stream();
                          }
-                        )
-                                     );
+                        ));
    }
 
    /**

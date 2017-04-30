@@ -27,9 +27,9 @@ import com.davidbracewell.collection.counter.Counter;
 import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.conversion.Val;
 import com.davidbracewell.guava.common.collect.Sets;
-import com.davidbracewell.io.structured.ElementType;
-import com.davidbracewell.io.structured.StructuredReader;
-import com.davidbracewell.io.structured.StructuredWriter;
+import com.davidbracewell.json.JsonReader;
+import com.davidbracewell.json.JsonTokenType;
+import com.davidbracewell.json.JsonWriter;
 import com.davidbracewell.tuple.Tuple2;
 import lombok.*;
 
@@ -125,7 +125,7 @@ public class Instance implements Example, Serializable, Iterable<Feature> {
     * @param features the feature map
     * @return the instance
     */
-   public static Instance create(@NonNull Map<String,Double> features) {
+   public static Instance create(@NonNull Map<String, Double> features) {
       return create(features, null);
    }
 
@@ -298,13 +298,13 @@ public class Instance implements Example, Serializable, Iterable<Feature> {
    }
 
    @Override
-   public void read(StructuredReader reader) throws IOException {
+   public void fromJson(JsonReader reader) throws IOException {
       this.label = null;
       this.features.clear();
       this.label = reader.nextKeyValue("label").cast();
       this.weight = reader.nextKeyValue("weight").asDoubleValue(1.0);
       reader.beginObject();
-      while (reader.peek() != ElementType.END_OBJECT) {
+      while (reader.peek() != JsonTokenType.END_OBJECT) {
          Tuple2<String, Val> fv = reader.nextKeyValue();
          this.features.add(Feature.real(fv.getKey(), fv.getValue().asDoubleValue()));
       }
@@ -347,14 +347,14 @@ public class Instance implements Example, Serializable, Iterable<Feature> {
    }
 
    @Override
-   public void write(@NonNull StructuredWriter writer) throws IOException {
+   public void toJson(@NonNull JsonWriter writer) throws IOException {
       boolean inArray = writer.inArray();
       if (inArray) writer.beginObject();
-      writer.writeKeyValue("label", label);
-      writer.writeKeyValue("weight", weight);
+      writer.property("label", label);
+      writer.property("weight", weight);
       writer.beginObject("features");
       for (Feature f : features) {
-         writer.writeKeyValue(f.getName(), f.getValue());
+         writer.property(f.getName(), f.getValue());
       }
       writer.endObject();
       if (inArray) writer.endObject();

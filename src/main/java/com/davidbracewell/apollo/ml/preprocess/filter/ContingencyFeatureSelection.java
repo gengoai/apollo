@@ -8,9 +8,9 @@ import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.ml.preprocess.InstancePreprocessor;
 import com.davidbracewell.collection.counter.HashMapMultiCounter;
 import com.davidbracewell.collection.counter.MultiCounter;
-import com.davidbracewell.io.structured.ElementType;
-import com.davidbracewell.io.structured.StructuredReader;
-import com.davidbracewell.io.structured.StructuredWriter;
+import com.davidbracewell.json.JsonReader;
+import com.davidbracewell.json.JsonTokenType;
+import com.davidbracewell.json.JsonWriter;
 import com.davidbracewell.stream.accumulator.MCounterAccumulator;
 import com.davidbracewell.stream.accumulator.MMultiCounterAccumulator;
 import lombok.Getter;
@@ -124,16 +124,16 @@ public class ContingencyFeatureSelection implements FilterProcessor<Instance>, I
 
 
    @Override
-   public void write(@NonNull StructuredWriter writer) throws IOException {
-      writer.writeKeyValue("calculator", calculator.toString());
-      writer.writeKeyValue("numFeaturesPerClass", numFeaturesPerClass);
-      writer.writeKeyValue("threshold", threshold);
+   public void toJson(@NonNull JsonWriter writer) throws IOException {
+      writer.property("calculator", calculator.toString());
+      writer.property("numFeaturesPerClass", numFeaturesPerClass);
+      writer.property("threshold", threshold);
    }
 
    @Override
-   public void read(@NonNull StructuredReader reader) throws IOException {
+   public void fromJson(@NonNull JsonReader reader) throws IOException {
       reset();
-      while (reader.peek() != ElementType.END_OBJECT) {
+      while (reader.peek() != JsonTokenType.END_OBJECT) {
          switch (reader.peekName()) {
             case "calculator":
                this.calculator = AssociationMeasures.valueOf(reader.nextKeyValue().v2.asString());

@@ -2,7 +2,7 @@ package com.davidbracewell.apollo.ml.preprocess;
 
 import com.davidbracewell.apollo.ml.Example;
 import com.davidbracewell.conversion.Cast;
-import com.davidbracewell.io.structured.*;
+import com.davidbracewell.json.*;
 import lombok.NonNull;
 
 import java.io.IOException;
@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
  *
  * @param <T> the  example type parameter
  */
-public final class PreprocessorList<T extends Example> extends ArrayList<Preprocessor<T>> implements StructuredSerializable, ArrayValue {
+public final class PreprocessorList<T extends Example> extends ArrayList<Preprocessor<T>> implements JsonSerializable, JsonArraySerializable {
    private static final long serialVersionUID = 1L;
 
 
@@ -98,9 +98,9 @@ public final class PreprocessorList<T extends Example> extends ArrayList<Preproc
    }
 
    @Override
-   public void read(StructuredReader reader) throws IOException {
+   public void fromJson(JsonReader reader) throws IOException {
       clear();
-      while (reader.peek() != ElementType.END_ARRAY) {
+      while (reader.peek() != JsonTokenType.END_ARRAY) {
          reader.beginObject();
          Class<? extends Preprocessor<T>> clazz = Cast.as(reader.nextKeyValue("class").asClass());
          Preprocessor<T> preprocessor = reader.nextKeyValue(clazz).getV2();
@@ -110,11 +110,11 @@ public final class PreprocessorList<T extends Example> extends ArrayList<Preproc
    }
 
    @Override
-   public void write(StructuredWriter writer) throws IOException {
+   public void toJson(JsonWriter writer) throws IOException {
       for (Preprocessor<?> p : this) {
          writer.beginObject();
-         writer.writeKeyValue("class", p.getClass().getName());
-         writer.writeKeyValue("data", p);
+         writer.property("class", p.getClass().getName());
+         writer.property("data", p);
          writer.endObject();
       }
    }

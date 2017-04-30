@@ -2,7 +2,7 @@ package com.davidbracewell.apollo.ml.preprocess;
 
 import com.davidbracewell.apollo.ml.Example;
 import com.davidbracewell.apollo.ml.data.Dataset;
-import com.davidbracewell.io.structured.StructuredSerializable;
+import com.davidbracewell.json.JsonSerializable;
 
 import java.io.Serializable;
 
@@ -15,7 +15,7 @@ import java.io.Serializable;
  * @param <T> the type of example that the preprocessor can be applied to.
  * @author David B. Bracewell
  */
-public interface Preprocessor<T extends Example> extends Serializable, StructuredSerializable {
+public interface Preprocessor<T extends Example> extends Serializable, JsonSerializable {
 
    /**
     * Applies the transform tho the given example.

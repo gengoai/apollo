@@ -26,8 +26,8 @@ import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.ml.preprocess.BaseInstancePreprocessorTest;
 import com.davidbracewell.io.Resources;
 import com.davidbracewell.io.resource.Resource;
-import com.davidbracewell.io.structured.json.JSONReader;
-import com.davidbracewell.io.structured.json.JSONWriter;
+import com.davidbracewell.json.JsonReader;
+import com.davidbracewell.json.JsonWriter;
 import org.junit.Test;
 
 import java.util.Collection;
@@ -68,18 +68,18 @@ public class MinCountFilterTest extends BaseInstancePreprocessorTest {
    public void readWrite() throws Exception {
       MinCountFilter filter = new MinCountFilter("sepal", 1);
       Resource out = Resources.fromString();
-      try (JSONWriter writer = new JSONWriter(out)) {
+      try (JsonWriter writer = new JsonWriter(out)) {
          writer.beginDocument();
          writer.beginObject("filter");
-         filter.write(writer);
+         filter.toJson(writer);
          writer.endObject();
          writer.endDocument();
       }
       filter = new MinCountFilter();
-      try (JSONReader reader = new JSONReader(out)) {
+      try (JsonReader reader = new JsonReader(out)) {
          reader.beginDocument();
          reader.beginObject("filter");
-         filter.read(reader);
+         filter.fromJson(reader);
          reader.endObject();
          reader.endDocument();
       }

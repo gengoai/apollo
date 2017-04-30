@@ -32,8 +32,8 @@ import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.io.Resources;
 import com.davidbracewell.io.resource.Resource;
-import com.davidbracewell.io.structured.json.JSONReader;
-import com.davidbracewell.io.structured.json.JSONWriter;
+import com.davidbracewell.json.JsonReader;
+import com.davidbracewell.json.JsonWriter;
 import lombok.SneakyThrows;
 import org.junit.Test;
 
@@ -53,7 +53,7 @@ public class RemoveNonFiniteFilterTest extends BaseInstancePreprocessorTest {
          "com/davidbracewell/apollo/ml/iris.csv"), true);
       irisData.setLabelName("class");
       InMemoryDataset<Instance> ds = Cast.as(Dataset.classification()
-                    .source(irisData));
+                                                    .source(irisData));
       ds.add(Instance.create(Collections.singletonList(Feature.real("A", Double.NaN)), "iris-versacolor"));
       return ds.preprocess(PreprocessorList.create(preprocessor));
    }
@@ -78,19 +78,15 @@ public class RemoveNonFiniteFilterTest extends BaseInstancePreprocessorTest {
    public void readWrite() throws Exception {
       RemoveNonFinite filter = new RemoveNonFinite();
       Resource out = Resources.fromString();
-      try (JSONWriter writer = new JSONWriter(out)) {
+      try (JsonWriter writer = new JsonWriter(out)) {
          writer.beginDocument();
-         writer.beginObject("filter");
-         filter.write(writer);
-         writer.endObject();
+         filter.toJson("filter", writer);
          writer.endDocument();
       }
       filter = new RemoveNonFinite();
-      try (JSONReader reader = new JSONReader(out)) {
+      try (JsonReader reader = new JsonReader(out)) {
          reader.beginDocument();
-         reader.beginObject("filter");
-         filter.read(reader);
-         reader.endObject();
+         filter.fromJson("filter", reader);
          reader.endDocument();
       }
       Dataset<Instance> ds = getData(filter);

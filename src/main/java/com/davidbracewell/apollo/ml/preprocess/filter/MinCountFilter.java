@@ -4,9 +4,9 @@ import com.davidbracewell.apollo.ml.Feature;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.preprocess.RestrictedInstancePreprocessor;
 import com.davidbracewell.collection.counter.Counters;
-import com.davidbracewell.io.structured.ElementType;
-import com.davidbracewell.io.structured.StructuredReader;
-import com.davidbracewell.io.structured.StructuredWriter;
+import com.davidbracewell.json.JsonReader;
+import com.davidbracewell.json.JsonTokenType;
+import com.davidbracewell.json.JsonWriter;
 import com.davidbracewell.stream.MStream;
 import lombok.NonNull;
 
@@ -82,18 +82,18 @@ public class MinCountFilter extends RestrictedInstancePreprocessor implements Fi
    }
 
    @Override
-   public void write(@NonNull StructuredWriter writer) throws IOException {
+   public void toJson(@NonNull JsonWriter writer) throws IOException {
       if (!applyToAll()) {
-         writer.writeKeyValue("restriction", getRestriction());
+         writer.property("restriction", getRestriction());
       }
-      writer.writeKeyValue("minCount", minCount);
-      writer.writeKeyValue("selected", selectedFeatures);
+      writer.property("minCount", minCount);
+      writer.property("selected", selectedFeatures);
    }
 
    @Override
-   public void read(@NonNull StructuredReader reader) throws IOException {
+   public void fromJson(@NonNull JsonReader reader) throws IOException {
       reset();
-      while (reader.peek() != ElementType.END_OBJECT) {
+      while (reader.peek() != JsonTokenType.END_OBJECT) {
          switch (reader.peekName()) {
             case "restriction":
                setRestriction(reader.nextKeyValue().v2.asString());

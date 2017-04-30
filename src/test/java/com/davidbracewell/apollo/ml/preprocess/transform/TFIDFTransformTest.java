@@ -29,8 +29,8 @@ import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.collection.counter.Counters;
 import com.davidbracewell.io.Resources;
 import com.davidbracewell.io.resource.Resource;
-import com.davidbracewell.io.structured.json.JSONReader;
-import com.davidbracewell.io.structured.json.JSONWriter;
+import com.davidbracewell.json.JsonReader;
+import com.davidbracewell.json.JsonWriter;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -80,18 +80,18 @@ public class TFIDFTransformTest extends BaseInstancePreprocessorTest {
    public void readWrite() throws Exception {
       TFIDFTransform transform = new TFIDFTransform();
       Resource out = Resources.fromString();
-      try (JSONWriter writer = new JSONWriter(out)) {
+      try (JsonWriter writer = new JsonWriter(out)) {
          writer.beginDocument();
          writer.beginObject("filter");
-         transform.write(writer);
+         transform.toJson(writer);
          writer.endObject();
          writer.endDocument();
       }
       transform = new TFIDFTransform();
-      try (JSONReader reader = new JSONReader(out)) {
+      try (JsonReader reader = new JsonReader(out)) {
          reader.beginDocument();
          reader.beginObject("filter");
-         transform.read(reader);
+         transform.fromJson(reader);
          reader.endObject();
          reader.endDocument();
       }

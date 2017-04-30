@@ -24,10 +24,10 @@ package com.davidbracewell.apollo.ml.preprocess.filter;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.ml.preprocess.InstancePreprocessor;
-import com.davidbracewell.io.structured.ArrayValue;
-import com.davidbracewell.io.structured.ElementType;
-import com.davidbracewell.io.structured.StructuredReader;
-import com.davidbracewell.io.structured.StructuredWriter;
+import com.davidbracewell.json.JsonArraySerializable;
+import com.davidbracewell.json.JsonReader;
+import com.davidbracewell.json.JsonTokenType;
+import com.davidbracewell.json.JsonWriter;
 import com.davidbracewell.string.StringUtils;
 import lombok.NonNull;
 
@@ -42,7 +42,7 @@ import java.util.stream.Collectors;
  *
  * @author David B. Bracewell
  */
-public class NameFilter implements FilterProcessor<Instance>, InstancePreprocessor, ArrayValue {
+public class NameFilter implements FilterProcessor<Instance>, InstancePreprocessor, JsonArraySerializable {
    private static final long serialVersionUID = 1L;
    private final Set<Pattern> patterns = new HashSet<>();
 
@@ -93,11 +93,11 @@ public class NameFilter implements FilterProcessor<Instance>, InstancePreprocess
    }
 
    @Override
-   public void write(StructuredWriter writer) throws IOException {
+   public void toJson(JsonWriter writer) throws IOException {
       for (Pattern pattern : patterns) {
          writer.beginObject();
-         writer.writeKeyValue("pattern", pattern.toString());
-         writer.writeKeyValue("flags", pattern.flags());
+         writer.property("pattern", pattern.toString());
+         writer.property("flags", pattern.flags());
          writer.endObject();
       }
    }
@@ -108,13 +108,13 @@ public class NameFilter implements FilterProcessor<Instance>, InstancePreprocess
    }
 
    @Override
-   public void read(StructuredReader reader) throws IOException {
+   public void fromJson(JsonReader reader) throws IOException {
       reset();
-      while (reader.peek() != ElementType.END_ARRAY) {
+      while (reader.peek() != JsonTokenType.END_ARRAY) {
          reader.beginObject();
          int flags = -1;
          String pattern = StringUtils.EMPTY;
-         while (reader.peek() != ElementType.END_OBJECT) {
+         while (reader.peek() != JsonTokenType.END_OBJECT) {
             switch (reader.peekName()) {
                case "pattern":
                   pattern = reader.nextKeyValue().v2.asString();

@@ -120,4 +120,9 @@ public class SilhouetteEvaluation implements Evaluation<Instance, Clustering> {
       formatter.print(printStream);
    }
 
+   public void reset(){
+      this.avgSilhouette = 0;
+      this.silhouette.clear();
+   }
+
 }//END OF SilhouetteEvaluation

@@ -32,9 +32,9 @@ import com.davidbracewell.function.SerializableFunction;
 import com.davidbracewell.function.SerializablePredicate;
 import com.davidbracewell.guava.common.base.Preconditions;
 import com.davidbracewell.io.resource.Resource;
-import com.davidbracewell.io.structured.ElementType;
-import com.davidbracewell.io.structured.json.JSONReader;
-import com.davidbracewell.io.structured.json.JSONWriter;
+import com.davidbracewell.json.JsonReader;
+import com.davidbracewell.json.JsonTokenType;
+import com.davidbracewell.json.JsonWriter;
 import com.davidbracewell.logging.Logger;
 import com.davidbracewell.stream.MStream;
 import com.davidbracewell.stream.StreamingContext;
@@ -383,13 +383,13 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
     * @throws IOException Something went wrong reading.
     */
    Dataset<T> read(@NonNull Resource resource, Class<T> exampleType) throws IOException {
-      try (JSONReader reader = new JSONReader(resource)) {
+      try (JsonReader reader = new JsonReader(resource)) {
          reader.beginDocument();
          List<T> batch = new LinkedList<>();
          preprocessors.clear();
          preprocessors.addAll(Cast.as(reader.nextKeyValue(PreprocessorList.class).v2));
          reader.beginArray("data");
-         while (reader.peek() != ElementType.END_ARRAY) {
+         while (reader.peek() != JsonTokenType.END_ARRAY) {
             batch.add(reader.nextValue(exampleType));
             if (batch.size() > 1000) {
                addAll(batch);
@@ -520,14 +520,10 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
     * @throws IOException Something went wrong writing the dataset
     */
    public void write(@NonNull Resource resource) throws IOException {
-      try (JSONWriter writer = new JSONWriter(resource)) {
+      try (JsonWriter writer = new JsonWriter(resource)) {
          writer.beginDocument();
-         writer.writeKeyValue("preprocessors", preprocessors);
-         writer.beginArray("data");
-         for (T instance : this) {
-            writer.writeValue(instance);
-         }
-         writer.endArray();
+         writer.property("preprocessors", preprocessors);
+         writer.property("data", this);
          writer.endDocument();
       }
    }

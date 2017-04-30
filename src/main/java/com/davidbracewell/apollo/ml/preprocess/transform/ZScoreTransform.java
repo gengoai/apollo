@@ -4,9 +4,9 @@ import com.davidbracewell.EnhancedDoubleStatistics;
 import com.davidbracewell.apollo.ml.Feature;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.preprocess.RestrictedInstancePreprocessor;
-import com.davidbracewell.io.structured.ElementType;
-import com.davidbracewell.io.structured.StructuredReader;
-import com.davidbracewell.io.structured.StructuredWriter;
+import com.davidbracewell.json.JsonReader;
+import com.davidbracewell.json.JsonTokenType;
+import com.davidbracewell.json.JsonWriter;
 import com.davidbracewell.stream.MStream;
 import com.davidbracewell.stream.accumulator.MStatisticsAccumulator;
 import com.davidbracewell.string.StringUtils;
@@ -78,18 +78,18 @@ public class ZScoreTransform extends RestrictedInstancePreprocessor implements T
    }
 
    @Override
-   public void write(@NonNull StructuredWriter writer) throws IOException {
+   public void toJson(@NonNull JsonWriter writer) throws IOException {
       if (!applyToAll()) {
-         writer.writeKeyValue("restriction", getRestriction());
+         writer.property("restriction", getRestriction());
       }
-      writer.writeKeyValue("mean", mean);
-      writer.writeKeyValue("stddev", standardDeviation);
+      writer.property("mean", mean);
+      writer.property("stddev", standardDeviation);
    }
 
    @Override
-   public void read(@NonNull StructuredReader reader) throws IOException {
+   public void fromJson(@NonNull JsonReader reader) throws IOException {
       reset();
-      while (reader.peek() != ElementType.END_OBJECT) {
+      while (reader.peek() != JsonTokenType.END_OBJECT) {
          switch (reader.peekName()) {
             case "restriction":
                setRestriction(reader.nextKeyValue().v2.asString());

@@ -26,8 +26,8 @@ import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.ml.preprocess.BaseInstancePreprocessorTest;
 import com.davidbracewell.io.Resources;
 import com.davidbracewell.io.resource.Resource;
-import com.davidbracewell.io.structured.json.JSONReader;
-import com.davidbracewell.io.structured.json.JSONWriter;
+import com.davidbracewell.json.JsonReader;
+import com.davidbracewell.json.JsonWriter;
 import org.junit.Test;
 
 import java.util.Collection;
@@ -68,18 +68,18 @@ public class NameFilterTest extends BaseInstancePreprocessorTest {
    public void readWrite() throws Exception {
       NameFilter filter = new NameFilter("sepal_.*");
       Resource out = Resources.fromString();
-      try (JSONWriter writer = new JSONWriter(out)) {
+      try (JsonWriter writer = new JsonWriter(out)) {
          writer.beginDocument();
          writer.beginArray("filter");
-         filter.write(writer);
+         filter.toJson(writer);
          writer.endArray();
          writer.endDocument();
       }
       filter = new NameFilter();
-      try (JSONReader reader = new JSONReader(out)) {
+      try (JsonReader reader = new JsonReader(out)) {
          reader.beginDocument();
          reader.beginArray("filter");
-         filter.read(reader);
+         filter.fromJson(reader);
          reader.endArray();
          reader.endDocument();
       }

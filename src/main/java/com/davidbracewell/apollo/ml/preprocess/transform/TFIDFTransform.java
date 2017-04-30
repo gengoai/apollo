@@ -6,9 +6,9 @@ import com.davidbracewell.apollo.ml.preprocess.RestrictedInstancePreprocessor;
 import com.davidbracewell.collection.counter.Counter;
 import com.davidbracewell.collection.counter.Counters;
 import com.davidbracewell.conversion.Val;
-import com.davidbracewell.io.structured.ElementType;
-import com.davidbracewell.io.structured.StructuredReader;
-import com.davidbracewell.io.structured.StructuredWriter;
+import com.davidbracewell.json.JsonReader;
+import com.davidbracewell.json.JsonTokenType;
+import com.davidbracewell.json.JsonWriter;
 import com.davidbracewell.stream.MStream;
 import com.davidbracewell.stream.accumulator.MDoubleAccumulator;
 import com.davidbracewell.string.StringUtils;
@@ -92,22 +92,22 @@ public class TFIDFTransform extends RestrictedInstancePreprocessor implements Tr
    }
 
    @Override
-   public void write(@NonNull StructuredWriter writer) throws IOException {
+   public void toJson(@NonNull JsonWriter writer) throws IOException {
       if (!applyToAll()) {
-         writer.writeKeyValue("restriction", getRestriction());
+         writer.property("restriction", getRestriction());
       }
-      writer.writeKeyValue("totalDocuments", totalDocs);
+      writer.property("totalDocuments", totalDocs);
       writer.beginObject("documentCounts");
       for (Map.Entry<String, Double> entry : documentFrequencies.entries()) {
-         writer.writeKeyValue(entry.getKey(), entry.getValue());
+         writer.property(entry.getKey(), entry.getValue());
       }
       writer.endObject();
    }
 
    @Override
-   public void read(@NonNull StructuredReader reader) throws IOException {
+   public void fromJson(@NonNull JsonReader reader) throws IOException {
       reset();
-      while (reader.peek() != ElementType.END_OBJECT) {
+      while (reader.peek() != JsonTokenType.END_OBJECT) {
          switch (reader.peekName()) {
             case "restriction":
                setRestriction(reader.nextKeyValue().v2.asString());
@@ -117,7 +117,7 @@ public class TFIDFTransform extends RestrictedInstancePreprocessor implements Tr
                break;
             case "documentCounts":
                reader.beginObject();
-               while (reader.peek() != ElementType.END_OBJECT) {
+               while (reader.peek() != JsonTokenType.END_OBJECT) {
                   Tuple2<String, Val> kv = reader.nextKeyValue();
                   documentFrequencies.set(kv.getKey(), kv.getValue().asDoubleValue());
                }

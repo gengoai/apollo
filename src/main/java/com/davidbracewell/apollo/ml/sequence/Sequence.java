@@ -4,8 +4,8 @@ import com.davidbracewell.Interner;
 import com.davidbracewell.apollo.ml.Example;
 import com.davidbracewell.apollo.ml.Feature;
 import com.davidbracewell.apollo.ml.Instance;
-import com.davidbracewell.io.structured.StructuredReader;
-import com.davidbracewell.io.structured.StructuredWriter;
+import com.davidbracewell.json.JsonReader;
+import com.davidbracewell.json.JsonWriter;
 import com.davidbracewell.tuple.Tuple;
 import lombok.NonNull;
 
@@ -159,15 +159,15 @@ public class Sequence implements Example, Serializable, Iterable<Instance> {
    }
 
    @Override
-   public void read(StructuredReader reader) throws IOException {
+   public void fromJson(JsonReader reader) throws IOException {
       sequence.clear();
       sequence.addAll(reader.nextCollection(ArrayList::new, "sequence", Instance.class));
       sequence.trimToSize();
    }
 
    @Override
-   public void write(StructuredWriter writer) throws IOException {
-      writer.writeKeyValue("sequence", sequence);
+   public void toJson(JsonWriter writer) throws IOException {
+      writer.property("sequence", sequence);
    }
 
    private class SequenceIterator extends Context<Instance> {

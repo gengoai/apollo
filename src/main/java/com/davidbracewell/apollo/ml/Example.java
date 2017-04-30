@@ -3,12 +3,10 @@ package com.davidbracewell.apollo.ml;
 import com.davidbracewell.Copyable;
 import com.davidbracewell.Interner;
 import com.davidbracewell.guava.common.base.Preconditions;
-import com.davidbracewell.guava.common.base.Throwables;
 import com.davidbracewell.io.Resources;
 import com.davidbracewell.io.resource.Resource;
-import com.davidbracewell.io.structured.StructuredSerializable;
-import com.davidbracewell.io.structured.json.JSONReader;
-import com.davidbracewell.io.structured.json.JSONWriter;
+import com.davidbracewell.json.JsonReader;
+import com.davidbracewell.json.JsonSerializable;
 import com.davidbracewell.string.StringUtils;
 import lombok.NonNull;
 
@@ -21,7 +19,7 @@ import java.util.stream.Stream;
  * <code>Instance</code> specialization and Sequence Labeling Problems use the <code>Sequence</code>
  * specialization.</p>
  */
-public interface Example extends Copyable<Example>, StructuredSerializable {
+public interface Example extends Copyable<Example>, JsonSerializable {
 
    /**
     * Wraps reading an example from a JSON string as written by the write method. Useful for Datasets that keep examples
@@ -36,7 +34,7 @@ public interface Example extends Copyable<Example>, StructuredSerializable {
                                   "Cannot create example from null or empty string.");
       Resource r = Resources.fromString(input);
       T rval;
-      try (JSONReader reader = new JSONReader(r)) {
+      try (JsonReader reader = new JsonReader(r)) {
          reader.beginDocument();
          rval = reader.nextValue(example);
          reader.endDocument();
@@ -57,27 +55,6 @@ public interface Example extends Copyable<Example>, StructuredSerializable {
     * @return the label space
     */
    Stream<Object> getLabelSpace();
-
-   /**
-    * Converts the example to a String encoded in JSON
-    *
-    * @return the string
-    */
-   default String toJson() {
-      Resource r = Resources.fromString();
-      try (JSONWriter writer = new JSONWriter(r)) {
-         writer.beginDocument();
-         write(writer);
-         writer.endDocument();
-      } catch (Exception e) {
-         throw Throwables.propagate(e);
-      }
-      try {
-         return r.readToString().trim();
-      } catch (IOException e) {
-         throw Throwables.propagate(e);
-      }
-   }
 
    /**
     * Interns the feature space returning a new example whose feature names are interned.

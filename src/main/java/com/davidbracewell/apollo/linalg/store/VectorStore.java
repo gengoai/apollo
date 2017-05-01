@@ -24,8 +24,11 @@ package com.davidbracewell.apollo.linalg.store;
 import com.davidbracewell.apollo.linalg.LabeledVector;
 import com.davidbracewell.apollo.linalg.ScoredLabelVector;
 import com.davidbracewell.apollo.linalg.Vector;
+import com.davidbracewell.io.Commitable;
 import lombok.NonNull;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 
@@ -36,7 +39,7 @@ import java.util.Set;
  * @param <KEY> the type of key associated with vectors
  * @author David B. Bracewell
  */
-public interface VectorStore<KEY> extends Iterable<LabeledVector> {
+public interface VectorStore<KEY> extends Iterable<LabeledVector>, AutoCloseable, Closeable, Commitable {
 
    /**
     * The number of vectors stored
@@ -145,5 +148,13 @@ public interface VectorStore<KEY> extends Iterable<LabeledVector> {
     */
    boolean remove(LabeledVector vector);
 
+   @Override
+   default void commit() {
 
+   }
+
+   @Override
+   default void close() throws IOException {
+
+   }
 }// END OF VectorStore

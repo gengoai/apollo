@@ -23,7 +23,7 @@ public class Embedding implements Model, Serializable {
 
    private static final long serialVersionUID = -5216687988129520383L;
    private final EncoderPair encoderPair;
-   private final VectorStore<String> vectorStore;
+   private VectorStore<String> vectorStore;
 
    /**
     * Instantiates a new Embedding.

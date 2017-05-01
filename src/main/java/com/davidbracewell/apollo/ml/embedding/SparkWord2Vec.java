@@ -66,12 +66,14 @@ public class SparkWord2Vec extends EmbeddingLearner {
       w2v.setSeed(randomSeed);
       SparkStream<Iterable<String>> sentences = new SparkStream<>(dataset.stream()
                                                                          .map(sequence -> {
-         List<String> sentence = new ArrayList<>();
-         for (Instance instance : sequence) {
-            sentence.add(instance.getFeatures().get(0).getName());
-         }
-         return sentence;
-      }));
+                                                                            List<String> sentence = new ArrayList<>();
+                                                                            for (Instance instance : sequence) {
+                                                                               sentence.add(instance.getFeatures()
+                                                                                                    .get(0)
+                                                                                                    .getName());
+                                                                            }
+                                                                            return sentence;
+                                                                         }));
       Word2VecModel model = w2v.fit(sentences.getRDD());
 
       Encoder encoder = new IndexEncoder();
@@ -81,9 +83,8 @@ public class SparkWord2Vec extends EmbeddingLearner {
                                                    .createVectorStore();
       for (Map.Entry<String, float[]> vector : JavaConversions.mapAsJavaMap(model.getVectors()).entrySet()) {
          encoder.encode(vector.getKey());
-         vectorStore.add(
-            new LabeledVector(vector.getKey(), new DenseVector(Convert.convert(vector.getValue(), double[].class)))
-                        );
+         vectorStore.add(new LabeledVector(vector.getKey(),
+                                           new DenseVector(Convert.convert(vector.getValue(), double[].class))));
       }
       return new Embedding(new EncoderPair(dataset.getLabelEncoder(), encoder), vectorStore);
    }

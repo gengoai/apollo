@@ -4,6 +4,8 @@ import com.davidbracewell.apollo.linalg.*;
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.linalg.store.VectorStore;
 import com.davidbracewell.apollo.ml.EncoderPair;
+import com.davidbracewell.apollo.ml.IndexEncoder;
+import com.davidbracewell.apollo.ml.LabelIndexEncoder;
 import com.davidbracewell.apollo.ml.Model;
 import com.davidbracewell.tuple.Tuple;
 import lombok.NonNull;
@@ -41,6 +43,24 @@ public class Embedding implements Model, Serializable {
       return encoderPair;
    }
 
+   /**
+    * From vector store embedding.
+    *
+    * @param vectors the vectors
+    * @return the embedding
+    */
+   public static Embedding fromVectorStore(@NonNull VectorStore<String> vectors) {
+      return new Embedding(new EncoderPair(new LabelIndexEncoder(), new IndexEncoder()), vectors);
+   }
+
+   /**
+    * Gets the underlying vector store
+    *
+    * @return The underlying vector store
+    */
+   public VectorStore<String> getVectorStore() {
+      return vectorStore;
+   }
 
    /**
     * Gets the dimension of the vectors in the embedding.

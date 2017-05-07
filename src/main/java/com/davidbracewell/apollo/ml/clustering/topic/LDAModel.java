@@ -36,7 +36,7 @@ public class LDAModel extends FlatClustering {
     *
     * @param encoderPair the encoder pair
     */
-   protected LDAModel(EncoderPair encoderPair) {
+   LDAModel(EncoderPair encoderPair) {
       super(encoderPair, Similarity.Cosine.asDistanceMeasure());
    }
 

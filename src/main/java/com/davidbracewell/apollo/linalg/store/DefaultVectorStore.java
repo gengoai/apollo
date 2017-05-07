@@ -144,4 +144,9 @@ public class DefaultVectorStore<KEY> implements VectorStore<KEY>, Serializable {
       return vectorMap.remove(vector.getLabel()) != null;
    }
 
+   @Override
+   public VectorStore<KEY> createNew() {
+      return new DefaultVectorStore<>(dimension, queryMeasure);
+   }
+
 }//END OF DefaultVectorStore

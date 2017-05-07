@@ -153,6 +153,8 @@ public interface VectorStore<KEY> extends Iterable<LabeledVector>, AutoCloseable
 
    }
 
+   VectorStore<KEY> createNew();
+
    @Override
    default void close() throws IOException {
 

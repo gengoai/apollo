@@ -53,6 +53,15 @@ public class InMemoryLSHVectorStore<KEY> extends LSHVectorStore<KEY> {
       super(lsh);
    }
 
+   public VectorStore<KEY> createNew() {
+      return InMemoryLSH.<KEY>builder()
+                .dimension(this.dimension())
+                .bands(this.lsh.getBands())
+                .buckets(this.lsh.getBuckets())
+                .signatureFunction(this.lsh.getSignatureFunction())
+                .createVectorStore();
+   }
+
    @Override
    public Set<KEY> keySet() {
       return new HashSet<>(keys.keySet());

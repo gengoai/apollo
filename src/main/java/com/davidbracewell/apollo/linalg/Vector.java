@@ -98,13 +98,30 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
       return new SparseMatrix(this);
    }
 
+    /**
+     * Constructs a new <code>dimension x dimension</code> matrix with the elements of this vector on the diagonal.
+     *
+     * @return the matrix
+     */
+   default Matrix toDiagMatrix() {
+      SparseMatrix matrix = new SparseMatrix(dimension(),dimension());
+      for( int i = 0; i < dimension(); i++){
+         matrix.set(i,i, get(i));
+      }
+      return matrix;
+   }
+
    /**
     * Transpose the vector into a column of a matrix
     *
     * @return the matrix
     */
    default Matrix transpose() {
-      return toMatrix().transpose();
+       SparseMatrix matrix = new SparseMatrix(dimension(),1);
+       for( int i = 0; i < dimension(); i++){
+           matrix.set(i,0, get(i));
+       }
+       return matrix;
    }
 
    /**
@@ -273,6 +290,11 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
     */
    default double magnitude() {
       return Math.sqrt(Streams.asStream(nonZeroIterator()).mapToDouble(Entry::getValue).map(d -> d * d).sum());
+   }
+
+
+   default Vector toUnitVector(){
+       return copy().mapDivideSelf(magnitude());
    }
 
    /**
@@ -645,6 +667,8 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
    default void forEachOrderedSparse(@NonNull Consumer<Vector.Entry> consumer) {
       Streams.asStream(orderedNonZeroIterator()).forEach(consumer);
    }
+
+
 
 
    /**

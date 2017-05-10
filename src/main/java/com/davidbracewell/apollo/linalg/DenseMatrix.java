@@ -30,6 +30,21 @@ public class DenseMatrix extends AbstractMatrix {
    /**
     * Instantiates a new Dense matrix.
     *
+    * @param rowDimension    the row dimension
+    * @param columnDimension the column dimension
+    */
+   public DenseMatrix(int rowDimension, int columnDimension, double[] data) {
+      this.matrix = new DoubleMatrix(rowDimension, columnDimension);
+      for( int r = 0; r < rowDimension; r++){
+         for( int c = 0; c < columnDimension; c++){
+            this.matrix.put(r,c, data[rowDimension * c + r]);
+         }
+      }
+   }
+
+   /**
+    * Instantiates a new Dense matrix.
+    *
     * @param matrix the matrix
     */
    public DenseMatrix(double[][] matrix) {

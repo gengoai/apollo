@@ -26,6 +26,10 @@ public final class SparkLinearAlgebra {
             "auto");
     }
 
+    public static Matrix diag(@NonNull org.apache.spark.mllib.linalg.Vector v) {
+        return new DenseVector(v.toArray()).toDiagMatrix();
+    }
+
     public static Matrix[] svd(@NonNull RowMatrix mat, int dimension, double rCond, double tolerance) {
         org.apache.spark.mllib.linalg.SingularValueDecomposition<RowMatrix, org.apache.spark.mllib.linalg.Matrix> svd = mat.computeSVD(
             dimension,
@@ -38,18 +42,9 @@ public final class SparkLinearAlgebra {
 
         return new Matrix[]{
             toMatrix(svd.U()),
-            toMatrix(svd.s()),
+            diag(svd.s()),
             toMatrix(svd.V()),
         };
-    }
-
-    public static Matrix toMatrix(@NonNull org.apache.spark.mllib.linalg.Vector v) {
-        double[] va = v.toArray();
-        Matrix mprime = new SparseMatrix(va.length, va.length);
-        for (int i = 0; i < va.length; i++) {
-            mprime.set(i, i, va[i]);
-        }
-        return mprime;
     }
 
     public static Matrix toMatrix(@NonNull RowMatrix m) {

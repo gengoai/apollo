@@ -30,7 +30,9 @@ import lombok.NonNull;
 
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Encapsulates the result of a classifier model applied to an instance.
@@ -164,6 +166,21 @@ public class Classification implements Serializable {
       }
       return counter;
    }
+
+
+   public Set<String> getMultiLabelResult(double threshold) {
+      Set<String> labels = new HashSet<>();
+      for( int i = 0; i < distribution.length; i++){
+         if( distribution[i] >= threshold ){
+            labels.add(getLabel(i));
+         }
+      }
+      return labels;
+   }
+
+    public Set<String> getMultiLabelResult() {
+       return getMultiLabelResult(0.5);
+    }
 
 
 }//END OF Classification

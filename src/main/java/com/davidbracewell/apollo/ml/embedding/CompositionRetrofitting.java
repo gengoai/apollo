@@ -30,7 +30,7 @@ public class CompositionRetrofitting implements Retrofitting {
      *
      * @param background the background
      */
-    public CompositionRetrofitting(Resource background) {
+    public CompositionRetrofitting(@NonNull Resource background) {
         try {
             this.background = Embedding.read(background);
         } catch (Exception e) {

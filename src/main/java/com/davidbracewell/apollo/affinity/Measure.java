@@ -59,7 +59,7 @@ public interface Measure extends Serializable {
     * @return the metric result
     */
    default double calculate(@NonNull Vector v1, @NonNull Vector v2) {
-      return calculate(VectorMap.wrap(v1), VectorMap.wrap(v2));
+      return calculate(v1.asMap(), v2.asMap());
    }
 
    /**

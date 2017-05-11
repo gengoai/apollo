@@ -80,9 +80,7 @@ public class VectorMap extends AbstractMap<Integer, Double> implements Serializa
 
          @Override
          public boolean contains(Object o) {
-            if (o instanceof Integer)
-               return vector.get((Integer) o) != 0;
-            return false;
+            return o instanceof Integer && vector.get((Integer) o) != 0;
          }
 
          @Override
@@ -105,10 +103,7 @@ public class VectorMap extends AbstractMap<Integer, Double> implements Serializa
 
    @Override
    public boolean containsKey(Object key) {
-      if (key instanceof Number) {
-         return vector.get(((Number) key).intValue()) != 0;
-      }
-      return false;
+      return key instanceof Number && vector.get(((Number) key).intValue()) != 0;
    }
 
    @Override

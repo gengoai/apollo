@@ -32,6 +32,7 @@ import lombok.Value;
 
 import java.io.Serializable;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.PrimitiveIterator;
 import java.util.function.Consumer;
@@ -292,6 +293,10 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
       return Math.sqrt(Streams.asStream(nonZeroIterator()).mapToDouble(Entry::getValue).map(d -> d * d).sum());
    }
 
+
+   default Map<Integer,Double> asMap(){
+      return VectorMap.wrap(this);
+   }
 
    default Vector toUnitVector(){
        return copy().mapDivideSelf(magnitude());

@@ -82,6 +82,15 @@ public enum AssociationMeasures implements ContingencyTableCalculator {
       }
    },
    /**
+    * Positive Pointwise Mutual Information is a variation of PMI that only produces positive values
+    */
+   PPMI {
+      @Override
+      public double calculate(@NonNull ContingencyTable table) {
+         return Math.max(PMI.calculate(table), 0);
+      }
+   },
+   /**
     * <a href="https://en.wikipedia.org/wiki/Odds_ratio">Odds Ratio</a>
     */
    ODDS_RATIO {

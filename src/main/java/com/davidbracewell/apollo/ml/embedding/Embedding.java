@@ -7,6 +7,8 @@ import com.davidbracewell.apollo.ml.EncoderPair;
 import com.davidbracewell.apollo.ml.IndexEncoder;
 import com.davidbracewell.apollo.ml.LabelIndexEncoder;
 import com.davidbracewell.apollo.ml.Model;
+import com.davidbracewell.conversion.Cast;
+import com.davidbracewell.io.resource.Resource;
 import com.davidbracewell.tuple.Tuple;
 import lombok.NonNull;
 
@@ -220,6 +222,23 @@ public class Embedding implements Model, Serializable {
                                            .filter(slv -> !ignore.contains(slv.<String>getLabel()))
                                            .collect(Collectors.toList());
       return vectors.subList(0, Math.min(K, vectors.size()));
+   }
+
+   /**
+    * Reads the model from the given resource
+    *
+    * @param modelResource the resource containing the serialized model
+    * @return the deserialized model
+    * @throws Exception Something went wrong reading the model
+    */
+   public static Embedding read(@NonNull Resource modelResource) throws Exception {
+      Object o = modelResource.readObject();
+      if (o instanceof Embedding) {
+         return Cast.as(o);
+      } else if( o instanceof VectorStore) {
+         return Embedding.fromVectorStore(Cast.as(o));
+      }
+      throw new IllegalArgumentException(o.getClass() + " cannot be read in as an embedding");
    }
 
 }// END OF Embedding

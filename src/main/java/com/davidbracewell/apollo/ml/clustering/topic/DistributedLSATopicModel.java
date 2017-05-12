@@ -32,7 +32,7 @@ import lombok.Setter;
 import org.apache.spark.mllib.linalg.Vector;
 import org.apache.spark.mllib.linalg.distributed.RowMatrix;
 
-import static com.davidbracewell.apollo.linalg.SparkLinearAlgebra.applySVD;
+import static com.davidbracewell.apollo.linalg.SparkLinearAlgebra.sparkSVD;
 import static com.davidbracewell.apollo.linalg.SparkLinearAlgebra.toMatrix;
 
 /**
@@ -66,7 +66,7 @@ public class DistributedLSATopicModel extends Clusterer<LSAModel> {
                                           .rdd());
 
         LSAModel model = new LSAModel(getEncoderPair(), Similarity.Cosine.asDistanceMeasure());
-        Matrix topics = toMatrix(applySVD(mat, dimension, rCond, tolerance).U()).transpose();
+        Matrix topics = toMatrix(sparkSVD(mat, dimension, rCond, tolerance).U()).transpose();
         model.dimension = topics.numberOfColumns();
         for (int i = 0; i < topics.numberOfRows(); i++) {
             Cluster c = new Cluster();

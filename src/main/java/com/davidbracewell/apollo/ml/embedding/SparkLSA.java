@@ -153,7 +153,7 @@ public class SparkLSA extends EmbeddingLearner {
                                               .createVectorStore();
 
         SparkLinearAlgebra
-            .applySVD(mat, dimension, rCond, tolerance)
+            .sparkSVD(mat, dimension, rCond, tolerance)
             .U()
             .rows()
             .toJavaRDD()

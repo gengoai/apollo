@@ -52,7 +52,7 @@ public class SingularValueDecompositionTest {
 
    @Test
    public void decompose() throws Exception {
-      SingularValueDecomposition svd = new SingularValueDecomposition(false);
+      SVD svd = new SVD(false);
       Matrix[] uSv = svd.decompose(m);
       assertEquals(2.29, uSv[1].get(0, 0), 0.01);
       assertEquals(2.01, uSv[1].get(1, 1), 0.01);

@@ -51,7 +51,9 @@ public class DistributedLSATopicModel extends Clusterer<LSAModel> {
       SparkStream<Vector> stream = new SparkStream<>(instances.map(i -> (Vector) new DenseVector(i.toArray()))).cache();
       RowMatrix mat = new RowMatrix(stream.getRDD().rdd());
 
-      //since we have document x word, V is the component x word matrix
+      //since we have document x word, V is the word x component matrix
+      // U = document x component, E = singular components, V = word x component
+      // Transpose V to get component (topics) x words
       Matrix topics = toMatrix(sparkSVD(mat, K).V().transpose());
       LSAModel model = new LSAModel(getEncoderPair(), Similarity.Cosine.asDistanceMeasure());
       model.K = K;

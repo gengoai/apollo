@@ -70,7 +70,7 @@ public abstract class LSH implements Serializable {
     *
     * @param bands             the bands
     * @param buckets           the buckets
-    * @param dimension         the k
+    * @param dimension         the dimension
     * @param threshold         the threshold
     * @param signatureSupplier the signature supplier
     */
@@ -88,7 +88,7 @@ public abstract class LSH implements Serializable {
     *
     * @param bands             the bands
     * @param buckets           the buckets
-    * @param dimension         the k
+    * @param dimension         the dimension
     * @param signatureSupplier the signature supplier
     */
    public LSH(int bands, int buckets, int dimension, @NonNull BiFunction<Integer, Integer, SignatureFunction> signatureSupplier) {

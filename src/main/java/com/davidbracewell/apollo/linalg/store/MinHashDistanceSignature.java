@@ -36,7 +36,7 @@ public class MinHashDistanceSignature extends MinHashSignature {
     * Instantiates a new Min hash distance signature.
     *
     * @param error     the error
-    * @param dimension the k
+    * @param dimension the dimension
     */
    public MinHashDistanceSignature(double error, int dimension) {
       super(error, dimension);
@@ -46,7 +46,7 @@ public class MinHashDistanceSignature extends MinHashSignature {
     * Instantiates a new Min hash signature.
     *
     * @param signatureSize the signature size controlling the number of random projections
-    * @param dimension     the k of the vector
+    * @param dimension     the dimension of the vector
     */
    public MinHashDistanceSignature(int signatureSize, int dimension) {
       super(signatureSize, dimension);

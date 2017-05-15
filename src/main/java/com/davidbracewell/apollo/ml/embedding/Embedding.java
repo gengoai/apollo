@@ -65,9 +65,9 @@ public class Embedding implements Model, Serializable {
    }
 
    /**
-    * Gets the k of the vectors in the embedding.
+    * Gets the dimension of the vectors in the embedding.
     *
-    * @return the vector k
+    * @return the vector dimension
     */
    public int getDimension() {
       return vectorStore.dimension();

@@ -307,14 +307,14 @@ public interface Matrix extends Copyable<Matrix>, Iterable<Matrix.Entry> {
    double[][] toArray();
 
    /**
-    * Row k.
+    * Row dimension.
     *
     * @return the int
     */
    int numberOfRows();
 
    /**
-    * Column k.
+    * Column dimension.
     *
     * @return the int
     */

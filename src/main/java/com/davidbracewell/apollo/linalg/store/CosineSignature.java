@@ -42,7 +42,7 @@ public class CosineSignature implements SignatureFunction {
     * Instantiates a new Cosine signature.
     *
     * @param signatureSize the signature size controlling the number of random projections
-    * @param dimension     the k of the vector
+    * @param dimension     the dimension of the vector
     */
    public CosineSignature(int signatureSize, int dimension) {
       this.signatureSize = signatureSize;

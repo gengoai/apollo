@@ -49,7 +49,7 @@ public class DefaultVectorStore<KEY> implements VectorStore<KEY>, Serializable {
    /**
     * Instantiates a new Default vector store.
     *
-    * @param dimension    the k
+    * @param dimension    the dimension
     * @param queryMeasure the query measure
     */
    public DefaultVectorStore(int dimension, @NonNull Measure queryMeasure) {

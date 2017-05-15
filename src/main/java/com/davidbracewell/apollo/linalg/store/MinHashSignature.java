@@ -43,7 +43,7 @@ public class MinHashSignature implements SignatureFunction {
     * Instantiates a new Min hash signature.
     *
     * @param error     the allowed error rate
-    * @param dimension the k of the vector
+    * @param dimension the dimension of the vector
     */
    public MinHashSignature(double error, int dimension) {
       this((int) (1 / (error * error)), dimension);
@@ -53,7 +53,7 @@ public class MinHashSignature implements SignatureFunction {
     * Instantiates a new Min hash signature.
     *
     * @param signatureSize the signature size controlling the number of random projections
-    * @param dimension     the k of the vector
+    * @param dimension     the dimension of the vector
     */
    public MinHashSignature(int signatureSize, int dimension) {
       this.signatureSize = signatureSize;

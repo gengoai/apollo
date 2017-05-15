@@ -45,7 +45,7 @@ public enum Correlation implements CorrelationMeasure {
       @Override
       public double calculate(@NonNull double[] v1, @NonNull double[] v2) {
          Preconditions.checkArgument(v1.length == v2.length,
-                                     "Vector dimension mismatch " + v1.length + " != " + v2.length);
+                                     "Vector k mismatch " + v1.length + " != " + v2.length);
 
          Vector dv1 = DenseVector.wrap(v1);
          Vector dv2 = DenseVector.wrap(v2);
@@ -80,7 +80,7 @@ public enum Correlation implements CorrelationMeasure {
       @Override
       public double calculate(@NonNull double[] v1, @NonNull double[] v2) {
          Preconditions.checkArgument(v1.length == v2.length,
-                                     "Vector dimension mismatch " + v1.length + " != " + v2.length);
+                                     "Vector k mismatch " + v1.length + " != " + v2.length);
          Preconditions.checkArgument(v1.length >= 2, "Need at least two elements");
          return Pearson.calculate(rank(v1), rank(v2));
       }
@@ -94,7 +94,7 @@ public enum Correlation implements CorrelationMeasure {
       @Override
       public double calculate(double[] v1, double[] v2) {
          Preconditions.checkArgument(v1.length == v2.length,
-                                     "Vector dimension mismatch " + v1.length + " != " + v2.length);
+                                     "Vector k mismatch " + v1.length + " != " + v2.length);
          Preconditions.checkArgument(v1.length >= 2, "Need at least two elements");
          return kendallsCorrelation.correlation(v1, v2);
       }

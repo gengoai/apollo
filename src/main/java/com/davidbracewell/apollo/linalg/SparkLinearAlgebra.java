@@ -15,155 +15,143 @@ import org.apache.spark.mllib.linalg.distributed.RowMatrix;
  */
 public final class SparkLinearAlgebra {
 
-    private SparkLinearAlgebra() {
-        throw new IllegalAccessError();
-    }
+   private SparkLinearAlgebra() {
+      throw new IllegalAccessError();
+   }
 
-    /**
-     * Performs Principal component analysis on the given Spark <code>RowMatrix</code> with the given number of
-     * principle components
-     *
-     * @param mat                    the matrix to perform PCA on
-     * @param numPrincipalComponents the number of principal components
-     */
-    public static Matrix pca(@NonNull RowMatrix mat, int numPrincipalComponents) {
-        Preconditions.checkArgument(numPrincipalComponents > 0, "Number of principal components must be > 0");
-        return toMatrix(mat.multiply(mat.computePrincipalComponents(numPrincipalComponents)));
-    }
+   /**
+    * Performs Principal component analysis on the given Spark <code>RowMatrix</code> with the given number of
+    * principle components
+    *
+    * @param mat                    the matrix to perform PCA on
+    * @param numPrincipalComponents the number of principal components
+    */
+   public static Matrix pca(@NonNull RowMatrix mat, int numPrincipalComponents) {
+      Preconditions.checkArgument(numPrincipalComponents > 0, "Number of principal components must be > 0");
+      return toMatrix(mat.multiply(mat.computePrincipalComponents(numPrincipalComponents)));
+   }
 
-    /**
-     * Performs Principal component analysis on the given Matrix with the given number of
-     * principle components
-     *
-     * @param mat                    the matrix to perform PCA on
-     * @param numPrincipalComponents the number of principal components
-     */
-    public static Matrix pca(@NonNull Matrix mat, int numPrincipalComponents) {
-        Preconditions.checkArgument(numPrincipalComponents > 0, "Number of principal components must be > 0");
-        return toMatrix(toRowMatrix(mat).computePrincipalComponents(numPrincipalComponents));
-    }
+   /**
+    * Performs Principal component analysis on the given Matrix with the given number of
+    * principle components
+    *
+    * @param mat                    the matrix to perform PCA on
+    * @param numPrincipalComponents the number of principal components
+    */
+   public static Matrix pca(@NonNull Matrix mat, int numPrincipalComponents) {
+      Preconditions.checkArgument(numPrincipalComponents > 0, "Number of principal components must be > 0");
+      return toMatrix(toRowMatrix(mat).computePrincipalComponents(numPrincipalComponents));
+   }
 
-    /**
-     * Performs Principal component analysis on the given Spark <code>RowMatrix</code> with the given number of
-     * principle components
-     *
-     * @param mat                    the matrix to perform PCA on
-     * @param numPrincipalComponents the number of principal components
-     */
-    public static RowMatrix sparkPCA(@NonNull RowMatrix mat, int numPrincipalComponents) {
-        Preconditions.checkArgument(numPrincipalComponents > 0, "Number of principal components must be > 0");
-        return mat.multiply(mat.computePrincipalComponents(numPrincipalComponents));
-    }
+   /**
+    * Performs Principal component analysis on the given Spark <code>RowMatrix</code> with the given number of
+    * principle components
+    *
+    * @param mat                    the matrix to perform PCA on
+    * @param numPrincipalComponents the number of principal components
+    */
+   public static RowMatrix sparkPCA(@NonNull RowMatrix mat, int numPrincipalComponents) {
+      Preconditions.checkArgument(numPrincipalComponents > 0, "Number of principal components must be > 0");
+      return mat.multiply(mat.computePrincipalComponents(numPrincipalComponents));
+   }
 
-    /**
-     * Performs Singular Value Decomposition on a Spark <code>RowMatrix</code>
-     *
-     * @param mat the matrix to perform svd on
-     * @param k   the number of singular values
-     * @return Thee resulting decomposition
-     */
-    public static org.apache.spark.mllib.linalg.SingularValueDecomposition<RowMatrix, org.apache.spark.mllib.linalg.Matrix> sparkSVD(@NonNull RowMatrix mat, int k) {
-        Preconditions.checkArgument(k > 0, "K must be > 0");
-        return mat.computeSVD(k, true, 1.0E-9);
-    }
+   /**
+    * Performs Singular Value Decomposition on a Spark <code>RowMatrix</code>
+    *
+    * @param mat the matrix to perform svd on
+    * @param k   the number of singular values
+    * @return Thee resulting decomposition
+    */
+   public static org.apache.spark.mllib.linalg.SingularValueDecomposition<RowMatrix, org.apache.spark.mllib.linalg.Matrix> sparkSVD(@NonNull RowMatrix mat, int k) {
+      Preconditions.checkArgument(k > 0, "K must be > 0");
+      return mat.computeSVD(k, true, 1.0E-9);
+   }
 
-    /**
-     * Performs Singular Value Decomposition on a Spark <code>RowMatrix</code> returning the decomposition as an array
-     * of Apollo matrices in (U,S,V) order.
-     *
-     * @param mat the matrix to perform svd on
-     * @param K   the number of singular values
-     * @return Thee resulting decomposition
-     */
-    public static Matrix[] svd(@NonNull RowMatrix mat, int K) {
-        org.apache.spark.mllib.linalg.SingularValueDecomposition<RowMatrix, org.apache.spark.mllib.linalg.Matrix> svd = sparkSVD(
-            mat, K);
-        return new Matrix[]{toMatrix(svd.U()), toDiagonalMatrix(svd.s()), toMatrix(svd.V())};
-    }
+   /**
+    * Performs Singular Value Decomposition on a Spark <code>RowMatrix</code> returning the decomposition as an array
+    * of Apollo matrices in (U,S,V) order.
+    *
+    * @param mat the matrix to perform svd on
+    * @param K   the number of singular values
+    * @return Thee resulting decomposition
+    */
+   public static Matrix[] svd(@NonNull RowMatrix mat, int K) {
+      org.apache.spark.mllib.linalg.SingularValueDecomposition<RowMatrix, org.apache.spark.mllib.linalg.Matrix> svd = sparkSVD(
+         mat, K);
+      return new Matrix[]{toMatrix(svd.U()), toDiagonalMatrix(svd.s()), toMatrix(svd.V())};
+   }
 
-    /**
-     * Performs Singular Value Decomposition on an Apollo Matrix using Spark returning the decomposition as an array of
-     * Apollo matrices in (U,S,V) order.
-     *
-     * @param mat the matrix to perform svd on
-     * @param K   the number of singular values
-     * @return Thee resulting decomposition
-     */
-    public static Matrix[] svd(@NonNull Matrix mat, int K) {
-        org.apache.spark.mllib.linalg.SingularValueDecomposition<RowMatrix, org.apache.spark.mllib.linalg.Matrix> svd = sparkSVD(
-            toRowMatrix(mat), K);
-        return new Matrix[]{toMatrix(svd.U()), toDiagonalMatrix(svd.s()), toMatrix(svd.V())};
-    }
+   /**
+    * Performs Singular Value Decomposition on an Apollo Matrix using Spark returning the decomposition as an array of
+    * Apollo matrices in (U,S,V) order.
+    *
+    * @param mat the matrix to perform svd on
+    * @param K   the number of singular values
+    * @return Thee resulting decomposition
+    */
+   public static Matrix[] svd(@NonNull Matrix mat, int K) {
+      org.apache.spark.mllib.linalg.SingularValueDecomposition<RowMatrix, org.apache.spark.mllib.linalg.Matrix> svd = sparkSVD(
+         toRowMatrix(mat), K);
+      return new Matrix[]{toMatrix(svd.U()), toDiagonalMatrix(svd.s()), toMatrix(svd.V())};
+   }
 
-    /**
-     * Converts a Spark vector into a diagonal Apollo matrix
-     *
-     * @param v the vector to convert
-     * @return the diagonal matrix
-     */
-    public static Matrix toDiagonalMatrix(@NonNull org.apache.spark.mllib.linalg.Vector v) {
-        return new DenseVector(v.toArray()).toDiagMatrix();
-    }
+   /**
+    * Converts a Spark vector into a diagonal Apollo matrix
+    *
+    * @param v the vector to convert
+    * @return the diagonal matrix
+    */
+   public static Matrix toDiagonalMatrix(@NonNull org.apache.spark.mllib.linalg.Vector v) {
+      return new DenseVector(v.toArray()).toDiagMatrix();
+   }
 
-    /**
-     * Converts a <code>RowMatrix</code> to an Apollo <code>DenseMatrix</code>
-     *
-     * @param m the matrix to convert
-     * @return the Apollo matrix
-     */
-    public static Matrix toMatrix(@NonNull RowMatrix m) {
-        final Matrix mprime = new DenseMatrix((int) m.numRows(), (int) m.numCols());
-        m
-            .rows()
-            .toJavaRDD()
-            .zipWithIndex()
-            .toLocalIterator()
-            .forEachRemaining(t -> {
-                mprime.setRow(t
-                                  ._2()
-                                  .intValue(), new DenseVector(t
-                                                                   ._1()
-                                                                   .toArray()));
-            });
-        return mprime;
-    }
+   /**
+    * Converts a <code>RowMatrix</code> to an Apollo <code>DenseMatrix</code>
+    *
+    * @param m the matrix to convert
+    * @return the Apollo matrix
+    */
+   public static Matrix toMatrix(@NonNull RowMatrix m) {
+      final Matrix mprime = new DenseMatrix((int) m.numRows(), (int) m.numCols());
+      m.rows()
+       .toJavaRDD()
+       .zipWithIndex()
+       .toLocalIterator()
+       .forEachRemaining(t -> mprime.setRow(t._2().intValue(), new DenseVector(t._1().toArray())));
+      return mprime;
+   }
 
-    /**
-     * Converts a Spark <code>Matrix</code> to an Apollo <code>DenseMatrix</code>
-     *
-     * @param m the matrix to convert
-     * @return the Apollo matrix
-     */
-    public static Matrix toMatrix(@NonNull org.apache.spark.mllib.linalg.Matrix m) {
-        Matrix mprime = new DenseMatrix(m.numRows(), m.numCols());
-        for (int i = 0; i < m.numRows(); i++) {
-            for (int j = 0; j < m.numCols(); j++) {
-                mprime.set(i, j, m.apply(i, j));
-            }
-        }
-        return mprime;
-    }
+   /**
+    * Converts a Spark <code>Matrix</code> to an Apollo <code>DenseMatrix</code>
+    *
+    * @param m the matrix to convert
+    * @return the Apollo matrix
+    */
+   public static Matrix toMatrix(@NonNull org.apache.spark.mllib.linalg.Matrix m) {
+      Matrix mprime = new DenseMatrix(m.numRows(), m.numCols());
+      for (int i = 0; i < m.numRows(); i++) {
+         for (int j = 0; j < m.numCols(); j++) {
+            mprime.set(i, j, m.apply(i, j));
+         }
+      }
+      return mprime;
+   }
 
-    /**
-     * Converts an Apollo Matrix into a Spark <code>RowMatrix</code>
-     *
-     * @param m the matrix to convert
-     * @return the RowMatrix
-     */
-    public static RowMatrix toRowMatrix(Matrix m) {
-        JavaRDD<Vector> rdd = StreamingContext
-                                  .distributed()
-                                  .range(0, m.numberOfRows())
-                                  .map(r ->
-                                           Vectors.dense(m
-                                                             .row(r)
-                                                             .toArray())
-                                  )
-                                  .cache()
-                                  .getRDD();
-
-        return new RowMatrix(rdd.rdd());
-    }
+   /**
+    * Converts an Apollo Matrix into a Spark <code>RowMatrix</code>
+    *
+    * @param m the matrix to convert
+    * @return the RowMatrix
+    */
+   public static RowMatrix toRowMatrix(Matrix m) {
+      JavaRDD<Vector> rdd = StreamingContext
+                               .distributed()
+                               .range(0, m.numberOfRows())
+                               .map(r -> Vectors.dense(m.row(r).toArray()))
+                               .cache()
+                               .getRDD();
+      return new RowMatrix(rdd.rdd());
+   }
 
 
 }// END OF SparkLinearAlgebra

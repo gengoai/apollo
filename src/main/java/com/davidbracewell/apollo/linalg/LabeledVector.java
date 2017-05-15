@@ -32,7 +32,7 @@ public class LabeledVector extends ForwardingVector {
    /**
     * Convenience method for creating a sparse labeled vector.
     *
-    * @param dimension the dimension of the vector
+    * @param dimension the k of the vector
     * @param label     the label of the vector
     * @return the labeled vector
     */
@@ -43,7 +43,7 @@ public class LabeledVector extends ForwardingVector {
    /**
     * Convenience method for creating a dense labeled vector.
     *
-    * @param dimension the dimension of the vector
+    * @param dimension the k of the vector
     * @param label     the label of the vector
     * @return the labeled vector
     */

@@ -19,48 +19,47 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 /**
- * <p>Removes features that occur in less than a given number of instances.</p>
+ * <p>Keeps only the top <code>N</code> most occurring features.</p>
  *
  * @author David B. Bracewell
  */
-public class MinCountFilter extends RestrictedInstancePreprocessor implements FilterProcessor<Instance>, Serializable {
+public class TopNFilter extends RestrictedInstancePreprocessor implements FilterProcessor<Instance>, Serializable {
    private static final long serialVersionUID = 1L;
-   private long minCount;
+   private int topN;
    private volatile Set<String> selectedFeatures = Collections.emptySet();
 
    /**
-    * Instantiates a new Min count filter.
+    * Instantiates a new Top N filter.
     *
     * @param featurePrefix the feature prefix to restrict the filter to
-    * @param minCount      the minimum number of instances a feature must be present in to be kept
+    * @param topN          the number of features to keep
     */
-   public MinCountFilter(@NonNull String featurePrefix, long minCount) {
+   public TopNFilter(@NonNull String featurePrefix, int topN) {
       super(featurePrefix);
-      this.minCount = minCount;
+      this.topN = topN;
    }
 
    /**
-    * Instantiates a new Min count filter with no restriction.
+    * Instantiates a new Top N  filter with no restriction.
     *
-    * @param minCount the minimum number of instances a feature must be present in to be kept
+    * @param topN the number of features to keep
     */
-   public MinCountFilter(long minCount) {
-      this.minCount = minCount;
+   public TopNFilter(int topN) {
+      this.topN = topN;
    }
 
    /**
-    * Instantiates a new Min count filter.
+    * Instantiates a new Top N filter.
     */
-   protected MinCountFilter() {
-      this.minCount = 0;
+   protected TopNFilter() {
+      this.topN = 100_000_000;
    }
 
    @Override
    protected void restrictedFitImpl(MStream<List<Feature>> stream) {
       selectedFeatures = new HashSet<>(Counters.newCounter(stream.flatMap(l -> l.stream().map(Feature::getName))
-                                                   .countByValue())
-                                 .filterByValue(v -> v >= minCount)
-                                 .items());
+                                                                 .countByValue())
+                                               .topN(topN).items());
    }
 
    @Override
@@ -76,9 +75,9 @@ public class MinCountFilter extends RestrictedInstancePreprocessor implements Fi
    @Override
    public String describe() {
       if (applyToAll()) {
-         return "MinCountFilter{minCount=" + minCount + "}";
+         return "TopNFilter{minCount=" + topN + "}";
       }
-      return "MinCountFilter[" + getRestriction() + "]{minCount=" + minCount + "}";
+      return "TopNFilter[" + getRestriction() + "]{minCount=" + topN + "}";
    }
 
    @Override
@@ -86,7 +85,7 @@ public class MinCountFilter extends RestrictedInstancePreprocessor implements Fi
       if (!applyToAll()) {
          writer.property("restriction", getRestriction());
       }
-      writer.property("minCount", minCount);
+      writer.property("topN", topN);
       writer.property("selected", selectedFeatures);
    }
 
@@ -98,8 +97,8 @@ public class MinCountFilter extends RestrictedInstancePreprocessor implements Fi
             case "restriction":
                setRestriction(reader.nextKeyValue().v2.asString());
                break;
-            case "minCount":
-               this.minCount = reader.nextKeyValue().v2.asIntegerValue();
+            case "topN":
+               this.topN = reader.nextKeyValue().v2.asIntegerValue();
                break;
             case "selected":
                reader.nextCollection(HashSet::new).forEach(val -> selectedFeatures.add(val.asString()));
@@ -107,4 +106,4 @@ public class MinCountFilter extends RestrictedInstancePreprocessor implements Fi
          }
       }
    }
-}// END OF MinCountFilter
+}// END OF TopNFilter

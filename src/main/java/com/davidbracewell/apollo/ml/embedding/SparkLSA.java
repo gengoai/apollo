@@ -67,13 +67,7 @@ public class SparkLSA extends EmbeddingLearner {
     private int maxVocab = 100_000;
     @Getter
     @Setter
-    private double tolerance = 1e-10;
-    @Getter
-    @Setter
     private int dimension = 300;
-    @Getter
-    @Setter
-    private double rCond = 1e-9;
 
     @Override
     public void reset() {
@@ -153,7 +147,7 @@ public class SparkLSA extends EmbeddingLearner {
                                               .createVectorStore();
 
         SparkLinearAlgebra
-            .sparkSVD(mat, dimension, rCond, tolerance)
+            .sparkSVD(mat, dimension)
             .U()
             .rows()
             .toJavaRDD()

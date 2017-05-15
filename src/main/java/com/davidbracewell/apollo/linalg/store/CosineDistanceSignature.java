@@ -36,7 +36,7 @@ public class CosineDistanceSignature extends CosineSignature {
     * Instantiates a new Cosine signature.
     *
     * @param signatureSize the signature size controlling the number of random projections
-    * @param dimension     the dimension of the vector
+    * @param dimension     the k of the vector
     */
    public CosineDistanceSignature(int signatureSize, int dimension) {
       super(signatureSize, dimension);

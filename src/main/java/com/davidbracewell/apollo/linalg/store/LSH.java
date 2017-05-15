@@ -33,8 +33,8 @@ import java.util.function.BiFunction;
 
 /**
  * <p>Implementation of <a href="https://en.wikipedia.org/wiki/Locality-sensitive_hashing">Locality-sensitive
- * hashing</a> which reduces high dimensional vectors into a lower dimension using signature functions.  The hash
- * functions cause similar vectors to be mapped into the same low dimension buckets facilitating fast nearest neighbor
+ * hashing</a> which reduces high dimensional vectors into a lower k using signature functions.  The hash
+ * functions cause similar vectors to be mapped into the same low k buckets facilitating fast nearest neighbor
  * searches.</p>
  *
  * @author David B. Bracewell
@@ -70,7 +70,7 @@ public abstract class LSH implements Serializable {
     *
     * @param bands             the bands
     * @param buckets           the buckets
-    * @param dimension         the dimension
+    * @param dimension         the k
     * @param threshold         the threshold
     * @param signatureSupplier the signature supplier
     */
@@ -88,7 +88,7 @@ public abstract class LSH implements Serializable {
     *
     * @param bands             the bands
     * @param buckets           the buckets
-    * @param dimension         the dimension
+    * @param dimension         the k
     * @param signatureSupplier the signature supplier
     */
    public LSH(int bands, int buckets, int dimension, @NonNull BiFunction<Integer, Integer, SignatureFunction> signatureSupplier) {
@@ -290,7 +290,7 @@ public abstract class LSH implements Serializable {
       /**
        * Dimension builder.
        *
-       * @param dimension the dimension
+       * @param dimension the k
        * @return the builder
        */
       public Builder dimension(int dimension) {

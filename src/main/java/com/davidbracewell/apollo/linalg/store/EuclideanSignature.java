@@ -43,7 +43,7 @@ public class EuclideanSignature implements SignatureFunction {
     * Instantiates a new Euclidean signature.
     *
     * @param signatureSize the signature size controlling the number of random projections
-    * @param dimension     the dimension of the vector
+    * @param dimension     the k of the vector
     * @param maxW          the maximum value for the W parameter which controls the random projection
     */
    public EuclideanSignature(int signatureSize, int dimension, int maxW) {

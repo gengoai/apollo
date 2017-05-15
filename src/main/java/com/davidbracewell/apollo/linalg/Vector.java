@@ -91,7 +91,7 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
    }
 
    /**
-    * Constructs a new <code>1 x dimension</code> matrix containing this vector.
+    * Constructs a new <code>1 x k</code> matrix containing this vector.
     *
     * @return the matrix
     */
@@ -100,7 +100,7 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
    }
 
     /**
-     * Constructs a new <code>dimension x dimension</code> matrix with the elements of this vector on the diagonal.
+     * Constructs a new <code>k x k</code> matrix with the elements of this vector on the diagonal.
      *
      * @return the matrix
      */
@@ -154,9 +154,9 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
    }
 
    /**
-    * Returns the dimension of the vector, i.e. the number of elements.
+    * Returns the k of the vector, i.e. the number of elements.
     *
-    * @return the dimension of the vector.
+    * @return the k of the vector.
     */
    int dimension();
 
@@ -574,7 +574,7 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
    Vector set(int index, double value);
 
    /**
-    * The current number of values stored in the underlying implementation. Note that size may not equal dimension for
+    * The current number of values stored in the underlying implementation. Note that size may not equal k for
     * sparse implementations.
     *
     * @return the number of values stored in the underlying implementation
@@ -582,7 +582,7 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
    int size();
 
    /**
-    * Constructs a new vector whose dimension is <code>to-from</code> and whose values are come from this vector at
+    * Constructs a new vector whose k is <code>to-from</code> and whose values are come from this vector at
     * indexes <code>from</code> to <code>to</code>. Note that to is not inclusive.
     *
     * @param from Starting point for the slice (inclusive)
@@ -650,8 +650,8 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
    /**
     * Resizes the current vector constructing a new vector
     *
-    * @param newDimension the new dimension
-    * @return The new vector of the given dimension
+    * @param newDimension the new k
+    * @return The new vector of the given k
     */
    Vector redim(int newDimension);
 

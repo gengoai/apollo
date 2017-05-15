@@ -53,7 +53,7 @@ public interface CorrelationMeasure extends SimilarityMeasure {
    @Override
    default double calculate(@NonNull Vector v1, @NonNull Vector v2) {
       Preconditions.checkArgument(v1.dimension() == v2.dimension(),
-                                  "Vector dimension mismatch " + v1.dimension() + " != " + v2.dimension());
+                                  "Vector k mismatch " + v1.dimension() + " != " + v2.dimension());
       return calculate(v1.toArray(), v2.toArray());
    }
 

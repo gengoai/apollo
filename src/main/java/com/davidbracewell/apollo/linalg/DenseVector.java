@@ -43,7 +43,7 @@ public class DenseVector implements Vector, Serializable {
    /**
     * Instantiates a new Dense vector.
     *
-    * @param dimension the dimension of the new vector
+    * @param dimension the k of the new vector
     */
    public DenseVector(int dimension) {
       Preconditions.checkArgument(dimension >= 0, "Dimension must be non-negative.");
@@ -77,7 +77,7 @@ public class DenseVector implements Vector, Serializable {
    /**
     * Static method to create a new <code>DenseVector</code> whose values are 1.
     *
-    * @param dimension The dimension of the vector
+    * @param dimension The k of the vector
     * @return a new <code>DenseVector</code> whose values are 1.
     */
    public static Vector ones(int dimension) {
@@ -102,10 +102,10 @@ public class DenseVector implements Vector, Serializable {
 
 
    /**
-    * Creates a new vector of the given dimension initialized with random values in the range of <code>[min,
+    * Creates a new vector of the given k initialized with random values in the range of <code>[min,
     * max]</code>.
     *
-    * @param dimension the dimension of the vector
+    * @param dimension the k of the vector
     * @param min       the minimum assignable value
     * @param max       the maximum assignable value
     * @return the vector
@@ -116,10 +116,10 @@ public class DenseVector implements Vector, Serializable {
 
 
    /**
-    * Creates a new vector of the given dimension initialized with random values in the range of <code>[min,
+    * Creates a new vector of the given k initialized with random values in the range of <code>[min,
     * max]</code>.
     *
-    * @param dimension the dimension of the vector
+    * @param dimension the k of the vector
     * @param min       the minimum assignable value
     * @param max       the maximum assignable value
     * @param rnd       the random number generator to use generate values
@@ -136,10 +136,10 @@ public class DenseVector implements Vector, Serializable {
    }
 
    /**
-    * Constructs a new vector of given dimension with values randomized using a gaussian with mean 0 and standard
+    * Constructs a new vector of given k with values randomized using a gaussian with mean 0 and standard
     * deviation of 1
     *
-    * @param dimension the dimension of the vector
+    * @param dimension the k of the vector
     * @return the vector
     */
    public static Vector randomGaussian(int dimension) {
@@ -154,7 +154,7 @@ public class DenseVector implements Vector, Serializable {
    /**
     * Static method to create a new <code>DenseVector</code> whose values are 0.
     *
-    * @param dimension The dimension of the vector
+    * @param dimension The k of the vector
     * @return a new <code>DenseVector</code> whose values are 0.
     */
    public static Vector zeros(int dimension) {

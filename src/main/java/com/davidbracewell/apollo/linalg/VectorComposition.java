@@ -14,9 +14,9 @@ import java.util.Collection;
 public interface VectorComposition {
 
    /**
-    * Compose the given vectors with given dimension into a single vector.
+    * Compose the given vectors with given k into a single vector.
     *
-    * @param dimension the dimension of the vectors
+    * @param dimension the k of the vectors
     * @param vectors   the vectors to compose
     * @return the composed vector
     */
@@ -25,9 +25,9 @@ public interface VectorComposition {
    }
 
    /**
-    * Compose the given vectors with given dimension into a single vector.
+    * Compose the given vectors with given k into a single vector.
     *
-    * @param dimension the dimension of the vectors
+    * @param dimension the k of the vectors
     * @param vectors   the vectors to compose
     * @return the composed vector
     */

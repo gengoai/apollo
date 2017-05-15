@@ -54,7 +54,7 @@ public class InMemoryLSH extends LSH {
     *
     * @param bands             the bands
     * @param buckets           the buckets
-    * @param dimension         the dimension
+    * @param dimension         the k
     * @param threshold         the threshold
     * @param signatureSupplier the signature supplier
     */
@@ -68,7 +68,7 @@ public class InMemoryLSH extends LSH {
     *
     * @param bands             the bands
     * @param buckets           the buckets
-    * @param dimension         the dimension
+    * @param dimension         the k
     * @param signatureSupplier the signature supplier
     */
    public InMemoryLSH(int bands, int buckets, int dimension, @NonNull BiFunction<Integer, Integer, SignatureFunction> signatureSupplier) {

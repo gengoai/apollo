@@ -29,6 +29,7 @@ import com.davidbracewell.stream.MStream;
 import com.davidbracewell.stream.SparkStream;
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.spark.mllib.linalg.DenseVector;
 import org.apache.spark.mllib.linalg.Vector;
 import org.apache.spark.mllib.linalg.distributed.RowMatrix;
 
@@ -39,49 +40,32 @@ import static com.davidbracewell.apollo.linalg.SparkLinearAlgebra.toMatrix;
  * @author David B. Bracewell
  */
 public class DistributedLSATopicModel extends Clusterer<LSAModel> {
-    private static final long serialVersionUID = 1L;
+   private static final long serialVersionUID = 1L;
+   @Getter
+   @Setter
+   private int K = 100;
 
-    @Getter
-    @Setter
-    private int minCount = 5;
-    @Getter
-    @Setter
-    private int maxVocab = 100_000;
-    @Getter
-    @Setter
-    private double tolerance = 1e-10;
-    @Getter
-    @Setter
-    private int dimension = 300;
-    @Getter
-    @Setter
-    private double rCond = 1e-9;
+   @Override
+   public LSAModel cluster(MStream<com.davidbracewell.apollo.linalg.Vector> instances) {
+      //Create document x word matrix
+      SparkStream<Vector> stream = new SparkStream<>(instances.map(i -> (Vector) new DenseVector(i.toArray()))).cache();
+      RowMatrix mat = new RowMatrix(stream.getRDD().rdd());
 
-    @Override
-    public LSAModel cluster(MStream<com.davidbracewell.apollo.linalg.Vector> instances) {
-        RowMatrix mat = new RowMatrix(new SparkStream<>(instances)
-                                          .map(i -> (Vector) new org.apache.spark.mllib.linalg.DenseVector(i.toArray()))
-                                          .cache()
-                                          .getRDD()
-                                          .rdd());
+      //since we have document x word, V is the component x word matrix
+      Matrix topics = toMatrix(sparkSVD(mat, K).V().transpose());
+      LSAModel model = new LSAModel(getEncoderPair(), Similarity.Cosine.asDistanceMeasure());
+      model.K = K;
+      for (int i = 0; i < K; i++) {
+         Cluster c = new Cluster();
+         c.addPoint(topics.row(i).copy());
+         model.addCluster(c);
+      }
+      return model;
+   }
 
-        LSAModel model = new LSAModel(getEncoderPair(), Similarity.Cosine.asDistanceMeasure());
-        Matrix topics = toMatrix(sparkSVD(mat, dimension, rCond, tolerance).U()).transpose();
-        model.dimension = topics.numberOfColumns();
-        for (int i = 0; i < topics.numberOfRows(); i++) {
-            Cluster c = new Cluster();
-            c.addPoint(topics
-                           .row(i)
-                           .copy());
-            model.addCluster(c);
-        }
+   @Override
+   public void reset() {
 
-        return model;
-    }
-
-    @Override
-    public void reset() {
-
-    }
+   }
 
 }//END OF SparkLSA

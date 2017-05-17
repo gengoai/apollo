@@ -32,6 +32,7 @@ import lombok.Value;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.PrimitiveIterator;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.DoubleUnaryOperator;
 import java.util.stream.IntStream;
@@ -46,498 +47,610 @@ import static com.davidbracewell.tuple.Tuples.$;
 public interface Matrix extends Copyable<Matrix>, Iterable<Matrix.Entry> {
 
 
-   /**
-    * The shape of the matrix as <code>number of rows</code>, <code>number of columns</code> tuple
-    *
-    * @return the shape
-    */
-   default Tuple2<Integer, Integer> shape() {
-      return $(numberOfRows(), numberOfColumns());
-   }
+    /**
+     * Add matrix.
+     *
+     * @param other the other
+     * @return the matrix
+     */
+    default Matrix add(@NonNull Matrix other) {
+        return copy().addSelf(other);
+    }
 
-   @Override
-   default Iterator<Entry> iterator() {
-      return new Iterator<Entry>() {
-         private PrimitiveIterator.OfInt rowItr = IntStream.range(0, numberOfRows()).iterator();
-         private int row;
-         private PrimitiveIterator.OfInt colItr = null;
+    /**
+     * Add self matrix.
+     *
+     * @param other the other
+     * @return the matrix
+     */
+    default Matrix addSelf(@NonNull Matrix other) {
+        Preconditions.checkArgument(
+            other.numberOfColumns() == numberOfColumns() && other.numberOfRows() == numberOfRows(),
+            "Dimension Mismatch");
+        other.forEachSparse(e -> increment(e.row, e.column, e.value));
+        return this;
+    }
 
-         private boolean advance() {
-            while (colItr == null || !colItr.hasNext()) {
-               if (colItr == null && !rowItr.hasNext()) {
-                  return false;
-               } else if (colItr == null) {
-                  row = rowItr.next();
-                  colItr = IntStream.range(0, numberOfColumns()).iterator();
-                  return true;
-               } else if (!colItr.hasNext()) {
-                  colItr = null;
-               }
-            }
-            return colItr != null;
-         }
+    /**
+     * Gets column.
+     *
+     * @param column the column
+     * @return the column
+     */
+    default Vector column(int column) {
+        Preconditions.checkPositionIndex(column, numberOfColumns(), "Column out of index");
+        return new ColumnVector(this, column);
+    }
 
-         @Override
-         public boolean hasNext() {
-            return advance();
-         }
+    /**
+     * Column iterator iterator.
+     *
+     * @return the iterator
+     */
+    default Iterator<Vector> columnIterator() {
+        return new Iterator<Vector>() {
+            private AtomicInteger c = new AtomicInteger(0);
 
-         @Override
-         public Entry next() {
-            if (!advance()) {
-               throw new NoSuchElementException();
-            }
-            int col = colItr.next();
-            return new Matrix.Entry(row, col, get(row, col));
-         }
-      };
-   }
-
-   /**
-    * Converts the matrix to a dense matrix.
-    *
-    * @return the dense matrix
-    */
-   DenseMatrix toDense();
-
-
-   /**
-    * For each sparse.
-    *
-    * @param consumer the consumer
-    */
-   default void forEachSparse(@NonNull Consumer<Matrix.Entry> consumer) {
-      nonZeroIterator().forEachRemaining(consumer);
-   }
-
-   /**
-    * For each ordered sparse.
-    *
-    * @param consumer the consumer
-    */
-   default void forEachOrderedSparse(@NonNull Consumer<Matrix.Entry> consumer) {
-      orderedNonZeroIterator().forEachRemaining(consumer);
-   }
-
-   /**
-    * Map matrix.
-    *
-    * @param operator the operator
-    * @return the matrix
-    */
-   default Matrix map(@NonNull DoubleUnaryOperator operator) {
-      return copy().mapSelf(operator);
-   }
-
-   /**
-    * Map self matrix.
-    *
-    * @param operator the operator
-    * @return the matrix
-    */
-   default Matrix mapSelf(@NonNull DoubleUnaryOperator operator) {
-      forEach(entry -> set(entry.row, entry.column, operator.applyAsDouble(entry.value)));
-      return this;
-   }
-
-   /**
-    * Non zero iterator iterator.
-    *
-    * @return the iterator
-    */
-   default Iterator<Matrix.Entry> nonZeroIterator() {
-      return orderedNonZeroIterator();
-   }
-
-   /**
-    * Ordered non zero iterator iterator.
-    *
-    * @return the iterator
-    */
-   default Iterator<Matrix.Entry> orderedNonZeroIterator() {
-      return new Iterator<Entry>() {
-         private PrimitiveIterator.OfInt rowItr = IntStream.range(0, numberOfRows()).iterator();
-         private int row;
-         private Integer col;
-         private PrimitiveIterator.OfInt colItr = null;
-
-         private boolean advance() {
-            while (col == null || get(row, col) == 0) {
-
-               if (colItr == null && !rowItr.hasNext()) {
-                  return false;
-               }
-
-               if (colItr == null) {
-                  row = rowItr.next();
-                  colItr = IntStream.range(0, numberOfColumns()).iterator();
-                  col = colItr.next();
-               } else if (!colItr.hasNext()) {
-                  colItr = null;
-               } else {
-                  col = colItr.next();
-               }
-
+            @Override
+            public boolean hasNext() {
+                return c.get() < numberOfColumns();
             }
 
-            return col != null && get(row, col) != 0;
-         }
-
-         @Override
-         public boolean hasNext() {
-            return advance();
-         }
-
-         @Override
-         public Entry next() {
-            if (!advance()) {
-               throw new NoSuchElementException();
+            @Override
+            public Vector next() {
+                if (!hasNext()) {
+                    throw new NoSuchElementException();
+                }
+                return column(c.getAndIncrement());
             }
-            int column = col;
-            col = null;
-            return new Matrix.Entry(row, column, get(row, column));
-         }
-      };
-   }
+        };
+    }
 
+    /**
+     * Decrement matrix.
+     *
+     * @param row    the row
+     * @param col    the col
+     * @param amount the amount
+     * @return the matrix
+     */
+    default Matrix decrement(int row, int col, double amount) {
+        return increment(row, col, -amount);
+    }
 
-   /**
-    * Gets column.
-    *
-    * @param column the column
-    * @return the column
-    */
-   Vector column(int column);
+    /**
+     * Decrement matrix.
+     *
+     * @param row the row
+     * @param col the col
+     * @return the matrix
+     */
+    default Matrix decrement(int row, int col) {
+        return increment(row, col, -1);
+    }
 
-   /**
-    * Gets row.
-    *
-    * @param row the row
-    * @return the row
-    */
-   Vector row(int row);
+    /**
+     * Diag matrix.
+     *
+     * @return the matrix
+     */
+    default Matrix diag() {
+        Matrix m = getFactory().create(numberOfRows(), numberOfColumns());
+        for (int r = 0; r < numberOfRows() && r < numberOfColumns(); r++) {
+            m.set(r, r, get(r, r));
+        }
+        return m;
+    }
 
-   /**
-    * Get double.
-    *
-    * @param row    the row
-    * @param column the column
-    * @return the double
-    */
-   double get(int row, int column);
+    /**
+     * Diag vector vector.
+     *
+     * @return the vector
+     */
+    default Vector diagVector() {
+        Vector diag = new DenseVector(Math.max(numberOfColumns(), numberOfRows()));
+        for (int r = 0; r < numberOfRows() && r < numberOfColumns(); r++) {
+            diag.set(r, get(r, r));
+        }
+        return diag;
+    }
 
+    /**
+     * Dot vector.
+     *
+     * @param vector the vector
+     * @return the vector
+     */
+    default Vector dot(@NonNull Vector vector) {
+        Preconditions.checkArgument(vector.dimension() == numberOfColumns(), "Dimension mismatch");
+        SparseVector output = new SparseVector(numberOfRows());
+        for (int r = 0; r < numberOfRows(); r++) {
+            output.set(r, row(r).dot(vector));
+        }
+        return output;
+    }
 
-   /**
-    * Row iterator iterator.
-    *
-    * @return the iterator
-    */
-   Iterator<Vector> rowIterator();
+    /**
+     * For each column.
+     *
+     * @param consumer the consumer
+     */
+    default void forEachColumn(@NonNull Consumer<Vector> consumer) {
+        columnIterator().forEachRemaining(consumer);
+    }
 
-   /**
-    * Column iterator iterator.
-    *
-    * @return the iterator
-    */
-   Iterator<Vector> columnIterator();
+    /**
+     * For each ordered sparse.
+     *
+     * @param consumer the consumer
+     */
+    default void forEachOrderedSparse(@NonNull Consumer<Matrix.Entry> consumer) {
+        orderedNonZeroIterator().forEachRemaining(consumer);
+    }
 
-   /**
-    * For each row.
-    *
-    * @param consumer the consumer
-    */
-   default void forEachRow(@NonNull Consumer<Vector> consumer) {
-      rowIterator().forEachRemaining(consumer);
-   }
+    /**
+     * For each row.
+     *
+     * @param consumer the consumer
+     */
+    default void forEachRow(@NonNull Consumer<Vector> consumer) {
+        rowIterator().forEachRemaining(consumer);
+    }
 
-   /**
-    * For each column.
-    *
-    * @param consumer the consumer
-    */
-   default void forEachColumn(@NonNull Consumer<Vector> consumer) {
-      columnIterator().forEachRemaining(consumer);
-   }
+    /**
+     * For each sparse.
+     *
+     * @param consumer the consumer
+     */
+    default void forEachSparse(@NonNull Consumer<Matrix.Entry> consumer) {
+        nonZeroIterator().forEachRemaining(consumer);
+    }
 
-   /**
-    * Dot vector.
-    *
-    * @param vector the vector
-    * @return the vector
-    */
-   default Vector dot(@NonNull Vector vector) {
-      Preconditions.checkArgument(vector.dimension() == numberOfColumns(), "Dimension mismatch");
-      SparseVector output = new SparseVector(numberOfRows());
-      for (int r = 0; r < numberOfRows(); r++) {
-         output.set(r, row(r).dot(vector));
-      }
-      return output;
-   }
+    /**
+     * Get double.
+     *
+     * @param row    the row
+     * @param column the column
+     * @return the double
+     */
+    double get(int row, int column);
 
-   /**
-    * Set void.
-    *
-    * @param row    the row
-    * @param column the column
-    * @param value  the value
-    */
-   void set(int row, int column, double value);
+    MatrixFactory getFactory();
 
-   /**
-    * Sets column vector.
-    *
-    * @param column the column
-    * @param vector the vector
-    */
-   void setColumn(int column, Vector vector);
+    /**
+     * Increment matrix.
+     *
+     * @param value the value
+     * @return the matrix
+     */
+    default Matrix increment(double value) {
+        return copy().incrementSelf(value);
+    }
 
-   /**
-    * Sets row vector.
-    *
-    * @param row    the row
-    * @param vector the vector
-    */
-   void setRow(int row, Vector vector);
+    /**
+     * Increment matrix.
+     *
+     * @param row the row
+     * @param col the col
+     * @return the matrix
+     */
+    default Matrix increment(int row, int col) {
+        return increment(row, col, 1);
+    }
 
-   /**
-    * To array.
-    *
-    * @return the double [ ] [ ]
-    */
-   double[][] toArray();
+    /**
+     * Increment matrix.
+     *
+     * @param row    the row
+     * @param col    the col
+     * @param amount the amount
+     * @return the matrix
+     */
+    Matrix increment(int row, int col, double amount);
 
-   /**
-    * Row dimension.
-    *
-    * @return the int
-    */
-   int numberOfRows();
+    /**
+     * Increment self.
+     *
+     * @param value the value
+     * @return the matrix
+     */
+    default Matrix incrementSelf(double value) {
+        forEachRow(row -> row.mapAddSelf(value));
+        return this;
+    }
 
-   /**
-    * Column dimension.
-    *
-    * @return the int
-    */
-   int numberOfColumns();
+    /**
+     * Is sparse.
+     *
+     * @return the boolean
+     */
+    boolean isSparse();
 
-   /**
-    * Add matrix.
-    *
-    * @param other the other
-    * @return the matrix
-    */
-   default Matrix add(@NonNull Matrix other) {
-      return copy().addSelf(other);
-   }
+    @Override
+    default Iterator<Entry> iterator() {
+        return new Iterator<Entry>() {
+            private PrimitiveIterator.OfInt rowItr = IntStream
+                                                         .range(0, numberOfRows())
+                                                         .iterator();
+            private int row;
+            private PrimitiveIterator.OfInt colItr = null;
 
-   /**
-    * Add self matrix.
-    *
-    * @param other the other
-    * @return the matrix
-    */
-   Matrix addSelf(Matrix other);
+            private boolean advance() {
+                while (colItr == null || !colItr.hasNext()) {
+                    if (colItr == null && !rowItr.hasNext()) {
+                        return false;
+                    } else if (colItr == null) {
+                        row = rowItr.next();
+                        colItr = IntStream
+                                     .range(0, numberOfColumns())
+                                     .iterator();
+                        return true;
+                    } else if (!colItr.hasNext()) {
+                        colItr = null;
+                    }
+                }
+                return colItr != null;
+            }
 
-   /**
-    * Subtract matrix.
-    *
-    * @param other the other
-    * @return the matrix
-    */
-   default Matrix subtract(@NonNull Matrix other) {
-      return copy().subtractSelf(other);
-   }
+            @Override
+            public boolean hasNext() {
+                return advance();
+            }
 
-   /**
-    * Subtract self matrix.
-    *
-    * @param other the other
-    * @return the matrix
-    */
-   Matrix subtractSelf(Matrix other);
+            @Override
+            public Entry next() {
+                if (!advance()) {
+                    throw new NoSuchElementException();
+                }
+                int col = colItr.next();
+                return new Matrix.Entry(row, col, get(row, col));
+            }
+        };
+    }
 
-   /**
-    * Scale matrix.
-    *
-    * @param other the other
-    * @return the matrix
-    */
-   default Matrix scale(@NonNull Matrix other) {
-      return copy().scaleSelf(other);
-   }
+    /**
+     * Map matrix.
+     *
+     * @param operator the operator
+     * @return the matrix
+     */
+    default Matrix map(@NonNull DoubleUnaryOperator operator) {
+        return copy().mapSelf(operator);
+    }
 
-   /**
-    * Scale self matrix.
-    *
-    * @param other the other
-    * @return the matrix
-    */
-   Matrix scaleSelf(Matrix other);
+    /**
+     * Map self matrix.
+     *
+     * @param operator the operator
+     * @return the matrix
+     */
+    default Matrix mapSelf(@NonNull DoubleUnaryOperator operator) {
+        forEach(entry -> set(entry.row, entry.column, operator.applyAsDouble(entry.value)));
+        return this;
+    }
 
+    /**
+     * Multiply matrix.
+     *
+     * @param m the m
+     * @return the matrix
+     */
+    default Matrix multiply(@NonNull Matrix m) {
+        Preconditions.checkArgument(numberOfColumns() == m.numberOfRows(), "Dimension Mismatch");
+        Matrix mprime = getFactory().create(numberOfRows(), m.numberOfColumns());
+        IntStream
+            .range(0, numberOfRows())
+            .parallel()
+            .forEach(r -> {
+                for (int c = 0; c < m.numberOfColumns(); c++) {
+                    for (int k = 0; k < numberOfColumns(); k++) {
+                        mprime.increment(r, c, get(r, k) * m.get(k, c));
+                    }
+                }
+            });
+        return mprime;
+    }
 
-   /**
-    * Scale self.
-    *
-    * @param value the value
-    * @return the matrix
-    */
-   Matrix scaleSelf(double value);
+    /**
+     * Non zero iterator iterator.
+     *
+     * @return the iterator
+     */
+    default Iterator<Matrix.Entry> nonZeroIterator() {
+        return orderedNonZeroIterator();
+    }
 
-   /**
-    * Scale matrix.
-    *
-    * @param value the value
-    * @return the matrix
-    */
-   default Matrix scale(double value) {
-      return copy().scaleSelf(value);
-   }
+    /**
+     * Column dimension.
+     *
+     * @return the int
+     */
+    int numberOfColumns();
 
-   /**
-    * Increment self.
-    *
-    * @param value the value
-    * @return the matrix
-    */
-   Matrix incrementSelf(double value);
+    /**
+     * Row dimension.
+     *
+     * @return the int
+     */
+    int numberOfRows();
 
-   /**
-    * Increment matrix.
-    *
-    * @param value the value
-    * @return the matrix
-    */
-   default Matrix increment(double value) {
-      return copy().incrementSelf(value);
-   }
+    /**
+     * Ordered non zero iterator iterator.
+     *
+     * @return the iterator
+     */
+    default Iterator<Matrix.Entry> orderedNonZeroIterator() {
+        return new Iterator<Entry>() {
+            private PrimitiveIterator.OfInt rowItr = IntStream
+                                                         .range(0, numberOfRows())
+                                                         .iterator();
+            private int row;
+            private Integer col;
+            private PrimitiveIterator.OfInt colItr = null;
 
-   /**
-    * Multiply matrix.
-    *
-    * @param m the m
-    * @return the matrix
-    */
-   Matrix multiply(Matrix m);
+            private boolean advance() {
+                while (col == null || get(row, col) == 0) {
 
-   /**
-    * Transpose matrix.
-    *
-    * @return the matrix
-    */
-   Matrix transpose();
+                    if (colItr == null && !rowItr.hasNext()) {
+                        return false;
+                    }
 
-   /**
-    * Is sparse.
-    *
-    * @return the boolean
-    */
-   boolean isSparse();
+                    if (colItr == null) {
+                        row = rowItr.next();
+                        colItr = IntStream
+                                     .range(0, numberOfColumns())
+                                     .iterator();
+                        col = colItr.next();
+                    } else if (!colItr.hasNext()) {
+                        colItr = null;
+                    } else {
+                        col = colItr.next();
+                    }
 
-   /**
-    * Increment matrix.
-    *
-    * @param row the row
-    * @param col the col
-    * @return the matrix
-    */
-   default Matrix increment(int row, int col) {
-      return increment(row, col, 1);
-   }
+                }
 
-   /**
-    * Increment matrix.
-    *
-    * @param row    the row
-    * @param col    the col
-    * @param amount the amount
-    * @return the matrix
-    */
-   Matrix increment(int row, int col, double amount);
+                return col != null && get(row, col) != 0;
+            }
 
-   /**
-    * Decrement matrix.
-    *
-    * @param row    the row
-    * @param col    the col
-    * @param amount the amount
-    * @return the matrix
-    */
-   default Matrix decrement(int row, int col, double amount) {
-      return increment(row, col, -amount);
-   }
+            @Override
+            public boolean hasNext() {
+                return advance();
+            }
 
-   /**
-    * Decrement matrix.
-    *
-    * @param row the row
-    * @param col the col
-    * @return the matrix
-    */
-   default Matrix decrement(int row, int col) {
-      return increment(row, col, -1);
-   }
+            @Override
+            public Entry next() {
+                if (!advance()) {
+                    throw new NoSuchElementException();
+                }
+                int column = col;
+                col = null;
+                return new Matrix.Entry(row, column, get(row, column));
+            }
+        };
+    }
 
-   /**
-    * Scale matrix.
-    *
-    * @param r      the r
-    * @param c      the c
-    * @param amount the amount
-    * @return the matrix
-    */
-   default Matrix scale(int r, int c, double amount) {
-      set(r, c, get(r, c) * amount);
-      return this;
-   }
+    /**
+     * Gets row.
+     *
+     * @param row the row
+     * @return the row
+     */
+    default Vector row(int row) {
+        Preconditions.checkPositionIndex(row, numberOfRows(), "Row out of index");
+        return new RowVector(this, row);
+    }
 
+    /**
+     * Row iterator iterator.
+     *
+     * @return the iterator
+     */
+    default Iterator<Vector> rowIterator() {
+        return new Iterator<Vector>() {
+            private AtomicInteger r = new AtomicInteger(0);
 
-   /**
-    * Diag vector vector.
-    *
-    * @return the vector
-    */
-   default Vector diagVector() {
-      Vector diag = new DenseVector(Math.max(numberOfColumns(), numberOfRows()));
-      for (int r = 0; r < numberOfRows() && r < numberOfColumns(); r++) {
-         diag.set(r, get(r, r));
-      }
-      return diag;
-   }
+            @Override
+            public boolean hasNext() {
+                return r.get() < numberOfRows();
+            }
 
-   /**
-    * Diag matrix.
-    *
-    * @return the matrix
-    */
-   Matrix diag();
+            @Override
+            public Vector next() {
+                if (!hasNext()) {
+                    throw new NoSuchElementException();
+                }
+                return row(r.getAndIncrement());
+            }
+        };
+    }
 
-   /**
-    * Sum double.
-    *
-    * @return the double
-    */
-   default double sum() {
-      return Streams.asStream(this).mapToDouble(Entry::getValue).sum();
-   }
+    /**
+     * Scale matrix.
+     *
+     * @param other the other
+     * @return the matrix
+     */
+    default Matrix scale(@NonNull Matrix other) {
+        return copy().scaleSelf(other);
+    }
 
-   /**
-    * The type Entry.
-    */
-   @Value
-   class Entry {
-      /**
-       * The Row.
-       */
-      public int row;
-      /**
-       * The Column.
-       */
-      public int column;
-      /**
-       * The Value.
-       */
-      public double value;
+    /**
+     * Scale matrix.
+     *
+     * @param value the value
+     * @return the matrix
+     */
+    default Matrix scale(double value) {
+        return copy().scaleSelf(value);
+    }
 
-   }
+    /**
+     * Scale matrix.
+     *
+     * @param r      the r
+     * @param c      the c
+     * @param amount the amount
+     * @return the matrix
+     */
+    default Matrix scale(int r, int c, double amount) {
+        set(r, c, get(r, c) * amount);
+        return this;
+    }
+
+    /**
+     * Scale self matrix.
+     *
+     * @param other the other
+     * @return the matrix
+     */
+    default Matrix scaleSelf(Matrix other) {
+        Preconditions.checkArgument(
+            other.numberOfColumns() == numberOfColumns() && other.numberOfRows() == numberOfRows(),
+            "Dimension Mismatch");
+        other.forEachSparse(e -> scale(e.row, e.column, e.value));
+        return this;
+    }
+
+    /**
+     * Scale self.
+     *
+     * @param value the value
+     * @return the matrix
+     */
+    default Matrix scaleSelf(double value) {
+        forEachSparse(e -> set(e.row, e.column, e.value * value));
+        return this;
+    }
+
+    /**
+     * Set void.
+     *
+     * @param row    the row
+     * @param column the column
+     * @param value  the value
+     */
+    Matrix set(int row, int column, double value);
+
+    /**
+     * Sets column vector.
+     *
+     * @param column the column
+     * @param vector the vector
+     */
+    default Matrix setColumn(int column, @NonNull Vector vector) {
+        Preconditions.checkElementIndex(column, numberOfColumns());
+        Preconditions.checkArgument(vector.dimension() == numberOfRows(), "Dimension Mismatch");
+        vector.forEach(e -> set(e.index, column, e.value));
+        return this;
+    }
+
+    /**
+     * Sets row vector.
+     *
+     * @param row    the row
+     * @param vector the vector
+     */
+    default Matrix setRow(int row, Vector vector) {
+        Preconditions.checkElementIndex(row, numberOfRows());
+        Preconditions.checkArgument(vector.dimension() == numberOfColumns(), "Dimension Mismatch");
+        vector.forEach(e -> set(row, e.index, e.value));
+        return this;
+    }
+
+    /**
+     * The shape of the matrix as <code>number of rows</code>, <code>number of columns</code> tuple
+     *
+     * @return the shape
+     */
+    default Tuple2<Integer, Integer> shape() {
+        return $(numberOfRows(), numberOfColumns());
+    }
+
+    /**
+     * Subtract matrix.
+     *
+     * @param other the other
+     * @return the matrix
+     */
+    default Matrix subtract(@NonNull Matrix other) {
+        return copy().subtractSelf(other);
+    }
+
+    /**
+     * Subtract self matrix.
+     *
+     * @param other the other
+     * @return the matrix
+     */
+    default Matrix subtractSelf(@NonNull Matrix other) {
+        Preconditions.checkArgument(
+            other.numberOfColumns() == numberOfColumns() && other.numberOfRows() == numberOfRows(),
+            "Dimension Mismatch");
+        other.forEachSparse(e -> decrement(e.row, e.column, e.value));
+        return this;
+    }
+
+    /**
+     * Sum double.
+     *
+     * @return the double
+     */
+    default double sum() {
+        return Streams
+                   .asStream(this)
+                   .mapToDouble(Entry::getValue)
+                   .sum();
+    }
+
+    /**
+     * To array.
+     *
+     * @return the double [ ] [ ]
+     */
+    default double[][] toArray() {
+        double[][] array = new double[numberOfRows()][numberOfColumns()];
+        forEachSparse(e -> array[e.row][e.column] = e.value);
+        return array;
+    }
+
+    /**
+     * Converts the matrix to a dense matrix.
+     *
+     * @return the dense matrix
+     */
+    default DenseMatrix toDense() {
+        return new DenseMatrix(this);
+    }
+
+    /**
+     * Transpose matrix.
+     *
+     * @return the matrix
+     */
+    default Matrix transpose() {
+        final Matrix transposed = getFactory().create(numberOfColumns(), numberOfRows());
+        forEachSparse(e -> transposed.set(e.column, e.row, e.value));
+        return transposed;
+    }
+
+    /**
+     * The type Entry.
+     */
+    @Value
+    class Entry {
+        /**
+         * The Row.
+         */
+        public int row;
+        /**
+         * The Column.
+         */
+        public int column;
+        /**
+         * The Value.
+         */
+        public double value;
+
+    }
 
 }//END OF Matrix

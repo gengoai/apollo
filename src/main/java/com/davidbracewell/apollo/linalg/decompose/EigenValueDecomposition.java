@@ -2,7 +2,10 @@ package com.davidbracewell.apollo.linalg.decompose;
 
 import com.davidbracewell.apollo.linalg.DenseMatrix;
 import com.davidbracewell.apollo.linalg.Matrix;
+import com.davidbracewell.apollo.linalg.SparseMatrix;
+import com.davidbracewell.conversion.Cast;
 import lombok.NonNull;
+import org.apache.commons.math3.linear.EigenDecomposition;
 import org.jblas.ComplexDoubleMatrix;
 
 import java.io.Serializable;

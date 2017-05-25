@@ -39,6 +39,9 @@ import java.util.stream.IntStream;
 @EqualsAndHashCode(callSuper = false)
 public class SparseMatrix implements Matrix, Serializable {
     private static final long serialVersionUID = -3802597548916836308L;
+    /**
+     * The Matrix.
+     */
     final OpenMapRealMatrix matrix;
 
     /**
@@ -61,10 +64,20 @@ public class SparseMatrix implements Matrix, Serializable {
         matrix.forEachSparse(e -> set(e.row, e.column, e.value));
     }
 
+    /**
+     * Instantiates a new Sparse matrix.
+     *
+     * @param matrix the matrix
+     */
     public SparseMatrix(@NonNull OpenMapRealMatrix matrix) {
         this.matrix = new OpenMapRealMatrix(matrix);
     }
 
+    /**
+     * Instantiates a new Sparse matrix.
+     *
+     * @param matrix the matrix
+     */
     public SparseMatrix(@NonNull RealMatrix matrix) {
         this.matrix = new OpenMapRealMatrix(matrix.getRowDimension(), matrix.getColumnDimension());
         for (int r = 0; r < matrix.getRowDimension(); r++) {
@@ -160,6 +173,11 @@ public class SparseMatrix implements Matrix, Serializable {
         return new SparseMatrix(numberOfRows, numberOfColumns);
     }
 
+    /**
+     * As real matrix real matrix.
+     *
+     * @return the real matrix
+     */
     public RealMatrix asRealMatrix() {
         return matrix;
     }
@@ -169,9 +187,6 @@ public class SparseMatrix implements Matrix, Serializable {
         return new SparseMatrix(this);
     }
 
-    private int encode(int row, int col) {
-        return (row * numberOfColumns()) + col;
-    }
 
     @Override
     public double get(int row, int column) {

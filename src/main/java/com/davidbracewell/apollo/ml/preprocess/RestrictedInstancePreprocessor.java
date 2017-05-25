@@ -42,15 +42,6 @@ public abstract class RestrictedInstancePreprocessor implements InstancePreproce
       this.acceptAll = true;
    }
 
-   /**
-    * Checks if the preprocessor should be applied to all features, i.e. no restriction
-    *
-    * @return True apply to all features, False apply the restriction
-    */
-   public boolean applyToAll() {
-      return acceptAll;
-   }
-
    @Override
    public final Instance apply(Instance example) {
       if (applyToAll()) {
@@ -64,23 +55,12 @@ public abstract class RestrictedInstancePreprocessor implements InstancePreproce
    }
 
    /**
-    * Gets the features from the given example that do not match the restriction.
+    * Checks if the preprocessor should be applied to all features, i.e. no restriction
     *
-    * @param example the example
-    * @return the stream of features that do not match the restriction
+    * @return True apply to all features, False apply the restriction
     */
-   private Stream<Feature> shouldNotFilter(@NonNull Instance example) {
-      return example.getFeatures().stream().filter(f -> !applyToAll() && !f.getName().startsWith(getRestriction()));
-   }
-
-   /**
-    * Gets the features from the given example that  match the restriction.
-    *
-    * @param example the example
-    * @return the stream of features that match the restriction
-    */
-   private Stream<Feature> shouldFilter(Instance example) {
-      return example.getFeatures().stream().filter(f -> applyToAll() || f.getName().startsWith(getRestriction()));
+   public boolean applyToAll() {
+      return acceptAll;
    }
 
    @Override
@@ -124,6 +104,32 @@ public abstract class RestrictedInstancePreprocessor implements InstancePreproce
     * @return the stream
     */
    protected abstract Stream<Feature> restrictedProcessImpl(Stream<Feature> featureStream, Instance originalExample);
+
+   /**
+    * Gets the features from the given example that  match the restriction.
+    *
+    * @param example the example
+    * @return the stream of features that match the restriction
+    */
+   private Stream<Feature> shouldFilter(Instance example) {
+      return example.getFeatures().stream()
+                    .filter(
+                       f -> !f.getName().equals("SPECIAL::BIAS_FEATURE") || (applyToAll() || f.getName().startsWith(
+                          getRestriction())));
+   }
+
+   /**
+    * Gets the features from the given example that do not match the restriction.
+    *
+    * @param example the example
+    * @return the stream of features that do not match the restriction
+    */
+   private Stream<Feature> shouldNotFilter(@NonNull Instance example) {
+      return example.getFeatures().stream()
+                    .filter(
+                       f -> f.getName().equals("SPECIAL::BIAS_FEATURE") || (!applyToAll() && !f.getName().startsWith(
+                          getRestriction())));
+   }
 
    @Override
    public String toString() {

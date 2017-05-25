@@ -3,6 +3,7 @@ package com.davidbracewell.apollo.ml;
 import com.davidbracewell.apollo.ml.classification.Classifier;
 import com.davidbracewell.apollo.ml.clustering.Clustering;
 import com.davidbracewell.apollo.ml.data.Dataset;
+import com.davidbracewell.apollo.ml.embedding.Embedding;
 import com.davidbracewell.apollo.ml.regression.Regression;
 import com.davidbracewell.apollo.ml.sequence.Sequence;
 import com.davidbracewell.apollo.ml.sequence.SequenceLabeler;
@@ -49,6 +50,15 @@ public abstract class Learner<T extends Example, M extends Model> implements Ser
     * @return the learner builder
     */
    public static LearnerBuilder<Sequence, SequenceLabeler> sequence() {
+      return new LearnerBuilder<>();
+   }
+
+   /**
+    * Creates a builder for constructing Embedding learners
+    *
+    * @return the learner builder
+    */
+   public static LearnerBuilder<Sequence, Embedding> embedding() {
       return new LearnerBuilder<>();
    }
 

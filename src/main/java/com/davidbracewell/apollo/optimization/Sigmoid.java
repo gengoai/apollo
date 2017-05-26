@@ -1,7 +1,5 @@
 package com.davidbracewell.apollo.optimization;
 
-import com.davidbracewell.Math2;
-
 /**
  * @author David B. Bracewell
  */
@@ -10,7 +8,11 @@ public class Sigmoid implements Activation {
 
    @Override
    public double apply(double x) {
-      return Math2.clip(1. / (1. + Math.pow(Math.E, -x)), -30, 30);
+      if( x > 0 ) {
+         return  1.0 / (1.0 + Math.exp(-x));
+      }
+      double z = Math.exp(x);
+      return z / (1 + z);
    }
 
    @Override

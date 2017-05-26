@@ -59,6 +59,7 @@ public class SGD implements Minimizer {
          System.out.println(v.getLabel() + " : " + activation.apply(p) + " : " + p);
       }
 
+
    }
 
    @Override
@@ -86,7 +87,7 @@ public class SGD implements Minimizer {
 
    private double step(Vector next, Vector weights, StochasticCostFunction costFunction, boolean verbose, OptInfo optinfo) {
       CostGradientTuple observation = costFunction.observe(next, weights);
-      theta = theta.add(observation.getGradient().mapMultiply(optinfo.et0));
+      theta.subtractSelf(observation.getGradient().mapMultiply(optinfo.et0));
       return observation.getCost();
    }
 

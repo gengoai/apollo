@@ -31,38 +31,30 @@ import java.util.Map;
  */
 public class SparkWord2Vec extends EmbeddingLearner {
    private static final long serialVersionUID = 1L;
-   private
    @Getter
    @Setter
-   int minCount = 5;
-   private
+   private int minCount = 5;
    @Getter
    @Setter
-   int windowSize = 5;
-   private
+   private int numIterations = 1;
    @Getter
    @Setter
-   int dimension = 100;
-   private
+   private double learningRate = 0.025;
    @Getter
    @Setter
-   int numIterations = 1;
-   private
+   private long randomSeed = new Date().getTime();
    @Getter
    @Setter
-   double learningRate = 0.025;
-   @Getter
-   @Setter
-   long randomSeed = new Date().getTime();
+   private int windowSize = 5;
 
    @Override
    protected Embedding trainImpl(Dataset<Sequence> dataset) {
       Word2Vec w2v = new Word2Vec();
       w2v.setMinCount(minCount);
-      w2v.setVectorSize(dimension);
+      w2v.setVectorSize(getDimension());
       w2v.setLearningRate(learningRate);
       w2v.setNumIterations(numIterations);
-      w2v.setWindowSize(windowSize);
+      w2v.setWindowSize(getWindowSize());
       w2v.setSeed(randomSeed);
       SparkStream<Iterable<String>> sentences = new SparkStream<>(dataset.stream()
                                                                          .map(sequence -> {
@@ -78,7 +70,7 @@ public class SparkWord2Vec extends EmbeddingLearner {
 
       Encoder encoder = new IndexEncoder();
       VectorStore<String> vectorStore = InMemoryLSH.builder()
-                                                   .dimension(dimension)
+                                                   .dimension(getDimension())
                                                    .signatureSupplier(CosineSignature::new)
                                                    .createVectorStore();
       for (Map.Entry<String, float[]> vector : JavaConversions.mapAsJavaMap(model.getVectors()).entrySet()) {

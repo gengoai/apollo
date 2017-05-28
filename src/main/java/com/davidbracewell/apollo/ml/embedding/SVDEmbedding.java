@@ -26,7 +26,6 @@ import com.davidbracewell.apollo.affinity.AssociationMeasures;
 import com.davidbracewell.apollo.affinity.ContingencyTable;
 import com.davidbracewell.apollo.affinity.ContingencyTableCalculator;
 import com.davidbracewell.apollo.linalg.LabeledVector;
-import com.davidbracewell.apollo.linalg.SparkLinearAlgebra;
 import com.davidbracewell.apollo.linalg.store.CosineSignature;
 import com.davidbracewell.apollo.linalg.store.InMemoryLSH;
 import com.davidbracewell.apollo.linalg.store.VectorStore;
@@ -42,11 +41,14 @@ import com.davidbracewell.stream.accumulator.MMultiCounterAccumulator;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.spark.mllib.linalg.DenseVector;
+import org.apache.spark.mllib.linalg.Matrix;
+import org.apache.spark.mllib.linalg.SingularValueDecomposition;
 import org.apache.spark.mllib.linalg.Vector;
 import org.apache.spark.mllib.linalg.distributed.RowMatrix;
 
 import java.util.Map;
 
+import static com.davidbracewell.apollo.linalg.SparkLinearAlgebra.*;
 import static com.davidbracewell.tuple.Tuples.$;
 
 /**
@@ -56,13 +58,10 @@ public class SVDEmbedding extends EmbeddingLearner {
    private static final long serialVersionUID = 1L;
    @Getter
    @Setter
-   private int dimension = 300;
-   @Getter
-   @Setter
-   private int windowSize;
-   @Getter
-   @Setter
    private ContingencyTableCalculator calculator = AssociationMeasures.PPMI;
+   @Getter
+   @Setter
+   private int windowSize = 5;
 
    @Override
    public void reset() {
@@ -92,7 +91,8 @@ public class SVDEmbedding extends EmbeddingLearner {
                 for (int i = 0; i < sequence.size(); i++) {
                    if (sequence.get(i).getFeatures().size() > 0) {
                       int iFeature = (int) featureEncoder.encode(sequence.get(i).getFeatures().get(0).getName());
-                      for (int j = Math.min(i - windowSize, 0); j <= Math.max(sequence.size()-1, i + windowSize); j++) {
+                      for (int j = Math.min(i - getWindowSize(), 0); j <= Math.max(sequence.size() - 1,
+                                                                              i + getWindowSize()); j++) {
                          if (sequence.get(j).getFeatures().size() > 0) {
                             int jFeature = (int) featureEncoder.encode(sequence.get(j)
                                                                                .getFeatures()
@@ -108,106 +108,38 @@ public class SVDEmbedding extends EmbeddingLearner {
 
       MultiCounter<Integer, Integer> windowCounts = accumulator.value();
       final double totalCounts = unigrams.values().parallelStream().count();
-      RowMatrix mat = new RowMatrix(
-                                      StreamingContext.distributed().range(0, featureEncoder.size())
-                                                      .map(i -> {
-                                                         double[] v = new double[featureEncoder.size()];
-                                                         double iCount = unigrams.get(featureEncoder.decode(i).toString());
-                                                         for (int j = 0; j < featureEncoder.size(); j++) {
-                                                            double jCount = unigrams.get(
-                                                               featureEncoder.decode(j).toString());
-                                                            double n11 = Math.max(windowCounts.get(i, j),
-                                                                            windowCounts.get(j, i));
+      RowMatrix mat = new RowMatrix(StreamingContext.distributed().range(0, featureEncoder.size())
+                                                    .map(i -> {
+                                                       double[] v = new double[featureEncoder.size()];
+                                                       double iCount = unigrams.get(
+                                                          featureEncoder.decode(i).toString());
+                                                       for (int j = 0; j < featureEncoder.size(); j++) {
+                                                          double jCount = unigrams.get(
+                                                             featureEncoder.decode(j).toString());
+                                                          double n11 = Math.max(windowCounts.get(i, j),
+                                                                                windowCounts.get(j, i));
 
-                                                            v[j] = calculator.calculate(
-                                                               ContingencyTable.create2X2(n11,iCount, jCount, totalCounts));
-                                                         }
-                                                         return (Vector) new DenseVector(v);
-                                                      })
-                                                      .getRDD()
-                                                      .cache()
-                                                      .rdd());
+                                                          v[j] = calculator.calculate(
+                                                             ContingencyTable.create2X2(n11, iCount, jCount,
+                                                                                        totalCounts));
+                                                       }
+                                                       return (Vector) new DenseVector(v);
+                                                    })
+                                                    .getRDD()
+                                                    .cache()
+                                                    .rdd());
 
-
-//        SparkStream<Counter<String>> stream = new SparkStream<>(dataset
-//                                                                    .stream()
-//                                                                    .map(sequence -> {
-//                                                                        Counter<String> counter = Counters.newCounter();
-//                                                                        for (Instance instance : sequence) {
-//                                                                            counter.increment(
-//                                                                                instance
-//                                                                                    .getFeatures()
-//                                                                                    .get(0)
-//                                                                                    .getName());
-//                                                                        }
-//                                                                        return counter.divideBySum();
-//                                                                    }));
-//
-//        JavaPairRDD<String, Double> docFreqs = stream
-//                                                   .getRDD()
-//                                                   .flatMap(c -> c
-//                                                                     .items()
-//                                                                     .iterator())
-//                                                   .mapToPair(s -> new Tuple2<>(s, 1.0))
-//                                                   .reduceByKey(Math2::add)
-//
-//        final Set<String> vocab = docFreqs
-//                                      .top(maxVocab,
-//                                           (Serializable & Comparator<Tuple2<String, Double>>) (t1, t2) -> -Double.compare(
-//                                               t1._2(), t2._2()))
-//                                      .stream()
-//                                      .map(Tuple2::_1)
-//                                      .collect(Collectors.toSet());
-//
-//        final double N = dataset.size();
-//        final Map<String, Double> idf = docFreqs
-//                                            .filter(t -> vocab.contains(t._1()))
-//                                            .mapToPair(
-//                                                t -> new Tuple2<>(t._1(), Math.log(N / t._2())))
-//                                            .collectAsMap();
-//        final int vocabSize = vocab.size();
-//
-//
-//        final Encoder featureEncoder = new IndexEncoder();
-//        featureEncoder.fit(StreamingContext
-//                               .local()
-//                               .stream(vocab));
-//
-//        JavaRDD<Vector> rowVectors = stream
-//                                         .getRDD()
-//                                         .map(c -> {
-//                                                  Set<Tuple2<Integer, Double>> filtered =
-//                                                      c
-//                                                          .filterByKey(vocab::contains)
-//                                                          .entries()
-//                                                          .stream()
-//                                                          .map(e -> new Tuple2<>((int) featureEncoder.encode(e.getKey()),
-//                                                                                 idf.getOrDefault(e.getKey(),
-//                                                                                                  1.0) * e.getValue()))
-//                                                          .collect(Collectors.toSet());
-//                                                  return Vectors.sparse(vocabSize, filtered);
-//                                              }
-//                                         )
-//                                         .cache();
-//
-//        RowMatrix mat = new RowMatrix(rowVectors.rdd());
-//
       VectorStore<String> vectorStore = InMemoryLSH
                                            .builder()
-                                           .dimension(dimension)
+                                           .dimension(getDimension())
                                            .signatureSupplier(CosineSignature::new)
                                            .createVectorStore();
 
-      SparkLinearAlgebra
-         .sparkSVD(mat, dimension)
-         .U()
-         .rows()
-         .toJavaRDD()
-         .map(Vector::toArray)
-         .zipWithIndex()
-         .toLocalIterator()
-         .forEachRemaining(t -> vectorStore.add(new LabeledVector(featureEncoder.decode(t._2().intValue()),
-                                                                  new com.davidbracewell.apollo.linalg.DenseVector(t._1()))));
+      SingularValueDecomposition<RowMatrix, Matrix> svd = sparkSVD(mat, getDimension());
+      com.davidbracewell.apollo.linalg.Matrix em = toMatrix(svd.U()).multiply(toDiagonalMatrix(svd.s()));
+      for (int i = 0; i < em.numberOfRows(); i++) {
+         vectorStore.add(new LabeledVector(featureEncoder.decode(i), em.row(i).copy()));
+      }
       return new Embedding(new EncoderPair(dataset.getLabelEncoder(), featureEncoder), vectorStore);
    }
 

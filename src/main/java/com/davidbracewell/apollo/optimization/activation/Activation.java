@@ -1,4 +1,7 @@
-package com.davidbracewell.apollo.optimization;
+package com.davidbracewell.apollo.optimization.activation;
+
+import com.davidbracewell.apollo.linalg.Vector;
+import lombok.NonNull;
 
 import java.io.Serializable;
 
@@ -18,20 +21,14 @@ public interface Activation extends Serializable {
    double apply(double x);
 
    /**
-    * Gradient double.
+    * Apply vector.
     *
     * @param x the x
-    * @return the double
+    * @return the vector
     */
-   double gradient(double x);
-
-   /**
-    * Value gradient double.
-    *
-    * @param x the x
-    * @return the double
-    */
-   double valueGradient(double x);
+   default Vector apply(@NonNull Vector x) {
+      return x.map(this::apply);
+   }
 
 
 }//END OF Activation

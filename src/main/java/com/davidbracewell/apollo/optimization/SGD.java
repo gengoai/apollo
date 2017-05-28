@@ -5,6 +5,7 @@ import com.davidbracewell.apollo.linalg.Matrix;
 import com.davidbracewell.apollo.linalg.SparseMatrix;
 import com.davidbracewell.apollo.linalg.SparseVector;
 import com.davidbracewell.apollo.linalg.Vector;
+import com.davidbracewell.apollo.optimization.activation.Activation;
 import com.davidbracewell.logging.Logger;
 import com.davidbracewell.stream.MStream;
 import com.davidbracewell.stream.StreamingContext;
@@ -60,18 +61,14 @@ public class SGD implements Minimizer {
       Weights weights = sgd.minimize(SparseVector.zeros(10),
                                      StreamingContext.local().stream(vectors),
                                      new LogisticCostFunction(),
-                                     200,
-                                     false);
+                                     100,
+                                     true);
 
 //      System.out.println(weights);
       final Activation activation = new LogisticCostFunction().activation;
       System.out.println(weights.getTheta());
       for (Vector v : vectors) {
-         Vector p = weights.dot(v);
-         double max = p.max();
-         p.mapSelf(d -> Math.exp(d - max));
-         double sum = p.sum();
-         p.mapDivideSelf(sum);
+         Vector p = activation.apply(weights.dot(v));
          System.out.println(Optimum.MAXIMUM.optimumIndex(p.toArray()) + " : " + v.getLabel());
       }
 
@@ -80,12 +77,14 @@ public class SGD implements Minimizer {
 
    @Override
    public Weights minimize(Vector start, MStream<Vector> stream, StochasticCostFunction costFunction, int numPasses, boolean verbose) {
-      weights = Weights.randomMultiClass(3, start.dimension(), -1, 1);
+      weights = Weights.multiClass(3, start.dimension());
       //Weights.randomBinary(start.dimension(), -1, 1);
       double l1 = Double.MAX_VALUE;
       double l2 = Double.MAX_VALUE;
       final OptInfo optInfo = new OptInfo(0, alpha);
-      for (int pass = 0; pass < numPasses; pass++) {
+      int pass = 0;
+      int lastPass = 0;
+      for (; pass < numPasses; pass++) {
          double sumTotal = stream.shuffle()
                                  .mapToDouble(next -> step(next, costFunction, verbose, optInfo))
                                  .sum();
@@ -93,17 +92,22 @@ public class SGD implements Minimizer {
             LOG.info("pass={0}, total_cost={1}", pass, sumTotal);
          }
          if (Math.abs(sumTotal - l1) < tolerance && Math.abs(sumTotal - l2) < tolerance) {
+            l1 = sumTotal;
             break;
          }
          l2 = l1;
          l1 = sumTotal;
+         lastPass = pass;
          optInfo.et0 *= 0.95;
+      }
+      if (verbose && pass != lastPass) {
+         LOG.info("pass={0}, total_cost={1}", pass, l1);
       }
       return weights;
    }
 
    private double step(Vector next, StochasticCostFunction costFunction, boolean verbose, OptInfo optinfo) {
-      CostGradientTuple observation = costFunction.observe(next, weights);
+      LossGradientTuple observation = costFunction.observe(next, weights);
       Matrix m = new SparseMatrix(observation.getGradient().dimension(), next.dimension());
       Vector nextEta = next.mapMultiply(optinfo.et0);
       for (int i = 0; i < m.numberOfRows(); i++) {

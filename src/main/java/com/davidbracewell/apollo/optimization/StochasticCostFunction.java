@@ -7,6 +7,6 @@ import com.davidbracewell.apollo.linalg.Vector;
  */
 public interface StochasticCostFunction {
 
-   CostGradientTuple observe(Vector next, Vector weights);
+   CostGradientTuple observe(Vector next, Weights weights);
 
 }// END OF StochasticCostFunction

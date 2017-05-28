@@ -1,17 +1,29 @@
 package com.davidbracewell.apollo.linalg;
 
 import com.davidbracewell.guava.common.base.Preconditions;
+import lombok.EqualsAndHashCode;
 
 /**
+ * The type Single point vector.
+ *
  * @author David B. Bracewell
  */
+@EqualsAndHashCode
 public class SinglePointVector implements Vector {
    private double value;
 
+   /**
+    * Instantiates a new Single point vector.
+    */
    public SinglePointVector() {
       this(0);
    }
 
+   /**
+    * Instantiates a new Single point vector.
+    *
+    * @param value the value
+    */
    public SinglePointVector(double value) {
       this.value = value;
    }
@@ -88,8 +100,12 @@ public class SinglePointVector implements Vector {
    }
 
    @Override
+   public String toString() {
+      return "[" + value + "]";
+   }
+
+   @Override
    public Vector zero() {
       return new SinglePointVector(0d);
    }
-
 }// END OF SinglePointVector

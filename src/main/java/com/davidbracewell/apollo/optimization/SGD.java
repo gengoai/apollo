@@ -1,5 +1,8 @@
 package com.davidbracewell.apollo.optimization;
 
+import com.davidbracewell.apollo.analysis.Optimum;
+import com.davidbracewell.apollo.linalg.Matrix;
+import com.davidbracewell.apollo.linalg.SparseMatrix;
 import com.davidbracewell.apollo.linalg.SparseVector;
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.logging.Logger;
@@ -21,59 +24,73 @@ public class SGD implements Minimizer {
    @Setter
    private double tolerance = 1e-10;
 
-   private Vector theta;
+   private Weights weights;
 
    public static void main(String[] args) {
       SGD sgd = new SGD();
 
       Vector[] vectors = {
-         SparseVector.zeros(10).set(0, 1).set(9, 1).withLabel(1.0),
-         SparseVector.zeros(10).set(1, 1).set(9, 1).withLabel(1.0),
-         SparseVector.zeros(10).set(2, 1).set(9, 1).withLabel(1.0),
-         SparseVector.zeros(10).set(3, 1).set(9, 1).withLabel(1.0),
-         SparseVector.zeros(10).set(0, 1).set(9, 1).withLabel(1.0),
-         SparseVector.zeros(10).set(4, 1).set(9, 1).withLabel(1.0),
-         SparseVector.zeros(10).set(5, 1).set(9, 1).withLabel(1.0),
-         SparseVector.zeros(10).set(3, 1).set(9, 1).withLabel(1.0),
-         SparseVector.zeros(10).set(5, 1).set(9, 1).withLabel(0.0),
-         SparseVector.zeros(10).set(6, 1).set(9, 1).withLabel(0.0),
-         SparseVector.zeros(10).set(7, 1).set(9, 1).withLabel(0.0),
-         SparseVector.zeros(10).set(8, 1).set(9, 1).withLabel(0.0),
-         SparseVector.zeros(10).set(5, 1).set(9, 1).withLabel(0.0),
-         SparseVector.zeros(10).set(6, 1).set(9, 1).withLabel(0.0),
-         SparseVector.zeros(10).set(7, 1).set(9, 1).withLabel(0.0),
-         SparseVector.zeros(10).set(8, 1).set(9, 1).withLabel(0.0),
+         SparseVector.zeros(10).set(0, 1).withLabel(1.0),
+         SparseVector.zeros(10).set(1, 1).withLabel(1.0),
+         SparseVector.zeros(10).set(2, 1).withLabel(1.0),
+         SparseVector.zeros(10).set(3, 1).withLabel(1.0),
+         SparseVector.zeros(10).set(0, 1).withLabel(1.0),
+         SparseVector.zeros(10).set(4, 1).withLabel(1.0),
+         SparseVector.zeros(10).set(5, 1).withLabel(1.0),
+         SparseVector.zeros(10).set(3, 1).withLabel(1.0),
+         SparseVector.zeros(10).set(5, 1).withLabel(0.0),
+         SparseVector.zeros(10).set(6, 1).withLabel(0.0),
+         SparseVector.zeros(10).set(7, 1).withLabel(0.0),
+         SparseVector.zeros(10).set(8, 1).withLabel(0.0),
+         SparseVector.zeros(10).set(5, 1).withLabel(0.0),
+         SparseVector.zeros(10).set(6, 1).withLabel(0.0),
+         SparseVector.zeros(10).set(7, 1).withLabel(0.0),
+         SparseVector.zeros(10).set(8, 1).withLabel(0.0),
+         SparseVector.zeros(10).set(9, 1).withLabel(2.0),
+         SparseVector.zeros(10).set(9, 1).withLabel(2.0),
+         SparseVector.zeros(10).set(9, 1).withLabel(2.0),
+         SparseVector.zeros(10).set(9, 1).withLabel(2.0),
+         SparseVector.zeros(10).set(9, 1).withLabel(2.0),
+         SparseVector.zeros(10).set(9, 1).withLabel(2.0),
+         SparseVector.zeros(10).set(9, 1).withLabel(2.0),
+         SparseVector.zeros(10).set(9, 1).withLabel(2.0),
 
       };
 
-      Vector weights = sgd.minimize(SparseVector.zeros(10),
-                                    StreamingContext.local().stream(vectors),
-                                    new LogisticCostFunction(),
-                                    200,
-                                    true);
+      Weights weights = sgd.minimize(SparseVector.zeros(10),
+                                     StreamingContext.local().stream(vectors),
+                                     new LogisticCostFunction(),
+                                     200,
+                                     false);
 
-      System.out.println(weights);
+//      System.out.println(weights);
       final Activation activation = new LogisticCostFunction().activation;
+      System.out.println(weights.getTheta());
       for (Vector v : vectors) {
-         double p = weights.dot(v);
-         System.out.println(v.getLabel() + " : " + activation.apply(p) + " : " + p);
+         Vector p = weights.dot(v);
+         double max = p.max();
+         p.mapSelf(d -> Math.exp(d - max));
+         double sum = p.sum();
+         p.mapDivideSelf(sum);
+         System.out.println(Optimum.MAXIMUM.optimumIndex(p.toArray()) + " : " + v.getLabel());
       }
 
 
    }
 
    @Override
-   public Vector minimize(Vector start, MStream<Vector> stream, StochasticCostFunction costFunction, int numPasses, boolean verbose) {
-      theta = start.copy();
+   public Weights minimize(Vector start, MStream<Vector> stream, StochasticCostFunction costFunction, int numPasses, boolean verbose) {
+      weights = Weights.randomMultiClass(3, start.dimension(), -1, 1);
+      //Weights.randomBinary(start.dimension(), -1, 1);
       double l1 = Double.MAX_VALUE;
       double l2 = Double.MAX_VALUE;
       final OptInfo optInfo = new OptInfo(0, alpha);
       for (int pass = 0; pass < numPasses; pass++) {
          double sumTotal = stream.shuffle()
-                                 .mapToDouble(next -> step(next, theta, costFunction, verbose, optInfo))
+                                 .mapToDouble(next -> step(next, costFunction, verbose, optInfo))
                                  .sum();
          if (verbose && pass % 10 == 0) {
-            LOG.info("pass={0}, total_cost={1}, w_norm={2}", pass, sumTotal, theta.magnitude());
+            LOG.info("pass={0}, total_cost={1}", pass, sumTotal);
          }
          if (Math.abs(sumTotal - l1) < tolerance && Math.abs(sumTotal - l2) < tolerance) {
             break;
@@ -82,12 +99,18 @@ public class SGD implements Minimizer {
          l1 = sumTotal;
          optInfo.et0 *= 0.95;
       }
-      return theta;
+      return weights;
    }
 
-   private double step(Vector next, Vector weights, StochasticCostFunction costFunction, boolean verbose, OptInfo optinfo) {
+   private double step(Vector next, StochasticCostFunction costFunction, boolean verbose, OptInfo optinfo) {
       CostGradientTuple observation = costFunction.observe(next, weights);
-      theta.subtractSelf(observation.getGradient().mapMultiply(optinfo.et0));
+      Matrix m = new SparseMatrix(observation.getGradient().dimension(), next.dimension());
+      Vector nextEta = next.mapMultiply(optinfo.et0);
+      for (int i = 0; i < m.numberOfRows(); i++) {
+         m.setRow(i, nextEta.mapMultiply(observation.getGradient().get(i)));
+      }
+      weights.getTheta().subtractSelf(m);
+      weights.getBias().subtractSelf(observation.getGradient().mapMultiply(optinfo.et0));
       return observation.getCost();
    }
 

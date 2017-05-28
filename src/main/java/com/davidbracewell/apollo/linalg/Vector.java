@@ -25,6 +25,7 @@ import com.davidbracewell.Copyable;
 import com.davidbracewell.EnhancedDoubleStatistics;
 import com.davidbracewell.apollo.affinity.Correlation;
 import com.davidbracewell.collection.Streams;
+import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.guava.common.base.Preconditions;
 import com.davidbracewell.guava.common.util.concurrent.AtomicDouble;
 import lombok.NonNull;
@@ -70,59 +71,8 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
       return this;
    }
 
-   /**
-    * Gets the label associated with the vector if one.
-    *
-    * @param <T> the label type
-    * @return the label or null if none
-    */
-   default <T> T getLabel() {
-      return null;
-   }
-
-   /**
-    * Convenience method to create a new labeled vector from this vector with the given label.
-    *
-    * @param label the label to assign to the vector
-    * @return the labeled vector
-    */
-   default Vector withLabel(Object label) {
-      return new LabeledVector(label, this);
-   }
-
-   /**
-    * Constructs a new <code>1 x k</code> matrix containing this vector.
-    *
-    * @return the matrix
-    */
-   default Matrix toMatrix() {
-      return new SparseMatrix(this);
-   }
-
-    /**
-     * Constructs a new <code>k x k</code> matrix with the elements of this vector on the diagonal.
-     *
-     * @return the matrix
-     */
-   default Matrix toDiagMatrix() {
-      SparseMatrix matrix = new SparseMatrix(dimension(),dimension());
-      for( int i = 0; i < dimension(); i++){
-         matrix.set(i,i, get(i));
-      }
-      return matrix;
-   }
-
-   /**
-    * Transpose the vector into a column of a matrix
-    *
-    * @return the matrix
-    */
-   default Matrix transpose() {
-       SparseMatrix matrix = new SparseMatrix(dimension(),1);
-       for( int i = 0; i < dimension(); i++){
-           matrix.set(i,0, get(i));
-       }
-       return matrix;
+   default Map<Integer, Double> asMap() {
+      return VectorMap.wrap(this);
    }
 
    /**
@@ -131,6 +81,16 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
     * @return the vector
     */
    Vector compress();
+
+   /**
+    * Determines the Spearman correlation between this vector and the given other vector
+    *
+    * @param other the other vector to calculate the correlation lwith
+    * @return the Spearman correlation
+    */
+   default double corr(@NonNull Vector other) {
+      return Correlation.Spearman.calculate(this, other);
+   }
 
    /**
     * Decrements the value at the given index.
@@ -198,12 +158,71 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
    }
 
    /**
+    * Applies the given consumer to each non-zero element in this vector with granted order.
+    *
+    * @param consumer the consumer to run
+    */
+   default void forEachOrderedSparse(@NonNull Consumer<Vector.Entry> consumer) {
+      Streams.asStream(orderedNonZeroIterator()).forEach(consumer);
+   }
+
+   /**
+    * Applies the given consumer to each non-zero element in this vector
+    *
+    * @param consumer the consumer to run
+    */
+   default void forEachSparse(@NonNull Consumer<Vector.Entry> consumer) {
+      Streams.asStream(nonZeroIterator()).forEach(consumer);
+   }
+
+   /**
     * Gets the value at the given index.
     *
     * @param index the index of the value wanted
     * @return the value at the given index
     */
    double get(int index);
+
+   /**
+    * Gets the label associated with the vector if one.
+    *
+    * @param <T> the label type
+    * @return the label or null if none
+    */
+   default <T> T getLabel() {
+      return null;
+   }
+
+   default Vector getLabelVector(int dimension) {
+      Object label = getLabel();
+      if (label == null) {
+         return null;
+      } else if (label instanceof Vector) {
+         Vector v = Cast.as(label);
+         if (v.dimension() == dimension) {
+            return v;
+         }
+         return v.redim(dimension);
+      } else if (label instanceof Number) {
+         if (dimension == 1) {
+            return new SinglePointVector(Cast.<Number>as(label).doubleValue());
+         }
+         return SparseVector.zeros(dimension).set(Cast.<Number>as(label).intValue(), 1.0);
+      }
+      throw new IllegalStateException(label.getClass() + " cannot be converted to a vector");
+   }
+
+   default Vector getLabelVector() {
+      Object label = getLabel();
+      if (label == null) {
+         return null;
+      } else if (label instanceof Vector) {
+         return Cast.as(label);
+      } else if (label instanceof Number) {
+         return new SinglePointVector(Cast.<Number>as(label).doubleValue());
+      }
+      throw new IllegalStateException(label.getClass() + " cannot be converted to a vector");
+   }
 
    /**
     * Increments the value at the given index.
@@ -265,6 +284,27 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
     */
    boolean isSparse();
 
+   @Override
+   default Iterator<Entry> iterator() {
+      return new Iterator<Entry>() {
+         private final PrimitiveIterator.OfInt indexIter = IntStream.range(0, dimension()).iterator();
+
+         @Override
+         public boolean hasNext() {
+            return indexIter.hasNext();
+         }
+
+         @Override
+         public Entry next() {
+            if (!indexIter.hasNext()) {
+               throw new NoSuchElementException();
+            }
+            int index = indexIter.next();
+            return new Vector.Entry(index, get(index));
+         }
+      };
+   }
+
    /**
     * Computes the L1 norm of the vector, which is the sum of the absolute values.
     *
@@ -283,7 +323,6 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
       return Streams.asStream(nonZeroIterator()).mapToDouble(Entry::getValue).map(Math::abs).max().orElse(0d);
    }
 
-
    /**
     * Computes the magnitude (L2 norm) of the vector, which is the square root of the sum of squares.
     *
@@ -291,15 +330,6 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
     */
    default double magnitude() {
       return Math.sqrt(Streams.asStream(nonZeroIterator()).mapToDouble(Entry::getValue).map(d -> d * d).sum());
-   }
-
-
-   default Map<Integer,Double> asMap(){
-      return VectorMap.wrap(this);
-   }
-
-   default Vector toUnitVector(){
-       return copy().mapDivideSelf(magnitude());
    }
 
    /**
@@ -479,27 +509,6 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
       return this;
    }
 
-   @Override
-   default Iterator<Entry> iterator() {
-      return new Iterator<Entry>() {
-         private final PrimitiveIterator.OfInt indexIter = IntStream.range(0, dimension()).iterator();
-
-         @Override
-         public boolean hasNext() {
-            return indexIter.hasNext();
-         }
-
-         @Override
-         public Entry next() {
-            if (!indexIter.hasNext()) {
-               throw new NoSuchElementException();
-            }
-            int index = indexIter.next();
-            return new Vector.Entry(index, get(index));
-         }
-      };
-   }
-
    /**
     * Creates an <code>Iterator</code> over non-zero values in the vector. The order is optimized based on the
     * underlying structure.
@@ -550,6 +559,14 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
          }
       };
    }
+
+   /**
+    * Resizes the current vector constructing a new vector
+    *
+    * @param newDimension the new k
+    * @return The new vector of the given k
+    */
+   Vector redim(int newDimension);
 
    /**
     * Scales the value at the given index by a given amount.
@@ -641,50 +658,60 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
    double[] toArray();
 
    /**
+    * Constructs a new <code>k x k</code> matrix with the elements of this vector on the diagonal.
+    *
+    * @return the matrix
+    */
+   default Matrix toDiagMatrix() {
+      SparseMatrix matrix = new SparseMatrix(dimension(), dimension());
+      for (int i = 0; i < dimension(); i++) {
+         matrix.set(i, i, get(i));
+      }
+      return matrix;
+   }
+
+   /**
+    * Constructs a new <code>1 x k</code> matrix containing this vector.
+    *
+    * @return the matrix
+    */
+   default Matrix toMatrix() {
+      return new SparseMatrix(this);
+   }
+
+   default Vector toUnitVector() {
+      return copy().mapDivideSelf(magnitude());
+   }
+
+   /**
+    * Transpose the vector into a column of a matrix
+    *
+    * @return the matrix
+    */
+   default Matrix transpose() {
+      SparseMatrix matrix = new SparseMatrix(dimension(), 1);
+      for (int i = 0; i < dimension(); i++) {
+         matrix.set(i, 0, get(i));
+      }
+      return matrix;
+   }
+
+   /**
+    * Convenience method to create a new labeled vector from this vector with the given label.
+    *
+    * @param label the label to assign to the vector
+    * @return the labeled vector
+    */
+   default Vector withLabel(Object label) {
+      return new LabeledVector(label, this);
+   }
+
+   /**
     * Sets all elements in the vector to zero.
     *
     * @return This vector
     */
    Vector zero();
-
-   /**
-    * Resizes the current vector constructing a new vector
-    *
-    * @param newDimension the new k
-    * @return The new vector of the given k
-    */
-   Vector redim(int newDimension);
-
-   /**
-    * Applies the given consumer to each non-zero element in this vector
-    *
-    * @param consumer the consumer to run
-    */
-   default void forEachSparse(@NonNull Consumer<Vector.Entry> consumer) {
-      Streams.asStream(nonZeroIterator()).forEach(consumer);
-   }
-
-   /**
-    * Applies the given consumer to each non-zero element in this vector with granted order.
-    *
-    * @param consumer the consumer to run
-    */
-   default void forEachOrderedSparse(@NonNull Consumer<Vector.Entry> consumer) {
-      Streams.asStream(orderedNonZeroIterator()).forEach(consumer);
-   }
-
-
-
-
-   /**
-    * Determines the Spearman correlation between this vector and the given other vector
-    *
-    * @param other the other vector to calculate the correlation lwith
-    * @return the Spearman correlation
-    */
-   default double corr(@NonNull Vector other) {
-      return Correlation.Spearman.calculate(this, other);
-   }
 
    /**
     * Defines an entry in the vector using its coordinate (index) and its value

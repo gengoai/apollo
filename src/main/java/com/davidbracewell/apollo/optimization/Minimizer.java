@@ -8,6 +8,6 @@ import com.davidbracewell.stream.MStream;
  */
 public interface Minimizer {
 
-   Vector minimize(Vector start, MStream<Vector> stream, StochasticCostFunction costFunction, int maxIterations, boolean verbose);
+   Weights minimize(Vector start, MStream<Vector> stream, StochasticCostFunction costFunction, int maxIterations, boolean verbose);
 
 }// END OF Minimizer

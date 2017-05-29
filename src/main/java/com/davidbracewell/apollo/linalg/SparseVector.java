@@ -27,13 +27,11 @@ import lombok.NonNull;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.commons.math3.random.Well19937c;
 import org.eclipse.collections.api.iterator.MutableIntIterator;
+import org.eclipse.collections.api.tuple.primitive.IntDoublePair;
 import org.eclipse.collections.impl.map.mutable.primitive.IntDoubleHashMap;
 
 import java.io.Serializable;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.NoSuchElementException;
-import java.util.Random;
+import java.util.*;
 
 /**
  * A sparse vector implementation backed by a map
@@ -161,9 +159,19 @@ public class SparseVector implements Vector, Serializable {
    }
 
    @Override
+   public boolean equals(Object o) {
+      return o != null && o instanceof Vector && Arrays.equals(toArray(), Cast.<Vector>as(o).toArray());
+   }
+
+   @Override
    public double get(int index) {
       Preconditions.checkPositionIndex(index, dimension());
       return map.get(index);
+   }
+
+   @Override
+   public int hashCode() {
+      return Arrays.hashCode(toArray());
    }
 
    @Override
@@ -180,6 +188,26 @@ public class SparseVector implements Vector, Serializable {
    @Override
    public boolean isSparse() {
       return true;
+   }
+
+   @Override
+   public double max() {
+      return map.maxIfEmpty(0d);
+   }
+
+   @Override
+   public int maxIndex() {
+      return map.keyValuesView().max(Comparator.comparingDouble(IntDoublePair::getTwo)).getOne();
+   }
+
+   @Override
+   public double min() {
+      return map.minIfEmpty(0);
+   }
+
+   @Override
+   public int minIndex() {
+      return map.keyValuesView().min(Comparator.comparingDouble(IntDoublePair::getTwo)).getOne();
    }
 
    @Override
@@ -225,6 +253,16 @@ public class SparseVector implements Vector, Serializable {
    }
 
    @Override
+   public Vector redim(int newDimension) {
+      Vector v = new SparseVector(newDimension);
+      for (Iterator<Vector.Entry> itr = nonZeroIterator(); itr.hasNext(); ) {
+         Vector.Entry de = itr.next();
+         v.set(de.index, de.value);
+      }
+      return v;
+   }
+
+   @Override
    public Vector set(int index, double value) {
       if (value == 0) {
          map.remove(index);
@@ -259,34 +297,13 @@ public class SparseVector implements Vector, Serializable {
    }
 
    @Override
-   public Vector zero() {
-      this.map.clear();
-      return this;
-   }
-
-   @Override
-   public Vector redim(int newDimension) {
-      Vector v = new SparseVector(newDimension);
-      for (Iterator<Vector.Entry> itr = nonZeroIterator(); itr.hasNext(); ) {
-         Vector.Entry de = itr.next();
-         v.set(de.index, de.value);
-      }
-      return v;
-   }
-
-   @Override
    public String toString() {
       return Arrays.toString(toArray());
    }
 
-
    @Override
-   public boolean equals(Object o) {
-      return o != null && o instanceof Vector && Arrays.equals(toArray(), Cast.<Vector>as(o).toArray());
-   }
-
-   @Override
-   public int hashCode() {
-      return Arrays.hashCode(toArray());
+   public Vector zero() {
+      this.map.clear();
+      return this;
    }
 }//END OF SparseVector

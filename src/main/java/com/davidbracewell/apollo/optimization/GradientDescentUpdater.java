@@ -10,7 +10,7 @@ public class GradientDescentUpdater implements WeightUpdater {
 
    @Getter
    @Setter
-   private double learningRate = 0.0001;
+   private double learningRate = 1;
 
    private double eta;
 
@@ -27,6 +27,8 @@ public class GradientDescentUpdater implements WeightUpdater {
       weights.getTheta().subtractSelf(gradient.getTheta().scale(eta));
       weights.getBias().subtractSelf(gradient.getBias().mapMultiply(eta));
    }
+
+
 
 
 }// END OF GradientDescentUpdater

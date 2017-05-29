@@ -65,7 +65,6 @@ public class SGD implements Minimizer {
                                      100,
                                      true);
 
-//      System.out.println(weights);
       final Activation activation = new LogisticCostFunction().activation;
       System.out.println(weights.getTheta());
       for (Vector v : vectors) {
@@ -79,7 +78,6 @@ public class SGD implements Minimizer {
    @Override
    public Weights minimize(Vector start, MStream<Vector> stream, StochasticCostFunction costFunction, int numPasses, boolean verbose) {
       weights = Weights.multiClass(3, start.dimension());
-      //Weights.randomBinary(start.dimension(), -1, 1);
       double l1 = Double.MAX_VALUE;
       double l2 = Double.MAX_VALUE;
       final OptInfo optInfo = new OptInfo(0, alpha);
@@ -113,8 +111,6 @@ public class SGD implements Minimizer {
       Matrix m = observation.getGradient()
                             .toDiagMatrix()
                             .multiply(new SparseMatrix(observation.getGradient().dimension(), nextEta));
-//      weights.getTheta().subtractSelf(m);
-//      weights.getBias().subtractSelf(observation.getGradient().mapMultiply(optinfo.et0));
       updater.update(weights, new Weights(m, observation.getGradient(), weights.isBinary()));
       return observation.getLoss();
    }

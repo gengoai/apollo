@@ -24,6 +24,7 @@ package com.davidbracewell.apollo.linalg;
 import com.davidbracewell.Copyable;
 import com.davidbracewell.EnhancedDoubleStatistics;
 import com.davidbracewell.apollo.affinity.Correlation;
+import com.davidbracewell.apollo.analysis.Optimum;
 import com.davidbracewell.collection.Streams;
 import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.guava.common.base.Preconditions;
@@ -476,6 +477,14 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
     */
    default double max() {
       return Streams.asStream(nonZeroIterator()).mapToDouble(Entry::getValue).max().orElse(0d);
+   }
+
+   default int maxIndex() {
+      return Optimum.MAXIMUM.optimumIndex(toArray());
+   }
+
+   default int minIndex() {
+      return Optimum.MINIMUM.optimumIndex(toArray());
    }
 
    /**

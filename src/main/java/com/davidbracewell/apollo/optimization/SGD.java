@@ -26,6 +26,7 @@ public class SGD implements Minimizer {
    private double tolerance = 1e-10;
 
    private Weights weights;
+   private GradientDescentUpdater updater = new GradientDescentUpdater();
 
    public static void main(String[] args) {
       SGD sgd = new SGD();
@@ -108,14 +109,14 @@ public class SGD implements Minimizer {
 
    private double step(Vector next, StochasticCostFunction costFunction, boolean verbose, OptInfo optinfo) {
       LossGradientTuple observation = costFunction.observe(next, weights);
-      Matrix m = new SparseMatrix(observation.getGradient().dimension(), next.dimension());
       Vector nextEta = next.mapMultiply(optinfo.et0);
-      for (int i = 0; i < m.numberOfRows(); i++) {
-         m.setRow(i, nextEta.mapMultiply(observation.getGradient().get(i)));
-      }
-      weights.getTheta().subtractSelf(m);
-      weights.getBias().subtractSelf(observation.getGradient().mapMultiply(optinfo.et0));
-      return observation.getCost();
+      Matrix m = observation.getGradient()
+                            .toDiagMatrix()
+                            .multiply(new SparseMatrix(observation.getGradient().dimension(), nextEta));
+//      weights.getTheta().subtractSelf(m);
+//      weights.getBias().subtractSelf(observation.getGradient().mapMultiply(optinfo.et0));
+      updater.update(weights, new Weights(m, observation.getGradient(), weights.isBinary()));
+      return observation.getLoss();
    }
 
    @Data

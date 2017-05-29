@@ -8,6 +8,6 @@ import lombok.Value;
  */
 @Value(staticConstructor = "of")
 public class LossGradientTuple {
-   double cost;
+   double loss;
    Vector gradient;
 }// END OF LossGradientTuple

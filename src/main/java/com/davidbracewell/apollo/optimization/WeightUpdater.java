@@ -7,6 +7,6 @@ public interface WeightUpdater {
 
    void reset();
 
-   void update(Weights weights, Weights gradient);
+   void update(Weights weights, Weights gradient, double learningRate);
 
 }//END OF WeightUpdater

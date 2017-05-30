@@ -111,7 +111,7 @@ public class SGD implements Minimizer {
       Matrix m = observation.getGradient()
                             .toDiagMatrix()
                             .multiply(new SparseMatrix(observation.getGradient().dimension(), nextEta));
-      updater.update(weights, new Weights(m, observation.getGradient(), weights.isBinary()));
+//      updater.update(weights, new Weights(m, observation.getGradient(), weights.isBinary()));
       return observation.getLoss();
    }
 

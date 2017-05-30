@@ -1,34 +1,22 @@
 package com.davidbracewell.apollo.optimization;
 
-import lombok.Getter;
-import lombok.Setter;
+import java.io.Serializable;
 
 /**
  * @author David B. Bracewell
  */
-public class GradientDescentUpdater implements WeightUpdater {
-
-   @Getter
-   @Setter
-   private double learningRate = 1;
-
-   private double eta;
+public class GradientDescentUpdater implements WeightUpdater, Serializable {
+   private static final long serialVersionUID = 1L;
 
    @Override
    public void reset() {
-      eta = 0;
    }
 
    @Override
-   public void update(Weights weights, Weights gradient) {
-      if (eta == 0) {
-         eta = learningRate;
-      }
-      weights.getTheta().subtractSelf(gradient.getTheta().scale(eta));
-      weights.getBias().subtractSelf(gradient.getBias().mapMultiply(eta));
+   public void update(Weights weights, Weights gradient, double learningRate) {
+      weights.getTheta().subtractSelf(gradient.getTheta().scale(learningRate));
+      weights.getBias().subtractSelf(gradient.getBias().mapMultiply(learningRate));
    }
-
-
 
 
 }// END OF GradientDescentUpdater

@@ -26,6 +26,7 @@ public class SGD implements Minimizer {
    private double tolerance = 1e-10;
 
    private Weights weights;
+   private LearningRate learningRate = new ConstantLearningRate(1);
    private GradientDescentUpdater updater = new GradientDescentUpdater();
 
    public static void main(String[] args) {
@@ -66,7 +67,6 @@ public class SGD implements Minimizer {
                                      true);
 
       final Activation activation = new LogisticCostFunction().activation;
-      System.out.println(weights.getTheta());
       for (Vector v : vectors) {
          Vector p = activation.apply(weights.dot(v));
          System.out.println(Optimum.MAXIMUM.optimumIndex(p.toArray()) + " : " + v.getLabel());
@@ -80,7 +80,7 @@ public class SGD implements Minimizer {
       weights = Weights.multiClass(3, start.dimension());
       double l1 = Double.MAX_VALUE;
       double l2 = Double.MAX_VALUE;
-      final OptInfo optInfo = new OptInfo(0, alpha);
+      final OptInfo optInfo = new OptInfo(0, alpha, 1);
       int pass = 0;
       int lastPass = 0;
       for (; pass < numPasses; pass++) {
@@ -98,6 +98,7 @@ public class SGD implements Minimizer {
          l1 = sumTotal;
          lastPass = pass;
          optInfo.et0 *= 0.95;
+         optInfo.iteration++;
       }
       if (verbose && pass != lastPass) {
          LOG.info("pass={0}, total_cost={1}", pass, l1);
@@ -111,18 +112,22 @@ public class SGD implements Minimizer {
       Matrix m = observation.getGradient()
                             .toDiagMatrix()
                             .multiply(new SparseMatrix(observation.getGradient().dimension(), nextEta));
-//      updater.update(weights, new Weights(m, observation.getGradient(), weights.isBinary()));
+      updater.update(weights,
+                     new Weights(m, observation.getGradient(), weights.isBinary()),
+                     learningRate.get(0, optinfo.numProcessed));
       return observation.getLoss();
    }
 
    @Data
    private static class OptInfo {
-      long numProcessed;
+      int numProcessed;
+      int iteration;
       double et0;
 
-      public OptInfo(long numProcessed, double et0) {
+      public OptInfo(int numProcessed, double et0, int iteration) {
          this.numProcessed = numProcessed;
          this.et0 = et0;
+         this.iteration = iteration;
       }
    }
 

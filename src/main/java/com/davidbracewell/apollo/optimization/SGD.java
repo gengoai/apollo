@@ -16,7 +16,7 @@ import lombok.Setter;
 /**
  * @author David B. Bracewell
  */
-public class SGD implements Minimizer {
+public class SGD implements Optimizer {
    private static final Logger LOG = Logger.getLogger(SGD.class);
    @Getter
    @Setter
@@ -26,8 +26,9 @@ public class SGD implements Minimizer {
    private double tolerance = 1e-10;
 
    private Weights weights;
-   private LearningRate learningRate = new ConstantLearningRate(1);
+   private LearningRate learningRate = new ConstantLearningRate(0.1);
    private GradientDescentUpdater updater = new GradientDescentUpdater();
+
 
    public static void main(String[] args) {
       SGD sgd = new SGD();
@@ -60,7 +61,7 @@ public class SGD implements Minimizer {
 
       };
 
-      Weights weights = sgd.minimize(SparseVector.zeros(10),
+      Weights weights = sgd.optimize(Weights.multiClass(3, 10),
                                      StreamingContext.local().stream(vectors),
                                      new LogisticCostFunction(),
                                      100,
@@ -76,37 +77,36 @@ public class SGD implements Minimizer {
    }
 
    @Override
-   public Weights minimize(Vector start, MStream<Vector> stream, StochasticCostFunction costFunction, int numPasses, boolean verbose) {
-      weights = Weights.multiClass(3, start.dimension());
-      double l1 = Double.MAX_VALUE;
-      double l2 = Double.MAX_VALUE;
+   public Weights optimize(Weights start, MStream<? extends Vector> stream, StochasticCostFunction costFunction, int numPasses, boolean verbose) {
+      weights = start;
+      TerminationCriteria terminationCriteria = new TerminationCriteria();
       final OptInfo optInfo = new OptInfo(0, alpha, 1);
       int pass = 0;
       int lastPass = 0;
+      double lr = learningRate.getInitialRate();
       for (; pass < numPasses; pass++) {
+         final double eta = learningRate.get(lr, 0, optInfo.numProcessed);
+         lr = eta;
          double sumTotal = stream.shuffle()
-                                 .mapToDouble(next -> step(next, costFunction, verbose, optInfo))
+                                 .mapToDouble(next -> step(next, costFunction, verbose, optInfo, eta))
                                  .sum();
          if (verbose && pass % 10 == 0) {
             LOG.info("pass={0}, total_cost={1}", pass, sumTotal);
          }
-         if (Math.abs(sumTotal - l1) < tolerance && Math.abs(sumTotal - l2) < tolerance) {
-            l1 = sumTotal;
+         if (terminationCriteria.check(sumTotal)) {
             break;
          }
-         l2 = l1;
-         l1 = sumTotal;
          lastPass = pass;
          optInfo.et0 *= 0.95;
          optInfo.iteration++;
       }
       if (verbose && pass != lastPass) {
-         LOG.info("pass={0}, total_cost={1}", pass, l1);
+         LOG.info("pass={0}, total_cost={1}", pass, terminationCriteria.lastLoss());
       }
       return weights;
    }
 
-   private double step(Vector next, StochasticCostFunction costFunction, boolean verbose, OptInfo optinfo) {
+   private double step(Vector next, StochasticCostFunction costFunction, boolean verbose, OptInfo optinfo, double lr) {
       LossGradientTuple observation = costFunction.observe(next, weights);
       Vector nextEta = next.mapMultiply(optinfo.et0);
       Matrix m = observation.getGradient()
@@ -114,7 +114,7 @@ public class SGD implements Minimizer {
                             .multiply(new SparseMatrix(observation.getGradient().dimension(), nextEta));
       updater.update(weights,
                      new Weights(m, observation.getGradient(), weights.isBinary()),
-                     learningRate.get(0, optinfo.numProcessed));
+                     lr);
       return observation.getLoss();
    }
 

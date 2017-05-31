@@ -5,6 +5,8 @@ package com.davidbracewell.apollo.optimization;
  */
 public interface LearningRate {
 
-   double get(int time, int numProcessed);
+   double get(double currentLearningRate, int time, int numProcessed);
+
+   double getInitialRate();
 
 }//END OF LearningRate

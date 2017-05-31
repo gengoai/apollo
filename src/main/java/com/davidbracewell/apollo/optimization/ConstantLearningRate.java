@@ -15,7 +15,12 @@ public class ConstantLearningRate implements LearningRate, Serializable {
    }
 
    @Override
-   public double get(int time, int numProcessed) {
+   public double get(double currentLearningRate, int time, int numProcessed) {
+      return learningRate;
+   }
+
+   @Override
+   public double getInitialRate() {
       return learningRate;
    }
 

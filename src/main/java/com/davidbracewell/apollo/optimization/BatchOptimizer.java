@@ -23,11 +23,13 @@ public class BatchOptimizer implements Optimizer {
       int iterations = terminationCriteria.maxIterations();
       terminationCriteria.maxIterations(1);
       for (int i = 0; i < iterations; i++) {
-         stream.shuffle().split(batchSize).forEach(batch -> {
+         double sumLoss = stream.shuffle().split(batchSize).mapToDouble(batch -> {
             theta.set(subOptimizer.optimize(theta, StreamingContext.local().stream(batch),
                                             costFunction, terminationCriteria,
                                             learningRate, weightUpdater, false));
-         });
+            return theta.getCost();
+         }).sum();
+         theta.setCost(sumLoss);
          if (verbose && i % 10 == 0) {
             System.err.println("iteration=" + (i + 1) + ", totalCost=" + theta.getCost());
          }

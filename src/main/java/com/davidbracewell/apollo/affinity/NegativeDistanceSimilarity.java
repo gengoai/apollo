@@ -37,13 +37,13 @@ class NegativeDistanceSimilarity implements SimilarityMeasure {
     *
     * @param distanceMeasure the distance measure
     */
-   NegativeDistanceSimilarity(DistanceMeasure distanceMeasure) {
+   public NegativeDistanceSimilarity(DistanceMeasure distanceMeasure) {
       this.distanceMeasure = distanceMeasure;
    }
 
    @Override
-   public double calculate(ContingencyTable table) {
-      throw new UnsupportedOperationException();
+   public DistanceMeasure asDistanceMeasure() {
+      return distanceMeasure;
    }
 
    @Override
@@ -52,7 +52,7 @@ class NegativeDistanceSimilarity implements SimilarityMeasure {
    }
 
    @Override
-   public DistanceMeasure asDistanceMeasure() {
-      return distanceMeasure;
+   public double calculate(ContingencyTable table) {
+      throw new UnsupportedOperationException();
    }
 }//END OF NegativeDistanceSimilarity

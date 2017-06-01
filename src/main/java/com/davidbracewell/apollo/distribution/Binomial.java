@@ -54,16 +54,28 @@ public final class Binomial implements UnivariateDiscreteDistribution<Binomial>,
       return new Binomial(nSuccess, trials);
    }
 
-
    @Override
-   public double probability(double x) {
-      return getDistribution().probability((int) x);
+   public double cumulativeProbability(double x) {
+      return getDistribution().cumulativeProbability((int) x);
    }
 
-
    @Override
-   public double getMode() {
-      return Math.floor((trials + 1) * (nSuccess / trials));
+   public double cumulativeProbability(double lowerBound, double higherBound) {
+      return getDistribution().cumulativeProbability((int) lowerBound, (int) higherBound);
+   }
+
+   private BinomialDistribution getDistribution() {
+      if (wrapped == null) {
+         synchronized (this) {
+            if (wrapped == null) {
+               BinomialDistribution binomial = new BinomialDistribution(randomGenerator, trials,
+                                                                        probabilityOfSuccess());
+               wrapped = binomial;
+               return binomial;
+            }
+         }
+      }
+      return wrapped;
    }
 
    @Override
@@ -72,27 +84,8 @@ public final class Binomial implements UnivariateDiscreteDistribution<Binomial>,
    }
 
    @Override
-   public double getVariance() {
-      return nSuccess * (1.0 - probabilityOfSuccess());
-   }
-
-
-   /**
-    * Gets the number of trials.
-    *
-    * @return the number of trials
-    */
-   public int getNumberOfTrials() {
-      return trials;
-   }
-
-   /**
-    * Get number of successes int.
-    *
-    * @return the int
-    */
-   public int getNumberOfSuccesses() {
-      return nSuccess;
+   public double getMode() {
+      return Math.floor((trials + 1) * (nSuccess / trials));
    }
 
    /**
@@ -105,32 +98,26 @@ public final class Binomial implements UnivariateDiscreteDistribution<Binomial>,
    }
 
    /**
-    * Probability of success double.
+    * Get number of successes int.
     *
-    * @return the double
+    * @return the int
     */
-   public double probabilityOfSuccess() {
-      return (double) nSuccess / (double) trials;
+   public int getNumberOfSuccesses() {
+      return nSuccess;
+   }
+
+   /**
+    * Gets the number of trials.
+    *
+    * @return the number of trials
+    */
+   public int getNumberOfTrials() {
+      return trials;
    }
 
    @Override
-   public double cumulativeProbability(double x) {
-      return getDistribution().cumulativeProbability((int) x);
-   }
-
-   @Override
-   public double cumulativeProbability(double lowerBound, double higherBound) {
-      return getDistribution().cumulativeProbability((int) lowerBound, (int) higherBound);
-   }
-
-   @Override
-   public double inverseCumulativeProbability(double p) {
-      return getDistribution().inverseCumulativeProbability(p);
-   }
-
-   @Override
-   public int sample() {
-      return getDistribution().sample();
+   public double getVariance() {
+      return nSuccess * (1.0 - probabilityOfSuccess());
    }
 
    @Override
@@ -149,18 +136,28 @@ public final class Binomial implements UnivariateDiscreteDistribution<Binomial>,
       return this;
    }
 
-   private BinomialDistribution getDistribution() {
-      if (wrapped == null) {
-         synchronized (this) {
-            if (wrapped == null) {
-               BinomialDistribution binomial = new BinomialDistribution(randomGenerator, trials,
-                                                                        probabilityOfSuccess());
-               wrapped = binomial;
-               return binomial;
-            }
-         }
-      }
-      return wrapped;
+   @Override
+   public double inverseCumulativeProbability(double p) {
+      return getDistribution().inverseCumulativeProbability(p);
+   }
+
+   @Override
+   public double probability(double x) {
+      return getDistribution().probability((int) x);
+   }
+
+   /**
+    * Probability of success double.
+    *
+    * @return the double
+    */
+   public double probabilityOfSuccess() {
+      return (double) nSuccess / (double) trials;
+   }
+
+   @Override
+   public int sample() {
+      return getDistribution().sample();
    }
 
 }// END OF Binomial

@@ -11,8 +11,8 @@ import java.util.Arrays;
  */
 class ColumnVector implements Vector, Serializable {
    private static final long serialVersionUID = 1L;
-   private Matrix entries;
    final int column;
+   private Matrix entries;
 
    ColumnVector(Matrix entries, int column) {
       this.entries = entries;

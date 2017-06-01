@@ -39,18 +39,18 @@ class OneMinusSimilarityDistance implements DistanceMeasure {
     *
     * @param similarityMeasure the similarity measure
     */
-   OneMinusSimilarityDistance(SimilarityMeasure similarityMeasure) {
+   public OneMinusSimilarityDistance(SimilarityMeasure similarityMeasure) {
       this.similarityMeasure = Preconditions.checkNotNull(similarityMeasure);
-   }
-
-   @Override
-   public double calculate(Map<?, ? extends Number> m1, Map<?, ? extends Number> m2) {
-      return 1d - similarityMeasure.calculate(m1, m2);
    }
 
    @Override
    public SimilarityMeasure asSimilarityMeasure() {
       return similarityMeasure;
+   }
+
+   @Override
+   public double calculate(Map<?, ? extends Number> m1, Map<?, ? extends Number> m2) {
+      return 1d - similarityMeasure.calculate(m1, m2);
    }
 
 }//END OF OneMinusSimilarityDistance

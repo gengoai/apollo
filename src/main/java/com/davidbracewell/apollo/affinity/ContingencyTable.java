@@ -54,25 +54,6 @@ public class ContingencyTable {
    }
 
    /**
-    * <p>Constructs a contingency table explicitly to be used for comparing the frequency of a word between two
-    * corpora.</p>
-    *
-    * @param countInCorpusOne the count in corpus one
-    * @param corpusOneSize    the corpus one size
-    * @param countInCorpusTwo the count in corpus two
-    * @param corpusTwoSize    the corpus two size
-    * @return the contingency table
-    */
-   public static ContingencyTable forCorpusComparison(double countInCorpusOne, double corpusOneSize, double countInCorpusTwo, double corpusTwoSize) {
-      ContingencyTable table = new ContingencyTable(2, 2);
-      table.set(0, 0, countInCorpusOne);
-      table.set(1, 0, corpusOneSize - countInCorpusOne);
-      table.set(0, 1, countInCorpusTwo);
-      table.set(1, 1, corpusTwoSize - countInCorpusTwo);
-      return table;
-   }
-
-   /**
     * <pre>
     * 			 | word2 | not-word2|
     * 	       --------------------
@@ -142,12 +123,22 @@ public class ContingencyTable {
    }
 
    /**
-    * Degrees of freedom double.
+    * <p>Constructs a contingency table explicitly to be used for comparing the frequency of a word between two
+    * corpora.</p>
     *
-    * @return the double
+    * @param countInCorpusOne the count in corpus one
+    * @param corpusOneSize    the corpus one size
+    * @param countInCorpusTwo the count in corpus two
+    * @param corpusTwoSize    the corpus two size
+    * @return the contingency table
     */
-   public double degreesOfFreedom() {
-      return (numberOfColumns - 1.0) * (numberOfRows - 1.0);
+   public static ContingencyTable forCorpusComparison(double countInCorpusOne, double corpusOneSize, double countInCorpusTwo, double corpusTwoSize) {
+      ContingencyTable table = new ContingencyTable(2, 2);
+      table.set(0, 0, countInCorpusOne);
+      table.set(1, 0, corpusOneSize - countInCorpusOne);
+      table.set(0, 1, countInCorpusTwo);
+      table.set(1, 1, corpusTwoSize - countInCorpusTwo);
+      return table;
    }
 
    /**
@@ -167,6 +158,15 @@ public class ContingencyTable {
     */
    public double columnSum(int column) {
       return columnSums[column];
+   }
+
+   /**
+    * Degrees of freedom double.
+    *
+    * @return the double
+    */
+   public double degreesOfFreedom() {
+      return (numberOfColumns - 1.0) * (numberOfRows - 1.0);
    }
 
    /**

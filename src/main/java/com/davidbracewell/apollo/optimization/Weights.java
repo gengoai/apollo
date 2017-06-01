@@ -1,5 +1,6 @@
 package com.davidbracewell.apollo.optimization;
 
+import com.davidbracewell.Copyable;
 import com.davidbracewell.apollo.linalg.Matrix;
 import com.davidbracewell.apollo.linalg.SparseMatrix;
 import com.davidbracewell.apollo.linalg.SparseVector;
@@ -19,10 +20,17 @@ import java.util.List;
  */
 @Data
 @AllArgsConstructor
-public class Weights implements Serializable {
+public class Weights implements Serializable, Copyable<Weights> {
    private Matrix theta;
    private Vector bias;
    private boolean binary;
+   private double cost = 0;
+
+   public Weights(Matrix theta, Vector bias, boolean binary) {
+      this.theta = theta;
+      this.bias = bias;
+      this.binary = binary;
+   }
 
    /**
     * Random binary weights.
@@ -82,6 +90,11 @@ public class Weights implements Serializable {
       return new Weights(new SparseMatrix(w), SparseVector.zeros(numClasses), false);
    }
 
+   @Override
+   public Weights copy() {
+      return new Weights(theta.copy(), bias.copy(), binary, cost);
+   }
+
    /**
     * Dot vector.
     *
@@ -99,6 +112,13 @@ public class Weights implements Serializable {
     */
    public int numClasses() {
       return isBinary() ? 1 : bias.dimension();
+   }
+
+   public void set(@NonNull Weights other) {
+      this.theta = other.theta;
+      this.binary = other.binary;
+      this.bias = other.bias;
+      this.cost = other.cost;
    }
 
 }// END OF Weights

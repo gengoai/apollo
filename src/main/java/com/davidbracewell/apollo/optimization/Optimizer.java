@@ -9,7 +9,7 @@ import com.davidbracewell.stream.MStream;
  */
 public interface Optimizer {
 
-   Weights optimize(Weights start,
+   LossWeightTuple optimize(Weights start,
                     MStream<? extends Vector> stream,
                     StochasticCostFunction costFunction,
                     TerminationCriteria terminationCriteria,

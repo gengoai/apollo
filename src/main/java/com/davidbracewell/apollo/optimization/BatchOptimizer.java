@@ -18,22 +18,23 @@ public class BatchOptimizer implements Optimizer {
    }
 
    @Override
-   public Weights optimize(Weights start, MStream<? extends Vector> stream, StochasticCostFunction costFunction, TerminationCriteria terminationCriteria, LearningRate learningRate, WeightUpdater weightUpdater, boolean verbose) {
+   public LossWeightTuple optimize(Weights start, MStream<? extends Vector> stream, StochasticCostFunction costFunction, TerminationCriteria terminationCriteria, LearningRate learningRate, WeightUpdater weightUpdater, boolean verbose) {
       final Weights theta = start.copy();
       int iterations = terminationCriteria.maxIterations();
       terminationCriteria.maxIterations(1);
+      double lastLoss = 0;
       for (int i = 0; i < iterations; i++) {
-         double sumLoss = stream.shuffle().split(batchSize).mapToDouble(batch -> {
-            theta.set(subOptimizer.optimize(theta, StreamingContext.local().stream(batch),
-                                            costFunction, terminationCriteria,
-                                            learningRate, weightUpdater, false));
-            return theta.getCost();
+         lastLoss = stream.shuffle().split(batchSize).mapToDouble(batch -> {
+            LossWeightTuple lwt = subOptimizer.optimize(theta, StreamingContext.local().stream(batch),
+                                                        costFunction, terminationCriteria,
+                                                        learningRate, weightUpdater, false);
+            theta.set(lwt.getWeights());
+            return lwt.getLoss();
          }).sum();
-         theta.setCost(sumLoss);
          if (verbose && i % 10 == 0) {
-            System.err.println("iteration=" + (i + 1) + ", totalCost=" + theta.getCost());
+            System.err.println("iteration=" + (i + 1) + ", totalCost=" + lastLoss);
          }
       }
-      return theta;
+      return LossWeightTuple.of(lastLoss,theta);
    }
 }// END OF BatchOptimizer

@@ -24,13 +24,6 @@ public class Weights implements Serializable, Copyable<Weights> {
    private Matrix theta;
    private Vector bias;
    private boolean binary;
-   private double cost = 0;
-
-   public Weights(Matrix theta, Vector bias, boolean binary) {
-      this.theta = theta;
-      this.bias = bias;
-      this.binary = binary;
-   }
 
    /**
     * Random binary weights.
@@ -92,7 +85,7 @@ public class Weights implements Serializable, Copyable<Weights> {
 
    @Override
    public Weights copy() {
-      return new Weights(theta.copy(), bias.copy(), binary, cost);
+      return new Weights(theta.copy(), bias.copy(), binary);
    }
 
    /**
@@ -118,7 +111,6 @@ public class Weights implements Serializable, Copyable<Weights> {
       this.theta = other.theta;
       this.binary = other.binary;
       this.bias = other.bias;
-      this.cost = other.cost;
    }
 
 }// END OF Weights

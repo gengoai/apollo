@@ -1,6 +1,6 @@
 package com.davidbracewell.apollo.linalg;
 
-import com.davidbracewell.apollo.analysis.Optimum;
+import com.davidbracewell.apollo.optimization.Optimum;
 import lombok.EqualsAndHashCode;
 import lombok.NonNull;
 

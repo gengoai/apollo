@@ -21,7 +21,7 @@
 
 package com.davidbracewell.apollo.linalg;
 
-import com.davidbracewell.apollo.analysis.Optimum;
+import com.davidbracewell.apollo.optimization.Optimum;
 import com.davidbracewell.conversion.Cast;
 import org.junit.Before;
 import org.junit.Test;

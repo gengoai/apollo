@@ -1,4 +1,4 @@
-package com.davidbracewell.apollo.analysis;
+package com.davidbracewell.apollo;
 
 /**
  * Methods for determining the inequality of two doubles.

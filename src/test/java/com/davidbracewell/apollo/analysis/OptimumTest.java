@@ -21,6 +21,7 @@
 
 package com.davidbracewell.apollo.analysis;
 
+import com.davidbracewell.apollo.optimization.Optimum;
 import org.junit.Test;
 
 import static com.davidbracewell.tuple.Tuples.$;

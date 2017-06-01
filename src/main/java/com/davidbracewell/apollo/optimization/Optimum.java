@@ -19,7 +19,7 @@
  * under the License.
  */
 
-package com.davidbracewell.apollo.analysis;
+package com.davidbracewell.apollo.optimization;
 
 import com.davidbracewell.tuple.Tuple2;
 import lombok.NonNull;

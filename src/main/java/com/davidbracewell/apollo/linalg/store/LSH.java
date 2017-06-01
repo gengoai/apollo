@@ -22,7 +22,7 @@
 package com.davidbracewell.apollo.linalg.store;
 
 import com.davidbracewell.apollo.affinity.Measure;
-import com.davidbracewell.apollo.analysis.Optimum;
+import com.davidbracewell.apollo.optimization.Optimum;
 import com.davidbracewell.apollo.linalg.Vector;
 import lombok.Getter;
 import lombok.NonNull;

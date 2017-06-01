@@ -1,7 +1,7 @@
 package com.davidbracewell.apollo.ml.clustering.topic;
 
 import com.davidbracewell.apollo.affinity.DistanceMeasure;
-import com.davidbracewell.apollo.analysis.Optimum;
+import com.davidbracewell.apollo.optimization.Optimum;
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.EncoderPair;
 import com.davidbracewell.apollo.ml.Instance;

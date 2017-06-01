@@ -1,7 +1,7 @@
 package com.davidbracewell.apollo.ml.clustering.topic;
 
 import com.davidbracewell.apollo.affinity.Similarity;
-import com.davidbracewell.apollo.analysis.Optimum;
+import com.davidbracewell.apollo.optimization.Optimum;
 import com.davidbracewell.apollo.distribution.ConditionalMultinomial;
 import com.davidbracewell.apollo.linalg.SparseVector;
 import com.davidbracewell.apollo.linalg.Vector;

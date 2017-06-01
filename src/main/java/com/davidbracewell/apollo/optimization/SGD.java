@@ -1,6 +1,5 @@
 package com.davidbracewell.apollo.optimization;
 
-import com.davidbracewell.apollo.analysis.Optimum;
 import com.davidbracewell.apollo.linalg.Matrix;
 import com.davidbracewell.apollo.linalg.SparseMatrix;
 import com.davidbracewell.apollo.linalg.SparseVector;

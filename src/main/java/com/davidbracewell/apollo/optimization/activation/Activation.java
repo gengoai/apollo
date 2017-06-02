@@ -30,5 +30,13 @@ public interface Activation extends Serializable {
       return x.map(this::apply);
    }
 
+   default boolean isMulticlass() {
+      return false;
+   }
+
+   default boolean isProbabilistic() {
+      return false;
+   }
+
 
 }//END OF Activation

@@ -37,6 +37,10 @@ public class Weights implements Serializable, Copyable<Weights> {
       return new Weights(new SparseMatrix(SparseVector.random(numFeatures, min, max)), SparseVector.zeros(1), true);
    }
 
+
+   public static Weights binary(int numFeatures) {
+      return new Weights(new SparseMatrix(SparseVector.zeros(numFeatures)), SparseVector.zeros(1), true);
+   }
    public static Weights from(@NonNull Matrix theta, @NonNull Vector bias) {
       return new Weights(theta, bias, bias.size() == 1);
    }

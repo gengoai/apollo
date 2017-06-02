@@ -21,4 +21,13 @@ public class SoftmaxFunction implements Activation {
       return x.mapDivideSelf(sum);
    }
 
+   @Override
+   public boolean isMulticlass() {
+      return true;
+   }
+
+   @Override
+   public boolean isProbabilistic() {
+      return true;
+   }
 }// END OF SoftmaxFunction

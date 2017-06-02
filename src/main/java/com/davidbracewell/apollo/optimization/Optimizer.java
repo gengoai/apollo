@@ -2,6 +2,7 @@ package com.davidbracewell.apollo.optimization;
 
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.optimization.regularization.WeightUpdater;
+import com.davidbracewell.function.SerializableSupplier;
 import com.davidbracewell.stream.MStream;
 
 /**
@@ -10,12 +11,12 @@ import com.davidbracewell.stream.MStream;
 public interface Optimizer {
 
    LossWeightTuple optimize(Weights start,
-                    MStream<? extends Vector> stream,
-                    StochasticCostFunction costFunction,
-                    TerminationCriteria terminationCriteria,
-                    LearningRate learningRate,
-                    WeightUpdater weightUpdater,
-                    boolean verbose
+                            SerializableSupplier<MStream<? extends Vector>> stream,
+                            StochasticCostFunction costFunction,
+                            TerminationCriteria terminationCriteria,
+                            LearningRate learningRate,
+                            WeightUpdater weightUpdater,
+                            boolean verbose
                    );
 
 

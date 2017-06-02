@@ -4,6 +4,7 @@ import com.davidbracewell.apollo.linalg.Matrix;
 import com.davidbracewell.apollo.linalg.SparseMatrix;
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.optimization.regularization.WeightUpdater;
+import com.davidbracewell.function.SerializableSupplier;
 import com.davidbracewell.logging.Logger;
 import com.davidbracewell.stream.MStream;
 import lombok.Data;
@@ -26,13 +27,13 @@ public class SGD implements Optimizer {
 
    @Override
    public LossWeightTuple optimize(Weights start,
-                           MStream<? extends Vector> stream,
-                           StochasticCostFunction costFunction,
-                           TerminationCriteria terminationCriteria,
-                           LearningRate learningRate,
-                           WeightUpdater weightUpdater,
-                           boolean verbose
-                          ) {
+                                   SerializableSupplier<MStream<? extends Vector>> stream,
+                                   StochasticCostFunction costFunction,
+                                   TerminationCriteria terminationCriteria,
+                                   LearningRate learningRate,
+                                   WeightUpdater weightUpdater,
+                                   boolean verbose
+                                  ) {
       weights = start.copy();
       int pass = 0;
       int lastPass = 0;
@@ -42,7 +43,8 @@ public class SGD implements Optimizer {
       for (; pass < terminationCriteria.maxIterations(); pass++) {
          final double eta = learningRate.get(lr, 0, numProcessed);
          lr = eta;
-         double sumTotal = stream.shuffle()
+         double sumTotal = stream.get()
+                                 .shuffle()
                                  .mapToDouble(next -> step(next, costFunction, weightUpdater, verbose, eta))
                                  .sum();
          lastLoss = sumTotal;

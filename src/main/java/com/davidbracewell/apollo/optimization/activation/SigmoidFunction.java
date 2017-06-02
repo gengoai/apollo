@@ -16,4 +16,8 @@ public class SigmoidFunction implements Activation {
       return z / (1 + z);
    }
 
+   @Override
+   public boolean isProbabilistic() {
+      return true;
+   }
 }// END OF SigmoidFunction

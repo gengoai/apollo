@@ -23,6 +23,9 @@ package com.davidbracewell.apollo.ml.classification;
 
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.Learner;
+import com.davidbracewell.conversion.Cast;
+
+import java.util.Map;
 
 /**
  * Base class for learners that produce <code>Classifier</code>s and use <code>Instance</code>s as their example type.
@@ -32,5 +35,14 @@ import com.davidbracewell.apollo.ml.Learner;
 public abstract class ClassifierLearner extends Learner<Instance, Classifier> {
    private static final long serialVersionUID = 1L;
 
+   @Override
+   public ClassifierLearner setParameter(String name, Object value) {
+      return Cast.as(super.setParameter(name, value));
+   }
+
+   @Override
+   public ClassifierLearner setParameters(Map<String, Object> parameters) {
+      return Cast.as(super.setParameters(parameters));
+   }
 
 }//END OF ClassifierLearner

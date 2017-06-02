@@ -1,14 +1,16 @@
 package com.davidbracewell.apollo.ml.classification;
 
+import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.optimization.*;
 import com.davidbracewell.apollo.optimization.activation.Activation;
-import com.davidbracewell.apollo.optimization.activation.SoftmaxFunction;
+import com.davidbracewell.apollo.optimization.activation.SigmoidFunction;
 import com.davidbracewell.apollo.optimization.loss.LogLoss;
 import com.davidbracewell.apollo.optimization.loss.LossFunction;
 import com.davidbracewell.apollo.optimization.regularization.L1Regularization;
 import com.davidbracewell.apollo.optimization.regularization.WeightUpdater;
+import com.davidbracewell.guava.common.base.Preconditions;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -27,7 +29,7 @@ public class SGDLearner extends ClassifierLearner {
    private LossFunction loss = new LogLoss();
    @Getter
    @Setter
-   private Activation activation = new SoftmaxFunction();
+   private Activation activation = new SigmoidFunction();
    @Getter
    @Setter
    private int maxIterations = 300;
@@ -37,6 +39,10 @@ public class SGDLearner extends ClassifierLearner {
    @Getter
    @Setter
    private boolean verbose = false;
+
+   protected LossGradientTuple observe(Vector next, Weights weights) {
+      return loss.lossAndDerivative(activation.apply(weights.dot(next)), next.getLabelVector(weights.numClasses()));
+   }
 
    @Override
    public void reset() {
@@ -51,14 +57,19 @@ public class SGDLearner extends ClassifierLearner {
       if (dataset.getLabelEncoder().size() <= 2) {
          start = Weights.binary(dataset.getFeatureEncoder().size());
       } else {
+         Preconditions.checkState(activation.isMulticlass(),
+                                  "Attempting to use a non-multiclass activation function for a multiclass problem.");
          start = Weights.multiClass(dataset.getLabelEncoder().size(), dataset.getFeatureEncoder().size());
       }
 
 
       Weights weights = sgd.optimize(start,
                                      dataset::asFeatureVectors,
-                                     new LogisticCostFunction(),
-                                     TerminationCriteria.create().maxIterations(maxIterations).historySize(3).tolerance(tolerance),
+                                     this::observe,
+                                     TerminationCriteria.create()
+                                                        .maxIterations(maxIterations)
+                                                        .historySize(3)
+                                                        .tolerance(tolerance),
                                      learningRate,
                                      weightUpdater,
                                      verbose).getWeights();

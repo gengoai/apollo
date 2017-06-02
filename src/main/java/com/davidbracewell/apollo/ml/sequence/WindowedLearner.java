@@ -28,6 +28,33 @@ public class WindowedLearner extends SequenceLabelerLearner {
    }
 
    @Override
+   public Object getParameter(String name) {
+      return learner.getParameter(name);
+   }
+
+   @Override
+   public Map<String, ?> getParameters() {
+      return learner.getParameters();
+   }
+
+   @Override
+   public WindowedLearner setParameters(@NonNull Map<String, Object> parameters) {
+      learner.setParameters(parameters);
+      return this;
+   }
+
+   @Override
+   public void reset() {
+      learner.reset();
+   }
+
+   @Override
+   public WindowedLearner setParameter(String name, Object value) {
+      learner.setParameter(name, value);
+      return this;
+   }
+
+   @Override
    protected SequenceLabeler trainImpl(Dataset<Sequence> dataset) {
       WindowedLabeler wl = new WindowedLabeler(dataset.getLabelEncoder(),
                                                dataset.getFeatureEncoder(),
@@ -43,32 +70,6 @@ public class WindowedLearner extends SequenceLabelerLearner {
       wl.classifier = learner.train(nd);
       wl.encoderPair = wl.classifier.getEncoderPair();
       return wl;
-   }
-
-   @Override
-   public void reset() {
-      learner.reset();
-   }
-
-
-   @Override
-   public Map<String, ?> getParameters() {
-      return learner.getParameters();
-   }
-
-   @Override
-   public void setParameters(@NonNull Map<String, Object> parameters) {
-      learner.setParameters(parameters);
-   }
-
-   @Override
-   public void setParameter(String name, Object value) {
-      learner.setParameter(name, value);
-   }
-
-   @Override
-   public Object getParameter(String name) {
-      return learner.getParameter(name);
    }
 
 }// END OF WindowedLearner

@@ -26,7 +26,6 @@ import com.davidbracewell.apollo.ml.classification.LibLinearLearner;
 import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.io.QuietIO;
-import lombok.NonNull;
 
 import java.util.Map;
 
@@ -38,6 +37,32 @@ import java.util.Map;
 public class MEMMLearner extends SequenceLabelerLearner {
    private static final long serialVersionUID = 1L;
    private LibLinearLearner learner = new LibLinearLearner();
+
+   @Override
+   public Object getParameter(String name) {
+      return learner.getParameter(name);
+   }
+
+   @Override
+   public Map<String, ?> getParameters() {
+      return learner.getParameters();
+   }
+
+   @Override
+   public void reset() {
+   }
+
+   @Override
+   public MEMMLearner setParameter(String name, Object value) {
+      learner.setParameter(name, value);
+      return this;
+   }
+
+   @Override
+   public MEMMLearner setParameters(Map<String, Object> parameters) {
+      learner.setParameters(parameters);
+      return Cast.as(this);
+   }
 
    @Override
    protected SequenceLabeler trainImpl(Dataset<Sequence> dataset) {
@@ -52,29 +77,5 @@ public class MEMMLearner extends SequenceLabelerLearner {
       QuietIO.closeQuietly(dataset);
       model.model = Cast.as(learner.train(nd));
       return model;
-   }
-
-   @Override
-   public void reset() {
-   }
-
-   @Override
-   public Map<String, ?> getParameters() {
-      return learner.getParameters();
-   }
-
-   @Override
-   public void setParameters(@NonNull Map<String, Object> parameters) {
-      learner.setParameters(parameters);
-   }
-
-   @Override
-   public void setParameter(String name, Object value) {
-      learner.setParameter(name, value);
-   }
-
-   @Override
-   public Object getParameter(String name) {
-      return learner.getParameter(name);
    }
 }// END OF MEMMLearner

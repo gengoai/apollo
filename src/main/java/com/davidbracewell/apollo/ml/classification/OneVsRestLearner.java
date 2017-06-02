@@ -23,6 +23,7 @@ package com.davidbracewell.apollo.ml.classification;
 
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.data.Dataset;
+import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.conversion.Val;
 import com.davidbracewell.function.SerializableSupplier;
 import lombok.Getter;
@@ -81,9 +82,10 @@ public class OneVsRestLearner extends ClassifierLearner {
    }
 
    @Override
-   public void setParameters(@NonNull Map<String, Object> parameters) {
+   public OneVsRestLearner setParameters(@NonNull Map<String, Object> parameters) {
       this.parameters.clear();
       parameters.forEach(this::setParameter);
+      return Cast.as(this);
    }
 
    @Override
@@ -92,7 +94,7 @@ public class OneVsRestLearner extends ClassifierLearner {
    }
 
    @Override
-   public void setParameter(String name, Object value) {
+   public OneVsRestLearner setParameter(String name, Object value) {
       if (name.equals("binaryLearner")) {
          this.learnerSupplier = () -> Val.of(parameters.get("binaryLearner"))
                                           .as(BinaryClassifierLearner.class);
@@ -101,6 +103,7 @@ public class OneVsRestLearner extends ClassifierLearner {
          this.normalize = Val.of(value).asBooleanValue();
       }
       parameters.put(name, value);
+      return this;
    }
 
    @Override

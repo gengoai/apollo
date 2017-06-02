@@ -7,6 +7,7 @@ import com.davidbracewell.apollo.ml.embedding.Embedding;
 import com.davidbracewell.apollo.ml.regression.Regression;
 import com.davidbracewell.apollo.ml.sequence.Sequence;
 import com.davidbracewell.apollo.ml.sequence.SequenceLabeler;
+import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.reflection.BeanMap;
 import com.davidbracewell.reflection.Ignore;
 import lombok.NonNull;
@@ -36,6 +37,24 @@ public abstract class Learner<T extends Example, M extends Model> implements Ser
    }
 
    /**
+    * Creates a builder for constructing clusterers
+    *
+    * @return the learner builder
+    */
+   public static <T extends Clustering> LearnerBuilder<Instance, T> clustering() {
+      return new LearnerBuilder<>();
+   }
+
+   /**
+    * Creates a builder for constructing Embedding learners
+    *
+    * @return the learner builder
+    */
+   public static LearnerBuilder<Sequence, Embedding> embedding() {
+      return new LearnerBuilder<>();
+   }
+
+   /**
     * Creates a builder for constructing Regression learners
     *
     * @return the learner builder
@@ -50,25 +69,6 @@ public abstract class Learner<T extends Example, M extends Model> implements Ser
     * @return the learner builder
     */
    public static LearnerBuilder<Sequence, SequenceLabeler> sequence() {
-      return new LearnerBuilder<>();
-   }
-
-   /**
-    * Creates a builder for constructing Embedding learners
-    *
-    * @return the learner builder
-    */
-   public static LearnerBuilder<Sequence, Embedding> embedding() {
-      return new LearnerBuilder<>();
-   }
-
-
-   /**
-    * Creates a builder for constructing clusterers
-    *
-    * @return the learner builder
-    */
-   public static <T extends Clustering> LearnerBuilder<Instance, T> clustering() {
       return new LearnerBuilder<>();
    }
 
@@ -99,8 +99,9 @@ public abstract class Learner<T extends Example, M extends Model> implements Ser
     * @param parameters the parameters
     */
    @Ignore
-   public void setParameters(@NonNull Map<String, Object> parameters) {
+   public Learner<T, M> setParameters(@NonNull Map<String, Object> parameters) {
       new BeanMap(this).putAll(parameters);
+      return Cast.as(this);
    }
 
    /**
@@ -115,8 +116,9 @@ public abstract class Learner<T extends Example, M extends Model> implements Ser
     * @param value the value to set the parameter to
     */
    @Ignore
-   public void setParameter(String name, Object value) {
+   public Learner<T, M> setParameter(String name, Object value) {
       new BeanMap(this).put(name, value);
+      return Cast.as(this);
    }
 
    /**

@@ -35,6 +35,9 @@ public class SGDLearner extends ClassifierLearner {
    private int maxIterations = 300;
    @Getter
    @Setter
+   private int batchSize = 20;
+   @Getter
+   @Setter
    private double tolerance = 1e-9;
    @Getter
    @Setter
@@ -44,6 +47,7 @@ public class SGDLearner extends ClassifierLearner {
       return loss.lossAndDerivative(activation.apply(weights.dot(next)), next.getLabelVector(weights.numClasses()));
    }
 
+
    @Override
    public void reset() {
 
@@ -51,7 +55,12 @@ public class SGDLearner extends ClassifierLearner {
 
    @Override
    protected Classifier trainImpl(Dataset<Instance> dataset) {
-      Optimizer sgd = new BatchOptimizer(new SGD(), 20);
+      Optimizer optimizer;
+      if (batchSize > 1) {
+         optimizer = new BatchOptimizer(new SGD(), batchSize);
+      } else {
+         optimizer = new SGD();
+      }
 
       Weights start;
       if (dataset.getLabelEncoder().size() <= 2) {
@@ -63,16 +72,16 @@ public class SGDLearner extends ClassifierLearner {
       }
 
 
-      Weights weights = sgd.optimize(start,
-                                     dataset::asFeatureVectors,
-                                     this::observe,
-                                     TerminationCriteria.create()
-                                                        .maxIterations(maxIterations)
-                                                        .historySize(3)
-                                                        .tolerance(tolerance),
-                                     learningRate,
-                                     weightUpdater,
-                                     verbose).getWeights();
+      Weights weights = optimizer.optimize(start,
+                                           dataset::asFeatureVectors,
+                                           this::observe,
+                                           TerminationCriteria.create()
+                                                              .maxIterations(maxIterations)
+                                                              .historySize(3)
+                                                              .tolerance(tolerance),
+                                           learningRate,
+                                           weightUpdater,
+                                           verbose).getWeights();
 
       GLM glm = new GLM(dataset.getEncoderPair(), dataset.getPreprocessors());
       glm.weights = weights;

@@ -32,6 +32,7 @@ import org.eclipse.collections.impl.map.mutable.primitive.IntDoubleHashMap;
 
 import java.io.Serializable;
 import java.util.*;
+import java.util.function.Consumer;
 
 /**
  * A sparse vector implementation backed by a map
@@ -214,6 +215,13 @@ public class SparseVector implements Vector, Serializable {
    public Iterator<Vector.Entry> nonZeroIterator() {
       return new Iterator<Vector.Entry>() {
          private final MutableIntIterator indexIter = map.keySet().intIterator();
+
+         @Override
+         public void forEachRemaining(Consumer<? super Entry> action) {
+            while (hasNext()) {
+               action.accept(next());
+            }
+         }
 
          @Override
          public boolean hasNext() {

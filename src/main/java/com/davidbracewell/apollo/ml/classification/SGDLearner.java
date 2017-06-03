@@ -8,7 +8,7 @@ import com.davidbracewell.apollo.optimization.activation.Activation;
 import com.davidbracewell.apollo.optimization.activation.SigmoidFunction;
 import com.davidbracewell.apollo.optimization.loss.LogLoss;
 import com.davidbracewell.apollo.optimization.loss.LossFunction;
-import com.davidbracewell.apollo.optimization.regularization.L1Regularization;
+import com.davidbracewell.apollo.optimization.regularization.NonRegularizedDeltaRule;
 import com.davidbracewell.apollo.optimization.regularization.WeightUpdater;
 import com.davidbracewell.guava.common.base.Preconditions;
 import lombok.Getter;
@@ -23,7 +23,7 @@ public class SGDLearner extends ClassifierLearner {
    private LearningRate learningRate = new ConstantLearningRate(0.1);
    @Getter
    @Setter
-   private WeightUpdater weightUpdater = new L1Regularization(0.1);
+   private WeightUpdater weightUpdater = new  NonRegularizedDeltaRule();
    @Getter
    @Setter
    private LossFunction loss = new LogLoss();

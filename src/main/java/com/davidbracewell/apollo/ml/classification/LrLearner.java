@@ -5,16 +5,13 @@ import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.EncoderPair;
 import com.davidbracewell.apollo.ml.Feature;
 import com.davidbracewell.apollo.ml.Instance;
-import com.davidbracewell.apollo.ml.TrainTestSplit;
 import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.ml.data.source.DenseCSVDataSource;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
-import com.davidbracewell.apollo.optimization.BatchOptimizer;
 import com.davidbracewell.apollo.optimization.DecayLearningRate;
-import com.davidbracewell.apollo.optimization.Optimizer;
-import com.davidbracewell.apollo.optimization.SGD;
 import com.davidbracewell.apollo.optimization.activation.SoftmaxFunction;
-import com.davidbracewell.apollo.optimization.regularization.NonRegularizedDeltaRule;
+import com.davidbracewell.apollo.optimization.regularization.L1Regularization;
+import com.davidbracewell.collection.counter.MultiCounter;
 import com.davidbracewell.io.Resources;
 import com.davidbracewell.io.resource.Resource;
 import lombok.NonNull;
@@ -44,55 +41,6 @@ public class LrLearner extends BinaryClassifierLearner {
 //         new ZScoreTransform("Petal width")
 //                                                ));
 
-      dataset.encode();
-      Optimizer sgd = new BatchOptimizer(new SGD(), 20);
-
-      TrainTestSplit<Instance> tt = dataset.shuffle().split(0.8).iterator().next();
-//      tt.getTrain().preprocess(PreprocessorList.create(new RescaleTransform(0, 1, true)));
-//      tt.getTrain().preprocess(PreprocessorList.create(
-//         new ZScoreTransform("Sepal length"),
-//         new ZScoreTransform("Sepal width"),
-//         new ZScoreTransform("Petal length"),
-//         new ZScoreTransform("Petal width")
-//                                                      ));
-
-
-//      LearningRate learningRate = new ConstantLearningRate(0.1);
-//      //new DecayLearningRate(0.1, 0.01);
-//      WeightUpdater updater = new L1Regularization(0.01);
-//
-//      Weights weights = sgd.optimize(
-//         Weights.multiClass(dataset.getLabelEncoder().size(), dataset.getFeatureEncoder().size()),
-//         () -> tt.getTrain().asFeatureVectors(),
-//         new LogisticCostFunction(),
-//         TerminationCriteria.create().maxIterations(100).historySize(3).tolerance(1e-3),
-//         learningRate,
-//         updater,
-//         true).getWeights();
-//
-//
-//      SoftmaxFunction softmaxFunction = new SoftmaxFunction();
-//      double[] correct = new double[dataset.getLabelEncoder().size()];
-//      double[] total = new double[dataset.getLabelEncoder().size()];
-//      tt.getTest().forEach(i -> {
-//         FeatureVector v = tt.getTrain().getPreprocessors().apply(i).toVector(tt.getTrain().getEncoderPair());
-//         Vector p = softmaxFunction.apply(weights.dot(v));
-//         double max = p.maxIndex();
-//         total[v.getLabel().intValue()]++;
-//         if (max == v.getLabel()) {
-//            correct[v.getLabel().intValue()]++;
-//         }
-//      });
-//
-//      double cSum = 0;
-//      double tSum = 0;
-//      for (int i = 0; i < correct.length; i++) {
-//         System.out.println(correct[i] + ", " + total[i] + " : " + (correct[i] / total[i]));
-//         cSum += correct[i];
-//         tSum += total[i];
-//      }
-//      System.out.println("\n\n" + (cSum / tSum));
-
       ClassifierEvaluation eval = ClassifierEvaluation.crossValidation(dataset,
                                                                        () -> {
                                                                           return new SGDLearner()
@@ -100,7 +48,7 @@ public class LrLearner extends BinaryClassifierLearner {
                                                                                                   new DecayLearningRate(0.1,
                                                                                                                         0.001))
                                                                                     .setParameter("weightUpdater",
-                                                                                                  new NonRegularizedDeltaRule())
+                                                                                                  new L1Regularization(0.001))
                                                                                     .setParameter("activation",
                                                                                                   new SoftmaxFunction())
                                                                                     .setParameter("batchSize", 0);
@@ -108,6 +56,22 @@ public class LrLearner extends BinaryClassifierLearner {
                                                                        10
                                                                       );
       eval.output(System.out);
+      Classifier c = new SGDLearner()
+                        .setParameter("learningRate",
+                                      new DecayLearningRate(0.1,
+                                                            0.001))
+                        .setParameter("weightUpdater",
+                                      new L1Regularization(0.01))
+                        .setParameter("activation",
+                                      new SoftmaxFunction())
+                        .setParameter("batchSize", 0).train(dataset);
+
+      MultiCounter<String, String> mm = c.getModelParameters();
+
+
+      mm.firstKeys().forEach(k1 -> {
+         System.out.println(k1 + " : " + mm.get(k1));
+      });
    }
 
    @Override

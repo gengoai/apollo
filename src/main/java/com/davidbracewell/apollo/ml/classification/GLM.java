@@ -6,6 +6,8 @@ import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.apollo.optimization.Weights;
 import com.davidbracewell.apollo.optimization.activation.Activation;
+import com.davidbracewell.collection.counter.MultiCounter;
+import com.davidbracewell.collection.counter.MultiCounters;
 
 /**
  * @author David B. Bracewell
@@ -37,4 +39,20 @@ public class GLM extends Classifier {
       return new Classification(output, getLabelEncoder());
    }
 
+   @Override
+   public MultiCounter<String, String> getModelParameters() {
+      MultiCounter<String, String> weightCntr = MultiCounters.newMultiCounter();
+      for (int fi = 0; fi < getFeatureEncoder().size(); fi++) {
+         String featureName = decodeFeature(fi).toString();
+         for (int li = 0; li < getLabelEncoder().size(); li++) {
+            String label = decodeLabel(li).toString();
+            weightCntr.set(featureName, label, weights.getTheta().get(li, fi));
+         }
+      }
+      for (int i = 0; i < getLabelEncoder().size(); i++) {
+         String label = decodeLabel(i).toString();
+         weightCntr.set("***BIAS***", label, weights.getBias().get(i));
+      }
+      return weightCntr;
+   }
 }// END OF GLM

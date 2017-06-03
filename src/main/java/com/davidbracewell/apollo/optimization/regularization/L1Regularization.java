@@ -35,15 +35,14 @@ public class L1Regularization extends NonRegularizedDeltaRule implements Seriali
 
       double shrinkage = l1 * learningRate;
       AtomicDouble addedCost = new AtomicDouble();
-      weights.getTheta().map(weight -> {
+      weights.getTheta().mapSelf(weight -> {
          double nW = FastMath.signum(weight) * FastMath.max(0.0, FastMath.abs(weight) - shrinkage);
-         if (FastMath.abs(nW) < tolerance) {
+         if (FastMath.abs(nW) <= tolerance) {
             return 0;
          }
          addedCost.addAndGet(FastMath.abs(weight));
          return nW;
       });
-
       return addedCost.get() * l1;
    }
 }// END OF L1Regularization

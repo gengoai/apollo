@@ -18,6 +18,8 @@ import lombok.NonNull;
 
 import java.util.Random;
 
+import static com.davidbracewell.apollo.ml.classification.ClassifierEvaluation.crossValidation;
+
 /**
  * Stochastic Gradient Descent Training for L1-regularized Log-linear Models with Cumulative Penalty
  *
@@ -34,41 +36,23 @@ public class LrLearner extends BinaryClassifierLearner {
       Dataset<Instance> dataset = Dataset.classification()
                                          .source(dataSource)
                                          .shuffle(new Random(1234));
-//      dataset.preprocess(PreprocessorList.create(
-//         new ZScoreTransform("Sepal length"),
-//         new ZScoreTransform("Sepal width"),
-//         new ZScoreTransform("Petal length"),
-//         new ZScoreTransform("Petal width")
-//                                                ));
+      crossValidation(dataset,
+                      () -> new SGDLearner()
+                               .setParameter("learningRate", new DecayLearningRate(0.1, 0.001))
+                               .setParameter("weightUpdater", new L1Regularization(0.001))
+                               .setParameter("activation", new SoftmaxFunction())
+                               .setParameter("batchSize", 0),
+                      10
+                     )
+         .output(System.out);
 
-      ClassifierEvaluation eval = ClassifierEvaluation.crossValidation(dataset,
-                                                                       () -> {
-                                                                          return new SGDLearner()
-                                                                                    .setParameter("learningRate",
-                                                                                                  new DecayLearningRate(0.1,
-                                                                                                                        0.001))
-                                                                                    .setParameter("weightUpdater",
-                                                                                                  new L1Regularization(0.001))
-                                                                                    .setParameter("activation",
-                                                                                                  new SoftmaxFunction())
-                                                                                    .setParameter("batchSize", 5);
-                                                                       },
-                                                                       10
-                                                                      );
-      eval.output(System.out);
-      Classifier c = new SGDLearner()
-                        .setParameter("learningRate",
-                                      new DecayLearningRate(0.1,
-                                                            0.001))
-                        .setParameter("weightUpdater",
-                                      new L1Regularization(0.01))
-                        .setParameter("activation",
-                                      new SoftmaxFunction())
-                        .setParameter("batchSize", 20).train(dataset);
-
-      MultiCounter<String, String> mm = c.getModelParameters();
-
-
+      MultiCounter<String, String> mm = new SGDLearner()
+                                           .setParameter("learningRate", new DecayLearningRate(0.1, 0.001))
+                                           .setParameter("weightUpdater", new L1Regularization(0.001))
+                                           .setParameter("activation", new SoftmaxFunction())
+                                           .setParameter("batchSize", 0)
+                                           .train(dataset)
+                                           .getModelParameters().transpose();
       mm.firstKeys().forEach(k1 -> {
          System.out.println(k1 + " : " + mm.get(k1));
       });
@@ -146,7 +130,7 @@ public class LrLearner extends BinaryClassifierLearner {
        * @param encoderPair   the encoder pair
        * @param preprocessors the preprocessors
        */
-      protected LrClassifier(EncoderPair encoderPair, @NonNull PreprocessorList<Instance> preprocessors) {
+      LrClassifier(EncoderPair encoderPair, @NonNull PreprocessorList<Instance> preprocessors) {
          super(encoderPair, preprocessors);
       }
 

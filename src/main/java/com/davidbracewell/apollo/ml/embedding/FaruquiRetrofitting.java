@@ -3,6 +3,7 @@ package com.davidbracewell.apollo.ml.embedding;
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.linalg.store.VectorStore;
 import com.davidbracewell.apollo.ml.EncoderPair;
+import com.davidbracewell.guava.common.collect.HashMultimap;
 import com.davidbracewell.guava.common.collect.Sets;
 import com.davidbracewell.guava.common.primitives.Doubles;
 import com.davidbracewell.io.resource.Resource;
@@ -10,8 +11,6 @@ import com.davidbracewell.string.StringUtils;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
-import org.eclipse.collections.api.multimap.MutableMultimap;
-import org.eclipse.collections.impl.multimap.set.UnifiedSetMultimap;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -25,13 +24,13 @@ import java.util.Set;
  * @author David B. Bracewell
  */
 public class FaruquiRetrofitting implements Retrofitting {
-   private final UnifiedSetMultimap<String, String> lexicon = new UnifiedSetMultimap<>();
+   private final HashMultimap<String, String> lexicon = HashMultimap.create();
    @Getter
    @Setter
    private int iterations = 25;
 
 
-   private void loadLexicon(Resource resource, MutableMultimap<String, String> lexicon) throws IOException {
+   private void loadLexicon(Resource resource, HashMultimap<String, String> lexicon) throws IOException {
       resource.forEach(line -> {
          String[] parts = line.toLowerCase().trim().split("\\s+");
          String word = norm(parts[0]);
@@ -56,7 +55,7 @@ public class FaruquiRetrofitting implements Retrofitting {
       VectorStore<String> origVectors = embedding.getVectorStore();
 
       Set<String> sourceVocab = new HashSet<>(origVectors.keySet());
-      Set<String> sharedVocab = Sets.intersection(sourceVocab, lexicon.keySet().toSet());
+      Set<String> sharedVocab = Sets.intersection(sourceVocab, lexicon.keySet());
       Map<String, Vector> unitNormedVectors = new HashMap<>();
       Map<String, Vector> retrofittedVectors = new HashMap<>();
 

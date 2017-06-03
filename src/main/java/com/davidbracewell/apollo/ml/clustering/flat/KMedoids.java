@@ -29,14 +29,13 @@ import com.davidbracewell.apollo.ml.clustering.Clusterer;
 import com.davidbracewell.guava.common.util.concurrent.AtomicDouble;
 import com.davidbracewell.stream.MStream;
 import com.davidbracewell.tuple.Tuple2;
+import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import lombok.Data;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import org.eclipse.collections.api.set.primitive.MutableIntSet;
-import org.eclipse.collections.impl.map.mutable.primitive.IntIntHashMap;
-import org.eclipse.collections.impl.set.mutable.primitive.IntHashSet;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -97,13 +96,13 @@ public class KMedoids extends Clusterer<FlatClustering> {
       Map<Tuple2<Integer, Integer>, Double> distanceCache = new ConcurrentHashMap<>();
 
       List<TempCluster> tempClusters = new ArrayList<>();
-      IntHashSet seen = new IntHashSet();
+      IntOpenHashSet seen = new IntOpenHashSet();
       while (seen.size() < K) {
          seen.add((int) Math.round(Math.random() * K));
       }
       seen.forEach(i -> tempClusters.add(new TempCluster().centroid(i)));
 
-      IntIntHashMap assignments = new IntIntHashMap();
+      Int2IntOpenHashMap assignments = new Int2IntOpenHashMap();
 
       for (int iteration = 0; iteration < maxIterations; iteration++) {
          System.err.println("iteration " + iteration);
@@ -125,7 +124,7 @@ public class KMedoids extends Clusterer<FlatClustering> {
                            minDistance = d;
                         }
                      }
-                     int old = assignments.getIfAbsent(i, -1);
+                     int old = assignments.getOrDefault(i, -1);
                      assignments.put(i, minC);
                      if (old != minC) {
                         numChanged.incrementAndGet();
@@ -199,7 +198,7 @@ public class KMedoids extends Clusterer<FlatClustering> {
    @Accessors(fluent = true)
    private static class TempCluster {
       int centroid;
-      MutableIntSet points = new IntHashSet();
+      IntOpenHashSet points = new IntOpenHashSet();
    }
 
 }//END OF KMedoids

@@ -28,7 +28,6 @@ import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.guava.common.base.Preconditions;
 import com.davidbracewell.guava.common.collect.Iterators;
 import lombok.NonNull;
-import org.eclipse.collections.impl.map.mutable.UnifiedMap;
 
 import java.io.Serializable;
 import java.util.*;
@@ -42,7 +41,7 @@ import java.util.stream.Collectors;
  */
 public class DefaultVectorStore<KEY> implements VectorStore<KEY>, Serializable {
    private static final long serialVersionUID = 1L;
-   private final Map<KEY, LabeledVector> vectorMap = new UnifiedMap<>();
+   private final Map<KEY, LabeledVector> vectorMap = new HashMap<>();
    private final int dimension;
    private final Measure queryMeasure;
 

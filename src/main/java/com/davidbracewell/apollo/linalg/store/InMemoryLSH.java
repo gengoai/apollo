@@ -22,8 +22,8 @@
 package com.davidbracewell.apollo.linalg.store;
 
 import com.davidbracewell.guava.common.base.Preconditions;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import lombok.NonNull;
-import org.eclipse.collections.impl.set.mutable.primitive.IntHashSet;
 
 import java.util.function.BiFunction;
 
@@ -34,7 +34,7 @@ import java.util.function.BiFunction;
  */
 public class InMemoryLSH extends LSH {
    private static final long serialVersionUID = 1L;
-   private IntHashSet[][] vectorStore;
+   private IntOpenHashSet[][] vectorStore;
 
 
    /**
@@ -85,10 +85,10 @@ public class InMemoryLSH extends LSH {
    }
 
    private void initVectorStore() {
-      this.vectorStore = new IntHashSet[getBands()][getBuckets()];
+      this.vectorStore = new IntOpenHashSet[getBands()][getBuckets()];
       for (int b = 0; b < getBands(); b++) {
          for (int u = 0; u < getBuckets(); u++) {
-            this.vectorStore[b][u] = new IntHashSet();
+            this.vectorStore[b][u] = new IntOpenHashSet();
          }
       }
    }
@@ -99,7 +99,7 @@ public class InMemoryLSH extends LSH {
    }
 
    @Override
-   protected IntHashSet get(int band, int bucket) {
+   protected IntOpenHashSet get(int band, int bucket) {
       return vectorStore[band][bucket];
    }
 

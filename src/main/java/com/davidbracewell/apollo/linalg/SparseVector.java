@@ -21,17 +21,20 @@
 
 package com.davidbracewell.apollo.linalg;
 
+import com.davidbracewell.Math2;
 import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.guava.common.base.Preconditions;
+import it.unimi.dsi.fastutil.ints.Int2DoubleOpenHashMap;
+import it.unimi.dsi.fastutil.ints.IntIterator;
 import lombok.NonNull;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.commons.math3.random.Well19937c;
-import org.eclipse.collections.api.iterator.MutableIntIterator;
-import org.eclipse.collections.api.tuple.primitive.IntDoublePair;
-import org.eclipse.collections.impl.map.mutable.primitive.IntDoubleHashMap;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
+import java.util.Random;
 import java.util.function.Consumer;
 
 /**
@@ -41,7 +44,7 @@ import java.util.function.Consumer;
  */
 public class SparseVector implements Vector, Serializable {
    private static final long serialVersionUID = 1L;
-   private final IntDoubleHashMap map;
+   private final Int2DoubleOpenHashMap map;
    private final int dimension;
 
    /**
@@ -52,7 +55,7 @@ public class SparseVector implements Vector, Serializable {
    public SparseVector(int dimension) {
       Preconditions.checkArgument(dimension >= 0, "Dimension must be non-negative.");
       this.dimension = dimension;
-      this.map = new IntDoubleHashMap();
+      this.map = new Int2DoubleOpenHashMap();
    }
 
    /**
@@ -62,7 +65,7 @@ public class SparseVector implements Vector, Serializable {
     */
    public SparseVector(@NonNull Vector vector) {
       this.dimension = vector.dimension();
-      this.map = new IntDoubleHashMap(vector.size());
+      this.map = new Int2DoubleOpenHashMap(vector.size());
       for (Iterator<Vector.Entry> itr = vector.nonZeroIterator(); itr.hasNext(); ) {
          Vector.Entry de = itr.next();
          this.map.put(de.index, de.value);
@@ -145,7 +148,7 @@ public class SparseVector implements Vector, Serializable {
 
    @Override
    public Vector compress() {
-      map.compact();
+      map.trim();
       return this;
    }
 
@@ -177,7 +180,13 @@ public class SparseVector implements Vector, Serializable {
 
    @Override
    public Vector increment(int index, double amount) {
-      map.addToValue(index, amount);
+      if (amount != 0) {
+         if (map.containsKey(index)) {
+            map.merge(index, amount, Math2::add);
+         } else {
+            map.put(index, amount);
+         }
+      }
       return this;
    }
 
@@ -192,29 +201,9 @@ public class SparseVector implements Vector, Serializable {
    }
 
    @Override
-   public double max() {
-      return map.maxIfEmpty(0d);
-   }
-
-   @Override
-   public int maxIndex() {
-      return map.keyValuesView().max(Comparator.comparingDouble(IntDoublePair::getTwo)).getOne();
-   }
-
-   @Override
-   public double min() {
-      return map.minIfEmpty(0);
-   }
-
-   @Override
-   public int minIndex() {
-      return map.keyValuesView().min(Comparator.comparingDouble(IntDoublePair::getTwo)).getOne();
-   }
-
-   @Override
    public Iterator<Vector.Entry> nonZeroIterator() {
       return new Iterator<Vector.Entry>() {
-         private final MutableIntIterator indexIter = map.keySet().intIterator();
+         private final IntIterator indexIter = map.keySet().iterator();
 
          @Override
          public void forEachRemaining(Consumer<? super Entry> action) {
@@ -242,7 +231,7 @@ public class SparseVector implements Vector, Serializable {
    @Override
    public Iterator<Vector.Entry> orderedNonZeroIterator() {
       return new Iterator<Vector.Entry>() {
-         private final MutableIntIterator indexIter = map.keySet().toSortedList().intIterator();
+         private final IntIterator indexIter = map.keySet().iterator();
 
          @Override
          public boolean hasNext() {
@@ -300,7 +289,7 @@ public class SparseVector implements Vector, Serializable {
    @Override
    public double[] toArray() {
       final double[] d = new double[dimension()];
-      map.keyValuesView().forEach(e -> d[e.getOne()] = e.getTwo());
+      map.int2DoubleEntrySet().forEach(e -> d[e.getIntKey()] = e.getDoubleValue());
       return d;
    }
 

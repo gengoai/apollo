@@ -22,11 +22,11 @@
 package com.davidbracewell.apollo.linalg.store;
 
 import com.davidbracewell.apollo.affinity.Measure;
-import com.davidbracewell.apollo.optimization.Optimum;
 import com.davidbracewell.apollo.linalg.Vector;
+import com.davidbracewell.apollo.optimization.Optimum;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import lombok.Getter;
 import lombok.NonNull;
-import org.eclipse.collections.impl.set.mutable.primitive.IntHashSet;
 
 import java.io.Serializable;
 import java.util.function.BiFunction;
@@ -108,7 +108,7 @@ public abstract class LSH implements Serializable {
     * @param bucket the bucket
     * @return the vector ids
     */
-   protected abstract IntHashSet get(int band, int bucket);
+   protected abstract IntOpenHashSet get(int band, int bucket);
 
    /**
     * Gets the ids of vectors close to the given vector
@@ -116,8 +116,8 @@ public abstract class LSH implements Serializable {
     * @param vector the vector
     * @return the int ids of the nearest vectors
     */
-   public IntHashSet query(@NonNull Vector vector) {
-      IntHashSet matches = new IntHashSet();
+   public IntOpenHashSet query(@NonNull Vector vector) {
+      IntOpenHashSet matches = new IntOpenHashSet();
       int[] hash = hash(vector);
       for (int i = 0; i < bands; i++) {
          get(i, hash[i]).forEach(matches::add);

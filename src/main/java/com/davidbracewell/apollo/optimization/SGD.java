@@ -45,7 +45,11 @@ public class SGD implements Optimizer {
          lr = eta;
          double sumTotal = stream.get()
                                  .shuffle()
-                                 .mapToDouble(next -> step(next, costFunction, weightUpdater, verbose, eta))
+                                 .mapToDouble(next -> {
+                                    synchronized (this){
+                                       return step(next, costFunction, weightUpdater, verbose, eta);
+                                    }
+                                 })
                                  .sum();
          lastLoss = sumTotal;
          if (verbose && pass % 10 == 0) {

@@ -43,7 +43,7 @@ public class SGDLearner extends ClassifierLearner {
    @Setter
    private boolean verbose = false;
 
-   protected LossGradientTuple observe(Vector next, Weights weights) {
+   private LossGradientTuple observe(Vector next, Weights weights) {
       return loss.lossAndDerivative(activation.apply(weights.dot(next)), next.getLabelVector(weights.numClasses()));
    }
 

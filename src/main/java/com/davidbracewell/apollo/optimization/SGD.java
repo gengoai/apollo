@@ -7,7 +7,6 @@ import com.davidbracewell.apollo.optimization.regularization.WeightUpdater;
 import com.davidbracewell.function.SerializableSupplier;
 import com.davidbracewell.logging.Logger;
 import com.davidbracewell.stream.MStream;
-import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -46,7 +45,7 @@ public class SGD implements Optimizer {
          double sumTotal = stream.get()
                                  .shuffle()
                                  .mapToDouble(next -> {
-                                    synchronized (this){
+                                    synchronized (this) {
                                        return step(next, costFunction, weightUpdater, verbose, eta);
                                     }
                                  })
@@ -75,19 +74,6 @@ public class SGD implements Optimizer {
       return observation.getLoss() + updater.update(weights,
                                                     new Weights(m, observation.getGradient(), weights.isBinary()),
                                                     lr);
-   }
-
-   @Data
-   private static class OptInfo {
-      int numProcessed;
-      int iteration;
-      double et0;
-
-      public OptInfo(int numProcessed, double et0, int iteration) {
-         this.numProcessed = numProcessed;
-         this.et0 = et0;
-         this.iteration = iteration;
-      }
    }
 
 

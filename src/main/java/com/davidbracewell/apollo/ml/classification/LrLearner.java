@@ -51,7 +51,7 @@ public class LrLearner extends BinaryClassifierLearner {
                                                                                                   new L1Regularization(0.001))
                                                                                     .setParameter("activation",
                                                                                                   new SoftmaxFunction())
-                                                                                    .setParameter("batchSize", 0);
+                                                                                    .setParameter("batchSize", 5);
                                                                        },
                                                                        10
                                                                       );
@@ -64,7 +64,7 @@ public class LrLearner extends BinaryClassifierLearner {
                                       new L1Regularization(0.01))
                         .setParameter("activation",
                                       new SoftmaxFunction())
-                        .setParameter("batchSize", 0).train(dataset);
+                        .setParameter("batchSize", 20).train(dataset);
 
       MultiCounter<String, String> mm = c.getModelParameters();
 

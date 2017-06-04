@@ -11,9 +11,9 @@ import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.apollo.optimization.DecayLearningRate;
 import com.davidbracewell.apollo.optimization.activation.SoftmaxFunction;
 import com.davidbracewell.apollo.optimization.regularization.L1Regularization;
-import com.davidbracewell.collection.counter.MultiCounter;
 import com.davidbracewell.io.Resources;
 import com.davidbracewell.io.resource.Resource;
+import de.bwaldvogel.liblinear.SolverType;
 import lombok.NonNull;
 
 import java.util.Random;
@@ -30,7 +30,6 @@ public class LrLearner extends BinaryClassifierLearner {
    public static void main(String[] args) {
       Resource url = Resources.from(
          "https://raw.githubusercontent.com/sjwhitworth/golearn/master/examples/datasets/iris_headers.csv");
-//    "http://www.csie.ntu.edu.tw/~cjlin/libsvmtools/datasets/binary/breast-cancer_scale");
       DenseCSVDataSource dataSource = new DenseCSVDataSource(url, true);
       dataSource.setLabelName("Species");
       Dataset<Instance> dataset = Dataset.classification()
@@ -46,16 +45,24 @@ public class LrLearner extends BinaryClassifierLearner {
                      )
          .output(System.out);
 
-      MultiCounter<String, String> mm = new SGDLearner()
-                                           .setParameter("learningRate", new DecayLearningRate(0.1, 0.001))
-                                           .setParameter("weightUpdater", new L1Regularization(0.001))
-                                           .setParameter("activation", new SoftmaxFunction())
-                                           .setParameter("batchSize", 0)
-                                           .train(dataset)
-                                           .getModelParameters().transpose();
-      mm.firstKeys().forEach(k1 -> {
-         System.out.println(k1 + " : " + mm.get(k1));
-      });
+      crossValidation(dataset,
+                      () -> new LibLinearLearner()
+                               .setParameter("solver", SolverType.L1R_LR)
+                               .setParameter("c", 1)
+                               .setParameter("eps", 0.001)
+                               .setParameter("bias", true),
+                      10
+                     )
+         .output(System.out);
+//      MultiCounter<String, String> mm = new SGDLearner()
+//                                           .setParameter("learningRate", new DecayLearningRate(0.1, 0.001))
+//                                           .setParameter("weightUpdater", new L1Regularization(0.001))
+//                                           .setParameter("activation", new SoftmaxFunction())
+//                                           .setParameter("batchSize", 0)
+//                                           .train(dataset)
+//                                           .getModelParameters()
+//                                           .transpose();
+//      mm.firstKeys().forEach(k1 -> System.out.println(k1 + " : " + mm.get(k1)));
    }
 
    @Override

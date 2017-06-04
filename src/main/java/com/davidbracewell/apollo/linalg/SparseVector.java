@@ -231,7 +231,7 @@ public class SparseVector implements Vector, Serializable {
    @Override
    public Iterator<Vector.Entry> orderedNonZeroIterator() {
       return new Iterator<Vector.Entry>() {
-         private final IntIterator indexIter = map.keySet().iterator();
+         private final Iterator<Integer> indexIter = map.keySet().stream().sorted().iterator();
 
          @Override
          public boolean hasNext() {

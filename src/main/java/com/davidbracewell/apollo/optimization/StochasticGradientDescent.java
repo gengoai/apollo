@@ -13,8 +13,8 @@ import lombok.Setter;
 /**
  * @author David B. Bracewell
  */
-public class SGD implements Optimizer {
-   private static final Logger LOG = Logger.getLogger(SGD.class);
+public class StochasticGradientDescent implements OnlineOptimizer {
+   private static final Logger LOG = Logger.getLogger(StochasticGradientDescent.class);
    @Getter
    @Setter
    private double alpha = 1;
@@ -25,9 +25,9 @@ public class SGD implements Optimizer {
    private Weights weights;
 
    @Override
-   public LossWeightTuple optimize(Weights start,
+   public CostWeightTuple optimize(Weights start,
                                    SerializableSupplier<MStream<? extends Vector>> stream,
-                                   StochasticCostFunction costFunction,
+                                   OnlineCostFunction costFunction,
                                    TerminationCriteria terminationCriteria,
                                    LearningRate learningRate,
                                    Regularizer weightUpdater,
@@ -62,11 +62,11 @@ public class SGD implements Optimizer {
       if (verbose && pass != lastPass) {
          LOG.info("pass={0}, total_cost={1}", pass, terminationCriteria.lastLoss());
       }
-      return LossWeightTuple.of(lastLoss, weights);
+      return CostWeightTuple.of(lastLoss, weights);
    }
 
-   private double step(Vector next, StochasticCostFunction costFunction, Regularizer updater, boolean verbose, double lr) {
-      LossGradientTuple observation = costFunction.observe(next, weights);
+   private double step(Vector next, OnlineCostFunction costFunction, Regularizer updater, boolean verbose, double lr) {
+      CostGradientTuple observation = costFunction.observe(next, weights);
       Vector nextEta = next.mapMultiply(lr);
       Matrix m = observation.getGradient()
                             .toDiagMatrix()
@@ -77,4 +77,4 @@ public class SGD implements Optimizer {
    }
 
 
-}// END OF SGD
+}// END OF StochasticGradientDescent

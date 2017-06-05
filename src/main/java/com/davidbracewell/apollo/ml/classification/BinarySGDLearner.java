@@ -80,7 +80,7 @@ public class BinarySGDLearner extends BinaryClassifierLearner {
       return learner;
    }
 
-   private LossGradientTuple observe(Vector next, Weights weights) {
+   private CostGradientTuple observe(Vector next, Weights weights) {
       return loss.lossAndDerivative(activation.apply(weights.dot(next)), next.getLabelVector(weights.numClasses()));
    }
 
@@ -91,11 +91,11 @@ public class BinarySGDLearner extends BinaryClassifierLearner {
 
    @Override
    protected Classifier trainForLabel(Dataset<Instance> dataset, double trueLabel) {
-      Optimizer optimizer;
+      OnlineOptimizer optimizer;
       if (batchSize > 1) {
-         optimizer = new BatchOptimizer(new SGD(), batchSize);
+         optimizer = new OnlineBatchOptimizer(new StochasticGradientDescent(), batchSize);
       } else {
-         optimizer = new SGD();
+         optimizer = new StochasticGradientDescent();
       }
 
       Weights start;

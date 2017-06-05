@@ -13,17 +13,17 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * @author David B. Bracewell
  */
-public class BatchOptimizer implements Optimizer {
-   private final Optimizer subOptimizer;
+public class OnlineBatchOptimizer implements OnlineOptimizer {
+   private final OnlineOptimizer subOptimizer;
    private final int batchSize;
 
-   public BatchOptimizer(Optimizer subOptimizer, int batchSize) {
+   public OnlineBatchOptimizer(OnlineOptimizer subOptimizer, int batchSize) {
       this.subOptimizer = subOptimizer;
       this.batchSize = batchSize;
    }
 
    @Override
-   public LossWeightTuple optimize(Weights start, SerializableSupplier<MStream<? extends Vector>> stream, StochasticCostFunction costFunction, TerminationCriteria terminationCriteria, LearningRate learningRate, Regularizer weightUpdater, boolean verbose) {
+   public CostWeightTuple optimize(Weights start, SerializableSupplier<MStream<? extends Vector>> stream, OnlineCostFunction costFunction, TerminationCriteria terminationCriteria, LearningRate learningRate, Regularizer weightUpdater, boolean verbose) {
       final Weights theta = start.copy();
       int iterations = terminationCriteria.maxIterations();
       terminationCriteria.maxIterations(1);
@@ -34,10 +34,9 @@ public class BatchOptimizer implements Optimizer {
          final int iteration = i;
          lastLoss = stream.get().shuffle().split(batchSize).mapToDouble(batch -> {
             final SubUpdate subUpdate = new SubUpdate();
-            LossWeightTuple lwt = subOptimizer.optimize(theta, () -> StreamingContext.local().stream(batch),
+            CostWeightTuple lwt = subOptimizer.optimize(theta, () -> StreamingContext.local().stream(batch),
                                                         costFunction, terminationCriteria,
                                                         learningRate, subUpdate, false);
-//            theta.set(lwt.getWeights());
             lr.set(learningRate.get(lr.get(), iteration, numProcessed.get()));
             if (subUpdate.gradient != null) {
                return lwt.getLoss() + weightUpdater.update(theta, subUpdate.gradient, lr.get());
@@ -51,7 +50,7 @@ public class BatchOptimizer implements Optimizer {
          }
       }
       terminationCriteria.maxIterations(iterations);
-      return LossWeightTuple.of(lastLoss, theta);
+      return CostWeightTuple.of(lastLoss, theta);
    }
 
 
@@ -71,4 +70,4 @@ public class BatchOptimizer implements Optimizer {
       }
    }
 
-}// END OF BatchOptimizer
+}// END OF OnlineBatchOptimizer

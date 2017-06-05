@@ -22,11 +22,6 @@ public class SoftmaxActivation implements Activation {
    }
 
    @Override
-   public boolean isMultiClass() {
-      return true;
-   }
-
-   @Override
    public boolean isProbabilistic() {
       return true;
    }

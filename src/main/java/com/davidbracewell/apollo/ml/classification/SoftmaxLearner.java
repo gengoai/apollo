@@ -38,7 +38,7 @@ public class SoftmaxLearner extends ClassifierLearner {
    @Setter
    private boolean verbose = false;
 
-   private LossGradientTuple observe(Vector next, Weights weights) {
+   private CostGradientTuple observe(Vector next, Weights weights) {
       return loss.lossAndDerivative(activation.apply(weights.dot(next)), next.getLabelVector(weights.numClasses()));
    }
 
@@ -50,11 +50,11 @@ public class SoftmaxLearner extends ClassifierLearner {
 
    @Override
    protected Classifier trainImpl(Dataset<Instance> dataset) {
-      Optimizer optimizer;
+      OnlineOptimizer optimizer;
       if (batchSize > 1) {
-         optimizer = new BatchOptimizer(new SGD(), batchSize);
+         optimizer = new OnlineBatchOptimizer(new StochasticGradientDescent(), batchSize);
       } else {
-         optimizer = new SGD();
+         optimizer = new StochasticGradientDescent();
       }
 
       Weights start = Weights.multiClass(dataset.getLabelEncoder().size(), dataset.getFeatureEncoder().size());

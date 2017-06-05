@@ -2,7 +2,7 @@ package com.davidbracewell.apollo.optimization.loss;
 
 import com.davidbracewell.apollo.linalg.SinglePointVector;
 import com.davidbracewell.apollo.linalg.Vector;
-import com.davidbracewell.apollo.optimization.LossGradientTuple;
+import com.davidbracewell.apollo.optimization.CostGradientTuple;
 import lombok.NonNull;
 
 /**
@@ -60,8 +60,8 @@ public interface LossFunction {
     * @param trueValue      the true value
     * @return the loss gradient tuple
     */
-   default LossGradientTuple lossAndDerivative(@NonNull Vector predictedValue, @NonNull Vector trueValue) {
-      return LossGradientTuple.of(loss(predictedValue, trueValue), derivative(predictedValue, trueValue));
+   default CostGradientTuple lossAndDerivative(@NonNull Vector predictedValue, @NonNull Vector trueValue) {
+      return CostGradientTuple.of(loss(predictedValue, trueValue), derivative(predictedValue, trueValue));
    }
 
    /**
@@ -71,8 +71,8 @@ public interface LossFunction {
     * @param trueValue      the true value
     * @return the loss gradient tuple
     */
-   default LossGradientTuple lossAndDerivative(double predictedValue, double trueValue) {
-      return LossGradientTuple.of(loss(predictedValue, trueValue),
+   default CostGradientTuple lossAndDerivative(double predictedValue, double trueValue) {
+      return CostGradientTuple.of(loss(predictedValue, trueValue),
                                   new SinglePointVector(derivative(predictedValue, trueValue)));
    }
 

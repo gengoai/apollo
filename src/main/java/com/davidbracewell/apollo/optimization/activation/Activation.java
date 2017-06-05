@@ -31,15 +31,6 @@ public interface Activation extends Serializable {
    }
 
    /**
-    * Is multiclass boolean.
-    *
-    * @return the boolean
-    */
-   default boolean isMultiClass() {
-      return false;
-   }
-
-   /**
     * Is probabilistic boolean.
     *
     * @return the boolean

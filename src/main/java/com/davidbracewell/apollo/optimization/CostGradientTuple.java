@@ -7,7 +7,7 @@ import lombok.Value;
  * @author David B. Bracewell
  */
 @Value(staticConstructor = "of")
-public class LossGradientTuple {
+public class CostGradientTuple {
    double loss;
    Vector gradient;
-}// END OF LossGradientTuple
+}// END OF CostGradientTuple

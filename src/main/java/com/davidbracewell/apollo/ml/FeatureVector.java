@@ -1,10 +1,16 @@
 package com.davidbracewell.apollo.ml;
 
 import com.davidbracewell.apollo.linalg.SparseVector;
+import com.davidbracewell.collection.Streams;
 import com.davidbracewell.conversion.Cast;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
+
+import java.util.Map;
+import java.util.stream.Stream;
+
+import static com.davidbracewell.tuple.Tuples.$;
 
 /**
  * <p>A specialized sparse vector that stores an encoded label and an optionally an encoded predicted label. The
@@ -136,6 +142,15 @@ public class FeatureVector extends SparseVector {
       if (this.predictedLabel == -1) {
          this.predictedLabel = Double.NaN;
       }
+   }
+
+   public Stream<Map.Entry<Object, Double>> decodedFeatureStream() {
+      final Encoder encoder = getEncoderPair().getFeatureEncoder();
+      if(size() == 0 ){
+         return Stream.empty();
+      }
+      return Streams.asStream(orderedNonZeroIterator())
+                    .map(e -> $(encoder.decode(e.getIndex()), e.getValue()));
    }
 
    /**

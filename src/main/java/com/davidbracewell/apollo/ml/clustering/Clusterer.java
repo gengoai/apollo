@@ -31,7 +31,7 @@ public abstract class Clusterer<T extends Clustering> extends Learner<Instance, 
    @Override
    protected T trainImpl(Dataset<Instance> dataset) {
       this.encoderPair = dataset.getEncoderPair();
-      return cluster(dataset.stream().map(i -> i.toVector(dataset.getEncoderPair())));
+      return cluster(dataset.asVectors());
    }
 
    /**

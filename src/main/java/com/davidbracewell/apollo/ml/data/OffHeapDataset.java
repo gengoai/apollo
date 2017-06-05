@@ -59,13 +59,12 @@ public class OffHeapDataset<T extends Example> extends Dataset<T> {
       }
       if (binSize <= 1) {
          writeInstancesTo(instances,
-                          outputResource.getChild("part-" + id.incrementAndGet() + ".json").setIsCompressed(true));
+                          outputResource.getChild("part-" + id.incrementAndGet() + ".json"));
       } else {
          instances.mapToPair(i -> Tuples.$((long) Math.floor(Math.random() * binSize), i))
                   .groupByKey()
                   .forEachLocal((key, list) -> {
-                                   Resource r = outputResource.getChild("part-" + id.incrementAndGet() + ".json")
-                                                              .setIsCompressed(true);
+                                   Resource r = outputResource.getChild("part-" + id.incrementAndGet() + ".json");
                                    writeInstancesTo(StreamingContext.local().stream(list), r);
                                 }
                                );
@@ -139,12 +138,12 @@ public class OffHeapDataset<T extends Example> extends Dataset<T> {
    }
 
    private void writeInstancesTo(MStream<T> instances, Resource file) {
+      file.setIsCompressed(true);
       try (BufferedWriter writer = new BufferedWriter(file.writer())) {
          instances.forEach(Unchecked.consumer(ii -> {
             clazz = Cast.as(ii.getClass());
             if (ii.getFeatureSpace().count() > 0) {
-               writer.write(ii.toJson());
-               writer.newLine();
+               writer.write(ii.toJson().trim() + "\n");
                size++;
             }
          }));

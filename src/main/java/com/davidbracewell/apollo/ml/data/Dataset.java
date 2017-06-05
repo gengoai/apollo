@@ -22,6 +22,7 @@
 package com.davidbracewell.apollo.ml.data;
 
 import com.davidbracewell.Copyable;
+import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.*;
 import com.davidbracewell.apollo.ml.preprocess.Preprocessor;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
@@ -160,6 +161,10 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
    public MStream<FeatureVector> asFeatureVectors() {
       encode();
       return stream().parallel().flatMap(e -> e.asInstances().stream().map(ii -> ii.toVector(encoders)));
+   }
+
+   public MStream<Vector> asVectors() {
+      return asFeatureVectors().map(Cast::<Vector>as);
    }
 
    @Override

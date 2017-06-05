@@ -5,12 +5,12 @@ import com.davidbracewell.apollo.linalg.Vector;
 /**
  * @author David B. Bracewell
  */
-public class SoftmaxFunction implements Activation {
+public class SoftmaxActivation implements Activation {
    private static final long serialVersionUID = 1L;
 
    @Override
    public double apply(double x) {
-      return SigmoidFunction.INSTANCE.apply(x);
+      return SigmoidActivation.INSTANCE.apply(x);
    }
 
    @Override
@@ -30,4 +30,4 @@ public class SoftmaxFunction implements Activation {
    public boolean isProbabilistic() {
       return true;
    }
-}// END OF SoftmaxFunction
+}// END OF SoftmaxActivation

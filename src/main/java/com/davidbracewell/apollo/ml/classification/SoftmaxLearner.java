@@ -5,11 +5,11 @@ import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.optimization.*;
 import com.davidbracewell.apollo.optimization.activation.Activation;
-import com.davidbracewell.apollo.optimization.activation.SoftmaxFunction;
+import com.davidbracewell.apollo.optimization.activation.SoftmaxActivation;
 import com.davidbracewell.apollo.optimization.loss.LogLoss;
 import com.davidbracewell.apollo.optimization.loss.LossFunction;
-import com.davidbracewell.apollo.optimization.regularization.NonRegularizedDeltaRule;
-import com.davidbracewell.apollo.optimization.regularization.WeightUpdater;
+import com.davidbracewell.apollo.optimization.regularization.DeltaRule;
+import com.davidbracewell.apollo.optimization.regularization.Regularizer;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -18,13 +18,13 @@ import lombok.Setter;
  */
 public class SoftmaxLearner extends ClassifierLearner {
    private final LossFunction loss = new LogLoss();
-   private final Activation activation = new SoftmaxFunction();
+   private final Activation activation = new SoftmaxActivation();
    @Getter
    @Setter
    private LearningRate learningRate = new ConstantLearningRate(0.1);
    @Getter
    @Setter
-   private WeightUpdater weightUpdater = new NonRegularizedDeltaRule();
+   private Regularizer weightUpdater = new DeltaRule();
    @Getter
    @Setter
    private int maxIterations = 300;

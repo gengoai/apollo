@@ -9,7 +9,7 @@ import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.ml.data.source.DenseCSVDataSource;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.apollo.optimization.DecayLearningRate;
-import com.davidbracewell.apollo.optimization.regularization.L1Regularization;
+import com.davidbracewell.apollo.optimization.regularization.L1Regularizer;
 import com.davidbracewell.io.Resources;
 import com.davidbracewell.io.resource.Resource;
 import lombok.NonNull;
@@ -36,7 +36,7 @@ public class LrLearner extends BinaryClassifierLearner {
       crossValidation(dataset,
                       () -> new SoftmaxLearner()
                                .setParameter("learningRate", new DecayLearningRate(0.1, 0.001))
-                               .setParameter("weightUpdater", new L1Regularization(0.001))
+                               .setParameter("weightUpdater", new L1Regularizer(0.001))
                                .setParameter("batchSize", 0),
                       10
                      )

@@ -5,14 +5,14 @@ package com.davidbracewell.apollo.optimization.activation;
  *
  * @author David B. Bracewell
  */
-public class StepFunction implements Activation {
+public class StepActivation implements Activation {
    private static final long serialVersionUID = 1L;
    private final double threshold;
 
    /**
     * Instantiates a new Step function.
     */
-   public StepFunction() {
+   public StepActivation() {
       this(0);
    }
 
@@ -21,7 +21,7 @@ public class StepFunction implements Activation {
     *
     * @param threshold the threshold
     */
-   public StepFunction(double threshold) {
+   public StepActivation(double threshold) {
       this.threshold = threshold;
    }
 
@@ -30,4 +30,4 @@ public class StepFunction implements Activation {
    public double apply(double x) {
       return x > threshold ? 1 : 0;
    }
-}// END OF StepFunction
+}// END OF StepActivation

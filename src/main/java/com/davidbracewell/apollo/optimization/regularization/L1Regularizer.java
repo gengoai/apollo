@@ -9,18 +9,18 @@ import java.io.Serializable;
 /**
  * @author David B. Bracewell
  */
-public class L1Regularization extends NonRegularizedDeltaRule implements Serializable {
+public class L1Regularizer extends DeltaRule implements Serializable {
    private static final long serialVersionUID = 1L;
 
    private final double l1;
    private final double tolerance;
 
-   public L1Regularization(double l1) {
+   public L1Regularizer(double l1) {
       this(l1, l1);
    }
 
 
-   public L1Regularization(double l1, double tolerance) {
+   public L1Regularizer(double l1, double tolerance) {
       this.l1 = l1;
       this.tolerance = tolerance;
    }
@@ -45,4 +45,4 @@ public class L1Regularization extends NonRegularizedDeltaRule implements Seriali
       });
       return addedCost.get() * l1;
    }
-}// END OF L1Regularization
+}// END OF L1Regularizer

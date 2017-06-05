@@ -5,8 +5,8 @@ import com.davidbracewell.apollo.optimization.Weights;
 /**
  * @author David B. Bracewell
  */
-public interface WeightUpdater {
+public interface Regularizer {
 
    double update(Weights weights, Weights gradient, double learningRate);
 
-}//END OF WeightUpdater
+}//END OF Regularizer

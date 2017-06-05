@@ -3,9 +3,9 @@ package com.davidbracewell.apollo.optimization.activation;
 /**
  * @author David B. Bracewell
  */
-public class SigmoidFunction implements Activation {
+public class SigmoidActivation implements Activation {
    private static final long serialVersionUID = 1L;
-   public static final SigmoidFunction INSTANCE = new SigmoidFunction();
+   public static final SigmoidActivation INSTANCE = new SigmoidActivation();
 
    @Override
    public double apply(double x) {
@@ -20,4 +20,4 @@ public class SigmoidFunction implements Activation {
    public boolean isProbabilistic() {
       return true;
    }
-}// END OF SigmoidFunction
+}// END OF SigmoidActivation

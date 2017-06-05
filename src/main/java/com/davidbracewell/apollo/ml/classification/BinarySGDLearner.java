@@ -5,13 +5,13 @@ import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.optimization.*;
 import com.davidbracewell.apollo.optimization.activation.Activation;
-import com.davidbracewell.apollo.optimization.activation.SigmoidFunction;
-import com.davidbracewell.apollo.optimization.activation.StepFunction;
+import com.davidbracewell.apollo.optimization.activation.SigmoidActivation;
+import com.davidbracewell.apollo.optimization.activation.StepActivation;
 import com.davidbracewell.apollo.optimization.loss.HingeLoss;
 import com.davidbracewell.apollo.optimization.loss.LogLoss;
 import com.davidbracewell.apollo.optimization.loss.LossFunction;
-import com.davidbracewell.apollo.optimization.regularization.NonRegularizedDeltaRule;
-import com.davidbracewell.apollo.optimization.regularization.WeightUpdater;
+import com.davidbracewell.apollo.optimization.regularization.DeltaRule;
+import com.davidbracewell.apollo.optimization.regularization.Regularizer;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -26,13 +26,13 @@ public class BinarySGDLearner extends BinaryClassifierLearner {
    private LearningRate learningRate = new ConstantLearningRate(0.1);
    @Getter
    @Setter
-   private WeightUpdater weightUpdater = new NonRegularizedDeltaRule();
+   private Regularizer weightUpdater = new DeltaRule();
    @Getter
    @Setter
    private LossFunction loss = new LogLoss();
    @Getter
    @Setter
-   private Activation activation = new SigmoidFunction();
+   private Activation activation = new SigmoidActivation();
    @Getter
    @Setter
    private int maxIterations = 300;
@@ -53,7 +53,7 @@ public class BinarySGDLearner extends BinaryClassifierLearner {
     */
    public static BinarySGDLearner linearSVM() {
       BinarySGDLearner learner = new BinarySGDLearner();
-      learner.setActivation(new StepFunction());
+      learner.setActivation(new StepActivation());
       learner.setLoss(new HingeLoss(1.0));
       return learner;
    }
@@ -74,7 +74,7 @@ public class BinarySGDLearner extends BinaryClassifierLearner {
     */
    public static BinarySGDLearner perceptron() {
       BinarySGDLearner learner = new BinarySGDLearner();
-      learner.setActivation(new StepFunction());
+      learner.setActivation(new StepActivation());
       learner.setLoss(new HingeLoss(0.0));
       learner.setLearningRate(new ConstantLearningRate(1.0));
       return learner;

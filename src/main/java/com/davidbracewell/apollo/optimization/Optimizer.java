@@ -1,7 +1,7 @@
 package com.davidbracewell.apollo.optimization;
 
 import com.davidbracewell.apollo.linalg.Vector;
-import com.davidbracewell.apollo.optimization.regularization.WeightUpdater;
+import com.davidbracewell.apollo.optimization.regularization.Regularizer;
 import com.davidbracewell.function.SerializableSupplier;
 import com.davidbracewell.stream.MStream;
 
@@ -15,7 +15,7 @@ public interface Optimizer {
                             StochasticCostFunction costFunction,
                             TerminationCriteria terminationCriteria,
                             LearningRate learningRate,
-                            WeightUpdater weightUpdater,
+                            Regularizer weightUpdater,
                             boolean verbose
                    );
 

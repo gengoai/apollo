@@ -3,11 +3,11 @@ package com.davidbracewell.apollo.optimization.activation;
 /**
  * @author David B. Bracewell
  */
-public class ReLu implements Activation {
+public class ReLuActivation implements Activation {
 
    @Override
    public double apply(double x) {
       return Math.max(0, x);
    }
 
-}//END OF ReLu
+}//END OF ReLuActivation

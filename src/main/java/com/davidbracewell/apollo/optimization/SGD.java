@@ -3,7 +3,7 @@ package com.davidbracewell.apollo.optimization;
 import com.davidbracewell.apollo.linalg.Matrix;
 import com.davidbracewell.apollo.linalg.SparseMatrix;
 import com.davidbracewell.apollo.linalg.Vector;
-import com.davidbracewell.apollo.optimization.regularization.WeightUpdater;
+import com.davidbracewell.apollo.optimization.regularization.Regularizer;
 import com.davidbracewell.function.SerializableSupplier;
 import com.davidbracewell.logging.Logger;
 import com.davidbracewell.stream.MStream;
@@ -30,7 +30,7 @@ public class SGD implements Optimizer {
                                    StochasticCostFunction costFunction,
                                    TerminationCriteria terminationCriteria,
                                    LearningRate learningRate,
-                                   WeightUpdater weightUpdater,
+                                   Regularizer weightUpdater,
                                    boolean verbose
                                   ) {
       weights = start.copy();
@@ -65,7 +65,7 @@ public class SGD implements Optimizer {
       return LossWeightTuple.of(lastLoss, weights);
    }
 
-   private double step(Vector next, StochasticCostFunction costFunction, WeightUpdater updater, boolean verbose, double lr) {
+   private double step(Vector next, StochasticCostFunction costFunction, Regularizer updater, boolean verbose, double lr) {
       LossGradientTuple observation = costFunction.observe(next, weights);
       Vector nextEta = next.mapMultiply(lr);
       Matrix m = observation.getGradient()

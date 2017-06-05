@@ -8,12 +8,12 @@ import java.io.Serializable;
 /**
  * @author David B. Bracewell
  */
-public class L2Regularization extends NonRegularizedDeltaRule implements Serializable {
+public class L2Regularizer extends DeltaRule implements Serializable {
    private static final long serialVersionUID = 1L;
 
    private final double l2;
 
-   public L2Regularization(double l2) {
+   public L2Regularizer(double l2) {
       this.l2 = l2;
    }
 
@@ -31,4 +31,4 @@ public class L2Regularization extends NonRegularizedDeltaRule implements Seriali
       super.update(weights, gradient, learningRate);
       return cost;
    }
-}// END OF L2Regularization
+}// END OF L2Regularizer

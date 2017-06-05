@@ -1,16 +1,17 @@
 package com.davidbracewell.apollo.optimization.activation;
 
+import org.apache.commons.math3.util.FastMath;
+
 /**
- * The type Linear function.
- *
  * @author David B. Bracewell
  */
-public class LinearFunction implements Activation {
+public class SignActivation implements Activation {
    private static final long serialVersionUID = 1L;
 
    @Override
    public double apply(double x) {
-      return x;
+      return FastMath.signum(x);
    }
 
-}// END OF LinearActivation
+}// END OF SignActivation
+

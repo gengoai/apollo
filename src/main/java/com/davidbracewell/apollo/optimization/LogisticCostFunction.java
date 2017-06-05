@@ -2,7 +2,7 @@ package com.davidbracewell.apollo.optimization;
 
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.optimization.activation.Activation;
-import com.davidbracewell.apollo.optimization.activation.SigmoidFunction;
+import com.davidbracewell.apollo.optimization.activation.SigmoidActivation;
 import com.davidbracewell.apollo.optimization.loss.LogLoss;
 import com.davidbracewell.apollo.optimization.loss.LossFunction;
 
@@ -11,7 +11,7 @@ import com.davidbracewell.apollo.optimization.loss.LossFunction;
  */
 public class LogisticCostFunction implements StochasticCostFunction {
    public final LossFunction loss = new LogLoss();
-   public final Activation activation = new SigmoidFunction();
+   public final Activation activation = new SigmoidActivation();
 
    @Override
    public LossGradientTuple observe(Vector next, Weights weights) {

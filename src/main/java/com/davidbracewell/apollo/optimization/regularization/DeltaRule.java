@@ -7,7 +7,7 @@ import java.io.Serializable;
 /**
  * @author David B. Bracewell
  */
-public class NonRegularizedDeltaRule implements WeightUpdater, Serializable {
+public class DeltaRule implements Regularizer, Serializable {
    private static final long serialVersionUID = 1L;
 
    @Override
@@ -18,4 +18,4 @@ public class NonRegularizedDeltaRule implements WeightUpdater, Serializable {
    }
 
 
-}// END OF NonRegularizedDeltaRule
+}// END OF DeltaRule

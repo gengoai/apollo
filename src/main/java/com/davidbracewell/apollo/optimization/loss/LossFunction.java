@@ -53,10 +53,24 @@ public interface LossFunction {
    }
 
 
+   /**
+    * Loss and derivative loss gradient tuple.
+    *
+    * @param predictedValue the predicted value
+    * @param trueValue      the true value
+    * @return the loss gradient tuple
+    */
    default LossGradientTuple lossAndDerivative(@NonNull Vector predictedValue, @NonNull Vector trueValue) {
       return LossGradientTuple.of(loss(predictedValue, trueValue), derivative(predictedValue, trueValue));
    }
 
+   /**
+    * Loss and derivative loss gradient tuple.
+    *
+    * @param predictedValue the predicted value
+    * @param trueValue      the true value
+    * @return the loss gradient tuple
+    */
    default LossGradientTuple lossAndDerivative(double predictedValue, double trueValue) {
       return LossGradientTuple.of(loss(predictedValue, trueValue),
                                   new SinglePointVector(derivative(predictedValue, trueValue)));

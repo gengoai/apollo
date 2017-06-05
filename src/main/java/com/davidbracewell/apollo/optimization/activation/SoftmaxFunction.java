@@ -22,7 +22,7 @@ public class SoftmaxFunction implements Activation {
    }
 
    @Override
-   public boolean isMulticlass() {
+   public boolean isMultiClass() {
       return true;
    }
 

@@ -1,16 +1,26 @@
 package com.davidbracewell.apollo.optimization.activation;
 
 /**
+ * The type Step function.
+ *
  * @author David B. Bracewell
  */
 public class StepFunction implements Activation {
    private static final long serialVersionUID = 1L;
    private final double threshold;
 
+   /**
+    * Instantiates a new Step function.
+    */
    public StepFunction() {
       this(0);
    }
 
+   /**
+    * Instantiates a new Step function.
+    *
+    * @param threshold the threshold
+    */
    public StepFunction(double threshold) {
       this.threshold = threshold;
    }

@@ -5,6 +5,8 @@ import org.apache.commons.math3.util.FastMath;
 import java.io.Serializable;
 
 /**
+ * The type Squared loss.
+ *
  * @author David B. Bracewell
  */
 public class SquaredLoss implements LossFunction, Serializable {

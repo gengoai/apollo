@@ -1,6 +1,8 @@
 package com.davidbracewell.apollo.optimization.activation;
 
 /**
+ * The type Linear function.
+ *
  * @author David B. Bracewell
  */
 public class LinearFunction implements Activation {

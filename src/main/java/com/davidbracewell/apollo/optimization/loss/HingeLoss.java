@@ -5,16 +5,26 @@ import org.apache.commons.math3.util.FastMath;
 import java.io.Serializable;
 
 /**
+ * The type Hinge loss.
+ *
  * @author David B. Bracewell
  */
 public class HingeLoss implements LossFunction, Serializable {
    private static final long serialVersionUID = 1L;
    private final double threshold;
 
+   /**
+    * Instantiates a new Hinge loss.
+    */
    public HingeLoss() {
       this(1);
    }
 
+   /**
+    * Instantiates a new Hinge loss.
+    *
+    * @param threshold the threshold
+    */
    public HingeLoss(double threshold) {
       this.threshold = threshold;
    }

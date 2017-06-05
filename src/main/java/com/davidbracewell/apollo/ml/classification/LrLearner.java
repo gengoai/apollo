@@ -9,11 +9,9 @@ import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.ml.data.source.DenseCSVDataSource;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.apollo.optimization.DecayLearningRate;
-import com.davidbracewell.apollo.optimization.activation.SoftmaxFunction;
 import com.davidbracewell.apollo.optimization.regularization.L1Regularization;
 import com.davidbracewell.io.Resources;
 import com.davidbracewell.io.resource.Resource;
-import de.bwaldvogel.liblinear.SolverType;
 import lombok.NonNull;
 
 import java.util.Random;
@@ -36,24 +34,34 @@ public class LrLearner extends BinaryClassifierLearner {
                                          .source(dataSource)
                                          .shuffle(new Random(1234));
       crossValidation(dataset,
-                      () -> new SGDLearner()
+                      () -> new SoftmaxLearner()
                                .setParameter("learningRate", new DecayLearningRate(0.1, 0.001))
                                .setParameter("weightUpdater", new L1Regularization(0.001))
-                               .setParameter("activation", new SoftmaxFunction())
                                .setParameter("batchSize", 0),
                       10
                      )
          .output(System.out);
 
       crossValidation(dataset,
-                      () -> new LibLinearLearner()
-                               .setParameter("solver", SolverType.L1R_LR)
-                               .setParameter("c", 1)
-                               .setParameter("eps", 0.001)
-                               .setParameter("bias", true),
+                      () -> BinarySGDLearner.logisticRegression().oneVsRest(),
                       10
-                     )
-         .output(System.out);
+                     ).output(System.out);
+
+      crossValidation(dataset,
+                      () -> BinarySGDLearner.linearSVM().oneVsRest(),
+                      10
+                     ).output(System.out);
+
+
+//      crossValidation(dataset,
+//                      () -> new LibLinearLearner()
+//                               .setParameter("solver", SolverType.L1R_LR)
+//                               .setParameter("c", 1)
+//                               .setParameter("eps", 0.001)
+//                               .setParameter("bias", true),
+//                      10
+//                     )
+//         .output(System.out);
 //      MultiCounter<String, String> mm = new SGDLearner()
 //                                           .setParameter("learningRate", new DecayLearningRate(0.1, 0.001))
 //                                           .setParameter("weightUpdater", new L1Regularization(0.001))

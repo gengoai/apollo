@@ -59,6 +59,16 @@ public abstract class BinaryClassifierLearner extends ClassifierLearner {
       );
    }
 
+   @Override
+   public BinaryClassifierLearner setParameter(String name, Object value) {
+      return Cast.as(super.setParameter(name, value));
+   }
+
+   @Override
+   public BinaryClassifierLearner setParameters(Map<String, Object> parameters) {
+      return Cast.as(super.setParameters(parameters));
+   }
+
    /**
     * Training implementation for binary learner where the "true" label is given
     *

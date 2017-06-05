@@ -43,7 +43,7 @@ public class OneVsRestClassifier extends Classifier {
    /**
     * The Normalize.
     */
-   boolean normalize;
+   boolean normalize = false;
 
    /**
     * Instantiates a new Classifier.

@@ -6,7 +6,7 @@ import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.optimization.*;
 import com.davidbracewell.apollo.optimization.activation.Activation;
 import com.davidbracewell.apollo.optimization.activation.SoftmaxActivation;
-import com.davidbracewell.apollo.optimization.loss.LogLoss;
+import com.davidbracewell.apollo.optimization.loss.CrossEntropyLoss;
 import com.davidbracewell.apollo.optimization.loss.LossFunction;
 import com.davidbracewell.apollo.optimization.regularization.DeltaRule;
 import com.davidbracewell.apollo.optimization.regularization.Regularizer;
@@ -17,7 +17,7 @@ import lombok.Setter;
  * @author David B. Bracewell
  */
 public class SoftmaxLearner extends ClassifierLearner {
-   private final LossFunction loss = new LogLoss();
+   private final LossFunction loss = new CrossEntropyLoss();
    private final Activation activation = new SoftmaxActivation();
    @Getter
    @Setter

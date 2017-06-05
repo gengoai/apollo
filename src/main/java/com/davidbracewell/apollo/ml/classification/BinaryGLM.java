@@ -25,6 +25,8 @@ import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.EncoderPair;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
+import com.davidbracewell.apollo.optimization.activation.Activation;
+import com.davidbracewell.apollo.optimization.activation.LinearActivation;
 import lombok.NonNull;
 
 /**
@@ -43,6 +45,8 @@ public class BinaryGLM extends Classifier {
     */
    double bias;
 
+   Activation activation = new LinearActivation();
+
    /**
     * Instantiates a new Classifier.
     *
@@ -56,8 +60,12 @@ public class BinaryGLM extends Classifier {
    @Override
    public Classification classify(Vector vector) {
       double[] dist = new double[2];
-      dist[1] = weights.dot(vector) + bias;
-      dist[0] = -dist[1];
+      dist[1] = activation.apply(weights.dot(vector) + bias);
+      if (activation.isProbabilistic()) {
+         dist[0] = 1d - dist[1];
+      } else {
+         dist[0] = -dist[1];
+      }
       return createResult(dist);
    }
 

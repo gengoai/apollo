@@ -43,7 +43,7 @@ public class LrLearner extends BinaryClassifierLearner {
          .output(System.out);
 
       crossValidation(dataset,
-                      () -> BinarySGDLearner.logisticRegression().oneVsRest(),
+                      () -> BinarySGDLearner.logisticRegression().oneVsRest().setParameter("normalize", true),
                       10
                      ).output(System.out);
 

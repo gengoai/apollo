@@ -124,6 +124,7 @@ public class BinarySGDLearner extends BinaryClassifierLearner {
       BinaryGLM glm = new BinaryGLM(dataset.getEncoderPair(), dataset.getPreprocessors());
       glm.weights = weights.getTheta().row(0).copy();
       glm.bias = weights.getBias().get(0);
+      glm.activation = activation;
       return glm;
    }
 

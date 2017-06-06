@@ -3,6 +3,7 @@ package com.davidbracewell.apollo.ml.clustering.topic;
 import com.davidbracewell.apollo.distribution.ConditionalMultinomial;
 import com.davidbracewell.apollo.linalg.SparseVector;
 import com.davidbracewell.apollo.linalg.Vector;
+import com.davidbracewell.apollo.ml.clustering.Cluster;
 import com.davidbracewell.apollo.ml.clustering.Clusterer;
 import com.davidbracewell.collection.Collect;
 import com.davidbracewell.logging.Logger;
@@ -22,9 +23,8 @@ import java.util.List;
  * @author David B. Bracewell
  */
 public class GibbsLDA extends Clusterer<LDAModel> {
-   private static final long serialVersionUID = 1L;
    private static final Logger log = Logger.getLogger(GibbsLDA.class);
-
+   private static final long serialVersionUID = 1L;
    @Getter
    @Setter
    private int K = 100;
@@ -160,12 +160,12 @@ public class GibbsLDA extends Clusterer<LDAModel> {
             }
          }
       }
-      model.clusters = new ArrayList<>(K);
+      List<Cluster> clusters = new ArrayList<>(K);
 
       if (keepDocumentTopicAssignments) {
          for (int k = 0; k < K; k++) {
             TopicCluster cluster = new TopicCluster();
-            model.clusters.add(cluster);
+            clusters.add(cluster);
             for (int m = 0; m < M; m++) {
                double p;
                if (sampleLag <= 0) {
@@ -181,25 +181,25 @@ public class GibbsLDA extends Clusterer<LDAModel> {
          }
       }
 
-
+      model.setClusters(clusters);
       alpha = oAlpha;
       beta = oBeta;
 
       return model;
    }
 
-   private void updateParams() {
-      for (int m = 0; m < M; m++) {
-         for (int k = 0; k < K; k++) {
-            thetasum[m].increment(k, nd.count(m, k));
-         }
-      }
-      for (int k = 0; k < K; k++) {
-         for (int w = 0; w < V; w++) {
-            phisum[k].increment(w, nw.count(k, w));
-         }
-      }
-      numstats++;
+   @Override
+   public void reset() {
+      super.reset();
+      nw = null;
+      nd = null;
+      V = 0;
+      M = 0;
+      documents = null;
+      z = null;
+      thetasum = null;
+      phisum = null;
+      numstats = 0;
    }
 
    private int sample(int m, int n) {
@@ -231,19 +231,18 @@ public class GibbsLDA extends Clusterer<LDAModel> {
       return topic;
    }
 
-
-   @Override
-   public void reset() {
-      super.reset();
-      nw = null;
-      nd = null;
-      V = 0;
-      M = 0;
-      documents = null;
-      z = null;
-      thetasum = null;
-      phisum = null;
-      numstats = 0;
+   private void updateParams() {
+      for (int m = 0; m < M; m++) {
+         for (int k = 0; k < K; k++) {
+            thetasum[m].increment(k, nd.count(m, k));
+         }
+      }
+      for (int k = 0; k < K; k++) {
+         for (int w = 0; w < V; w++) {
+            phisum[k].increment(w, nw.count(k, w));
+         }
+      }
+      numstats++;
    }
 
 

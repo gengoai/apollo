@@ -18,7 +18,7 @@ import java.util.List;
  */
 public abstract class FlatClustering implements Clustering, Serializable {
    private static final long serialVersionUID = 1L;
-   private final List<Cluster> clusters = new ArrayList<>();
+   protected final List<Cluster> clusters = new ArrayList<>();
    private final DistanceMeasure distanceMeasure;
    private EncoderPair encoderPair;
 

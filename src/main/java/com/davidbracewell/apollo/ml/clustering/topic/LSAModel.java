@@ -1,11 +1,9 @@
 package com.davidbracewell.apollo.ml.clustering.topic;
 
 import com.davidbracewell.apollo.affinity.DistanceMeasure;
-import com.davidbracewell.apollo.optimization.Optimum;
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.EncoderPair;
 import com.davidbracewell.apollo.ml.Instance;
-import com.davidbracewell.apollo.ml.clustering.flat.FlatClustering;
 import com.davidbracewell.collection.counter.Counter;
 import com.davidbracewell.collection.counter.Counters;
 
@@ -14,12 +12,7 @@ import com.davidbracewell.collection.counter.Counters;
  *
  * @author David B. Bracewell
  */
-public class LSAModel extends FlatClustering {
-
-   /**
-    * The number of topics.
-    */
-   int K;
+public class LSAModel extends TopicModel {
 
    /**
     * Instantiates a new Lsa model.
@@ -31,43 +24,32 @@ public class LSAModel extends FlatClustering {
       super(encoderPair, distanceMeasure);
    }
 
-   /**
-    * Gets the number of topics.
-    *
-    * @return the number of topics.
-    */
-   public int getK() {
-      return K;
+   @Override
+   public double[] getTopicDistribution(String feature) {
+      int i = getFeatureEncoder().index(feature);
+      if (i == -1) {
+         return new double[K];
+      }
+      double[] dist = new double[K];
+      for (int i1 = 0; i1 < K; i1++) {
+         dist[i1] = get(i1).getPoints().get(0).get(i);
+      }
+      return dist;
    }
 
-   /**
-    * Gets topic vector.
-    *
-    * @param topic the topic
-    * @return the topic vector
-    */
+   @Override
    public Vector getTopicVector(int topic) {
       return get(topic)
                 .getPoints()
                 .get(0);
    }
 
-   /**
-    * Gets the words and their probabilities for a given topic
-    *
-    * @param topic the topic
-    * @return the topic words
-    */
+   @Override
    public Counter<String> getTopicWords(int topic) {
       Vector v = getTopicVector(topic);
       Counter<String> c = Counters.newCounter();
       v.forEachSparse(e -> c.set(decodeFeature(e.getIndex()).toString(), e.getValue()));
       return c;
-   }
-
-   @Override
-   public int hardCluster(Instance instance) {
-      return Optimum.MAXIMUM.optimumIndex(softCluster(instance));
    }
 
    @Override

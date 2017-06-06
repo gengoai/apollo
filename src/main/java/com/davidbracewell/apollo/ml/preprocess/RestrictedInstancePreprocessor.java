@@ -114,8 +114,8 @@ public abstract class RestrictedInstancePreprocessor implements InstancePreproce
    private Stream<Feature> shouldFilter(Instance example) {
       return example.getFeatures().stream()
                     .filter(
-                       f -> !f.getName().equals("SPECIAL::BIAS_FEATURE") || (applyToAll() || f.getName().startsWith(
-                          getRestriction())));
+                       f -> !f.getName().equals("SPECIAL::BIAS_FEATURE") &&
+                               (applyToAll() || f.getName().startsWith(getRestriction())));
    }
 
    /**

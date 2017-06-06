@@ -1,7 +1,7 @@
 package com.davidbracewell.apollo.linalg;
 
+import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.guava.common.base.Preconditions;
-import lombok.EqualsAndHashCode;
 import lombok.NonNull;
 import org.jblas.ComplexDouble;
 import org.jblas.DoubleMatrix;
@@ -13,276 +13,292 @@ import java.io.Serializable;
  *
  * @author David B. Bracewell
  */
-@EqualsAndHashCode(callSuper = false)
 public class DenseMatrix implements Matrix, Serializable {
-    private static final long serialVersionUID = 1L;
-    /**
-     * The Matrix.
-     */
-    volatile DoubleMatrix matrix;
+   private static final long serialVersionUID = 1L;
+   /**
+    * The Matrix.
+    */
+   volatile DoubleMatrix matrix;
 
-    /**
-     * Instantiates a new Dense matrix.
-     *
-     * @param rowDimension    the row dimension
-     * @param columnDimension the column dimension
-     */
-    public DenseMatrix(int rowDimension, int columnDimension) {
-        this.matrix = new DoubleMatrix(rowDimension, columnDimension);
-    }
+   /**
+    * Instantiates a new Dense matrix.
+    *
+    * @param rowDimension    the row dimension
+    * @param columnDimension the column dimension
+    */
+   public DenseMatrix(int rowDimension, int columnDimension) {
+      this.matrix = new DoubleMatrix(rowDimension, columnDimension);
+   }
 
-    /**
-     * Instantiates a new Dense matrix.
-     *
-     * @param rowDimension    the row dimension
-     * @param columnDimension the column dimension
-     */
-    public DenseMatrix(int rowDimension, int columnDimension, double[] data) {
-        this.matrix = new DoubleMatrix(rowDimension, columnDimension);
-        for (int r = 0; r < rowDimension; r++) {
-            for (int c = 0; c < columnDimension; c++) {
-                this.matrix.put(r, c, data[rowDimension * c + r]);
-            }
-        }
-    }
-
-    /**
-     * Instantiates a new Dense matrix.
-     *
-     * @param matrix the matrix
-     */
-    public DenseMatrix(double[][] matrix) {
-        this.matrix = new DoubleMatrix(matrix);
-    }
-
-    public DenseMatrix(@NonNull ComplexDouble[][] matrix) {
-        this.matrix = new DoubleMatrix(matrix.length, matrix[0].length);
-        for (int r = 0; r < matrix.length; r++) {
-            for (int c = 0; c < matrix[c].length; c++) {
-                this.matrix.put(r, c, matrix[r][c].real());
-            }
-        }
-    }
-
-    /**
-     * Instantiates a new Dense matrix.
-     *
-     * @param matrix the matrix
-     */
-    public DenseMatrix(@NonNull Matrix matrix) {
-        this.matrix = new DoubleMatrix(matrix.numberOfRows(), matrix.numberOfColumns());
-        matrix.forEachSparse(e -> this.matrix.put(e.row, e.column, e.value));
-    }
+   /**
+    * Instantiates a new Dense matrix.
+    *
+    * @param rowDimension    the row dimension
+    * @param columnDimension the column dimension
+    */
+   public DenseMatrix(int rowDimension, int columnDimension, double[] data) {
+      this.matrix = new DoubleMatrix(rowDimension, columnDimension);
+      for (int r = 0; r < rowDimension; r++) {
+         for (int c = 0; c < columnDimension; c++) {
+            this.matrix.put(r, c, data[rowDimension * c + r]);
+         }
+      }
+   }
 
 
-    /**
-     * Instantiates a new Dense matrix.
-     *
-     * @param matrix the matrix
-     */
-    public DenseMatrix(DoubleMatrix matrix) {
-        this.matrix = matrix;
-    }
+   /**
+    * Instantiates a new Dense matrix.
+    *
+    * @param matrix the matrix
+    */
+   public DenseMatrix(double[][] matrix) {
+      this.matrix = new DoubleMatrix(matrix);
+   }
 
-    /**
-     * Ones matrix.
-     *
-     * @param rowDimension    the row dimension
-     * @param columnDimension the column dimension
-     * @return the matrix
-     */
-    public static Matrix ones(int rowDimension, int columnDimension) {
-        return new DenseMatrix(DoubleMatrix.ones(rowDimension, columnDimension));
-    }
+   public DenseMatrix(@NonNull ComplexDouble[][] matrix) {
+      this.matrix = new DoubleMatrix(matrix.length, matrix[0].length);
+      for (int r = 0; r < matrix.length; r++) {
+         for (int c = 0; c < matrix[c].length; c++) {
+            this.matrix.put(r, c, matrix[r][c].real());
+         }
+      }
+   }
 
-    public static Matrix random(int numberOfRows, int numberOfColumns) {
-        return new DenseMatrix(DoubleMatrix.rand(numberOfRows, numberOfColumns));
-    }
+   /**
+    * Instantiates a new Dense matrix.
+    *
+    * @param matrix the matrix
+    */
+   public DenseMatrix(@NonNull Matrix matrix) {
+      this.matrix = new DoubleMatrix(matrix.numberOfRows(), matrix.numberOfColumns());
+      matrix.forEachSparse(e -> this.matrix.put(e.row, e.column, e.value));
+   }
 
-    public static Matrix random(int numberOfRows, int numberOfColumns, double min, double max) {
-        DenseMatrix m = new DenseMatrix(DoubleMatrix.zeros(numberOfRows, numberOfColumns));
-        for (int r = 0; r < numberOfRows; r++) {
-            for (int c = 0; c < numberOfColumns; c++) {
-                m.set(r, c, min + (max - min) * Math.random());
-            }
-        }
-        return m;
-    }
+   /**
+    * Instantiates a new Dense matrix.
+    *
+    * @param matrix the matrix
+    */
+   public DenseMatrix(DoubleMatrix matrix) {
+      this.matrix = matrix;
+   }
 
-    /**
-     * Unit matrix.
-     *
-     * @param N the n
-     * @return the matrix
-     */
-    public static Matrix unit(int N) {
-        return new DenseMatrix(DoubleMatrix.eye(N));
-    }
+   /**
+    * Ones matrix.
+    *
+    * @param rowDimension    the row dimension
+    * @param columnDimension the column dimension
+    * @return the matrix
+    */
+   public static Matrix ones(int rowDimension, int columnDimension) {
+      return new DenseMatrix(DoubleMatrix.ones(rowDimension, columnDimension));
+   }
 
-    /**
-     * Zeroes matrix.
-     *
-     * @param rowDimension    the row dimension
-     * @param columnDimension the column dimension
-     * @return the matrix
-     */
-    public static Matrix zeroes(int rowDimension, int columnDimension) {
-        return new DenseMatrix(DoubleMatrix.zeros(rowDimension, columnDimension));
-    }
+   public static Matrix random(int numberOfRows, int numberOfColumns) {
+      return new DenseMatrix(DoubleMatrix.rand(numberOfRows, numberOfColumns));
+   }
 
-    @Override
-    public Matrix add(@NonNull Matrix m) {
-        if (m instanceof DenseMatrix) {
-            return new DenseMatrix(matrix.add(m.toDense().matrix));
-        }
-        return Matrix.super.add(m);
-    }
+   public static Matrix random(int numberOfRows, int numberOfColumns, double min, double max) {
+      DenseMatrix m = new DenseMatrix(DoubleMatrix.zeros(numberOfRows, numberOfColumns));
+      for (int r = 0; r < numberOfRows; r++) {
+         for (int c = 0; c < numberOfColumns; c++) {
+            m.set(r, c, min + (max - min) * Math.random());
+         }
+      }
+      return m;
+   }
 
-    @Override
-    public Matrix addSelf(@NonNull Matrix other) {
-        Preconditions.checkArgument(
-            other.numberOfColumns() == numberOfColumns() && other.numberOfRows() == numberOfRows(),
-            "Dimension Mismatch");
-        if (other instanceof DenseMatrix) {
-            matrix.addi(other.toDense().matrix);
-        } else {
-            Matrix.super.addSelf(other);
-        }
-        return this;
-    }
+   /**
+    * Unit matrix.
+    *
+    * @param N the n
+    * @return the matrix
+    */
+   public static Matrix unit(int N) {
+      return new DenseMatrix(DoubleMatrix.eye(N));
+   }
 
-    public DoubleMatrix asDoubleMatrix() {
-        return matrix;
-    }
+   /**
+    * Zeroes matrix.
+    *
+    * @param rowDimension    the row dimension
+    * @param columnDimension the column dimension
+    * @return the matrix
+    */
+   public static Matrix zeroes(int rowDimension, int columnDimension) {
+      return new DenseMatrix(DoubleMatrix.zeros(rowDimension, columnDimension));
+   }
 
-    @Override
-    public Matrix copy() {
-        return new DenseMatrix(toArray());
-    }
+   @Override
+   public Matrix add(@NonNull Matrix m) {
+      if (m instanceof DenseMatrix) {
+         return new DenseMatrix(matrix.add(m.toDense().matrix));
+      }
+      return Matrix.super.add(m);
+   }
+
+   @Override
+   public Matrix addSelf(@NonNull Matrix other) {
+      Preconditions.checkArgument(
+         other.numberOfColumns() == numberOfColumns() && other.numberOfRows() == numberOfRows(),
+         "Dimension Mismatch");
+      if (other instanceof DenseMatrix) {
+         matrix.addi(other.toDense().matrix);
+      } else {
+         Matrix.super.addSelf(other);
+      }
+      return this;
+   }
+
+   public DoubleMatrix asDoubleMatrix() {
+      return matrix;
+   }
+
+   @Override
+   public Matrix copy() {
+      return new DenseMatrix(toArray());
+   }
+
+   @Override
+   public boolean equals(Object o) {
+      if (o == null || !(o instanceof Matrix)) {
+         return false;
+      }
+      Matrix mo = Cast.as(o);
+      if (!shape().equals(((Matrix) o).shape())) {
+         return false;
+      }
+      for (int i = 0; i < numberOfRows(); i++) {
+         if (!row(i).equals(mo.row(i))) {
+            return false;
+         }
+      }
+      return true;
+   }
 
 
-    @Override
-    public double get(int row, int column) {
-        return matrix.get(row, column);
-    }
+   @Override
+   public double get(int row, int column) {
+      return matrix.get(row, column);
+   }
 
-    @Override
-    public MatrixFactory getFactory() {
-        return DenseMatrix::new;
-    }
+   @Override
+   public MatrixFactory getFactory() {
+      return DenseMatrix::new;
+   }
 
-    @Override
-    public Matrix increment(int row, int col, double amount) {
-        set(row, col, get(row, col) + amount);
-        return this;
-    }
+   @Override
+   public Matrix increment(int row, int col, double amount) {
+      set(row, col, get(row, col) + amount);
+      return this;
+   }
 
-    @Override
-    public Matrix incrementSelf(double value) {
-        matrix.addi(value);
-        return this;
-    }
+   @Override
+   public Matrix incrementSelf(double value) {
+      matrix.addi(value);
+      return this;
+   }
 
-    @Override
-    public boolean isSparse() {
-        return false;
-    }
+   @Override
+   public boolean isSparse() {
+      return false;
+   }
 
-    @Override
-    public Matrix multiply(@NonNull Matrix m) {
-        Preconditions.checkArgument(numberOfColumns() == m.numberOfRows(), "Dimension Mismatch");
-        return new DenseMatrix(matrix.mmul(m.toDense().matrix));
-    }
+   @Override
+   public Matrix multiply(@NonNull Matrix m) {
+      Preconditions.checkArgument(numberOfColumns() == m.numberOfRows(), "Dimension Mismatch");
+      return new DenseMatrix(matrix.mmul(m.toDense().matrix));
+   }
 
-    @Override
-    public int numberOfColumns() {
-        return matrix.columns;
-    }
+   @Override
+   public int numberOfColumns() {
+      return matrix.columns;
+   }
 
-    @Override
-    public int numberOfRows() {
-        return matrix.rows;
-    }
+   @Override
+   public int numberOfRows() {
+      return matrix.rows;
+   }
 
-    @Override
-    public Matrix scaleSelf(double value) {
-        matrix.muli(value);
-        return this;
-    }
+   @Override
+   public Matrix scaleSelf(double value) {
+      matrix.muli(value);
+      return this;
+   }
 
-    @Override
-    public Matrix scaleSelf(@NonNull Matrix other) {
-        Preconditions.checkArgument(
-            other.numberOfColumns() == numberOfColumns() && other.numberOfRows() == numberOfRows(),
-            "Dimension Mismatch");
-        if (other instanceof DenseMatrix) {
-            matrix.muli(other.toDense().matrix);
-        } else {
-            Matrix.super.scaleSelf(other);
-        }
-        return this;
-    }
+   @Override
+   public Matrix scaleSelf(@NonNull Matrix other) {
+      Preconditions.checkArgument(
+         other.numberOfColumns() == numberOfColumns() && other.numberOfRows() == numberOfRows(),
+         "Dimension Mismatch");
+      if (other instanceof DenseMatrix) {
+         matrix.muli(other.toDense().matrix);
+      } else {
+         Matrix.super.scaleSelf(other);
+      }
+      return this;
+   }
 
-    @Override
-    public Matrix set(int row, int column, double value) {
-        matrix.put(row, column, value);
-        return this;
-    }
+   @Override
+   public Matrix set(int row, int column, double value) {
+      matrix.put(row, column, value);
+      return this;
+   }
 
-    @Override
-    public Matrix subtract(@NonNull Matrix m) {
-        if (m instanceof DenseMatrix) {
-            return new DenseMatrix(matrix.sub(m.toDense().matrix));
-        }
-        return Matrix.super.subtract(m);
-    }
+   @Override
+   public Matrix subtract(@NonNull Matrix m) {
+      if (m instanceof DenseMatrix) {
+         return new DenseMatrix(matrix.sub(m.toDense().matrix));
+      }
+      return Matrix.super.subtract(m);
+   }
 
-    @Override
-    public Matrix subtractSelf(@NonNull Matrix other) {
-        Preconditions.checkArgument(
-            other.numberOfColumns() == numberOfColumns() && other.numberOfRows() == numberOfRows(),
-            "Dimension Mismatch");
-        if (other instanceof DenseMatrix) {
-            matrix.subi(other.toDense().matrix);
-        } else {
-            Matrix.super.subtractSelf(other);
-        }
-        return this;
-    }
+   @Override
+   public Matrix subtractSelf(@NonNull Matrix other) {
+      Preconditions.checkArgument(
+         other.numberOfColumns() == numberOfColumns() && other.numberOfRows() == numberOfRows(),
+         "Dimension Mismatch");
+      if (other instanceof DenseMatrix) {
+         matrix.subi(other.toDense().matrix);
+      } else {
+         Matrix.super.subtractSelf(other);
+      }
+      return this;
+   }
 
-    @Override
-    public double[][] toArray() {
-        return matrix.toArray2();
-    }
+   @Override
+   public double[][] toArray() {
+      return matrix.toArray2();
+   }
 
-    @Override
-    public DenseMatrix toDense() {
-        return this;
-    }
+   @Override
+   public DenseMatrix toDense() {
+      return this;
+   }
 
-    @Override
-    public String toString() {
-        if (numberOfRows() > 10 || numberOfColumns() > 10) {
-            return numberOfRows() + "x" + numberOfColumns();
-        }
-        StringBuilder builder = new StringBuilder("[ ");
-        for (int row = 0; row < numberOfRows(); row++) {
-            builder.append("[ ");
-            for (int col = 0; col < numberOfColumns(); col++) {
-                builder
-                    .append(get(row, col))
-                    .append(", ");
-            }
-            builder.append("] ");
-        }
-        return builder
-                   .append("]")
-                   .toString();
-    }
+   @Override
+   public String toString() {
+      if (numberOfRows() > 10 || numberOfColumns() > 10) {
+         return numberOfRows() + "x" + numberOfColumns();
+      }
+      StringBuilder builder = new StringBuilder("[ ");
+      for (int row = 0; row < numberOfRows(); row++) {
+         builder.append("[ ");
+         for (int col = 0; col < numberOfColumns(); col++) {
+            builder
+               .append(get(row, col))
+               .append(", ");
+         }
+         builder.append("] ");
+      }
+      return builder
+                .append("]")
+                .toString();
+   }
 
-    @Override
-    public Matrix transpose() {
-        return new DenseMatrix(matrix.transpose());
-    }
+   @Override
+   public Matrix transpose() {
+      return new DenseMatrix(matrix.transpose());
+   }
 
 }// END OF DenseMatrix

@@ -21,8 +21,8 @@
 
 package com.davidbracewell.apollo.linalg;
 
+import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.guava.common.base.Preconditions;
-import lombok.EqualsAndHashCode;
 import lombok.NonNull;
 import org.apache.commons.math3.linear.OpenMapRealMatrix;
 import org.apache.commons.math3.linear.RealMatrix;
@@ -36,7 +36,6 @@ import java.util.stream.IntStream;
  *
  * @author David B. Bracewell
  */
-@EqualsAndHashCode(callSuper = false)
 public class SparseMatrix implements Matrix, Serializable {
    private static final long serialVersionUID = -3802597548916836308L;
    /**
@@ -51,6 +50,22 @@ public class SparseMatrix implements Matrix, Serializable {
       }
    }
 
+   @Override
+   public boolean equals(Object o) {
+      if (o == null || !(o instanceof Matrix)) {
+         return false;
+      }
+      Matrix mo = Cast.as(o);
+      if (!shape().equals(((Matrix) o).shape())) {
+         return false;
+      }
+      for (int i = 0; i < numberOfRows(); i++) {
+         if (!row(i).equals(mo.row(i))) {
+            return false;
+         }
+      }
+      return true;
+   }
    /**
     * Instantiates a new Sparse matrix.
     *

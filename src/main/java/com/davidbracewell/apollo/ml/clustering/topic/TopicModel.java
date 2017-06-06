@@ -7,28 +7,30 @@ import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.clustering.flat.FlatClustering;
 import com.davidbracewell.apollo.optimization.Optimum;
 import com.davidbracewell.collection.counter.Counter;
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.Setter;
 
 /**
  * @author David B. Bracewell
  */
 public abstract class TopicModel extends FlatClustering {
    private static final long serialVersionUID = 1L;
+   @Getter
+   @Setter
    protected int K;
-
-   @Override
-   public int size() {
-      return K;
-   }
 
    protected TopicModel(EncoderPair encoderPair, DistanceMeasure distanceMeasure) {
       super(encoderPair, distanceMeasure);
    }
 
-   @Override
-   public int hardCluster(@NonNull Instance instance) {
-      return Optimum.MAXIMUM.optimumIndex(softCluster(instance));
-   }
+   /**
+    * Gets the distribution across topics for a given feature.
+    *
+    * @param feature the feature (word) whose topic distribution is desired
+    * @return the distribution across topics for the given feature
+    */
+   public abstract double[] getTopicDistribution(String feature);
 
    /**
     * Gets topic vector.
@@ -46,12 +48,14 @@ public abstract class TopicModel extends FlatClustering {
     */
    public abstract Counter<String> getTopicWords(int topic);
 
-   /**
-    * Gets the distribution across topics for a given feature.
-    *
-    * @param feature the feature (word) whose topic distribution is desired
-    * @return the distribution across topics for the given feature
-    */
-   public abstract double[] getTopicDistribution(String feature);
+   @Override
+   public int hardCluster(@NonNull Instance instance) {
+      return Optimum.MAXIMUM.optimumIndex(softCluster(instance));
+   }
+
+   @Override
+   public int size() {
+      return K;
+   }
 
 }// END OF TopicModel

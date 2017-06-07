@@ -79,6 +79,19 @@ public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, S
    }
 
    /**
+    * Evaluate model classifier evaluation.
+    *
+    * @param classifier the classifier
+    * @param testSet    the test set
+    * @return the classifier evaluation
+    */
+   public static ClassifierEvaluation evaluateModel(@NonNull Classifier classifier, @NonNull Dataset<Instance> testSet) {
+      ClassifierEvaluation evaluation = new ClassifierEvaluation();
+      evaluation.evaluate(classifier, testSet);
+      return evaluation;
+   }
+
+   /**
     * <p>Calculates the accuracy, which is the percentage of items correctly classified.</p>
     *
     * @return the accuracy

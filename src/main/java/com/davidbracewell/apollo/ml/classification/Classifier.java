@@ -23,13 +23,11 @@ package com.davidbracewell.apollo.ml.classification;
 
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.EncoderPair;
-import com.davidbracewell.apollo.ml.IndexEncoder;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.Model;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.collection.counter.Counter;
 import com.davidbracewell.collection.counter.MultiCounter;
-import com.davidbracewell.guava.common.base.Preconditions;
 import lombok.NonNull;
 
 /**
@@ -50,8 +48,6 @@ public abstract class Classifier implements Model {
     */
    protected Classifier(@NonNull EncoderPair encoderPair, @NonNull PreprocessorList<Instance> preprocessors) {
       this.encoderPair = encoderPair;
-      Preconditions.checkArgument(encoderPair.getLabelEncoder() instanceof IndexEncoder,
-                                  "Classifiers only allow IndexEncoders for labels.");
       this.preprocessors = preprocessors.getModelProcessors();
    }
 

@@ -25,6 +25,7 @@ import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.FeatureVector;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.data.Dataset;
+import com.davidbracewell.apollo.optimization.activation.LinearActivation;
 import com.davidbracewell.collection.Collect;
 import com.davidbracewell.logging.Logger;
 import lombok.Getter;
@@ -153,7 +154,7 @@ public class AveragedPerceptronLearner extends BinaryClassifierLearner {
       total += (time - biasStamps) * model.bias;
       total = new BigDecimal(total / time).setScale(3, RoundingMode.HALF_UP).doubleValue();
       model.bias = total;
-
+      model.activation = new LinearActivation();
       return model;
    }
 

@@ -47,6 +47,22 @@ public class Feature implements Serializable, Comparable<Feature>, Copyable<Feat
       this.value = value;
    }
 
+   public static boolean isTrue(double value) {
+      return value == 1;
+   }
+
+   public static boolean isFalse(double value) {
+      return value == 0 || value == -1;
+   }
+
+   public static boolean isTrue(String value) {
+      return value.toLowerCase().equals("true");
+   }
+
+   public static boolean isFalse(String value) {
+      return value.toLowerCase().equals("false");
+   }
+
    /**
     * Creates a binary feature with the value of TRUE (1.0)
     *

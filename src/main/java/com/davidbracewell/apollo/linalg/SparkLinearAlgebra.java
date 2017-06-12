@@ -1,5 +1,7 @@
 package com.davidbracewell.apollo.linalg;
 
+import com.davidbracewell.stream.MStream;
+import com.davidbracewell.stream.SparkStream;
 import com.davidbracewell.stream.StreamingContext;
 import com.google.common.base.Preconditions;
 import lombok.NonNull;
@@ -151,6 +153,13 @@ public final class SparkLinearAlgebra {
                                .cache()
                                .getRDD();
       return new RowMatrix(rdd.rdd());
+   }
+
+   public static JavaRDD<Vector> toVectors(MStream<com.davidbracewell.apollo.linalg.Vector> stream) {
+      SparkStream<com.davidbracewell.apollo.linalg.Vector> sparkStream = new SparkStream<>(stream);
+      return sparkStream.getRDD()
+                        .map(v -> (Vector) new org.apache.spark.mllib.linalg.DenseVector(v.toArray()))
+                        .cache();
    }
 
 

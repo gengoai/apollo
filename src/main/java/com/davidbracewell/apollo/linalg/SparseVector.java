@@ -47,6 +47,11 @@ public class SparseVector implements Vector, Serializable {
    private final Int2DoubleOpenHashMap map;
    private final int dimension;
 
+
+   public SparseVector(double[] dense){
+      this(DenseVector.wrap(dense));
+   }
+
    /**
     * Instantiates a new Sparse vector.
     *

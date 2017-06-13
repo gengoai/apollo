@@ -25,10 +25,12 @@ import com.davidbracewell.Copyable;
 import com.davidbracewell.EnhancedDoubleStatistics;
 import com.davidbracewell.apollo.affinity.Correlation;
 import com.davidbracewell.apollo.optimization.Optimum;
+import com.davidbracewell.collection.Collect;
 import com.davidbracewell.collection.Streams;
 import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.guava.common.base.Preconditions;
 import com.davidbracewell.guava.common.util.concurrent.AtomicDouble;
+import com.davidbracewell.tuple.Tuple2;
 import lombok.NonNull;
 import lombok.Value;
 
@@ -42,6 +44,8 @@ import java.util.function.DoubleBinaryOperator;
 import java.util.function.DoubleUnaryOperator;
 import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
+
+import static com.davidbracewell.tuple.Tuples.$;
 
 /**
  * <p>Interface for vectors </p>
@@ -483,10 +487,6 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
       return Optimum.MAXIMUM.optimumIndex(toArray());
    }
 
-   default int minIndex() {
-      return Optimum.MINIMUM.optimumIndex(toArray());
-   }
-
    /**
     * Calculates the minimum value in this vector.
     *
@@ -494,6 +494,10 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
     */
    default double min() {
       return Streams.asStream(nonZeroIterator()).mapToDouble(Entry::getValue).min().orElse(0d);
+   }
+
+   default int minIndex() {
+      return Optimum.MINIMUM.optimumIndex(toArray());
    }
 
    /**
@@ -617,6 +621,18 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
     * <code>to</code>
     */
    Vector slice(int from, int to);
+
+   default Tuple2<int[], double[]> sparse() {
+      int[] indices = new int[size()];
+      double[] values = new double[size()];
+      int i = 0;
+      for (Entry entry : Collect.asIterable(orderedNonZeroIterator())) {
+         indices[i] = entry.getIndex();
+         values[i] = entry.getValue();
+         i++;
+      }
+      return $(indices, values);
+   }
 
    /**
     * Calculates simples statistics over the values in the vector.

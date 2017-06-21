@@ -8,8 +8,8 @@ import lombok.EqualsAndHashCode;
  *
  * @author David B. Bracewell
  */
-@EqualsAndHashCode
-public class SinglePointVector implements Vector {
+@EqualsAndHashCode(callSuper = false)
+public class SinglePointVector extends BaseVector {
    private double value;
 
    /**
@@ -36,6 +36,14 @@ public class SinglePointVector implements Vector {
    @Override
    public Vector copy() {
       return new SinglePointVector(value);
+   }
+
+   @Override
+   protected Vector createNew(int dimension) {
+      if (dimension > 1) {
+         return new SparseVector(dimension);
+      }
+      return new SinglePointVector();
    }
 
    @Override

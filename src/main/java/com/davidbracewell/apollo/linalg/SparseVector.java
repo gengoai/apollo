@@ -30,7 +30,6 @@ import lombok.NonNull;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.commons.math3.random.Well19937c;
 
-import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
@@ -42,7 +41,7 @@ import java.util.function.Consumer;
  *
  * @author David B. Bracewell
  */
-public class SparseVector implements Vector, Serializable {
+public class SparseVector extends BaseVector {
    private static final long serialVersionUID = 1L;
    private final Int2DoubleOpenHashMap map;
    private final int dimension;
@@ -163,6 +162,11 @@ public class SparseVector implements Vector, Serializable {
    }
 
    @Override
+   protected Vector createNew(int dimension) {
+      return new SparseVector(dimension);
+   }
+
+   @Override
    public int dimension() {
       return dimension;
    }
@@ -255,16 +259,6 @@ public class SparseVector implements Vector, Serializable {
    }
 
    @Override
-   public Vector redim(int newDimension) {
-      Vector v = new SparseVector(newDimension);
-      for (Iterator<Vector.Entry> itr = nonZeroIterator(); itr.hasNext(); ) {
-         Vector.Entry de = itr.next();
-         v.set(de.index, de.value);
-      }
-      return v;
-   }
-
-   @Override
    public Vector set(int index, double value) {
       if (value == 0) {
          map.remove(index);
@@ -280,25 +274,6 @@ public class SparseVector implements Vector, Serializable {
    }
 
    @Override
-   public Vector slice(int from, int to) {
-      Preconditions.checkPositionIndex(from, dimension() + 1);
-      Preconditions.checkPositionIndex(to, dimension() + 1);
-      Preconditions.checkState(to > from, "To index must be > from index");
-      SparseVector v = new SparseVector((to - from));
-      for (int i = from; i < to; i++) {
-         v.set(i - from, get(i));
-      }
-      return v;
-   }
-
-   @Override
-   public double[] toArray() {
-      final double[] d = new double[dimension()];
-      map.int2DoubleEntrySet().forEach(e -> d[e.getIntKey()] = e.getDoubleValue());
-      return d;
-   }
-
-   @Override
    public String toString() {
       return Arrays.toString(toArray());
    }
@@ -308,4 +283,5 @@ public class SparseVector implements Vector, Serializable {
       this.map.clear();
       return this;
    }
+
 }//END OF SparseVector

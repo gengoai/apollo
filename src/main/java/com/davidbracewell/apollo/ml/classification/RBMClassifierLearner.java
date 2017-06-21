@@ -32,14 +32,7 @@ public class RBMClassifierLearner extends ClassifierLearner {
       rbm.train(dataset.asVectors().collect());
 
       boolean isMulticlass = dataset.getLabelEncoder().size() > 2;
-      ClassifierLearner subLearner;
-      if (isMulticlass) {
-         subLearner = new BinarySGDLearner()
-                         .oneVsRest();
-      } else {
-         subLearner = new BinarySGDLearner();
-      }
-
+      LibLinearLearner subLearner = new LibLinearLearner();
       Dataset<Instance> transformed = Dataset.classification()
                                              .type(dataset.getType())
                                              .source(

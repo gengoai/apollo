@@ -1,15 +1,13 @@
 package com.davidbracewell.apollo.linalg;
 
 import com.davidbracewell.conversion.Cast;
-import com.davidbracewell.guava.common.base.Preconditions;
 
-import java.io.Serializable;
 import java.util.Arrays;
 
 /**
  * @author David B. Bracewell
  */
-class RowVector implements Vector, Serializable {
+class RowVector extends BaseVector {
    private static final long serialVersionUID = 1L;
    private final int row;
    private Matrix entries;
@@ -27,6 +25,11 @@ class RowVector implements Vector, Serializable {
    @Override
    public Vector copy() {
       return new DenseVector(toArray());
+   }
+
+   @Override
+   protected Vector createNew(int dimension) {
+      return entries.isSparse() ? Vector.sZeros(dimension) : Vector.dZeros(dimension);
    }
 
    @Override
@@ -65,14 +68,6 @@ class RowVector implements Vector, Serializable {
       return false;
    }
 
-   @Override
-   public Vector redim(int newDimension) {
-      Vector v = new DenseVector(newDimension);
-      for (int r = 0; r < Math.min(entries.numberOfColumns(), newDimension); r++) {
-         v.set(r, get(r));
-      }
-      return v;
-   }
 
    @Override
    public Vector set(int index, double value) {
@@ -85,25 +80,6 @@ class RowVector implements Vector, Serializable {
       return entries.numberOfColumns();
    }
 
-   @Override
-   public Vector slice(int from, int to) {
-      Preconditions.checkArgument(from < to, from + " must be less than " + to);
-      Preconditions.checkElementIndex(to, entries.numberOfColumns() + 1);
-      Vector v = new DenseVector(to - from);
-      for (int r = from; r < to; r++) {
-         v.set(r - from, get(r));
-      }
-      return v;
-   }
-
-   @Override
-   public double[] toArray() {
-      double[] array = new double[entries.numberOfColumns()];
-      for (int r = 0; r < entries.numberOfColumns(); r++) {
-         array[r] = get(r);
-      }
-      return array;
-   }
 
    @Override
    public String toString() {

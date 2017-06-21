@@ -30,17 +30,6 @@ public class LabeledVector extends ForwardingVector {
    }
 
    /**
-    * Convenience method for creating a sparse labeled vector.
-    *
-    * @param dimension the dimension of the vector
-    * @param label     the label of the vector
-    * @return the labeled vector
-    */
-   public static LabeledVector sparse(int dimension, Object label) {
-      return new LabeledVector(label, new SparseVector(dimension));
-   }
-
-   /**
     * Convenience method for creating a dense labeled vector.
     *
     * @param dimension the dimension of the vector
@@ -51,9 +40,60 @@ public class LabeledVector extends ForwardingVector {
       return new LabeledVector(label, new DenseVector(dimension));
    }
 
+   /**
+    * Convenience method for creating a sparse labeled vector.
+    *
+    * @param dimension the dimension of the vector
+    * @param label     the label of the vector
+    * @return the labeled vector
+    */
+   public static LabeledVector sparse(int dimension, Object label) {
+      return new LabeledVector(label, new SparseVector(dimension));
+   }
+
+   @Override
+   public LabeledVector addSelf(Vector rhs) {
+      super.addSelf(rhs);
+      return this;
+   }
+
+   @Override
+   public LabeledVector compress() {
+      super.compress();
+      return this;
+   }
+
+   @Override
+   public LabeledVector copy() {
+      return new LabeledVector(label, super.copy());
+   }
+
+   @Override
+   protected Vector createNew(int dimension) {
+      return new LabeledVector(label, super.createNew(dimension));
+   }
+
+   @Override
+   public LabeledVector decrement(int index) {
+      super.decrement(index);
+      return this;
+   }
+
+   @Override
+   public LabeledVector decrement(int index, double amount) {
+      super.decrement(index, amount);
+      return this;
+   }
+
    @Override
    protected Vector delegate() {
       return delegate;
+   }
+
+   @Override
+   public LabeledVector divideSelf(Vector rhs) {
+      super.divideSelf(rhs);
+      return this;
    }
 
    @Override
@@ -82,41 +122,6 @@ public class LabeledVector extends ForwardingVector {
    }
 
    @Override
-   public LabeledVector addSelf(Vector rhs) {
-      super.addSelf(rhs);
-      return this;
-   }
-
-   @Override
-   public LabeledVector compress() {
-      super.compress();
-      return this;
-   }
-
-   @Override
-   public LabeledVector copy() {
-      return new LabeledVector(label, super.copy());
-   }
-
-   @Override
-   public LabeledVector decrement(int index) {
-      super.decrement(index);
-      return this;
-   }
-
-   @Override
-   public LabeledVector decrement(int index, double amount) {
-      super.decrement(index, amount);
-      return this;
-   }
-
-   @Override
-   public LabeledVector divideSelf(Vector rhs) {
-      super.divideSelf(rhs);
-      return this;
-   }
-
-   @Override
    public LabeledVector increment(int index) {
       super.increment(index);
       return this;
@@ -135,14 +140,14 @@ public class LabeledVector extends ForwardingVector {
    }
 
    @Override
-   public LabeledVector mapMultiplySelf(double amount) {
-      super.mapMultiplySelf(amount);
+   public LabeledVector mapDivideSelf(double amount) {
+      super.mapDivideSelf(amount);
       return this;
    }
 
    @Override
-   public LabeledVector mapDivideSelf(double amount) {
-      super.mapDivideSelf(amount);
+   public LabeledVector mapMultiplySelf(double amount) {
+      super.mapMultiplySelf(amount);
       return this;
    }
 
@@ -171,6 +176,11 @@ public class LabeledVector extends ForwardingVector {
    }
 
    @Override
+   public LabeledVector redim(int newDimension) {
+      return new LabeledVector(label, super.redim(newDimension));
+   }
+
+   @Override
    public LabeledVector scale(int index, double amount) {
       super.scale(index, amount);
       return this;
@@ -186,11 +196,6 @@ public class LabeledVector extends ForwardingVector {
    public LabeledVector subtractSelf(Vector rhs) {
       super.subtractSelf(rhs);
       return this;
-   }
-
-   @Override
-   public LabeledVector redim(int newDimension) {
-      return new LabeledVector(label, super.redim(newDimension));
    }
 
 }// END OF LabeledVector

@@ -27,7 +27,6 @@ import lombok.NonNull;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.commons.math3.random.Well19937c;
 
-import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Random;
 
@@ -36,7 +35,7 @@ import java.util.Random;
  *
  * @author David B. Bracewell
  */
-public class DenseVector implements Vector, Serializable {
+public class DenseVector extends BaseVector {
    private static final long serialVersionUID = 1L;
    private double[] data;
 
@@ -165,6 +164,11 @@ public class DenseVector implements Vector, Serializable {
    @Override
    public Vector copy() {
       return new DenseVector(this);
+   }
+
+   @Override
+   protected Vector createNew(int dimension) {
+      return new DenseVector(dimension);
    }
 
    @Override

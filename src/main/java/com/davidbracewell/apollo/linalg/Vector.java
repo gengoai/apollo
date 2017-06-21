@@ -23,13 +23,7 @@ package com.davidbracewell.apollo.linalg;
 
 import com.davidbracewell.Copyable;
 import com.davidbracewell.EnhancedDoubleStatistics;
-import com.davidbracewell.apollo.affinity.Correlation;
-import com.davidbracewell.apollo.optimization.Optimum;
-import com.davidbracewell.collection.Collect;
-import com.davidbracewell.collection.Streams;
 import com.davidbracewell.conversion.Cast;
-import com.davidbracewell.guava.common.base.Preconditions;
-import com.davidbracewell.guava.common.util.concurrent.AtomicDouble;
 import com.davidbracewell.tuple.Tuple2;
 import lombok.NonNull;
 import lombok.Value;
@@ -37,15 +31,9 @@ import lombok.Value;
 import java.io.Serializable;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.PrimitiveIterator;
 import java.util.function.Consumer;
 import java.util.function.DoubleBinaryOperator;
 import java.util.function.DoubleUnaryOperator;
-import java.util.stream.DoubleStream;
-import java.util.stream.IntStream;
-
-import static com.davidbracewell.tuple.Tuples.$;
 
 /**
  * <p>Interface for vectors </p>
@@ -54,15 +42,78 @@ import static com.davidbracewell.tuple.Tuples.$;
  */
 public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
 
+
+   /**
+    * D ones vector.
+    *
+    * @param dimension the dimension
+    * @return the vector
+    */
+   static Vector dOnes(int dimension) {
+      return DenseVector.ones(dimension);
+   }
+
+   /**
+    * D random vector.
+    *
+    * @param dimension the dimension
+    * @param min       the min
+    * @param max       the max
+    * @return the vector
+    */
+   static Vector dRandom(int dimension, int min, int max) {
+      return DenseVector.random(dimension, min, max);
+   }
+
+   /**
+    * D zeros vector.
+    *
+    * @param dimension the dimension
+    * @return the vector
+    */
+   static Vector dZeros(int dimension) {
+      return DenseVector.zeros(dimension);
+   }
+
+   /**
+    * S ones vector.
+    *
+    * @param dimension the dimension
+    * @return the vector
+    */
+   static Vector sOnes(int dimension) {
+      return SparseVector.ones(dimension);
+   }
+
+   /**
+    * S random vector.
+    *
+    * @param dimension the dimension
+    * @param min       the min
+    * @param max       the max
+    * @return the vector
+    */
+   static Vector sRandom(int dimension, int min, int max) {
+      return SparseVector.random(dimension, min, max);
+   }
+
+   /**
+    * S zeros vector.
+    *
+    * @param dimension the dimension
+    * @return the vector
+    */
+   static Vector sZeros(int dimension) {
+      return SparseVector.zeros(dimension);
+   }
+
    /**
     * Constructs a new vector which is the element-wise sum of this vector and <code>rhs</code>.
     *
     * @param rhs the vector to be added.
     * @return A new vector whose elements are the sum of this instance and rhs.
     */
-   default Vector add(@NonNull Vector rhs) {
-      return copy().addSelf(rhs);
-   }
+   Vector add(@NonNull Vector rhs);
 
    /**
     * Performs ane element-wise addition to the values in this vector using the values of the <code>rhs</code> vector.
@@ -70,15 +121,14 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
     * @param rhs the vector to be added.
     * @return This vector.
     */
-   default Vector addSelf(@NonNull Vector rhs) {
-      Preconditions.checkArgument(rhs.dimension() == dimension(), "Dimension mismatch");
-      rhs.forEachSparse(e -> increment(e.index, e.value));
-      return this;
-   }
+   Vector addSelf(@NonNull Vector rhs);
 
-   default Map<Integer, Double> asMap() {
-      return VectorMap.wrap(this);
-   }
+   /**
+    * As map map.
+    *
+    * @return the map
+    */
+   Map<Integer, Double> asMap();
 
    /**
     * Compresses memory if possible
@@ -93,9 +143,7 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
     * @param other the other vector to calculate the correlation lwith
     * @return the Spearman correlation
     */
-   default double corr(@NonNull Vector other) {
-      return Correlation.Spearman.calculate(this, other);
-   }
+   double corr(@NonNull Vector other);
 
    /**
     * Decrements the value at the given index.
@@ -103,9 +151,7 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
     * @param index the index to decrement
     * @return This vector
     */
-   default Vector decrement(int index) {
-      return increment(index, -1);
-   }
+   Vector decrement(int index);
 
    /**
     * Decrements the value at the given index.
@@ -114,9 +160,7 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
     * @param amount the amount to decrement by
     * @return This vector
     */
-   default Vector decrement(int index, double amount) {
-      return increment(index, -amount);
-   }
+   Vector decrement(int index, double amount);
 
    /**
     * Returns the k of the vector, i.e. the number of elements.
@@ -141,11 +185,7 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
     * @param rhs the vector to be divided.
     * @return This vector.
     */
-   default Vector divideSelf(@NonNull Vector rhs) {
-      Preconditions.checkArgument(rhs.dimension() == dimension(), "Dimension mismatch");
-      forEachSparse(e -> scale(e.index, 1d / rhs.get(e.index)));
-      return this;
-   }
+   Vector divideSelf(@NonNull Vector rhs);
 
    /**
     * Compute the dot product of this vector with rhs.
@@ -153,32 +193,21 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
     * @param rhs the vector with which the dot product should be computed.
     * @return the scalar dot product of this instance and rhs.
     */
-   default double dot(@NonNull Vector rhs) {
-      Preconditions.checkArgument(rhs.dimension() == dimension(), "Dimension mismatch");
-      AtomicDouble dot = new AtomicDouble(0d);
-      Vector small = size() < rhs.size() ? this : rhs;
-      Vector big = size() < rhs.size() ? rhs : this;
-      small.forEachSparse(e -> dot.addAndGet(e.value * big.get(e.index)));
-      return dot.get();
-   }
+   double dot(@NonNull Vector rhs);
 
    /**
     * Applies the given consumer to each non-zero element in this vector with granted order.
     *
     * @param consumer the consumer to run
     */
-   default void forEachOrderedSparse(@NonNull Consumer<Vector.Entry> consumer) {
-      Streams.asStream(orderedNonZeroIterator()).forEach(consumer);
-   }
+   void forEachOrderedSparse(@NonNull Consumer<Vector.Entry> consumer);
 
    /**
     * Applies the given consumer to each non-zero element in this vector
     *
     * @param consumer the consumer to run
     */
-   default void forEachSparse(@NonNull Consumer<Vector.Entry> consumer) {
-      Streams.asStream(nonZeroIterator()).forEach(consumer);
-   }
+   void forEachSparse(@NonNull Consumer<Vector.Entry> consumer);
 
    /**
     * Gets the value at the given index.
@@ -198,6 +227,12 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
       return null;
    }
 
+   /**
+    * Gets label vector.
+    *
+    * @param dimension the dimension
+    * @return the label vector
+    */
    default Vector getLabelVector(int dimension) {
       Object label = getLabel();
       if (label == null) {
@@ -217,6 +252,11 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
       throw new IllegalStateException(label.getClass() + " cannot be converted to a vector");
    }
 
+   /**
+    * Gets label vector.
+    *
+    * @return the label vector
+    */
    default Vector getLabelVector() {
       Object label = getLabel();
       if (label == null) {
@@ -235,9 +275,7 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
     * @param index the index to increment
     * @return This vector
     */
-   default Vector increment(int index) {
-      return increment(index, 1);
-   }
+   Vector increment(int index);
 
    /**
     * Increments the value at the given index.
@@ -247,6 +285,15 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
     * @return This vector
     */
    Vector increment(int index, double amount);
+
+   /**
+    * Insert vector.
+    *
+    * @param i the
+    * @param v the v
+    * @return the vector
+    */
+   Vector insert(int i, double v);
 
    /**
     * Returns true if this implementation is dense.
@@ -260,27 +307,21 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
     *
     * @return true if all elements in the vector are finite.
     */
-   default boolean isFinite() {
-      return Streams.asStream(nonZeroIterator()).mapToDouble(Entry::getValue).allMatch(Double::isFinite);
-   }
+   boolean isFinite();
 
    /**
     * Returns true if any element in the vector is <code>Infinite</code>
     *
     * @return true if any element in the vector is <code>Infinite</code>
     */
-   default boolean isInfinite() {
-      return Streams.asStream(nonZeroIterator()).mapToDouble(Entry::getValue).anyMatch(Double::isInfinite);
-   }
+   boolean isInfinite();
 
    /**
     * Returns true if any element in the vector is <code>NaN</code>
     *
     * @return true if any element in the vector is <code>NaN</code>
     */
-   default boolean isNaN() {
-      return Streams.asStream(nonZeroIterator()).mapToDouble(Entry::getValue).anyMatch(Double::isNaN);
-   }
+   boolean isNaN();
 
    /**
     * Returns true if this implementation is sparse.
@@ -289,53 +330,27 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
     */
    boolean isSparse();
 
-   @Override
-   default Iterator<Entry> iterator() {
-      return new Iterator<Entry>() {
-         private final PrimitiveIterator.OfInt indexIter = IntStream.range(0, dimension()).iterator();
-
-         @Override
-         public boolean hasNext() {
-            return indexIter.hasNext();
-         }
-
-         @Override
-         public Entry next() {
-            if (!indexIter.hasNext()) {
-               throw new NoSuchElementException();
-            }
-            int index = indexIter.next();
-            return new Vector.Entry(index, get(index));
-         }
-      };
-   }
 
    /**
     * Computes the L1 norm of the vector, which is the sum of the absolute values.
     *
     * @return The L1 norm of the vector
     */
-   default double l1Norm() {
-      return Streams.asStream(nonZeroIterator()).mapToDouble(Entry::getValue).map(Math::abs).sum();
-   }
+   double l1Norm();
 
    /**
     * Computes the L-Infinity norm of the vector, which is the max of the absolute values.
     *
     * @return The L-Infinity norm of the vector
     */
-   default double lInfNorm() {
-      return Streams.asStream(nonZeroIterator()).mapToDouble(Entry::getValue).map(Math::abs).max().orElse(0d);
-   }
+   double lInfNorm();
 
    /**
     * Computes the magnitude (L2 norm) of the vector, which is the square root of the sum of squares.
     *
     * @return the magnitude (L2 norm) of the vector
     */
-   default double magnitude() {
-      return Math.sqrt(Streams.asStream(nonZeroIterator()).mapToDouble(Entry::getValue).map(d -> d * d).sum());
-   }
+   double magnitude();
 
    /**
     * Applies a function to each value in this vector returning a new vector.
@@ -343,9 +358,7 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
     * @param function the function to apply to the values of this vector
     * @return A new vector whose values are the result of the function being applied to this instance.
     */
-   default Vector map(@NonNull DoubleUnaryOperator function) {
-      return copy().mapSelf(function);
-   }
+   Vector map(@NonNull DoubleUnaryOperator function);
 
    /**
     * Applies the given function on the elements of this vector and the vector v creates a new vector as a by product.
@@ -354,9 +367,7 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
     * @param function The function to apply
     * @return A new vector whose elements are result of the function applied to the values of this instance and v.
     */
-   default Vector map(@NonNull Vector v, @NonNull DoubleBinaryOperator function) {
-      return copy().mapSelf(v, function);
-   }
+   Vector map(@NonNull Vector v, @NonNull DoubleBinaryOperator function);
 
    /**
     * Adds a given amount to each value in this instance creating a new vector as a result.
@@ -364,9 +375,7 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
     * @param amount the amount to add
     * @return A new vector whose values are the sum this instance and the given amount
     */
-   default Vector mapAdd(double amount) {
-      return copy().mapAddSelf(amount);
-   }
+   Vector mapAdd(double amount);
 
    /**
     * Adds a given amount to each value in this instance in place.
@@ -374,12 +383,7 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
     * @param amount the amount to add
     * @return This vector
     */
-   default Vector mapAddSelf(double amount) {
-      for (int i = 0; i < dimension(); i++) {
-         increment(i, amount);
-      }
-      return this;
-   }
+   Vector mapAddSelf(double amount);
 
    /**
     * Divides a given amount to each value in this instance creating a new vector as a result.
@@ -387,9 +391,7 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
     * @param amount the amount to divide
     * @return A new vector whose values are the quotient this instance and the given amount
     */
-   default Vector mapDivide(double amount) {
-      return copy().mapDivideSelf(amount);
-   }
+   Vector mapDivide(double amount);
 
    /**
     * Divides a given amount to each value in this instance in place.
@@ -397,10 +399,7 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
     * @param amount the amount to divide
     * @return This vector.
     */
-   default Vector mapDivideSelf(double amount) {
-      forEachSparse(e -> scale(e.index, 1d / amount));
-      return this;
-   }
+   Vector mapDivideSelf(double amount);
 
    /**
     * Multiplies a given amount to each value in this instance creating a new vector as a result.
@@ -408,9 +407,7 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
     * @param amount the amount to multiply
     * @return A new vector whose values are the product this instance and the given amount
     */
-   default Vector mapMultiply(double amount) {
-      return copy().mapMultiplySelf(amount);
-   }
+   Vector mapMultiply(double amount);
 
    /**
     * Multiplies a given amount to each value in this instance in place.
@@ -418,10 +415,7 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
     * @param amount the amount to multiply
     * @return This vector.
     */
-   default Vector mapMultiplySelf(double amount) {
-      forEachSparse(e -> scale(e.index, amount));
-      return this;
-   }
+   Vector mapMultiplySelf(double amount);
 
    /**
     * Applies the given function on the elements of this vector and the vector v.
@@ -430,13 +424,7 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
     * @param function The function to apply
     * @return This vector.
     */
-   default Vector mapSelf(@NonNull Vector v, @NonNull DoubleBinaryOperator function) {
-      Preconditions.checkArgument(v.dimension() == dimension(), "Dimension mismatch");
-      for (int i = 0; i < dimension(); i++) {
-         set(i, function.applyAsDouble(get(i), v.get(i)));
-      }
-      return this;
-   }
+   Vector mapSelf(@NonNull Vector v, @NonNull DoubleBinaryOperator function);
 
    /**
     * Applies a function to each value in this vector in place.
@@ -444,12 +432,7 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
     * @param function the function to apply to the values of this vector
     * @return This vector.
     */
-   default Vector mapSelf(@NonNull DoubleUnaryOperator function) {
-      for (int i = 0; i < dimension(); i++) {
-         set(i, function.applyAsDouble(get(i)));
-      }
-      return this;
-   }
+   Vector mapSelf(@NonNull DoubleUnaryOperator function);
 
    /**
     * Subtracts a given amount to each value in this instance creating a new vector as a result.
@@ -457,9 +440,7 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
     * @param amount the amount to subtract
     * @return A new vector whose values are the difference this instance and the given amount
     */
-   default Vector mapSubtract(double amount) {
-      return copy().mapSubtractSelf(amount);
-   }
+   Vector mapSubtract(double amount);
 
    /**
     * Subtracts a given amount to each value in this instance in place.
@@ -467,38 +448,35 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
     * @param amount the amount to subtract
     * @return This vector
     */
-   default Vector mapSubtractSelf(double amount) {
-      for (int i = 0; i < dimension(); i++) {
-         decrement(i, amount);
-      }
-      return this;
-   }
+   Vector mapSubtractSelf(double amount);
 
    /**
     * Calculates the maximum value in this vector.
     *
     * @return The maximum value in this vector.
     */
-   default double max() {
-      return Streams.asStream(nonZeroIterator()).mapToDouble(Entry::getValue).max().orElse(0d);
-   }
+   double max();
 
-   default int maxIndex() {
-      return Optimum.MAXIMUM.optimumIndex(toArray());
-   }
+   /**
+    * Max index int.
+    *
+    * @return the int
+    */
+   int maxIndex();
 
    /**
     * Calculates the minimum value in this vector.
     *
     * @return The minimum value in this vector.
     */
-   default double min() {
-      return Streams.asStream(nonZeroIterator()).mapToDouble(Entry::getValue).min().orElse(0d);
-   }
+   double min();
 
-   default int minIndex() {
-      return Optimum.MINIMUM.optimumIndex(toArray());
-   }
+   /**
+    * Min index int.
+    *
+    * @return the int
+    */
+   int minIndex();
 
    /**
     * Computes the product of this vector and rhs in an element-by-element fashion.
@@ -506,9 +484,7 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
     * @param rhs the vector to be multiplied.
     * @return A new vector whose elements are the product of this instance and rhs.
     */
-   default Vector multiply(@NonNull Vector rhs) {
-      return copy().multiplySelf(rhs);
-   }
+   Vector multiply(@NonNull Vector rhs);
 
    /**
     * Computes the product of this vector and rhs in an element-by-element fashion.
@@ -516,23 +492,7 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
     * @param rhs the vector to be multiplied.
     * @return This vector.
     */
-   default Vector multiplySelf(@NonNull Vector rhs) {
-      Preconditions.checkArgument(rhs.dimension() == dimension(), "Dimension mismatch");
-      forEachSparse(e -> scale(e.index, rhs.get(e.index)));
-      return this;
-   }
-
-   default Vector insert(int i, double v){
-      Vector vPrime = redim(dimension() + 1);
-      vPrime.set(i, v);
-      for (int j = 0; j < i; j++) {
-         vPrime.set(j, get(j));
-      }
-      for (int j = i; j < dimension(); j++) {
-         vPrime.set(j + 1, get(j));
-      }
-      return vPrime;
-   }
+   Vector multiplySelf(@NonNull Vector rhs);
 
    /**
     * Creates an <code>Iterator</code> over non-zero values in the vector. The order is optimized based on the
@@ -540,50 +500,14 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
     *
     * @return An iterator over non-zero values in the vector.
     */
-   default Iterator<Vector.Entry> nonZeroIterator() {
-      return orderedNonZeroIterator();
-   }
+   Iterator<Vector.Entry> nonZeroIterator();
 
    /**
     * Creates an <code>Iterator</code> over non-zero values in the vector. The order is in ascending order of index.
     *
     * @return An iterator over non-zero values in the vector.
     */
-   default Iterator<Vector.Entry> orderedNonZeroIterator() {
-      return new Iterator<Entry>() {
-         private final PrimitiveIterator.OfInt indexIter = IntStream.range(0, dimension()).iterator();
-         private Integer ni = null;
-
-         private boolean advance() {
-            while (ni == null) {
-               if (indexIter.hasNext()) {
-                  ni = indexIter.next();
-                  if (get(ni) == 0) {
-                     ni = null;
-                  }
-               } else {
-                  return false;
-               }
-            }
-            return ni != null;
-         }
-
-         @Override
-         public boolean hasNext() {
-            return advance();
-         }
-
-         @Override
-         public Entry next() {
-            if (!advance()) {
-               throw new NoSuchElementException();
-            }
-            int index = ni;
-            ni = null;
-            return new Vector.Entry(index, get(index));
-         }
-      };
-   }
+   Iterator<Vector.Entry> orderedNonZeroIterator();
 
    /**
     * Resizes the current vector constructing a new vector
@@ -600,11 +524,7 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
     * @param amount the amount to scale by
     * @return This vector
     */
-   default Vector scale(int index, double amount) {
-      Preconditions.checkPositionIndex(index, dimension());
-      set(index, get(index) * amount);
-      return this;
-   }
+   Vector scale(int index, double amount);
 
    /**
     * Sets the value of the given index.
@@ -634,27 +554,19 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
     */
    Vector slice(int from, int to);
 
-   default Tuple2<int[], double[]> sparse() {
-      int[] indices = new int[size()];
-      double[] values = new double[size()];
-      int i = 0;
-      for (Entry entry : Collect.asIterable(orderedNonZeroIterator())) {
-         indices[i] = entry.getIndex();
-         values[i] = entry.getValue();
-         i++;
-      }
-      return $(indices, values);
-   }
+   /**
+    * Sparse tuple 2.
+    *
+    * @return the tuple 2
+    */
+   Tuple2<int[], double[]> sparse();
 
    /**
     * Calculates simples statistics over the values in the vector.
     *
     * @return simples statistics over the values in the vector.
     */
-   default EnhancedDoubleStatistics statistics() {
-      return DoubleStream.of(toArray()).collect(EnhancedDoubleStatistics::new, EnhancedDoubleStatistics::accept,
-                                                EnhancedDoubleStatistics::combine);
-   }
+   EnhancedDoubleStatistics statistics();
 
    /**
     * Computes the difference of this vector and rhs in an element-by-element fashion.
@@ -662,9 +574,7 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
     * @param rhs the vector to be subtracted.
     * @return A new vector whose elements are the difference of this instance and rhs.
     */
-   default Vector subtract(@NonNull Vector rhs) {
-      return copy().subtractSelf(rhs);
-   }
+   Vector subtract(@NonNull Vector rhs);
 
    /**
     * Computes the difference of this vector and rhs in an element-by-element fashion.
@@ -672,20 +582,14 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
     * @param rhs the vector to be subtracted.
     * @return This vector.
     */
-   default Vector subtractSelf(@NonNull Vector rhs) {
-      Preconditions.checkArgument(rhs.dimension() == dimension(), "Dimension mismatch");
-      rhs.forEachSparse(e -> decrement(e.index, e.value));
-      return this;
-   }
+   Vector subtractSelf(@NonNull Vector rhs);
 
    /**
     * Calculates the sum of the values in this vector.
     *
     * @return The sum of the values in this vector.
     */
-   default double sum() {
-      return Streams.asStream(nonZeroIterator()).mapToDouble(Entry::getValue).sum();
-   }
+   double sum();
 
    /**
     * Converts the values in the vector to an array.
@@ -699,39 +603,28 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
     *
     * @return the matrix
     */
-   default Matrix toDiagMatrix() {
-      SparseMatrix matrix = new SparseMatrix(dimension(), dimension());
-      for (int i = 0; i < dimension(); i++) {
-         matrix.set(i, i, get(i));
-      }
-      return matrix;
-   }
+   Matrix toDiagMatrix();
 
    /**
     * Constructs a new <code>1 x k</code> matrix containing this vector.
     *
     * @return the matrix
     */
-   default Matrix toMatrix() {
-      return new SparseMatrix(this);
-   }
+   Matrix toMatrix();
 
-   default Vector toUnitVector() {
-      return copy().mapDivideSelf(magnitude());
-   }
+   /**
+    * To unit vector vector.
+    *
+    * @return the vector
+    */
+   Vector toUnitVector();
 
    /**
     * Transpose the vector into a column of a matrix
     *
     * @return the matrix
     */
-   default Matrix transpose() {
-      SparseMatrix matrix = new SparseMatrix(dimension(), 1);
-      for (int i = 0; i < dimension(); i++) {
-         matrix.set(i, 0, get(i));
-      }
-      return matrix;
-   }
+   Matrix transpose();
 
    /**
     * Convenience method to create a new labeled vector from this vector with the given label.
@@ -739,9 +632,7 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
     * @param label the label to assign to the vector
     * @return the labeled vector
     */
-   default Vector withLabel(Object label) {
-      return new LabeledVector(label, this);
-   }
+   Vector withLabel(Object label);
 
    /**
     * Sets all elements in the vector to zero.

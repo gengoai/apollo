@@ -22,8 +22,8 @@
 package com.davidbracewell.apollo.linalg;
 
 import com.davidbracewell.EnhancedDoubleStatistics;
+import com.davidbracewell.conversion.Cast;
 
-import java.io.Serializable;
 import java.util.Iterator;
 import java.util.function.DoubleBinaryOperator;
 import java.util.function.DoubleUnaryOperator;
@@ -33,7 +33,7 @@ import java.util.function.DoubleUnaryOperator;
  *
  * @author David B. Bracewell
  */
-public abstract class ForwardingVector implements Vector, Serializable {
+public abstract class ForwardingVector extends BaseVector {
    private static final long serialVersionUID = 1L;
 
    @Override
@@ -51,6 +51,14 @@ public abstract class ForwardingVector implements Vector, Serializable {
    @Override
    public Vector copy() {
       return delegate().copy();
+   }
+
+   @Override
+   protected Vector createNew(int dimension) {
+      if (delegate() instanceof BaseVector) {
+         return Cast.<BaseVector>as(delegate()).createNew(dimension);
+      }
+      throw new IllegalStateException();
    }
 
    @Override
@@ -89,11 +97,6 @@ public abstract class ForwardingVector implements Vector, Serializable {
    }
 
    @Override
-   public boolean isSparse() {
-      return delegate().isSparse();
-   }
-
-   @Override
    public double get(int index) {
       return delegate().get(index);
    }
@@ -118,6 +121,11 @@ public abstract class ForwardingVector implements Vector, Serializable {
    @Override
    public boolean isDense() {
       return delegate().isDense();
+   }
+
+   @Override
+   public boolean isSparse() {
+      return delegate().isSparse();
    }
 
    @Override
@@ -178,6 +186,11 @@ public abstract class ForwardingVector implements Vector, Serializable {
    }
 
    @Override
+   public Vector redim(int newDimension) {
+      return delegate().redim(newDimension);
+   }
+
+   @Override
    public Vector scale(int index, double amount) {
       delegate().scale(index, amount);
       return this;
@@ -228,11 +241,6 @@ public abstract class ForwardingVector implements Vector, Serializable {
    @Override
    public Vector zero() {
       return delegate().zero();
-   }
-
-   @Override
-   public Vector redim(int newDimension) {
-      return delegate().redim(newDimension);
    }
 
 }//END OF ForwardingVector

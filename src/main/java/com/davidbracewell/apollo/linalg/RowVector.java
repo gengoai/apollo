@@ -11,8 +11,8 @@ import java.util.Arrays;
  */
 class RowVector implements Vector, Serializable {
    private static final long serialVersionUID = 1L;
-   private Matrix entries;
    private final int row;
+   private Matrix entries;
 
    RowVector(Matrix entries, int row) {
       this.entries = entries;
@@ -88,10 +88,10 @@ class RowVector implements Vector, Serializable {
    @Override
    public Vector slice(int from, int to) {
       Preconditions.checkArgument(from < to, from + " must be less than " + to);
-      Preconditions.checkElementIndex(to, entries.numberOfColumns());
+      Preconditions.checkElementIndex(to, entries.numberOfColumns() + 1);
       Vector v = new DenseVector(to - from);
       for (int r = from; r < to; r++) {
-         v.set(r, get(r));
+         v.set(r - from, get(r));
       }
       return v;
    }

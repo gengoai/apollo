@@ -297,7 +297,7 @@ public class DenseMatrix implements Matrix, Serializable {
    }
 
    @Override
-   public Matrix transpose() {
+   public Matrix T() {
       return new DenseMatrix(matrix.transpose());
    }
 

@@ -4,12 +4,10 @@ import com.davidbracewell.apollo.ml.BernoulliRBM;
 import com.davidbracewell.apollo.ml.Feature;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.data.Dataset;
-import com.davidbracewell.collection.map.Maps;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -19,24 +17,6 @@ public class RBMClassifierLearner extends ClassifierLearner {
    @Getter
    @Setter
    private int nHidden = 100;
-
-   public static void main(String[] args) {
-      Dataset<Instance> instances = Dataset.classification()
-                                           .source(Arrays.asList(
-                                              Instance.create(Maps.map("0", 1d, "1", 1d, "2", 1d), "A"),
-                                              Instance.create(Maps.map("0", 1d, "2", 1d), "A"),
-                                              Instance.create(Maps.map("0", 1d, "1", 1d, "2", 1d), "A"),
-                                              Instance.create(Maps.map("3", 1d, "2", 1d, "4", 1d), "B"),
-                                              Instance.create(Maps.map("4", 1d, "2", 1d), "B"),
-                                              Instance.create(Maps.map("3", 1d, "4", 1d, "2", 1d), "B")
-                                                                ));
-      RBMClassifierLearner learner = new RBMClassifierLearner();
-      learner.setNHidden(2);
-      Classifier c = learner.train(instances);
-
-      instances.forEach(i -> System.out.println(c.classify(i)));
-
-   }
 
    @Override
    public void reset() {
@@ -52,7 +32,6 @@ public class RBMClassifierLearner extends ClassifierLearner {
       rbm.train(dataset.asVectors().collect());
 
       boolean isMulticlass = dataset.getLabelEncoder().size() > 2;
-      System.err.println("isMultiClass=" + isMulticlass);
       ClassifierLearner subLearner;
       if (isMulticlass) {
          subLearner = new BinarySGDLearner()
@@ -71,6 +50,7 @@ public class RBMClassifierLearner extends ClassifierLearner {
                                                       .forEachRemaining(
                                                          e -> features.add(
                                                             Feature.TRUE(Integer.toString(e.getIndex()))));
+                                                   System.err.println(i + " : " + features);
                                                    return new Instance(features, i.getLabel());
                                                 }));
 

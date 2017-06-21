@@ -50,22 +50,6 @@ public class SparseMatrix implements Matrix, Serializable {
       }
    }
 
-   @Override
-   public boolean equals(Object o) {
-      if (o == null || !(o instanceof Matrix)) {
-         return false;
-      }
-      Matrix mo = Cast.as(o);
-      if (!shape().equals(((Matrix) o).shape())) {
-         return false;
-      }
-      for (int i = 0; i < numberOfRows(); i++) {
-         if (!row(i).equals(mo.row(i))) {
-            return false;
-         }
-      }
-      return true;
-   }
    /**
     * Instantiates a new Sparse matrix.
     *
@@ -109,7 +93,6 @@ public class SparseMatrix implements Matrix, Serializable {
       }
    }
 
-
    /**
     * Instantiates a new Sparse matrix from a number of row vectors.
     *
@@ -118,6 +101,7 @@ public class SparseMatrix implements Matrix, Serializable {
    public SparseMatrix(@NonNull Vector... vectors) {
       this(Arrays.asList(vectors));
    }
+
 
    /**
     * Instantiates a new Sparse matrix from a number of row vectors.
@@ -159,14 +143,11 @@ public class SparseMatrix implements Matrix, Serializable {
     */
    public static Matrix random(int numberOfRows, int numberOfColumns) {
       Matrix m = new SparseMatrix(numberOfRows, numberOfColumns);
-      IntStream
-         .range(0, numberOfRows)
-         .parallel()
-         .forEach(r -> {
-            for (int c = 0; c < numberOfColumns; c++) {
-               m.set(r, c, Math.random());
-            }
-         });
+      for( int r = 0; r < numberOfRows; r++ ){
+         for( int c = 0; c < numberOfColumns; c++){
+            m.set(r,c, Math.random());
+         }
+      }
       return m;
    }
 
@@ -209,6 +190,22 @@ public class SparseMatrix implements Matrix, Serializable {
       return new SparseMatrix(this);
    }
 
+   @Override
+   public boolean equals(Object o) {
+      if (o == null || !(o instanceof Matrix)) {
+         return false;
+      }
+      Matrix mo = Cast.as(o);
+      if (!shape().equals(((Matrix) o).shape())) {
+         return false;
+      }
+      for (int i = 0; i < numberOfRows(); i++) {
+         if (!row(i).equals(mo.row(i))) {
+            return false;
+         }
+      }
+      return true;
+   }
 
    @Override
    public double get(int row, int column) {

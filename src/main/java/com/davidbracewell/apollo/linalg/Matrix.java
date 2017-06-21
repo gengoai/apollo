@@ -35,6 +35,7 @@ import java.util.NoSuchElementException;
 import java.util.PrimitiveIterator;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
+import java.util.function.DoubleBinaryOperator;
 import java.util.function.DoubleUnaryOperator;
 import java.util.stream.IntStream;
 
@@ -56,6 +57,91 @@ public interface Matrix extends Copyable<Matrix>, Iterable<Matrix.Entry> {
     */
    default Matrix add(@NonNull Matrix other) {
       return copy().addSelf(other);
+   }
+
+   /**
+    * Add column matrix.
+    *
+    * @param vector the vector
+    * @return the matrix
+    */
+   default Matrix addColumn(@NonNull Vector vector) {
+      return copy().addColumnSelf(vector);
+   }
+
+   /**
+    * Add column self matrix.
+    *
+    * @param vector the vector
+    * @return the matrix
+    */
+   default Matrix addColumnSelf(@NonNull Vector vector) {
+      forEachColumn(c -> c.addSelf(vector));
+      return this;
+   }
+
+   /**
+    * Add row matrix.
+    *
+    * @param vector the vector
+    * @return the matrix
+    */
+   default Matrix addRow(@NonNull Vector vector) {
+      return copy().addRowSelf(vector);
+   }
+
+   /**
+    * Add row self matrix.
+    *
+    * @param vector the vector
+    * @return the matrix
+    */
+   default Matrix addRowSelf(@NonNull Vector vector) {
+      forEachRow(r -> r.addSelf(vector));
+      return this;
+   }
+
+
+   /**
+    * Subtract column matrix.
+    *
+    * @param vector the vector
+    * @return the matrix
+    */
+   default Matrix subtractColumn(@NonNull Vector vector) {
+      return copy().subtractColumnSelf(vector);
+   }
+
+   /**
+    * Subtract column self matrix.
+    *
+    * @param vector the vector
+    * @return the matrix
+    */
+   default Matrix subtractColumnSelf(@NonNull Vector vector) {
+      forEachColumn(c -> c.subtractSelf(vector));
+      return this;
+   }
+
+   /**
+    * Subtract row matrix.
+    *
+    * @param vector the vector
+    * @return the matrix
+    */
+   default Matrix subtractRow(@NonNull Vector vector) {
+      return copy().subtractRowSelf(vector);
+   }
+
+   /**
+    * Subtract row self matrix.
+    *
+    * @param vector the vector
+    * @return the matrix
+    */
+   default Matrix subtractRowSelf(@NonNull Vector vector) {
+      forEachRow(r -> r.subtractSelf(vector));
+      return this;
    }
 
    /**
@@ -216,6 +302,11 @@ public interface Matrix extends Copyable<Matrix>, Iterable<Matrix.Entry> {
     */
    double get(int row, int column);
 
+   /**
+    * Gets factory.
+    *
+    * @return the factory
+    */
    MatrixFactory getFactory();
 
    /**
@@ -320,6 +411,52 @@ public interface Matrix extends Copyable<Matrix>, Iterable<Matrix.Entry> {
    }
 
    /**
+    * Map row matrix.
+    *
+    * @param vector   the vector
+    * @param operator the operator
+    * @return the matrix
+    */
+   default Matrix mapRow(@NonNull Vector vector, @NonNull DoubleBinaryOperator operator) {
+      return copy().mapRowSelf(vector, operator);
+   }
+
+   /**
+    * Map row self matrix.
+    *
+    * @param vector   the vector
+    * @param operator the operator
+    * @return the matrix
+    */
+   default Matrix mapRowSelf(@NonNull Vector vector, @NonNull DoubleBinaryOperator operator) {
+      forEachRow(r -> r.mapSelf(vector, operator));
+      return this;
+   }
+
+   /**
+    * Map column matrix.
+    *
+    * @param vector   the vector
+    * @param operator the operator
+    * @return the matrix
+    */
+   default Matrix mapColumn(@NonNull Vector vector, @NonNull DoubleBinaryOperator operator) {
+      return copy().mapColumnSelf(vector, operator);
+   }
+
+   /**
+    * Map column self matrix.
+    *
+    * @param vector   the vector
+    * @param operator the operator
+    * @return the matrix
+    */
+   default Matrix mapColumnSelf(@NonNull Vector vector, @NonNull DoubleBinaryOperator operator) {
+      forEachColumn(r -> r.mapSelf(vector, operator));
+      return this;
+   }
+
+   /**
     * Map self matrix.
     *
     * @param operator the operator
@@ -356,10 +493,22 @@ public interface Matrix extends Copyable<Matrix>, Iterable<Matrix.Entry> {
       return mprime;
    }
 
+   /**
+    * Multiply vector matrix.
+    *
+    * @param v the v
+    * @return the matrix
+    */
    default Matrix multiplyVector(@NonNull Vector v) {
       return copy().multiplyVectorSelf(v);
    }
 
+   /**
+    * Multiply vector self matrix.
+    *
+    * @param v the v
+    * @return the matrix
+    */
    default Matrix multiplyVectorSelf(@NonNull Vector v) {
       rowIterator().forEachRemaining(r -> r.multiply(v));
       return this;
@@ -542,6 +691,7 @@ public interface Matrix extends Copyable<Matrix>, Iterable<Matrix.Entry> {
     * @param row    the row
     * @param column the column
     * @param value  the value
+    * @return the matrix
     */
    Matrix set(int row, int column, double value);
 
@@ -550,6 +700,7 @@ public interface Matrix extends Copyable<Matrix>, Iterable<Matrix.Entry> {
     *
     * @param column the column
     * @param vector the vector
+    * @return the column
     */
    default Matrix setColumn(int column, @NonNull Vector vector) {
       Preconditions.checkElementIndex(column, numberOfColumns());
@@ -563,6 +714,7 @@ public interface Matrix extends Copyable<Matrix>, Iterable<Matrix.Entry> {
     *
     * @param row    the row
     * @param vector the vector
+    * @return the row
     */
    default Matrix setRow(int row, Vector vector) {
       Preconditions.checkElementIndex(row, numberOfRows());
@@ -641,7 +793,7 @@ public interface Matrix extends Copyable<Matrix>, Iterable<Matrix.Entry> {
     *
     * @return the matrix
     */
-   default Matrix transpose() {
+   default Matrix T() {
       final Matrix transposed = getFactory().create(numberOfColumns(), numberOfRows());
       forEachSparse(e -> transposed.set(e.column, e.row, e.value));
       return transposed;

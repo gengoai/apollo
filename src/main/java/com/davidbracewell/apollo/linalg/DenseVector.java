@@ -64,7 +64,6 @@ public class DenseVector implements Vector, Serializable {
       System.arraycopy(values, 0, this.data, 0, values.length);
    }
 
-
    /**
     * Copy Constructor
     *
@@ -86,21 +85,6 @@ public class DenseVector implements Vector, Serializable {
       return vector;
    }
 
-
-   /**
-    * Static method to create a new <code>DenseVector</code> whose values wrap an array. Changes to the array will be
-    * seen in the vector and vice versa.
-    *
-    * @param array The array to warp
-    * @return a new <code>DenseVector</code> that wraps a given array.
-    */
-   public static Vector wrap(@NonNull double... array) {
-      DenseVector v = new DenseVector();
-      v.data = array;
-      return v;
-   }
-
-
    /**
     * Creates a new vector of the given dimension initialized with random values in the range of <code>[min,
     * max]</code>.
@@ -113,7 +97,6 @@ public class DenseVector implements Vector, Serializable {
    public static Vector random(int dimension, double min, double max) {
       return random(dimension, min, max, new Well19937c());
    }
-
 
    /**
     * Creates a new vector of the given dimension initialized with random values in the range of <code>[min,
@@ -152,6 +135,19 @@ public class DenseVector implements Vector, Serializable {
    }
 
    /**
+    * Static method to create a new <code>DenseVector</code> whose values wrap an array. Changes to the array will be
+    * seen in the vector and vice versa.
+    *
+    * @param array The array to warp
+    * @return a new <code>DenseVector</code> that wraps a given array.
+    */
+   public static Vector wrap(@NonNull double... array) {
+      DenseVector v = new DenseVector();
+      v.data = array;
+      return v;
+   }
+
+   /**
     * Static method to create a new <code>DenseVector</code> whose values are 0.
     *
     * @param dimension The dimension of the vector
@@ -161,10 +157,14 @@ public class DenseVector implements Vector, Serializable {
       return new DenseVector(dimension);
    }
 
-
    @Override
    public Vector compress() {
       return this;
+   }
+
+   @Override
+   public Vector copy() {
+      return new DenseVector(this);
    }
 
    @Override
@@ -173,8 +173,18 @@ public class DenseVector implements Vector, Serializable {
    }
 
    @Override
+   public boolean equals(Object o) {
+      return o != null && o instanceof Vector && Arrays.equals(toArray(), Cast.<Vector>as(o).toArray());
+   }
+
+   @Override
    public double get(int index) {
       return this.data[index];
+   }
+
+   @Override
+   public int hashCode() {
+      return Arrays.hashCode(toArray());
    }
 
    @Override
@@ -185,6 +195,19 @@ public class DenseVector implements Vector, Serializable {
    }
 
    @Override
+   public Vector insert(int i, double v) {
+      double[] nData = new double[data.length + 1];
+      if (i > 0) {
+         System.arraycopy(data, 0, nData, 0, i);
+      }
+      if (i < data.length) {
+         System.arraycopy(data, i, nData, i + 1, data.length - i);
+      }
+      nData[i] = v;
+      return new DenseVector(nData);
+   }
+
+   @Override
    public boolean isDense() {
       return true;
    }
@@ -192,6 +215,13 @@ public class DenseVector implements Vector, Serializable {
    @Override
    public boolean isSparse() {
       return false;
+   }
+
+   @Override
+   public Vector redim(int newDimension) {
+      DenseVector copy = new DenseVector(newDimension);
+      copy.data = Arrays.copyOf(this.data, newDimension);
+      return copy;
    }
 
    @Override
@@ -222,37 +252,14 @@ public class DenseVector implements Vector, Serializable {
    }
 
    @Override
-   public Vector zero() {
-      this.data = new double[this.data.length];
-      return this;
-   }
-
-   @Override
-   public Vector redim(int newDimension) {
-      DenseVector copy = new DenseVector(newDimension);
-      copy.data = Arrays.copyOf(this.data, newDimension);
-      return copy;
-   }
-
-   @Override
-   public Vector copy() {
-      return new DenseVector(this);
-   }
-
-
-   @Override
    public String toString() {
       return Arrays.toString(toArray());
    }
 
    @Override
-   public boolean equals(Object o) {
-      return o != null && o instanceof Vector && Arrays.equals(toArray(), Cast.<Vector>as(o).toArray());
-   }
-
-   @Override
-   public int hashCode() {
-      return Arrays.hashCode(toArray());
+   public Vector zero() {
+      this.data = new double[this.data.length];
+      return this;
    }
 
 }//END OF DenseVector

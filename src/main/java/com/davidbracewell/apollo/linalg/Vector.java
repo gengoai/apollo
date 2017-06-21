@@ -522,6 +522,18 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
       return this;
    }
 
+   default Vector insert(int i, double v){
+      Vector vPrime = redim(dimension() + 1);
+      vPrime.set(i, v);
+      for (int j = 0; j < i; j++) {
+         vPrime.set(j, get(j));
+      }
+      for (int j = i; j < dimension(); j++) {
+         vPrime.set(j + 1, get(j));
+      }
+      return vPrime;
+   }
+
    /**
     * Creates an <code>Iterator</code> over non-zero values in the vector. The order is optimized based on the
     * underlying structure.

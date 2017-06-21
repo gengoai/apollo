@@ -205,7 +205,7 @@ public abstract class AbstractMatrixTest {
 
    @Test
    public void transpose() throws Exception {
-      assertEquals(m, m.transpose());
+      assertEquals(m, m.T());
    }
 
    @Test

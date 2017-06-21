@@ -48,7 +48,7 @@ public class SparseVector implements Vector, Serializable {
    private final int dimension;
 
 
-   public SparseVector(double[] dense){
+   public SparseVector(double[] dense) {
       this(DenseVector.wrap(dense));
    }
 
@@ -281,12 +281,12 @@ public class SparseVector implements Vector, Serializable {
 
    @Override
    public Vector slice(int from, int to) {
-      Preconditions.checkPositionIndex(from, dimension());
+      Preconditions.checkPositionIndex(from, dimension() + 1);
       Preconditions.checkPositionIndex(to, dimension() + 1);
       Preconditions.checkState(to > from, "To index must be > from index");
       SparseVector v = new SparseVector((to - from));
       for (int i = from; i < to; i++) {
-         v.set(i, get(i));
+         v.set(i - from, get(i));
       }
       return v;
    }

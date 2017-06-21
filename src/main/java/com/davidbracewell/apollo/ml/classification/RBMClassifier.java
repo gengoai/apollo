@@ -2,7 +2,7 @@ package com.davidbracewell.apollo.ml.classification;
 
 import com.davidbracewell.apollo.linalg.SparseVector;
 import com.davidbracewell.apollo.linalg.Vector;
-import com.davidbracewell.apollo.ml.BernoulliRBM;
+import com.davidbracewell.apollo.ml.nn.BernoulliRBM;
 import com.davidbracewell.apollo.ml.EncoderPair;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;

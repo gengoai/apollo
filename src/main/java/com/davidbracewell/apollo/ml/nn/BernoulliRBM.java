@@ -1,4 +1,4 @@
-package com.davidbracewell.apollo.ml;
+package com.davidbracewell.apollo.ml.nn;
 
 import com.davidbracewell.apollo.linalg.*;
 import com.davidbracewell.apollo.optimization.activation.SigmoidActivation;

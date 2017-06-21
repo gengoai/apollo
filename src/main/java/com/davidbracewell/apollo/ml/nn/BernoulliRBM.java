@@ -11,7 +11,7 @@ import java.util.Random;
 /**
  * @author David B. Bracewell
  */
-public class BernoulliRBM {
+public class BernoulliRBM implements Layer {
    int nV;
    int nH;
    Matrix W;
@@ -44,6 +44,11 @@ public class BernoulliRBM {
       rbm.runVisible(new SparseVector(6).set(3, 1).set(4, 1));
    }
 
+   @Override
+   public Matrix forward(Matrix input) {
+      return new SparseMatrix(1, runVisible(input.row(0)));
+   }
+
    public int getNumHidden() {
       return nH;
    }
@@ -53,7 +58,7 @@ public class BernoulliRBM {
       m.setRow(0, v.insert(0, 1));
       Matrix visibleStates = m.multiply(W.T())
                               .mapSelf(d -> SigmoidActivation.INSTANCE.apply(d) > Math.random() ? 1 : 0);
-      return visibleStates.row(0).slice(1, nV+1);
+      return visibleStates.row(0).slice(1, nV + 1);
    }
 
    public Vector runVisible(Vector v) {
@@ -61,7 +66,7 @@ public class BernoulliRBM {
       m.setRow(0, v.insert(0, 1));
       Matrix hiddenStates = m.multiply(W)
                              .mapSelf(d -> SigmoidActivation.INSTANCE.apply(d) > Math.random() ? 1 : 0);
-      return hiddenStates.row(0).slice(1, nH+1);
+      return hiddenStates.row(0).slice(1, nH + 1);
    }
 
    public void train(List<Vector> data) {

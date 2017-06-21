@@ -22,6 +22,9 @@
 package com.davidbracewell.apollo.ml.data;
 
 import com.davidbracewell.Copyable;
+import com.davidbracewell.apollo.linalg.DenseMatrix;
+import com.davidbracewell.apollo.linalg.Matrix;
+import com.davidbracewell.apollo.linalg.SparseMatrix;
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.*;
 import com.davidbracewell.apollo.ml.preprocess.Preprocessor;
@@ -99,15 +102,6 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
    }
 
    /**
-    * Caches the computations performed on the dataset.
-    *
-    * @return A cached version of the dataset
-    */
-   public Dataset<T> cache() {
-      return this;
-   }
-
-   /**
     * Creates a dataset builder with a <code>RealEncoder</code> for the class labels as is required for regression
     * problems.
     *
@@ -167,6 +161,15 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
       return asFeatureVectors().map(Cast::<Vector>as);
    }
 
+   /**
+    * Caches the computations performed on the dataset.
+    *
+    * @return A cached version of the dataset
+    */
+   public Dataset<T> cache() {
+      return this;
+   }
+
    @Override
    public void close() throws Exception {
 
@@ -217,6 +220,14 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
       }
       log.fine("Encoded {0} Features and {1} Labels", getFeatureEncoder().size(), getLabelEncoder().size());
       return this;
+   }
+
+   private Matrix fillMatrix(Matrix m) {
+      int row = 0;
+      for (Iterator<T> ii = iterator(); ii.hasNext(); row++) {
+         m.setRow(row, ii.next().asInstances().get(0).toVector(getEncoderPair()));
+      }
+      return m;
    }
 
    /**
@@ -496,6 +507,16 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
     */
    public List<T> take(int n) {
       return stream().take(n);
+   }
+
+   public Matrix toDenseMatrix() {
+      encode();
+      return fillMatrix(DenseMatrix.zeroes(size(), getFeatureEncoder().size()));
+   }
+
+   public Matrix toSparseMatrix() {
+      encode();
+      return fillMatrix(SparseMatrix.zeroes(size(), getFeatureEncoder().size()));
    }
 
    /**

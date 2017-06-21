@@ -49,8 +49,35 @@ public class BernoulliRBM implements Layer {
       return new SparseMatrix(1, runVisible(input.row(0)));
    }
 
+   @Override
+   public int getInputSize() {
+      return nV;
+   }
+
    public int getNumHidden() {
       return nH;
+   }
+
+   @Override
+   public int getOutputSize() {
+      return nV;
+   }
+
+   @Override
+   public void init(int nIn) {
+      this.nV = nIn;
+      this.W = SparseMatrix.random(nV + 1, nH + 1);
+   }
+
+   @Override
+   public void init(int nIn, int nOut) {
+      this.nH = nOut;
+      init(nIn);
+   }
+
+   @Override
+   public void reset() {
+      this.W = SparseMatrix.random(nV + 1, nH + 1);
    }
 
    public Vector runHidden(Vector v) {

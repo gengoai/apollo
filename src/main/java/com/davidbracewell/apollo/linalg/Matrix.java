@@ -25,6 +25,7 @@ package com.davidbracewell.apollo.linalg;
 import com.davidbracewell.Copyable;
 import com.davidbracewell.collection.Streams;
 import com.davidbracewell.conversion.Cast;
+import com.davidbracewell.function.SerializableFunction;
 import com.davidbracewell.guava.common.base.Preconditions;
 import com.davidbracewell.tuple.Tuple2;
 import lombok.NonNull;
@@ -48,6 +49,17 @@ import static com.davidbracewell.tuple.Tuples.$;
  */
 public interface Matrix extends Copyable<Matrix>, Iterable<Matrix.Entry> {
 
+
+   /**
+    * Transpose matrix.
+    *
+    * @return the matrix
+    */
+   default Matrix T() {
+      final Matrix transposed = getFactory().create(numberOfColumns(), numberOfRows());
+      forEachSparse(e -> transposed.set(e.column, e.row, e.value));
+      return transposed;
+   }
 
    /**
     * Add matrix.
@@ -98,49 +110,6 @@ public interface Matrix extends Copyable<Matrix>, Iterable<Matrix.Entry> {
     */
    default Matrix addRowSelf(@NonNull Vector vector) {
       forEachRow(r -> r.addSelf(vector));
-      return this;
-   }
-
-
-   /**
-    * Subtract column matrix.
-    *
-    * @param vector the vector
-    * @return the matrix
-    */
-   default Matrix subtractColumn(@NonNull Vector vector) {
-      return copy().subtractColumnSelf(vector);
-   }
-
-   /**
-    * Subtract column self matrix.
-    *
-    * @param vector the vector
-    * @return the matrix
-    */
-   default Matrix subtractColumnSelf(@NonNull Vector vector) {
-      forEachColumn(c -> c.subtractSelf(vector));
-      return this;
-   }
-
-   /**
-    * Subtract row matrix.
-    *
-    * @param vector the vector
-    * @return the matrix
-    */
-   default Matrix subtractRow(@NonNull Vector vector) {
-      return copy().subtractRowSelf(vector);
-   }
-
-   /**
-    * Subtract row self matrix.
-    *
-    * @param vector the vector
-    * @return the matrix
-    */
-   default Matrix subtractRowSelf(@NonNull Vector vector) {
-      forEachRow(r -> r.subtractSelf(vector));
       return this;
    }
 
@@ -411,29 +380,6 @@ public interface Matrix extends Copyable<Matrix>, Iterable<Matrix.Entry> {
    }
 
    /**
-    * Map row matrix.
-    *
-    * @param vector   the vector
-    * @param operator the operator
-    * @return the matrix
-    */
-   default Matrix mapRow(@NonNull Vector vector, @NonNull DoubleBinaryOperator operator) {
-      return copy().mapRowSelf(vector, operator);
-   }
-
-   /**
-    * Map row self matrix.
-    *
-    * @param vector   the vector
-    * @param operator the operator
-    * @return the matrix
-    */
-   default Matrix mapRowSelf(@NonNull Vector vector, @NonNull DoubleBinaryOperator operator) {
-      forEachRow(r -> r.mapSelf(vector, operator));
-      return this;
-   }
-
-   /**
     * Map column matrix.
     *
     * @param vector   the vector
@@ -453,6 +399,56 @@ public interface Matrix extends Copyable<Matrix>, Iterable<Matrix.Entry> {
     */
    default Matrix mapColumnSelf(@NonNull Vector vector, @NonNull DoubleBinaryOperator operator) {
       forEachColumn(r -> r.mapSelf(vector, operator));
+      return this;
+   }
+
+   /**
+    * Map row matrix.
+    *
+    * @param vector   the vector
+    * @param operator the operator
+    * @return the matrix
+    */
+   default Matrix mapRow(@NonNull Vector vector, @NonNull DoubleBinaryOperator operator) {
+      return copy().mapRowSelf(vector, operator);
+   }
+
+   /**
+    * Map row matrix.
+    *
+    * @param function the function
+    * @return the matrix
+    */
+   default Matrix mapRow(@NonNull SerializableFunction<Vector, Vector> function) {
+      Matrix mPrime = copy();
+      for (int i = 0; i < mPrime.numberOfRows(); i++) {
+         mPrime.setRow(i, function.apply(row(i)));
+      }
+      return mPrime;
+   }
+
+   /**
+    * Map row self matrix.
+    *
+    * @param vector   the vector
+    * @param operator the operator
+    * @return the matrix
+    */
+   default Matrix mapRowSelf(@NonNull Vector vector, @NonNull DoubleBinaryOperator operator) {
+      forEachRow(r -> r.mapSelf(vector, operator));
+      return this;
+   }
+
+   /**
+    * Map row self matrix.
+    *
+    * @param function the function
+    * @return the matrix
+    */
+   default Matrix mapRowSelf(@NonNull SerializableFunction<Vector, Vector> function) {
+      for (int i = 0; i < numberOfRows(); i++) {
+         setRow(i, function.apply(row(i)));
+      }
       return this;
    }
 
@@ -743,6 +739,48 @@ public interface Matrix extends Copyable<Matrix>, Iterable<Matrix.Entry> {
    }
 
    /**
+    * Subtract column matrix.
+    *
+    * @param vector the vector
+    * @return the matrix
+    */
+   default Matrix subtractColumn(@NonNull Vector vector) {
+      return copy().subtractColumnSelf(vector);
+   }
+
+   /**
+    * Subtract column self matrix.
+    *
+    * @param vector the vector
+    * @return the matrix
+    */
+   default Matrix subtractColumnSelf(@NonNull Vector vector) {
+      forEachColumn(c -> c.subtractSelf(vector));
+      return this;
+   }
+
+   /**
+    * Subtract row matrix.
+    *
+    * @param vector the vector
+    * @return the matrix
+    */
+   default Matrix subtractRow(@NonNull Vector vector) {
+      return copy().subtractRowSelf(vector);
+   }
+
+   /**
+    * Subtract row self matrix.
+    *
+    * @param vector the vector
+    * @return the matrix
+    */
+   default Matrix subtractRowSelf(@NonNull Vector vector) {
+      forEachRow(r -> r.subtractSelf(vector));
+      return this;
+   }
+
+   /**
     * Subtract self matrix.
     *
     * @param other the other
@@ -786,17 +824,6 @@ public interface Matrix extends Copyable<Matrix>, Iterable<Matrix.Entry> {
     */
    default DenseMatrix toDense() {
       return new DenseMatrix(this);
-   }
-
-   /**
-    * Transpose matrix.
-    *
-    * @return the matrix
-    */
-   default Matrix T() {
-      final Matrix transposed = getFactory().create(numberOfColumns(), numberOfRows());
-      forEachSparse(e -> transposed.set(e.column, e.row, e.value));
-      return transposed;
    }
 
    /**

@@ -1,9 +1,6 @@
 package com.davidbracewell.apollo.ml;
 
-import com.davidbracewell.apollo.linalg.Matrix;
-import com.davidbracewell.apollo.linalg.SparseMatrix;
-import com.davidbracewell.apollo.linalg.SparseVector;
-import com.davidbracewell.apollo.linalg.Vector;
+import com.davidbracewell.apollo.linalg.*;
 import com.davidbracewell.collection.Streams;
 import org.apache.commons.math3.util.FastMath;
 
@@ -83,9 +80,17 @@ public class BernoulliRBM {
    public void train(List<Vector> data) {
       int numExamples = data.size();
 
+//      Matrix m = new DenseMatrix(data.size(), nV);
+//      for (int i = 0; i < data.size(); i++) {
+//         m.setRow(i, data.get(i));
+//      }
 
-      for (int epoch = 0; epoch < 5000; epoch++) {
+      for (int epoch = 0; epoch < 250; epoch++) {
          double error = 0;
+//         Matrix php = m.multiply(W);
+//         php.forEachRow(r -> r.addSelf(hBias));
+//         php.mapSelf(BernoulliRBM::sigmoid);
+//         System.out.println(php.row(0));
          for (Vector datum : data) {
             Matrix posHiddenProbs = datum.toMatrix()
                                          .multiply(W)

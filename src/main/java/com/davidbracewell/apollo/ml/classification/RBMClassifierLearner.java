@@ -46,6 +46,7 @@ public class RBMClassifierLearner extends ClassifierLearner {
    @Override
    protected RBMClassifier trainImpl(Dataset<Instance> dataset) {
       dataset.encode();
+
       int nV = dataset.getFeatureEncoder().size();
       BernoulliRBM rbm = new BernoulliRBM(nV, nHidden);
       rbm.train(dataset.asVectors().collect());
@@ -58,8 +59,6 @@ public class RBMClassifierLearner extends ClassifierLearner {
                          .oneVsRest();
       } else {
          subLearner = new BinarySGDLearner();
-//                         .setParameter("loss", new HingeLoss(0))
-//                         .setParameter("activation", new StepActivation(0));
       }
 
       Dataset<Instance> transformed = Dataset.classification()
@@ -72,7 +71,7 @@ public class RBMClassifierLearner extends ClassifierLearner {
                                                       .forEachRemaining(
                                                          e -> features.add(
                                                             Feature.TRUE(Integer.toString(e.getIndex()))));
-                                                   return new Instance(features);
+                                                   return new Instance(features, i.getLabel());
                                                 }));
 
       transformed.encode();

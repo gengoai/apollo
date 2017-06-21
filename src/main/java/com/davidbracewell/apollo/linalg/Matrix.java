@@ -24,6 +24,7 @@ package com.davidbracewell.apollo.linalg;
 
 import com.davidbracewell.Copyable;
 import com.davidbracewell.collection.Streams;
+import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.guava.common.base.Preconditions;
 import com.davidbracewell.tuple.Tuple2;
 import lombok.NonNull;
@@ -337,6 +338,10 @@ public interface Matrix extends Copyable<Matrix>, Iterable<Matrix.Entry> {
     */
    default Matrix multiply(@NonNull Matrix m) {
       Preconditions.checkArgument(numberOfColumns() == m.numberOfRows(), "Dimension Mismatch");
+      if (m.isSparse() && isSparse()) {
+         return new SparseMatrix(Cast.<SparseMatrix>as(this).asRealMatrix()
+                                                            .multiply(Cast.<SparseMatrix>as(m).asRealMatrix()));
+      }
       Matrix mprime = getFactory().create(numberOfRows(), m.numberOfColumns());
       IntStream
          .range(0, numberOfRows())
@@ -351,13 +356,13 @@ public interface Matrix extends Copyable<Matrix>, Iterable<Matrix.Entry> {
       return mprime;
    }
 
+   default Matrix multiplyVector(@NonNull Vector v) {
+      return copy().multiplyVectorSelf(v);
+   }
+
    default Matrix multiplyVectorSelf(@NonNull Vector v) {
       rowIterator().forEachRemaining(r -> r.multiply(v));
       return this;
-   }
-
-   default Matrix multiplyVector(@NonNull Vector v) {
-      return copy().multiplyVectorSelf(v);
    }
 
    /**

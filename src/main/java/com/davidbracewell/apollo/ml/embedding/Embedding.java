@@ -4,16 +4,19 @@ import com.davidbracewell.apollo.linalg.DenseVector;
 import com.davidbracewell.apollo.linalg.SparseVector;
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.linalg.VectorComposition;
+import com.davidbracewell.apollo.linalg.store.CosineSignature;
+import com.davidbracewell.apollo.linalg.store.InMemoryLSH;
 import com.davidbracewell.apollo.linalg.store.VectorStore;
-import com.davidbracewell.apollo.ml.EncoderPair;
-import com.davidbracewell.apollo.ml.IndexEncoder;
-import com.davidbracewell.apollo.ml.LabelIndexEncoder;
-import com.davidbracewell.apollo.ml.Model;
+import com.davidbracewell.apollo.ml.*;
 import com.davidbracewell.conversion.Cast;
+import com.davidbracewell.function.SerializableSupplier;
+import com.davidbracewell.function.Unchecked;
+import com.davidbracewell.guava.common.primitives.Ints;
 import com.davidbracewell.io.resource.Resource;
 import com.davidbracewell.tuple.Tuple;
 import lombok.NonNull;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -52,6 +55,36 @@ public class Embedding implements Model, Serializable {
       return new Embedding(new EncoderPair(new LabelIndexEncoder(), new IndexEncoder()), vectors);
    }
 
+   public static Embedding fromWord2VecTextFile(@NonNull Resource in) throws IOException {
+      List<String> lines = in.readLines();
+      int firstRow = 1;
+      Integer dimension = Ints.tryParse(lines.get(0).split("\\s+")[1]);
+      if (dimension == null) {
+         firstRow = 0;
+         dimension = lines.get(0).trim().split("\\s+").length - 1;
+      }
+      VectorStore<String> vectorStore = InMemoryLSH.builder()
+                                                   .dimension(dimension)
+                                                   .signatureSupplier(CosineSignature::new)
+                                                   .createVectorStore();
+      lines.stream()
+           .skip(firstRow)
+           .parallel()
+           .map(line -> {
+              Vector v = new DenseVector(vectorStore.dimension());
+              String[] parts = line.trim().split("\\s+");
+              for (int vi = 1; vi < parts.length; vi++) {
+                 v.set(vi - 1, Double.parseDouble(parts[vi]));
+              }
+              v.setLabel(parts[0].replace('_', ' '));
+              return v;
+           })
+           .collect(Collectors.toList())
+           .forEach(vectorStore::add);
+      return new Embedding(new EncoderPair(new NoOptLabelEncoder(), new NoOptEncoder()), vectorStore);
+   }
+
+
    /**
     * Reads the model from the given resource
     *
@@ -67,6 +100,13 @@ public class Embedding implements Model, Serializable {
          return Embedding.fromVectorStore(Cast.as(o));
       }
       throw new IllegalArgumentException(o.getClass() + " cannot be read in as an embedding");
+   }
+
+   public static SerializableSupplier<Embedding> supplier(final boolean word2vecFormat, @NonNull final Resource resource) {
+      if (word2vecFormat) {
+         return Unchecked.supplier(() -> Embedding.fromWord2VecTextFile(resource));
+      }
+      return Unchecked.supplier(() -> Embedding.read(resource));
    }
 
    /**

@@ -98,6 +98,7 @@ public class BinarySGDLearner extends BinaryClassifierLearner {
       } else {
          optimizer = new StochasticGradientDescent();
       }
+
       Weights start = Weights.binary(model.numberOfFeatures());
       Weights weights = optimizer.optimize(start,
                                            () -> dataset.asVectors()

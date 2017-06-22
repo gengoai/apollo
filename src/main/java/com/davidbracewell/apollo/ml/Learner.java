@@ -14,7 +14,6 @@ import com.davidbracewell.reflection.BeanMap;
 import com.davidbracewell.reflection.Ignore;
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.Setter;
 
 import java.io.Serializable;
 import java.util.Map;
@@ -30,7 +29,6 @@ public abstract class Learner<T extends Example, M extends Model> implements Ser
 
    private static final long serialVersionUID = 605756060816072642L;
    @Getter
-   @Setter
    private Vectorizer vectorizer = new DefaultVectorizer();
    @Getter
    private EncoderPair encoderPair;
@@ -151,8 +149,8 @@ public abstract class Learner<T extends Example, M extends Model> implements Ser
       dataset.encode();
       this.preprocessors = dataset.getPreprocessors();
       this.encoderPair = dataset.getEncoderPair();
-      this.vectorizer.setEncoderPair(dataset.getEncoderPair());
-      dataset.setVectorizer(this.vectorizer);
+      this.vectorizer = dataset.getVectorizer();
+//      dataset.setVectorizer(this.vectorizer);
       M model = trainImpl(dataset);
       model.finishTraining();
       return model;
@@ -166,10 +164,10 @@ public abstract class Learner<T extends Example, M extends Model> implements Ser
     */
    protected abstract M trainImpl(Dataset<T> dataset);
 
-   public void update(EncoderPair encoderPair, PreprocessorList<T> preprocessors) {
+   public void update(EncoderPair encoderPair, PreprocessorList<T> preprocessors, Vectorizer vectorizer) {
       this.encoderPair = encoderPair;
       this.preprocessors = preprocessors;
-      this.vectorizer.setEncoderPair(encoderPair);
+      this.vectorizer = vectorizer;
    }
 
 

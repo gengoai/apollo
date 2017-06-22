@@ -1,5 +1,6 @@
 package com.davidbracewell.apollo.ml.classification;
 
+import com.davidbracewell.apollo.ml.DefaultVectorizer;
 import com.davidbracewell.apollo.ml.Feature;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.data.Dataset;
@@ -43,7 +44,9 @@ public class RBMClassifierLearner extends ClassifierLearner {
                                                 }));
 
       transformed.encode();
-      update(dataset.getEncoderPair(), dataset.getPreprocessors());
+      DefaultVectorizer defaultVectorizer = new DefaultVectorizer();
+      defaultVectorizer.setEncoderPair(dataset.getEncoderPair());
+      update(dataset.getEncoderPair(), dataset.getPreprocessors(), defaultVectorizer);
       RBMClassifier classifier = new RBMClassifier(this);
       classifier.rbm = rbm;
       classifier.classifier = subLearner.train(transformed);

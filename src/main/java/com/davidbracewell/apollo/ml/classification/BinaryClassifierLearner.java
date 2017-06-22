@@ -80,7 +80,8 @@ public abstract class BinaryClassifierLearner extends ClassifierLearner {
 
    @Override
    protected final Classifier trainImpl(Dataset<Instance> dataset) {
-      update(dataset.getEncoderPair(), dataset.getPreprocessors());
+      update(dataset.getEncoderPair(), dataset.getPreprocessors(), dataset.getVectorizer());
+      dataset.getVectorizer().setEncoderPair(dataset.getEncoderPair());
       return trainForLabel(dataset, 1.0);
    }
 

@@ -22,16 +22,12 @@
 package com.davidbracewell.apollo.ml.classification;
 
 import com.davidbracewell.apollo.linalg.Vector;
-import com.davidbracewell.apollo.ml.EncoderPair;
-import com.davidbracewell.apollo.ml.Instance;
-import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.collection.counter.HashMapMultiCounter;
 import com.davidbracewell.collection.counter.MultiCounter;
 import de.bwaldvogel.liblinear.Feature;
 import de.bwaldvogel.liblinear.FeatureNode;
 import de.bwaldvogel.liblinear.Linear;
 import de.bwaldvogel.liblinear.Model;
-import lombok.NonNull;
 
 import java.util.Iterator;
 
@@ -45,15 +41,10 @@ public class LibLinearModel extends Classifier {
    protected Model model;
    protected int biasIndex = 0;
 
-   /**
-    * Instantiates a new Classifier.
-    *
-    * @param encoderPair   the encoder pair
-    * @param preprocessors the preprocessors
-    */
-   protected LibLinearModel(@NonNull EncoderPair encoderPair, @NonNull PreprocessorList<Instance> preprocessors) {
-      super(encoderPair, preprocessors);
+   protected LibLinearModel(ClassifierLearner learner) {
+      super(learner);
    }
+
 
    /**
     * Converts an Apollo vector into an array of LibLinear feature nodes

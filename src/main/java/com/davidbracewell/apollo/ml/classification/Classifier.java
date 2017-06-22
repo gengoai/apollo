@@ -25,9 +25,11 @@ import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.EncoderPair;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.Model;
+import com.davidbracewell.apollo.ml.Vectorizer;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.collection.counter.Counter;
 import com.davidbracewell.collection.counter.MultiCounter;
+import lombok.Getter;
 import lombok.NonNull;
 
 /**
@@ -38,19 +40,15 @@ import lombok.NonNull;
 public abstract class Classifier implements Model {
    private static final long serialVersionUID = 1L;
    private final PreprocessorList<Instance> preprocessors;
-   private EncoderPair encoderPair;
+   private final EncoderPair encoderPair;
+   @Getter
+   private final Vectorizer vectorizer;
 
-   /**
-    * Instantiates a new Classifier.
-    *
-    * @param encoderPair   the pair of encoders to convert feature names into int/double values
-    * @param preprocessors the preprocessors that the classifier will need apply at runtime
-    */
-   protected Classifier(@NonNull EncoderPair encoderPair, @NonNull PreprocessorList<Instance> preprocessors) {
-      this.encoderPair = encoderPair;
-      this.preprocessors = preprocessors.getModelProcessors();
+   protected Classifier(@NonNull ClassifierLearner learner) {
+      this.preprocessors = learner.getPreprocessors();
+      this.vectorizer = learner.getVectorizer();
+      this.encoderPair = learner.getEncoderPair();
    }
-
 
    /**
     * Predicts the label, or class, of the given instance
@@ -59,7 +57,7 @@ public abstract class Classifier implements Model {
     * @return the classification result
     */
    public Classification classify(@NonNull Instance instance) {
-      return classify(preprocessors.apply(instance).toVector(getEncoderPair()));
+      return classify(vectorizer.apply(preprocessors.apply(instance)));
    }
 
    /**
@@ -70,15 +68,6 @@ public abstract class Classifier implements Model {
     * @return the classification result
     */
    public abstract Classification classify(Vector vector);
-
-   /**
-    * Gets the parameters of the model. Typically these will be Feature-Class-Weight triplets.
-    *
-    * @return the model parameters
-    */
-   public MultiCounter<String, String> getModelParameters() {
-      throw new UnsupportedOperationException();
-   }
 
    /**
     * Convenience method for creating classification results.
@@ -100,6 +89,19 @@ public abstract class Classifier implements Model {
    @Override
    public EncoderPair getEncoderPair() {
       return encoderPair;
+   }
+
+   /**
+    * Gets the parameters of the model. Typically these will be Feature-Class-Weight triplets.
+    *
+    * @return the model parameters
+    */
+   public MultiCounter<String, String> getModelParameters() {
+      throw new UnsupportedOperationException();
+   }
+
+   protected Instance preprocess(Instance instance) {
+      return preprocessors.apply(instance);
    }
 
 }//END OF Classifier

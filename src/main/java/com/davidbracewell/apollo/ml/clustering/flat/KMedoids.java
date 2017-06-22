@@ -178,7 +178,7 @@ public class KMedoids extends Clusterer<FlatClustering> {
       });
 
 
-      return new FlatCentroidClustering(getEncoderPair(), getDistanceMeasure(), finalClusters);
+      return new FlatCentroidClustering(this, getDistanceMeasure(), finalClusters);
    }
 
    private double distance(int i, int j, List<Vector> instances, Map<Tuple2<Integer, Integer>, Double> distances) {

@@ -88,7 +88,7 @@ public class KMeans extends Clusterer<FlatClustering> {
 
    @Override
    public FlatCentroidClustering cluster(@NonNull MStream<Vector> instanceStream) {
-      FlatCentroidClustering clustering = new FlatCentroidClustering(getEncoderPair(), distanceMeasure);
+      FlatCentroidClustering clustering = new FlatCentroidClustering(this, distanceMeasure);
 
       List<Vector> instances = instanceStream.collect();
       for (Vector centroid : initCentroids(instances)) {
@@ -165,16 +165,6 @@ public class KMeans extends Clusterer<FlatClustering> {
       return clustering;
    }
 
-
-   /**
-    * Sets the distance measure to use.
-    *
-    * @param distanceMeasure the distance measure
-    */
-   public void setDistanceMeasure(@NonNull DistanceMeasure distanceMeasure) {
-      this.distanceMeasure = distanceMeasure;
-   }
-
    private Vector[] initCentroids(List<Vector> instances) {
       Vector[] centroids = new Vector[K];
       for (int i = 0; i < K; i++) {
@@ -191,6 +181,15 @@ public class KMeans extends Clusterer<FlatClustering> {
          centroids[i].mapDivideSelf(cnts[i]);
       }
       return centroids;
+   }
+
+   /**
+    * Sets the distance measure to use.
+    *
+    * @param distanceMeasure the distance measure
+    */
+   public void setDistanceMeasure(@NonNull DistanceMeasure distanceMeasure) {
+      this.distanceMeasure = distanceMeasure;
    }
 
 

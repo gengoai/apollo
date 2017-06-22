@@ -49,7 +49,7 @@ public class BaggingLearner extends ClassifierLearner {
    }
 
    @Override
-   public void reset() {
+   public void resetLearnerParameters() {
 
    }
 
@@ -64,8 +64,7 @@ public class BaggingLearner extends ClassifierLearner {
 
    @Override
    protected Classifier trainImpl(Dataset<Instance> dataset) {
-      Ensemble model = new Ensemble(dataset.getEncoderPair(),
-                                    dataset.getPreprocessors());
+      Ensemble model = new Ensemble(this);
       dataset = dataset.shuffle();
       model.models = new ArrayList<>(numberOfBags);
       final int targetBagSize = (bagSize <= 0) ? dataset.size() : bagSize;

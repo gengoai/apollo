@@ -81,19 +81,23 @@ public class BernoulliRBM implements Layer {
    }
 
    public Vector runHidden(Vector v) {
+      return runHiddenProbs(v).mapSelf(d -> d > Math.random() ? 1 : 0);
+   }
+
+   public Vector runHiddenProbs(Vector v) {
       Matrix m = new DenseMatrix(1, nH + 1);
       m.setRow(0, v.insert(0, 1));
-      Matrix visibleStates = m.multiply(W.T())
-                              .mapSelf(d -> SigmoidActivation.INSTANCE.apply(d) > Math.random() ? 1 : 0);
-      return visibleStates.row(0).slice(1, nV + 1);
+      return m.multiply(W.T()).mapSelf(SigmoidActivation.INSTANCE::apply).row(0).slice(1, nV + 1);
    }
 
    public Vector runVisible(Vector v) {
+      return runVisibleProbs(v).mapSelf(d -> d > Math.random() ? 1 : 0);
+   }
+
+   public Vector runVisibleProbs(Vector v) {
       Matrix m = new DenseMatrix(1, nV + 1);
       m.setRow(0, v.insert(0, 1));
-      Matrix hiddenStates = m.multiply(W)
-                             .mapSelf(d -> SigmoidActivation.INSTANCE.apply(d) > Math.random() ? 1 : 0);
-      return hiddenStates.row(0).slice(1, nH + 1);
+      return m.multiply(W).mapSelf(SigmoidActivation.INSTANCE::apply).row(0).slice(1, nH + 1);
    }
 
    public void train(List<Vector> data) {
@@ -105,7 +109,7 @@ public class BernoulliRBM implements Layer {
       }
 
       final Random rnd = new Random();
-      for (int epoch = 0; epoch < 5000; epoch++) {
+      for (int epoch = 0; epoch < 200; epoch++) {
          double error = 0;
          //positive CD phase
          Matrix positiveHiddenProbabilities = m.multiply(W).mapSelf(SigmoidActivation.INSTANCE::apply);

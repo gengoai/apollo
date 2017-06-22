@@ -21,11 +21,8 @@
 
 package com.davidbracewell.apollo.ml.classification;
 
-import com.davidbracewell.apollo.optimization.Optimum;
 import com.davidbracewell.apollo.linalg.Vector;
-import com.davidbracewell.apollo.ml.EncoderPair;
-import com.davidbracewell.apollo.ml.Instance;
-import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
+import com.davidbracewell.apollo.optimization.Optimum;
 import lombok.NonNull;
 
 /**
@@ -41,15 +38,10 @@ public class DecisionStump extends Classifier {
    double[] lowerDecision;
    double[] upperDecision;
 
-   /**
-    * Instantiates a new Decision Stump Classifier.
-    *
-    * @param encoderPair   the pair of encoders to convert feature names into int/double values
-    * @param preprocessors the preprocessors that the classifier will need apply at runtime
-    */
-   protected DecisionStump(@NonNull EncoderPair encoderPair, @NonNull PreprocessorList<Instance> preprocessors) {
-      super(encoderPair, preprocessors);
+   protected DecisionStump(ClassifierLearner learner) {
+      super(learner);
    }
+
 
    @Override
    public Classification classify(@NonNull Vector vector) {

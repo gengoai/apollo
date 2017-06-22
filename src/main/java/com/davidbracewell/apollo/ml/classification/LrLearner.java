@@ -2,17 +2,14 @@ package com.davidbracewell.apollo.ml.classification;
 
 import com.davidbracewell.apollo.linalg.SparseVector;
 import com.davidbracewell.apollo.linalg.Vector;
-import com.davidbracewell.apollo.ml.EncoderPair;
 import com.davidbracewell.apollo.ml.Feature;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.ml.data.source.DenseCSVDataSource;
-import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.apollo.optimization.DecayLearningRate;
 import com.davidbracewell.apollo.optimization.regularization.L1Regularizer;
 import com.davidbracewell.io.Resources;
 import com.davidbracewell.io.resource.Resource;
-import lombok.NonNull;
 
 import java.util.Random;
 
@@ -74,14 +71,13 @@ public class LrLearner extends BinaryClassifierLearner {
    }
 
    @Override
-   public void reset() {
+   public void resetLearnerParameters() {
 
    }
 
    @Override
    protected LrClassifier trainForLabel(Dataset<Instance> dataset, double trueLabel) {
-      LrClassifier model = new LrClassifier(dataset.getEncoderPair(),
-                                            dataset.getPreprocessors());
+      LrClassifier model = new LrClassifier(this);
 
       model.bias = 0;
       model.weights = new SparseVector(dataset.getEncoderPair().numberOfFeatures());
@@ -142,11 +138,10 @@ public class LrLearner extends BinaryClassifierLearner {
       /**
        * Instantiates a new Classifier.
        *
-       * @param encoderPair   the encoder pair
-       * @param preprocessors the preprocessors
+       * @param learner the learner
        */
-      LrClassifier(EncoderPair encoderPair, @NonNull PreprocessorList<Instance> preprocessors) {
-         super(encoderPair, preprocessors);
+      LrClassifier(ClassifierLearner learner) {
+         super(learner);
       }
 
       @Override

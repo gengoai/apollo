@@ -49,12 +49,11 @@ import static com.davidbracewell.tuple.Tuples.$;
  */
 public class AgglomerativeClusterer extends Clusterer<HierarchicalClustering> {
    private static final long serialVersionUID = 1L;
+   private final AtomicInteger idGenerator = new AtomicInteger();
    @Getter
    private DistanceMeasure distanceMeasure = Distance.Euclidean;
    @Getter
    private Linkage linkage = Linkage.Single;
-
-   private final AtomicInteger idGenerator = new AtomicInteger();
 
    /**
     * Instantiates a new Agglomerative clusterer.
@@ -71,24 +70,6 @@ public class AgglomerativeClusterer extends Clusterer<HierarchicalClustering> {
     */
    public AgglomerativeClusterer(@NonNull DistanceMeasure distanceMeasure, @NonNull Linkage linkage) {
       this.distanceMeasure = distanceMeasure;
-      this.linkage = linkage;
-   }
-
-   /**
-    * Sets the distance measure to use.
-    *
-    * @param distanceMeasure the distance measure
-    */
-   public void setDistanceMeasure(@NonNull DistanceMeasure distanceMeasure) {
-      this.distanceMeasure = distanceMeasure;
-   }
-
-   /**
-    * Sets the linkage to use.
-    *
-    * @param linkage the linkage
-    */
-   public void setLinkage(@NonNull Linkage linkage) {
       this.linkage = linkage;
    }
 
@@ -120,54 +101,11 @@ public class AgglomerativeClusterer extends Clusterer<HierarchicalClustering> {
          doTurn(priorityQueue, clusters);
       }
 
-      HierarchicalClustering clustering = new HierarchicalClustering(getEncoderPair(), distanceMeasure);
+      HierarchicalClustering clustering = new HierarchicalClustering(this, distanceMeasure);
       clustering.root = clusters.get(0);
       clustering.linkage = linkage;
       return clustering;
    }
-
-//   private void doTurn(LoadingCache<Tuple2<Cluster, Cluster>, Double> distanceMatrix, List<Cluster> clusters) {
-//
-//      Tuple3<Cluster, Cluster, Double> minC = clusters
-//                                                 .parallelStream()
-//                                                 .map(c -> clusters
-//                                                              .stream()
-//                                                              .filter(c2 -> c.getId() != c2.getId())
-//                                                              .map(c2 -> {
-//                                                                 Double d;
-//                                                                 try {
-//                                                                    d = distanceMatrix.get($(c, c2));
-//                                                                 } catch (ExecutionException e) {
-//                                                                    d = Double.POSITIVE_INFINITY;
-//                                                                 }
-//                                                                 return $(c2, d);
-//                                                              })
-//                                                              .min(Map.Entry.comparingByValue())
-//                                                              .orElseThrow(NullArgumentException::new)
-//                                                              .appendLeft(c)
-//                                                     )
-//                                                 .min(Comparator.comparingDouble(t -> t.v3))
-//                                                 .orElseThrow(NullArgumentException::new);
-//      if (minC != null) {
-//         Cluster cprime = new Cluster();
-//         cprime.setId(idGenerator.getAndIncrement());
-//         cprime.setLeft(minC.getV1());
-//         cprime.setRight(minC.getV2());
-//         minC.getV1().setParent(cprime);
-//         minC.getV2().setParent(cprime);
-//         cprime.setScore(minC.v3);
-//
-//         clusters.remove(minC.getV1());
-//         clusters.remove(minC.getV2());
-//
-//         for (Vector point : Iterables.concat(minC.getV1().getPoints(), minC.getV2().getPoints())) {
-//            cprime.addPoint(point);
-//         }
-//
-//         clusters.add(cprime);
-//      }
-//
-//   }
 
    private void doTurn(PriorityQueue<Tuple3<Cluster, Cluster, Double>> priorityQueue, List<Cluster> clusters) {
       Tuple3<Cluster, Cluster, Double> minC = priorityQueue.remove();
@@ -223,9 +161,70 @@ public class AgglomerativeClusterer extends Clusterer<HierarchicalClustering> {
       return clusters;
    }
 
+//   private void doTurn(LoadingCache<Tuple2<Cluster, Cluster>, Double> distanceMatrix, List<Cluster> clusters) {
+//
+//      Tuple3<Cluster, Cluster, Double> minC = clusters
+//                                                 .parallelStream()
+//                                                 .map(c -> clusters
+//                                                              .stream()
+//                                                              .filter(c2 -> c.getId() != c2.getId())
+//                                                              .map(c2 -> {
+//                                                                 Double d;
+//                                                                 try {
+//                                                                    d = distanceMatrix.get($(c, c2));
+//                                                                 } catch (ExecutionException e) {
+//                                                                    d = Double.POSITIVE_INFINITY;
+//                                                                 }
+//                                                                 return $(c2, d);
+//                                                              })
+//                                                              .min(Map.Entry.comparingByValue())
+//                                                              .orElseThrow(NullArgumentException::new)
+//                                                              .appendLeft(c)
+//                                                     )
+//                                                 .min(Comparator.comparingDouble(t -> t.v3))
+//                                                 .orElseThrow(NullArgumentException::new);
+//      if (minC != null) {
+//         Cluster cprime = new Cluster();
+//         cprime.setId(idGenerator.getAndIncrement());
+//         cprime.setLeft(minC.getV1());
+//         cprime.setRight(minC.getV2());
+//         minC.getV1().setParent(cprime);
+//         minC.getV2().setParent(cprime);
+//         cprime.setScore(minC.v3);
+//
+//         clusters.remove(minC.getV1());
+//         clusters.remove(minC.getV2());
+//
+//         for (Vector point : Iterables.concat(minC.getV1().getPoints(), minC.getV2().getPoints())) {
+//            cprime.addPoint(point);
+//         }
+//
+//         clusters.add(cprime);
+//      }
+//
+//   }
+
    @Override
-   public void reset() {
-      super.reset();
+   public void resetLearnerParameters() {
+      super.resetLearnerParameters();
       idGenerator.set(0);
+   }
+
+   /**
+    * Sets the distance measure to use.
+    *
+    * @param distanceMeasure the distance measure
+    */
+   public void setDistanceMeasure(@NonNull DistanceMeasure distanceMeasure) {
+      this.distanceMeasure = distanceMeasure;
+   }
+
+   /**
+    * Sets the linkage to use.
+    *
+    * @param linkage the linkage
+    */
+   public void setLinkage(@NonNull Linkage linkage) {
+      this.linkage = linkage;
    }
 }//END OF AgglomerativeClusterer

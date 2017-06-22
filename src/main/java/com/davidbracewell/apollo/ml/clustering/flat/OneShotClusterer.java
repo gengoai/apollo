@@ -64,7 +64,7 @@ public class OneShotClusterer extends Clusterer<FlatClustering> {
 
    @Override
    public FlatClustering cluster(@NonNull MStream<Vector> instanceStream) {
-      OneShotClustering clustering = new OneShotClustering(getEncoderPair(), distanceMeasure);
+      OneShotClustering clustering = new OneShotClustering(this, distanceMeasure);
 
       List<Vector> instances = instanceStream.collect();
       for (Vector ii : instances) {

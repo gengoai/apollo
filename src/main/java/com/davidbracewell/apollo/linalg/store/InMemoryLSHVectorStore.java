@@ -21,7 +21,7 @@
 
 package com.davidbracewell.apollo.linalg.store;
 
-import com.davidbracewell.apollo.linalg.LabeledVector;
+import com.davidbracewell.apollo.linalg.Vector;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lombok.NonNull;
@@ -41,7 +41,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class InMemoryLSHVectorStore<KEY> extends LSHVectorStore<KEY> {
    private static final long serialVersionUID = 1L;
    private final AtomicInteger vectorIDGenerator = new AtomicInteger();
-   private final Int2ObjectOpenHashMap<LabeledVector> vectorIDMap = new Int2ObjectOpenHashMap<>();
+   private final Int2ObjectOpenHashMap<Vector> vectorIDMap = new Int2ObjectOpenHashMap<>();
    private final Object2IntOpenHashMap<KEY> keys = new Object2IntOpenHashMap<>();
 
    /**
@@ -51,6 +51,11 @@ public class InMemoryLSHVectorStore<KEY> extends LSHVectorStore<KEY> {
     */
    public InMemoryLSHVectorStore(@NonNull InMemoryLSH lsh) {
       super(lsh);
+   }
+
+   @Override
+   public boolean containsKey(KEY key) {
+      return keySet().contains(key);
    }
 
    public VectorStore<KEY> createNew() {
@@ -63,30 +68,23 @@ public class InMemoryLSHVectorStore<KEY> extends LSHVectorStore<KEY> {
    }
 
    @Override
-   public Set<KEY> keySet() {
-      return new HashSet<>(keys.keySet());
+   protected int getID(KEY key) {
+      return keys.get(key);
    }
 
    @Override
-   public boolean containsKey(KEY key) {
-      return keySet().contains(key);
+   protected Vector getVectorByID(int id) {
+      return vectorIDMap.get(id);
    }
 
    @Override
-   protected void removeVector(LabeledVector vector, int id) {
-      vectorIDMap.remove(id);
-      keys.remove(vector.getLabel());
-   }
-
-   @Override
-   public Iterator<LabeledVector> iterator() {
+   public Iterator<Vector> iterator() {
       return Collections.unmodifiableCollection(vectorIDMap.values()).iterator();
    }
 
    @Override
-   protected void registerVector(LabeledVector vector, int id) {
-      keys.put(vector.getLabel(), id);
-      vectorIDMap.put(id, vector);
+   public Set<KEY> keySet() {
+      return new HashSet<>(keys.keySet());
    }
 
    @Override
@@ -95,13 +93,15 @@ public class InMemoryLSHVectorStore<KEY> extends LSHVectorStore<KEY> {
    }
 
    @Override
-   protected int getID(KEY key) {
-      return keys.get(key);
+   protected void registerVector(Vector vector, int id) {
+      keys.put(vector.getLabel(), id);
+      vectorIDMap.put(id, vector);
    }
 
    @Override
-   protected LabeledVector getVectorByID(int id) {
-      return vectorIDMap.get(id);
+   protected void removeVector(Vector vector, int id) {
+      vectorIDMap.remove(id);
+      keys.remove(vector.getLabel());
    }
 
    @Override

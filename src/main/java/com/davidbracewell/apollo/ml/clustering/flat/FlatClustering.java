@@ -1,12 +1,11 @@
 package com.davidbracewell.apollo.ml.clustering.flat;
 
-import com.davidbracewell.apollo.affinity.DistanceMeasure;
-import com.davidbracewell.apollo.ml.EncoderPair;
+import com.davidbracewell.apollo.affinity.Measure;
 import com.davidbracewell.apollo.ml.clustering.Cluster;
+import com.davidbracewell.apollo.ml.clustering.Clusterer;
 import com.davidbracewell.apollo.ml.clustering.Clustering;
 import lombok.NonNull;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -16,71 +15,40 @@ import java.util.List;
  *
  * @author David B. Bracewell
  */
-public abstract class FlatClustering implements Clustering, Serializable {
+public abstract class FlatClustering extends Clustering {
    private static final long serialVersionUID = 1L;
-   protected final List<Cluster> clusters = new ArrayList<>();
-   private final DistanceMeasure distanceMeasure;
-   private EncoderPair encoderPair;
-
    /**
-    * Instantiates a new flat clustering.
-    *
-    * @param encoderPair     the encoder pair
-    * @param distanceMeasure the distance measure
+    * The Clusters.
     */
-   protected FlatClustering(EncoderPair encoderPair, DistanceMeasure distanceMeasure) {
-      this.encoderPair = encoderPair;
-      this.distanceMeasure = distanceMeasure;
+   protected final List<Cluster> clusters = new ArrayList<>();
+
+   public FlatClustering(Clustering other) {
+      super(other);
    }
 
    /**
     * Instantiates a new Flat clustering.
     *
-    * @param encoderPair     the encoder pair
-    * @param distanceMeasure the distance measure
-    * @param clusterList     the cluster list
+    * @param clusterer the clusterer
+    * @param measure   the measure
     */
-   protected FlatClustering(EncoderPair encoderPair, DistanceMeasure distanceMeasure, List<Cluster> clusterList) {
-      this(encoderPair, distanceMeasure);
+   public FlatClustering(Clusterer<?> clusterer, Measure measure) {
+      super(clusterer, measure);
+   }
+
+   /**
+    * Instantiates a new Flat clustering.
+    *
+    * @param clusterer   the clusterer
+    * @param measure     the measure
+    * @param clusterList the cluster list
+    */
+   protected FlatClustering(Clusterer<?> clusterer, Measure measure, List<Cluster> clusterList) {
+      this(clusterer, measure);
       this.clusters.addAll(clusterList);
       for (int i = 0; i < clusters.size(); i++) {
          clusters.get(i).setId(i);
       }
-   }
-
-   @Override
-   public boolean isFlat() {
-      return true;
-   }
-
-   @Override
-   public boolean isHierarchical() {
-      return false;
-   }
-
-   @Override
-   public DistanceMeasure getDistanceMeasure() {
-      return distanceMeasure;
-   }
-
-   @Override
-   public int size() {
-      return clusters.size();
-   }
-
-   @Override
-   public Cluster get(int index) {
-      return clusters.get(index);
-   }
-
-   @Override
-   public Cluster getRoot() {
-      throw new UnsupportedOperationException();
-   }
-
-   @Override
-   public EncoderPair getEncoderPair() {
-      return encoderPair;
    }
 
    /**
@@ -93,7 +61,30 @@ public abstract class FlatClustering implements Clustering, Serializable {
    }
 
    @Override
+   public Cluster get(int index) {
+      return clusters.get(index);
+   }
+
+
+   @Override
+   public Cluster getRoot() {
+      throw new UnsupportedOperationException();
+   }
+
+   @Override
+   public boolean isFlat() {
+      return true;
+   }
+
+
+   @Override
    public Iterator<Cluster> iterator() {
       return clusters.iterator();
    }
+
+   @Override
+   public int size() {
+      return clusters.size();
+   }
+
 }// END OF FlatClustering

@@ -23,9 +23,6 @@ package com.davidbracewell.apollo.ml.classification;
 
 import com.davidbracewell.apollo.linalg.DenseVector;
 import com.davidbracewell.apollo.linalg.Vector;
-import com.davidbracewell.apollo.ml.EncoderPair;
-import com.davidbracewell.apollo.ml.Instance;
-import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.collection.counter.HashMapMultiCounter;
 import com.davidbracewell.collection.counter.MultiCounter;
 import lombok.NonNull;
@@ -37,29 +34,36 @@ import lombok.NonNull;
  */
 public class NaiveBayes extends Classifier {
    private static final long serialVersionUID = 1L;
+   /**
+    * The Model type.
+    */
    protected ModelType modelType;
+   /**
+    * The Priors.
+    */
    protected double[] priors;
+   /**
+    * The Conditionals.
+    */
    protected double[][] conditionals;
 
    /**
     * Instantiates a new Naive bayes.
     *
-    * @param encoderPair   the encoder pair
-    * @param preprocessors the preprocessors
+    * @param learner the learner
     */
-   public NaiveBayes(EncoderPair encoderPair, PreprocessorList<Instance> preprocessors) {
-      this(encoderPair, preprocessors, ModelType.Bernoulli);
+   public NaiveBayes(ClassifierLearner learner) {
+      this(learner, ModelType.Bernoulli);
    }
 
    /**
     * Instantiates a new Naive bayes.
     *
-    * @param encoderPair   the encoder pair
-    * @param preprocessors the preprocessors
-    * @param modelType     the model type
+    * @param learner   the learner
+    * @param modelType the model type
     */
-   public NaiveBayes(EncoderPair encoderPair, PreprocessorList<Instance> preprocessors, @NonNull ModelType modelType) {
-      super(encoderPair, preprocessors);
+   public NaiveBayes(ClassifierLearner learner, @NonNull ModelType modelType) {
+      super(learner);
       this.modelType = modelType;
    }
 

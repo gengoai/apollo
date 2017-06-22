@@ -1,9 +1,9 @@
 package com.davidbracewell.apollo.ml.clustering.topic;
 
-import com.davidbracewell.apollo.affinity.DistanceMeasure;
+import com.davidbracewell.apollo.affinity.Measure;
 import com.davidbracewell.apollo.linalg.Vector;
-import com.davidbracewell.apollo.ml.EncoderPair;
 import com.davidbracewell.apollo.ml.Instance;
+import com.davidbracewell.apollo.ml.clustering.Clusterer;
 import com.davidbracewell.collection.counter.Counter;
 import com.davidbracewell.collection.counter.Counters;
 
@@ -14,14 +14,12 @@ import com.davidbracewell.collection.counter.Counters;
  */
 public class LSAModel extends TopicModel {
 
-   /**
-    * Instantiates a new Lsa model.
-    *
-    * @param encoderPair     the encoder pair
-    * @param distanceMeasure the distance measure
-    */
-   protected LSAModel(EncoderPair encoderPair, DistanceMeasure distanceMeasure) {
-      super(encoderPair, distanceMeasure);
+   public LSAModel(TopicModel other) {
+      super(other);
+   }
+
+   public LSAModel(Clusterer<?> clusterer, Measure measure, int k) {
+      super(clusterer, measure, k);
    }
 
    @Override
@@ -55,9 +53,9 @@ public class LSAModel extends TopicModel {
    @Override
    public double[] softCluster(Instance instance) {
       double[] scores = new double[size()];
-      Vector v = instance.toVector(getEncoderPair());
+      Vector vector = getVectorizer().apply(getPreprocessors().apply(instance));
       for (int i = 0; i < size(); i++) {
-         double score = v.dot(getTopicVector(i));
+         double score = vector.dot(getTopicVector(i));
          scores[i] = score;
       }
       return scores;

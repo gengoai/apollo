@@ -1,6 +1,6 @@
 package com.davidbracewell.apollo.ml.clustering.hierarchical;
 
-import com.davidbracewell.apollo.affinity.DistanceMeasure;
+import com.davidbracewell.apollo.affinity.Measure;
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.clustering.Cluster;
 import lombok.NonNull;
@@ -62,7 +62,7 @@ public enum Linkage {
     * @param distanceMeasure the distance measure to use
     * @return the linkage metric
     */
-   public final double calculate(@NonNull Cluster c1, @NonNull Cluster c2, @NonNull DistanceMeasure distanceMeasure) {
+   public final double calculate(@NonNull Cluster c1, @NonNull Cluster c2, @NonNull Measure distanceMeasure) {
       List<Double> distances = new ArrayList<>();
       for (Vector t1 : flatten(c1)) {
          distances.addAll(flatten(c2).stream()
@@ -80,7 +80,7 @@ public enum Linkage {
     * @param distanceMeasure the distance measure to use
     * @return the linkage metric
     */
-   public final double calculate(@NonNull Vector v, @NonNull Cluster cluster, @NonNull DistanceMeasure distanceMeasure) {
+   public final double calculate(@NonNull Vector v, @NonNull Cluster cluster, @NonNull Measure distanceMeasure) {
       return calculate(cluster.getPoints().stream().mapToDouble(v2 -> distanceMeasure.calculate(v, v2)));
    }
 

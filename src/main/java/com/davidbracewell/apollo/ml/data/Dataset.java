@@ -62,6 +62,7 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
    private static final long serialVersionUID = 1L;
    private final EncoderPair encoders;
    private final PreprocessorList<T> preprocessors;
+   private final Vectorizer vectorizer;
 
    /**
     * Instantiates a new Dataset.
@@ -70,7 +71,8 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
     * @param labelEncoder   the label encoder to use on the dataset
     * @param preprocessors  the preprocessors applied to the dataset
     */
-   protected Dataset(Encoder featureEncoder, LabelEncoder labelEncoder, PreprocessorList<T> preprocessors) {
+   protected Dataset(Encoder featureEncoder, LabelEncoder labelEncoder, PreprocessorList<T> preprocessors, Vectorizer vectorizer) {
+      this.vectorizer = vectorizer;
       this.encoders = new EncoderPair(labelEncoder, featureEncoder);
       this.preprocessors = preprocessors == null ? PreprocessorList.empty() : preprocessors;
    }
@@ -152,13 +154,10 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
     *
     * @return the stream of FeatureVectors
     */
-   public MStream<FeatureVector> asFeatureVectors() {
-      encode();
-      return stream().parallel().flatMap(e -> e.asInstances().stream().map(ii -> ii.toVector(encoders)));
-   }
-
    public MStream<Vector> asVectors() {
-      return asFeatureVectors().map(Cast::<Vector>as);
+      encode();
+      vectorizer.setEncoderPair(getEncoderPair());
+      return stream().parallel().map(vectorizer::apply);
    }
 
    /**
@@ -191,7 +190,8 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
       return create(instances,
                     getFeatureEncoder().createNew(),
                     getLabelEncoder().createNew(),
-                    new PreprocessorList<>(preprocessors));
+                    new PreprocessorList<>(preprocessors),
+                    vectorizer);
    }
 
    /**
@@ -204,7 +204,7 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
     * @param preprocessors  the preprocessors
     * @return the dataset
     */
-   protected abstract Dataset<T> create(MStream<T> instances, Encoder featureEncoder, LabelEncoder labelEncoder, PreprocessorList<T> preprocessors);
+   protected abstract Dataset<T> create(MStream<T> instances, Encoder featureEncoder, LabelEncoder labelEncoder, PreprocessorList<T> preprocessors, Vectorizer vectorizer);
 
    /**
     * Encodes the example in the dataset using the dataset's encoders.
@@ -224,8 +224,9 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
 
    private Matrix fillMatrix(Matrix m) {
       int row = 0;
+      vectorizer.setEncoderPair(getEncoderPair());
       for (Iterator<T> ii = iterator(); ii.hasNext(); row++) {
-         m.setRow(row, ii.next().asInstances().get(0).toVector(getEncoderPair()));
+         m.setRow(row, vectorizer.apply(ii.next()));
       }
       return m;
    }
@@ -321,6 +322,10 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
     * @return the dataset type (e.g. OffHeap, InMemory, Distributed)
     */
    public abstract DatasetType getType();
+
+   public final Vectorizer getVectorizer() {
+      return vectorizer;
+   }
 
    @Override
    public Iterator<T> iterator() {

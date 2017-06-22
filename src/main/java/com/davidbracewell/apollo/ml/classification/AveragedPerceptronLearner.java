@@ -84,17 +84,17 @@ public class AveragedPerceptronLearner extends BinaryClassifierLearner {
    }
 
    @Override
-   public void reset() {
+   protected void resetLearnerParameters() {
       this.totalBias = 0;
       this.biasStamps = 0;
       this.stamps = null;
       this.totalWeights = null;
    }
 
+
    @Override
    protected Classifier trainForLabel(Dataset<Instance> dataset, double trueLabel) {
-      BinaryGLM model = new BinaryGLM(dataset.getEncoderPair(),
-                                      dataset.getPreprocessors());
+      BinaryGLM model = new BinaryGLM(this);
 
       totalWeights = new FeatureVector(model.getEncoderPair());
       stamps = new FeatureVector(model.getEncoderPair());
@@ -107,7 +107,7 @@ public class AveragedPerceptronLearner extends BinaryClassifierLearner {
          double error = 0;
          double count = 0;
          for (Instance instance : dataset) {
-            FeatureVector v = instance.toVector(model.getEncoderPair());
+            Vector v = toVector(instance);
             count++;
             double y = convertY(v.getLabel(), trueLabel);
             double yHat = model.classify(v).getEncodedResult();

@@ -21,10 +21,14 @@
 
 package com.davidbracewell.apollo.optimization;
 
+import com.davidbracewell.function.SerializableToDoubleFunction;
+import com.davidbracewell.stream.MStream;
 import com.davidbracewell.tuple.Tuple2;
 import lombok.NonNull;
 
 import java.util.Comparator;
+import java.util.Optional;
+import java.util.stream.Stream;
 
 /**
  * <p>Defines methodologies for comparing, testing, and selecting values and indexes based on optimizing values in a
@@ -90,23 +94,6 @@ public enum Optimum implements Comparator<Double> {
    public abstract int compare(double v1, double v2);
 
    /**
-    * Test if the given value passes the given threshold based on the direction of the optimum. For <code>MINIMUM</code>
-    * this uses a less than equal to operator and for <code>MAXIMUM</code> this uses a greater than equal to operator.
-    *
-    * @param value     the value
-    * @param threshold the threshold
-    * @return the boolean
-    */
-   public abstract boolean test(double value, double threshold);
-
-   /**
-    * Gets a value that will also be the worst possible solution.
-    *
-    * @return the double
-    */
-   public abstract double startingValue();
-
-   /**
     * Select the best index and value from the given array.
     *
     * @param array the array to select from
@@ -117,20 +104,22 @@ public enum Optimum implements Comparator<Double> {
       return Tuple2.of(bestIndex, array[bestIndex]);
    }
 
-   /**
-    * Selects the best value from the given array
-    *
-    * @param array the array to select from
-    * @return the most optimum value
-    */
-   public double optimumValue(@NonNull double[] array) {
-      double val = startingValue();
-      for (double anArray : array) {
-         if (test(anArray, val)) {
-            val = anArray;
-         }
+   public <T> Optional<T> optimum(@NonNull MStream<T> stream, @NonNull SerializableToDoubleFunction<T> function) {
+      if (this == MAXIMUM) {
+         return stream.max((t1, t2) -> Double.compare(function.applyAsDouble(t1), function.applyAsDouble(t2)));
+      } else if (this == MINIMUM) {
+         return stream.min((t1, t2) -> Double.compare(function.applyAsDouble(t1), function.applyAsDouble(t2)));
       }
-      return val;
+      throw new IllegalStateException();
+   }
+
+   public <T> Optional<T> optimum(@NonNull Stream<T> stream, @NonNull SerializableToDoubleFunction<T> function) {
+      if (this == MAXIMUM) {
+         return stream.max(Comparator.comparingDouble(function::applyAsDouble));
+      } else if (this == MINIMUM) {
+         return stream.min(Comparator.comparingDouble(function::applyAsDouble));
+      }
+      throw new IllegalStateException();
    }
 
    /**
@@ -151,5 +140,37 @@ public enum Optimum implements Comparator<Double> {
       return index;
    }
 
+   /**
+    * Selects the best value from the given array
+    *
+    * @param array the array to select from
+    * @return the most optimum value
+    */
+   public double optimumValue(@NonNull double[] array) {
+      double val = startingValue();
+      for (double anArray : array) {
+         if (test(anArray, val)) {
+            val = anArray;
+         }
+      }
+      return val;
+   }
+
+   /**
+    * Gets a value that will also be the worst possible solution.
+    *
+    * @return the double
+    */
+   public abstract double startingValue();
+
+   /**
+    * Test if the given value passes the given threshold based on the direction of the optimum. For <code>MINIMUM</code>
+    * this uses a less than equal to operator and for <code>MAXIMUM</code> this uses a greater than equal to operator.
+    *
+    * @param value     the value
+    * @param threshold the threshold
+    * @return the boolean
+    */
+   public abstract boolean test(double value, double threshold);
 
 }//END OF Optimum

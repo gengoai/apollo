@@ -40,7 +40,7 @@ public class BisectingKMeans extends Clusterer<FlatCentroidClustering> {
 
       JavaRDD<org.apache.spark.mllib.linalg.Vector> rdd = SparkLinearAlgebra.toVectors(instances);
       BisectingKMeansModel model = learner.run(rdd);
-      FlatCentroidClustering clustering = new FlatCentroidClustering(getEncoderPair(), Distance.Euclidean);
+      FlatCentroidClustering clustering = new FlatCentroidClustering(this, Distance.Euclidean);
       org.apache.spark.mllib.linalg.Vector[] centers = model.clusterCenters();
       for (int i = 0; i < K; i++) {
          clustering.addCluster(new Cluster());

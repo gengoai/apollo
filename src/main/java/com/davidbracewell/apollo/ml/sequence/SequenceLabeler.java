@@ -37,20 +37,14 @@ public abstract class SequenceLabeler implements Model {
       this.transitionFeatures = transitionFeatures;
    }
 
-   @Override
-   public EncoderPair getEncoderPair() {
-      return encoderPair;
-   }
-
    /**
-    * Label labeling result.
+    * Estimate double [ ].
     *
-    * @param sequence the sequence
-    * @return the labeling result
+    * @param observation the observation
+    * @param transitions the transitions
+    * @return the double [ ]
     */
-   public Labeling label(@NonNull Sequence sequence) {
-      return decoder.decode(this, sequence);
-   }
+   public abstract double[] estimate(Iterator<Feature> observation, Iterator<String> transitions);
 
    /**
     * Gets decoder.
@@ -70,14 +64,19 @@ public abstract class SequenceLabeler implements Model {
       this.decoder = decoder;
    }
 
+   @Override
+   public EncoderPair getEncoderPair() {
+      return encoderPair;
+   }
+
    /**
-    * Estimate double [ ].
+    * Gets transition features.
     *
-    * @param observation the observation
-    * @param transitions the transitions
-    * @return the double [ ]
+    * @return the transition features
     */
-   public abstract double[] estimate(Iterator<Feature> observation, Iterator<String> transitions);
+   public TransitionFeatures getTransitionFeatures() {
+      return transitionFeatures;
+   }
 
    /**
     * Gets validator.
@@ -89,12 +88,13 @@ public abstract class SequenceLabeler implements Model {
    }
 
    /**
-    * Gets transition features.
+    * Label labeling result.
     *
-    * @return the transition features
+    * @param sequence the sequence
+    * @return the labeling result
     */
-   public TransitionFeatures getTransitionFeatures() {
-      return transitionFeatures;
+   public Labeling label(@NonNull Sequence sequence) {
+      return decoder.decode(this, sequence);
    }
 
 

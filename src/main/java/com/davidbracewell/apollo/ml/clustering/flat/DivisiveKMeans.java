@@ -68,17 +68,13 @@ public class DivisiveKMeans extends Clusterer<FlatClustering> implements Loggabl
 
    @Override
    public FlatClustering cluster(@NonNull MStream<Vector> instances) {
-      FlatClustering finalClustering = new FlatCentroidClustering(getEncoderPair(), distanceMeasure);
+      FlatClustering finalClustering = new FlatCentroidClustering(this, distanceMeasure);
       FlatClustering initialCluster = kmeans(instances, initialK);
       initialCluster.forEach(cluster -> doClusterRound(cluster).forEach(finalClustering::addCluster));
       for (int i = 0; i < finalClustering.size(); i++) {
          finalClustering.get(i).setId(i);
       }
       return finalClustering;
-   }
-
-   private FlatClustering kmeans(MStream<Vector> vectors, int K) {
-      return new KMeans(K, distanceMeasure, kMeansIterations).cluster(vectors);
    }
 
    private List<Cluster> doClusterRound(Cluster cluster) {
@@ -122,6 +118,9 @@ public class DivisiveKMeans extends Clusterer<FlatClustering> implements Loggabl
       return Collections.emptyList();
    }
 
+   private FlatClustering kmeans(MStream<Vector> vectors, int K) {
+      return new KMeans(K, distanceMeasure, kMeansIterations).cluster(vectors);
+   }
 
    /**
     * Sets distance measure.

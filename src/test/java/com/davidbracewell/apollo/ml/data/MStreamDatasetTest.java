@@ -21,6 +21,7 @@
 
 package com.davidbracewell.apollo.ml.data;
 
+import com.davidbracewell.apollo.ml.DefaultVectorizer;
 import com.davidbracewell.apollo.ml.IndexEncoder;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.LabelIndexEncoder;
@@ -39,6 +40,7 @@ public class MStreamDatasetTest extends DatasetTest {
       dataset = new MStreamDataset<>(new IndexEncoder(),
                                      new LabelIndexEncoder(),
                                      PreprocessorList.empty(),
-                                     stream);
+                                     stream,
+                                     new DefaultVectorizer());
    }
 }//END OF InMemoryDatasetTest

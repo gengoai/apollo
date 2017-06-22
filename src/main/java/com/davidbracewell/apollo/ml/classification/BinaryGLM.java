@@ -22,12 +22,8 @@
 package com.davidbracewell.apollo.ml.classification;
 
 import com.davidbracewell.apollo.linalg.Vector;
-import com.davidbracewell.apollo.ml.EncoderPair;
-import com.davidbracewell.apollo.ml.Instance;
-import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.apollo.optimization.activation.Activation;
 import com.davidbracewell.apollo.optimization.activation.LinearActivation;
-import lombok.NonNull;
 
 /**
  * <p>A binary class generalized linear model.</p>
@@ -47,15 +43,10 @@ public class BinaryGLM extends Classifier {
 
    Activation activation = new LinearActivation();
 
-   /**
-    * Instantiates a new Classifier.
-    *
-    * @param encoderPair   the encoder pair
-    * @param preprocessors the preprocessors
-    */
-   protected BinaryGLM(EncoderPair encoderPair, @NonNull PreprocessorList<Instance> preprocessors) {
-      super(encoderPair, preprocessors);
+   protected BinaryGLM(ClassifierLearner learner) {
+      super(learner);
    }
+
 
    @Override
    public Classification classify(Vector vector) {

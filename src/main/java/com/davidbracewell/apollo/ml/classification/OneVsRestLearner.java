@@ -89,7 +89,7 @@ public class OneVsRestLearner extends ClassifierLearner {
    }
 
    @Override
-   public void reset() {
+   public void resetLearnerParameters() {
 
    }
 
@@ -97,7 +97,7 @@ public class OneVsRestLearner extends ClassifierLearner {
    public OneVsRestLearner setParameter(String name, Object value) {
       if (name.equals("binaryLearner")) {
          this.learnerSupplier = () -> Val.of(parameters.get("binaryLearner"))
-                                          .as(BinaryClassifierLearner.class);
+                                         .as(BinaryClassifierLearner.class);
       }
       if (name.equals("normalize")) {
          this.normalize = Val.of(value).asBooleanValue();
@@ -108,17 +108,17 @@ public class OneVsRestLearner extends ClassifierLearner {
 
    @Override
    protected Classifier trainImpl(Dataset<Instance> dataset) {
-      OneVsRestClassifier model = new OneVsRestClassifier(dataset.getEncoderPair(),
-                                                          dataset.getPreprocessors());
+      OneVsRestClassifier model = new OneVsRestClassifier(this);
       model.classifiers = IntStream.range(0, dataset.getLabelEncoder().size())
                                    .parallel()
                                    .mapToObj(i -> {
                                                 BinaryClassifierLearner bcl = learnerSupplier.get();
                                                 bcl.setParameters(parameters);
                                                 bcl.reset();
+                                                bcl.update(dataset.getEncoderPair(), dataset.getPreprocessors());
                                                 return bcl.trainForLabel(dataset, i);
                                              }
-                                   ).toArray(Classifier[]::new);
+                                            ).toArray(Classifier[]::new);
       model.normalize = normalize;
       return model;
    }

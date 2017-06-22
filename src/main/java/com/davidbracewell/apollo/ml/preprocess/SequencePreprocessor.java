@@ -42,8 +42,8 @@ public class SequencePreprocessor implements Preprocessor<Sequence>, Serializabl
       instancePreprocessor.fit(new MStreamDataset<>(dataset.getFeatureEncoder(),
                                                     dataset.getLabelEncoder(),
                                                     PreprocessorList.empty(),
-                                                    dataset.stream().flatMap(s -> s.asInstances().stream()))
-                              );
+                                                    dataset.stream().flatMap(s -> s.asInstances().stream()),
+                                                    dataset.getVectorizer()));
    }
 
    @Override

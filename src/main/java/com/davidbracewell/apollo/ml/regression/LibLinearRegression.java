@@ -2,7 +2,6 @@ package com.davidbracewell.apollo.ml.regression;
 
 import com.davidbracewell.apollo.linalg.SparseVector;
 import com.davidbracewell.apollo.linalg.Vector;
-import com.davidbracewell.apollo.ml.FeatureVector;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.data.Dataset;
 import de.bwaldvogel.liblinear.*;
@@ -42,6 +41,11 @@ public class LibLinearRegression extends RegressionLearner {
    }
 
    @Override
+   public void resetLearnerParameters() {
+
+   }
+
+   @Override
    protected Regression trainImpl(Dataset<Instance> dataset) {
       Problem problem = new Problem();
       problem.l = dataset.size();
@@ -53,7 +57,7 @@ public class LibLinearRegression extends RegressionLearner {
       int biasIndex = dataset.getFeatureEncoder().size() + 1;
 
       for (Iterator<Instance> iitr = dataset.iterator(); iitr.hasNext(); index++) {
-         FeatureVector vector = iitr.next().toVector(dataset.getEncoderPair());
+         Vector vector = getVectorizer().apply(iitr.next());
          problem.x[index] = toFeature(vector, biasIndex);
          problem.y[index] = vector.getLabel();
       }
@@ -67,10 +71,7 @@ public class LibLinearRegression extends RegressionLearner {
 
       Model model = Linear.train(problem, new Parameter(SolverType.L2R_L2LOSS_SVR, C, eps));
 
-      SimpleRegressionModel srm = new SimpleRegressionModel(
-                                                              dataset.getEncoderPair(),
-                                                              dataset.getPreprocessors().getModelProcessors()
-      );
+      SimpleRegressionModel srm = new SimpleRegressionModel(this);
 
       double[] modelWeights = model.getFeatureWeights();
       srm.weights = new SparseVector(srm.numberOfFeatures());
@@ -79,11 +80,6 @@ public class LibLinearRegression extends RegressionLearner {
       }
       srm.bias = modelWeights.length > model.getNrFeature() ? modelWeights[model.getNrFeature()] : 0d;
       return srm;
-   }
-
-   @Override
-   public void reset() {
-
    }
 
 }// END OF LibLinearRegression

@@ -4,10 +4,10 @@ import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.EncoderPair;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.Model;
-import com.davidbracewell.apollo.ml.RegressionLabelEncoder;
+import com.davidbracewell.apollo.ml.Vectorizer;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.collection.counter.Counter;
-import com.davidbracewell.guava.common.base.Preconditions;
+import lombok.Getter;
 import lombok.NonNull;
 
 /**
@@ -17,20 +17,17 @@ import lombok.NonNull;
  */
 public abstract class Regression implements Model {
    private static final long serialVersionUID = 1L;
+   @Getter
    private final PreprocessorList<Instance> preprocessors;
+   @Getter
    private EncoderPair encoderPair;
+   @Getter
+   private Vectorizer vectorizer;
 
-   /**
-    * Instantiates a new Regression model.
-    *
-    * @param encoderPair   the encoder pair
-    * @param preprocessors the preprocessors
-    */
-   public Regression(@NonNull EncoderPair encoderPair, @NonNull PreprocessorList<Instance> preprocessors) {
-      this.encoderPair = encoderPair;
-      Preconditions.checkArgument(encoderPair.getLabelEncoder() instanceof RegressionLabelEncoder,
-                                  "Regression only allows RealEncoder for labels.");
-      this.preprocessors = preprocessors.getModelProcessors();
+   public Regression(RegressionLearner learner) {
+      this.preprocessors = learner.getPreprocessors();
+      this.encoderPair = learner.getEncoderPair();
+      this.vectorizer = learner.getVectorizer();
    }
 
 
@@ -41,7 +38,7 @@ public abstract class Regression implements Model {
     * @return the estimated value
     */
    public final double estimate(@NonNull Instance instance) {
-      return estimate(preprocessors.apply(instance).toVector(getEncoderPair()));
+      return estimate(getVectorizer().apply(getPreprocessors().apply(instance)));
    }
 
 
@@ -53,17 +50,16 @@ public abstract class Regression implements Model {
     */
    public abstract double estimate(Vector vector);
 
+   @Override
+   public EncoderPair getEncoderPair() {
+      return encoderPair;
+   }
+
    /**
     * Gets the feature weights for the model.
     *
     * @return the feature weights
     */
    public abstract Counter<String> getFeatureWeights();
-
-
-   @Override
-   public EncoderPair getEncoderPair() {
-      return encoderPair;
-   }
 
 }// END OF Regression

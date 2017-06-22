@@ -16,7 +16,7 @@ public class ZeroRLearner extends ClassifierLearner {
 
    @Override
    public Classifier trainImpl(@NonNull Dataset<Instance> dataset) {
-      ZeroR model = new ZeroR(dataset.getEncoderPair());
+      ZeroR model = new ZeroR(this);
       Map<String, Long> m = dataset.stream()
                                    .filter(Instance::hasLabel)
                                    .map(Instance::getLabel)
@@ -28,7 +28,7 @@ public class ZeroRLearner extends ClassifierLearner {
    }
 
    @Override
-   public void reset() {
+   public void resetLearnerParameters() {
 
    }
 

@@ -44,7 +44,7 @@ public class SoftmaxLearner extends ClassifierLearner {
 
 
    @Override
-   public void reset() {
+   public void resetLearnerParameters() {
 
    }
 
@@ -59,7 +59,7 @@ public class SoftmaxLearner extends ClassifierLearner {
 
       Weights start = Weights.multiClass(dataset.getLabelEncoder().size(), dataset.getFeatureEncoder().size());
       Weights weights = optimizer.optimize(start,
-                                           dataset::asFeatureVectors,
+                                           dataset::asVectors,
                                            this::observe,
                                            TerminationCriteria.create()
                                                               .maxIterations(maxIterations)
@@ -69,7 +69,7 @@ public class SoftmaxLearner extends ClassifierLearner {
                                            weightUpdater,
                                            verbose).getWeights();
 
-      GLM glm = new GLM(dataset.getEncoderPair(), dataset.getPreprocessors());
+      GLM glm = new GLM(this);
       glm.weights = weights;
       glm.activation = activation;
       return glm;

@@ -3,6 +3,7 @@ package com.davidbracewell.apollo.ml.data;
 import com.davidbracewell.apollo.ml.Encoder;
 import com.davidbracewell.apollo.ml.Example;
 import com.davidbracewell.apollo.ml.LabelEncoder;
+import com.davidbracewell.apollo.ml.Vectorizer;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.function.SerializableFunction;
 import com.davidbracewell.stream.MStream;
@@ -28,8 +29,8 @@ public class DistributedDataset<T extends Example> extends Dataset<T> {
     * @param labelEncoder   the label encoder
     * @param preprocessors  the preprocessors
     */
-   protected DistributedDataset(Encoder featureEncoder, LabelEncoder labelEncoder, PreprocessorList<T> preprocessors) {
-      super(featureEncoder, labelEncoder, preprocessors);
+   protected DistributedDataset(Encoder featureEncoder, LabelEncoder labelEncoder, PreprocessorList<T> preprocessors, Vectorizer vectorizer) {
+      super(featureEncoder, labelEncoder, preprocessors, vectorizer);
    }
 
    @Override
@@ -42,8 +43,19 @@ public class DistributedDataset<T extends Example> extends Dataset<T> {
    }
 
    @Override
-   protected Dataset<T> create(MStream<T> instances, Encoder featureEncoder, LabelEncoder labelEncoder, PreprocessorList<T> preprocessors) {
-      DistributedDataset<T> dataset = new DistributedDataset<>(featureEncoder, labelEncoder, preprocessors);
+   public Dataset<T> cache() {
+      this.stream = stream.cache();
+      return this;
+   }
+
+   @Override
+   public void close() throws Exception {
+      this.stream.close();
+   }
+
+   @Override
+   protected Dataset<T> create(MStream<T> instances, Encoder featureEncoder, LabelEncoder labelEncoder, PreprocessorList<T> preprocessors, Vectorizer vectorizer) {
+      DistributedDataset<T> dataset = new DistributedDataset<>(featureEncoder, labelEncoder, preprocessors, vectorizer);
       dataset.stream = new SparkStream<>(instances);
       return dataset;
    }
@@ -61,7 +73,7 @@ public class DistributedDataset<T extends Example> extends Dataset<T> {
 
    @Override
    public Dataset<T> shuffle(Random random) {
-      return create(stream.shuffle(), getFeatureEncoder(), getLabelEncoder(), getPreprocessors());
+      return create(stream.shuffle(), getFeatureEncoder(), getLabelEncoder(), getPreprocessors(), getVectorizer());
    }
 
    @Override
@@ -72,16 +84,5 @@ public class DistributedDataset<T extends Example> extends Dataset<T> {
    @Override
    public MStream<T> stream() {
       return stream;
-   }
-
-   @Override
-   public Dataset<T> cache() {
-      this.stream = stream.cache();
-      return this;
-   }
-
-   @Override
-   public void close() throws Exception {
-      this.stream.close();
    }
 }// END OF DistributedDataset

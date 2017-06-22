@@ -1,16 +1,20 @@
 package com.davidbracewell.apollo.ml;
 
+import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.classification.Classifier;
 import com.davidbracewell.apollo.ml.clustering.Clustering;
 import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.ml.embedding.Embedding;
+import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.apollo.ml.regression.Regression;
 import com.davidbracewell.apollo.ml.sequence.Sequence;
 import com.davidbracewell.apollo.ml.sequence.SequenceLabeler;
 import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.reflection.BeanMap;
 import com.davidbracewell.reflection.Ignore;
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.Setter;
 
 import java.io.Serializable;
 import java.util.Map;
@@ -25,7 +29,13 @@ import java.util.Map;
 public abstract class Learner<T extends Example, M extends Model> implements Serializable {
 
    private static final long serialVersionUID = 605756060816072642L;
-
+   @Getter
+   @Setter
+   private Vectorizer vectorizer = new DefaultVectorizer();
+   @Getter
+   private EncoderPair encoderPair;
+   @Getter
+   private PreprocessorList<T> preprocessors;
 
    /**
     * Creates a builder for constructing Classification learners
@@ -107,7 +117,13 @@ public abstract class Learner<T extends Example, M extends Model> implements Ser
    /**
     * Resets any saved state in the learner.
     */
-   public abstract void reset();
+   public final void reset() {
+      this.encoderPair = null;
+      this.preprocessors = null;
+      resetLearnerParameters();
+   }
+
+   protected abstract void resetLearnerParameters();
 
    /**
     * Sets the value of the given parameter.
@@ -121,6 +137,10 @@ public abstract class Learner<T extends Example, M extends Model> implements Ser
       return Cast.as(this);
    }
 
+   protected final Vector toVector(Example example) {
+      return vectorizer.apply(example);
+   }
+
    /**
     * Trains a model using the given dataset.
     *
@@ -129,6 +149,9 @@ public abstract class Learner<T extends Example, M extends Model> implements Ser
     */
    public M train(@NonNull Dataset<T> dataset) {
       dataset.encode();
+      this.preprocessors = dataset.getPreprocessors();
+      this.encoderPair = dataset.getEncoderPair();
+      this.vectorizer.setEncoderPair(dataset.getEncoderPair());
       M model = trainImpl(dataset);
       model.finishTraining();
       return model;
@@ -141,6 +164,12 @@ public abstract class Learner<T extends Example, M extends Model> implements Ser
     * @return the trained model
     */
    protected abstract M trainImpl(Dataset<T> dataset);
+
+   public void update(EncoderPair encoderPair, PreprocessorList<T> preprocessors) {
+      this.encoderPair = encoderPair;
+      this.preprocessors = preprocessors;
+      this.vectorizer.setEncoderPair(encoderPair);
+   }
 
 
 }// END OF Learner

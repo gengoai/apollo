@@ -1,9 +1,9 @@
 package com.davidbracewell.apollo.ml.clustering.topic;
 
-import com.davidbracewell.apollo.affinity.DistanceMeasure;
+import com.davidbracewell.apollo.affinity.Measure;
 import com.davidbracewell.apollo.linalg.Vector;
-import com.davidbracewell.apollo.ml.EncoderPair;
 import com.davidbracewell.apollo.ml.Instance;
+import com.davidbracewell.apollo.ml.clustering.Clusterer;
 import com.davidbracewell.apollo.ml.clustering.flat.FlatClustering;
 import com.davidbracewell.apollo.optimization.Optimum;
 import com.davidbracewell.collection.counter.Counter;
@@ -20,8 +20,14 @@ public abstract class TopicModel extends FlatClustering {
    @Setter
    protected int K;
 
-   protected TopicModel(EncoderPair encoderPair, DistanceMeasure distanceMeasure) {
-      super(encoderPair, distanceMeasure);
+   public TopicModel(TopicModel other) {
+      super(other);
+      this.K = other.K;
+   }
+
+   public TopicModel(Clusterer<?> clusterer, Measure measure, int k) {
+      super(clusterer, measure);
+      K = k;
    }
 
    /**

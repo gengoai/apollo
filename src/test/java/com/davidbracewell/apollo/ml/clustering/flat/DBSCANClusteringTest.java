@@ -22,7 +22,6 @@
 package com.davidbracewell.apollo.ml.clustering.flat;
 
 import com.davidbracewell.apollo.affinity.Distance;
-import com.davidbracewell.apollo.linalg.LabeledVector;
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.clustering.Cluster;
 import com.davidbracewell.apollo.ml.clustering.ClustererTest;
@@ -36,28 +35,28 @@ import static org.junit.Assert.*;
  */
 public class DBSCANClusteringTest extends ClustererTest {
 
-  public DBSCANClusteringTest() {
-    super(new DBSCAN(Distance.Euclidean, 1, 3));
-  }
+   public DBSCANClusteringTest() {
+      super(new DBSCAN(Distance.Euclidean, 1, 3));
+   }
 
-  @Test
-  public void testCluster() throws Exception {
-    FlatClustering c = Cast.as(cluster());
-    assertEquals(2.0, c.size(), 0.0);
+   @Test
+   public void testCluster() throws Exception {
+      FlatClustering c = Cast.as(cluster());
+      assertEquals(2.0, c.size(), 0.0);
 
-    Cluster c1 = c.get(0);
-    String target = c1.getPoints().get(0).getLabel().toString();
-    for (Vector point : c1.getPoints()) {
-      assertEquals(target, point.getLabel().toString());
-    }
+      Cluster c1 = c.get(0);
+      String target = c1.getPoints().get(0).getLabel().toString();
+      for (Vector point : c1.getPoints()) {
+         assertEquals(target, point.getLabel().toString());
+      }
 
-    Cluster c2 = c.get(1);
-    target = c2.getPoints().get(0).getLabel().toString();
-    for (Vector point : c2.getPoints()) {
-      assertEquals(target, point.getLabel().toString());
-    }
+      Cluster c2 = c.get(1);
+      target = c2.getPoints().get(0).getLabel().toString();
+      for (Vector point : c2.getPoints()) {
+         assertEquals(target, point.getLabel().toString());
+      }
 
-  }
+   }
 
 
 }

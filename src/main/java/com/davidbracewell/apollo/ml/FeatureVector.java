@@ -1,11 +1,11 @@
 package com.davidbracewell.apollo.ml;
 
 import com.davidbracewell.apollo.linalg.SparseVector;
+import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.collection.Streams;
 import com.davidbracewell.conversion.Cast;
-import lombok.Getter;
 import lombok.NonNull;
-import lombok.Setter;
+import lombok.val;
 
 import java.util.Map;
 import java.util.stream.Stream;
@@ -21,12 +21,6 @@ import static com.davidbracewell.tuple.Tuples.$;
 public class FeatureVector extends SparseVector {
    private static final long serialVersionUID = 1L;
    private final EncoderPair encoderPair;
-   private double label = Double.NaN;
-   @Getter
-   private double predictedLabel = Double.NaN;
-   @Getter
-   @Setter
-   private double weight = 1.0;
 
    /**
     * Instantiates a new Feature vector.
@@ -36,6 +30,15 @@ public class FeatureVector extends SparseVector {
    public FeatureVector(@NonNull EncoderPair encoderPair) {
       super(0);
       this.encoderPair = encoderPair;
+   }
+
+   public Stream<Map.Entry<Object, Double>> decodedFeatureStream() {
+      final Encoder encoder = getEncoderPair().getFeatureEncoder();
+      if (size() == 0) {
+         return Stream.empty();
+      }
+      return Streams.asStream(orderedNonZeroIterator())
+                    .map(e -> $(encoder.decode(e.getIndex()), e.getValue()));
    }
 
    @Override
@@ -49,7 +52,7 @@ public class FeatureVector extends SparseVector {
     * @return the decoded label
     */
    public String getDecodedLabel() {
-      return Cast.as(encoderPair.decodeLabel(label));
+      return Cast.as(encoderPair.decodeLabel(getLabel()));
    }
 
    /**
@@ -61,31 +64,13 @@ public class FeatureVector extends SparseVector {
       return encoderPair;
    }
 
-   @SuppressWarnings("unchecked")
-   @Override
-   public Double getLabel() {
-      return label;
-   }
-
-   /**
-    * Sets the label of the vector.
-    *
-    * @param label the label
-    */
-   public void setLabel(Object label) {
-      this.label = encoderPair.encodeLabel(label);
-      if (this.label == -1) {
-         this.label = Double.NaN;
-      }
-   }
-
    /**
     * Checks if the vector has a label assigned to it
     *
     * @return True if the vector has a label, False otherwise
     */
    public boolean hasLabel() {
-      return Double.isFinite(label);
+      return Double.isFinite(getLabelAsDouble());
    }
 
    /**
@@ -119,8 +104,28 @@ public class FeatureVector extends SparseVector {
     *
     * @param label the label
     */
-   public void setLabel(double label) {
-      this.label = label;
+   public Vector setLabel(Object label) {
+      if (label instanceof Number) {
+         super.setLabel(label);
+      } else {
+         double val = encoderPair.encodeLabel(label);
+         if (val == -1) {
+            setLabel(null);
+         } else {
+            setLabel(val);
+         }
+      }
+      return this;
+   }
+
+   /**
+    * Sets the label of the vector.
+    *
+    * @param label the label
+    */
+   public Vector setLabel(double label) {
+      super.setLabel(label);
+      return this;
    }
 
    /**
@@ -128,29 +133,14 @@ public class FeatureVector extends SparseVector {
     *
     * @param label the predicted label
     */
-   public void setPredictedLabel(double label) {
-      this.predictedLabel = label;
-   }
-
-   /**
-    * Sets the predicted label of the vector.
-    *
-    * @param label the predicted label
-    */
-   public void setPredictedLabel(Object label) {
-      this.predictedLabel = encoderPair.encodeLabel(label);
-      if (this.predictedLabel == -1) {
-         this.predictedLabel = Double.NaN;
+   public Vector setPredicted(Object label) {
+      val encodeLabel = encoderPair.encodeLabel(label);
+      if (encodeLabel == -1) {
+         setPredicted(Double.NaN);
+      } else {
+         setPredicted(encodeLabel);
       }
-   }
-
-   public Stream<Map.Entry<Object, Double>> decodedFeatureStream() {
-      final Encoder encoder = getEncoderPair().getFeatureEncoder();
-      if(size() == 0 ){
-         return Stream.empty();
-      }
-      return Streams.asStream(orderedNonZeroIterator())
-                    .map(e -> $(encoder.decode(e.getIndex()), e.getValue()));
+      return this;
    }
 
    /**

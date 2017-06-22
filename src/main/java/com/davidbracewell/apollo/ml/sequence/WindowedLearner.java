@@ -44,7 +44,7 @@ public class WindowedLearner extends SequenceLabelerLearner {
    }
 
    @Override
-   public void reset() {
+   public void resetLearnerParameters() {
       learner.reset();
    }
 

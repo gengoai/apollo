@@ -22,8 +22,6 @@
 package com.davidbracewell.apollo.linalg.store;
 
 import com.davidbracewell.apollo.affinity.Measure;
-import com.davidbracewell.apollo.linalg.LabeledVector;
-import com.davidbracewell.apollo.linalg.ScoredLabelVector;
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.guava.common.base.Preconditions;
 import com.davidbracewell.guava.common.collect.Iterators;
@@ -41,7 +39,7 @@ import java.util.stream.Collectors;
  */
 public class DefaultVectorStore<KEY> implements VectorStore<KEY>, Serializable {
    private static final long serialVersionUID = 1L;
-   private final Map<KEY, LabeledVector> vectorMap = new HashMap<>();
+   private final Map<KEY, Vector> vectorMap = new HashMap<>();
    private final int dimension;
    private final Measure queryMeasure;
 
@@ -58,79 +56,10 @@ public class DefaultVectorStore<KEY> implements VectorStore<KEY>, Serializable {
    }
 
    @Override
-   public Iterator<LabeledVector> iterator() {
-      return Iterators.unmodifiableIterator(vectorMap.values().iterator());
-   }
-
-   @Override
-   public int size() {
-      return vectorMap.size();
-   }
-
-   @Override
-   public int dimension() {
-      return dimension;
-   }
-
-   @Override
-   public void add(@NonNull LabeledVector vector) {
+   public void add(@NonNull Vector vector) {
       Preconditions.checkArgument(vector.dimension() == dimension,
                                   "Dimension mismatch, vector store can only store vectors with k of " + dimension);
       vectorMap.put(vector.getLabel(), vector);
-   }
-
-   @Override
-   public List<ScoredLabelVector> nearest(Vector query, double threshold) {
-      Preconditions.checkArgument(query.dimension() == dimension,
-                                  "Dimension mismatch, vector store can only store vectors with k of " + dimension);
-      return vectorMap.values().parallelStream()
-                      .map(v -> new ScoredLabelVector(v, queryMeasure.calculate(v, query)))
-                      .filter(s -> queryMeasure.getOptimum().test(s.getScore(), threshold))
-                      .collect(Collectors.toList());
-   }
-
-   @Override
-   public List<ScoredLabelVector> nearest(@NonNull Vector query, int K, double threshold) {
-      Preconditions.checkArgument(query.dimension() == dimension,
-                                  "Dimension mismatch, vector store can only store vectors with k of " + dimension);
-      List<ScoredLabelVector> vectors = vectorMap.values().parallelStream()
-                                                 .map(v -> new ScoredLabelVector(v, queryMeasure.calculate(v, query)))
-                                                 .filter(s -> queryMeasure.getOptimum().test(s.getScore(), threshold))
-                                                 .sorted((s1, s2) -> queryMeasure.getOptimum()
-                                                                                 .compare(s1.getScore(), s2.getScore()))
-                                                 .collect(Collectors.toList());
-      return vectors.subList(0, Math.min(K, vectors.size()));
-   }
-
-   @Override
-   public List<ScoredLabelVector> nearest(@NonNull Vector query) {
-      Preconditions.checkArgument(query.dimension() == dimension,
-                                  "Dimension mismatch, vector store can only store vectors with k of " + dimension);
-      return vectorMap.values().parallelStream()
-                      .map(v -> new ScoredLabelVector(v, queryMeasure.calculate(v, query)))
-                      .collect(Collectors.toList());
-   }
-
-   @Override
-   public List<ScoredLabelVector> nearest(@NonNull Vector query, int K) {
-      Preconditions.checkArgument(query.dimension() == dimension,
-                                  "Dimension mismatch, vector store can only store vectors with k of " + dimension);
-      List<ScoredLabelVector> vectors = vectorMap.values().parallelStream()
-                                                 .map(v -> new ScoredLabelVector(v, queryMeasure.calculate(v, query)))
-                                                 .sorted((s1, s2) -> queryMeasure.getOptimum()
-                                                                                 .compare(s1.getScore(), s2.getScore()))
-                                                 .collect(Collectors.toList());
-      return vectors.subList(0, Math.min(K, vectors.size()));
-   }
-
-   @Override
-   public Set<KEY> keySet() {
-      return Collections.unmodifiableSet(vectorMap.keySet());
-   }
-
-   @Override
-   public LabeledVector get(@NonNull KEY key) {
-      return vectorMap.get(key);
    }
 
    @Override
@@ -139,13 +68,85 @@ public class DefaultVectorStore<KEY> implements VectorStore<KEY>, Serializable {
    }
 
    @Override
-   public boolean remove(@NonNull LabeledVector vector) {
+   public VectorStore<KEY> createNew() {
+      return new DefaultVectorStore<>(dimension, queryMeasure);
+   }
+
+   @Override
+   public int dimension() {
+      return dimension;
+   }
+
+   @Override
+   public Vector get(@NonNull KEY key) {
+      return vectorMap.get(key);
+   }
+
+   @Override
+   public Iterator<Vector> iterator() {
+      return Iterators.unmodifiableIterator(vectorMap.values().iterator());
+   }
+
+   @Override
+   public Set<KEY> keySet() {
+      return Collections.unmodifiableSet(vectorMap.keySet());
+   }
+
+   @Override
+   public List<Vector> nearest(Vector query, double threshold) {
+      Preconditions.checkArgument(query.dimension() == dimension,
+                                  "Dimension mismatch, vector store can only store vectors with k of " + dimension);
+      return vectorMap.values().parallelStream()
+                      .map(v -> v.copy().setWeight(queryMeasure.calculate(v, query)))
+                      .filter(s -> queryMeasure.getOptimum().test(s.getWeight(), threshold))
+                      .collect(Collectors.toList());
+   }
+
+   @Override
+   public List<Vector> nearest(@NonNull Vector query, int K, double threshold) {
+      Preconditions.checkArgument(query.dimension() == dimension,
+                                  "Dimension mismatch, vector store can only store vectors with k of " + dimension);
+      List<Vector> vectors = vectorMap.values().parallelStream()
+                                      .map(v -> v.copy().setWeight(queryMeasure.calculate(v, query)))
+                                      .filter(s -> queryMeasure.getOptimum().test(s.getWeight(), threshold))
+                                      .sorted((s1, s2) -> queryMeasure.getOptimum()
+                                                                      .compare(s1.getWeight(), s2.getWeight()))
+                                      .collect(Collectors.toList());
+      return vectors.subList(0, Math.min(K, vectors.size()));
+   }
+
+   @Override
+   public List<Vector> nearest(@NonNull Vector query) {
+      Preconditions.checkArgument(query.dimension() == dimension,
+                                  "Dimension mismatch, vector store can only store vectors with k of " + dimension);
+      return vectorMap.values().parallelStream()
+                      .map(v -> v.copy().setWeight(queryMeasure.calculate(v, query)))
+                      .collect(Collectors.toList());
+   }
+
+   @Override
+   public List<Vector> nearest(@NonNull Vector query, int K) {
+      Preconditions.checkArgument(query.dimension() == dimension,
+                                  "Dimension mismatch, vector store can only store vectors with k of " + dimension);
+      List<Vector> vectors = vectorMap.values().parallelStream()
+                                      .map(v -> v.copy().setWeight(queryMeasure.calculate(v, query)))
+                                      .sorted((s1, s2) -> queryMeasure.getOptimum()
+                                                                      .compare(s1.getWeight(), s2.getWeight()))
+                                      .collect(Collectors.toList());
+      return vectors.subList(0, Math.min(K, vectors.size()));
+   }
+
+   @Override
+   public boolean remove(@NonNull Vector vector) {
+      if (vector.getLabel() == null) {
+         return false;
+      }
       return vectorMap.remove(vector.getLabel()) != null;
    }
 
    @Override
-   public VectorStore<KEY> createNew() {
-      return new DefaultVectorStore<>(dimension, queryMeasure);
+   public int size() {
+      return vectorMap.size();
    }
 
 }//END OF DefaultVectorStore

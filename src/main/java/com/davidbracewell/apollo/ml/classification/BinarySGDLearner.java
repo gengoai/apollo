@@ -85,7 +85,7 @@ public class BinarySGDLearner extends BinaryClassifierLearner {
    }
 
    @Override
-   public void reset() {
+   public void resetLearnerParameters() {
 
    }
 
@@ -102,9 +102,9 @@ public class BinarySGDLearner extends BinaryClassifierLearner {
       start = Weights.binary(dataset.getFeatureEncoder().size());
 
       Weights weights = optimizer.optimize(start,
-                                           () -> dataset.asFeatureVectors()
+                                           () -> dataset.asVectors()
                                                         .map(fv -> {
-                                                           if (fv.getLabel() == trueLabel) {
+                                                           if (fv.getLabelAsDouble() == trueLabel) {
                                                               fv.setLabel(1);
                                                            } else {
                                                               fv.setLabel(0);
@@ -121,7 +121,7 @@ public class BinarySGDLearner extends BinaryClassifierLearner {
                                            weightUpdater,
                                            verbose).getWeights();
 
-      BinaryGLM glm = new BinaryGLM(dataset.getEncoderPair(), dataset.getPreprocessors());
+      BinaryGLM glm = new BinaryGLM(this);
       glm.weights = weights.getTheta().row(0).copy();
       glm.bias = weights.getBias().get(0);
       glm.activation = activation;

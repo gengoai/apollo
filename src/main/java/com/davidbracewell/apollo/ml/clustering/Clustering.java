@@ -21,10 +21,22 @@
 
 package com.davidbracewell.apollo.ml.clustering;
 
-import com.davidbracewell.apollo.affinity.DistanceMeasure;
+import com.davidbracewell.apollo.affinity.Measure;
+import com.davidbracewell.apollo.linalg.Vector;
+import com.davidbracewell.apollo.ml.EncoderPair;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.Model;
+import com.davidbracewell.apollo.ml.Vectorizer;
+import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
+import com.davidbracewell.collection.Streams;
+import com.davidbracewell.tuple.Tuple2;
+import lombok.Getter;
 import lombok.NonNull;
+
+import java.io.Serializable;
+import java.util.Arrays;
+
+import static com.davidbracewell.tuple.Tuples.$;
 
 
 /**
@@ -33,21 +45,30 @@ import lombok.NonNull;
  *
  * @author David B. Bracewell
  */
-public interface Clustering extends Model, Iterable<Cluster> {
+public abstract class Clustering implements Model, Iterable<Cluster>, Serializable {
+   private static final long serialVersionUID = 1L;
+   @Getter
+   private final PreprocessorList<Instance> preprocessors;
+   @Getter
+   private final EncoderPair encoderPair;
+   @Getter
+   private final Vectorizer vectorizer;
+   @Getter
+   private final Measure measure;
 
-   /**
-    * Gets the distance measure used to create the clustering.
-    *
-    * @return the distance measure
-    */
-   DistanceMeasure getDistanceMeasure();
+   public Clustering(Clusterer<?> clusterer, Measure measure) {
+      this.preprocessors = clusterer.getPreprocessors();
+      this.encoderPair = clusterer.getEncoderPair();
+      this.vectorizer = clusterer.getVectorizer();
+      this.measure = measure;
+   }
 
-   /**
-    * The number of clusters
-    *
-    * @return the number of clusters
-    */
-   int size();
+   public Clustering(Clustering other) {
+      this.preprocessors = other.getPreprocessors();
+      this.vectorizer = other.vectorizer;
+      this.encoderPair = other.encoderPair;
+      this.measure = other.getMeasure();
+   }
 
    /**
     * Gets the  cluster for the given index.
@@ -55,28 +76,16 @@ public interface Clustering extends Model, Iterable<Cluster> {
     * @param index the index
     * @return the cluster
     */
-   Cluster get(int index);
-
-   /**
-    * Checks if the clustering is flat
-    *
-    * @return True if flat, False otherwise
-    */
-   boolean isFlat();
-
-   /**
-    * Checks if the clustering is hierarchical
-    *
-    * @return True if hierarchical, False otherwise
-    */
-   boolean isHierarchical();
+   public abstract Cluster get(int index);
 
    /**
     * Gets the root of the hierarchical cluster.
     *
     * @return the root
     */
-   Cluster getRoot();
+   public Cluster getRoot() {
+      throw new UnsupportedOperationException();
+   }
 
    /**
     * Performs a hard clustering, which determines the single cluster the given instance belongs to
@@ -84,7 +93,40 @@ public interface Clustering extends Model, Iterable<Cluster> {
     * @param instance the instance
     * @return the index of the cluster that the instance belongs to
     */
-   int hardCluster(@NonNull Instance instance);
+   public int hardCluster(@NonNull Instance instance) {
+      Vector vector = getVectorizer().apply(getPreprocessors().apply(instance));
+      return getMeasure().getOptimum()
+                         .optimum(Streams.asParallelStream(this)
+                                         .map(c -> $(c.getId(), getMeasure().calculate(vector, c.getCentroid()))),
+                                  Tuple2::getV2)
+                         .map(Tuple2::getKey)
+                         .orElse(-1);
+   }
+
+   /**
+    * Checks if the clustering is flat
+    *
+    * @return True if flat, False otherwise
+    */
+   public boolean isFlat() {
+      return false;
+   }
+
+   /**
+    * Checks if the clustering is hierarchical
+    *
+    * @return True if hierarchical, False otherwise
+    */
+   public boolean isHierarchical() {
+      return false;
+   }
+
+   /**
+    * The number of clusters
+    *
+    * @return the number of clusters
+    */
+   public abstract int size();
 
    /**
     * Performs a soft clustering, which provides a membership probability of the given instance to the clusters
@@ -92,7 +134,16 @@ public interface Clustering extends Model, Iterable<Cluster> {
     * @param instance the instance
     * @return membership probability of the given instance to the clusters
     */
-   double[] softCluster(@NonNull Instance instance);
+   public double[] softCluster(@NonNull Instance instance) {
+      double[] distances = new double[size()];
+      Arrays.fill(distances, Double.POSITIVE_INFINITY);
+      Vector vector = getVectorizer().apply(getPreprocessors().apply(instance));
+      int assignment = hardCluster(instance);
+      if (assignment >= 0) {
+         distances[assignment] = getMeasure().calculate(get(assignment).getCentroid(), vector);
+      }
+      return distances;
+   }
 
 
 }//END OF Clustering

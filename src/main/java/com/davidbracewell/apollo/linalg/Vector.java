@@ -223,9 +223,19 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
     * @param <T> the label type
     * @return the label or null if none
     */
-   default <T> T getLabel() {
-      return null;
-   }
+   <T> T getLabel();
+
+   Vector setLabel(Object o);
+
+   double getWeight();
+
+   Vector setWeight(double weight);
+
+   double getPredicted();
+
+   double getLabelAsDouble();
+
+   Vector setPredicted(double predicted);
 
    /**
     * Gets label vector.
@@ -285,6 +295,8 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
     * @return This vector
     */
    Vector increment(int index, double amount);
+
+   Vector concat(Vector other);
 
    /**
     * Insert vector.
@@ -626,13 +638,6 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
     */
    Matrix transpose();
 
-   /**
-    * Convenience method to create a new labeled vector from this vector with the given label.
-    *
-    * @param label the label to assign to the vector
-    * @return the labeled vector
-    */
-   Vector withLabel(Object label);
 
    /**
     * Sets all elements in the vector to zero.

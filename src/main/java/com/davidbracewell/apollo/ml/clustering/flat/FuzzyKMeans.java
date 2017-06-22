@@ -92,7 +92,7 @@ public class FuzzyKMeans extends Clusterer<FlatClustering> {
                                            c.getPoints().forEach(ap -> cp.addPoint(ap.getVector()));
                                            return cp;
                                         }).collect(Collectors.toList());
-      return new FlatCentroidClustering(getEncoderPair(), distanceMeasure, clusters);
+      return new FlatCentroidClustering(this, distanceMeasure, clusters);
    }
 
 

@@ -1,7 +1,9 @@
 package com.davidbracewell.apollo.ml.embedding;
 
-import com.davidbracewell.apollo.linalg.*;
+import com.davidbracewell.apollo.linalg.DenseVector;
+import com.davidbracewell.apollo.linalg.SparseVector;
 import com.davidbracewell.apollo.linalg.Vector;
+import com.davidbracewell.apollo.linalg.VectorComposition;
 import com.davidbracewell.apollo.linalg.store.VectorStore;
 import com.davidbracewell.apollo.ml.EncoderPair;
 import com.davidbracewell.apollo.ml.IndexEncoder;
@@ -40,11 +42,6 @@ public class Embedding implements Model, Serializable {
       this.vectorStore = vectorStore;
    }
 
-   @Override
-   public EncoderPair getEncoderPair() {
-      return encoderPair;
-   }
-
    /**
     * From vector store embedding.
     *
@@ -56,53 +53,20 @@ public class Embedding implements Model, Serializable {
    }
 
    /**
-    * Gets the underlying vector store
+    * Reads the model from the given resource
     *
-    * @return The underlying vector store
+    * @param modelResource the resource containing the serialized model
+    * @return the deserialized model
+    * @throws Exception Something went wrong reading the model
     */
-   public VectorStore<String> getVectorStore() {
-      return vectorStore;
-   }
-
-   /**
-    * Gets the dimension of the vectors in the embedding.
-    *
-    * @return the vector dimension
-    */
-   public int getDimension() {
-      return vectorStore.dimension();
-   }
-
-   /**
-    * Gets the vocabulary of words/features with vectors.
-    *
-    * @return the vocabulary
-    */
-   public Set<String> getVocab() {
-      return vectorStore.keySet();
-   }
-
-   /**
-    * Checks if the given word/feature is present in the embedding
-    *
-    * @param word the word/feature to check
-    * @return True if the word/feature is in the embedding, False otherwise
-    */
-   public boolean contains(String word) {
-      return vectorStore.containsKey(word);
-   }
-
-   /**
-    * Gets the vector for the given word/feature.
-    *
-    * @param word the word/feature whose vector is to be retrieved
-    * @return the vector for the given word/feature or a zero-vector if the word/feature is not in the embedding.
-    */
-   public Vector getVector(String word) {
-      if (contains(word)) {
-         return vectorStore.get(word);
+   public static Embedding read(@NonNull Resource modelResource) throws Exception {
+      Object o = modelResource.readObject();
+      if (o instanceof Embedding) {
+         return Cast.as(o);
+      } else if (o instanceof VectorStore) {
+         return Embedding.fromVectorStore(Cast.as(o));
       }
-      return new DenseVector(getDimension());
+      throw new IllegalArgumentException(o.getClass() + " cannot be read in as an embedding");
    }
 
    /**
@@ -125,6 +89,60 @@ public class Embedding implements Model, Serializable {
       return composition.compose(getDimension(), vectors);
    }
 
+   /**
+    * Checks if the given word/feature is present in the embedding
+    *
+    * @param word the word/feature to check
+    * @return True if the word/feature is in the embedding, False otherwise
+    */
+   public boolean contains(String word) {
+      return vectorStore.containsKey(word);
+   }
+
+   /**
+    * Gets the dimension of the vectors in the embedding.
+    *
+    * @return the vector dimension
+    */
+   public int getDimension() {
+      return vectorStore.dimension();
+   }
+
+   @Override
+   public EncoderPair getEncoderPair() {
+      return encoderPair;
+   }
+
+   /**
+    * Gets the vector for the given word/feature.
+    *
+    * @param word the word/feature whose vector is to be retrieved
+    * @return the vector for the given word/feature or a zero-vector if the word/feature is not in the embedding.
+    */
+   public Vector getVector(String word) {
+      if (contains(word)) {
+         return vectorStore.get(word);
+      }
+      return new DenseVector(getDimension());
+   }
+
+   /**
+    * Gets the underlying vector store
+    *
+    * @return The underlying vector store
+    */
+   public VectorStore<String> getVectorStore() {
+      return vectorStore;
+   }
+
+   /**
+    * Gets the vocabulary of words/features with vectors.
+    *
+    * @return the vocabulary
+    */
+   public Set<String> getVocab() {
+      return vectorStore.keySet();
+   }
 
    /**
     * Finds the closest K vectors to the given word/feature in the embedding
@@ -133,7 +151,7 @@ public class Embedding implements Model, Serializable {
     * @param K    the maximum number of neighbors to return
     * @return the list of scored K-nearest vectors
     */
-   public List<ScoredLabelVector> nearest(@NonNull String word, int K) {
+   public List<Vector> nearest(@NonNull String word, int K) {
       return nearest(word, K, Double.NEGATIVE_INFINITY);
    }
 
@@ -145,18 +163,18 @@ public class Embedding implements Model, Serializable {
     * @param threshold threshold for selecting vectors
     * @return the list of scored K-nearest vectors
     */
-   public List<ScoredLabelVector> nearest(@NonNull String word, int K, double threshold) {
+   public List<Vector> nearest(@NonNull String word, int K, double threshold) {
       Vector v1 = vectorStore.get(word);
       if (v1 == null) {
          return Collections.emptyList();
       }
-      return vectorStore
-                .nearest(v1, K + 1, threshold)
-                .stream()
-                .filter(slv -> !word.equals(slv.getLabel()))
-                .collect(Collectors.toList());
+      List<Vector> near = vectorStore
+                             .nearest(v1, K + 1, threshold)
+                             .stream()
+                             .filter(slv -> !word.equals(slv.getLabel()))
+                             .collect(Collectors.toList());
+      return near.subList(0, Math.min(K, near.size()));
    }
-
 
    /**
     * Finds the closest K vectors to the given vector in the embedding
@@ -165,10 +183,9 @@ public class Embedding implements Model, Serializable {
     * @param K the maximum number of neighbors to return
     * @return the list of scored K-nearest vectors
     */
-   public List<ScoredLabelVector> nearest(@NonNull Vector v, int K) {
+   public List<Vector> nearest(@NonNull Vector v, int K) {
       return nearest(v, K, Double.NEGATIVE_INFINITY);
    }
-
 
    /**
     * Finds the closest K vectors to the vector in the embedding
@@ -178,10 +195,9 @@ public class Embedding implements Model, Serializable {
     * @param threshold threshold for selecting vectors
     * @return the list of scored K-nearest vectors
     */
-   public List<ScoredLabelVector> nearest(@NonNull Vector v, int K, double threshold) {
+   public List<Vector> nearest(@NonNull Vector v, int K, double threshold) {
       return vectorStore.nearest(v, K, threshold);
    }
-
 
    /**
     * Finds the closest K vectors to the given tuple of words/features in the embedding
@@ -191,7 +207,7 @@ public class Embedding implements Model, Serializable {
     * @param K     the maximum number of neighbors to return
     * @return the list of scored K-nearest vectors
     */
-   public List<ScoredLabelVector> nearest(@NonNull Tuple words, int K) {
+   public List<Vector> nearest(@NonNull Tuple words, int K) {
       return nearest(words, $(), K, Double.NEGATIVE_INFINITY);
    }
 
@@ -207,7 +223,7 @@ public class Embedding implements Model, Serializable {
     * @param threshold threshold for selecting vectors
     * @return the list of scored K-nearest vectors
     */
-   public List<ScoredLabelVector> nearest(@NonNull Tuple positive, @NonNull Tuple negative, int K, double threshold) {
+   public List<Vector> nearest(@NonNull Tuple positive, @NonNull Tuple negative, int K, double threshold) {
       Vector pVec = new DenseVector(getDimension());
       positive.forEach(word -> pVec.addSelf(getVector(word.toString())));
       Vector nVec = new DenseVector(getDimension());
@@ -215,30 +231,13 @@ public class Embedding implements Model, Serializable {
       Set<String> ignore = new HashSet<>();
       positive.forEach(o -> ignore.add(o.toString()));
       negative.forEach(o -> ignore.add(o.toString()));
-      List<ScoredLabelVector> vectors = vectorStore
-                                           .nearest(pVec.subtract(nVec), K + positive.degree() + negative.degree(),
-                                                    threshold)
-                                           .stream()
-                                           .filter(slv -> !ignore.contains(slv.<String>getLabel()))
-                                           .collect(Collectors.toList());
+      List<Vector> vectors = vectorStore
+                                .nearest(pVec.subtract(nVec), K + positive.degree() + negative.degree(),
+                                         threshold)
+                                .stream()
+                                .filter(slv -> !ignore.contains(slv.<String>getLabel()))
+                                .collect(Collectors.toList());
       return vectors.subList(0, Math.min(K, vectors.size()));
-   }
-
-   /**
-    * Reads the model from the given resource
-    *
-    * @param modelResource the resource containing the serialized model
-    * @return the deserialized model
-    * @throws Exception Something went wrong reading the model
-    */
-   public static Embedding read(@NonNull Resource modelResource) throws Exception {
-      Object o = modelResource.readObject();
-      if (o instanceof Embedding) {
-         return Cast.as(o);
-      } else if( o instanceof VectorStore) {
-         return Embedding.fromVectorStore(Cast.as(o));
-      }
-      throw new IllegalArgumentException(o.getClass() + " cannot be read in as an embedding");
    }
 
 }// END OF Embedding

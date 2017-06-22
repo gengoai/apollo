@@ -64,7 +64,7 @@ public abstract class AbstractVectorTest {
 
    @Test
    public void withLabel() throws Exception {
-      assertEquals("test", v.withLabel("test").getLabel());
+      assertEquals("test", v.setLabel("test").getLabel());
    }
 
    @Test

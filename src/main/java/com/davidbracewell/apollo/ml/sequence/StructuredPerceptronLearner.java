@@ -152,7 +152,7 @@ public class StructuredPerceptronLearner extends SequenceLabelerLearner {
    }
 
    @Override
-   public void reset() {
+   public void resetLearnerParameters() {
       cWeights = null;
    }
 

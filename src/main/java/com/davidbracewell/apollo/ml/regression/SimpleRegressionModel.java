@@ -1,9 +1,6 @@
 package com.davidbracewell.apollo.ml.regression;
 
 import com.davidbracewell.apollo.linalg.Vector;
-import com.davidbracewell.apollo.ml.EncoderPair;
-import com.davidbracewell.apollo.ml.Instance;
-import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.collection.counter.Counter;
 import com.davidbracewell.collection.counter.Counters;
 import lombok.NonNull;
@@ -24,15 +21,10 @@ public class SimpleRegressionModel extends Regression {
     */
    double bias;
 
-   /**
-    * Instantiates a new model.
-    *
-    * @param encoderPair   the encoder pair
-    * @param preprocessors the preprocessors
-    */
-   public SimpleRegressionModel(@NonNull EncoderPair encoderPair, @NonNull PreprocessorList<Instance> preprocessors) {
-      super(encoderPair, preprocessors);
+   public SimpleRegressionModel(RegressionLearner learner) {
+      super(learner);
    }
+
 
    @Override
    public double estimate(@NonNull Vector vector) {

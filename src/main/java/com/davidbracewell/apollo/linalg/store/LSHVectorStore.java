@@ -22,8 +22,6 @@
 package com.davidbracewell.apollo.linalg.store;
 
 import com.davidbracewell.apollo.affinity.Measure;
-import com.davidbracewell.apollo.linalg.LabeledVector;
-import com.davidbracewell.apollo.linalg.ScoredLabelVector;
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.guava.common.collect.MinMaxPriorityQueue;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
@@ -58,8 +56,11 @@ public abstract class LSHVectorStore<KEY> implements VectorStore<KEY>, Serializa
    }
 
    @Override
-   public final void add(@NonNull LabeledVector vector) {
+   public final void add(@NonNull Vector vector) {
       int id;
+      if (vector.getLabel() == null) {
+         return;
+      }
       if (containsKey(vector.getLabel())) {
          id = getID(vector.getLabel());
          remove(vector);
@@ -71,38 +72,17 @@ public abstract class LSHVectorStore<KEY> implements VectorStore<KEY>, Serializa
    }
 
    @Override
-   public final boolean remove(LabeledVector vector) {
-      if (containsKey(vector.getLabel())) {
-         int id = getID(vector.getLabel());
-         lsh.remove(getVectorByID(id), id);
-         removeVector(vector, id);
-         return true;
-      }
-      return false;
+   public final int dimension() {
+      return lsh.getDimension();
    }
 
-   /**
-    * Remove vector implementation.
-    *
-    * @param vector the vector
-    * @param id     the id
-    */
-   protected abstract void removeVector(LabeledVector vector, int id);
-
-   /**
-    * Register vector implementation.
-    *
-    * @param vector the vector
-    * @param id     the id
-    */
-   protected abstract void registerVector(LabeledVector vector, int id);
-
-   /**
-    * Gets the next unique id for assigning to vectors
-    *
-    * @return the int
-    */
-   protected abstract int nextUniqueID();
+   @Override
+   public final Vector get(KEY key) {
+      if (containsKey(key)) {
+         return getVectorByID(getID(key));
+      }
+      return null;
+   }
 
    /**
     * Gets the id of a vector by key.
@@ -118,64 +98,85 @@ public abstract class LSHVectorStore<KEY> implements VectorStore<KEY>, Serializa
     * @param id the id
     * @return the vector by id
     */
-   protected abstract LabeledVector getVectorByID(int id);
+   protected abstract Vector getVectorByID(int id);
 
    @Override
-   public abstract int size();
-
-   @Override
-   public final int dimension() {
-      return lsh.getDimension();
-   }
-
-   private List<LabeledVector> query(@NonNull Vector vector) {
-      IntOpenHashSet ids = lsh.query(vector);
-      List<LabeledVector> vectors = new ArrayList<>();
-      ids.forEach(id -> vectors.add(getVectorByID(id)));
-      return vectors;
-   }
-
-   @Override
-   public final List<ScoredLabelVector> nearest(@NonNull Vector query, double threshold) {
+   public final List<Vector> nearest(@NonNull Vector query, double threshold) {
       final Measure measure = lsh.getMeasure();
       return query(query).stream()
-                         .map(v -> new ScoredLabelVector(v, measure.calculate(v, query)))
+                         .map(v -> v.copy().setWeight(measure.calculate(v, query)))
                          .filter(
-                            v -> lsh.getSignatureFunction().getMeasure().getOptimum().test(v.getScore(), threshold))
+                            v -> lsh.getSignatureFunction().getMeasure().getOptimum().test(v.getWeight(), threshold))
                          .collect(Collectors.toList());
    }
 
    @Override
-   public final List<ScoredLabelVector> nearest(@NonNull Vector query, int K, double threshold) {
-      MinMaxPriorityQueue<ScoredLabelVector> queue = MinMaxPriorityQueue
-                                                        .orderedBy(ScoredLabelVector.comparator(lsh.getOptimum()))
-                                                        .maximumSize(K)
-                                                        .create();
+   public final List<Vector> nearest(@NonNull Vector query, int K, double threshold) {
+      MinMaxPriorityQueue<Vector> queue = MinMaxPriorityQueue
+                                             .<Vector>orderedBy(
+                                                (v1, v2) -> lsh.getOptimum().compare(v1.getWeight(), v2.getWeight()))
+                                             .maximumSize(K)
+                                             .create();
       queue.addAll(nearest(query, threshold));
-      List<ScoredLabelVector> list = new ArrayList<>();
+      List<Vector> list = new ArrayList<>();
       while (!queue.isEmpty()) {
          list.add(queue.remove());
       }
       return list;
    }
 
-
    @Override
-   public final List<ScoredLabelVector> nearest(@NonNull Vector query) {
+   public final List<Vector> nearest(@NonNull Vector query) {
       return nearest(query, lsh.getOptimum().startingValue());
    }
 
    @Override
-   public final List<ScoredLabelVector> nearest(@NonNull Vector query, int K) {
+   public final List<Vector> nearest(@NonNull Vector query, int K) {
       return nearest(query, K, lsh.getOptimum().startingValue());
    }
 
-   @Override
-   public final LabeledVector get(KEY key) {
-      if (containsKey(key)) {
-         return getVectorByID(getID(key));
-      }
-      return null;
+   /**
+    * Gets the next unique id for assigning to vectors
+    *
+    * @return the int
+    */
+   protected abstract int nextUniqueID();
+
+   private List<Vector> query(@NonNull Vector vector) {
+      IntOpenHashSet ids = lsh.query(vector);
+      List<Vector> vectors = new ArrayList<>();
+      ids.forEach(id -> vectors.add(getVectorByID(id)));
+      return vectors;
    }
+
+   /**
+    * Register vector implementation.
+    *
+    * @param vector the vector
+    * @param id     the id
+    */
+   protected abstract void registerVector(Vector vector, int id);
+
+   @Override
+   public final boolean remove(Vector vector) {
+      if (containsKey(vector.getLabel())) {
+         int id = getID(vector.getLabel());
+         lsh.remove(getVectorByID(id), id);
+         removeVector(vector, id);
+         return true;
+      }
+      return false;
+   }
+
+   /**
+    * Remove vector implementation.
+    *
+    * @param vector the vector
+    * @param id     the id
+    */
+   protected abstract void removeVector(Vector vector, int id);
+
+   @Override
+   public abstract int size();
 
 }// END OF LSHVectorStore

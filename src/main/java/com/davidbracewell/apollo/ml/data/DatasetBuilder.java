@@ -1,9 +1,6 @@
 package com.davidbracewell.apollo.ml.data;
 
-import com.davidbracewell.apollo.ml.Encoder;
-import com.davidbracewell.apollo.ml.Example;
-import com.davidbracewell.apollo.ml.IndexEncoder;
-import com.davidbracewell.apollo.ml.LabelEncoder;
+import com.davidbracewell.apollo.ml.*;
 import com.davidbracewell.apollo.ml.data.source.DataSource;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.guava.common.base.Throwables;
@@ -30,6 +27,7 @@ public class DatasetBuilder<T extends Example> {
    private Encoder featureEncoder = new IndexEncoder();
    private MStream<T> source;
    private Resource load;
+   private Vectorizer vectorizer = new DefaultVectorizer();
 
    /**
     * Instantiates a new Dataset builder.
@@ -46,11 +44,11 @@ public class DatasetBuilder<T extends Example> {
    private Dataset<T> createDataset() {
       switch (type) {
          case Distributed:
-            return new DistributedDataset<>(featureEncoder, labelEncoder, PreprocessorList.empty());
+            return new DistributedDataset<>(featureEncoder, labelEncoder, PreprocessorList.empty(), vectorizer);
          case OffHeap:
-            return new OffHeapDataset<>(featureEncoder, labelEncoder, PreprocessorList.empty());
+            return new OffHeapDataset<>(featureEncoder, labelEncoder, PreprocessorList.empty(), vectorizer);
          default:
-            return new InMemoryDataset<>(featureEncoder, labelEncoder, PreprocessorList.empty());
+            return new InMemoryDataset<>(featureEncoder, labelEncoder, PreprocessorList.empty(), vectorizer);
       }
    }
 
@@ -138,6 +136,11 @@ public class DatasetBuilder<T extends Example> {
     */
    public DatasetBuilder<T> type(@NonNull DatasetType type) {
       this.type = type;
+      return this;
+   }
+
+   public DatasetBuilder<T> vectorizer(@NonNull Vectorizer vectorizer) {
+      this.vectorizer = vectorizer;
       return this;
    }
 

@@ -55,8 +55,7 @@ public class DistributedLSATopicModel extends Clusterer<LSAModel> {
       // U = document x component, E = singular components, V = word x component
       // Transpose V to get component (topics) x words
       Matrix topics = toMatrix(sparkSVD(mat, K).V().transpose());
-      LSAModel model = new LSAModel(getEncoderPair(), Similarity.Cosine.asDistanceMeasure());
-      model.K = K;
+      LSAModel model = new LSAModel(this, Similarity.Cosine.asDistanceMeasure(), K);
       for (int i = 0; i < K; i++) {
          Cluster c = new Cluster();
          c.addPoint(topics.row(i).copy());
@@ -66,7 +65,7 @@ public class DistributedLSATopicModel extends Clusterer<LSAModel> {
    }
 
    @Override
-   public void reset() {
+   public void resetLearnerParameters() {
 
    }
 

@@ -49,7 +49,7 @@ public class MEMMLearner extends SequenceLabelerLearner {
    }
 
    @Override
-   public void reset() {
+   public void resetLearnerParameters() {
    }
 
    @Override

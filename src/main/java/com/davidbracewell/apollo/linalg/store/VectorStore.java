@@ -21,8 +21,6 @@
 
 package com.davidbracewell.apollo.linalg.store;
 
-import com.davidbracewell.apollo.linalg.LabeledVector;
-import com.davidbracewell.apollo.linalg.ScoredLabelVector;
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.io.Commitable;
 import lombok.NonNull;
@@ -39,7 +37,7 @@ import java.util.Set;
  * @param <KEY> the type of key associated with vectors
  * @author David B. Bracewell
  */
-public interface VectorStore<KEY> extends Iterable<LabeledVector>, AutoCloseable, Closeable, Commitable {
+public interface VectorStore<KEY> extends Iterable<Vector>, AutoCloseable, Closeable, Commitable {
 
    /**
     * The number of vectors stored
@@ -60,7 +58,7 @@ public interface VectorStore<KEY> extends Iterable<LabeledVector>, AutoCloseable
     *
     * @param vector the vector to add
     */
-   void add(LabeledVector vector);
+   void add(Vector vector);
 
 
    /**
@@ -70,7 +68,7 @@ public interface VectorStore<KEY> extends Iterable<LabeledVector>, AutoCloseable
     * @param vector The vector
     */
    default void add(@NonNull KEY key, @NonNull Vector vector) {
-      add(new LabeledVector(key, vector));
+      add(vector.setLabel(key));
    }
 
    /**
@@ -82,7 +80,7 @@ public interface VectorStore<KEY> extends Iterable<LabeledVector>, AutoCloseable
     * @param threshold the threshold to filter vectors
     * @return the list of vectors with their labels and scored by the stores measure with respect to the query vector.
     */
-   List<ScoredLabelVector> nearest(Vector query, double threshold);
+   List<Vector> nearest(Vector query, double threshold);
 
 
    /**
@@ -95,7 +93,7 @@ public interface VectorStore<KEY> extends Iterable<LabeledVector>, AutoCloseable
     * @param threshold the threshold to filter vectors
     * @return the list of vectors with their labels and scored by the stores measure with respect to the query vector.
     */
-   List<ScoredLabelVector> nearest(@NonNull Vector query, int K, double threshold);
+   List<Vector> nearest(@NonNull Vector query, int K, double threshold);
 
    /**
     * Queries the vector store for the nearest vectors to the given <code>query</code> vector.
@@ -103,7 +101,7 @@ public interface VectorStore<KEY> extends Iterable<LabeledVector>, AutoCloseable
     * @param query the query vector
     * @return the list of vectors with their labels and scored by the stores measure with respect to the query vector.
     */
-   List<ScoredLabelVector> nearest(Vector query);
+   List<Vector> nearest(Vector query);
 
 
    /**
@@ -114,7 +112,7 @@ public interface VectorStore<KEY> extends Iterable<LabeledVector>, AutoCloseable
     * @param K     the maximum number of results to return
     * @return the list of vectors with their labels and scored by the stores measure with respect to the query vector.
     */
-   List<ScoredLabelVector> nearest(@NonNull Vector query, int K);
+   List<Vector> nearest(@NonNull Vector query, int K);
 
 
    /**
@@ -130,7 +128,7 @@ public interface VectorStore<KEY> extends Iterable<LabeledVector>, AutoCloseable
     * @param key the key to look up
     * @return the labeled vector or null if key is not in store
     */
-   LabeledVector get(KEY key);
+   Vector get(KEY key);
 
    /**
     * Determines if a vector with the label of the given key is in the store.
@@ -146,7 +144,7 @@ public interface VectorStore<KEY> extends Iterable<LabeledVector>, AutoCloseable
     * @param vector the vector to remove
     * @return True if removed, False otherwise
     */
-   boolean remove(LabeledVector vector);
+   boolean remove(Vector vector);
 
    @Override
    default void commit() {

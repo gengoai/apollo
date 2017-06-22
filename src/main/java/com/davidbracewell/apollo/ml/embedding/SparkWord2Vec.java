@@ -1,7 +1,6 @@
 package com.davidbracewell.apollo.ml.embedding;
 
 import com.davidbracewell.apollo.linalg.DenseVector;
-import com.davidbracewell.apollo.linalg.LabeledVector;
 import com.davidbracewell.apollo.linalg.store.CosineSignature;
 import com.davidbracewell.apollo.linalg.store.InMemoryLSH;
 import com.davidbracewell.apollo.linalg.store.VectorStore;
@@ -48,6 +47,11 @@ public class SparkWord2Vec extends EmbeddingLearner {
    private int windowSize = 5;
 
    @Override
+   public void resetLearnerParameters() {
+
+   }
+
+   @Override
    protected Embedding trainImpl(Dataset<Sequence> dataset) {
       Word2Vec w2v = new Word2Vec();
       w2v.setMinCount(minCount);
@@ -75,15 +79,9 @@ public class SparkWord2Vec extends EmbeddingLearner {
                                                    .createVectorStore();
       for (Map.Entry<String, float[]> vector : JavaConversions.mapAsJavaMap(model.getVectors()).entrySet()) {
          encoder.encode(vector.getKey());
-         vectorStore.add(new LabeledVector(vector.getKey(),
-                                           new DenseVector(Convert.convert(vector.getValue(), double[].class))));
+         vectorStore.add(vector.getKey(), new DenseVector(Convert.convert(vector.getValue(), double[].class)));
       }
       return new Embedding(new EncoderPair(dataset.getLabelEncoder(), encoder), vectorStore);
-   }
-
-   @Override
-   public void reset() {
-
    }
 
 

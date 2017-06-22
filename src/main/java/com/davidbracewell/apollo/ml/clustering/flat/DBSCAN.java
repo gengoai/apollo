@@ -67,7 +67,7 @@ public class DBSCAN extends Clusterer<FlatClustering> {
                                            c.getPoints().forEach(ap -> cp.addPoint(ap.getVector()));
                                            return cp;
                                         }).collect(Collectors.toList());
-      FlatCentroidClustering clustering = new FlatCentroidClustering(getEncoderPair(), distanceMeasure);
+      FlatCentroidClustering clustering = new FlatCentroidClustering(this, distanceMeasure);
       clusters.forEach(clustering::addCluster);
       return clustering;
    }

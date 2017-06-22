@@ -37,13 +37,13 @@ public class DecisionStumpLearner extends ClassifierLearner {
    private static final long serialVersionUID = 1L;
 
    @Override
-   public void reset() {
+   public void resetLearnerParameters() {
 
    }
 
    @Override
    protected Classifier trainImpl(Dataset<Instance> dataset) {
-      DecisionStump stump = new DecisionStump(dataset.getEncoderPair(), dataset.getPreprocessors());
+      DecisionStump stump = new DecisionStump(this);
 
       int bestIndex = -1;
       double bestSplit = 0;

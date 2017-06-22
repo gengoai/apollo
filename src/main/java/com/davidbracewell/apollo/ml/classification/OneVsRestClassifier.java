@@ -23,10 +23,6 @@ package com.davidbracewell.apollo.ml.classification;
 
 import com.davidbracewell.apollo.linalg.DenseVector;
 import com.davidbracewell.apollo.linalg.Vector;
-import com.davidbracewell.apollo.ml.EncoderPair;
-import com.davidbracewell.apollo.ml.Instance;
-import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
-import lombok.NonNull;
 
 /**
  * <p>Classifier tha employs a one-vs-rest strategy of combining binary classifiers to produce a multi-class
@@ -45,15 +41,10 @@ public class OneVsRestClassifier extends Classifier {
     */
    boolean normalize = false;
 
-   /**
-    * Instantiates a new Classifier.
-    *
-    * @param encoderPair   the encoder pair
-    * @param preprocessors the preprocessors
-    */
-   protected OneVsRestClassifier(@NonNull EncoderPair encoderPair, @NonNull PreprocessorList<Instance> preprocessors) {
-      super(encoderPair, preprocessors);
+   protected OneVsRestClassifier(ClassifierLearner learner) {
+      super(learner);
    }
+
 
    @Override
    public Classification classify(Vector vector) {

@@ -22,15 +22,15 @@
 package com.davidbracewell.apollo.ml.clustering.hierarchical;
 
 
-import com.davidbracewell.apollo.affinity.DistanceMeasure;
-import com.davidbracewell.apollo.ml.EncoderPair;
+import com.davidbracewell.apollo.affinity.Measure;
+import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.clustering.Cluster;
+import com.davidbracewell.apollo.ml.clustering.Clusterer;
 import com.davidbracewell.apollo.ml.clustering.Clustering;
 import com.davidbracewell.apollo.ml.clustering.flat.FlatCentroidClustering;
 import lombok.NonNull;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -41,53 +41,13 @@ import java.util.List;
  *
  * @author David B. Bracewell
  */
-public class HierarchicalClustering implements Clustering, Serializable {
+public class HierarchicalClustering extends Clustering {
    private static final long serialVersionUID = 1L;
    Cluster root;
    Linkage linkage;
-   private EncoderPair encoderPair;
-   private DistanceMeasure distanceMeasure;
 
-   /**
-    * Instantiates a new Hierarchical clustering.
-    *
-    * @param encoderPair     the encoder pair
-    * @param distanceMeasure the distance measure
-    */
-   public HierarchicalClustering(@NonNull EncoderPair encoderPair, @NonNull DistanceMeasure distanceMeasure) {
-      this.encoderPair = encoderPair;
-      this.distanceMeasure = distanceMeasure;
-   }
-
-
-   @Override
-   public DistanceMeasure getDistanceMeasure() {
-      return distanceMeasure;
-   }
-
-   @Override
-   public boolean isFlat() {
-      return false;
-   }
-
-   @Override
-   public EncoderPair getEncoderPair() {
-      return encoderPair;
-   }
-
-   @Override
-   public int hardCluster(@NonNull Instance instance) {
-      return 0;
-   }
-
-   @Override
-   public Iterator<Cluster> iterator() {
-      return Collections.singleton(root).iterator();
-   }
-
-   @Override
-   public Cluster getRoot() {
-      return root;
+   public HierarchicalClustering(Clusterer<?> clusterer, Measure measure) {
+      super(clusterer, measure);
    }
 
    /**
@@ -100,19 +60,9 @@ public class HierarchicalClustering implements Clustering, Serializable {
    public Clustering asFlat(double threshold) {
       List<Cluster> flat = new ArrayList<>();
       process(root, flat, threshold);
-      FlatCentroidClustering kmeans = new FlatCentroidClustering(getEncoderPair(), getDistanceMeasure());
+      FlatCentroidClustering kmeans = new FlatCentroidClustering(this);
       flat.forEach(kmeans::addCluster);
       return kmeans;
-   }
-
-   @Override
-   public boolean isHierarchical() {
-      return true;
-   }
-
-   @Override
-   public int size() {
-      return 1;
    }
 
    @Override
@@ -124,10 +74,23 @@ public class HierarchicalClustering implements Clustering, Serializable {
    }
 
    @Override
-   public double[] softCluster(@NonNull Instance instance) {
-      return new double[]{
-         linkage.calculate(instance.toVector(getEncoderPair()), root, getDistanceMeasure())
-      };
+   public Cluster getRoot() {
+      return root;
+   }
+
+   @Override
+   public int hardCluster(@NonNull Instance instance) {
+      return 0;
+   }
+
+   @Override
+   public boolean isHierarchical() {
+      return true;
+   }
+
+   @Override
+   public Iterator<Cluster> iterator() {
+      return Collections.singleton(root).iterator();
    }
 
    private void process(Cluster c, List<Cluster> flat, double threshold) {
@@ -140,6 +103,19 @@ public class HierarchicalClustering implements Clustering, Serializable {
          process(c.getLeft(), flat, threshold);
          process(c.getRight(), flat, threshold);
       }
+   }
+
+   @Override
+   public int size() {
+      return 1;
+   }
+
+   @Override
+   public double[] softCluster(@NonNull Instance instance) {
+      Vector vector = getVectorizer().apply(getPreprocessors().apply(instance));
+      return new double[]{
+         linkage.calculate(vector, root, getMeasure())
+      };
    }
 
 

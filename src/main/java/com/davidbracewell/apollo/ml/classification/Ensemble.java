@@ -1,9 +1,7 @@
 package com.davidbracewell.apollo.ml.classification;
 
 import com.davidbracewell.apollo.linalg.Vector;
-import com.davidbracewell.apollo.ml.EncoderPair;
 import com.davidbracewell.apollo.ml.Instance;
-import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.collection.counter.Counter;
 import com.davidbracewell.collection.counter.Counters;
 import lombok.NonNull;
@@ -19,14 +17,8 @@ public class Ensemble extends Classifier {
    private static final long serialVersionUID = 1L;
    List<Classifier> models;
 
-   /**
-    * Instantiates a new Classifier.
-    *
-    * @param encoderPair   the encoder pair
-    * @param preprocessors the preprocessors
-    */
-   protected Ensemble(@NonNull EncoderPair encoderPair, @NonNull PreprocessorList<Instance> preprocessors) {
-      super(encoderPair, preprocessors);
+   protected Ensemble(ClassifierLearner learner) {
+      super(learner);
    }
 
 

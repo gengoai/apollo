@@ -21,12 +21,11 @@
 
 package com.davidbracewell.apollo.ml.clustering.flat;
 
-import com.davidbracewell.apollo.affinity.DistanceMeasure;
-import com.davidbracewell.apollo.optimization.Optimum;
+import com.davidbracewell.apollo.affinity.Measure;
 import com.davidbracewell.apollo.linalg.Vector;
-import com.davidbracewell.apollo.ml.EncoderPair;
-import com.davidbracewell.apollo.ml.FeatureVector;
 import com.davidbracewell.apollo.ml.Instance;
+import com.davidbracewell.apollo.ml.clustering.Clusterer;
+import com.davidbracewell.apollo.optimization.Optimum;
 import com.davidbracewell.stream.StreamingContext;
 import com.davidbracewell.tuple.Tuple2;
 import lombok.NonNull;
@@ -43,14 +42,8 @@ import static com.davidbracewell.tuple.Tuples.$;
 class CRPClustering extends FlatClustering {
    private static final long serialVersionUID = 1L;
 
-   /**
-    * Instantiates a new CRP clustering.
-    *
-    * @param encoderPair     the encoder pair
-    * @param distanceMeasure the distance measure
-    */
-   CRPClustering(@NonNull EncoderPair encoderPair, DistanceMeasure distanceMeasure) {
-      super(encoderPair, distanceMeasure);
+   public CRPClustering(Clusterer<?> clusterer, Measure measure) {
+      super(clusterer, measure);
    }
 
    @Override
@@ -62,14 +55,14 @@ class CRPClustering extends FlatClustering {
    public double[] softCluster(Instance instance) {
       double[] distances = new double[size()];
       Arrays.fill(distances, Double.POSITIVE_INFINITY);
-      FeatureVector vector = instance.toVector(getEncoderPair());
+      Vector vector = getVectorizer().apply(getPreprocessors().apply(instance));
       Tuple2<Integer, Double> best = StreamingContext.local().stream(this)
                                                      .parallel()
                                                      .map(cluster -> {
                                                              double max = 0;
                                                              for (Vector jj : cluster) {
                                                                 max = Math.max(max,
-                                                                               getDistanceMeasure().calculate(vector, jj));
+                                                                               getMeasure().calculate(vector, jj));
                                                              }
                                                              return $(cluster.getId(), max);
                                                           }

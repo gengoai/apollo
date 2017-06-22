@@ -38,13 +38,13 @@ public class NaiveBayesLearner extends ClassifierLearner {
    }
 
    @Override
-   public void reset() {
+   public void resetLearnerParameters() {
 
    }
 
    @Override
    protected NaiveBayes trainImpl(Dataset<Instance> dataset) {
-      NaiveBayes model = new NaiveBayes(dataset.getEncoderPair(), dataset.getPreprocessors(), modelType);
+      NaiveBayes model = new NaiveBayes(this, modelType);
       model.conditionals = new double[model.numberOfFeatures()][model.numberOfLabels()];
       model.priors = new double[model.numberOfLabels()];
       double[] labelCounts = new double[model.numberOfLabels()];
@@ -55,7 +55,7 @@ public class NaiveBayesLearner extends ClassifierLearner {
             N++;
             int ci = (int) model.encodeLabel(instance.getLabel());
             model.priors[ci] += instance.getWeight();
-            Vector vector = instance.toVector(dataset.getEncoderPair());
+            Vector vector = toVector(instance);
             for (Vector.Entry entry : Collect.asIterable(vector.nonZeroIterator())) {
                labelCounts[ci] += entry.value;
                model.conditionals[entry.getIndex()][ci] += instance.getWeight() * modelType.convertValue(entry.value);

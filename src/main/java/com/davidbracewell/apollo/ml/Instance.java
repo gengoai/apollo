@@ -118,7 +118,6 @@ public class Instance implements Example, Serializable, Iterable<Feature> {
       return create(featureList, label);
    }
 
-
    /**
     * Creates an instance from a map containing feature name (keys) and their values.
     *
@@ -177,6 +176,21 @@ public class Instance implements Example, Serializable, Iterable<Feature> {
    @Override
    public Instance copy() {
       return new Instance(features.stream().map(Feature::copy).collect(Collectors.toList()), label);
+   }
+
+   @Override
+   public void fromJson(JsonReader reader) throws IOException {
+      this.label = null;
+      this.features.clear();
+      this.label = reader.nextKeyValue("label").cast();
+      this.weight = reader.nextKeyValue("weight").asDoubleValue(1.0);
+      reader.beginObject();
+      while (reader.peek() != JsonTokenType.END_OBJECT) {
+         Tuple2<String, Val> fv = reader.nextKeyValue();
+         this.features.add(Feature.real(fv.getKey(), fv.getValue().asDoubleValue()));
+      }
+      reader.endObject();
+      this.features.trimToSize();
    }
 
    @Override
@@ -297,21 +311,6 @@ public class Instance implements Example, Serializable, Iterable<Feature> {
       return this.features.iterator();
    }
 
-   @Override
-   public void fromJson(JsonReader reader) throws IOException {
-      this.label = null;
-      this.features.clear();
-      this.label = reader.nextKeyValue("label").cast();
-      this.weight = reader.nextKeyValue("weight").asDoubleValue(1.0);
-      reader.beginObject();
-      while (reader.peek() != JsonTokenType.END_OBJECT) {
-         Tuple2<String, Val> fv = reader.nextKeyValue();
-         this.features.add(Feature.real(fv.getKey(), fv.getValue().asDoubleValue()));
-      }
-      reader.endObject();
-      this.features.trimToSize();
-   }
-
    /**
     * Gets the features making up the instance as a stream
     *
@@ -319,31 +318,6 @@ public class Instance implements Example, Serializable, Iterable<Feature> {
     */
    public Stream<Feature> stream() {
       return features.stream();
-   }
-
-   /**
-    * Converts the instance into a feature vector using the given encoder pair to map feature names and labels to double
-    * values
-    *
-    * @param encoderPair the encoder pair
-    * @return the vector
-    */
-   public FeatureVector toVector(@NonNull EncoderPair encoderPair) {
-      FeatureVector vector = new FeatureVector(encoderPair);
-      boolean isHash = encoderPair.getFeatureEncoder() instanceof HashingEncoder;
-      features.forEach(f -> {
-         int fi = (int) encoderPair.encodeFeature(f.getName());
-         if (fi != -1) {
-            if (isHash) {
-               vector.set(fi, 1.0);
-            } else {
-               vector.set(fi, f.getValue());
-            }
-         }
-      });
-      vector.setLabel(encoderPair.encodeLabel(label));
-      vector.setWeight(weight);
-      return vector;
    }
 
    @Override
@@ -359,5 +333,30 @@ public class Instance implements Example, Serializable, Iterable<Feature> {
       writer.endObject();
       if (inArray) writer.endObject();
    }
+
+//   /**
+//    * Converts the instance into a feature vector using the given encoder pair to map feature names and labels to double
+//    * values
+//    *
+//    * @param encoderPair the encoder pair
+//    * @return the vector
+//    */
+//   public FeatureVector toVector(@NonNull EncoderPair encoderPair) {
+//      FeatureVector vector = new FeatureVector(encoderPair);
+//      boolean isHash = encoderPair.getFeatureEncoder() instanceof HashingEncoder;
+//      features.forEach(f -> {
+//         int fi = (int) encoderPair.encodeFeature(f.getName());
+//         if (fi != -1) {
+//            if (isHash) {
+//               vector.set(fi, 1.0);
+//            } else {
+//               vector.set(fi, f.getValue());
+//            }
+//         }
+//      });
+//      vector.setLabel(encoderPair.encodeLabel(label));
+//      vector.setWeight(weight);
+//      return vector;
+//   }
 
 }//END OF Instance

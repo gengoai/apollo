@@ -139,7 +139,7 @@ public class CRPClusterer extends Clusterer<FlatClustering> {
       }
 
 
-      CRPClustering clustering = new CRPClustering(getEncoderPair(), distanceMeasure);
+      CRPClustering clustering = new CRPClustering(this, distanceMeasure);
       clusters.stream().filter(c -> c.size() > 0).forEach(clustering::addCluster);
       return clustering;
    }
@@ -163,6 +163,12 @@ public class CRPClusterer extends Clusterer<FlatClustering> {
       return d;
    }
 
+   @Override
+   public void resetLearnerParameters() {
+      super.resetLearnerParameters();
+      this.distanceMatrix.clear();
+   }
+
    /**
     * Sets the distance measure to use for clustering.
     *
@@ -170,12 +176,6 @@ public class CRPClusterer extends Clusterer<FlatClustering> {
     */
    public void setDistanceMeasure(@NonNull DistanceMeasure distanceMeasure) {
       this.distanceMeasure = distanceMeasure;
-   }
-
-   @Override
-   public void reset() {
-      super.reset();
-      this.distanceMatrix.clear();
    }
 
 }//END OF CRPLikeClusterer

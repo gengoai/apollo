@@ -1,5 +1,6 @@
 package com.davidbracewell.apollo.ml.clustering.topic;
 
+import com.davidbracewell.apollo.affinity.Similarity;
 import com.davidbracewell.apollo.distribution.ConditionalMultinomial;
 import com.davidbracewell.apollo.linalg.SparseVector;
 import com.davidbracewell.apollo.linalg.Vector;
@@ -145,10 +146,9 @@ public class GibbsLDA extends Clusterer<LDAModel> {
          log.info("Iteration {0}: {1} total words changed topics.", maxIterations, changed);
       }
 
-      LDAModel model = new LDAModel(getEncoderPair());
+      LDAModel model = new LDAModel(this, Similarity.Cosine, K);
       model.alpha = alpha;
       model.beta = beta;
-      model.K = K;
       model.randomGenerator = randomGenerator;
       if (sampleLag <= 0) {
          model.wordTopic = nw.copy();
@@ -189,7 +189,7 @@ public class GibbsLDA extends Clusterer<LDAModel> {
    }
 
    @Override
-   public void reset() {
+   public void resetLearnerParameters() {
       super.reset();
       nw = null;
       nd = null;

@@ -5,6 +5,7 @@ import com.davidbracewell.apollo.affinity.Correlation;
 import com.davidbracewell.apollo.optimization.Optimum;
 import com.davidbracewell.collection.Collect;
 import com.davidbracewell.collection.Streams;
+import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.guava.common.base.Preconditions;
 import com.davidbracewell.guava.common.util.concurrent.AtomicDouble;
 import com.davidbracewell.tuple.Tuple2;
@@ -30,6 +31,9 @@ import static com.davidbracewell.tuple.Tuples.$;
  */
 public abstract class BaseVector implements Vector, Serializable {
    private static final long serialVersionUID = 1L;
+   private Object label;
+   private double weight;
+   private double predicted;
 
    @Override
    public Vector add(@NonNull Vector rhs) {
@@ -51,6 +55,14 @@ public abstract class BaseVector implements Vector, Serializable {
    @Override
    public Vector compress() {
       return this;
+   }
+
+   @Override
+   public Vector concat(@NonNull Vector other) {
+      Vector vPrime = createNew(dimension() + other.dimension());
+      nonZeroIterator().forEachRemaining(e -> vPrime.set(e.index, e.value));
+      other.nonZeroIterator().forEachRemaining(e -> vPrime.set(e.index, e.value));
+      return vPrime;
    }
 
    @Override
@@ -115,6 +127,28 @@ public abstract class BaseVector implements Vector, Serializable {
       Streams.asStream(nonZeroIterator()).forEach(consumer);
    }
 
+   @Override
+   public <T> T getLabel() {
+      return Cast.as(label);
+   }
+
+   @Override
+   public double getLabelAsDouble() {
+      if (label == null || !(label instanceof Number)) {
+         return Double.NaN;
+      }
+      return Cast.<Number>as(label).doubleValue();
+   }
+
+   @Override
+   public double getPredicted() {
+      return predicted;
+   }
+
+   @Override
+   public double getWeight() {
+      return weight;
+   }
 
    @Override
    public Vector increment(int index) {
@@ -123,12 +157,19 @@ public abstract class BaseVector implements Vector, Serializable {
 
    @Override
    public Vector insert(int i, double v) {
-      Vector vPrime = createNew(dimension() + 1);
+      Preconditions.checkArgument(i >= 0, "insert location must be >= 0");
+      Vector vPrime;
+      if (i <= dimension()) {
+         vPrime = createNew(dimension() + 1);
+      } else {
+         vPrime = createNew(dimension() + (i - dimension() + 1));
+      }
       vPrime.set(i, v);
-      for (int j = 0; j < i; j++) {
+      for (int j = 0; j < i && j < dimension(); j++) {
          vPrime.set(j, get(j));
       }
-      for (int j = i; j < dimension(); j++) {
+      vPrime.set(i, v);
+      for (int j = i + 1; j < dimension(); j++) {
          vPrime.set(j + 1, get(j));
       }
       return vPrime;
@@ -234,7 +275,6 @@ public abstract class BaseVector implements Vector, Serializable {
       return copy().mapMultiplySelf(amount);
    }
 
-
    @Override
    public Vector mapMultiplySelf(double amount) {
       forEachSparse(e -> scale(e.index, amount));
@@ -257,7 +297,6 @@ public abstract class BaseVector implements Vector, Serializable {
       }
       return this;
    }
-
 
    @Override
    public Vector mapSubtract(double amount) {
@@ -282,7 +321,6 @@ public abstract class BaseVector implements Vector, Serializable {
       return Optimum.MAXIMUM.optimumIndex(toArray());
    }
 
-
    @Override
    public double min() {
       return Streams.asStream(nonZeroIterator()).mapToDouble(Entry::getValue).min().orElse(0d);
@@ -305,12 +343,10 @@ public abstract class BaseVector implements Vector, Serializable {
       return this;
    }
 
-
    @Override
    public Iterator<Vector.Entry> nonZeroIterator() {
       return orderedNonZeroIterator();
    }
-
 
    @Override
    public Iterator<Vector.Entry> orderedNonZeroIterator() {
@@ -363,6 +399,24 @@ public abstract class BaseVector implements Vector, Serializable {
    public Vector scale(int index, double amount) {
       Preconditions.checkPositionIndex(index, dimension());
       set(index, get(index) * amount);
+      return this;
+   }
+
+   @Override
+   public Vector setLabel(Object o) {
+      this.label = o;
+      return this;
+   }
+
+   @Override
+   public Vector setPredicted(double predicted) {
+      this.predicted = predicted;
+      return this;
+   }
+
+   @Override
+   public Vector setWeight(double weight) {
+      this.weight = weight;
       return this;
    }
 
@@ -451,11 +505,6 @@ public abstract class BaseVector implements Vector, Serializable {
          matrix.set(i, 0, get(i));
       }
       return matrix;
-   }
-
-   @Override
-   public Vector withLabel(Object label) {
-      return new LabeledVector(label, this);
    }
 
    @Override

@@ -34,7 +34,7 @@ public class FeedForwardNetworkLearner extends ClassifierLearner {
    }
 
    @Override
-   public void reset() {
+   public void resetLearnerParameters() {
       layers.forEach(Layer::reset);
    }
 
@@ -84,7 +84,7 @@ public class FeedForwardNetworkLearner extends ClassifierLearner {
 
       }
 
-      FeedForwardNetwork ffn = new FeedForwardNetwork(dataset.getEncoderPair(), dataset.getPreprocessors());
+      FeedForwardNetwork ffn = new FeedForwardNetwork(this);
       ffn.layers = allLayers.toArray(new Layer[1]);
       return ffn;
    }

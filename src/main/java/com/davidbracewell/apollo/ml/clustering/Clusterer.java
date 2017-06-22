@@ -5,9 +5,9 @@ import com.davidbracewell.apollo.ml.EncoderPair;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.Learner;
 import com.davidbracewell.apollo.ml.data.Dataset;
+import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.stream.MStream;
 import lombok.Getter;
-import lombok.NonNull;
 import lombok.Setter;
 
 /**
@@ -22,18 +22,6 @@ public abstract class Clusterer<T extends Clustering> extends Learner<Instance, 
    @Setter
    private EncoderPair encoderPair;
 
-
-   @Override
-   public T train(@NonNull Dataset<Instance> dataset) {
-      return super.train(dataset);
-   }
-
-   @Override
-   protected T trainImpl(Dataset<Instance> dataset) {
-      this.encoderPair = dataset.getEncoderPair();
-      return cluster(dataset.asVectors());
-   }
-
    /**
     * Clusters a stream of vectors.
     *
@@ -43,8 +31,19 @@ public abstract class Clusterer<T extends Clustering> extends Learner<Instance, 
    public abstract T cluster(MStream<Vector> instances);
 
    @Override
-   public void reset() {
+   public void resetLearnerParameters() {
       this.encoderPair = null;
    }
+
+   @Override
+   public T train(Dataset<Instance> dataset) {
+      return Cast.as(super.train(dataset));
+   }
+
+   protected T trainImpl(Dataset<Instance> dataset) {
+      this.encoderPair = dataset.getEncoderPair();
+      return cluster(dataset.asVectors());
+   }
+
 
 }// END OF Clusterer

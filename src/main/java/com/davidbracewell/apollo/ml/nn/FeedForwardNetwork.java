@@ -2,26 +2,28 @@ package com.davidbracewell.apollo.ml.nn;
 
 import com.davidbracewell.apollo.linalg.Matrix;
 import com.davidbracewell.apollo.linalg.Vector;
-import com.davidbracewell.apollo.ml.EncoderPair;
-import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.classification.Classification;
 import com.davidbracewell.apollo.ml.classification.Classifier;
-import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
+import com.davidbracewell.apollo.ml.classification.ClassifierLearner;
 
 /**
+ * The type Feed forward network.
+ *
  * @author David B. Bracewell
  */
 public class FeedForwardNetwork extends Classifier {
+   /**
+    * The Layers.
+    */
    Layer[] layers;
 
    /**
     * Instantiates a new Classifier.
     *
-    * @param encoderPair   the pair of encoders to convert feature names into int/double values
-    * @param preprocessors the preprocessors that the classifier will need apply at runtime
+    * @param learner the learner
     */
-   protected FeedForwardNetwork(EncoderPair encoderPair, PreprocessorList<Instance> preprocessors) {
-      super(encoderPair, preprocessors);
+   protected FeedForwardNetwork(ClassifierLearner learner) {
+      super(learner);
    }
 
    @Override

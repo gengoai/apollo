@@ -1,6 +1,7 @@
 package com.davidbracewell.apollo.ml;
 
 import com.davidbracewell.apollo.ml.data.Dataset;
+import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.stream.MStream;
 import lombok.NonNull;
 
@@ -99,6 +100,15 @@ public interface Encoder {
    int size();
 
    /**
+    * String values list.
+    *
+    * @return the list
+    */
+   default List<String> stringValues() {
+      return Cast.cast(values());
+   }
+
+   /**
     * Unfreezes the encoder allowing new objects to be mapped to values.
     */
    void unFreeze();
@@ -109,5 +119,17 @@ public interface Encoder {
     * @return the list of values tha have been encoded
     */
    List<Object> values();
+
+   /**
+    * The values that have been encoded
+    *
+    * @param <T> the type parameter
+    * @param clz the clz
+    * @return the list of values tha have been encoded
+    */
+   default <T> List<T> values(@NonNull Class<T> clz) {
+      return Cast.cast(values());
+   }
+
 
 }// END OF Encoder

@@ -42,7 +42,7 @@ public class PerLearner extends BinaryClassifierLearner {
    }
 
    @Override
-   public void reset() {
+   public void resetLearnerParameters() {
 
    }
 
@@ -76,9 +76,7 @@ public class PerLearner extends BinaryClassifierLearner {
          });
 //         learningRate.set(learningRate.get() * 0.95);
       }
-      BinaryGLM glm = new BinaryGLM(dataset.getEncoderPair(),
-                                    dataset.getPreprocessors()
-      );
+      BinaryGLM glm = new BinaryGLM(this);
       glm.bias = bias.get();
       glm.weights = weights;
       return glm;

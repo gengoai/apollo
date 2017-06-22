@@ -22,7 +22,7 @@
 package com.davidbracewell.apollo.ml.clustering;
 
 import com.davidbracewell.Math2;
-import com.davidbracewell.apollo.affinity.DistanceMeasure;
+import com.davidbracewell.apollo.affinity.Measure;
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.Evaluation;
 import com.davidbracewell.apollo.ml.Instance;
@@ -56,7 +56,7 @@ public class SilhouetteEvaluation implements Evaluation<Instance, Clustering> {
       evaluate(model);
    }
 
-   public double silhouette(Map<Integer, Cluster> clusters, int index, DistanceMeasure distanceMeasure) {
+   public double silhouette(Map<Integer, Cluster> clusters, int index, Measure distanceMeasure) {
       Cluster c1 = clusters.get(index);
       if (c1.size() <= 1) {
          return 0;
@@ -89,7 +89,7 @@ public class SilhouetteEvaluation implements Evaluation<Instance, Clustering> {
       model.forEach(c -> idClusterMap.put(c.getId(), c));
       silhouette = StreamingContext.local().stream(idClusterMap.keySet())
                                    .parallel()
-                                   .mapToPair(i -> $(i, silhouette(idClusterMap, i, model.getDistanceMeasure())))
+                                   .mapToPair(i -> $(i, silhouette(idClusterMap, i, model.getMeasure())))
                                    .collectAsMap();
       avgSilhouette = Math2.summaryStatistics(silhouette.values()).getAverage();
    }

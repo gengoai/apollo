@@ -22,7 +22,6 @@
 package com.davidbracewell.apollo.ml;
 
 import com.davidbracewell.apollo.linalg.DenseVector;
-import com.davidbracewell.apollo.linalg.LabeledVector;
 import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.stream.StreamingContext;
 import lombok.SneakyThrows;
@@ -42,32 +41,11 @@ public abstract class AbstractEncoderTest {
    Encoder encoder;
    Dataset<Instance> dataset = getData();
 
-   @SneakyThrows
-   public Dataset<Instance> getData() {
-      List<Instance> data = new ArrayList<>();
-      for (int i = 0; i < 1_000; i++) {
-         data.add(Instance.fromVector(new LabeledVector("true", DenseVector.ones(20))));
-      }
-      for (int i = 0; i < 1_000; i++) {
-         data.add(Instance.fromVector(new LabeledVector("false", DenseVector.zeros(20))));
-      }
-      return Dataset.classification()
-                    .featureEncoder(new IndexEncoder())
-                    .source(data)
-                    .shuffle(new Random(1234));
-   }
-
-
    @Test
-   public void get() throws Exception {
+   public void decode() throws Exception {
       encoder.fit(dataset);
-      assertTrue(encoder.get("1") != -1);
-   }
-
-   @Test
-   public void index() throws Exception {
-      encoder.fit(dataset);
-      assertTrue(encoder.index("1") != -1);
+      int id = encoder.index("1");
+      assertEquals("1", encoder.decode(id));
    }
 
    @Test
@@ -77,18 +55,38 @@ public abstract class AbstractEncoderTest {
    }
 
    @Test
-   public void decode() throws Exception {
-      encoder.fit(dataset);
-      int id = encoder.index("1");
-      assertEquals("1", encoder.decode(id));
-   }
-
-   @Test
    public void freeze() throws Exception {
       encoder.fit(dataset);
       Encoder e = encoder.createNew();
       e.freeze();
       assertTrue(e.isFrozen());
+   }
+
+   @Test
+   public void get() throws Exception {
+      encoder.fit(dataset);
+      assertTrue(encoder.get("1") != -1);
+   }
+
+   @SneakyThrows
+   public Dataset<Instance> getData() {
+      List<Instance> data = new ArrayList<>();
+      for (int i = 0; i < 1_000; i++) {
+         data.add(Instance.fromVector(DenseVector.ones(20).setLabel("true")));
+      }
+      for (int i = 0; i < 1_000; i++) {
+         data.add(Instance.fromVector(DenseVector.zeros(20).setLabel("false")));
+      }
+      return Dataset.classification()
+                    .featureEncoder(new IndexEncoder())
+                    .source(data)
+                    .shuffle(new Random(1234));
+   }
+
+   @Test
+   public void index() throws Exception {
+      encoder.fit(dataset);
+      assertTrue(encoder.index("1") != -1);
    }
 
    @Test

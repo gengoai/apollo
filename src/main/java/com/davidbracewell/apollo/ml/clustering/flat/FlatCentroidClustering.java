@@ -1,9 +1,9 @@
 package com.davidbracewell.apollo.ml.clustering.flat;
 
-import com.davidbracewell.apollo.affinity.DistanceMeasure;
-import com.davidbracewell.apollo.ml.EncoderPair;
-import com.davidbracewell.apollo.ml.clustering.CentroidClustering;
+import com.davidbracewell.apollo.affinity.Measure;
 import com.davidbracewell.apollo.ml.clustering.Cluster;
+import com.davidbracewell.apollo.ml.clustering.Clusterer;
+import com.davidbracewell.apollo.ml.clustering.Clustering;
 
 import java.util.List;
 
@@ -12,27 +12,18 @@ import java.util.List;
  *
  * @author David B. Bracewell
  */
-public class FlatCentroidClustering extends FlatClustering implements CentroidClustering {
+public class FlatCentroidClustering extends FlatClustering {
    private static final long serialVersionUID = 1L;
 
-   /**
-    * Instantiates a new flat centroid clustering.
-    *
-    * @param encoderPair     the encoder pair
-    * @param distanceMeasure the distance measure
-    */
-   public FlatCentroidClustering(EncoderPair encoderPair, DistanceMeasure distanceMeasure) {
-      super(encoderPair, distanceMeasure);
+   public FlatCentroidClustering(Clustering other) {
+      super(other);
    }
 
-   /**
-    * Instantiates a new flat centroid clustering.
-    *
-    * @param encoderPair     the encoder pair
-    * @param distanceMeasure the distance measure
-    * @param clusterList     the cluster list
-    */
-   public FlatCentroidClustering(EncoderPair encoderPair, DistanceMeasure distanceMeasure, List<Cluster> clusterList) {
-      super(encoderPair, distanceMeasure, clusterList);
+   public FlatCentroidClustering(Clusterer<?> clusterer, Measure measure) {
+      super(clusterer, measure);
+   }
+
+   protected FlatCentroidClustering(Clusterer<?> clusterer, Measure measure, List<Cluster> clusterList) {
+      super(clusterer, measure, clusterList);
    }
 }// END OF FlatCentroidClustering

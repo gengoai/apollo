@@ -77,7 +77,7 @@ public class CRFTrainer extends SequenceLabelerLearner {
    }
 
    @Override
-   public void reset() {
+   public void resetLearnerParameters() {
 
    }
 

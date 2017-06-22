@@ -1,9 +1,6 @@
 package com.davidbracewell.apollo.ml.classification;
 
 import com.davidbracewell.apollo.linalg.Vector;
-import com.davidbracewell.apollo.ml.EncoderPair;
-import com.davidbracewell.apollo.ml.Instance;
-import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.apollo.optimization.Weights;
 import com.davidbracewell.apollo.optimization.activation.Activation;
 import com.davidbracewell.collection.counter.MultiCounter;
@@ -17,15 +14,10 @@ public class GLM extends Classifier {
    Weights weights;
    Activation activation;
 
-   /**
-    * Instantiates a new Classifier.
-    *
-    * @param encoderPair   the pair of encoders to convert feature names into int/double values
-    * @param preprocessors the preprocessors that the classifier will need apply at runtime
-    */
-   protected GLM(EncoderPair encoderPair, PreprocessorList<Instance> preprocessors) {
-      super(encoderPair, preprocessors);
+   protected GLM(ClassifierLearner learner) {
+      super(learner);
    }
+
 
    @Override
    public Classification classify(Vector vector) {

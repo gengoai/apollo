@@ -25,7 +25,6 @@ import com.davidbracewell.Math2;
 import com.davidbracewell.apollo.affinity.AssociationMeasures;
 import com.davidbracewell.apollo.affinity.ContingencyTable;
 import com.davidbracewell.apollo.affinity.ContingencyTableCalculator;
-import com.davidbracewell.apollo.linalg.LabeledVector;
 import com.davidbracewell.apollo.linalg.store.CosineSignature;
 import com.davidbracewell.apollo.linalg.store.InMemoryLSH;
 import com.davidbracewell.apollo.linalg.store.VectorStore;
@@ -64,7 +63,7 @@ public class SVDEmbedding extends EmbeddingLearner {
    private int windowSize = 5;
 
    @Override
-   public void reset() {
+   public void resetLearnerParameters() {
 
    }
 
@@ -92,7 +91,7 @@ public class SVDEmbedding extends EmbeddingLearner {
                    if (sequence.get(i).getFeatures().size() > 0) {
                       int iFeature = (int) featureEncoder.encode(sequence.get(i).getFeatures().get(0).getName());
                       for (int j = Math.min(i - getWindowSize(), 0); j <= Math.max(sequence.size() - 1,
-                                                                              i + getWindowSize()); j++) {
+                                                                                   i + getWindowSize()); j++) {
                          if (sequence.get(j).getFeatures().size() > 0) {
                             int jFeature = (int) featureEncoder.encode(sequence.get(j)
                                                                                .getFeatures()
@@ -138,7 +137,7 @@ public class SVDEmbedding extends EmbeddingLearner {
       SingularValueDecomposition<RowMatrix, Matrix> svd = sparkSVD(mat, getDimension());
       com.davidbracewell.apollo.linalg.Matrix em = toMatrix(svd.U()).multiply(toDiagonalMatrix(svd.s()));
       for (int i = 0; i < em.numberOfRows(); i++) {
-         vectorStore.add(new LabeledVector(featureEncoder.decode(i), em.row(i).copy()));
+         vectorStore.add(featureEncoder.decode(i).toString(), em.row(i).copy());
       }
       return new Embedding(new EncoderPair(dataset.getLabelEncoder(), featureEncoder), vectorStore);
    }

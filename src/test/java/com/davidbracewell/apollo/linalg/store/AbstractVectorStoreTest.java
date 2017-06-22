@@ -22,8 +22,8 @@
 package com.davidbracewell.apollo.linalg.store;
 
 import com.davidbracewell.apollo.linalg.DenseVector;
-import com.davidbracewell.apollo.linalg.LabeledVector;
-import com.davidbracewell.apollo.linalg.ScoredLabelVector;
+import com.davidbracewell.apollo.linalg.SparseVector;
+import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.collection.Sets;
 import org.junit.After;
 import org.junit.Test;
@@ -40,27 +40,11 @@ public abstract class AbstractVectorStoreTest {
 
    VectorStore<String> vs;
 
-
-   public List<LabeledVector> getVectors() {
-      return Arrays.asList(
-         LabeledVector.sparse(10, "A").mapAddSelf(1),
-         LabeledVector.sparse(10, "B").mapAddSelf(1.5),
-         LabeledVector.sparse(10, "C").mapAddSelf(4.5),
-         LabeledVector.sparse(10, "D").mapAddSelf(5),
-         LabeledVector.sparse(10, "E").mapAddSelf(100)
-                          );
-   }
-
-   @After
-   public void tearDown() throws Exception {
-      assertTrue(vs.remove(LabeledVector.sparse(10, "A").mapAddSelf(1)));
-   }
-
    @Test
-   public void size() throws Exception {
-      assertEquals(5, vs.size());
+   public void containsKey() throws Exception {
+      assertTrue(vs.containsKey("A"));
+      assertFalse(vs.containsKey("Z"));
    }
-
 
    @Test
    public void dimension() throws Exception {
@@ -68,40 +52,18 @@ public abstract class AbstractVectorStoreTest {
    }
 
    @Test
-   public void nearestVector() throws Exception {
-      List<ScoredLabelVector> list = vs.nearest(DenseVector.ones(10));
-      assertEquals(2.2E-16, list.get(0).getScore(), 0.1);
+   public void get() throws Exception {
+      assertEquals(SparseVector.zeros(10).setLabel("A").mapAddSelf(1), vs.get("A"));
    }
 
-   @Test(expected = IllegalArgumentException.class)
-   public void nearestVectorError() throws Exception {
-      List<ScoredLabelVector> list = vs.nearest(DenseVector.ones(100));
-   }
-
-   @Test
-   public void nearestVectorK() throws Exception {
-      List<ScoredLabelVector> list = vs.nearest(DenseVector.ones(10), 2);
-      assertEquals(2, list.size());
-      assertEquals(0, list.get(0).getScore(), 0);
-      assertEquals(0, list.get(1).getScore(), 0.01);
-   }
-
-   @Test(expected = IllegalArgumentException.class)
-   public void nearestVectorKError() throws Exception {
-      List<ScoredLabelVector> list = vs.nearest(DenseVector.ones(100), 1);
-   }
-
-   @Test
-   public void nearestVectorKThreshold() throws Exception {
-      List<ScoredLabelVector> list = vs.nearest(DenseVector.ones(10), 2, 2);
-      assertEquals(2, list.size());
-      assertEquals(0, list.get(0).getScore(), 0);
-      assertEquals(0, list.get(1).getScore(), 0.01);
-   }
-
-   @Test(expected = IllegalArgumentException.class)
-   public void nearestVectorKThresholdError() throws Exception {
-      List<ScoredLabelVector> list = vs.nearest(DenseVector.ones(100), 1, 4);
+   public List<Vector> getVectors() {
+      return Arrays.asList(
+         SparseVector.zeros(10).setLabel("A").mapAddSelf(1),
+         SparseVector.zeros(10).setLabel("B").mapAddSelf(1.5),
+         SparseVector.zeros(10).setLabel("C").mapAddSelf(4.5),
+         SparseVector.zeros(10).setLabel("D").mapAddSelf(5),
+         SparseVector.zeros(10).setLabel("E").mapAddSelf(100)
+                          );
    }
 
    @Test
@@ -110,17 +72,50 @@ public abstract class AbstractVectorStoreTest {
    }
 
    @Test
-   public void get() throws Exception {
-      assertEquals(LabeledVector.sparse(10, "A").mapAddSelf(1),
-                   vs.get("A")
-                  );
+   public void nearestVector() throws Exception {
+      List<Vector> list = vs.nearest(DenseVector.ones(10));
+      assertEquals(2.2E-16, list.get(0).getWeight(), 0.1);
+   }
 
+   @Test(expected = IllegalArgumentException.class)
+   public void nearestVectorError() throws Exception {
+      List<Vector> list = vs.nearest(DenseVector.ones(100));
    }
 
    @Test
-   public void containsKey() throws Exception {
-      assertTrue(vs.containsKey("A"));
-      assertFalse(vs.containsKey("Z"));
+   public void nearestVectorK() throws Exception {
+      List<Vector> list = vs.nearest(DenseVector.ones(10), 2);
+      assertEquals(2, list.size());
+      assertEquals(0, list.get(0).getWeight(), 0);
+      assertEquals(0, list.get(1).getWeight(), 0.01);
+   }
+
+   @Test(expected = IllegalArgumentException.class)
+   public void nearestVectorKError() throws Exception {
+      List<Vector> list = vs.nearest(DenseVector.ones(100), 1);
+   }
+
+   @Test
+   public void nearestVectorKThreshold() throws Exception {
+      List<Vector> list = vs.nearest(DenseVector.ones(10), 2, 2);
+      assertEquals(2, list.size());
+      assertEquals(0, list.get(0).getWeight(), 0);
+      assertEquals(0, list.get(1).getWeight(), 0.01);
+   }
+
+   @Test(expected = IllegalArgumentException.class)
+   public void nearestVectorKThresholdError() throws Exception {
+      List<Vector> list = vs.nearest(DenseVector.ones(100), 1, 4);
+   }
+
+   @Test
+   public void size() throws Exception {
+      assertEquals(5, vs.size());
+   }
+
+   @After
+   public void tearDown() throws Exception {
+      assertTrue(vs.remove(SparseVector.zeros(10).setLabel("A").mapAddSelf(1)));
    }
 
 }

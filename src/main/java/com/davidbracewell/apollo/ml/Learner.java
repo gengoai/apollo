@@ -150,7 +150,6 @@ public abstract class Learner<T extends Example, M extends Model> implements Ser
       this.preprocessors = dataset.getPreprocessors();
       this.encoderPair = dataset.getEncoderPair();
       this.vectorizer = dataset.getVectorizer();
-//      dataset.setVectorizer(this.vectorizer);
       M model = trainImpl(dataset);
       model.finishTraining();
       return model;

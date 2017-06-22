@@ -1,6 +1,8 @@
 package com.davidbracewell.apollo.ml.embedding;
 
+import com.davidbracewell.apollo.ml.DefaultVectorizer;
 import com.davidbracewell.apollo.ml.Learner;
+import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.ml.sequence.Sequence;
 import lombok.Getter;
 import lombok.Setter;
@@ -18,5 +20,13 @@ public abstract class EmbeddingLearner extends Learner<Sequence, Embedding> {
    private int dimension = 300;
 
 
+   @Override
+   public Embedding train(Dataset<Sequence> dataset) {
+      dataset.encode();
+      update(dataset.getEncoderPair(), dataset.getPreprocessors(), new DefaultVectorizer(dataset.getEncoderPair()));
+      Embedding model = trainImpl(dataset);
+      model.finishTraining();
+      return model;
+   }
 
 }// END OF EmbeddingLearner

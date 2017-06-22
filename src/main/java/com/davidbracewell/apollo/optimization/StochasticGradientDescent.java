@@ -44,11 +44,9 @@ public class StochasticGradientDescent implements OnlineOptimizer {
          lr = eta;
          double sumTotal = stream.get()
                                  .shuffle()
-                                 .mapToDouble(next -> {
-                                    synchronized (this) {
-                                       return step(next, costFunction, weightUpdater, verbose, eta);
-                                    }
-                                 })
+                                 .javaStream()
+                                 .sequential()
+                                 .mapToDouble(next -> step(next, costFunction, weightUpdater, verbose, eta))
                                  .sum();
          lastLoss = sumTotal;
          if (verbose && pass % 10 == 0) {

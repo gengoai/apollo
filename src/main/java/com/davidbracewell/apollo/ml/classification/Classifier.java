@@ -60,6 +60,11 @@ public abstract class Classifier implements Model {
       return classify(vectorizer.apply(preprocessors.apply(instance)));
    }
 
+   @Override
+   public int numberOfFeatures() {
+      return getVectorizer().getOutputDimension();
+   }
+
    /**
     * Predicts the label, or class, of the given vector. Note, that all preprocessing must already be performed on the
     * vector.

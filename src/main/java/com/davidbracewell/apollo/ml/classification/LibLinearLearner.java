@@ -85,7 +85,7 @@ public class LibLinearLearner extends ClassifierLearner {
          problem.x[index] = LibLinearModel.toFeature(vector, biasIndex);
          problem.y[index] = vector.getLabel();
       }
-      problem.n = model.getFeatureEncoder().size() + 1;
+      problem.n = model.numberOfFeatures() + 1;
 
       if (verbose) {
          Linear.enableDebugOutput();

@@ -48,10 +48,10 @@ public class DecisionStumpLearner extends ClassifierLearner {
       int bestIndex = -1;
       double bestSplit = 0;
       double bestScore = Double.POSITIVE_INFINITY;
-      double[] bestLowerDistribution = new double[dataset.getLabelEncoder().size()];
-      double[] bestUpperDistribution = new double[dataset.getLabelEncoder().size()];
-
+      double[] bestLowerDistribution = new double[stump.numberOfLabels()];
+      double[] bestUpperDistribution = new double[stump.numberOfLabels()];
       double[] totalLabelCounts = new double[stump.numberOfLabels()];
+
       for (Instance instance : dataset) {
          totalLabelCounts[(int) stump.encodeLabel(instance.getLabel())]++;
       }

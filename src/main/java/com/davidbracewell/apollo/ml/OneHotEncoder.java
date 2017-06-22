@@ -84,7 +84,7 @@ public class OneHotEncoder implements Vectorizer {
       this.encoderPair.getFeatureEncoder().encode(paddingValue);
       this.encoderPair.getFeatureEncoder().freeze();
       this.numFeatures = encoderPair.numberOfFeatures();
-      this.outputDimension = maxFeatures * numFeatures;
+      this.outputDimension = maxFeatures * numFeatures + numFeatures;
    }
 
 

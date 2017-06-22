@@ -50,6 +50,7 @@ public class SoftmaxLearner extends ClassifierLearner {
 
    @Override
    protected Classifier trainImpl(Dataset<Instance> dataset) {
+      GLM model = new GLM(this);
       OnlineOptimizer optimizer;
       if (batchSize > 1) {
          optimizer = new OnlineBatchOptimizer(new StochasticGradientDescent(), batchSize);
@@ -57,7 +58,7 @@ public class SoftmaxLearner extends ClassifierLearner {
          optimizer = new StochasticGradientDescent();
       }
 
-      Weights start = Weights.multiClass(dataset.getLabelEncoder().size(), dataset.getFeatureEncoder().size());
+      Weights start = Weights.multiClass(model.numberOfLabels(), model.numberOfFeatures());
       Weights weights = optimizer.optimize(start,
                                            dataset::asVectors,
                                            this::observe,
@@ -68,10 +69,8 @@ public class SoftmaxLearner extends ClassifierLearner {
                                            learningRate,
                                            weightUpdater,
                                            verbose).getWeights();
-
-      GLM glm = new GLM(this);
-      glm.weights = weights;
-      glm.activation = activation;
-      return glm;
+      model.weights = weights;
+      model.activation = activation;
+      return model;
    }
 }// END OF SoftmaxLearner

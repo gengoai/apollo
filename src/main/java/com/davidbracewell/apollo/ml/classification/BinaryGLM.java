@@ -47,7 +47,6 @@ public class BinaryGLM extends Classifier {
       super(learner);
    }
 
-
    @Override
    public Classification classify(Vector vector) {
       double[] dist = new double[2];

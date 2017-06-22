@@ -91,16 +91,14 @@ public class BinarySGDLearner extends BinaryClassifierLearner {
 
    @Override
    protected Classifier trainForLabel(Dataset<Instance> dataset, double trueLabel) {
+      BinaryGLM model = new BinaryGLM(this);
       OnlineOptimizer optimizer;
       if (batchSize > 1) {
          optimizer = new OnlineBatchOptimizer(new StochasticGradientDescent(), batchSize);
       } else {
          optimizer = new StochasticGradientDescent();
       }
-
-      Weights start;
-      start = Weights.binary(dataset.getFeatureEncoder().size());
-
+      Weights start = Weights.binary(model.numberOfFeatures());
       Weights weights = optimizer.optimize(start,
                                            () -> dataset.asVectors()
                                                         .map(fv -> {
@@ -121,11 +119,11 @@ public class BinarySGDLearner extends BinaryClassifierLearner {
                                            weightUpdater,
                                            verbose).getWeights();
 
-      BinaryGLM glm = new BinaryGLM(this);
-      glm.weights = weights.getTheta().row(0).copy();
-      glm.bias = weights.getBias().get(0);
-      glm.activation = activation;
-      return glm;
+
+      model.weights = weights.getTheta().row(0).copy();
+      model.bias = weights.getBias().get(0);
+      model.activation = activation;
+      return model;
    }
 
 }// END OF SGDLearner

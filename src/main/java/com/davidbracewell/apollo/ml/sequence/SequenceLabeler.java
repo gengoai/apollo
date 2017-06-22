@@ -21,7 +21,7 @@ public abstract class SequenceLabeler implements Model {
    protected EncoderPair encoderPair;
    private volatile Decoder decoder = new BeamDecoder();
 
-   /**
+      /**
     * Instantiates a new Model.
     *
     * @param labelEncoder       the label encoder

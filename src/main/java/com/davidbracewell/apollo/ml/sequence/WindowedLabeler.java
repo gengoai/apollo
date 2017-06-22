@@ -20,6 +20,7 @@ public class WindowedLabeler extends SequenceLabeler {
    private static final long serialVersionUID = 1L;
    Classifier classifier;
 
+
    /**
     * Instantiates a new Model.
     *

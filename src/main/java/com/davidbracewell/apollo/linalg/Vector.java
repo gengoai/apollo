@@ -137,6 +137,8 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
     */
    Vector compress();
 
+   Vector concat(Vector other);
+
    /**
     * Determines the Spearman correlation between this vector and the given other vector
     *
@@ -227,15 +229,7 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
 
    Vector setLabel(Object o);
 
-   double getWeight();
-
-   Vector setWeight(double weight);
-
-   double getPredicted();
-
    double getLabelAsDouble();
-
-   Vector setPredicted(double predicted);
 
    /**
     * Gets label vector.
@@ -279,6 +273,14 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
       throw new IllegalStateException(label.getClass() + " cannot be converted to a vector");
    }
 
+   double getPredicted();
+
+   Vector setPredicted(double predicted);
+
+   double getWeight();
+
+   Vector setWeight(double weight);
+
    /**
     * Increments the value at the given index.
     *
@@ -295,8 +297,6 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
     * @return This vector
     */
    Vector increment(int index, double amount);
-
-   Vector concat(Vector other);
 
    /**
     * Insert vector.

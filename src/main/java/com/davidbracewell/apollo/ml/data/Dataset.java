@@ -43,7 +43,9 @@ import com.davidbracewell.logging.Logger;
 import com.davidbracewell.stream.MStream;
 import com.davidbracewell.stream.StreamingContext;
 import com.davidbracewell.stream.accumulator.MCounterAccumulator;
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.Setter;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -62,7 +64,9 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
    private static final long serialVersionUID = 1L;
    private final EncoderPair encoders;
    private final PreprocessorList<T> preprocessors;
-   private final Vectorizer vectorizer;
+   @Getter
+   @Setter
+   private Vectorizer vectorizer;
 
    /**
     * Instantiates a new Dataset.
@@ -219,6 +223,7 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
          getLabelEncoder().fit(this);
       }
       log.fine("Encoded {0} Features and {1} Labels", getFeatureEncoder().size(), getLabelEncoder().size());
+      vectorizer.setEncoderPair(encoders);
       return this;
    }
 

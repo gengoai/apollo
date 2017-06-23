@@ -167,6 +167,7 @@ public abstract class Learner<T extends Example, M extends Model> implements Ser
       this.encoderPair = encoderPair;
       this.preprocessors = preprocessors;
       this.vectorizer = vectorizer;
+      this.vectorizer.setEncoderPair(encoderPair);
    }
 
 

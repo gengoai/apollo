@@ -1,6 +1,5 @@
 package com.davidbracewell.apollo.ml.classification;
 
-import com.davidbracewell.apollo.ml.DefaultVectorizer;
 import com.davidbracewell.apollo.ml.Feature;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.data.Dataset;
@@ -26,27 +25,21 @@ public class RBMClassifierLearner extends ClassifierLearner {
 
    @Override
    protected RBMClassifier trainImpl(Dataset<Instance> dataset) {
-      BernoulliRBM rbm = new BernoulliRBM(getVectorizer().getOutputDimension(), nHidden);
-      rbm.train(dataset.stream().map(this::toVector).collect());
-
+      BernoulliRBM rbm = new BernoulliRBM(dataset.getFeatureEncoder().size(), nHidden);
+      rbm.train(dataset.stream().map(ii -> ii.toVector(dataset.getEncoderPair())).collect());
       LibLinearLearner subLearner = new LibLinearLearner();
       Dataset<Instance> transformed = Dataset.classification()
                                              .type(dataset.getType())
                                              .source(
                                                 dataset.stream().map(i -> {
                                                    List<Feature> features = new ArrayList<>();
-                                                   rbm.runVisibleProbs(toVector(i))
+                                                   rbm.runVisibleProbs(i.toVector(dataset.getEncoderPair()))
                                                       .nonZeroIterator()
                                                       .forEachRemaining(
                                                          e -> features.add(
                                                             Feature.TRUE(Integer.toString(e.getIndex()))));
                                                    return new Instance(features, i.getLabel());
                                                 }));
-
-      transformed.encode();
-      DefaultVectorizer defaultVectorizer = new DefaultVectorizer();
-      defaultVectorizer.setEncoderPair(dataset.getEncoderPair());
-      update(dataset.getEncoderPair(), dataset.getPreprocessors(), defaultVectorizer);
       RBMClassifier classifier = new RBMClassifier(this);
       classifier.rbm = rbm;
       classifier.classifier = subLearner.train(transformed);

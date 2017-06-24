@@ -3,7 +3,6 @@ package com.davidbracewell.apollo.ml.data;
 import com.davidbracewell.apollo.ml.Encoder;
 import com.davidbracewell.apollo.ml.Example;
 import com.davidbracewell.apollo.ml.LabelEncoder;
-import com.davidbracewell.apollo.ml.Vectorizer;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.function.SerializableFunction;
@@ -44,8 +43,8 @@ public class OffHeapDataset<T extends Example> extends Dataset<T> {
     * @param labelEncoder   the label encoder
     * @param preprocessors  the preprocessors
     */
-   protected OffHeapDataset(Encoder featureEncoder, LabelEncoder labelEncoder, PreprocessorList<T> preprocessors, Vectorizer vectorizer) {
-      super(featureEncoder, labelEncoder, preprocessors, vectorizer);
+   protected OffHeapDataset(Encoder featureEncoder, LabelEncoder labelEncoder, PreprocessorList<T> preprocessors) {
+      super(featureEncoder, labelEncoder, preprocessors);
       outputResource.deleteOnExit();
    }
 
@@ -95,8 +94,8 @@ public class OffHeapDataset<T extends Example> extends Dataset<T> {
    }
 
    @Override
-   protected Dataset<T> create(@NonNull MStream<T> instances, @NonNull Encoder featureEncoder, @NonNull LabelEncoder labelEncoder, PreprocessorList<T> preprocessors, Vectorizer vectorizer) {
-      Dataset<T> dataset = new OffHeapDataset<>(featureEncoder, labelEncoder, preprocessors, vectorizer);
+   protected Dataset<T> create(@NonNull MStream<T> instances, @NonNull Encoder featureEncoder, @NonNull LabelEncoder labelEncoder, PreprocessorList<T> preprocessors) {
+      Dataset<T> dataset = new OffHeapDataset<>(featureEncoder, labelEncoder, preprocessors);
       dataset.addAll(instances);
       return dataset;
    }
@@ -109,7 +108,7 @@ public class OffHeapDataset<T extends Example> extends Dataset<T> {
    @Override
    public Dataset<T> mapSelf(@NonNull SerializableFunction<? super T, T> function) {
       outputResource.getChildren().forEach(Unchecked.consumer(r -> {
-         InMemoryDataset<T> temp = new InMemoryDataset<>(getFeatureEncoder(), getLabelEncoder(), null, getVectorizer());
+         InMemoryDataset<T> temp = new InMemoryDataset<>(getFeatureEncoder(), getLabelEncoder(), null);
          for (String line : r.readLines()) {
             temp.add(Example.fromJson(line, clazz));
          }
@@ -121,8 +120,7 @@ public class OffHeapDataset<T extends Example> extends Dataset<T> {
 
    @Override
    public Dataset<T> shuffle(@NonNull Random random) {
-      return create(stream().shuffle(), getFeatureEncoder().createNew(), getLabelEncoder().createNew(), null,
-                    getVectorizer());
+      return create(stream().shuffle(), getFeatureEncoder().createNew(), getLabelEncoder().createNew(), null);
    }
 
    @Override

@@ -27,7 +27,6 @@ public class DatasetBuilder<T extends Example> {
    private Encoder featureEncoder = new IndexEncoder();
    private MStream<T> source;
    private Resource load;
-   private Vectorizer vectorizer = new DefaultVectorizer();
 
    /**
     * Instantiates a new Dataset builder.
@@ -44,11 +43,11 @@ public class DatasetBuilder<T extends Example> {
    private Dataset<T> createDataset() {
       switch (type) {
          case Distributed:
-            return new DistributedDataset<>(featureEncoder, labelEncoder, PreprocessorList.empty(), vectorizer);
+            return new DistributedDataset<>(featureEncoder, labelEncoder, PreprocessorList.empty());
          case OffHeap:
-            return new OffHeapDataset<>(featureEncoder, labelEncoder, PreprocessorList.empty(), vectorizer);
+            return new OffHeapDataset<>(featureEncoder, labelEncoder, PreprocessorList.empty());
          default:
-            return new InMemoryDataset<>(featureEncoder, labelEncoder, PreprocessorList.empty(), vectorizer);
+            return new InMemoryDataset<>(featureEncoder, labelEncoder, PreprocessorList.empty());
       }
    }
 
@@ -136,11 +135,6 @@ public class DatasetBuilder<T extends Example> {
     */
    public DatasetBuilder<T> type(@NonNull DatasetType type) {
       this.type = type;
-      return this;
-   }
-
-   public DatasetBuilder<T> vectorizer(@NonNull Vectorizer vectorizer) {
-      this.vectorizer = vectorizer;
       return this;
    }
 

@@ -55,7 +55,7 @@ public class NaiveBayesLearner extends ClassifierLearner {
             N++;
             int ci = (int) model.encodeLabel(instance.getLabel());
             model.priors[ci] += instance.getWeight();
-            Vector vector = toVector(instance);
+            Vector vector = instance.toVector(dataset.getEncoderPair());
             for (Vector.Entry entry : Collect.asIterable(vector.nonZeroIterator())) {
                labelCounts[ci] += entry.value;
                model.conditionals[entry.getIndex()][ci] += instance.getWeight() * modelType.convertValue(entry.value);

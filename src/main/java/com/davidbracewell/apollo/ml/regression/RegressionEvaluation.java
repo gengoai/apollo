@@ -101,7 +101,7 @@ public class RegressionEvaluation implements Evaluation<Instance, Regression> {
       double SStot = gold.parallelStream().mapToDouble(d -> Math.pow(d - yMean, 2)).sum();
       double SSres = 0;
       for (int i = 0; i < gold.size(); i++) {
-         SSres += Math.pow(gold.get(i) - predicted.get(i), 2);
+         SSres += Math.pow(gold.getDouble(i) - predicted.getDouble(i), 2);
       }
       return 1.0 - SSres / SStot;
    }
@@ -132,7 +132,7 @@ public class RegressionEvaluation implements Evaluation<Instance, Regression> {
    public double squaredError() {
       double error = 0;
       for (int i = 0; i < gold.size(); i++) {
-         error += Math.pow(predicted.get(i) - gold.get(i), 2);
+         error += Math.pow(predicted.getDouble(i) - gold.getDouble(i), 2);
       }
       return error;
    }

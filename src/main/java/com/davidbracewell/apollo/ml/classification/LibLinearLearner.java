@@ -81,7 +81,7 @@ public class LibLinearLearner extends ClassifierLearner {
 
       int index = 0;
       for (Iterator<Instance> iitr = dataset.iterator(); iitr.hasNext(); index++) {
-         Vector vector = toVector(iitr.next());
+         Vector vector = iitr.next().toVector(dataset.getEncoderPair());
          problem.x[index] = LibLinearModel.toFeature(vector, biasIndex);
          problem.y[index] = vector.getLabel();
       }

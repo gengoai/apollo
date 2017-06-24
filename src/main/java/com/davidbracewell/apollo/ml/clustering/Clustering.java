@@ -26,7 +26,6 @@ import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.EncoderPair;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.Model;
-import com.davidbracewell.apollo.ml.Vectorizer;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.collection.Streams;
 import com.davidbracewell.tuple.Tuple2;
@@ -52,20 +51,16 @@ public abstract class Clustering implements Model, Iterable<Cluster>, Serializab
    @Getter
    private final EncoderPair encoderPair;
    @Getter
-   private final Vectorizer vectorizer;
-   @Getter
    private final Measure measure;
 
    public Clustering(Clusterer<?> clusterer, Measure measure) {
       this.preprocessors = clusterer.getPreprocessors();
       this.encoderPair = clusterer.getEncoderPair();
-      this.vectorizer = clusterer.getVectorizer();
       this.measure = measure;
    }
 
    public Clustering(Clustering other) {
       this.preprocessors = other.getPreprocessors();
-      this.vectorizer = other.vectorizer;
       this.encoderPair = other.encoderPair;
       this.measure = other.getMeasure();
    }
@@ -94,7 +89,7 @@ public abstract class Clustering implements Model, Iterable<Cluster>, Serializab
     * @return the index of the cluster that the instance belongs to
     */
    public int hardCluster(@NonNull Instance instance) {
-      Vector vector = getVectorizer().apply(getPreprocessors().apply(instance));
+      Vector vector = getPreprocessors().apply(instance).toVector(encoderPair);
       return getMeasure().getOptimum()
                          .optimum(Streams.asParallelStream(this)
                                          .map(c -> $(c.getId(), getMeasure().calculate(vector, c.getCentroid()))),
@@ -137,7 +132,7 @@ public abstract class Clustering implements Model, Iterable<Cluster>, Serializab
    public double[] softCluster(@NonNull Instance instance) {
       double[] distances = new double[size()];
       Arrays.fill(distances, Double.POSITIVE_INFINITY);
-      Vector vector = getVectorizer().apply(getPreprocessors().apply(instance));
+      Vector vector = getPreprocessors().apply(instance).toVector(encoderPair);
       int assignment = hardCluster(instance);
       if (assignment >= 0) {
          distances[assignment] = getMeasure().calculate(get(assignment).getCentroid(), vector);

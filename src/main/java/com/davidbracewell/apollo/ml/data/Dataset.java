@@ -43,9 +43,7 @@ import com.davidbracewell.logging.Logger;
 import com.davidbracewell.stream.MStream;
 import com.davidbracewell.stream.StreamingContext;
 import com.davidbracewell.stream.accumulator.MCounterAccumulator;
-import lombok.Getter;
 import lombok.NonNull;
-import lombok.Setter;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -64,9 +62,6 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
    private static final long serialVersionUID = 1L;
    private final EncoderPair encoders;
    private final PreprocessorList<T> preprocessors;
-   @Getter
-   @Setter
-   private Vectorizer vectorizer;
 
    /**
     * Instantiates a new Dataset.
@@ -75,8 +70,7 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
     * @param labelEncoder   the label encoder to use on the dataset
     * @param preprocessors  the preprocessors applied to the dataset
     */
-   protected Dataset(Encoder featureEncoder, LabelEncoder labelEncoder, PreprocessorList<T> preprocessors, Vectorizer vectorizer) {
-      this.vectorizer = vectorizer;
+   protected Dataset(Encoder featureEncoder, LabelEncoder labelEncoder, PreprocessorList<T> preprocessors) {
       this.encoders = new EncoderPair(labelEncoder, featureEncoder);
       this.preprocessors = preprocessors == null ? PreprocessorList.empty() : preprocessors;
    }
@@ -160,8 +154,9 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
     */
    public MStream<Vector> asVectors() {
       encode();
-      vectorizer.setEncoderPair(getEncoderPair());
-      return stream().parallel().map(vectorizer::apply);
+      return stream().parallel()
+                     .flatMap(ii -> ii.asInstances().stream())
+                     .map(ii -> ii.toVector(encoders));
    }
 
    /**
@@ -194,8 +189,7 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
       return create(instances,
                     getFeatureEncoder().createNew(),
                     getLabelEncoder().createNew(),
-                    new PreprocessorList<>(preprocessors),
-                    vectorizer);
+                    new PreprocessorList<>(preprocessors));
    }
 
    /**
@@ -208,7 +202,7 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
     * @param preprocessors  the preprocessors
     * @return the dataset
     */
-   protected abstract Dataset<T> create(MStream<T> instances, Encoder featureEncoder, LabelEncoder labelEncoder, PreprocessorList<T> preprocessors, Vectorizer vectorizer);
+   protected abstract Dataset<T> create(MStream<T> instances, Encoder featureEncoder, LabelEncoder labelEncoder, PreprocessorList<T> preprocessors);
 
    /**
     * Encodes the example in the dataset using the dataset's encoders.
@@ -223,15 +217,13 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
          getLabelEncoder().fit(this);
       }
       log.fine("Encoded {0} Features and {1} Labels", getFeatureEncoder().size(), getLabelEncoder().size());
-      vectorizer.setEncoderPair(encoders);
       return this;
    }
 
    private Matrix fillMatrix(Matrix m) {
       int row = 0;
-      vectorizer.setEncoderPair(getEncoderPair());
       for (Iterator<T> ii = iterator(); ii.hasNext(); row++) {
-         m.setRow(row, vectorizer.apply(ii.next()));
+         m.setRow(row, ii.next().asInstances().get(0).toVector(encoders));
       }
       return m;
    }
@@ -328,9 +320,6 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
     */
    public abstract DatasetType getType();
 
-   public final Vectorizer getVectorizer() {
-      return vectorizer;
-   }
 
    @Override
    public Iterator<T> iterator() {

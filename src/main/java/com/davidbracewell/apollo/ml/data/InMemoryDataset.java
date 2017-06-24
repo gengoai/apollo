@@ -4,7 +4,6 @@ import com.davidbracewell.Interner;
 import com.davidbracewell.apollo.ml.Encoder;
 import com.davidbracewell.apollo.ml.Example;
 import com.davidbracewell.apollo.ml.LabelEncoder;
-import com.davidbracewell.apollo.ml.Vectorizer;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.collection.Collect;
 import com.davidbracewell.conversion.Cast;
@@ -34,8 +33,8 @@ public class InMemoryDataset<T extends Example> extends Dataset<T> {
     * @param labelEncoder   the label encoder
     * @param preprocessors  the preprocessors
     */
-   public InMemoryDataset(Encoder featureEncoder, LabelEncoder labelEncoder, PreprocessorList<T> preprocessors, Vectorizer vectorizer) {
-      super(featureEncoder, labelEncoder, preprocessors, vectorizer);
+   public InMemoryDataset(Encoder featureEncoder, LabelEncoder labelEncoder, PreprocessorList<T> preprocessors) {
+      super(featureEncoder, labelEncoder, preprocessors);
    }
 
    /**
@@ -69,8 +68,8 @@ public class InMemoryDataset<T extends Example> extends Dataset<T> {
    }
 
    @Override
-   protected Dataset<T> create(@NonNull MStream<T> instances, @NonNull Encoder featureEncoder, @NonNull LabelEncoder labelEncoder, PreprocessorList<T> preprocessors, Vectorizer vectorizer) {
-      InMemoryDataset<T> dataset = new InMemoryDataset<>(featureEncoder, labelEncoder, preprocessors, vectorizer);
+   protected Dataset<T> create(@NonNull MStream<T> instances, @NonNull Encoder featureEncoder, @NonNull LabelEncoder labelEncoder, PreprocessorList<T> preprocessors) {
+      InMemoryDataset<T> dataset = new InMemoryDataset<>(featureEncoder, labelEncoder, preprocessors);
       dataset.addAll(instances);
       return dataset;
    }

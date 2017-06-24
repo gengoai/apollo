@@ -56,7 +56,7 @@ class OneShotClustering extends FlatClustering {
    public double[] softCluster(Instance instance) {
       double[] distances = new double[size()];
       Arrays.fill(distances, Double.POSITIVE_INFINITY);
-      Vector vector = getVectorizer().apply(getPreprocessors().apply(instance));
+      Vector vector = getPreprocessors().apply(instance).toVector(getEncoderPair());
       Tuple2<Integer, Double> best = StreamingContext.local().stream(this)
                                                      .parallel()
                                                      .map(cluster -> {

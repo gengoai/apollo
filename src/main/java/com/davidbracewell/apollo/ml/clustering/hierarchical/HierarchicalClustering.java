@@ -112,7 +112,7 @@ public class HierarchicalClustering extends Clustering {
 
    @Override
    public double[] softCluster(@NonNull Instance instance) {
-      Vector vector = getVectorizer().apply(getPreprocessors().apply(instance));
+      Vector vector = getPreprocessors().apply(instance).toVector(getEncoderPair());
       return new double[]{
          linkage.calculate(vector, root, getMeasure())
       };

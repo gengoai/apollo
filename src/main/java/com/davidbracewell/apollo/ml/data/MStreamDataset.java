@@ -3,7 +3,6 @@ package com.davidbracewell.apollo.ml.data;
 import com.davidbracewell.apollo.ml.Encoder;
 import com.davidbracewell.apollo.ml.Example;
 import com.davidbracewell.apollo.ml.LabelEncoder;
-import com.davidbracewell.apollo.ml.Vectorizer;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.function.SerializableFunction;
 import com.davidbracewell.stream.MStream;
@@ -30,8 +29,8 @@ public class MStreamDataset<T extends Example> extends Dataset<T> {
     * @param preprocessors  the preprocessors
     * @param stream         the stream
     */
-   public MStreamDataset(Encoder featureEncoder, LabelEncoder labelEncoder, PreprocessorList<T> preprocessors, MStream<T> stream, Vectorizer vectorizer) {
-      super(featureEncoder, labelEncoder, preprocessors, vectorizer);
+   public MStreamDataset(Encoder featureEncoder, LabelEncoder labelEncoder, PreprocessorList<T> preprocessors, MStream<T> stream) {
+      super(featureEncoder, labelEncoder, preprocessors);
       this.stream = stream;
    }
 
@@ -45,8 +44,8 @@ public class MStreamDataset<T extends Example> extends Dataset<T> {
    }
 
    @Override
-   protected Dataset<T> create(MStream<T> instances, Encoder featureEncoder, LabelEncoder labelEncoder, PreprocessorList<T> preprocessors, Vectorizer vectorizer) {
-      return new MStreamDataset<>(featureEncoder, labelEncoder, preprocessors, instances, vectorizer);
+   protected Dataset<T> create(MStream<T> instances, Encoder featureEncoder, LabelEncoder labelEncoder, PreprocessorList<T> preprocessors) {
+      return new MStreamDataset<>(featureEncoder, labelEncoder, preprocessors, instances);
    }
 
    @Override
@@ -70,9 +69,7 @@ public class MStreamDataset<T extends Example> extends Dataset<T> {
       return create(stream.shuffle(random),
                     getFeatureEncoder(),
                     getLabelEncoder(),
-                    getPreprocessors(),
-                    getVectorizer()
-                   );
+                    getPreprocessors());
    }
 
    @Override

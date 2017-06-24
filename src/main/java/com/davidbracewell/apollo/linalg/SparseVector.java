@@ -231,7 +231,7 @@ public class SparseVector extends BaseVector {
             if (!indexIter.hasNext()) {
                throw new NoSuchElementException();
             }
-            int index = indexIter.next();
+            int index = indexIter.nextInt();
             return new Vector.Entry(index, get(index));
          }
       };

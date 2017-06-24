@@ -61,7 +61,7 @@ public class MEMM extends SequenceLabeler {
       while (transitions.hasNext()) {
          features.add(Feature.TRUE(transitions.next()));
       }
-      return model.classify(model.getVectorizer().apply(Instance.create(features))).distribution();
+      return model.classify(Instance.create(features)).distribution();
    }
 
 }// END OF MEMM

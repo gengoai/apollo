@@ -1,6 +1,5 @@
 package com.davidbracewell.apollo.ml;
 
-import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.classification.Classifier;
 import com.davidbracewell.apollo.ml.clustering.Clustering;
 import com.davidbracewell.apollo.ml.data.Dataset;
@@ -28,8 +27,6 @@ import java.util.Map;
 public abstract class Learner<T extends Example, M extends Model> implements Serializable {
 
    private static final long serialVersionUID = 605756060816072642L;
-   @Getter
-   private Vectorizer vectorizer = new DefaultVectorizer();
    @Getter
    private EncoderPair encoderPair;
    @Getter
@@ -135,9 +132,6 @@ public abstract class Learner<T extends Example, M extends Model> implements Ser
       return Cast.as(this);
    }
 
-   protected final Vector toVector(Example example) {
-      return vectorizer.apply(example);
-   }
 
    /**
     * Trains a model using the given dataset.
@@ -149,7 +143,6 @@ public abstract class Learner<T extends Example, M extends Model> implements Ser
       dataset.encode();
       this.preprocessors = dataset.getPreprocessors();
       this.encoderPair = dataset.getEncoderPair();
-      this.vectorizer = dataset.getVectorizer();
       M model = trainImpl(dataset);
       model.finishTraining();
       return model;
@@ -162,13 +155,6 @@ public abstract class Learner<T extends Example, M extends Model> implements Ser
     * @return the trained model
     */
    protected abstract M trainImpl(Dataset<T> dataset);
-
-   public void update(EncoderPair encoderPair, PreprocessorList<T> preprocessors, Vectorizer vectorizer) {
-      this.encoderPair = encoderPair;
-      this.preprocessors = preprocessors;
-      this.vectorizer = vectorizer;
-      this.vectorizer.setEncoderPair(encoderPair);
-   }
 
 
 }// END OF Learner

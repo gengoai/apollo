@@ -98,7 +98,7 @@ public class LDAModel extends TopicModel {
 
    @Override
    public double[] softCluster(@NonNull Instance instance) {
-      Vector vector = getVectorizer().apply(getPreprocessors().apply(instance));
+      Vector vector = getPreprocessors().apply(instance).toVector(getEncoderPair());
       int[] docTopic = new int[K];
       SparseVector docWordTopic = new SparseVector(getEncoderPair().numberOfFeatures());
 

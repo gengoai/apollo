@@ -107,7 +107,7 @@ public class AveragedPerceptronLearner extends BinaryClassifierLearner {
          double error = 0;
          double count = 0;
          for (Instance instance : dataset) {
-            Vector v = toVector(instance);
+            Vector v = instance.toVector(getEncoderPair());
             count++;
             double y = convertY(v.getLabel(), trueLabel);
             double yHat = model.classify(v).getEncodedResult();

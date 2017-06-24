@@ -57,7 +57,7 @@ public class LibLinearRegression extends RegressionLearner {
       int biasIndex = dataset.getFeatureEncoder().size() + 1;
 
       for (Iterator<Instance> iitr = dataset.iterator(); iitr.hasNext(); index++) {
-         Vector vector = getVectorizer().apply(iitr.next());
+         Vector vector = iitr.next().toVector(dataset.getEncoderPair());
          problem.x[index] = toFeature(vector, biasIndex);
          problem.y[index] = vector.getLabel();
       }

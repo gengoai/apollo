@@ -4,7 +4,6 @@ import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.EncoderPair;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.Model;
-import com.davidbracewell.apollo.ml.Vectorizer;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.collection.counter.Counter;
 import lombok.Getter;
@@ -19,15 +18,11 @@ public abstract class Regression implements Model {
    private static final long serialVersionUID = 1L;
    @Getter
    private final PreprocessorList<Instance> preprocessors;
-   @Getter
    private EncoderPair encoderPair;
-   @Getter
-   private Vectorizer vectorizer;
 
    public Regression(RegressionLearner learner) {
       this.preprocessors = learner.getPreprocessors();
       this.encoderPair = learner.getEncoderPair();
-      this.vectorizer = learner.getVectorizer();
    }
 
 
@@ -38,7 +33,7 @@ public abstract class Regression implements Model {
     * @return the estimated value
     */
    public final double estimate(@NonNull Instance instance) {
-      return estimate(getVectorizer().apply(getPreprocessors().apply(instance)));
+      return estimate(getPreprocessors().apply(instance).toVector(encoderPair));
    }
 
 

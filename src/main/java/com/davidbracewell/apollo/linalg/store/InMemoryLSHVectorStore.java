@@ -69,7 +69,7 @@ public class InMemoryLSHVectorStore<KEY> extends LSHVectorStore<KEY> {
 
    @Override
    protected int getID(KEY key) {
-      return keys.get(key);
+      return keys.getInt(key);
    }
 
    @Override

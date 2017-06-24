@@ -16,11 +16,23 @@ import java.util.stream.Stream;
  * @author David B. Bracewell
  */
 public class OneHotEncoding extends RestrictedInstancePreprocessor implements TransformProcessor<Instance> {
+   private static final long serialVersionUID = 1L;
    private final int maxFeatures;
    private IndexEncoder encoder = new IndexEncoder();
    private int numFeatures;
 
+   public OneHotEncoding(String featureNamePrefix) {
+      super(featureNamePrefix);
+      this.maxFeatures = Integer.MAX_VALUE - 1;
+   }
+
+   public OneHotEncoding(String featureNamePrefix, int maxFeatures) {
+      super(featureNamePrefix);
+      this.maxFeatures = maxFeatures;
+   }
+
    public OneHotEncoding(int maxFeatures) {
+      super();
       this.maxFeatures = maxFeatures;
    }
 
@@ -41,7 +53,9 @@ public class OneHotEncoding extends RestrictedInstancePreprocessor implements Tr
 
    @Override
    protected void restrictedFitImpl(MStream<List<Feature>> stream) {
+      encoder.unFreeze();
       encoder.fit(stream.flatMap(Collection::stream).map(Feature::getName));
+      encoder.freeze();
       numFeatures = encoder.size() + 1;
    }
 
@@ -49,7 +63,7 @@ public class OneHotEncoding extends RestrictedInstancePreprocessor implements Tr
    protected Stream<Feature> restrictedProcessImpl(Stream<Feature> featureStream, Instance originalExample) {
       List<Feature> newFeatures = new ArrayList<>();
       List<Feature> from = featureStream.collect(Collectors.toList());
-      for (int i = 0; i > Math.max(maxFeatures, from.size()); i++) {
+      for (int i = 0; i < Math.min(maxFeatures, from.size()); i++) {
          int fi = encoder.index(from.get(i).getName());
          if (fi == -1) {
             fi = numFeatures - 1;

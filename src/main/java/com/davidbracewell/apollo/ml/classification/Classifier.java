@@ -25,11 +25,9 @@ import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.EncoderPair;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.Model;
-import com.davidbracewell.apollo.ml.Vectorizer;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.collection.counter.Counter;
 import com.davidbracewell.collection.counter.MultiCounter;
-import lombok.Getter;
 import lombok.NonNull;
 
 /**
@@ -41,12 +39,9 @@ public abstract class Classifier implements Model {
    private static final long serialVersionUID = 1L;
    private final PreprocessorList<Instance> preprocessors;
    private final EncoderPair encoderPair;
-   @Getter
-   private final Vectorizer vectorizer;
 
    protected Classifier(@NonNull ClassifierLearner learner) {
       this.preprocessors = learner.getPreprocessors();
-      this.vectorizer = learner.getVectorizer();
       this.encoderPair = learner.getEncoderPair();
    }
 
@@ -57,12 +52,7 @@ public abstract class Classifier implements Model {
     * @return the classification result
     */
    public Classification classify(@NonNull Instance instance) {
-      return classify(vectorizer.apply(preprocessors.apply(instance)));
-   }
-
-   @Override
-   public int numberOfFeatures() {
-      return getVectorizer().getOutputDimension();
+      return classify(preprocessors.apply(instance).toVector(encoderPair));
    }
 
    /**
@@ -103,6 +93,11 @@ public abstract class Classifier implements Model {
     */
    public MultiCounter<String, String> getModelParameters() {
       throw new UnsupportedOperationException();
+   }
+
+   @Override
+   public int numberOfFeatures() {
+      return encoderPair.numberOfFeatures();
    }
 
    protected Instance preprocess(Instance instance) {

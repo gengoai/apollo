@@ -53,7 +53,7 @@ public class LSAModel extends TopicModel {
    @Override
    public double[] softCluster(Instance instance) {
       double[] scores = new double[size()];
-      Vector vector = getVectorizer().apply(getPreprocessors().apply(instance));
+      Vector vector = getPreprocessors().apply(instance).toVector(getEncoderPair());
       for (int i = 0; i < size(); i++) {
          double score = vector.dot(getTopicVector(i));
          scores[i] = score;

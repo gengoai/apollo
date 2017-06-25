@@ -96,9 +96,9 @@ public class AveragedPerceptronLearner extends BinaryClassifierLearner {
    protected Classifier trainForLabel(Dataset<Instance> dataset, double trueLabel) {
       BinaryGLM model = new BinaryGLM(this);
 
-      totalWeights = new FeatureVector(model.getEncoderPair());
-      stamps = new FeatureVector(model.getEncoderPair());
-      model.weights = new FeatureVector(model.getEncoderPair());
+      totalWeights = new FeatureVector(dataset.getEncoderPair());
+      stamps = new FeatureVector(dataset.getEncoderPair());
+      model.weights = new FeatureVector(dataset.getEncoderPair());
 
       double c = 1d;
       double oldError = 0;

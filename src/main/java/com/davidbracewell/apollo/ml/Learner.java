@@ -156,5 +156,8 @@ public abstract class Learner<T extends Example, M extends Model> implements Ser
     */
    protected abstract M trainImpl(Dataset<T> dataset);
 
-
+   public void update(EncoderPair encoderPair, PreprocessorList<T> preprocessors) {
+      this.encoderPair = encoderPair;
+      this.preprocessors = preprocessors;
+   }
 }// END OF Learner

@@ -115,6 +115,7 @@ public class OneVsRestLearner extends ClassifierLearner {
                                                 BinaryClassifierLearner bcl = learnerSupplier.get();
                                                 bcl.setParameters(parameters);
                                                 bcl.reset();
+                                                bcl.update(dataset.getEncoderPair(), dataset.getPreprocessors());
                                                 return bcl.trainForLabel(dataset, i);
                                              }
                                             ).toArray(Classifier[]::new);

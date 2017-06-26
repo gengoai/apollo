@@ -161,11 +161,6 @@ public abstract class BaseVector implements Vector, Serializable {
    }
 
    @Override
-   public int hashCode() {
-      return Objects.hash(getLabel(), getPredicted(), getWeight(), toArray());
-   }
-
-   @Override
    public Vector increment(int index) {
       return increment(index, 1);
    }

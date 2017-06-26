@@ -267,12 +267,12 @@ public abstract class AbstractMatrixTest {
 
    @Test
    public void dot() throws Exception {
-      assertEquals(DenseVector.wrap(2, 2), m.dot(DenseVector.ones(2)));
+      assertEquals(DenseVector.wrap(2, 2), m.dot(DenseVector.ones(2)).column(0));
    }
 
    @Test(expected = IllegalArgumentException.class)
    public void dotError() throws Exception {
-      assertEquals(DenseVector.wrap(2, 2), m.dot(DenseVector.ones(4)));
+      assertEquals(DenseVector.wrap(2, 2), m.dot(DenseVector.ones(4)).column(0));
    }
 
    @Test

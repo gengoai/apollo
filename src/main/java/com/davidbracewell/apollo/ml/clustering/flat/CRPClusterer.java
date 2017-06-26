@@ -83,7 +83,6 @@ public class CRPClusterer extends Clusterer<FlatClustering> {
 
       for (int i = 1; i < instances.size(); i++) {
          Vector ii = instances.get(i);
-
          Counter<Integer> distances = Counters.newCounter();
          for (int ci = 0; ci < clusters.size(); ci++) {
             distances.set(ci, distance(ii, clusters.get(ci)));
@@ -115,7 +114,7 @@ public class CRPClusterer extends Clusterer<FlatClustering> {
       int numP = instances.size() - 1;
       for (int i = 0; i < 200; i++) {
          Vector ii = instances.get((int) Math.floor(Math.random() % instances.size()));
-         int cci = assignments.remove(ii);
+         Integer cci = assignments.remove(ii);
          clusters.get(cci).getPoints().remove(ii);
          Counter<Integer> distances = Counters.newCounter();
          for (int ci = 0; ci < clusters.size(); ci++) {

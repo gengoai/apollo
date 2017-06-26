@@ -1,9 +1,5 @@
 package com.davidbracewell.apollo.linalg;
 
-import com.davidbracewell.conversion.Cast;
-
-import java.util.Arrays;
-
 /**
  * @author David B. Bracewell
  */
@@ -41,18 +37,8 @@ class ColumnVector extends BaseVector {
    }
 
    @Override
-   public boolean equals(Object o) {
-      return o != null && o instanceof Vector && Arrays.equals(toArray(), Cast.<Vector>as(o).toArray());
-   }
-
-   @Override
    public double get(int index) {
       return entries.get(index, column);
-   }
-
-   @Override
-   public int hashCode() {
-      return Arrays.hashCode(toArray());
    }
 
    @Override
@@ -81,11 +67,6 @@ class ColumnVector extends BaseVector {
    @Override
    public int size() {
       return entries.numberOfRows();
-   }
-
-   @Override
-   public String toString() {
-      return Arrays.toString(toArray());
    }
 
    @Override

@@ -21,7 +21,6 @@
 
 package com.davidbracewell.apollo.linalg;
 
-import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.guava.common.base.Preconditions;
 import lombok.NonNull;
 import org.apache.commons.math3.random.RandomGenerator;
@@ -182,19 +181,10 @@ public class DenseVector extends BaseVector {
       return this.data.length;
    }
 
-   @Override
-   public boolean equals(Object o) {
-      return o != null && o instanceof Vector && Arrays.equals(toArray(), Cast.<Vector>as(o).toArray());
-   }
 
    @Override
    public double get(int index) {
       return this.data[index];
-   }
-
-   @Override
-   public int hashCode() {
-      return Arrays.hashCode(toArray());
    }
 
    @Override
@@ -259,11 +249,6 @@ public class DenseVector extends BaseVector {
    @Override
    public double[] toArray() {
       return this.data;
-   }
-
-   @Override
-   public String toString() {
-      return Arrays.toString(toArray());
    }
 
    @Override

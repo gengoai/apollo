@@ -508,6 +508,11 @@ public abstract class BaseVector implements Vector, Serializable {
    }
 
    @Override
+   public String toString() {
+      return Arrays.toString(toArray());
+   }
+
+   @Override
    public Vector toUnitVector() {
       return copy().mapDivideSelf(magnitude());
    }

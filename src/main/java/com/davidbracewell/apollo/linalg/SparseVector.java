@@ -22,7 +22,6 @@
 package com.davidbracewell.apollo.linalg;
 
 import com.davidbracewell.Math2;
-import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.guava.common.base.Preconditions;
 import it.unimi.dsi.fastutil.ints.Int2DoubleOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntIterator;
@@ -30,7 +29,6 @@ import lombok.NonNull;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.commons.math3.random.Well19937c;
 
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Random;
@@ -178,19 +176,9 @@ public class SparseVector extends BaseVector {
    }
 
    @Override
-   public boolean equals(Object o) {
-      return o != null && o instanceof Vector && Arrays.equals(toArray(), Cast.<Vector>as(o).toArray());
-   }
-
-   @Override
    public double get(int index) {
       Preconditions.checkPositionIndex(index, dimension());
       return map.get(index);
-   }
-
-   @Override
-   public int hashCode() {
-      return Arrays.hashCode(toArray());
    }
 
    @Override
@@ -277,11 +265,6 @@ public class SparseVector extends BaseVector {
    @Override
    public int size() {
       return map.size();
-   }
-
-   @Override
-   public String toString() {
-      return Arrays.toString(toArray());
    }
 
    @Override

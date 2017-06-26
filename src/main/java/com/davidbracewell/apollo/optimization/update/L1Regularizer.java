@@ -1,4 +1,4 @@
-package com.davidbracewell.apollo.optimization.regularization;
+package com.davidbracewell.apollo.optimization.update;
 
 import com.davidbracewell.apollo.optimization.Weights;
 import com.davidbracewell.guava.common.util.concurrent.AtomicDouble;

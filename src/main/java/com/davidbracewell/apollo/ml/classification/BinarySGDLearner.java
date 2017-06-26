@@ -10,8 +10,8 @@ import com.davidbracewell.apollo.optimization.activation.StepActivation;
 import com.davidbracewell.apollo.optimization.loss.HingeLoss;
 import com.davidbracewell.apollo.optimization.loss.LogLoss;
 import com.davidbracewell.apollo.optimization.loss.LossFunction;
-import com.davidbracewell.apollo.optimization.regularization.DeltaRule;
-import com.davidbracewell.apollo.optimization.regularization.Regularizer;
+import com.davidbracewell.apollo.optimization.update.DeltaRule;
+import com.davidbracewell.apollo.optimization.update.WeightUpdate;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -26,7 +26,7 @@ public class BinarySGDLearner extends BinaryClassifierLearner {
    private LearningRate learningRate = new ConstantLearningRate(0.1);
    @Getter
    @Setter
-   private Regularizer weightUpdater = new DeltaRule();
+   private WeightUpdate weightUpdater = new DeltaRule();
    @Getter
    @Setter
    private LossFunction loss = new LogLoss();

@@ -3,7 +3,7 @@ package com.davidbracewell.apollo.optimization;
 import com.davidbracewell.apollo.linalg.Matrix;
 import com.davidbracewell.apollo.linalg.SparseMatrix;
 import com.davidbracewell.apollo.linalg.Vector;
-import com.davidbracewell.apollo.optimization.regularization.Regularizer;
+import com.davidbracewell.apollo.optimization.update.WeightUpdate;
 import com.davidbracewell.function.SerializableSupplier;
 import com.davidbracewell.logging.Logger;
 import com.davidbracewell.stream.MStream;
@@ -30,7 +30,7 @@ public class StochasticGradientDescent implements OnlineOptimizer {
                                    OnlineCostFunction costFunction,
                                    TerminationCriteria terminationCriteria,
                                    LearningRate learningRate,
-                                   Regularizer weightUpdater,
+                                   WeightUpdate weightUpdater,
                                    boolean verbose
                                   ) {
       weights = start.copy();
@@ -63,7 +63,7 @@ public class StochasticGradientDescent implements OnlineOptimizer {
       return CostWeightTuple.of(lastLoss, weights);
    }
 
-   private double step(Vector next, OnlineCostFunction costFunction, Regularizer updater, boolean verbose, double lr) {
+   private double step(Vector next, OnlineCostFunction costFunction, WeightUpdate updater, boolean verbose, double lr) {
       CostGradientTuple observation = costFunction.observe(next, weights);
       Vector nextEta = next.mapMultiply(lr);
       Matrix m = observation.getGradient()

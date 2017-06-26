@@ -1,4 +1,4 @@
-package com.davidbracewell.apollo.optimization.regularization;
+package com.davidbracewell.apollo.optimization.update;
 
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.optimization.Weights;

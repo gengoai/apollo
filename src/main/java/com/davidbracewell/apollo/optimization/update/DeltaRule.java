@@ -1,4 +1,4 @@
-package com.davidbracewell.apollo.optimization.regularization;
+package com.davidbracewell.apollo.optimization.update;
 
 import com.davidbracewell.apollo.optimization.Weights;
 
@@ -7,7 +7,7 @@ import java.io.Serializable;
 /**
  * @author David B. Bracewell
  */
-public class DeltaRule implements Regularizer, Serializable {
+public class DeltaRule implements WeightUpdate, Serializable {
    private static final long serialVersionUID = 1L;
 
    @Override

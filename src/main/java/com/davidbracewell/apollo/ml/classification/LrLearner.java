@@ -7,7 +7,7 @@ import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.ml.data.source.DenseCSVDataSource;
 import com.davidbracewell.apollo.optimization.DecayLearningRate;
-import com.davidbracewell.apollo.optimization.regularization.L1Regularizer;
+import com.davidbracewell.apollo.optimization.update.L1Regularizer;
 import com.davidbracewell.io.Resources;
 import com.davidbracewell.io.resource.Resource;
 

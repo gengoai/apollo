@@ -1,7 +1,7 @@
 package com.davidbracewell.apollo.optimization;
 
 import com.davidbracewell.apollo.linalg.Vector;
-import com.davidbracewell.apollo.optimization.regularization.Regularizer;
+import com.davidbracewell.apollo.optimization.update.WeightUpdate;
 import com.davidbracewell.function.SerializableSupplier;
 import com.davidbracewell.guava.common.util.concurrent.AtomicDouble;
 import com.davidbracewell.stream.MStream;
@@ -23,7 +23,7 @@ public class OnlineBatchOptimizer implements OnlineOptimizer {
    }
 
    @Override
-   public CostWeightTuple optimize(Weights start, SerializableSupplier<MStream<? extends Vector>> stream, OnlineCostFunction costFunction, TerminationCriteria terminationCriteria, LearningRate learningRate, Regularizer weightUpdater, boolean verbose) {
+   public CostWeightTuple optimize(Weights start, SerializableSupplier<MStream<? extends Vector>> stream, OnlineCostFunction costFunction, TerminationCriteria terminationCriteria, LearningRate learningRate, WeightUpdate weightUpdater, boolean verbose) {
       final Weights theta = start.copy();
       int iterations = terminationCriteria.maxIterations();
       terminationCriteria.maxIterations(1);
@@ -54,7 +54,7 @@ public class OnlineBatchOptimizer implements OnlineOptimizer {
    }
 
 
-   private static class SubUpdate implements Regularizer, Serializable {
+   private static class SubUpdate implements WeightUpdate, Serializable {
       private static final long serialVersionUID = 1L;
       private Weights gradient;
 

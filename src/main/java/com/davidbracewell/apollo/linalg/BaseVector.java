@@ -12,10 +12,7 @@ import com.davidbracewell.tuple.Tuple2;
 import lombok.NonNull;
 
 import java.io.Serializable;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.PrimitiveIterator;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.DoubleBinaryOperator;
 import java.util.function.DoubleUnaryOperator;
@@ -119,6 +116,18 @@ public abstract class BaseVector implements Vector, Serializable {
    }
 
    @Override
+   public boolean equals(Object obj) {
+      if (obj == null || !(obj instanceof Vector)) {
+         return false;
+      }
+      Vector v2 = Cast.as(obj);
+      return Objects.equals(v2.getLabel(), getLabel())
+                && v2.getPredicted() == getPredicted()
+                && v2.getWeight() == getWeight()
+                && Arrays.equals(v2.toArray(), toArray());
+   }
+
+   @Override
    public void forEachOrderedSparse(@NonNull Consumer<Entry> consumer) {
       Streams.asStream(orderedNonZeroIterator()).forEach(consumer);
    }
@@ -149,6 +158,11 @@ public abstract class BaseVector implements Vector, Serializable {
    @Override
    public double getWeight() {
       return weight;
+   }
+
+   @Override
+   public int hashCode() {
+      return Objects.hash(getLabel(), getPredicted(), getWeight(), toArray());
    }
 
    @Override
@@ -512,6 +526,4 @@ public abstract class BaseVector implements Vector, Serializable {
    public Vector zero() {
       return createNew(dimension());
    }
-
-
 }// END OF BaseVector

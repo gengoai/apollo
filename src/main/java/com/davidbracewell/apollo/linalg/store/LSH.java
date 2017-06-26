@@ -40,8 +40,8 @@ import java.util.function.BiFunction;
  * @author David B. Bracewell
  */
 public abstract class LSH implements Serializable {
-   private static final long serialVersionUID = 1L;
    private static final long LARGE_PRIME = 433494437;
+   private static final long serialVersionUID = 1L;
    @Getter
    private final int bands;
    @Getter
@@ -95,6 +95,49 @@ public abstract class LSH implements Serializable {
       this(bands, buckets, dimension, 0.5, signatureSupplier);
    }
 
+   /**
+    * Adds the given vector with the given vector id to the LSH table
+    *
+    * @param vector   the vector
+    * @param vectorID the vector id
+    */
+   public void add(@NonNull Vector vector, int vectorID) {
+      int[] hash = hash(vector);
+      for (int band = 0; band < bands; band++) {
+         addToTable(band, hash[band], vectorID);
+      }
+   }
+
+   /**
+    * Adds the given vector id to the LSH table.
+    *
+    * @param band   the band
+    * @param bucket the bucket
+    * @param vid    the vector id
+    */
+   protected abstract void addToTable(int band, int bucket, int vid);
+
+   private int[] booleanSignatureHash(final int[] signature) {
+      long[] acc = new long[bands];
+      int rows = signature.length / bands;
+      if (rows == 0) {
+         rows = 1;
+      }
+      for (int index = 0; index < signature.length; index++) {
+         long v = 0;
+         if (signature[index] == 1) {
+            v = (index + 1) * LARGE_PRIME;
+         }
+         int j = Math.min(index / rows, bands - 1);
+         acc[j] = (acc[j] + v) % Integer.MAX_VALUE;
+      }
+
+      int[] hash = new int[bands];
+      for (int i = 0; i < bands; i++) {
+         hash[i] = (int) (acc[i] % buckets);
+      }
+      return hash;
+   }
 
    /**
     * Clears the vectors being stored.
@@ -111,6 +154,44 @@ public abstract class LSH implements Serializable {
    protected abstract IntOpenHashSet get(int band, int bucket);
 
    /**
+    * Gets the measure use to calculate the affinity between query vectors and the vectors in the table
+    *
+    * @return the measure
+    */
+   public Measure getMeasure() {
+      return signatureFunction.getMeasure();
+   }
+
+   /**
+    * Gets optimum associated with the LSH's measure.
+    *
+    * @return the optimum
+    */
+   public Optimum getOptimum() {
+      return signatureFunction.getMeasure().getOptimum();
+   }
+
+   private int[] hash(Vector vector) {
+      if (signatureFunction.isBinary()) {
+         return booleanSignatureHash(signatureFunction.signature(vector));
+      }
+      return intSignatureHash(signatureFunction.signature(vector));
+   }
+
+   private int[] intSignatureHash(final int[] signature) {
+      int[] hash = new int[bands];
+      int rows = signature.length / bands;
+      if (rows == 0) {
+         rows = 1;
+      }
+      for (int index = 0; index < signature.length; index++) {
+         int band = Math.min(index / rows, bands - 1);
+         hash[band] = (int) ((hash[band] + (long) signature[index] * LARGE_PRIME) % buckets);
+      }
+      return hash;
+   }
+
+   /**
     * Gets the ids of vectors close to the given vector
     *
     * @param vector the vector
@@ -120,31 +201,10 @@ public abstract class LSH implements Serializable {
       IntOpenHashSet matches = new IntOpenHashSet();
       int[] hash = hash(vector);
       for (int i = 0; i < bands; i++) {
-         get(i, hash[i]).forEach(matches::add);
+         get(i, hash[i])
+            .forEach(matches::add);
       }
       return matches;
-   }
-
-   /**
-    * Adds the given vector id to the LSH table.
-    *
-    * @param band   the band
-    * @param bucket the bucket
-    * @param vid    the vector id
-    */
-   protected abstract void addToTable(int band, int bucket, int vid);
-
-   /**
-    * Adds the given vector with the given vector id to the LSH table
-    *
-    * @param vector   the vector
-    * @param vectorID the vector id
-    */
-   public void add(@NonNull Vector vector, int vectorID) {
-      int[] hash = hash(vector);
-      for (int band = 0; band < bands; band++) {
-         addToTable(band, hash[band], vectorID);
-      }
    }
 
    /**
@@ -173,67 +233,6 @@ public abstract class LSH implements Serializable {
             get(band, bucket).remove(vectorID);
          }
       }
-   }
-
-   private int[] hash(Vector vector) {
-      if (signatureFunction.isBinary()) {
-         return booleanSignatureHash(signatureFunction.signature(vector));
-      }
-      return intSignatureHash(signatureFunction.signature(vector));
-   }
-
-   private int[] intSignatureHash(final int[] signature) {
-      int[] hash = new int[bands];
-      int rows = signature.length / bands;
-      if (rows == 0) {
-         rows = 1;
-      }
-      for (int index = 0; index < signature.length; index++) {
-         int band = Math.min(index / rows, bands - 1);
-         hash[band] = (int) ((hash[band] + (long) signature[index] * LARGE_PRIME) % buckets);
-      }
-      return hash;
-   }
-
-   private int[] booleanSignatureHash(final int[] signature) {
-      long[] acc = new long[bands];
-      int rows = signature.length / bands;
-      if (rows == 0) {
-         rows = 1;
-      }
-      for (int index = 0; index < signature.length; index++) {
-         long v = 0;
-         if (signature[index] == 1) {
-            v = (index + 1) * LARGE_PRIME;
-         }
-         int j = Math.min(index / rows, bands - 1);
-         acc[j] = (acc[j] + v) % Integer.MAX_VALUE;
-      }
-
-      int[] hash = new int[bands];
-      for (int i = 0; i < bands; i++) {
-         hash[i] = (int) (acc[i] % buckets);
-      }
-      return hash;
-   }
-
-
-   /**
-    * Gets the measure use to calculate the affinity between query vectors and the vectors in the table
-    *
-    * @return the measure
-    */
-   public Measure getMeasure() {
-      return signatureFunction.getMeasure();
-   }
-
-   /**
-    * Gets optimum associated with the LSH's measure.
-    *
-    * @return the optimum
-    */
-   public Optimum getOptimum() {
-      return signatureFunction.getMeasure().getOptimum();
    }
 
    /**
@@ -288,6 +287,21 @@ public abstract class LSH implements Serializable {
       }
 
       /**
+       * Create lsh.
+       *
+       * @return the lsh
+       */
+      public abstract LSH create();
+
+      /**
+       * Create vector store vector store.
+       *
+       * @param <KEY> the type parameter
+       * @return the vector store
+       */
+      public abstract <KEY> VectorStore<KEY> createVectorStore();
+
+      /**
        * Dimension builder.
        *
        * @param dimension the k
@@ -295,17 +309,6 @@ public abstract class LSH implements Serializable {
        */
       public Builder dimension(int dimension) {
          this.dimension = dimension;
-         return this;
-      }
-
-      /**
-       * Threshold builder.
-       *
-       * @param threshold the threshold
-       * @return the builder
-       */
-      public Builder threshold(double threshold) {
-         this.threshold = threshold;
          return this;
       }
 
@@ -332,19 +335,15 @@ public abstract class LSH implements Serializable {
       }
 
       /**
-       * Create lsh.
+       * Threshold builder.
        *
-       * @return the lsh
+       * @param threshold the threshold
+       * @return the builder
        */
-      public abstract LSH create();
-
-      /**
-       * Create vector store vector store.
-       *
-       * @param <KEY> the type parameter
-       * @return the vector store
-       */
-      public abstract <KEY> VectorStore<KEY> createVectorStore();
+      public Builder threshold(double threshold) {
+         this.threshold = threshold;
+         return this;
+      }
 
    }
 

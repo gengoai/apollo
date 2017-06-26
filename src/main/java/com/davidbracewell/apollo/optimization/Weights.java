@@ -113,7 +113,7 @@ public class Weights implements Serializable, Copyable<Weights> {
     * @return the vector
     */
    public Vector dot(Vector v) {
-      return theta.dot(v).addSelf(bias);
+      return theta.dot(v).column(0).copy().addSelf(bias);
    }
 
    /**

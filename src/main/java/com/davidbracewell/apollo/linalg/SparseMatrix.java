@@ -27,7 +27,6 @@ import lombok.NonNull;
 import org.apache.commons.math3.linear.OpenMapRealMatrix;
 import org.apache.commons.math3.linear.RealMatrix;
 
-import java.io.Serializable;
 import java.util.*;
 import java.util.stream.IntStream;
 
@@ -36,7 +35,7 @@ import java.util.stream.IntStream;
  *
  * @author David B. Bracewell
  */
-public class SparseMatrix implements Matrix, Serializable {
+public class SparseMatrix extends BaseMatrix {
    private static final long serialVersionUID = -3802597548916836308L;
    /**
     * The Matrix.
@@ -143,9 +142,9 @@ public class SparseMatrix implements Matrix, Serializable {
     */
    public static Matrix random(int numberOfRows, int numberOfColumns) {
       Matrix m = new SparseMatrix(numberOfRows, numberOfColumns);
-      for( int r = 0; r < numberOfRows; r++ ){
-         for( int c = 0; c < numberOfColumns; c++){
-            m.set(r,c, Math.random());
+      for (int r = 0; r < numberOfRows; r++) {
+         for (int c = 0; c < numberOfColumns; c++) {
+            m.set(r, c, Math.random());
          }
       }
       return m;
@@ -191,6 +190,11 @@ public class SparseMatrix implements Matrix, Serializable {
    }
 
    @Override
+   protected Matrix createNew(int numRows, int numColumns) {
+      return new SparseMatrix(numRows, numColumns);
+   }
+
+   @Override
    public boolean equals(Object o) {
       if (o == null || !(o instanceof Matrix)) {
          return false;
@@ -214,10 +218,6 @@ public class SparseMatrix implements Matrix, Serializable {
       return matrix.getEntry(row, column);
    }
 
-   @Override
-   public MatrixFactory getFactory() {
-      return SparseMatrix::new;
-   }
 
    @Override
    public Matrix increment(int row, int col, double amount) {

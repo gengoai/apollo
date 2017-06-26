@@ -6,14 +6,12 @@ import lombok.NonNull;
 import org.jblas.ComplexDouble;
 import org.jblas.DoubleMatrix;
 
-import java.io.Serializable;
-
 /**
  * The type Dense matrix.
  *
  * @author David B. Bracewell
  */
-public class DenseMatrix implements Matrix, Serializable {
+public class DenseMatrix extends BaseMatrix {
    private static final long serialVersionUID = 1L;
    /**
     * The Matrix.
@@ -130,11 +128,16 @@ public class DenseMatrix implements Matrix, Serializable {
    }
 
    @Override
+   public Matrix T() {
+      return new DenseMatrix(matrix.transpose());
+   }
+
+   @Override
    public Matrix add(@NonNull Matrix m) {
       if (m instanceof DenseMatrix) {
          return new DenseMatrix(matrix.add(m.toDense().matrix));
       }
-      return Matrix.super.add(m);
+      return super.add(m);
    }
 
    @Override
@@ -145,7 +148,7 @@ public class DenseMatrix implements Matrix, Serializable {
       if (other instanceof DenseMatrix) {
          matrix.addi(other.toDense().matrix);
       } else {
-         Matrix.super.addSelf(other);
+         super.addSelf(other);
       }
       return this;
    }
@@ -157,6 +160,11 @@ public class DenseMatrix implements Matrix, Serializable {
    @Override
    public Matrix copy() {
       return new DenseMatrix(toArray());
+   }
+
+   @Override
+   protected Matrix createNew(int numRows, int numColumns) {
+      return new DenseMatrix(numRows, numColumns);
    }
 
    @Override
@@ -176,15 +184,9 @@ public class DenseMatrix implements Matrix, Serializable {
       return true;
    }
 
-
    @Override
    public double get(int row, int column) {
       return matrix.get(row, column);
-   }
-
-   @Override
-   public MatrixFactory getFactory() {
-      return DenseMatrix::new;
    }
 
    @Override
@@ -199,9 +201,10 @@ public class DenseMatrix implements Matrix, Serializable {
       return this;
    }
 
+
    @Override
-   public boolean isSparse() {
-      return false;
+   public boolean isDense() {
+      return true;
    }
 
    @Override
@@ -234,7 +237,7 @@ public class DenseMatrix implements Matrix, Serializable {
       if (other instanceof DenseMatrix) {
          matrix.muli(other.toDense().matrix);
       } else {
-         Matrix.super.scaleSelf(other);
+         super.scaleSelf(other);
       }
       return this;
    }
@@ -250,7 +253,7 @@ public class DenseMatrix implements Matrix, Serializable {
       if (m instanceof DenseMatrix) {
          return new DenseMatrix(matrix.sub(m.toDense().matrix));
       }
-      return Matrix.super.subtract(m);
+      return super.subtract(m);
    }
 
    @Override
@@ -261,7 +264,7 @@ public class DenseMatrix implements Matrix, Serializable {
       if (other instanceof DenseMatrix) {
          matrix.subi(other.toDense().matrix);
       } else {
-         Matrix.super.subtractSelf(other);
+         super.subtractSelf(other);
       }
       return this;
    }
@@ -294,11 +297,6 @@ public class DenseMatrix implements Matrix, Serializable {
       return builder
                 .append("]")
                 .toString();
-   }
-
-   @Override
-   public Matrix T() {
-      return new DenseMatrix(matrix.transpose());
    }
 
 }// END OF DenseMatrix

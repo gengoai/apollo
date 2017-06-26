@@ -158,7 +158,10 @@ public class SparseVector extends BaseVector {
 
    @Override
    public Vector copy() {
-      return new SparseVector(this);
+      return new SparseVector(this)
+                .setLabel(getLabel())
+                .setWeight(getWeight())
+                .setPredicted(getPredicted());
    }
 
    @Override

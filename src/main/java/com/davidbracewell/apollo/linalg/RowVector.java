@@ -24,7 +24,10 @@ class RowVector extends BaseVector {
 
    @Override
    public Vector copy() {
-      return new DenseVector(toArray());
+      return new DenseVector(toArray())
+                .setLabel(getLabel())
+                .setWeight(getWeight())
+                .setPredicted(getPredicted());
    }
 
    @Override

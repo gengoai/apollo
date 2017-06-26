@@ -35,6 +35,7 @@ public abstract class BaseVector implements Vector, Serializable {
    private double weight;
    private double predicted;
 
+
    @Override
    public Vector add(@NonNull Vector rhs) {
       return copy().addSelf(rhs);

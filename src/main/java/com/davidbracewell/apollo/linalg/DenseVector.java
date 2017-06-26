@@ -163,7 +163,10 @@ public class DenseVector extends BaseVector {
 
    @Override
    public Vector copy() {
-      return new DenseVector(this);
+      return new DenseVector(this)
+                .setLabel(getLabel())
+                .setWeight(getWeight())
+                .setPredicted(getPredicted());
    }
 
    @Override

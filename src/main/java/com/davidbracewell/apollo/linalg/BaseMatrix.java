@@ -27,7 +27,7 @@ public abstract class BaseMatrix implements Matrix, Serializable {
 
    @Override
    public Matrix T() {
-      final Matrix transposed = createNew(numberOfRows(), numberOfColumns());
+      final Matrix transposed = createNew(numberOfColumns(), numberOfRows());
       forEachSparse(e -> transposed.set(e.column, e.row, e.value));
       return transposed;
    }
@@ -106,7 +106,6 @@ public abstract class BaseMatrix implements Matrix, Serializable {
       return increment(row, col, -1);
    }
 
-
    @Override
    public Matrix diag() {
       final Matrix m = createNew(numberOfRows(), numberOfColumns());
@@ -143,6 +142,20 @@ public abstract class BaseMatrix implements Matrix, Serializable {
          dot.set(r, 0, row(r).dot(matrix.row(r)));
       }
       return dot;
+   }
+
+   @Override
+   public Matrix ebeMultiply(Matrix matrix) {
+      return copy().ebeMultiplySelf(matrix);
+   }
+
+   @Override
+   public Matrix ebeMultiplySelf(Matrix matrix) {
+      Preconditions.checkArgument(shape().equals(matrix.shape()), "Dimension mismatch");
+      for (int r = 0; r < numberOfRows(); r++) {
+         row(r).multiplySelf(matrix.row(r));
+      }
+      return this;
    }
 
    @Override

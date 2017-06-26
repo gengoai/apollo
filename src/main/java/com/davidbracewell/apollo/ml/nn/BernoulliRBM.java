@@ -1,9 +1,12 @@
 package com.davidbracewell.apollo.ml.nn;
 
+import com.davidbracewell.apollo.affinity.Distance;
+import com.davidbracewell.apollo.affinity.Measure;
 import com.davidbracewell.apollo.linalg.*;
 import com.davidbracewell.apollo.optimization.activation.SigmoidActivation;
 import org.apache.commons.math3.util.FastMath;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -11,7 +14,8 @@ import java.util.Random;
 /**
  * @author David B. Bracewell
  */
-public class BernoulliRBM implements Layer {
+public class BernoulliRBM implements Serializable {
+   private static final long serialVersionUID = 1L;
    int nV;
    int nH;
    Matrix W;
@@ -33,49 +37,31 @@ public class BernoulliRBM implements Layer {
       v.add(new SparseVector(6).set(2, 1).set(4, 1));
       v.add(new SparseVector(6).set(2, 1).set(3, 1).set(4, 1));
       rbm.train(v);
-      System.out.println(rbm.W.row(0));
-      System.out.println(rbm.W.column(0));
+      Measure m = Distance.KLDivergence;
       for (Vector vector : v) {
          Vector hid = rbm.runVisible(vector);
          Vector pred = rbm.runHidden(hid);
-         System.err.println(vector + " : " + pred);
+         System.err.println(m.calculate(vector, pred));
       }
 
       rbm.runVisible(new SparseVector(6).set(3, 1).set(4, 1));
    }
 
-   @Override
-   public Matrix forward(Matrix input) {
-      return new SparseMatrix(1, runVisible(input.row(0)));
-   }
-
-   @Override
-   public int getInputSize() {
-      return nV;
-   }
 
    public int getNumHidden() {
       return nH;
    }
 
-   @Override
-   public int getOutputSize() {
-      return nV;
-   }
-
-   @Override
    public void init(int nIn) {
       this.nV = nIn;
       this.W = SparseMatrix.random(nV + 1, nH + 1);
    }
 
-   @Override
    public void init(int nIn, int nOut) {
       this.nH = nOut;
       init(nIn);
    }
 
-   @Override
    public void reset() {
       this.W = SparseMatrix.random(nV + 1, nH + 1);
    }

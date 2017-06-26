@@ -30,4 +30,6 @@ public class StepActivation implements Activation {
    public double apply(double x) {
       return x > threshold ? 1 : 0;
    }
+
+
 }// END OF StepActivation

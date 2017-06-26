@@ -7,16 +7,8 @@ import com.davidbracewell.apollo.linalg.Matrix;
  */
 public interface Layer {
 
-   Matrix forward(Matrix input);
+   Matrix backward(Matrix m);
 
-   int getInputSize();
-
-   int getOutputSize();
-
-   void init(int nIn);
-
-   void init(int nIn, int nOut);
-
-   void reset();
+   Matrix forward(Matrix m);
 
 }//END OF Layer

@@ -10,11 +10,11 @@ import com.davidbracewell.apollo.linalg.Vector;
 public interface OnlineCostFunction {
 
    /**
-    * Observe loss gradient tuple.
+    * Observe loss valueGradient tuple.
     *
     * @param next    the next
     * @param weights the weights
-    * @return the loss gradient tuple
+    * @return the loss valueGradient tuple
     */
    CostGradientTuple observe(Vector next, Weights weights);
 

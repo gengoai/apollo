@@ -1,5 +1,6 @@
 package com.davidbracewell.apollo.optimization.activation;
 
+import com.davidbracewell.apollo.linalg.Matrix;
 import com.davidbracewell.apollo.linalg.Vector;
 import lombok.NonNull;
 
@@ -29,6 +30,7 @@ public interface Activation extends Serializable {
    default Vector apply(@NonNull Vector x) {
       return x.map(this::apply);
    }
+
 
    /**
     * Is probabilistic boolean.

@@ -13,4 +13,5 @@ public class LinearActivation implements Activation {
       return x;
    }
 
+
 }// END OF LinearActivation

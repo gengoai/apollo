@@ -149,9 +149,13 @@ public interface Matrix extends Copyable<Matrix>, Iterable<Matrix.Entry> {
     * @param vector the vector
     * @return the vector
     */
-   Matrix dot(@NonNull Vector vector);
+   Matrix dot(Vector vector);
 
-   Matrix dot(@NonNull Matrix matrix);
+   Matrix dot(Matrix matrix);
+
+   Matrix ebeMultiply(Matrix matrix);
+
+   Matrix ebeMultiplySelf(Matrix matrix);
 
    /**
     * For each column.

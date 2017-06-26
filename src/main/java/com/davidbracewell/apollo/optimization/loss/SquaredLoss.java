@@ -14,7 +14,7 @@ public class SquaredLoss implements LossFunction, Serializable {
 
    @Override
    public double derivative(double predictedValue, double trueValue) {
-      return predictedValue - trueValue;
+      return 2.0 * (predictedValue - trueValue);
    }
 
    @Override

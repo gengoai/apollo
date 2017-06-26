@@ -31,18 +31,18 @@ public class HingeLoss implements LossFunction, Serializable {
 
    @Override
    public double derivative(double predictedValue, double trueValue) {
-      trueValue = trueValue == 0 ? -1 : 1;
-      predictedValue = predictedValue == 0 ? -1 : 1;
-      if (trueValue * predictedValue > threshold) {
-         return 0;
+      trueValue = trueValue <= 0 ? -1 : 1;
+      predictedValue = predictedValue <= 0 ? -1 : 1;
+      if (trueValue * predictedValue < threshold) {
+         return -trueValue;
       }
-      return -trueValue;
+      return 0;
    }
 
    @Override
    public double loss(double predictedValue, double trueValue) {
-      trueValue = trueValue == 0 ? -1 : 1;
-      predictedValue = predictedValue == 0 ? -1 : 1;
+      trueValue = trueValue <= 0 ? -1 : 1;
+      predictedValue = predictedValue <= 0 ? -1 : 1;
       return FastMath.max(0, threshold - trueValue * predictedValue);
    }
 }// END OF HingeLoss

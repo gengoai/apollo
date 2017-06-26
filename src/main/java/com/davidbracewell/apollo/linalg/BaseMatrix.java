@@ -159,6 +159,23 @@ public abstract class BaseMatrix implements Matrix, Serializable {
    }
 
    @Override
+   public boolean equals(Object o) {
+      if (o == null || !(o instanceof Matrix)) {
+         return false;
+      }
+      Matrix mo = Cast.as(o);
+      if (!shape().equals(mo.shape())) {
+         return false;
+      }
+      for (int i = 0; i < numberOfRows(); i++) {
+         if (!row(i).equals(mo.row(i))) {
+            return false;
+         }
+      }
+      return true;
+   }
+
+   @Override
    public void forEachColumn(@NonNull Consumer<Vector> consumer) {
       columnIterator().forEachRemaining(consumer);
    }
@@ -167,7 +184,6 @@ public abstract class BaseMatrix implements Matrix, Serializable {
    public void forEachOrderedSparse(@NonNull Consumer<Matrix.Entry> consumer) {
       orderedNonZeroIterator().forEachRemaining(consumer);
    }
-
 
    @Override
    public void forEachRow(@NonNull Consumer<Vector> consumer) {
@@ -183,7 +199,6 @@ public abstract class BaseMatrix implements Matrix, Serializable {
    public Matrix increment(double value) {
       return copy().incrementSelf(value);
    }
-
 
    @Override
    public Matrix increment(int row, int col) {
@@ -522,4 +537,23 @@ public abstract class BaseMatrix implements Matrix, Serializable {
       return new DenseMatrix(this);
    }
 
+   @Override
+   public String toString() {
+      if (numberOfRows() > 10 || numberOfColumns() > 10) {
+         return numberOfRows() + "x" + numberOfColumns();
+      }
+      StringBuilder builder = new StringBuilder("[ ");
+      for (int row = 0; row < numberOfRows(); row++) {
+         builder.append("[ ");
+         for (int col = 0; col < numberOfColumns(); col++) {
+            builder
+               .append(get(row, col))
+               .append(", ");
+         }
+         builder.append("] ");
+      }
+      return builder
+                .append("]")
+                .toString();
+   }
 }// END OF BaseMatrix

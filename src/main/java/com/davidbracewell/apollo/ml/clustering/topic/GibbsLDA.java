@@ -2,6 +2,7 @@ package com.davidbracewell.apollo.ml.clustering.topic;
 
 import com.davidbracewell.apollo.affinity.Similarity;
 import com.davidbracewell.apollo.distribution.ConditionalMultinomial;
+import com.davidbracewell.apollo.linalg.Matrix;
 import com.davidbracewell.apollo.linalg.SparseVector;
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.clustering.Cluster;
@@ -59,6 +60,7 @@ public class GibbsLDA extends Clusterer<LDAModel> {
    private ConditionalMultinomial nd;
    private int V;
    private int M;
+   private Matrix documentMatrix;
    private int[][] documents;
    private int[][] z;
    private Vector[] thetasum;
@@ -66,8 +68,8 @@ public class GibbsLDA extends Clusterer<LDAModel> {
    private int numstats = 0;
 
    @Override
-   public LDAModel cluster(@NonNull MStream<Vector> instanceStrream) {
-      List<Vector> instances = instanceStrream.collect();
+   public LDAModel cluster(@NonNull MStream<Vector> instanceStream) {
+      List<Vector> instances = instanceStream.collect();
       V = getEncoderPair().numberOfFeatures();
       M = instances.size();
 

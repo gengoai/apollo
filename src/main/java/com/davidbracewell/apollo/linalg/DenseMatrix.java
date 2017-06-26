@@ -1,6 +1,5 @@
 package com.davidbracewell.apollo.linalg;
 
-import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.guava.common.base.Preconditions;
 import lombok.NonNull;
 import org.jblas.ComplexDouble;
@@ -168,23 +167,6 @@ public class DenseMatrix extends BaseMatrix {
    }
 
    @Override
-   public boolean equals(Object o) {
-      if (o == null || !(o instanceof Matrix)) {
-         return false;
-      }
-      Matrix mo = Cast.as(o);
-      if (!shape().equals(((Matrix) o).shape())) {
-         return false;
-      }
-      for (int i = 0; i < numberOfRows(); i++) {
-         if (!row(i).equals(mo.row(i))) {
-            return false;
-         }
-      }
-      return true;
-   }
-
-   @Override
    public double get(int row, int column) {
       return matrix.get(row, column);
    }
@@ -279,24 +261,5 @@ public class DenseMatrix extends BaseMatrix {
       return this;
    }
 
-   @Override
-   public String toString() {
-      if (numberOfRows() > 10 || numberOfColumns() > 10) {
-         return numberOfRows() + "x" + numberOfColumns();
-      }
-      StringBuilder builder = new StringBuilder("[ ");
-      for (int row = 0; row < numberOfRows(); row++) {
-         builder.append("[ ");
-         for (int col = 0; col < numberOfColumns(); col++) {
-            builder
-               .append(get(row, col))
-               .append(", ");
-         }
-         builder.append("] ");
-      }
-      return builder
-                .append("]")
-                .toString();
-   }
 
 }// END OF DenseMatrix

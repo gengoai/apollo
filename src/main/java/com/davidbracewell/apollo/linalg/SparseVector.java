@@ -74,6 +74,9 @@ public class SparseVector extends BaseVector {
          Vector.Entry de = itr.next();
          this.map.put(de.index, de.value);
       }
+      setLabel(vector.getLabel());
+      setWeight(vector.getWeight());
+      setPredicted(vector.getPredicted());
    }
 
    /**

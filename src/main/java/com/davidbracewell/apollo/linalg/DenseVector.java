@@ -70,6 +70,9 @@ public class DenseVector extends BaseVector {
     */
    public DenseVector(@NonNull Vector vector) {
       this(vector.toArray());
+      setLabel(vector.getLabel());
+      setWeight(vector.getWeight());
+      setPredicted(vector.getPredicted());
    }
 
    /**

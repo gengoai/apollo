@@ -1,22 +1,22 @@
 package com.davidbracewell.apollo.ml.nn;
 
-import com.davidbracewell.apollo.linalg.Matrix;
+import com.davidbracewell.apollo.linalg.Vector;
 
 /**
  * @author David B. Bracewell
  */
 public interface Layer {
 
-   Matrix backward(Matrix m);
+   Vector backward(Vector predicted, Vector actual);
 
-   Matrix forward(Matrix m);
+   Layer connect(Layer source);
 
-   Layer setInputDimension(int dimension);
+   Vector forward(Vector m);
 
    int getInputDimension();
 
-   int getOutputDimension();
+   Layer setInputDimension(int dimension);
 
-   Layer connect(Layer source);
+   int getOutputDimension();
 
 }//END OF Layer

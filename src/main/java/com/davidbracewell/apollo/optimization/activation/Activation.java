@@ -32,6 +32,11 @@ public interface Activation extends Serializable {
    }
 
 
+   default Matrix apply(@NonNull Matrix m) {
+      return m.mapRow(this::apply);
+   }
+
+
    /**
     * Is probabilistic boolean.
     *

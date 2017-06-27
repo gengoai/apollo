@@ -1,21 +1,18 @@
 package com.davidbracewell.apollo.ml.nn;
 
-import com.davidbracewell.apollo.linalg.DenseMatrix;
-import com.davidbracewell.apollo.linalg.Matrix;
-import com.davidbracewell.apollo.linalg.SparseVector;
+import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.classification.Classifier;
 import com.davidbracewell.apollo.ml.classification.ClassifierLearner;
 import com.davidbracewell.apollo.ml.data.Dataset;
+import com.davidbracewell.apollo.optimization.activation.DifferentiableActivation;
 import com.davidbracewell.apollo.optimization.activation.SigmoidActivation;
 import com.davidbracewell.apollo.optimization.loss.LogLoss;
 import com.davidbracewell.apollo.optimization.loss.LossFunction;
-import com.davidbracewell.collection.list.Lists;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -26,17 +23,17 @@ public class SequentialNetworkLearner extends ClassifierLearner {
    @Setter
    private LossFunction lossFunction = new LogLoss();
    @Getter
-   private List<Layer> layers = new ArrayList<>();
+   private List<Layer> layerConfiguration = new ArrayList<>();
    @Getter
    @Setter
    private int maxIterations = 100;
    @Getter
    @Setter
-   private ActivationLayer outputLayer = new ActivationLayer(new SigmoidActivation());
+   private DifferentiableActivation outputActivation = new SigmoidActivation();
 
 
    public SequentialNetworkLearner add(Layer layer) {
-      layers.add(layer);
+      layerConfiguration.add(layer);
       return this;
    }
 
@@ -48,50 +45,55 @@ public class SequentialNetworkLearner extends ClassifierLearner {
    @Override
    protected Classifier trainImpl(Dataset<Instance> dataset) {
       SequentialNetwork model = new SequentialNetwork(this);
-      model.layers = new Layer[layers.size() + 2];
-      System.arraycopy(layers.toArray(new Layer[1]), 0, model.layers, 0, layers.size());
+
+      final int numberOfLayers = layerConfiguration.size() + 1;
+
+      model.layers = new Layer[numberOfLayers];
+      System.arraycopy(layerConfiguration.toArray(new Layer[1]), 0, model.layers, 0, numberOfLayers - 1);
       model.layers[0].setInputDimension(dataset.getFeatureEncoder().size());
-      for (int i = 1; i < layers.size(); i++) {
+      model.layers[numberOfLayers - 1] = new DenseLayer(outputActivation, dataset.getLabelEncoder().size());
+      for (int i = 1; i < numberOfLayers; i++) {
          model.layers[i].connect(model.layers[i - 1]);
       }
-      model.layers[layers.size()] = new DenseLayer(dataset.getLabelEncoder().size());
-      model.layers[layers.size()].connect(model.layers[layers.size() - 1]);
-      model.layers[layers.size() + 1] = outputLayer;
-      model.layers[layers.size() + 1].connect(model.layers[layers.size()]);
 
 
-      Matrix data = dataset.toDenseMatrix();
       int nL = dataset.getLabelEncoder().size();
-      Matrix y = DenseMatrix.zeroes(dataset.size(), nL);
-      int index = 0;
-      for (Instance instance : dataset) {
-         y.setRow(index, SparseVector.zeros(nL).set((int) dataset.getLabelEncoder().encode(instance.getLabel()), 1));
-         index++;
-      }
-      List<Layer> allLayers = Lists.union(layers, Collections.singletonList(outputLayer));
+      List<Vector> data = dataset.asVectors().collect();
+
+      final Layer OUTPUT_LAYER = model.layers[numberOfLayers - 1];
 
       for (int iteration = 0; iteration < maxIterations; iteration++) {
-         Matrix m = data;
+         double totalLoss = 0;
+         for (int di = 0; di < data.size(); di++) {
+            Vector m = data.get(di);
+            Vector y = Vector.sZeros(nL).set((int) m.getLabelAsDouble(), 1);
+            Vector[] layerOutput = new Vector[numberOfLayers];
+            for (int i = 0; i < numberOfLayers; i++) {
+               Layer layer = model.layers[i];
+               layerOutput[i] = layer.forward(m);
+               m = layerOutput[i];
+            }
 
-         Matrix[] steps = new Matrix[layers.size()];
-         for (int i = 0; i < layers.size(); i++) {
-            Layer layer = layers.get(i);
-            steps[i] = layer.forward(m);
-            m = steps[i];
+            Vector output = layerOutput[numberOfLayers - 1];
+            totalLoss += lossFunction.loss(y, output);
+            Vector delta = OUTPUT_LAYER.backward(output, y);
+
+//            double factor = layerOutput[numberOfLayers - 1]
+//                               .multiply(
+//                                  model.layers[numberOfLayers - 1]
+//                                     .backward(layerOutput[numberOfLayers - 1], y).T())
+//                               .get(0, 0);
+
+            for (int i = numberOfLayers - 2; i >= 0; i--) {
+               Layer layer = model.layers[i];
+               output = i > 0 ? layerOutput[i - 1] : m;
+               totalLoss += lossFunction.loss(output, delta);
+               delta = layer.backward(output, delta);
+            }
          }
-
-         Matrix totalError = DenseMatrix.zeroes(data.numberOfRows(), nL);
-         Matrix error = y.subtract(steps[layers.size() - 1]).mapSelf(d -> 0.5 * (d * d));
-
-         for (int i = layers.size() - 1; i >= 0; i--) {
-            Layer layer = layers.get(i);
-
-         }
-
+         System.out.println(totalLoss);
       }
 
-      SequentialNetwork ffn = new SequentialNetwork(this);
-      ffn.layers = allLayers.toArray(new Layer[1]);
-      return ffn;
+      return model;
    }
 }// END OF SequentialNetworkLearner

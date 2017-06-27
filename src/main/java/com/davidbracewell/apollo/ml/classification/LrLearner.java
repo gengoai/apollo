@@ -6,6 +6,9 @@ import com.davidbracewell.apollo.ml.Feature;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.ml.data.source.DenseCSVDataSource;
+import com.davidbracewell.apollo.ml.nn.DenseLayer;
+import com.davidbracewell.apollo.ml.nn.SequentialNetworkLearner;
+import com.davidbracewell.apollo.optimization.activation.SigmoidActivation;
 import com.davidbracewell.io.Resources;
 import com.davidbracewell.io.resource.Resource;
 
@@ -37,6 +40,16 @@ public class LrLearner extends BinaryClassifierLearner {
 //                      10
 //                     )
 //         .output(System.out);
+
+      crossValidation(dataset,
+                      () -> {
+                         SequentialNetworkLearner learner = new SequentialNetworkLearner();
+                         learner.add(new DenseLayer(new SigmoidActivation(), 5));
+                         return learner;
+                      },
+                      10
+                     ).output(System.out);
+
 
       crossValidation(dataset,
                       () -> BinarySGDLearner.logisticRegression().oneVsRest().setParameter("normalize", true),

@@ -26,22 +26,8 @@ public class SoftmaxActivation implements DifferentiableActivation {
    }
 
    @Override
-   public Vector valueGradient(@NonNull Vector predicted, @NonNull Vector actual) {
-      Vector gradient = new DenseVector(predicted.dimension());
-      for (int i = 0; i < predicted.dimension(); i++) {
-         double derivative = 0;
-         double predictedValue = predicted.get(i);
-         for (int j = 0; j < actual.dimension(); j++) {
-            double actualValue = actual.get(j);
-            if (i == j) {
-               derivative += actualValue * predictedValue * (1.0 - predictedValue);
-            } else {
-               derivative += actualValue * (-predictedValue * predictedValue);
-            }
-         }
-         gradient.set(i, derivative);
-      }
-      return gradient;
+   public boolean isProbabilistic() {
+      return true;
    }
 
    @Override
@@ -69,8 +55,22 @@ public class SoftmaxActivation implements DifferentiableActivation {
    }
 
    @Override
-   public boolean isProbabilistic() {
-      return true;
+   public Vector valueGradient(@NonNull Vector predicted, @NonNull Vector actual) {
+      Vector gradient = new DenseVector(predicted.dimension());
+      for (int i = 0; i < predicted.dimension(); i++) {
+         double derivative = 0;
+         double predictedValue = predicted.get(i);
+         for (int j = 0; j < actual.dimension(); j++) {
+            double actualValue = actual.get(j);
+            if (i == j) {
+               derivative += actualValue * predictedValue * (1.0 - predictedValue);
+            } else {
+               derivative += actualValue * (-predictedValue * predictedValue);
+            }
+         }
+         gradient.set(i, derivative);
+      }
+      return gradient;
    }
 
 }// END OF SoftmaxActivation

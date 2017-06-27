@@ -1,6 +1,5 @@
 package com.davidbracewell.apollo.ml.nn;
 
-import com.davidbracewell.apollo.linalg.Matrix;
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.classification.Classification;
 import com.davidbracewell.apollo.ml.classification.Classifier;
@@ -28,11 +27,11 @@ public class SequentialNetwork extends Classifier {
 
    @Override
    public Classification classify(Vector vector) {
-      Matrix m = vector.toMatrix();
+      Vector m = vector;
       for (Layer layer : layers) {
          m = layer.forward(m);
       }
-      return createResult(m.row(0).toArray());
+      return createResult(m.toArray());
    }
 
 }// END OF SequentialNetwork

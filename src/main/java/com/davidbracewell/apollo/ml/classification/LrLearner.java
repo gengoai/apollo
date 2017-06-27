@@ -6,8 +6,6 @@ import com.davidbracewell.apollo.ml.Feature;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.ml.data.source.DenseCSVDataSource;
-import com.davidbracewell.apollo.optimization.BottouLearningRate;
-import com.davidbracewell.apollo.optimization.update.L1Regularizer;
 import com.davidbracewell.io.Resources;
 import com.davidbracewell.io.resource.Resource;
 
@@ -30,20 +28,20 @@ public class LrLearner extends BinaryClassifierLearner {
       Dataset<Instance> dataset = Dataset.classification()
                                          .source(dataSource)
                                          .shuffle(new Random(1234));
-      crossValidation(dataset,
-                      () -> new SoftmaxLearner()
-                               .setParameter("learningRate",
-                                             new BottouLearningRate(0.1, 0.001))
-                               .setParameter("weightUpdater", new L1Regularizer(0.001))
-                               .setParameter("batchSize", 0),
-                      10
-                     )
-         .output(System.out);
-
 //      crossValidation(dataset,
-//                      () -> BinarySGDLearner.logisticRegression().oneVsRest().setParameter("normalize", true),
+//                      () -> new SoftmaxLearner()
+//                               .setParameter("learningRate",
+//                                             new BottouLearningRate(0.1, 0.001))
+//                               .setParameter("weightUpdater", new L1Regularizer(0.001))
+//                               .setParameter("batchSize", 0),
 //                      10
-//                     ).output(System.out);
+//                     )
+//         .output(System.out);
+
+      crossValidation(dataset,
+                      () -> BinarySGDLearner.logisticRegression().oneVsRest().setParameter("normalize", true),
+                      10
+                     ).output(System.out);
 //
 //      crossValidation(dataset,
 //                      () -> BinarySGDLearner

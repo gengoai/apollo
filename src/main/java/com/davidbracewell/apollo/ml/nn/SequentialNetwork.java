@@ -11,7 +11,7 @@ import com.davidbracewell.apollo.ml.classification.ClassifierLearner;
  *
  * @author David B. Bracewell
  */
-public class FeedForwardNetwork extends Classifier {
+public class SequentialNetwork extends Classifier {
    /**
     * The Layers.
     */
@@ -22,7 +22,7 @@ public class FeedForwardNetwork extends Classifier {
     *
     * @param learner the learner
     */
-   protected FeedForwardNetwork(ClassifierLearner learner) {
+   protected SequentialNetwork(ClassifierLearner learner) {
       super(learner);
    }
 
@@ -35,4 +35,4 @@ public class FeedForwardNetwork extends Classifier {
       return createResult(m.row(0).toArray());
    }
 
-}// END OF FeedForwardNetwork
+}// END OF SequentialNetwork

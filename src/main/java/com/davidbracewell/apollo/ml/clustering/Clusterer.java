@@ -10,6 +10,8 @@ import com.davidbracewell.stream.MStream;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.Map;
+
 /**
  * <p>Base class for clusterer learners.</p>
  *
@@ -45,5 +47,13 @@ public abstract class Clusterer<T extends Clustering> extends Learner<Instance, 
       return cluster(dataset.asVectors());
    }
 
+   @Override
+   public Clusterer<T> setParameters(Map<String, Object> parameters) {
+      return Cast.as(super.setParameters(parameters));
+   }
 
+   @Override
+   public Clusterer<T> setParameter(String name, Object value) {
+      return Cast.as(super.setParameter(name, value));
+   }
 }// END OF Clusterer

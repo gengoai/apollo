@@ -11,4 +11,12 @@ public interface Layer {
 
    Matrix forward(Matrix m);
 
+   Layer setInputDimension(int dimension);
+
+   int getInputDimension();
+
+   int getOutputDimension();
+
+   Layer connect(Layer source);
+
 }//END OF Layer

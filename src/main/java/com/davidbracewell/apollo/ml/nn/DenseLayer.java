@@ -53,7 +53,8 @@ public class DenseLayer implements Layer {
    @Override
    public Layer setInputDimension(int dimension) {
       this.inputDimension = dimension;
-      this.weights = DenseMatrix.random(outputDimension, inputDimension, -1, 1);
+      double wr = 1.0 / Math.sqrt(6.0 / outputDimension + dimension);
+      this.weights = DenseMatrix.random(outputDimension, inputDimension, -wr, wr);
       return this;
    }
 }// END OF DenseLayer

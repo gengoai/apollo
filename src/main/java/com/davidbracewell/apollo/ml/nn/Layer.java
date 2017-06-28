@@ -14,6 +14,8 @@ public interface Layer {
 
    Vector forward(Vector m);
 
+   Vector getBias();
+
    int getInputDimension();
 
    Layer setInputDimension(int dimension);

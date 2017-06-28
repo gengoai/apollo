@@ -16,6 +16,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -29,7 +30,7 @@ public class SequentialNetworkLearner extends ClassifierLearner {
    private List<Layer> layerConfiguration = new ArrayList<>();
    @Getter
    @Setter
-   private int maxIterations = 500;
+   private int maxIterations = 100;
    @Getter
    @Setter
    private DifferentiableActivation outputActivation = new SoftmaxActivation();
@@ -66,6 +67,7 @@ public class SequentialNetworkLearner extends ClassifierLearner {
       double eta = getLearningRate().getInitialRate();
       int n = 0;
       for (int iteration = 1; iteration <= maxIterations; iteration++) {
+         Collections.shuffle(data);
          for (Vector input : data) {
             n++;
             eta = learningRate.get(eta, iteration, n);
@@ -100,6 +102,7 @@ public class SequentialNetworkLearner extends ClassifierLearner {
                Matrix Wi = model.layers[i].getWeights();
                Vector ai = (i == 0) ? input : a[i - 1];
                Wi.subtractSelf(d[i].transpose().multiply(ai.toMatrix()).scaleSelf(eta));
+               model.layers[i].getBias().subtractSelf(d[i].mapMultiply(eta));
             }
          }
       }

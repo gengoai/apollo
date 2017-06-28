@@ -2,6 +2,7 @@ package com.davidbracewell.apollo.ml.nn;
 
 import com.davidbracewell.apollo.linalg.DenseMatrix;
 import com.davidbracewell.apollo.linalg.Matrix;
+import com.davidbracewell.apollo.linalg.SparseVector;
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.optimization.activation.DifferentiableActivation;
 
@@ -13,6 +14,7 @@ public class DenseLayer implements Layer {
    private final int outputDimension;
    private int inputDimension;
    private Matrix weights;
+   private Vector bias;
 
    public DenseLayer(DifferentiableActivation activation, int outputDimension) {
       this.activation = activation;
@@ -32,7 +34,7 @@ public class DenseLayer implements Layer {
 
    @Override
    public Vector forward(Vector m) {
-      return activation.apply(weights.dot(m).column(0));
+      return activation.apply(weights.dot(m).column(0).add(bias));
    }
 
    @Override
@@ -54,7 +56,13 @@ public class DenseLayer implements Layer {
    public Layer setInputDimension(int dimension) {
       this.inputDimension = dimension;
       double wr = 1.0 / Math.sqrt(6.0 / outputDimension + dimension);
+      this.bias = new SparseVector(outputDimension);
       this.weights = DenseMatrix.random(outputDimension, inputDimension, -wr, wr);
       return this;
+   }
+
+   @Override
+   public Vector getBias() {
+      return bias;
    }
 }// END OF DenseLayer

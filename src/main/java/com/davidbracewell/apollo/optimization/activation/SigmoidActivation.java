@@ -26,6 +26,11 @@ public class SigmoidActivation implements DifferentiableActivation {
    }
 
    @Override
+   public Vector valueGradient(Vector activated) {
+      return activated.map(d -> d * (1.0 - d));
+   }
+
+   @Override
    public Matrix valueGradient(@NonNull Matrix predicted, @NonNull Matrix actual) {
       return predicted.map(d -> d * (1.0 - d))
                       .ebeMultiplySelf(actual);

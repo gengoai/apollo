@@ -9,6 +9,8 @@ import lombok.NonNull;
  */
 public interface DifferentiableActivation extends Activation {
 
+   Vector valueGradient(Vector activated);
+
    /**
     * Apply derivative vector.
     *

@@ -18,6 +18,11 @@ public class TanH implements DifferentiableActivation {
    }
 
    @Override
+   public Vector valueGradient(Vector activated) {
+      return activated.map(x -> 1.0 - (x * x));
+   }
+
+   @Override
    public Vector valueGradient(@NonNull Vector predicted, @NonNull Vector actual) {
       return predicted.map(x -> 1.0 - (x * x))
                       .multiplySelf(actual);

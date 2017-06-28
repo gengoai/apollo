@@ -55,6 +55,11 @@ public class SoftmaxActivation implements DifferentiableActivation {
    }
 
    @Override
+   public Vector valueGradient(Vector activated) {
+      return activated;
+   }
+
+   @Override
    public Vector valueGradient(@NonNull Vector predicted, @NonNull Vector actual) {
       Vector gradient = new DenseVector(predicted.dimension());
       for (int i = 0; i < predicted.dimension(); i++) {

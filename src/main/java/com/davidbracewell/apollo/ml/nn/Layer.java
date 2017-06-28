@@ -1,5 +1,6 @@
 package com.davidbracewell.apollo.ml.nn;
 
+import com.davidbracewell.apollo.linalg.Matrix;
 import com.davidbracewell.apollo.linalg.Vector;
 
 /**
@@ -7,7 +8,7 @@ import com.davidbracewell.apollo.linalg.Vector;
  */
 public interface Layer {
 
-   Vector backward(Vector predicted, Vector actual);
+   Vector calculateGradient(Vector activatedInput);
 
    Layer connect(Layer source);
 
@@ -18,5 +19,7 @@ public interface Layer {
    Layer setInputDimension(int dimension);
 
    int getOutputDimension();
+
+   Matrix getWeights();
 
 }//END OF Layer

@@ -14,6 +14,10 @@ public class ReLuActivation implements DifferentiableActivation {
       return Math.max(0, x);
    }
 
+   @Override
+   public Vector valueGradient(Vector activated) {
+      return activated.map(x -> x > 0 ? 1 : 0);
+   }
 
    @Override
    public Vector valueGradient(@NonNull Vector predicted, @NonNull Vector actual) {

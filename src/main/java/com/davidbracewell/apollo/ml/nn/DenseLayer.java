@@ -20,11 +20,8 @@ public class DenseLayer implements Layer {
    }
 
    @Override
-   public Vector backward(Vector predicted, Vector actual) {
-      Vector delta = activation.valueGradient(predicted, actual);
-      System.out.println(delta.dimension() + " :" + weights.shape());
-      weights.addColumnSelf(delta);
-      return delta;
+   public Vector calculateGradient(Vector activatedInput) {
+      return activation.valueGradient(activatedInput);
    }
 
    @Override
@@ -49,9 +46,14 @@ public class DenseLayer implements Layer {
    }
 
    @Override
+   public Matrix getWeights() {
+      return weights;
+   }
+
+   @Override
    public Layer setInputDimension(int dimension) {
       this.inputDimension = dimension;
-      this.weights = new DenseMatrix(outputDimension, inputDimension);
+      this.weights = DenseMatrix.random(outputDimension, inputDimension, -1, 1);
       return this;
    }
 }// END OF DenseLayer

@@ -1,12 +1,15 @@
 package com.davidbracewell.apollo.ml.nn;
 
+import com.davidbracewell.apollo.linalg.Matrix;
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.classification.Classifier;
 import com.davidbracewell.apollo.ml.classification.ClassifierLearner;
 import com.davidbracewell.apollo.ml.data.Dataset;
+import com.davidbracewell.apollo.optimization.DecayLearningRate;
+import com.davidbracewell.apollo.optimization.LearningRate;
 import com.davidbracewell.apollo.optimization.activation.DifferentiableActivation;
-import com.davidbracewell.apollo.optimization.activation.SigmoidActivation;
+import com.davidbracewell.apollo.optimization.activation.SoftmaxActivation;
 import com.davidbracewell.apollo.optimization.loss.LogLoss;
 import com.davidbracewell.apollo.optimization.loss.LossFunction;
 import lombok.Getter;
@@ -26,11 +29,13 @@ public class SequentialNetworkLearner extends ClassifierLearner {
    private List<Layer> layerConfiguration = new ArrayList<>();
    @Getter
    @Setter
-   private int maxIterations = 100;
+   private int maxIterations = 500;
    @Getter
    @Setter
-   private DifferentiableActivation outputActivation = new SigmoidActivation();
-
+   private DifferentiableActivation outputActivation = new SoftmaxActivation();
+   @Getter
+   @Setter
+   private LearningRate learningRate = new DecayLearningRate(0.1, 0.001);
 
    public SequentialNetworkLearner add(Layer layer) {
       layerConfiguration.add(layer);
@@ -55,43 +60,48 @@ public class SequentialNetworkLearner extends ClassifierLearner {
       for (int i = 1; i < numberOfLayers; i++) {
          model.layers[i].connect(model.layers[i - 1]);
       }
-
-
       int nL = dataset.getLabelEncoder().size();
       List<Vector> data = dataset.asVectors().collect();
 
-      final Layer OUTPUT_LAYER = model.layers[numberOfLayers - 1];
-
-      for (int iteration = 0; iteration < maxIterations; iteration++) {
-         double totalLoss = 0;
-         for (int di = 0; di < data.size(); di++) {
-            Vector m = data.get(di);
-            Vector y = Vector.sZeros(nL).set((int) m.getLabelAsDouble(), 1);
-            Vector[] layerOutput = new Vector[numberOfLayers];
+      double eta = getLearningRate().getInitialRate();
+      int n = 0;
+      for (int iteration = 1; iteration <= maxIterations; iteration++) {
+         for (Vector input : data) {
+            n++;
+            eta = learningRate.get(eta, iteration, n);
+            Vector y = Vector.sZeros(nL).set((int) input.getLabelAsDouble(), 1);
+            Vector[] a = new Vector[numberOfLayers];
+            Vector[] Fp = new Vector[numberOfLayers];
             for (int i = 0; i < numberOfLayers; i++) {
                Layer layer = model.layers[i];
-               layerOutput[i] = layer.forward(m);
-               m = layerOutput[i];
+               if (i == 0) {
+                  a[i] = layer.forward(input);
+                  Fp[i] = layer.calculateGradient(a[i]);
+               } else {
+                  a[i] = layer.forward(a[i - 1]);
+                  if (i != numberOfLayers - 1) {
+                     Fp[i] = layer.calculateGradient(a[i]);
+                  }
+               }
             }
 
-            Vector output = layerOutput[numberOfLayers - 1];
-            totalLoss += lossFunction.loss(y, output);
-            Vector delta = OUTPUT_LAYER.backward(output, y);
-
-//            double factor = layerOutput[numberOfLayers - 1]
-//                               .multiply(
-//                                  model.layers[numberOfLayers - 1]
-//                                     .backward(layerOutput[numberOfLayers - 1], y).T())
-//                               .get(0, 0);
-
+            int nA = a.length;
+            Vector[] d = new Vector[numberOfLayers];
+            d[numberOfLayers - 1] = lossFunction.derivative(a[nA - 1], y)
+                                                .multiplySelf(
+                                                   model.layers[numberOfLayers - 1].calculateGradient(a[nA - 1]));
             for (int i = numberOfLayers - 2; i >= 0; i--) {
-               Layer layer = model.layers[i];
-               output = i > 0 ? layerOutput[i - 1] : m;
-               totalLoss += lossFunction.loss(output, delta);
-               delta = layer.backward(output, delta);
+               d[i] = model.layers[i + 1].getWeights().T()
+                                         .multiply(d[i + 1].transpose())
+                                         .column(0)
+                                         .multiply(Fp[i]);
+            }
+            for (int i = 0; i < numberOfLayers - 1; i++) {
+               Matrix Wi = model.layers[i].getWeights();
+               Vector ai = (i == 0) ? input : a[i - 1];
+               Wi.subtractSelf(d[i].transpose().multiply(ai.toMatrix()).scaleSelf(eta));
             }
          }
-         System.out.println(totalLoss);
       }
 
       return model;

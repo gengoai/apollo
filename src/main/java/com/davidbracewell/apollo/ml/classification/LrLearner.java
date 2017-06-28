@@ -8,7 +8,9 @@ import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.ml.data.source.DenseCSVDataSource;
 import com.davidbracewell.apollo.ml.nn.DenseLayer;
 import com.davidbracewell.apollo.ml.nn.SequentialNetworkLearner;
-import com.davidbracewell.apollo.optimization.activation.SigmoidActivation;
+import com.davidbracewell.apollo.optimization.BottouLearningRate;
+import com.davidbracewell.apollo.optimization.activation.ReLuActivation;
+import com.davidbracewell.apollo.optimization.activation.SoftmaxActivation;
 import com.davidbracewell.io.Resources;
 import com.davidbracewell.io.resource.Resource;
 
@@ -44,17 +46,20 @@ public class LrLearner extends BinaryClassifierLearner {
       crossValidation(dataset,
                       () -> {
                          SequentialNetworkLearner learner = new SequentialNetworkLearner();
-                         learner.add(new DenseLayer(new SigmoidActivation(), 5));
+                         learner.add(new DenseLayer(new ReLuActivation(), 50));
+//                         learner.add(new DenseLayer(new SigmoidActivation(), 15));
+                         learner.setOutputActivation(new SoftmaxActivation());
+                         learner.setLearningRate(new BottouLearningRate(0.1, 0.0001));
                          return learner;
                       },
                       10
                      ).output(System.out);
 
 
-      crossValidation(dataset,
-                      () -> BinarySGDLearner.logisticRegression().oneVsRest().setParameter("normalize", true),
-                      10
-                     ).output(System.out);
+//      crossValidation(dataset,
+//                      () -> BinarySGDLearner.logisticRegression().oneVsRest().setParameter("normalize", true),
+//                      10
+//                     ).output(System.out);
 //
 //      crossValidation(dataset,
 //                      () -> BinarySGDLearner

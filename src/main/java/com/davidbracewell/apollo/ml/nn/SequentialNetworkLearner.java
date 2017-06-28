@@ -89,14 +89,13 @@ public class SequentialNetworkLearner extends ClassifierLearner {
 
             int nA = a.length;
             Vector[] d = new Vector[numberOfLayers];
-            d[numberOfLayers - 1] = lossFunction.derivative(a[nA - 1], y)
-                                                .multiplySelf(
-                                                   model.layers[numberOfLayers - 1].calculateGradient(a[nA - 1]));
+            d[numberOfLayers - 1] = lossFunction.derivative(a[nA - 1], y);
+
             for (int i = numberOfLayers - 2; i >= 0; i--) {
-               d[i] = model.layers[i + 1].getWeights().T()
-                                         .multiply(d[i + 1].transpose())
-                                         .column(0)
-                                         .multiply(Fp[i]);
+               d[i] = d[i + 1].toMatrix()
+                              .multiply(model.layers[i + 1].getWeights())
+                              .row(0)
+                              .multiply(Fp[i]);
             }
             for (int i = 0; i < numberOfLayers - 1; i++) {
                Matrix Wi = model.layers[i].getWeights();

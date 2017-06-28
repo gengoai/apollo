@@ -9,7 +9,6 @@ import com.davidbracewell.apollo.ml.data.source.DenseCSVDataSource;
 import com.davidbracewell.apollo.ml.nn.DenseLayer;
 import com.davidbracewell.apollo.ml.nn.SequentialNetworkLearner;
 import com.davidbracewell.apollo.optimization.BottouLearningRate;
-import com.davidbracewell.apollo.optimization.activation.ReLuActivation;
 import com.davidbracewell.apollo.optimization.activation.SigmoidActivation;
 import com.davidbracewell.apollo.optimization.activation.SoftmaxActivation;
 import com.davidbracewell.io.Resources;
@@ -47,10 +46,10 @@ public class LrLearner extends BinaryClassifierLearner {
       crossValidation(dataset,
                       () -> {
                          SequentialNetworkLearner learner = new SequentialNetworkLearner();
-                         learner.add(new DenseLayer(new ReLuActivation(), 50));
-                         learner.add(new DenseLayer(new SigmoidActivation(), 15));
+                         learner.add(new DenseLayer(new SigmoidActivation(), 100));
                          learner.setOutputActivation(new SoftmaxActivation());
                          learner.setLearningRate(new BottouLearningRate(0.1, 0.0001));
+                         learner.setMaxIterations(1000);
                          return learner;
                       },
                       10

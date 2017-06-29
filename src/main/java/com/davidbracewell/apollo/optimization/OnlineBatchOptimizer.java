@@ -30,6 +30,7 @@ public class OnlineBatchOptimizer implements OnlineOptimizer {
       double lastLoss = 0;
       AtomicDouble lr = new AtomicDouble(learningRate.getInitialRate());
       AtomicInteger numProcessed = new AtomicInteger(0);
+      //Todo: Need a sub-learning rate since the time / num processed component is not correct in the sub-optimizer
       for (int i = 0; i < iterations; i++) {
          final int iteration = i;
          lastLoss = stream.get().shuffle().split(batchSize).mapToDouble(batch -> {
@@ -39,6 +40,8 @@ public class OnlineBatchOptimizer implements OnlineOptimizer {
                                                         learningRate, subUpdate, false);
             lr.set(learningRate.get(lr.get(), iteration, numProcessed.get()));
             if (subUpdate.gradient != null) {
+               subUpdate.gradient.getTheta().scaleSelf(1d / batchSize);
+               subUpdate.gradient.getBias().mapDivideSelf(batchSize);
                return lwt.getLoss() + weightUpdater.update(theta, subUpdate.gradient, lr.get());
             }
             return 0d;

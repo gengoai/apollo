@@ -1,22 +1,18 @@
 package com.davidbracewell.apollo.ml.classification;
 
+import com.davidbracewell.apollo.distribution.NormalDistribution;
 import com.davidbracewell.apollo.linalg.SparseVector;
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.Feature;
 import com.davidbracewell.apollo.ml.Instance;
+import com.davidbracewell.apollo.ml.TrainTestSplit;
 import com.davidbracewell.apollo.ml.data.Dataset;
-import com.davidbracewell.apollo.ml.data.source.DenseCSVDataSource;
-import com.davidbracewell.apollo.ml.nn.DenseLayer;
-import com.davidbracewell.apollo.ml.nn.SequentialNetworkLearner;
-import com.davidbracewell.apollo.optimization.BottouLearningRate;
-import com.davidbracewell.apollo.optimization.activation.SigmoidActivation;
-import com.davidbracewell.apollo.optimization.activation.SoftmaxActivation;
+import com.davidbracewell.collection.map.Maps;
 import com.davidbracewell.io.Resources;
 import com.davidbracewell.io.resource.Resource;
 
-import java.util.Random;
-
-import static com.davidbracewell.apollo.ml.classification.ClassifierEvaluation.crossValidation;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Stochastic Gradient Descent Training for L1-regularized Log-linear Models with Cumulative Penalty
@@ -28,32 +24,52 @@ public class LrLearner extends BinaryClassifierLearner {
    public static void main(String[] args) {
       Resource url = Resources.from(
          "https://raw.githubusercontent.com/sjwhitworth/golearn/master/examples/datasets/iris_headers.csv");
-      DenseCSVDataSource dataSource = new DenseCSVDataSource(url, true);
-      dataSource.setLabelName("Species");
-      Dataset<Instance> dataset = Dataset.classification()
-                                         .source(dataSource)
-                                         .shuffle(new Random(1234));
-//      crossValidation(dataset,
-//                      () -> new SoftmaxLearner()
-//                               .setParameter("learningRate",
-//                                             new BottouLearningRate(0.1, 0.001))
-//                               .setParameter("weightUpdater", new L1Regularizer(0.001))
-//                               .setParameter("batchSize", 0),
-//                      10
-//                     )
-//         .output(System.out);
 
-      crossValidation(dataset,
-                      () -> {
-                         SequentialNetworkLearner learner = new SequentialNetworkLearner();
-                         learner.add(new DenseLayer(new SigmoidActivation(), 100));
-                         learner.setOutputActivation(new SoftmaxActivation());
-                         learner.setLearningRate(new BottouLearningRate(0.1, 0.0001));
-                         learner.setMaxIterations(1000);
-                         return learner;
-                      },
-                      10
-                     ).output(System.out);
+
+      NormalDistribution g1 = new NormalDistribution(-2, 1.0);
+      NormalDistribution g2 = new NormalDistribution(2, 1.0);
+      List<Instance> instances = new ArrayList<>();
+      for (int i = 0; i < 500; i++) {
+         instances.add(Instance.create(Maps.map("1", g1.sample()), "g1"));
+      }
+      for (int i = 0; i < 500; i++) {
+         instances.add(Instance.create(Maps.map("1", g2.sample()), "g2"));
+      }
+      Dataset<Instance> dataset = Dataset.classification()
+                                         .source(instances);
+
+      TrainTestSplit<Instance> data = dataset.shuffle().split(0.8).iterator().next();
+
+      BinarySGDLearner learner = BinarySGDLearner.perceptron();
+      learner.setVerbose(true);
+      ClassifierEvaluation.evaluateModel(learner.train(data.getTrain()), data.getTest()).output(System.out);
+
+//      DenseCSVDataSource dataSource = new DenseCSVDataSource(url, true);
+//      dataSource.setLabelName("Species");
+//      Dataset<Instance> dataset = Dataset.classification()
+//                                         .source(dataSource)
+//                                         .shuffle(new Random(1234));
+////      crossValidation(dataset,
+////                      () -> new SoftmaxLearner()
+////                               .setParameter("learningRate",
+////                                             new BottouLearningRate(0.1, 0.001))
+////                               .setParameter("weightUpdater", new L1Regularizer(0.001))
+////                               .setParameter("batchSize", 0),
+////                      10
+////                     )
+////         .output(System.out);
+//
+//      crossValidation(dataset,
+//                      () -> {
+//                         SequentialNetworkLearner learner = new SequentialNetworkLearner();
+//                         learner.add(new DenseLayer(new SigmoidActivation(), 100));
+//                         learner.setOutputActivation(new SoftmaxActivation());
+//                         learner.setLearningRate(new BottouLearningRate(0.1, 0.0001));
+//                         learner.setMaxIterations(1000);
+//                         return learner;
+//                      },
+//                      10
+//                     ).output(System.out);
 
 
 //      crossValidation(dataset,

@@ -38,6 +38,7 @@ public class RBMClassifierLearner extends ClassifierLearner {
                                                       .forEachRemaining(
                                                          e -> features.add(
                                                             Feature.TRUE(Integer.toString(e.getIndex()))));
+                                                   System.out.println(features);
                                                    return new Instance(features, i.getLabel());
                                                 }));
       RBMClassifier classifier = new RBMClassifier(this);

@@ -40,9 +40,12 @@ public class LrLearner extends BinaryClassifierLearner {
 
       TrainTestSplit<Instance> data = dataset.shuffle().split(0.8).iterator().next();
 
-      BinarySGDLearner learner = BinarySGDLearner.perceptron();
-      learner.setVerbose(true);
-      ClassifierEvaluation.evaluateModel(learner.train(data.getTrain()), data.getTest()).output(System.out);
+//      BinarySGDLearner learner = BinarySGDLearner.perceptron();
+//      learner.setVerbose(true);
+//      ClassifierEvaluation.evaluateModel(learner.train(data.getTrain()), data.getTest()).output(System.out);
+
+      RBMClassifierLearner rbm = new RBMClassifierLearner();
+      ClassifierEvaluation.evaluateModel(rbm.train(data.getTrain()), data.getTest()).output(System.out);
 
 //      DenseCSVDataSource dataSource = new DenseCSVDataSource(url, true);
 //      dataSource.setLabelName("Species");

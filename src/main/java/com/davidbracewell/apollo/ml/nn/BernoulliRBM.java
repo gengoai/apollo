@@ -1,91 +1,135 @@
 package com.davidbracewell.apollo.ml.nn;
 
-import com.davidbracewell.apollo.affinity.Distance;
-import com.davidbracewell.apollo.affinity.Measure;
 import com.davidbracewell.apollo.linalg.*;
 import com.davidbracewell.apollo.optimization.activation.SigmoidActivation;
 import org.apache.commons.math3.util.FastMath;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
 /**
+ * The type Bernoulli rbm.
+ *
  * @author David B. Bracewell
  */
 public class BernoulliRBM implements Serializable {
    private static final long serialVersionUID = 1L;
+   /**
+    * The N v.
+    */
    int nV;
-   int nH;
+   /**
+    * The W.
+    */
    Matrix W;
+   /**
+    * The Learning rate.
+    */
    double learningRate = 0.1;
+   /**
+    * The N h.
+    */
+   private int nH;
 
+   /**
+    * Instantiates a new Bernoulli rbm.
+    *
+    * @param nV the n v
+    * @param nH the n h
+    */
    public BernoulliRBM(int nV, int nH) {
       this.nV = nV;
       this.nH = nH;
       this.W = SparseMatrix.random(nV + 1, nH + 1);
    }
 
-   public static void main(String[] args) {
-      BernoulliRBM rbm = new BernoulliRBM(6, 2);
-      List<Vector> v = new ArrayList<>();
-      v.add(new SparseVector(6).set(0, 1).set(1, 1).set(2, 1));
-      v.add(new SparseVector(6).set(0, 1).set(2, 1));
-      v.add(new SparseVector(6).set(0, 1).set(1, 1).set(2, 1));
-      v.add(new SparseVector(6).set(2, 1).set(3, 1).set(4, 1));
-      v.add(new SparseVector(6).set(2, 1).set(4, 1));
-      v.add(new SparseVector(6).set(2, 1).set(3, 1).set(4, 1));
-      rbm.train(v);
-      Measure m = Distance.KLDivergence;
-      for (Vector vector : v) {
-         Vector hid = rbm.runVisible(vector);
-         Vector pred = rbm.runHidden(hid);
-         System.err.println(m.calculate(vector, pred));
-      }
-
-      rbm.runVisible(new SparseVector(6).set(3, 1).set(4, 1));
-   }
-
-
+   /**
+    * Gets num hidden.
+    *
+    * @return the num hidden
+    */
    public int getNumHidden() {
       return nH;
    }
 
+   /**
+    * Init.
+    *
+    * @param nIn the n in
+    */
    public void init(int nIn) {
       this.nV = nIn;
       this.W = SparseMatrix.random(nV + 1, nH + 1);
    }
 
+   /**
+    * Init.
+    *
+    * @param nIn  the n in
+    * @param nOut the n out
+    */
    public void init(int nIn, int nOut) {
       this.nH = nOut;
       init(nIn);
    }
 
+   /**
+    * Reset.
+    */
    public void reset() {
       this.W = SparseMatrix.random(nV + 1, nH + 1);
    }
 
+   /**
+    * Run hidden vector.
+    *
+    * @param v the v
+    * @return the vector
+    */
    public Vector runHidden(Vector v) {
       return runHiddenProbs(v).mapSelf(d -> d > Math.random() ? 1 : 0);
    }
 
+   /**
+    * Run hidden probs vector.
+    *
+    * @param v the v
+    * @return the vector
+    */
    public Vector runHiddenProbs(Vector v) {
       Matrix m = new DenseMatrix(1, nH + 1);
       m.setRow(0, v.insert(0, 1));
       return m.multiply(W.T()).mapSelf(SigmoidActivation.INSTANCE::apply).row(0).slice(1, nV + 1);
    }
 
+   /**
+    * Run visible vector.
+    *
+    * @param v the v
+    * @return the vector
+    */
    public Vector runVisible(Vector v) {
       return runVisibleProbs(v).mapSelf(d -> d > Math.random() ? 1 : 0);
    }
 
+   /**
+    * Run visible probs vector.
+    *
+    * @param v the v
+    * @return the vector
+    */
    public Vector runVisibleProbs(Vector v) {
       Matrix m = new DenseMatrix(1, nV + 1);
       m.setRow(0, v.insert(0, 1));
       return m.multiply(W).mapSelf(SigmoidActivation.INSTANCE::apply).row(0).slice(1, nH + 1);
    }
 
+   /**
+    * Train.
+    *
+    * @param data the data
+    */
    public void train(List<Vector> data) {
       int numExamples = data.size();
 

@@ -9,7 +9,7 @@ import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.optimization.DecayLearningRate;
 import com.davidbracewell.apollo.optimization.LearningRate;
 import com.davidbracewell.apollo.optimization.activation.DifferentiableActivation;
-import com.davidbracewell.apollo.optimization.activation.SoftmaxActivation;
+import com.davidbracewell.apollo.optimization.activation.SigmoidActivation;
 import com.davidbracewell.apollo.optimization.loss.LogLoss;
 import com.davidbracewell.apollo.optimization.loss.LossFunction;
 import lombok.Getter;
@@ -33,7 +33,7 @@ public class SequentialNetworkLearner extends ClassifierLearner {
    private int maxIterations = 100;
    @Getter
    @Setter
-   private DifferentiableActivation outputActivation = new SoftmaxActivation();
+   private DifferentiableActivation outputActivation = new SigmoidActivation();
    @Getter
    @Setter
    private LearningRate learningRate = new DecayLearningRate(0.1, 0.001);
@@ -92,6 +92,7 @@ public class SequentialNetworkLearner extends ClassifierLearner {
             d[numberOfLayers - 1] = lossFunction.derivative(a[nA - 1], y);
 
             for (int i = numberOfLayers - 2; i >= 0; i--) {
+               System.out.println(i + " : " + d[i+1].dimension() + " : " + model.layers[i+1].getWeights().shape());
                d[i] = d[i + 1].toMatrix()
                               .multiply(model.layers[i + 1].getWeights())
                               .row(0)

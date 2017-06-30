@@ -5,7 +5,7 @@ package com.davidbracewell.apollo.optimization.activation;
  *
  * @author David B. Bracewell
  */
-public class LinearActivation implements Activation {
+public class LinearActivation implements DifferentiableActivation {
    private static final long serialVersionUID = 1L;
 
    @Override
@@ -13,5 +13,9 @@ public class LinearActivation implements Activation {
       return x;
    }
 
+   @Override
+   public double valueGradient(double activated) {
+      return 1;
+   }
 
 }// END OF LinearActivation

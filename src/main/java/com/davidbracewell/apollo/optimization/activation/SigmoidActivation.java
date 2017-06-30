@@ -1,9 +1,5 @@
 package com.davidbracewell.apollo.optimization.activation;
 
-import com.davidbracewell.apollo.linalg.Matrix;
-import com.davidbracewell.apollo.linalg.Vector;
-import lombok.NonNull;
-
 /**
  * @author David B. Bracewell
  */
@@ -13,7 +9,7 @@ public class SigmoidActivation implements DifferentiableActivation {
 
    @Override
    public double apply(double x) {
-      if (x > 0) {
+      if (x >= 0) {
          return 1.0 / (1.0 + Math.exp(-x));
       }
       double z = Math.exp(x);
@@ -26,19 +22,8 @@ public class SigmoidActivation implements DifferentiableActivation {
    }
 
    @Override
-   public Vector valueGradient(Vector activated) {
-      return activated.map(d -> d * (1.0 - d));
+   public double valueGradient(double activated) {
+      return activated * (1.0 - activated);
    }
 
-   @Override
-   public Matrix valueGradient(@NonNull Matrix predicted, @NonNull Matrix actual) {
-      return predicted.map(d -> d * (1.0 - d))
-                      .ebeMultiplySelf(actual);
-   }
-
-   @Override
-   public Vector valueGradient(@NonNull Vector predicted, @NonNull Vector actual) {
-      return predicted.map(d -> d * (1.0 - d))
-                      .multiplySelf(actual);
-   }
 }// END OF SigmoidActivation

@@ -103,6 +103,11 @@ public class SinglePointVector extends BaseVector {
    }
 
    @Override
+   public double sum() {
+      return value;
+   }
+
+   @Override
    public double[] toArray() {
       return new double[]{value};
    }

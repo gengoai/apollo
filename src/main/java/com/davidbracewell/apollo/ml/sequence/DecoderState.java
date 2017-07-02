@@ -21,7 +21,10 @@
 
 package com.davidbracewell.apollo.ml.sequence;
 
+import com.davidbracewell.apollo.ml.Instance;
+
 import java.io.Serializable;
+import java.util.Optional;
 
 /**
  * <p>Structure used for recording the current decoder state.</p>
@@ -83,6 +86,34 @@ public class DecoderState implements Comparable<DecoderState>, Serializable {
    @Override
    public int compareTo(DecoderState o) {
       return Double.compare(this.sequenceProbability, o.sequenceProbability);
+   }
+
+   public Context<Instance> iterator(Sequence sequence) {
+      return new Context<Instance>() {
+         @Override
+         protected Optional<Instance> getContextAt(int index) {
+            return index >= 0 && index < sequence.size() ? Optional.of(sequence.get(index)) : Optional.empty();
+         }
+
+         @Override
+         protected Optional<String> getLabelAt(int index) {
+            if (index != DecoderState.this.index) {
+               return Optional.empty();
+            }
+            int back = DecoderState.this.index - index;
+            DecoderState ds = DecoderState.this;
+            while (back > 0) {
+               ds = ds.previousState;
+               back--;
+            }
+            return Optional.ofNullable(ds).map(d -> d.tag);
+         }
+
+         @Override
+         public int size() {
+            return index + 1;
+         }
+      };
    }
 
 }// END OF DecoderState

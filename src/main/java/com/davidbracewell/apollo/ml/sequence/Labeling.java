@@ -1,8 +1,10 @@
 package com.davidbracewell.apollo.ml.sequence;
 
+import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.classification.Classification;
 
 import java.io.Serializable;
+import java.util.Optional;
 
 /**
  * The type Labeling.
@@ -15,6 +17,7 @@ public class Labeling implements Serializable {
    private final double[] probs;
    private double sequenceProbability;
 
+
    /**
     * Instantiates a new Labeling.
     *
@@ -23,15 +26,6 @@ public class Labeling implements Serializable {
    public Labeling(int size) {
       this.labels = new String[size];
       this.probs = new double[size];
-   }
-
-   /**
-    * Get labels string [ ].
-    *
-    * @return the string [ ]
-    */
-   public String[] getLabels() {
-      return labels;
    }
 
    /**
@@ -50,12 +44,12 @@ public class Labeling implements Serializable {
    }
 
    /**
-    * Size int.
+    * Get labels string [ ].
     *
-    * @return the int
+    * @return the string [ ]
     */
-   public int size() {
-      return labels.length;
+   public String[] getLabels() {
+      return labels;
    }
 
    /**
@@ -66,29 +60,6 @@ public class Labeling implements Serializable {
     */
    public double getProbability(int index) {
       return probs[index];
-   }
-
-   /**
-    * Sets label.
-    *
-    * @param index       the index
-    * @param label       the label
-    * @param probability the probability
-    */
-   public void setLabel(int index, String label, double probability) {
-      labels[index] = label;
-      probs[index] = probability;
-   }
-
-   /**
-    * Sets label.
-    *
-    * @param index  the index
-    * @param result the result
-    */
-   public void setLabel(int index, Classification result) {
-      labels[index] = result.getResult();
-      probs[index] = result.getConfidence();
    }
 
    /**
@@ -107,6 +78,57 @@ public class Labeling implements Serializable {
     */
    public void setSequenceProbability(double sequenceProbability) {
       this.sequenceProbability = sequenceProbability;
+   }
+
+   public Context<Instance> iterator(Sequence sequence) {
+      return new Context<Instance>() {
+         @Override
+         protected Optional<Instance> getContextAt(int index) {
+            return index >= 0 && index < sequence.size() ? Optional.of(sequence.get(index)) : Optional.empty();
+         }
+
+         @Override
+         protected Optional<String> getLabelAt(int index) {
+            return index >= 0 && index < labels.length ? Optional.of(labels[index]) : Optional.empty();
+         }
+
+         @Override
+         public int size() {
+            return labels.length;
+         }
+      };
+   }
+
+   /**
+    * Sets label.
+    *
+    * @param index  the index
+    * @param result the result
+    */
+   public void setLabel(int index, Classification result) {
+      labels[index] = result.getResult();
+      probs[index] = result.getConfidence();
+   }
+
+   /**
+    * Sets label.
+    *
+    * @param index       the index
+    * @param label       the label
+    * @param probability the probability
+    */
+   public void setLabel(int index, String label, double probability) {
+      labels[index] = label;
+      probs[index] = probability;
+   }
+
+   /**
+    * Size int.
+    *
+    * @return the int
+    */
+   public int size() {
+      return labels.length;
    }
 
 }// END OF Labeling

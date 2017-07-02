@@ -78,8 +78,7 @@ public class BeamDecoder implements Decoder, Serializable {
             DecoderState state = queue.remove();
             double[] result = model.estimate(
                iterator.getCurrent().getFeatures().iterator(),
-               model.getTransitionFeatures().extract(state)
-                                            );
+               model.getTransitionFeatures().extract(state.iterator(sequence)));
             for (int i = 0; i < result.length; i++) {
                String label = model.getLabelEncoder().decode(i).toString();
                if (model.getValidator().isValid(label, state.tag, iterator.getCurrent())) {

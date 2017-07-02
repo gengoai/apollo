@@ -42,7 +42,7 @@ public class WindowDecoder implements Decoder, Serializable {
       for (Context<Instance> iterator = sequence.iterator(); iterator.hasNext(); ) {
          double[] results = labeler.estimate(
             iterator.next().getFeatures().iterator(),
-            labeler.getTransitionFeatures().extract(state)
+            labeler.getTransitionFeatures().extract(state.iterator(sequence))
                                             );
 
          double max = Double.NEGATIVE_INFINITY;

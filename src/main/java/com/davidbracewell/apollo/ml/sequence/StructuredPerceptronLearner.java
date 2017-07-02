@@ -46,6 +46,46 @@ public class StructuredPerceptronLearner extends SequenceLabelerLearner {
    private double tolerance = 0.00001;
    private Vector[] cWeights;
 
+   /**
+    * Gets max iterations.
+    *
+    * @return the max iterations
+    */
+   public int getMaxIterations() {
+      return maxIterations;
+   }
+
+   /**
+    * Sets max iterations.
+    *
+    * @param maxIterations the max iterations
+    */
+   public void setMaxIterations(int maxIterations) {
+      this.maxIterations = maxIterations;
+   }
+
+   /**
+    * Gets tolerance.
+    *
+    * @return the tolerance
+    */
+   public double getTolerance() {
+      return tolerance;
+   }
+
+   /**
+    * Sets tolerance.
+    *
+    * @param tolerance the tolerance
+    */
+   public void setTolerance(double tolerance) {
+      this.tolerance = tolerance;
+   }
+
+   @Override
+   public void resetLearnerParameters() {
+      cWeights = null;
+   }
 
    @Override
    protected SequenceLabeler trainImpl(Dataset<Sequence> dataset) {
@@ -107,7 +147,7 @@ public class StructuredPerceptronLearner extends SequenceLabelerLearner {
                         cWeights[y].increment(fid);
                      }
                      for (String feature : Collect.asIterable(
-                        transitionFeatures.extract(lblResult, iterator.getIndex()))) {
+                        transitionFeatures.extract(lblResult.iterator(sequence)))) {
                         int fid = (int) model.getFeatureEncoder().encode(feature);
                         model.weights[yHat].decrement(fid);
                         cWeights[yHat].decrement(fid);
@@ -149,49 +189,6 @@ public class StructuredPerceptronLearner extends SequenceLabelerLearner {
       }
 
       return model;
-   }
-
-   @Override
-   public void resetLearnerParameters() {
-      cWeights = null;
-   }
-
-
-   /**
-    * Gets max iterations.
-    *
-    * @return the max iterations
-    */
-   public int getMaxIterations() {
-      return maxIterations;
-   }
-
-   /**
-    * Sets max iterations.
-    *
-    * @param maxIterations the max iterations
-    */
-   public void setMaxIterations(int maxIterations) {
-      this.maxIterations = maxIterations;
-   }
-
-
-   /**
-    * Gets tolerance.
-    *
-    * @return the tolerance
-    */
-   public double getTolerance() {
-      return tolerance;
-   }
-
-   /**
-    * Sets tolerance.
-    *
-    * @param tolerance the tolerance
-    */
-   public void setTolerance(double tolerance) {
-      this.tolerance = tolerance;
    }
 
 

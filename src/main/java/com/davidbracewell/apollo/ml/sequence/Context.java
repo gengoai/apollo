@@ -15,72 +15,23 @@ public abstract class Context<T> implements Iterator<T>, Serializable {
    private static final long serialVersionUID = 1L;
    private int index = -1;
 
-   /**
-    * The number of items in the iterator
-    *
-    * @return the number of items in the iterator
-    */
-   public abstract int size();
+   public static <E> Context<E> empty() {
+      return new Context<E>() {
+         @Override
+         protected Optional<E> getContextAt(int index) {
+            return Optional.empty();
+         }
 
-   /**
-    * Gets the element at the given index (absolute)
-    *
-    * @param index the index
-    * @return the context
-    */
-   protected abstract Optional<T> getContextAt(int index);
+         @Override
+         protected Optional<String> getLabelAt(int index) {
+            return Optional.empty();
+         }
 
-   /**
-    * Gets the label for the element at the given index (absolute)
-    *
-    * @param index the index
-    * @return the label
-    */
-   protected abstract Optional<String> getLabelAt(int index);
-
-
-   /**
-    * Gets the index of the current item in the iterator
-    *
-    * @return the index of the current item
-    */
-   public int getIndex() {
-      return index;
-   }
-
-
-   @Override
-   public boolean hasNext() {
-      return (index + 1) < size();
-   }
-
-   /**
-    * Gets the next item in the context
-    *
-    * @return the next item in the context
-    */
-   @Override
-   public T next() {
-      index++;
-      return getContext(0).orElseThrow(NoSuchElementException::new);
-   }
-
-   /**
-    * Gets the current item.
-    *
-    * @return the current item
-    */
-   public T getCurrent() {
-      return getContextAt(index).orElseThrow(NoSuchElementException::new);
-   }
-
-   /**
-    * Gets the label of the current item.
-    *
-    * @return the label or null if none
-    */
-   public String getLabel() {
-      return getLabelAt(index).orElse(null);
+         @Override
+         public int size() {
+            return 0;
+         }
+      };
    }
 
    /**
@@ -94,6 +45,14 @@ public abstract class Context<T> implements Iterator<T>, Serializable {
    }
 
    /**
+    * Gets the element at the given index (absolute)
+    *
+    * @param index the index
+    * @return the context
+    */
+   protected abstract Optional<T> getContextAt(int index);
+
+   /**
     * Gets the label relative to the current item.
     *
     * @param relative the relative index (negative numbers mean previous, positive mean next)
@@ -104,13 +63,48 @@ public abstract class Context<T> implements Iterator<T>, Serializable {
    }
 
    /**
-    * Gets the <code>relative</code> previous label.
+    * Gets the current item.
+    *
+    * @return the current item
+    */
+   public T getCurrent() {
+      return getContextAt(index).orElseThrow(NoSuchElementException::new);
+   }
+
+   /**
+    * Gets the index of the current item in the iterator
+    *
+    * @return the index of the current item
+    */
+   public int getIndex() {
+      return index;
+   }
+
+   /**
+    * Gets the label of the current item.
+    *
+    * @return the label or null if none
+    */
+   public String getLabel() {
+      return getLabelAt(index).orElse(null);
+   }
+
+   /**
+    * Gets the label for the element at the given index (absolute)
+    *
+    * @param index the index
+    * @return the label
+    */
+   protected abstract Optional<String> getLabelAt(int index);
+
+   /**
+    * Gets the <code>relative</code> next element.
     *
     * @param relative the relative index
-    * @return the previous label
+    * @return the next element
     */
-   public Optional<String> getPreviousLabel(int relative) {
-      return getContextLabel(-Math.abs(relative));
+   public Optional<T> getNext(int relative) {
+      return getContext(Math.abs(relative));
    }
 
    /**
@@ -134,13 +128,36 @@ public abstract class Context<T> implements Iterator<T>, Serializable {
    }
 
    /**
-    * Gets the <code>relative</code> next element.
+    * Gets the <code>relative</code> previous label.
     *
     * @param relative the relative index
-    * @return the next element
+    * @return the previous label
     */
-   public Optional<T> getNext(int relative) {
-      return getContext(Math.abs(relative));
+   public Optional<String> getPreviousLabel(int relative) {
+      return getContextLabel(-Math.abs(relative));
    }
+
+   @Override
+   public boolean hasNext() {
+      return (index + 1) < size();
+   }
+
+   /**
+    * Gets the next item in the context
+    *
+    * @return the next item in the context
+    */
+   @Override
+   public T next() {
+      index++;
+      return getContext(0).orElseThrow(NoSuchElementException::new);
+   }
+
+   /**
+    * The number of items in the iterator
+    *
+    * @return the number of items in the iterator
+    */
+   public abstract int size();
 
 }// END OF Context

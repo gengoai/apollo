@@ -30,6 +30,16 @@ public class DenseLayer implements Layer {
    }
 
    @Override
+   public void connect(Layer previousLayer) {
+      this.inputSize = previousLayer.getOutputSize();
+      double wr = 1.0 / Math.sqrt(6.0 / outputSize + inputSize);
+      this.weights = new Weights(DenseMatrix.random(outputSize, inputSize, -wr, wr),
+                                 SparseVector.zeros(outputSize),
+                                 false
+      );
+   }
+
+   @Override
    public Vector forward(Vector input) {
       return this.weights.dot(input);
    }
@@ -42,14 +52,5 @@ public class DenseLayer implements Layer {
    @Override
    public int getOutputSize() {
       return outputSize;
-   }
-
-   @Override
-   public void connect(Layer previousLayer) {
-      this.inputSize = previousLayer.getOutputSize();
-      this.weights = new Weights(DenseMatrix.random(outputSize, inputSize),
-                                 SparseVector.zeros(outputSize),
-                                 false
-      );
    }
 }// END OF DenseLayer

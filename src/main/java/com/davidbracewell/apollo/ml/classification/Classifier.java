@@ -41,7 +41,7 @@ public abstract class Classifier implements Model {
    private final EncoderPair encoderPair;
 
    protected Classifier(@NonNull ClassifierLearner learner) {
-      this.preprocessors = learner.getPreprocessors();
+      this.preprocessors = learner.getPreprocessors().getModelProcessors();
       this.encoderPair = learner.getEncoderPair();
    }
 

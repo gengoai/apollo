@@ -56,12 +56,7 @@ public class WindowedLearner extends SequenceLabelerLearner {
 
    @Override
    protected SequenceLabeler trainImpl(Dataset<Sequence> dataset) {
-      WindowedLabeler wl = new WindowedLabeler(dataset.getLabelEncoder(),
-                                               dataset.getFeatureEncoder(),
-                                               dataset.getPreprocessors(),
-                                               getTransitionFeatures(),
-                                               getValidator());
-
+      WindowedLabeler wl = new WindowedLabeler(this);
       Dataset<Instance> nd = Dataset.classification()
                                     .source(dataset.stream()
                                                    .flatMap(sequence -> getTransitionFeatures().toInstances(sequence)

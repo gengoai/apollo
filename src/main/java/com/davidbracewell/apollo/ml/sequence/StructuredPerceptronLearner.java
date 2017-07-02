@@ -89,11 +89,7 @@ public class StructuredPerceptronLearner extends SequenceLabelerLearner {
 
    @Override
    protected SequenceLabeler trainImpl(Dataset<Sequence> dataset) {
-      StructuredPerceptron model = new StructuredPerceptron(dataset.getLabelEncoder(),
-                                                            dataset.getFeatureEncoder(),
-                                                            dataset.getPreprocessors(),
-                                                            transitionFeatures,
-                                                            getValidator());
+      StructuredPerceptron model = new StructuredPerceptron(this);
       model.setDecoder(getDecoder());
 
       int nC = model.numberOfLabels();

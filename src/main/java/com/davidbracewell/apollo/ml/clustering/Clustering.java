@@ -54,7 +54,7 @@ public abstract class Clustering implements Model, Iterable<Cluster>, Serializab
    private final Measure measure;
 
    public Clustering(Clusterer<?> clusterer, Measure measure) {
-      this.preprocessors = clusterer.getPreprocessors();
+      this.preprocessors = clusterer.getPreprocessors().getModelProcessors();
       this.encoderPair = clusterer.getEncoderPair();
       this.measure = measure;
    }

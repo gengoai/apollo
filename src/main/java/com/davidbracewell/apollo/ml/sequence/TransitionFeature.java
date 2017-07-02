@@ -2,7 +2,9 @@ package com.davidbracewell.apollo.ml.sequence;
 
 import com.davidbracewell.apollo.ml.Feature;
 import com.davidbracewell.apollo.ml.Instance;
+import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.function.SerializableFunction;
+import com.davidbracewell.guava.common.collect.Lists;
 import com.davidbracewell.string.StringUtils;
 import com.google.common.collect.Iterators;
 import lombok.NonNull;
@@ -14,10 +16,27 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
+ * The interface Transition feature.
+ *
  * @author David B. Bracewell
  */
 public interface TransitionFeature extends Serializable {
 
+   /**
+    * The constant NO_OPT.
+    */
+   TransitionFeature NO_OPT = new TransitionFeature() {
+      private static final long serialVersionUID = 1L;
+
+      @Override
+      public Iterator<String> extract(Context<Instance> iterator) {
+         return Iterators.emptyIterator();
+      }
+   };
+
+   /**
+    * The constant FIRST_ORDER.
+    */
    TransitionFeature FIRST_ORDER = new TransitionFeature() {
       private static final long serialVersionUID = 1L;
 
@@ -27,6 +46,9 @@ public interface TransitionFeature extends Serializable {
       }
    };
 
+   /**
+    * The constant SECOND_ORDER.
+    */
    TransitionFeature SECOND_ORDER = new TransitionFeature() {
       private static final long serialVersionUID = 1L;
 
@@ -38,6 +60,12 @@ public interface TransitionFeature extends Serializable {
       }
    };
 
+   /**
+    * Chain transition feature.
+    *
+    * @param transitionFeatures the transition features
+    * @return the transition feature
+    */
    static TransitionFeature chain(@NonNull TransitionFeature... transitionFeatures) {
       if (transitionFeatures.length == 1) {
          return transitionFeatures[0];
@@ -56,6 +84,13 @@ public interface TransitionFeature extends Serializable {
       };
    }
 
+   /**
+    * Feature serializable function.
+    *
+    * @param name  the name
+    * @param index the index
+    * @return the serializable function
+    */
    static SerializableFunction<Context<Instance>, String> feature(final String name, final int index) {
       return new SerializableFunction<Context<Instance>, String>() {
          private static final long serialVersionUID = 1L;
@@ -81,6 +116,11 @@ public interface TransitionFeature extends Serializable {
       };
    }
 
+   /**
+    * The entry point of application.
+    *
+    * @param args the input arguments
+    */
    public static void main(String[] args) {
       SequenceInput<String> si = new SequenceInput<>(Arrays.asList(
          "The", "dog", "on", "the", "hill"
@@ -107,6 +147,12 @@ public interface TransitionFeature extends Serializable {
 
    }
 
+   /**
+    * Parse list.
+    *
+    * @param template the template
+    * @return the list
+    */
    static List<SerializableFunction<Context<Instance>, String>> parse(String template) {
       final Pattern extractor = Pattern.compile("^(.*)\\[([\\-\\+]?\\d+)\\]$");
       List<String> elements = StringUtils.split(template, ',');
@@ -124,6 +170,12 @@ public interface TransitionFeature extends Serializable {
       return parts;
    }
 
+   /**
+    * Unigram tag serializable function.
+    *
+    * @param index the index
+    * @return the serializable function
+    */
    static SerializableFunction<Context<Instance>, String> unigramTag(final int index) {
       return new SerializableFunction<Context<Instance>, String>() {
          private static final long serialVersionUID = 1L;
@@ -136,7 +188,46 @@ public interface TransitionFeature extends Serializable {
       };
    }
 
+   /**
+    * Extract iterator.
+    *
+    * @param iterator the iterator
+    * @return the iterator
+    */
    Iterator<String> extract(final Context<Instance> iterator);
 
+
+   default void fit(@NonNull Dataset<Sequence> dataset) {
+      dataset.getFeatureEncoder().fit(
+         dataset.stream()
+                .flatMap(sequence -> {
+                            Context<Instance> ci = sequence.iterator();
+                            Set<String> features = new HashSet<>();
+                            while (ci.hasNext()) {
+                               ci.next();
+                               Iterator<String> itr = extract(ci);
+                               while (itr.hasNext()) {
+                                  features.add(itr.next());
+                               }
+                            }
+                            return features.stream();
+                         }
+                        ));
+   }
+
+   default List<Instance> toInstances(Sequence sequence) {
+      Context<Instance> itr = sequence.iterator();
+      List<Instance> instances = new ArrayList<>();
+      while (itr.hasNext()) {
+         Instance instance = itr.next();
+         List<Feature> features = Lists.newArrayList(instance);
+         Iterator<String> transitions = extract(itr);
+         while (transitions.hasNext()) {
+            features.add(Feature.TRUE(transitions.next()));
+         }
+         instances.add(Instance.create(features, instance.getLabel()));
+      }
+      return instances;
+   }
 
 }//END OF TransitionFeature

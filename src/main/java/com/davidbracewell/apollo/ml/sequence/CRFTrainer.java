@@ -47,6 +47,7 @@ public class CRFTrainer extends SequenceLabelerLearner {
 
    @Override
    protected SequenceLabeler trainImpl(Dataset<Sequence> dataset) {
+      setTransitionFeatures(TransitionFeature.NO_OPT);
       LibraryLoader.INSTANCE.load();
       Trainer trainer = new Trainer();
       dataset.forEach(sequence -> {
@@ -66,14 +67,7 @@ public class CRFTrainer extends SequenceLabelerLearner {
       String tempFile = Resources.temporaryFile().asFile().get().getAbsolutePath();
       trainer.train(tempFile, -1);
       trainer.clear();
-      return new CRFTagger(
-                             dataset.getLabelEncoder(),
-                             dataset.getFeatureEncoder(),
-                             dataset.getPreprocessors(),
-                             TransitionFeatures.FIRST_ORDER,
-                             tempFile,
-                             getValidator()
-      );
+      return new CRFTagger(this, tempFile);
    }
 
    @Override

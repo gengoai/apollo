@@ -21,13 +21,11 @@
 
 package com.davidbracewell.apollo.ml.sequence;
 
-import com.davidbracewell.apollo.ml.Encoder;
 import com.davidbracewell.apollo.ml.Feature;
 import com.davidbracewell.apollo.ml.Instance;
-import com.davidbracewell.apollo.ml.LabelEncoder;
 import com.davidbracewell.apollo.ml.classification.LibLinearModel;
-import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.guava.common.collect.Lists;
+import lombok.NonNull;
 
 import java.util.Iterator;
 import java.util.List;
@@ -39,20 +37,19 @@ import java.util.List;
  */
 public class MEMM extends SequenceLabeler {
    private static final long serialVersionUID = 1L;
+   /**
+    * The Model.
+    */
    LibLinearModel model;
 
 
    /**
     * Instantiates a new MEMM.
     *
-    * @param labelEncoder       the label encoder
-    * @param featureEncoder     the feature encoder
-    * @param preprocessors      the preprocessors
-    * @param transitionFeatures the transition features
-    * @param validator          the validator
+    * @param learner the learner
     */
-   public MEMM(LabelEncoder labelEncoder, Encoder featureEncoder, PreprocessorList<Sequence> preprocessors, TransitionFeatures transitionFeatures, SequenceValidator validator) {
-      super(labelEncoder, featureEncoder, preprocessors, transitionFeatures, validator);
+   public MEMM(@NonNull MEMMLearner learner) {
+      super(learner);
    }
 
    @Override

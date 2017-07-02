@@ -21,7 +21,7 @@ public abstract class Regression implements Model {
    private EncoderPair encoderPair;
 
    public Regression(RegressionLearner learner) {
-      this.preprocessors = learner.getPreprocessors();
+      this.preprocessors = learner.getPreprocessors().getModelProcessors();
       this.encoderPair = learner.getEncoderPair();
    }
 

@@ -48,6 +48,10 @@ public class SequenceInput<T> implements Serializable {
       return labels.get(index);
    }
 
+   public void setLabel(int index, String label) {
+      labels.set(index, label);
+   }
+
    /**
     * Get t.
     *

@@ -66,12 +66,7 @@ public class MEMMLearner extends SequenceLabelerLearner {
 
    @Override
    protected SequenceLabeler trainImpl(Dataset<Sequence> dataset) {
-      MEMM model = new MEMM(dataset.getLabelEncoder(),
-                            dataset.getFeatureEncoder(),
-                            dataset.getPreprocessors().getModelProcessors(),
-                            getTransitionFeatures(),
-                            getValidator()
-      );
+      MEMM model = new MEMM(this);
       Dataset<Instance> nd = Dataset.classification()
                                     .source(dataset.stream().flatMap(s -> s.asInstances().stream()));
       QuietIO.closeQuietly(dataset);

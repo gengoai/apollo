@@ -26,6 +26,7 @@ public abstract class SequenceLabelerLearner extends Learner<Sequence, SequenceL
    @Override
    public SequenceLabeler train(@NonNull Dataset<Sequence> dataset) {
       dataset.encode();
+      update(dataset.getEncoderPair(), dataset.getPreprocessors());
       transitionFeatures.fit(dataset);
       dataset.getEncoderPair().freeze();
       SequenceLabeler model = trainImpl(dataset);

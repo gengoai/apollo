@@ -38,6 +38,7 @@ public class OnlineBatchOptimizer implements OnlineOptimizer {
             CostWeightTuple lwt = subOptimizer.optimize(theta, () -> StreamingContext.local().stream(batch),
                                                         costFunction, terminationCriteria,
                                                         learningRate, subUpdate, false);
+            numProcessed.addAndGet(batchSize);
             lr.set(learningRate.get(lr.get(), iteration, numProcessed.get()));
             if (subUpdate.gradient != null) {
                subUpdate.gradient.getTheta().scaleSelf(1d / batchSize);

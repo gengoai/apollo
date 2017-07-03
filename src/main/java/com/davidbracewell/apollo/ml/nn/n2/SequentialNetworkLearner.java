@@ -97,8 +97,8 @@ public class SequentialNetworkLearner extends ClassifierLearner {
             }
          }
 
-         if (iteration % 10 == 0) {
-//            System.out.println("iteration=" + iteration + ", totalError=" + totalError);
+         if (iteration % 50 == 0 || iteration == maxIterations - 1) {
+            System.out.println("iteration=" + iteration + ", totalError=" + totalError);
          }
 
       }

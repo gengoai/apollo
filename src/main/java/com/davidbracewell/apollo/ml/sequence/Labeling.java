@@ -81,22 +81,40 @@ public class Labeling implements Serializable {
    }
 
    public Context<Instance> iterator(Sequence sequence) {
-      return new Context<Instance>() {
-         @Override
-         protected Optional<Instance> getContextAt(int index) {
-            return index >= 0 && index < sequence.size() ? Optional.of(sequence.get(index)) : Optional.empty();
-         }
+      return new LabelingContext(sequence);
+   }
 
-         @Override
-         protected Optional<String> getLabelAt(int index) {
-            return index >= 0 && index < labels.length ? Optional.of(labels[index]) : Optional.empty();
-         }
+   public Context<Instance> iterator(Sequence sequence, int index) {
+      return new LabelingContext(sequence, index);
+   }
 
-         @Override
-         public int size() {
-            return labels.length;
-         }
-      };
+   private class LabelingContext extends Context<Instance> {
+      private final Sequence sequence;
+
+
+      public LabelingContext(Sequence sequence) {
+         this.sequence = sequence;
+      }
+
+      public LabelingContext(Sequence sequence, int index) {
+         this.sequence = sequence;
+         setIndex(index);
+      }
+
+      @Override
+      protected Optional<Instance> getContextAt(int index) {
+         return index >= 0 && index < sequence.size() ? Optional.of(sequence.get(index)) : Optional.empty();
+      }
+
+      @Override
+      protected Optional<String> getLabelAt(int index) {
+         return index >= 0 && index < labels.length ? Optional.of(labels[index]) : Optional.empty();
+      }
+
+      @Override
+      public int size() {
+         return labels.length;
+      }
    }
 
    /**

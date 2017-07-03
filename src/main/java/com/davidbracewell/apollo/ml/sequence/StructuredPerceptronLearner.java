@@ -143,7 +143,7 @@ public class StructuredPerceptronLearner extends SequenceLabelerLearner {
                         cWeights[y].increment(fid);
                      }
                      for (String feature : Collect.asIterable(
-                        transitionFeatures.extract(lblResult.iterator(sequence)))) {
+                        transitionFeatures.extract(lblResult.iterator(sequence, iterator.getIndex())))) {
                         int fid = (int) model.getFeatureEncoder().encode(feature);
                         model.weights[yHat].decrement(fid);
                         cWeights[yHat].decrement(fid);

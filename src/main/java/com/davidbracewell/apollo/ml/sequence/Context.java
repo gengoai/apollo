@@ -160,4 +160,9 @@ public abstract class Context<T> implements Iterator<T>, Serializable {
     */
    public abstract int size();
 
+   protected Context<T> setIndex(int index) {
+      this.index = index;
+      return this;
+   }
+
 }// END OF Context

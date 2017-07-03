@@ -4,16 +4,15 @@ import com.davidbracewell.apollo.ml.Feature;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.function.SerializableFunction;
+import com.davidbracewell.guava.common.collect.Iterators;
 import com.davidbracewell.guava.common.collect.Lists;
 import com.davidbracewell.string.StringUtils;
-import com.google.common.collect.Iterators;
 import lombok.NonNull;
 
 import java.io.Serializable;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 /**
  * The interface Transition feature.
@@ -107,6 +106,9 @@ public interface TransitionFeature extends Serializable {
             if (ii == null && index > 0) {
                return name + indexString + "****END****";
             }
+            if (ii == null) {
+               return null;
+            }
             String n = ii.getFeatureSpace()
                          .filter(f -> f.startsWith(name + "[0]="))
                          .findFirst()
@@ -116,35 +118,21 @@ public interface TransitionFeature extends Serializable {
       };
    }
 
-   /**
-    * The entry point of application.
-    *
-    * @param args the input arguments
-    */
-   public static void main(String[] args) {
-      SequenceInput<String> si = new SequenceInput<>(Arrays.asList(
-         "The", "dog", "on", "the", "hill"
-                                                                  ));
 
-      Sequence sequence = new SequenceFeaturizer<String>() {
+   static TransitionFeature fromTemplate(@NonNull String template) {
+      final List<SerializableFunction<Context<Instance>, String>> functions = parse(template);
+      return new TransitionFeature() {
+         private static final long serialVersionUID = 1L;
 
          @Override
-         public Set<Feature> apply(Context<String> stringContext) {
-            return Collections.singleton(
-               Feature.TRUE("Word[0]=" + stringContext.getCurrent()));
+         public Iterator<String> extract(Context<Instance> iterator) {
+            if (functions.stream().map(fun -> fun.apply(iterator))
+                         .anyMatch(Objects::isNull)) {
+               return Collections.emptyIterator();
+            }
+            return functions.stream().map(fun -> fun.apply(iterator)).iterator();
          }
-      }.extractSequence(si.iterator());
-      List<SerializableFunction<Context<Instance>, String>> l = parse("Word[-1],Word[0],Word[+1]");
-
-      Context<Instance> cntx = sequence.iterator();
-      while (cntx.hasNext()) {
-         cntx.next();
-         String featureName = l.stream()
-                               .map(fun -> fun.apply(cntx))
-                               .collect(Collectors.joining("::"));
-         System.out.println(featureName + "\n");
-      }
-
+      };
    }
 
    /**

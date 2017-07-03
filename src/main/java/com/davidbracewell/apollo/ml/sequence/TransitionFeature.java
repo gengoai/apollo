@@ -22,18 +22,6 @@ import java.util.regex.Pattern;
 public interface TransitionFeature extends Serializable {
 
    /**
-    * The constant NO_OPT.
-    */
-   TransitionFeature NO_OPT = new TransitionFeature() {
-      private static final long serialVersionUID = 1L;
-
-      @Override
-      public Iterator<String> extract(Context<Instance> iterator) {
-         return Iterators.emptyIterator();
-      }
-   };
-
-   /**
     * The constant FIRST_ORDER.
     */
    TransitionFeature FIRST_ORDER = new TransitionFeature() {
@@ -44,7 +32,17 @@ public interface TransitionFeature extends Serializable {
          return Collections.singleton("T[0]=" + iterator.getLabel()).iterator();
       }
    };
+   /**
+    * The constant NO_OPT.
+    */
+   TransitionFeature NO_OPT = new TransitionFeature() {
+      private static final long serialVersionUID = 1L;
 
+      @Override
+      public Iterator<String> extract(Context<Instance> iterator) {
+         return Iterators.emptyIterator();
+      }
+   };
    /**
     * The constant SECOND_ORDER.
     */

@@ -9,6 +9,8 @@ import java.util.Iterator;
 import java.util.LinkedList;
 
 /**
+ * The type Termination criteria.
+ *
  * @author David B. Bracewell
  */
 @Accessors(fluent = true)
@@ -24,10 +26,21 @@ public final class TerminationCriteria implements Serializable {
    @Setter
    private double tolerance = 1e-6;
 
+   /**
+    * Create termination criteria.
+    *
+    * @return the termination criteria
+    */
    public static TerminationCriteria create() {
       return new TerminationCriteria();
    }
 
+   /**
+    * Check boolean.
+    *
+    * @param sumLoss the sum loss
+    * @return the boolean
+    */
    public boolean check(double sumLoss) {
       boolean converged = false;
       if (history.size() >= historySize) {
@@ -41,6 +54,11 @@ public final class TerminationCriteria implements Serializable {
       return converged;
    }
 
+   /**
+    * Last loss double.
+    *
+    * @return the double
+    */
    public double lastLoss() {
       return history.getFirst();
    }

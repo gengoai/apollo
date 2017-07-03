@@ -3,6 +3,8 @@ package com.davidbracewell.apollo.optimization;
 import java.io.Serializable;
 
 /**
+ * The type Decay learning rate.
+ *
  * @author David B. Bracewell
  */
 public class DecayLearningRate implements LearningRate, Serializable {
@@ -12,6 +14,12 @@ public class DecayLearningRate implements LearningRate, Serializable {
    private final double initialRate;
 
 
+   /**
+    * Instantiates a new Decay learning rate.
+    *
+    * @param initialRate the initial rate
+    * @param decayRate   the decay rate
+    */
    public DecayLearningRate(double initialRate, double decayRate) {
       this.decayRate = decayRate;
       this.initialRate = initialRate;

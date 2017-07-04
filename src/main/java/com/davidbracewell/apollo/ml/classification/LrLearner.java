@@ -63,13 +63,9 @@ public class LrLearner extends BinaryClassifierLearner {
                             = new com.davidbracewell.apollo.ml.nn.n2.SequentialNetworkLearner();
                          learner.add(new com.davidbracewell.apollo.ml.nn.n2.DenseLayer(100));
                          learner.add(new ActivationLayer(new SigmoidActivation()));
-                         learner.add(new com.davidbracewell.apollo.ml.nn.n2.DenseLayer(100));
-                         learner.add(new ActivationLayer(new SigmoidActivation()));
-
-
                          learner.setWeightUpdate(new DeltaRule());
                          learner.setLossFunction(new LogLoss());
-                         learner.setMaxIterations(100);
+                         learner.setMaxIterations(500);
                          return learner;
                       },
                       10

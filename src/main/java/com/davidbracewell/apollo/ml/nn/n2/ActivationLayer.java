@@ -44,4 +44,9 @@ public class ActivationLayer implements Layer {
       this.outputSize = previousLayer.getOutputSize();
    }
 
+   @Override
+   public boolean isOptimizable() {
+      return false;
+   }
+
 }// END OF ActivationLayer

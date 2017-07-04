@@ -1,7 +1,5 @@
 package com.davidbracewell.apollo.optimization;
 
-import com.davidbracewell.apollo.linalg.Matrix;
-import com.davidbracewell.apollo.linalg.SparseMatrix;
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.optimization.update.WeightUpdate;
 import com.davidbracewell.function.SerializableSupplier;
@@ -60,14 +58,10 @@ public class SGD implements Optimizer, Serializable, Loggable {
                        double lr
                       ) {
       CostGradientTuple observation = costFunction.evaluate(next, theta);
-      Vector nextEta = next.mapMultiply(lr);
-      Matrix m = observation.getGradient()
-                            .toDiagMatrix()
-                            .multiply(new SparseMatrix(observation.getGradient().dimension(), nextEta));
       double regLoss = 0;
       for (Weights weights : theta) {
          synchronized (this) {
-            regLoss += updater.update(weights, new Weights(m, observation.getGradient(), weights.isBinary()), lr);
+            regLoss += updater.update(weights, observation.getGradient(), lr);
          }
       }
       return observation.getLoss() + regLoss;

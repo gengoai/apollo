@@ -20,7 +20,8 @@ public class GradientDescentCostFunction implements CostFunction {
    public CostGradientTuple evaluate(Vector vector, WeightComponent theta) {
       Vector predicted = activation.apply(theta.get(0).dot(vector));
       Vector y = vector.getLabelVector(predicted.dimension());
-      return lossFunction.lossAndDerivative(predicted, y);
+      CostGradientTuple tuple = lossFunction.lossAndDerivative(predicted, y);
+      return CostGradientTuple.of(tuple.getLoss(), tuple.getGradient().respectToInput(vector));
    }
 
 }// END OF SGDLinearCostFunction

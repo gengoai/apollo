@@ -1,5 +1,6 @@
 package com.davidbracewell.apollo.optimization;
 
+import com.davidbracewell.apollo.linalg.SparseMatrix;
 import com.davidbracewell.apollo.linalg.Vector;
 
 import java.util.Iterator;
@@ -12,7 +13,9 @@ public interface CostFunction {
    default CostGradientTuple evaluate(Iterable<Vector> vectors, WeightComponent theta) {
       Iterator<Vector> itr = vectors.iterator();
       if (!itr.hasNext()) {
-         return CostGradientTuple.of(0, Vector.sZeros(theta.get(0).getBias().dimension()));
+         return CostGradientTuple.of(0,
+                                     Gradient.of(SparseMatrix.zeroes(1, theta.get(0).getBias().dimension()),
+                                                 Vector.sZeros(theta.get(0).getBias().dimension())));
       }
       int numExamples = 1;
       CostGradientTuple tuple = evaluate(itr.next(), theta);

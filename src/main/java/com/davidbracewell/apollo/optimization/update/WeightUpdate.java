@@ -1,5 +1,6 @@
 package com.davidbracewell.apollo.optimization.update;
 
+import com.davidbracewell.apollo.optimization.Gradient;
 import com.davidbracewell.apollo.optimization.Weights;
 
 /**
@@ -7,6 +8,6 @@ import com.davidbracewell.apollo.optimization.Weights;
  */
 public interface WeightUpdate {
 
-   double update(Weights weights, Weights gradient, double learningRate);
+   double update(Weights weights, Gradient gradient, double learningRate);
 
 }//END OF WeightUpdate

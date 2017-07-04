@@ -38,4 +38,9 @@ public class InputLayer implements Layer {
       return inputSize;
    }
 
+   @Override
+   public boolean isOptimizable() {
+      return false;
+   }
+
 }// END OF InputLayer

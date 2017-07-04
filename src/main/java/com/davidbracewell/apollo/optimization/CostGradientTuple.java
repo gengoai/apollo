@@ -1,6 +1,5 @@
 package com.davidbracewell.apollo.optimization;
 
-import com.davidbracewell.apollo.linalg.Vector;
 import lombok.Value;
 
 /**
@@ -9,18 +8,18 @@ import lombok.Value;
 @Value(staticConstructor = "of")
 public class CostGradientTuple {
    double loss;
-   Vector[] gradients;
+   Gradient[] gradients;
 
-   public Vector getGradient() {
+   public Gradient getGradient() {
       return gradients[0];
    }
 
-   public Vector getGradient(int index) {
+   public Gradient getGradient(int index) {
       return gradients[index];
    }
 
-   public static CostGradientTuple of(double loss, Vector gradient) {
-      return of(loss, new Vector[]{gradient});
+   public static CostGradientTuple of(double loss, Gradient gradient) {
+      return of(loss, new Gradient[]{gradient});
    }
 
 }// END OF CostGradientTuple

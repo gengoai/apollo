@@ -90,11 +90,11 @@ public class SequentialNetworkLearner extends ClassifierLearner {
             Vector predicted = activations[activations.length - 1];
 
             totalError += lossFunction.loss(predicted, y);
-            Vector delta = lossFunction.derivative(predicted, y);
-            for (int i = model.layers.length - 1; i >= 0; i--) {
-               Vector a = i == 0 ? input : activations[i - 1];
-               delta = model.layers[i].backward(a, activations[i], delta, weightUpdate, eta);
-            }
+//            Vector delta = lossFunction.derivative(predicted, y);
+//            for (int i = model.layers.length - 1; i >= 0; i--) {
+//               Vector a = i == 0 ? input : activations[i - 1];
+//               delta = model.layers[i].backward(a, activations[i], delta, weightUpdate, eta);
+//            }
          }
 
          if (iteration % 50 == 0 || iteration == maxIterations - 1) {

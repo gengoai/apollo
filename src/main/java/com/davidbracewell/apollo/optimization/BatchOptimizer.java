@@ -39,8 +39,7 @@ public class BatchOptimizer implements Optimizer {
             numProcessed.addAndGet(batchSize);
             lr.set(learningRate.get(lr.get(), iteration, numProcessed.get()));
             double totalLoss = lwt.getLoss();
-            subUpdate.gradient.getTheta().scaleSelf(1d / batchSize);
-            subUpdate.gradient.getBias().mapDivideSelf(batchSize);
+            subUpdate.gradient.mapDivideSelf(batchSize);
             totalLoss += weightUpdater.update(theta.get(0), subUpdate.gradient, lr.get());
             return totalLoss;
          }).sum();
@@ -56,15 +55,14 @@ public class BatchOptimizer implements Optimizer {
 
    private static class SubUpdate implements WeightUpdate, Serializable {
       private static final long serialVersionUID = 1L;
-      private Weights gradient;
+      private Gradient gradient;
 
       @Override
-      public double update(Weights weights, Weights gradient, double learningRate) {
+      public double update(Weights weights, Gradient gradient, double learningRate) {
          if (this.gradient == null) {
             this.gradient = gradient;
          } else {
-            this.gradient.getTheta().addSelf(gradient.getTheta());
-            this.gradient.getBias().addSelf(gradient.getBias());
+            this.gradient.addSelf(gradient);
          }
          return 0;
       }

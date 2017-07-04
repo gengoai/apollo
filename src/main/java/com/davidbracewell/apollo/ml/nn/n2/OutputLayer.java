@@ -33,9 +33,9 @@ public class OutputLayer implements Layer {
       Vector dPrime = delta.toMatrix()
                            .multiply(weights.getTheta())
                            .row(0);
-      weightUpdate.update(weights,
-                          new Weights(delta.transpose().multiply(input.toMatrix()), delta, false),
-                          lr);
+//      weightUpdate.update(weights,
+//                          new Weights(delta.transpose().multiply(input.toMatrix()), delta, false),
+//                          lr);
       return dPrime;
    }
 
@@ -64,4 +64,8 @@ public class OutputLayer implements Layer {
       return outputSize;
    }
 
+   @Override
+   public boolean isOptimizable() {
+      return true;
+   }
 }// END OF OutputLayer

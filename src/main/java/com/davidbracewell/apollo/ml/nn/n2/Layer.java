@@ -52,4 +52,6 @@ public interface Layer {
    int getOutputSize();
 
 
+   boolean isOptimizable();
+
 }//END OF Layer

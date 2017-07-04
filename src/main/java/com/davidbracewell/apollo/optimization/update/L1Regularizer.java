@@ -1,5 +1,6 @@
 package com.davidbracewell.apollo.optimization.update;
 
+import com.davidbracewell.apollo.optimization.Gradient;
 import com.davidbracewell.apollo.optimization.Weights;
 import com.davidbracewell.guava.common.util.concurrent.AtomicDouble;
 import org.apache.commons.math3.util.FastMath;
@@ -27,7 +28,7 @@ public class L1Regularizer extends DeltaRule implements Serializable {
 
 
    @Override
-   public double update(Weights weights, Weights gradient, double learningRate) {
+   public double update(Weights weights, Gradient gradient, double learningRate) {
       super.update(weights, gradient, learningRate);
       if (l1 == 0) {
          return 0d;

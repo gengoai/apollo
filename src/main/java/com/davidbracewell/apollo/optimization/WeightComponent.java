@@ -1,6 +1,5 @@
-package com.davidbracewell.apollo.optimization.o2;
+package com.davidbracewell.apollo.optimization;
 
-import com.davidbracewell.apollo.optimization.Weights;
 import com.davidbracewell.guava.common.base.Preconditions;
 import lombok.NonNull;
 

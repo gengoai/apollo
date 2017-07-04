@@ -1,12 +1,8 @@
-package com.davidbracewell.apollo.optimization.o2;
+package com.davidbracewell.apollo.optimization;
 
 import com.davidbracewell.apollo.linalg.Matrix;
 import com.davidbracewell.apollo.linalg.SparseMatrix;
 import com.davidbracewell.apollo.linalg.Vector;
-import com.davidbracewell.apollo.optimization.CostGradientTuple;
-import com.davidbracewell.apollo.optimization.LearningRate;
-import com.davidbracewell.apollo.optimization.TerminationCriteria;
-import com.davidbracewell.apollo.optimization.Weights;
 import com.davidbracewell.apollo.optimization.update.WeightUpdate;
 import com.davidbracewell.function.SerializableSupplier;
 import com.davidbracewell.guava.common.util.concurrent.AtomicDouble;
@@ -70,7 +66,9 @@ public class SGD implements Optimizer, Serializable, Loggable {
                             .multiply(new SparseMatrix(observation.getGradient().dimension(), nextEta));
       double regLoss = 0;
       for (Weights weights : theta) {
-         regLoss += updater.update(weights, new Weights(m, observation.getGradient(), weights.isBinary()), lr);
+         synchronized (this) {
+            regLoss += updater.update(weights, new Weights(m, observation.getGradient(), weights.isBinary()), lr);
+         }
       }
       return observation.getLoss() + regLoss;
    }

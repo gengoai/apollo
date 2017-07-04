@@ -40,7 +40,7 @@ public interface TransitionFeature extends Serializable {
 
       @Override
       public Iterator<String> extract(Context<Instance> iterator) {
-         return Iterators.emptyIterator();
+         return Collections.emptyIterator();
       }
    };
    /**

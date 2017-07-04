@@ -1,6 +1,5 @@
 package com.davidbracewell.apollo.ml.classification;
 
-import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.optimization.*;
@@ -38,10 +37,6 @@ public class SoftmaxLearner extends ClassifierLearner {
    @Setter
    private boolean verbose = false;
 
-   private CostGradientTuple observe(Vector next, Weights weights) {
-      return loss.lossAndDerivative(activation.apply(weights.dot(next)), next.getLabelVector(weights.numClasses()));
-   }
-
 
    @Override
    public void resetLearnerParameters() {
@@ -51,25 +46,19 @@ public class SoftmaxLearner extends ClassifierLearner {
    @Override
    protected Classifier trainImpl(Dataset<Instance> dataset) {
       GLM model = new GLM(this);
-      OnlineOptimizer optimizer;
-      if (batchSize > 1) {
-         optimizer = new OnlineBatchOptimizer(new StochasticGradientDescent(), batchSize);
-      } else {
-         optimizer = new StochasticGradientDescent();
-      }
-
-      Weights start = Weights.multiClass(model.numberOfLabels(), model.numberOfFeatures());
-      Weights weights = optimizer.optimize(start,
-                                           dataset::asVectors,
-                                           this::observe,
-                                           TerminationCriteria.create()
-                                                              .maxIterations(maxIterations)
-                                                              .historySize(3)
-                                                              .tolerance(tolerance),
-                                           learningRate,
-                                           weightUpdater,
-                                           verbose).getWeights();
-      model.weights = weights;
+      Optimizer optimizer = new SGD();
+      WeightComponent component = new WeightComponent(new int[][]{{model.numberOfLabels(), model.numberOfFeatures()}},
+                                                      WeightInitializer.ZEROES);
+      model.weights = optimizer.optimize(component,
+                                         dataset::asVectors,
+                                         new GradientDescentCostFunction(loss, activation),
+                                         TerminationCriteria.create()
+                                                            .maxIterations(maxIterations)
+                                                            .historySize(3)
+                                                            .tolerance(tolerance),
+                                         learningRate,
+                                         weightUpdater,
+                                         verbose).getComponents().get(0);
       model.activation = activation;
       return model;
    }

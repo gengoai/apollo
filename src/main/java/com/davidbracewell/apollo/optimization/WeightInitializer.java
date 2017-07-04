@@ -1,7 +1,6 @@
-package com.davidbracewell.apollo.optimization.o2;
+package com.davidbracewell.apollo.optimization;
 
 import com.davidbracewell.apollo.linalg.Matrix;
-import com.davidbracewell.apollo.optimization.Weights;
 import lombok.NonNull;
 
 import java.io.Serializable;

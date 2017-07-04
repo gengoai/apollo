@@ -32,15 +32,15 @@ public class LrLearner extends BinaryClassifierLearner {
       Dataset<Instance> dataset = Dataset.classification()
                                          .source(dataSource)
                                          .shuffle(new Random(1234));
-////      crossValidation(dataset,
-////                      () -> new SoftmaxLearner()
-////                               .setParameter("learningRate",
-////                                             new BottouLearningRate(0.1, 0.001))
-////                               .setParameter("weightUpdater", new L1Regularizer(0.001))
-////                               .setParameter("batchSize", 0),
-////                      10
-////                     )
-////         .output(System.out);
+      crossValidation(dataset,
+                      () -> new SoftmaxLearner()
+                               .setParameter("learningRate",
+                                             new BottouLearningRate(0.1, 0.001))
+                               .setParameter("weightUpdater", new L1Regularizer(0.001))
+                               .setParameter("batchSize", 20),
+                      10
+                     )
+         .output(System.out);
 //
 //      crossValidation(dataset,
 //                      () -> {
@@ -74,14 +74,14 @@ public class LrLearner extends BinaryClassifierLearner {
 //
 //
 
-      crossValidation(dataset,
-                      () -> BinarySGDLearner.logisticRegression()
-                                            .oneVsRest()
-                                            .setParameter("normalize", true)
-                                            .setParameter("learningRate", new BottouLearningRate(0.1, 0.001))
-                                            .setParameter("weightUpdater", new L1Regularizer(0.001)),
-                      10
-                     ).output(System.out);
+//      crossValidation(dataset,
+//                      () -> BinarySGDLearner.logisticRegression()
+//                                            .oneVsRest()
+//                                            .setParameter("normalize", true)
+//                                            .setParameter("learningRate", new BottouLearningRate(0.1, 0.001))
+//                                            .setParameter("weightUpdater", new L1Regularizer(0.001)),
+//                      10
+//                     ).output(System.out);
 //
 //      crossValidation(dataset,
 //                      () -> BinarySGDLearner

@@ -2,7 +2,6 @@ package com.davidbracewell.apollo.ml.nn.n2;
 
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.optimization.activation.DifferentiableActivation;
-import com.davidbracewell.apollo.optimization.update.WeightUpdate;
 import lombok.NonNull;
 
 /**
@@ -18,9 +17,14 @@ public class ActivationLayer implements Layer {
    }
 
    @Override
-   public Vector backward(Vector input, Vector output, Vector delta, WeightUpdate weightUpdate, double lr) {
-      return delta
-                .multiply(activation.valueGradient(output));
+   public Vector backward(Vector output, Vector delta) {
+      return delta.multiply(activation.valueGradient(output));
+   }
+
+   @Override
+   public void connect(Layer previousLayer) {
+      this.inputSize = previousLayer.getInputSize();
+      this.outputSize = previousLayer.getOutputSize();
    }
 
    @Override
@@ -36,12 +40,6 @@ public class ActivationLayer implements Layer {
    @Override
    public int getOutputSize() {
       return outputSize;
-   }
-
-   @Override
-   public void connect(Layer previousLayer) {
-      this.inputSize = previousLayer.getInputSize();
-      this.outputSize = previousLayer.getOutputSize();
    }
 
    @Override

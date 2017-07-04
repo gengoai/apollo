@@ -6,8 +6,10 @@ import com.davidbracewell.apollo.ml.Feature;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.ml.data.source.DenseCSVDataSource;
-import com.davidbracewell.apollo.optimization.BottouLearningRate;
-import com.davidbracewell.apollo.optimization.update.L1Regularizer;
+import com.davidbracewell.apollo.ml.nn.n2.ActivationLayer;
+import com.davidbracewell.apollo.optimization.activation.SigmoidActivation;
+import com.davidbracewell.apollo.optimization.loss.LogLoss;
+import com.davidbracewell.apollo.optimization.update.DeltaRule;
 import com.davidbracewell.io.Resources;
 import com.davidbracewell.io.resource.Resource;
 
@@ -32,15 +34,15 @@ public class LrLearner extends BinaryClassifierLearner {
       Dataset<Instance> dataset = Dataset.classification()
                                          .source(dataSource)
                                          .shuffle(new Random(1234));
-      crossValidation(dataset,
-                      () -> new SoftmaxLearner()
-                               .setParameter("learningRate",
-                                             new BottouLearningRate(0.1, 0.001))
-                               .setParameter("weightUpdater", new L1Regularizer(0.001))
-                               .setParameter("batchSize", 20),
-                      10
-                     )
-         .output(System.out);
+//      crossValidation(dataset,
+//                      () -> new SoftmaxLearner()
+//                               .setParameter("learningRate",
+//                                             new BottouLearningRate(0.1, 0.001))
+//                               .setParameter("weightUpdater", new L1Regularizer(0.001))
+//                               .setParameter("batchSize", 20),
+//                      10
+//                     )
+//         .output(System.out);
 //
 //      crossValidation(dataset,
 //                      () -> {
@@ -55,22 +57,23 @@ public class LrLearner extends BinaryClassifierLearner {
 //                     ).output(System.out);
 
 
-//      crossValidation(dataset,
-//                      () -> {
-//                         com.davidbracewell.apollo.ml.nn.n2.SequentialNetworkLearner learner
-//                            = new com.davidbracewell.apollo.ml.nn.n2.SequentialNetworkLearner();
-//                         learner.add(new com.davidbracewell.apollo.ml.nn.n2.DenseLayer(100));
-//                         learner.add(new ActivationLayer(new SigmoidActivation()));
-//                         learner.add(new com.davidbracewell.apollo.ml.nn.n2.DenseLayer(100));
-//                         learner.add(new ActivationLayer(new SigmoidActivation()));
-//                         learner.setLearningRate(new BottouLearningRate(0.1, 0.0001));
-//                         learner.setWeightUpdate(new DeltaRule());
-//                         learner.setLossFunction(new LogLoss());
-//                         learner.setMaxIterations(1000);
-//                         return learner;
-//                      },
-//                      10
-//                     ).output(System.out);
+      crossValidation(dataset,
+                      () -> {
+                         com.davidbracewell.apollo.ml.nn.n2.SequentialNetworkLearner learner
+                            = new com.davidbracewell.apollo.ml.nn.n2.SequentialNetworkLearner();
+                         learner.add(new com.davidbracewell.apollo.ml.nn.n2.DenseLayer(100));
+                         learner.add(new ActivationLayer(new SigmoidActivation()));
+                         learner.add(new com.davidbracewell.apollo.ml.nn.n2.DenseLayer(100));
+                         learner.add(new ActivationLayer(new SigmoidActivation()));
+
+
+                         learner.setWeightUpdate(new DeltaRule());
+                         learner.setLossFunction(new LogLoss());
+                         learner.setMaxIterations(100);
+                         return learner;
+                      },
+                      10
+                     ).output(System.out);
 //
 //
 

@@ -1,7 +1,7 @@
 package com.davidbracewell.apollo.ml.nn.n2;
 
 import com.davidbracewell.apollo.linalg.Vector;
-import com.davidbracewell.apollo.optimization.update.WeightUpdate;
+import com.davidbracewell.apollo.optimization.Weights;
 
 /**
  * The interface Layer.
@@ -10,17 +10,7 @@ import com.davidbracewell.apollo.optimization.update.WeightUpdate;
  */
 public interface Layer {
 
-   /**
-    * Backward vector.
-    *
-    * @param input        the input
-    * @param output       the output
-    * @param delta        the delta
-    * @param weightUpdate the weight update
-    * @param lr           the lr
-    * @return the vector
-    */
-   Vector backward(Vector input, Vector output, Vector delta, WeightUpdate weightUpdate, double lr);
+   Vector backward(Vector output, Vector delta);
 
    /**
     * Connect.
@@ -51,6 +41,12 @@ public interface Layer {
     */
    int getOutputSize();
 
+   default Weights getWeights() {
+      return null;
+   }
+
+   default void setWeights(Weights weights) {
+   }
 
    boolean isOptimizable();
 

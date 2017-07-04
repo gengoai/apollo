@@ -39,9 +39,15 @@ public class BatchOptimizer implements Optimizer {
             numProcessed.addAndGet(batchSize);
             lr.set(learningRate.get(lr.get(), iteration, numProcessed.get()));
             double totalLoss = lwt.getLoss();
-            subUpdate.gradient.mapDivideSelf(batchSize);
-            totalLoss += weightUpdater.update(theta.get(0), subUpdate.gradient, lr.get());
-            return totalLoss;
+            if (subUpdate.gradient != null) {
+               subUpdate.gradient.mapDivideSelf(batchSize);
+               for (int j = 0; j < theta.size(); j++) {
+                  totalLoss += weightUpdater.update(theta.get(j), subUpdate.gradient, lr.get());
+               }
+               totalLoss += weightUpdater.update(theta.get(0), subUpdate.gradient, lr.get());
+               return totalLoss;
+            }
+            return 0d;
          }).sum();
 
 

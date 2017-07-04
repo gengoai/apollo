@@ -4,7 +4,6 @@ import com.davidbracewell.apollo.linalg.DenseMatrix;
 import com.davidbracewell.apollo.linalg.SparseVector;
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.optimization.Weights;
-import com.davidbracewell.apollo.optimization.update.WeightUpdate;
 
 /**
  * @author David B. Bracewell
@@ -19,14 +18,10 @@ public class DenseLayer implements Layer {
    }
 
    @Override
-   public Vector backward(Vector input, Vector output, Vector delta, WeightUpdate weightUpdate, double lr) {
-      Vector dPrime = delta.toMatrix()
-                           .multiply(weights.getTheta())
-                           .row(0);
-//      weightUpdate.update(weights,
-//                          new Weights(delta.transpose().multiply(input.toMatrix()), delta, false),
-//                          lr);
-      return dPrime;
+   public Vector backward(Vector output, Vector delta) {
+      return delta.toMatrix()
+                  .multiply(weights.getTheta())
+                  .row(0);
    }
 
    @Override
@@ -40,8 +35,13 @@ public class DenseLayer implements Layer {
    }
 
    @Override
-   public boolean isOptimizable() {
-      return true;
+   public Weights getWeights() {
+      return weights;
+   }
+
+   @Override
+   public void setWeights(Weights weights) {
+      this.weights = weights;
    }
 
    @Override
@@ -57,5 +57,10 @@ public class DenseLayer implements Layer {
    @Override
    public int getOutputSize() {
       return outputSize;
+   }
+
+   @Override
+   public boolean isOptimizable() {
+      return true;
    }
 }// END OF DenseLayer

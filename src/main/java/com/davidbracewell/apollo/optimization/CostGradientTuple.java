@@ -10,16 +10,19 @@ public class CostGradientTuple {
    double loss;
    Gradient[] gradients;
 
+   public static CostGradientTuple of(double loss, Gradient gradient) {
+      return of(loss, new Gradient[]{gradient});
+   }
+
    public Gradient getGradient() {
       return gradients[0];
    }
 
    public Gradient getGradient(int index) {
+      if (index > gradients.length && gradients.length == 1) {
+         return gradients[0];
+      }
       return gradients[index];
-   }
-
-   public static CostGradientTuple of(double loss, Gradient gradient) {
-      return of(loss, new Gradient[]{gradient});
    }
 
 }// END OF CostGradientTuple

@@ -20,13 +20,25 @@ public interface CostFunction {
       int numExamples = 1;
       CostGradientTuple tuple = evaluate(itr.next(), theta);
       double totalLoss = tuple.getLoss();
+      Gradient[] gradients = null;
       while (itr.hasNext()) {
          numExamples++;
          CostGradientTuple cgt = evaluate(itr.next(), theta);
-         tuple.getGradient().addSelf(cgt.getGradient());
+         if (gradients == null) {
+            gradients = cgt.getGradients();
+         } else {
+            for (int i = 0; i < gradients.length; i++) {
+               gradients[i].addSelf(cgt.getGradient(i));
+            }
+         }
          totalLoss += cgt.getLoss();
       }
-      return CostGradientTuple.of(totalLoss, tuple.getGradient().mapDivideSelf(numExamples));
+      if (gradients != null) {
+         for (Gradient gradient : gradients) {
+            gradient.mapDivideSelf(numExamples);
+         }
+      }
+      return CostGradientTuple.of(totalLoss, gradients);
    }
 
    CostGradientTuple evaluate(Vector vector, WeightComponent theta);

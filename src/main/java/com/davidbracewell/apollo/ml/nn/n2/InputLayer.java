@@ -1,7 +1,6 @@
 package com.davidbracewell.apollo.ml.nn.n2;
 
 import com.davidbracewell.apollo.linalg.Vector;
-import com.davidbracewell.apollo.optimization.update.WeightUpdate;
 
 /**
  * @author David B. Bracewell
@@ -13,8 +12,9 @@ public class InputLayer implements Layer {
       this.inputSize = inputSize;
    }
 
+
    @Override
-   public Vector backward(Vector input, Vector output, Vector delta, WeightUpdate weightUpdate, double lr) {
+   public Vector backward(Vector output, Vector delta) {
       return delta;
    }
 

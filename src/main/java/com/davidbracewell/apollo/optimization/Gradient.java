@@ -19,6 +19,12 @@ public class Gradient {
       return this;
    }
 
+   public Gradient mapDivideSelf(@NonNull double number) {
+      this.weightGradient.scaleSelf(1d / number);
+      this.biasGradient.mapDivideSelf(number);
+      return this;
+   }
+
    public Gradient respectToInput(@NonNull Vector vector) {
       return Gradient.of(this.weightGradient.multiply(vector.toMatrix()), biasGradient);
    }
@@ -26,12 +32,6 @@ public class Gradient {
    public Gradient scaleSelf(double scale) {
       this.weightGradient.scaleSelf(scale);
       this.biasGradient.mapMultiplySelf(scale);
-      return this;
-   }
-
-   public Gradient mapDivideSelf(@NonNull double number) {
-      this.weightGradient.scaleSelf(1d / number);
-      this.biasGradient.mapDivideSelf(number);
       return this;
    }
 

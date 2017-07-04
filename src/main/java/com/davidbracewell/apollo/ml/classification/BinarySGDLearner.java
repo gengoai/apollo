@@ -10,6 +10,7 @@ import com.davidbracewell.apollo.optimization.activation.StepActivation;
 import com.davidbracewell.apollo.optimization.loss.HingeLoss;
 import com.davidbracewell.apollo.optimization.loss.LogLoss;
 import com.davidbracewell.apollo.optimization.loss.LossFunction;
+import com.davidbracewell.apollo.optimization.o2.*;
 import com.davidbracewell.apollo.optimization.update.DeltaRule;
 import com.davidbracewell.apollo.optimization.update.WeightUpdate;
 import lombok.Getter;
@@ -99,26 +100,53 @@ public class BinarySGDLearner extends BinaryClassifierLearner {
          optimizer = new StochasticGradientDescent();
       }
 
-      Weights start = Weights.binary(model.numberOfFeatures());
-      Weights weights = optimizer.optimize(start,
-                                           () -> dataset.asVectors()
-                                                        .map(fv -> {
-                                                           if (fv.getLabelAsDouble() == trueLabel) {
-                                                              fv.setLabel(1);
-                                                           } else {
-                                                              fv.setLabel(0);
-                                                           }
-                                                           return fv;
-                                                        })
-                                                        .cache(),
-                                           this::observe,
-                                           TerminationCriteria.create()
-                                                              .maxIterations(maxIterations)
-                                                              .historySize(3)
-                                                              .tolerance(tolerance),
-                                           learningRate,
-                                           weightUpdater,
-                                           verbose).getWeights();
+      WeightComponent component = new WeightComponent(new int[][]{
+         {2, model.numberOfFeatures()}
+      }, WeightInitializer.ZEROES);
+      Optimizer optimizer1 = new SGD();
+      Weights weights = optimizer1.optimize(component,
+                                            () -> dataset.asVectors()
+                                                         .map(fv -> {
+                                                            if (fv.getLabelAsDouble() == trueLabel) {
+                                                               fv.setLabel(1);
+                                                            } else {
+                                                               fv.setLabel(0);
+                                                            }
+                                                            return fv;
+                                                         })
+                                                         .cache(),
+                                            new GradientDescentCostFunction(loss, activation),
+                                            TerminationCriteria.create()
+                                                               .maxIterations(maxIterations)
+                                                               .historySize(3)
+                                                               .tolerance(tolerance),
+                                            learningRate,
+                                            weightUpdater,
+                                            verbose
+                                           ).getComponents()
+                                  .get(0);
+
+
+//      Weights start = Weights.binary(model.numberOfFeatures());
+//      Weights weights = optimizer.optimize(start,
+//                                           () -> dataset.asVectors()
+//                                                        .map(fv -> {
+//                                                           if (fv.getLabelAsDouble() == trueLabel) {
+//                                                              fv.setLabel(1);
+//                                                           } else {
+//                                                              fv.setLabel(0);
+//                                                           }
+//                                                           return fv;
+//                                                        })
+//                                                        .cache(),
+//                                           this::observe,
+//                                           TerminationCriteria.create()
+//                                                              .maxIterations(maxIterations)
+//                                                              .historySize(3)
+//                                                              .tolerance(tolerance),
+//                                           learningRate,
+//                                           weightUpdater,
+//                                           verbose).getWeights();
 
 
       model.weights = weights.getTheta().row(0).copy();

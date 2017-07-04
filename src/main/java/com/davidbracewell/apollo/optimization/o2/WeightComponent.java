@@ -20,14 +20,15 @@ public class WeightComponent implements Serializable, Iterable<Weights> {
    /**
     * Instantiates a new Weight component.
     *
-    * @param numComponents the num components
-    * @param initializer   the initializer
+    * @param initializer the initializer
     */
-   public WeightComponent(int numComponents, @NonNull WeightInitializer initializer) {
-      Preconditions.checkArgument(numComponents > 0, "Need at least one weight component");
-      this.weights = new Weights[numComponents];
-      for (Weights weight : this.weights) {
-         initializer.initialize(weight.getTheta());
+   public WeightComponent(int[][] shapes, @NonNull WeightInitializer initializer) {
+      Preconditions.checkArgument(shapes.length > 0, "Need at least one weight component");
+      this.weights = new Weights[shapes.length];
+      for (int i = 0; i < this.weights.length; i++) {
+         int[] shape = shapes[i];
+         this.weights[i] = shape[0] <= 2 ? Weights.binary(shape[1]) : Weights.multiClass(shape[0], shape[1]);
+         initializer.initialize(this.weights[i].getTheta());
       }
    }
 

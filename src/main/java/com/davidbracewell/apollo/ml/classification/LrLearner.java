@@ -6,6 +6,8 @@ import com.davidbracewell.apollo.ml.Feature;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.ml.data.source.DenseCSVDataSource;
+import com.davidbracewell.apollo.optimization.BottouLearningRate;
+import com.davidbracewell.apollo.optimization.update.L1Regularizer;
 import com.davidbracewell.io.Resources;
 import com.davidbracewell.io.resource.Resource;
 
@@ -73,9 +75,11 @@ public class LrLearner extends BinaryClassifierLearner {
 //
 
       crossValidation(dataset,
-                      () -> BinarySGDLearner.logisticRegression().oneVsRest()
+                      () -> BinarySGDLearner.logisticRegression()
+                                            .oneVsRest()
                                             .setParameter("normalize", true)
-                                            .setParameter("batchSize", 1),
+                                            .setParameter("learningRate", new BottouLearningRate(0.1, 0.001))
+                                            .setParameter("weightUpdater", new L1Regularizer(0.001)),
                       10
                      ).output(System.out);
 //

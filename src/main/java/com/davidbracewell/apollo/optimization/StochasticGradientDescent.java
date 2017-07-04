@@ -7,21 +7,12 @@ import com.davidbracewell.apollo.optimization.update.WeightUpdate;
 import com.davidbracewell.function.SerializableSupplier;
 import com.davidbracewell.logging.Logger;
 import com.davidbracewell.stream.MStream;
-import lombok.Getter;
-import lombok.Setter;
 
 /**
  * @author David B. Bracewell
  */
 public class StochasticGradientDescent implements OnlineOptimizer {
    private static final Logger LOG = Logger.getLogger(StochasticGradientDescent.class);
-   @Getter
-   @Setter
-   private double alpha = 1;
-   @Getter
-   @Setter
-   private double tolerance = 1e-10;
-
    private Weights weights;
 
    @Override

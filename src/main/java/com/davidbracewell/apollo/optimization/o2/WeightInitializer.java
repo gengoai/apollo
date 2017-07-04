@@ -15,23 +15,6 @@ import java.io.Serializable;
 public interface WeightInitializer extends Serializable {
 
    /**
-    * Initialize.
-    *
-    * @param weights the weights
-    */
-   void initialize(Matrix weights);
-
-
-   /**
-    * Initialize.
-    *
-    * @param weights the weights
-    */
-   default void initialize(@NonNull Weights weights) {
-      initialize(weights.getTheta());
-   }
-
-   /**
     * The constant DEFAULT.
     */
    WeightInitializer DEFAULT = (m) -> {
@@ -43,5 +26,22 @@ public interface WeightInitializer extends Serializable {
          }
       }
    };
+   WeightInitializer ZEROES = (m) -> {};
+
+   /**
+    * Initialize.
+    *
+    * @param weights the weights
+    */
+   void initialize(Matrix weights);
+
+   /**
+    * Initialize.
+    *
+    * @param weights the weights
+    */
+   default void initialize(@NonNull Weights weights) {
+      initialize(weights.getTheta());
+   }
 
 }// END OF WeightInitializer

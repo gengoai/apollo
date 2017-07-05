@@ -17,7 +17,7 @@ public interface WeightInitializer extends Serializable {
     * The constant DEFAULT.
     */
    WeightInitializer DEFAULT = (m) -> {
-      double max = 1d / (m.numberOfRows() + m.numberOfColumns());
+      double max = 1.0 / Math.sqrt(6.0 / m.numberOfColumns() + m.numberOfRows());
       double min = -max;
       for (int r = 0; r < m.numberOfRows(); r++) {
          for (int c = 0; c < m.numberOfColumns(); c++) {
@@ -25,7 +25,8 @@ public interface WeightInitializer extends Serializable {
          }
       }
    };
-   WeightInitializer ZEROES = (m) -> {};
+
+   WeightInitializer ZEROES = (m) -> m.nonZeroIterator().forEachRemaining(e -> m.set(e.row, e.column, 0));
 
    /**
     * Initialize.

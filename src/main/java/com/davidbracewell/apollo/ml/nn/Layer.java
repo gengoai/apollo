@@ -1,27 +1,82 @@
 package com.davidbracewell.apollo.ml.nn;
 
-import com.davidbracewell.apollo.linalg.Matrix;
 import com.davidbracewell.apollo.linalg.Vector;
+import com.davidbracewell.apollo.optimization.Weights;
+import com.davidbracewell.stream.MStream;
+
+import java.io.Serializable;
 
 /**
+ * The interface Layer.
+ *
  * @author David B. Bracewell
  */
-public interface Layer {
+public interface Layer extends Serializable {
 
-   Vector calculateGradient(Vector activatedInput);
+   /**
+    * Backward vector.
+    *
+    * @param output the output
+    * @param delta  the delta
+    * @return the vector
+    */
+   Vector backward(Vector output, Vector delta);
 
-   Layer connect(Layer source);
+   /**
+    * Connect.
+    *
+    * @param previousLayer the previous layer
+    */
+   void connect(Layer previousLayer);
 
-   Vector forward(Vector m);
+   /**
+    * Forward vector.
+    *
+    * @param input the input
+    * @return the vector
+    */
+   Vector forward(Vector input);
 
-   Vector getBias();
+   /**
+    * Gets input size.
+    *
+    * @return the input size
+    */
+   int getInputSize();
 
-   int getInputDimension();
+   /**
+    * Gets output size.
+    *
+    * @return the output size
+    */
+   int getOutputSize();
 
-   Layer setInputDimension(int dimension);
+   /**
+    * Gets weights.
+    *
+    * @return the weights
+    */
+   default Weights getWeights() {
+      return null;
+   }
 
-   int getOutputDimension();
+   /**
+    * Sets weights.
+    *
+    * @param weights the weights
+    */
+   default void setWeights(Weights weights) {
+   }
 
-   Matrix getWeights();
+   /**
+    * Has weights boolean.
+    *
+    * @return the boolean
+    */
+   boolean hasWeights();
+
+   default MStream<Vector> pretrain(MStream<Vector> previousOutput) {
+      return previousOutput;
+   }
 
 }//END OF Layer

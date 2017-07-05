@@ -7,8 +7,7 @@ import com.davidbracewell.guava.common.util.concurrent.AtomicDouble;
 import com.davidbracewell.logging.Loggable;
 import com.davidbracewell.stream.MStream;
 import com.davidbracewell.stream.StreamingContext;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import lombok.experimental.Accessors;
 
 import java.io.Serializable;
@@ -18,20 +17,23 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author David B. Bracewell
  */
 @Accessors(fluent = true)
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class BatchOptimizer implements Optimizer, Loggable, Serializable {
    private static final long serialVersionUID = 1L;
-   private final Optimizer subOptimizer;
    @Getter
    @Setter
-   private int batchSize;
+   @Builder.Default
+   private Optimizer subOptimizer = new SGD();
    @Getter
    @Setter
+   @Builder.Default
+   private int batchSize = 50;
+   @Getter
+   @Setter
+   @Builder.Default
    private int reportInterval = 100;
-
-   public BatchOptimizer(Optimizer subOptimizer, int batchSize) {
-      this.subOptimizer = subOptimizer;
-      this.batchSize = batchSize;
-   }
 
    @Override
    public CostWeightTuple optimize(WeightComponent theta, SerializableSupplier<MStream<? extends Vector>> stream, CostFunction costFunction, TerminationCriteria terminationCriteria, LearningRate learningRate, WeightUpdate weightUpdater, boolean verbose) {

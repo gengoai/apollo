@@ -1,4 +1,4 @@
-package com.davidbracewell.apollo.ml.nn.n2;
+package com.davidbracewell.apollo.ml.nn;
 
 import com.davidbracewell.apollo.linalg.Vector;
 
@@ -6,6 +6,7 @@ import com.davidbracewell.apollo.linalg.Vector;
  * @author David B. Bracewell
  */
 public class InputLayer implements Layer {
+   private static final long serialVersionUID = 1L;
    private final int inputSize;
 
    public InputLayer(int inputSize) {
@@ -39,7 +40,7 @@ public class InputLayer implements Layer {
    }
 
    @Override
-   public boolean isOptimizable() {
+   public boolean hasWeights() {
       return false;
    }
 

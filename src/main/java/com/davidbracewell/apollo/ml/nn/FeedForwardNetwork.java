@@ -1,4 +1,4 @@
-package com.davidbracewell.apollo.ml.nn.n2;
+package com.davidbracewell.apollo.ml.nn;
 
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.classification.Classification;
@@ -10,7 +10,7 @@ import com.davidbracewell.apollo.ml.classification.ClassifierLearner;
  *
  * @author David B. Bracewell
  */
-public class SequentialNetwork extends Classifier {
+public class FeedForwardNetwork extends Classifier {
    /**
     * The Layers.
     */
@@ -21,7 +21,7 @@ public class SequentialNetwork extends Classifier {
     *
     * @param learner the learner
     */
-   protected SequentialNetwork(ClassifierLearner learner) {
+   protected FeedForwardNetwork(ClassifierLearner learner) {
       super(learner);
    }
 

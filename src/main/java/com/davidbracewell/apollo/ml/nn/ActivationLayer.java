@@ -1,4 +1,4 @@
-package com.davidbracewell.apollo.ml.nn.n2;
+package com.davidbracewell.apollo.ml.nn;
 
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.optimization.activation.DifferentiableActivation;
@@ -8,6 +8,7 @@ import lombok.NonNull;
  * @author David B. Bracewell
  */
 public class ActivationLayer implements Layer {
+   private static final long serialVersionUID = 1L;
    private final DifferentiableActivation activation;
    private int inputSize;
    private int outputSize;
@@ -43,7 +44,7 @@ public class ActivationLayer implements Layer {
    }
 
    @Override
-   public boolean isOptimizable() {
+   public boolean hasWeights() {
       return false;
    }
 

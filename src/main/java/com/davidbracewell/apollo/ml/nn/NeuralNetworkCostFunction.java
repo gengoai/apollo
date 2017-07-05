@@ -1,4 +1,4 @@
-package com.davidbracewell.apollo.ml.nn.n2;
+package com.davidbracewell.apollo.ml.nn;
 
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.optimization.CostFunction;
@@ -10,11 +10,11 @@ import com.davidbracewell.apollo.optimization.loss.LossFunction;
 /**
  * @author David B. Bracewell
  */
-public class SequentialNetworkCostFunction implements CostFunction {
-   private final SequentialNetwork network;
+public class NeuralNetworkCostFunction implements CostFunction {
+   private final FeedForwardNetwork network;
    private final LossFunction lossFunction;
 
-   public SequentialNetworkCostFunction(SequentialNetwork network, LossFunction lossFunction) {
+   public NeuralNetworkCostFunction(FeedForwardNetwork network, LossFunction lossFunction) {
       this.network = network;
       this.lossFunction = lossFunction;
    }
@@ -45,7 +45,7 @@ public class SequentialNetworkCostFunction implements CostFunction {
       int index = 0;
       for (int i = 0; i < numLayers; i++) {
          Vector a = i == 0 ? input : activations[i - 1];
-         if (network.layers[i].isOptimizable()) {
+         if (network.layers[i].hasWeights()) {
             gradients[index] = Gradient.of(deltas[i + 1].transpose().multiply(a.toMatrix()),
                                            deltas[i + 1]);
             index++;

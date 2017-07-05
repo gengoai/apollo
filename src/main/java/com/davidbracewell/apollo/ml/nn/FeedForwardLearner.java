@@ -1,5 +1,6 @@
-package com.davidbracewell.apollo.ml.nn.n2;
+package com.davidbracewell.apollo.ml.nn;
 
+import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.classification.Classifier;
 import com.davidbracewell.apollo.ml.classification.ClassifierLearner;
@@ -11,6 +12,7 @@ import com.davidbracewell.apollo.optimization.loss.LogLoss;
 import com.davidbracewell.apollo.optimization.loss.LossFunction;
 import com.davidbracewell.apollo.optimization.update.DeltaRule;
 import com.davidbracewell.apollo.optimization.update.WeightUpdate;
+import com.davidbracewell.stream.MStream;
 import lombok.*;
 
 import java.util.ArrayList;
@@ -21,7 +23,8 @@ import java.util.List;
  */
 @Builder
 @AllArgsConstructor
-public class SequentialNetworkLearner extends ClassifierLearner {
+@NoArgsConstructor
+public class FeedForwardLearner extends ClassifierLearner {
    @Getter
    private @Singular
    List<Layer> layers = new ArrayList<>();
@@ -48,60 +51,61 @@ public class SequentialNetworkLearner extends ClassifierLearner {
    @Getter
    @Setter
    @Builder.Default
-   private int batchSize = -1;
-   @Getter
-   @Setter
-   @Builder.Default
    private double tolerance = 1e-4;
    @Getter
    @Setter
    @Builder.Default
    private boolean verbose = false;
+   @Getter
+   @Setter
+   @Builder.Default
+   private Optimizer optimizer = new SGD();
+   @Getter
+   @Setter
+   @Builder.Default
+   private int maxPreTrainIterations = 0;
+   @Getter
+   @Setter
+   @Builder.Default
+   private WeightInitializer weightInitializer = WeightInitializer.DEFAULT;
+   private int numberOfWeightLayers = 0;
 
-   public SequentialNetworkLearner() {
-
-   }
-
-   public SequentialNetworkLearner add(Layer layer) {
-      layers.add(layer);
-      return this;
+   private void connect(Layer current, Layer previous) {
+      current.connect(previous);
+      if (current.hasWeights()) {
+         numberOfWeightLayers++;
+         weightInitializer.initialize(current.getWeights());
+      }
    }
 
    private Layer[] makeLayers(int numberOfFeatures, int numberOfLabels) {
       List<Layer> layerList = new ArrayList<>(layers);
       layerList.add(new OutputLayer(outputActivation, numberOfLabels));
       InputLayer inputLayer = new InputLayer(numberOfFeatures);
-      layerList.get(0).connect(inputLayer);
+      connect(layerList.get(0), inputLayer);
       for (int i = 1; i < layerList.size(); i++) {
-         layerList.get(i).connect(layerList.get(i - 1));
+         connect(layerList.get(i), layerList.get(i - 1));
       }
       return layerList.toArray(new Layer[layerList.size()]);
    }
 
    @Override
    protected void resetLearnerParameters() {
-
+      numberOfWeightLayers = 0;
    }
 
    @Override
    protected Classifier trainImpl(Dataset<Instance> dataset) {
-      SequentialNetwork model = new SequentialNetwork(this);
+      FeedForwardNetwork model = new FeedForwardNetwork(this);
 
       final int numberOfLayers = layers.size() + 1;
       model.layers = makeLayers(dataset.getFeatureEncoder().size(), dataset.getLabelEncoder().size());
 
 
-      int numWeights = 0;
-      for (int i = 0; i < numberOfLayers; i++) {
-         if (model.layers[i].isOptimizable()) {
-            numWeights++;
-         }
-      }
-
-      int[][] shapes = new int[numWeights][2];
+      int[][] shapes = new int[numberOfWeightLayers][2];
 
       for (int i = 0, index = 0; i < numberOfLayers; i++) {
-         if (model.layers[i].isOptimizable()) {
+         if (model.layers[i].hasWeights()) {
             shapes[index][0] = model.layers[i].getOutputSize();
             shapes[index][1] = (i == 0) ? dataset.getFeatureEncoder().size() : model.layers[i - 1].getOutputSize();
             index++;
@@ -109,21 +113,24 @@ public class SequentialNetworkLearner extends ClassifierLearner {
       }
       WeightComponent theta = new WeightComponent(shapes, WeightInitializer.ZEROES);
       for (int i = 0, index = 0; i < numberOfLayers; i++) {
-         if (model.layers[i].isOptimizable()) {
+         if (model.layers[i].hasWeights()) {
             theta.set(index, model.layers[i].getWeights());
             index++;
          }
       }
 
-      Optimizer optimizer;
-      if (batchSize > 0) {
-         optimizer = new BatchOptimizer(new SGD(), batchSize);
-      } else {
-         optimizer = new SGD();
+      //Do pretraining
+      for (int preTrainIteration = 0; preTrainIteration < maxPreTrainIterations; preTrainIteration++) {
+         MStream<Vector> input = dataset.asVectors();
+         for (Layer layer : model.layers) {
+            input = layer.pretrain(input);
+         }
       }
+
+
       CostWeightTuple optimal = optimizer.optimize(theta,
                                                    dataset::asVectors,
-                                                   new SequentialNetworkCostFunction(model, lossFunction),
+                                                   new NeuralNetworkCostFunction(model, lossFunction),
                                                    TerminationCriteria.create().maxIterations(maxIterations)
                                                                       .historySize(3)
                                                                       .tolerance(tolerance),
@@ -133,7 +140,7 @@ public class SequentialNetworkLearner extends ClassifierLearner {
                                                   );
 
       for (int i = 0, index = 0; i < numberOfLayers; i++) {
-         if (model.layers[i].isOptimizable()) {
+         if (model.layers[i].hasWeights()) {
             model.layers[i].setWeights(optimal.getComponents().get(index));
             index++;
          }

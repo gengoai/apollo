@@ -7,9 +7,11 @@ import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.ml.data.source.DenseCSVDataSource;
 import com.davidbracewell.apollo.ml.nn.n2.ActivationLayer;
+import com.davidbracewell.apollo.ml.nn.n2.DenseLayer;
+import com.davidbracewell.apollo.ml.nn.n2.SequentialNetworkLearner;
 import com.davidbracewell.apollo.optimization.activation.SigmoidActivation;
-import com.davidbracewell.apollo.optimization.loss.LogLoss;
-import com.davidbracewell.apollo.optimization.update.DeltaRule;
+import com.davidbracewell.apollo.optimization.activation.SoftmaxActivation;
+import com.davidbracewell.apollo.optimization.loss.CrossEntropyLoss;
 import com.davidbracewell.io.Resources;
 import com.davidbracewell.io.resource.Resource;
 
@@ -58,16 +60,14 @@ public class LrLearner extends BinaryClassifierLearner {
 
 
       crossValidation(dataset,
-                      () -> {
-                         com.davidbracewell.apollo.ml.nn.n2.SequentialNetworkLearner learner
-                            = new com.davidbracewell.apollo.ml.nn.n2.SequentialNetworkLearner();
-                         learner.add(new com.davidbracewell.apollo.ml.nn.n2.DenseLayer(100));
-                         learner.add(new ActivationLayer(new SigmoidActivation()));
-                         learner.setWeightUpdate(new DeltaRule());
-                         learner.setLossFunction(new LogLoss());
-                         learner.setMaxIterations(500);
-                         return learner;
-                      },
+                      () -> SequentialNetworkLearner.builder()
+                                                    //One hidden layer of size 100
+                                                    .layer(new DenseLayer(100))
+                                                    .layer(new ActivationLayer(new SigmoidActivation()))
+                                                    //Output softmax layer
+                                                    .outputActivation(new SoftmaxActivation())
+                                                    .lossFunction(new CrossEntropyLoss())
+                                                    .build(),
                       10
                      ).output(System.out);
 //

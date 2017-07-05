@@ -6,6 +6,10 @@ import com.davidbracewell.function.SerializableSupplier;
 import com.davidbracewell.guava.common.util.concurrent.AtomicDouble;
 import com.davidbracewell.logging.Loggable;
 import com.davidbracewell.stream.MStream;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.io.Serializable;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -13,8 +17,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * @author David B. Bracewell
  */
+@NoArgsConstructor
+@AllArgsConstructor
 public class SGD implements Optimizer, Serializable, Loggable {
    private static final long serialVersionUID = 1L;
+   @Getter
+   @Setter
+   private int reportInterval = 100;
 
    @Override
    public CostWeightTuple optimize(WeightComponent theta,
@@ -37,7 +46,7 @@ public class SGD implements Optimizer, Serializable, Loggable {
             lr.set(learningRate.get(lr.get(), time, numProcessed.get()));
             return cost;
          }).sum();
-         if (verbose && iteration % 10 == 0) {
+         if (verbose && iteration % reportInterval == 0) {
             logInfo("iteration={0}, total_cost={1}", iteration, sumTotal);
          }
          lastLoss = sumTotal;
@@ -46,7 +55,7 @@ public class SGD implements Optimizer, Serializable, Loggable {
          }
       }
       if (verbose) {
-         logInfo("Finished: totalIterations={0}, total_cost={1}", iteration, terminationCriteria.lastLoss());
+         logInfo("Finished: iteration={0}, total_cost={1}", iteration, terminationCriteria.lastLoss());
       }
       return CostWeightTuple.of(lastLoss, theta);
    }
@@ -57,15 +66,8 @@ public class SGD implements Optimizer, Serializable, Loggable {
                        WeightUpdate updater,
                        double lr
                       ) {
-      CostGradientTuple observation = costFunction.evaluate(next, theta);
-      double regLoss = 0;
-      for (int i = 0; i < theta.size(); i++) {
-         Weights weights = theta.get(i);
-         Gradient gradient = observation.getGradient(i);
-         synchronized (this) {
-            regLoss += updater.update(theta, observation, lr);
-         }
+      synchronized (this) {
+         return updater.update(theta, costFunction.evaluate(next, theta), lr);
       }
-      return observation.getLoss() + regLoss;
    }
 }//END OF SGD

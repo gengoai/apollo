@@ -4,8 +4,12 @@ import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.optimization.update.WeightUpdate;
 import com.davidbracewell.function.SerializableSupplier;
 import com.davidbracewell.guava.common.util.concurrent.AtomicDouble;
+import com.davidbracewell.logging.Loggable;
 import com.davidbracewell.stream.MStream;
 import com.davidbracewell.stream.StreamingContext;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 
 import java.io.Serializable;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -13,9 +17,16 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * @author David B. Bracewell
  */
-public class BatchOptimizer implements Optimizer {
+@Accessors(fluent = true)
+public class BatchOptimizer implements Optimizer, Loggable, Serializable {
+   private static final long serialVersionUID = 1L;
    private final Optimizer subOptimizer;
-   private final int batchSize;
+   @Getter
+   @Setter
+   private int batchSize;
+   @Getter
+   @Setter
+   private int reportInterval = 100;
 
    public BatchOptimizer(Optimizer subOptimizer, int batchSize) {
       this.subOptimizer = subOptimizer;
@@ -33,25 +44,25 @@ public class BatchOptimizer implements Optimizer {
          final int iteration = i;
          lastLoss = stream.get().shuffle().split(batchSize).mapToDouble(batch -> {
             final SubUpdate subUpdate = new SubUpdate();
-            CostWeightTuple lwt = subOptimizer.optimize(theta, () -> StreamingContext.local().stream(batch),
-                                                        costFunction, terminationCriteria,
-                                                        learningRate, subUpdate, false);
+            subOptimizer.optimize(theta, () -> StreamingContext.local().stream(batch),
+                                  costFunction, terminationCriteria,
+                                  learningRate, subUpdate, false);
             numProcessed.addAndGet(batchSize);
             lr.set(learningRate.get(lr.get(), iteration, numProcessed.get()));
-            double totalLoss = lwt.getLoss();
             if (subUpdate.gradient != null) {
                for (Gradient gradient : subUpdate.gradient.getGradients()) {
                   gradient.mapDivideSelf(batchSize);
                }
-               totalLoss += weightUpdater.update(theta, subUpdate.gradient, lr.get());
-               return totalLoss;
+               weightUpdater.update(theta, subUpdate.gradient, lr.get());
+               return subUpdate.totalLoss;
             }
             return 0d;
          }).sum();
-
-
-         if (verbose && i % 10 == 0) {
-            System.err.println("iteration=" + (i + 1) + ", totalCost=" + lastLoss);
+         if (verbose && i % reportInterval == 0) {
+            logInfo("iteration=" + (i + 1) + ", totalCost=" + lastLoss);
+         }
+         if (terminationCriteria.check(lastLoss)) {
+            break;
          }
       }
       terminationCriteria.maxIterations(iterations);
@@ -61,15 +72,18 @@ public class BatchOptimizer implements Optimizer {
    private static class SubUpdate implements WeightUpdate, Serializable {
       private static final long serialVersionUID = 1L;
       private CostGradientTuple gradient;
+      private double totalLoss = 0;
 
       @Override
       public double update(WeightComponent theta, CostGradientTuple observation, double learningRate) {
          if (gradient == null) {
             this.gradient = observation;
+            this.totalLoss = observation.getLoss();
          } else {
             for (int i = 0; i < this.gradient.getGradients().length; i++) {
                this.gradient.getGradient(i).addSelf(observation.getGradient(i));
             }
+            this.totalLoss += observation.getLoss();
          }
          return 0;
       }

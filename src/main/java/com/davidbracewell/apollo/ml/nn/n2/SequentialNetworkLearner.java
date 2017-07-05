@@ -11,8 +11,7 @@ import com.davidbracewell.apollo.optimization.loss.LogLoss;
 import com.davidbracewell.apollo.optimization.loss.LossFunction;
 import com.davidbracewell.apollo.optimization.update.DeltaRule;
 import com.davidbracewell.apollo.optimization.update.WeightUpdate;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,38 +19,56 @@ import java.util.List;
 /**
  * @author David B. Bracewell
  */
+@Builder
+@AllArgsConstructor
 public class SequentialNetworkLearner extends ClassifierLearner {
    @Getter
-   private List<Layer> layerConfiguration = new ArrayList<>();
+   private @Singular
+   List<Layer> layers = new ArrayList<>();
    @Getter
    @Setter
+   @Builder.Default
    private int maxIterations = 200;
    @Getter
    @Setter
+   @Builder.Default
    private DifferentiableActivation outputActivation = new SigmoidActivation();
    @Getter
    @Setter
+   @Builder.Default
    private LearningRate learningRate = new BottouLearningRate(0.1, 0.001);
    @Getter
    @Setter
+   @Builder.Default
    private LossFunction lossFunction = new LogLoss();
    @Getter
    @Setter
+   @Builder.Default
    private WeightUpdate weightUpdate = new DeltaRule();
    @Getter
    @Setter
+   @Builder.Default
    private int batchSize = -1;
    @Getter
    @Setter
+   @Builder.Default
    private double tolerance = 1e-4;
+   @Getter
+   @Setter
+   @Builder.Default
+   private boolean verbose = false;
+
+   public SequentialNetworkLearner() {
+
+   }
 
    public SequentialNetworkLearner add(Layer layer) {
-      layerConfiguration.add(layer);
+      layers.add(layer);
       return this;
    }
 
    private Layer[] makeLayers(int numberOfFeatures, int numberOfLabels) {
-      List<Layer> layerList = new ArrayList<>(layerConfiguration);
+      List<Layer> layerList = new ArrayList<>(layers);
       layerList.add(new OutputLayer(outputActivation, numberOfLabels));
       InputLayer inputLayer = new InputLayer(numberOfFeatures);
       layerList.get(0).connect(inputLayer);
@@ -70,7 +87,7 @@ public class SequentialNetworkLearner extends ClassifierLearner {
    protected Classifier trainImpl(Dataset<Instance> dataset) {
       SequentialNetwork model = new SequentialNetwork(this);
 
-      final int numberOfLayers = layerConfiguration.size() + 1;
+      final int numberOfLayers = layers.size() + 1;
       model.layers = makeLayers(dataset.getFeatureEncoder().size(), dataset.getLabelEncoder().size());
 
 
@@ -112,7 +129,7 @@ public class SequentialNetworkLearner extends ClassifierLearner {
                                                                       .tolerance(tolerance),
                                                    learningRate,
                                                    weightUpdate,
-                                                   true
+                                                   verbose
                                                   );
 
       for (int i = 0, index = 0; i < numberOfLayers; i++) {

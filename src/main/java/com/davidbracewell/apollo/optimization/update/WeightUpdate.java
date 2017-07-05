@@ -17,7 +17,7 @@ public interface WeightUpdate {
          Gradient gradient = observation.getGradient(i);
          extraLoss += update(weights, gradient, learningRate);
       }
-      return extraLoss;
+      return observation.getLoss() + extraLoss;
    }
 
    double update(Weights weights, Gradient gradient, double learningRate);

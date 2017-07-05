@@ -63,7 +63,7 @@ public class SGD implements Optimizer, Serializable, Loggable {
          Weights weights = theta.get(i);
          Gradient gradient = observation.getGradient(i);
          synchronized (this) {
-            regLoss += updater.update(weights, gradient, lr);
+            regLoss += updater.update(theta, observation, lr);
          }
       }
       return observation.getLoss() + regLoss;

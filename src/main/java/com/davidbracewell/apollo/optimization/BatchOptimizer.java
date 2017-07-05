@@ -40,11 +40,10 @@ public class BatchOptimizer implements Optimizer {
             lr.set(learningRate.get(lr.get(), iteration, numProcessed.get()));
             double totalLoss = lwt.getLoss();
             if (subUpdate.gradient != null) {
-               subUpdate.gradient.mapDivideSelf(batchSize);
-               for (int j = 0; j < theta.size(); j++) {
-                  totalLoss += weightUpdater.update(theta.get(j), subUpdate.gradient, lr.get());
+               for (Gradient gradient : subUpdate.gradient.getGradients()) {
+                  gradient.mapDivideSelf(batchSize);
                }
-               totalLoss += weightUpdater.update(theta.get(0), subUpdate.gradient, lr.get());
+               totalLoss += weightUpdater.update(theta, subUpdate.gradient, lr.get());
                return totalLoss;
             }
             return 0d;
@@ -61,16 +60,23 @@ public class BatchOptimizer implements Optimizer {
 
    private static class SubUpdate implements WeightUpdate, Serializable {
       private static final long serialVersionUID = 1L;
-      private Gradient gradient;
+      private CostGradientTuple gradient;
+
+      @Override
+      public double update(WeightComponent theta, CostGradientTuple observation, double learningRate) {
+         if (gradient == null) {
+            this.gradient = observation;
+         } else {
+            for (int i = 0; i < this.gradient.getGradients().length; i++) {
+               this.gradient.getGradient(i).addSelf(observation.getGradient(i));
+            }
+         }
+         return 0;
+      }
 
       @Override
       public double update(Weights weights, Gradient gradient, double learningRate) {
-         if (this.gradient == null) {
-            this.gradient = gradient;
-         } else {
-            this.gradient.addSelf(gradient);
-         }
-         return 0;
+         throw new UnsupportedOperationException();
       }
    }
 }//END OF BatchOptimizer

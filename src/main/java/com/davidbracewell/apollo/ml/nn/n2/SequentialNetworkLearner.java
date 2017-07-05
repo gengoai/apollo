@@ -38,6 +38,12 @@ public class SequentialNetworkLearner extends ClassifierLearner {
    @Getter
    @Setter
    private WeightUpdate weightUpdate = new DeltaRule();
+   @Getter
+   @Setter
+   private int batchSize = -1;
+   @Getter
+   @Setter
+   private double tolerance = 1e-4;
 
    public SequentialNetworkLearner add(Layer layer) {
       layerConfiguration.add(layer);
@@ -92,13 +98,18 @@ public class SequentialNetworkLearner extends ClassifierLearner {
          }
       }
 
-      Optimizer optimizer = new SGD();
+      Optimizer optimizer;
+      if (batchSize > 0) {
+         optimizer = new BatchOptimizer(new SGD(), batchSize);
+      } else {
+         optimizer = new SGD();
+      }
       CostWeightTuple optimal = optimizer.optimize(theta,
                                                    dataset::asVectors,
                                                    new SequentialNetworkCostFunction(model, lossFunction),
                                                    TerminationCriteria.create().maxIterations(maxIterations)
                                                                       .historySize(3)
-                                                                      .tolerance(1e-4),
+                                                                      .tolerance(tolerance),
                                                    learningRate,
                                                    weightUpdate,
                                                    true
@@ -110,42 +121,6 @@ public class SequentialNetworkLearner extends ClassifierLearner {
             index++;
          }
       }
-
-//      double eta = getLearningRate().getInitialRate();
-//      int n = 0;
-//      for (int iteration = 1; iteration <= maxIterations; iteration++) {
-//         Collections.shuffle(data);
-//         double totalError = 0;
-//         for (Vector input : data) {
-//            n++;
-//            eta = learningRate.get(eta, iteration, n);
-//            Vector y = Vector.sZeros(nL).set((int) input.getLabelAsDouble(), 1);
-//
-//            Vector[] activations = new Vector[model.layers.length];
-//            for (int i = 0; i < model.layers.length; i++) {
-//               if (i == 0) {
-//                  activations[i] = model.layers[i].forward(input);
-//               } else {
-//                  activations[i] = model.layers[i].forward(activations[i - 1]);
-//               }
-//            }
-//            Vector predicted = activations[activations.length - 1];
-//
-//            totalError += lossFunction.loss(predicted, y);
-//            Gradient[] deltas = new Gradient[model.layers.length];
-//            deltas[model.layers.length - 1] = lossFunction.derivative(predicted, y);
-//            for (int i = model.layers.length - 1; i >= 0; i--) {
-//               Vector a = i == 0 ? input : activations[i - 1];
-//               deltas[i] = model.layers[i].backward(a, activations[i], deltas[i + 1]);
-//            }
-//         }
-//
-//         if (iteration % 50 == 0 || iteration == maxIterations - 1) {
-//            System.out.println("iteration=" + iteration + ", totalError=" + totalError);
-//         }
-//
-//      }
-
       return model;
    }
 }// END OF SequentialNetworkLearner

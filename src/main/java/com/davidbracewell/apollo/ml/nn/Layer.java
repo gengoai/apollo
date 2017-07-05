@@ -75,7 +75,7 @@ public interface Layer extends Serializable {
     */
    boolean hasWeights();
 
-   default MStream<Vector> pretrain(MStream<Vector> previousOutput) {
+   default MStream<Vector> preTrain(MStream<Vector> previousOutput, double learningRate) {
       return previousOutput;
    }
 

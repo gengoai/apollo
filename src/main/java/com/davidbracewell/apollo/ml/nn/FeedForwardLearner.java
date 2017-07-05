@@ -6,17 +6,20 @@ import com.davidbracewell.apollo.ml.classification.Classifier;
 import com.davidbracewell.apollo.ml.classification.ClassifierLearner;
 import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.optimization.*;
-import com.davidbracewell.apollo.optimization.activation.DifferentiableActivation;
-import com.davidbracewell.apollo.optimization.activation.SigmoidActivation;
+import com.davidbracewell.apollo.optimization.activation.Activation;
+import com.davidbracewell.apollo.optimization.activation.SoftmaxActivation;
 import com.davidbracewell.apollo.optimization.loss.LogLoss;
 import com.davidbracewell.apollo.optimization.loss.LossFunction;
 import com.davidbracewell.apollo.optimization.update.DeltaRule;
 import com.davidbracewell.apollo.optimization.update.WeightUpdate;
+import com.davidbracewell.guava.common.util.concurrent.AtomicDouble;
 import com.davidbracewell.stream.MStream;
+import com.davidbracewell.stream.StreamingContext;
 import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author David B. Bracewell
@@ -35,7 +38,7 @@ public class FeedForwardLearner extends ClassifierLearner {
    @Getter
    @Setter
    @Builder.Default
-   private DifferentiableActivation outputActivation = new SigmoidActivation();
+   private Activation outputActivation = new SoftmaxActivation();
    @Getter
    @Setter
    @Builder.Default
@@ -64,6 +67,14 @@ public class FeedForwardLearner extends ClassifierLearner {
    @Setter
    @Builder.Default
    private int maxPreTrainIterations = 0;
+   @Getter
+   @Setter
+   @Builder.Default
+   private int preTrainBatchSize = 20;
+   @Getter
+   @Setter
+   @Builder.Default
+   private LearningRate preTrainLearningRate = new DecayLearningRate(0.1, 0.001);
    @Getter
    @Setter
    @Builder.Default
@@ -98,9 +109,8 @@ public class FeedForwardLearner extends ClassifierLearner {
    protected Classifier trainImpl(Dataset<Instance> dataset) {
       FeedForwardNetwork model = new FeedForwardNetwork(this);
 
-      final int numberOfLayers = layers.size() + 1;
       model.layers = makeLayers(dataset.getFeatureEncoder().size(), dataset.getLabelEncoder().size());
-
+      int numberOfLayers = model.layers.length;
 
       int[][] shapes = new int[numberOfWeightLayers][2];
 
@@ -120,11 +130,18 @@ public class FeedForwardLearner extends ClassifierLearner {
       }
 
       //Do pretraining
+      AtomicDouble preTrainLR = new AtomicDouble(preTrainLearningRate.getInitialRate());
+      AtomicInteger preTrainNumProcessed = new AtomicInteger(0);
       for (int preTrainIteration = 0; preTrainIteration < maxPreTrainIterations; preTrainIteration++) {
-         MStream<Vector> input = dataset.asVectors();
-         for (Layer layer : model.layers) {
-            input = layer.pretrain(input);
-         }
+         final int iteration = preTrainIteration;
+         dataset.shuffle().asVectors().partition(preTrainBatchSize).forEach(partition -> {
+            MStream<Vector> input = StreamingContext.local().stream(partition);
+            for (Layer layer : model.layers) {
+               input = layer.preTrain(input, preTrainLR.get());
+            }
+            preTrainLR.set(preTrainLearningRate.get(preTrainLR.get(), iteration,
+                                                    preTrainNumProcessed.addAndGet(preTrainBatchSize)));
+         });
       }
 
 

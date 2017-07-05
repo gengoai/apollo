@@ -9,9 +9,9 @@ import lombok.NonNull;
  */
 public class ActivationLayer implements Layer {
    private static final long serialVersionUID = 1L;
-   private final DifferentiableActivation activation;
+   protected final DifferentiableActivation activation;
+   protected int outputSize;
    private int inputSize;
-   private int outputSize;
 
    public ActivationLayer(@NonNull DifferentiableActivation activation) {
       this.activation = activation;
@@ -24,7 +24,7 @@ public class ActivationLayer implements Layer {
 
    @Override
    public void connect(Layer previousLayer) {
-      this.inputSize = previousLayer.getInputSize();
+      this.inputSize = previousLayer.getOutputSize();
       this.outputSize = previousLayer.getOutputSize();
    }
 

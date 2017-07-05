@@ -44,7 +44,7 @@ public class BernouliRBMLayer implements Layer {
 
    @Override
    public void connect(Layer previousLayer) {
-      this.inputSize = previousLayer.getInputSize();
+      this.inputSize = previousLayer.getOutputSize();
       this.weights = new Weights(DenseMatrix.zeroes(outputSize, inputSize),
                                  DenseVector.zeros(outputSize),
                                  outputSize <= 2
@@ -83,7 +83,7 @@ public class BernouliRBMLayer implements Layer {
    }
 
    @Override
-   public MStream<Vector> pretrain(MStream<Vector> previousOutput) {
+   public MStream<Vector> preTrain(MStream<Vector> previousOutput, double learningRate) {
       List<Vector> vectors = previousOutput.collect();
       List<Vector> out = vectors.stream().map(v -> forward(v).map(d -> d >= Math.random() ? 1.0 : 0.0))
                                 .collect(Collectors.toList());
@@ -112,12 +112,11 @@ public class BernouliRBMLayer implements Layer {
       Matrix negativeAssociations = negativeVisibleProbabilities.T().multiply(negativeHiddenProbabilities);
 
       Matrix gradient = positiveAssociations.subtract(negativeAssociations)
-                                            .map(d -> d / vectors.size()).T();
-      weights.getTheta().addSelf(gradient.scaleSelf(0.01));
+                                            .map(d -> d / vectors.size()).T()
+                                            .scaleSelf(learningRate);
+      weights.getTheta().addSelf(gradient);
 
       Vector rowSum = Vector.dZeros(gradient.numberOfColumns());
-
-
       gradient.rowIterator().forEachRemaining(rowSum::addSelf);
 
       Vector colSum = Vector.dZeros(gradient.numberOfRows());

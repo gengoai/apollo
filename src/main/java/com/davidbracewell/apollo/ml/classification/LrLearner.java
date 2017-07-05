@@ -6,12 +6,8 @@ import com.davidbracewell.apollo.ml.Feature;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.ml.data.source.DenseCSVDataSource;
-import com.davidbracewell.apollo.ml.nn.ActivationLayer;
-import com.davidbracewell.apollo.ml.nn.DenseLayer;
 import com.davidbracewell.apollo.ml.nn.FeedForwardLearner;
 import com.davidbracewell.apollo.optimization.BatchOptimizer;
-import com.davidbracewell.apollo.optimization.activation.SigmoidActivation;
-import com.davidbracewell.apollo.optimization.activation.SoftmaxActivation;
 import com.davidbracewell.apollo.optimization.loss.CrossEntropyLoss;
 import com.davidbracewell.io.Resources;
 import com.davidbracewell.io.resource.Resource;
@@ -63,11 +59,10 @@ public class LrLearner extends BinaryClassifierLearner {
       crossValidation(dataset,
                       () -> FeedForwardLearner.builder()
                                               //One hidden layer of size 100
-                                              .layer(new DenseLayer(100))
-                                              .layer(new ActivationLayer(new SigmoidActivation()))
-//                                              .layer(new BernouliRBMLayer(100))
-                                              //Output softmax layer
-                                              .outputActivation(new SoftmaxActivation())
+//                                              .layer(new DenseLayer(100))
+//                                              .layer(new ActivationLayer(new SigmoidActivation()))
+//                                              .layer(new BernouliRBMLayer(10))
+//                                              .layer(new BernouliRBMLayer(10))
                                               .lossFunction(new CrossEntropyLoss())
                                               .optimizer(BatchOptimizer.builder()
                                                                        .batchSize(10)

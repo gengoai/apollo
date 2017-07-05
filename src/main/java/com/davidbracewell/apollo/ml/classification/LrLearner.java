@@ -6,7 +6,10 @@ import com.davidbracewell.apollo.ml.Feature;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.ml.data.source.DenseCSVDataSource;
-import com.davidbracewell.apollo.ml.nn.DBNLearner;
+import com.davidbracewell.apollo.ml.nn.BernouliRBMLayer;
+import com.davidbracewell.apollo.ml.nn.FeedForwardLearner;
+import com.davidbracewell.apollo.optimization.BatchOptimizer;
+import com.davidbracewell.apollo.optimization.loss.CrossEntropyLoss;
 import com.davidbracewell.io.Resources;
 import com.davidbracewell.io.resource.Resource;
 
@@ -54,25 +57,25 @@ public class LrLearner extends BinaryClassifierLearner {
 //                     ).output(System.out);
 
 
-      crossValidation(dataset,
-                      () -> new DBNLearner(),
-                      10
-                     ).output(System.out);
 //      crossValidation(dataset,
-//                      () -> FeedForwardLearner.builder()
-//                                              //One hidden layer of size 100
-////                                              .layer(new DenseLayer(100))
-////                                              .layer(new ActivationLayer(new SigmoidActivation()))
-////                                              .layer(new BernouliRBMLayer(10))
-////                                              .layer(new BernouliRBMLayer(10))
-//                                              .lossFunction(new CrossEntropyLoss())
-//                                              .optimizer(BatchOptimizer.builder()
-//                                                                       .batchSize(10)
-//                                                                       .build())
-////                                              .maxPreTrainIterations(100)
-//                                              .build(),
+//                      () -> new DBNLearner(),
 //                      10
 //                     ).output(System.out);
+      crossValidation(dataset,
+                      () -> FeedForwardLearner.builder()
+                                              //One hidden layer of size 100
+//                                              .layer(new DenseLayer(100))
+//                                              .layer(new ActivationLayer(new SigmoidActivation()))
+                                              .layer(new BernouliRBMLayer(10))
+                                              .layer(new BernouliRBMLayer(10))
+                                              .lossFunction(new CrossEntropyLoss())
+                                              .optimizer(BatchOptimizer.builder()
+                                                                       .batchSize(10)
+                                                                       .build())
+                                              .maxPreTrainIterations(100)
+                                              .build(),
+                      10
+                     ).output(System.out);
 //
 //
 

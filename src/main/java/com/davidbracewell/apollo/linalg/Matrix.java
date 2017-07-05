@@ -40,44 +40,6 @@ import java.util.function.DoubleUnaryOperator;
  */
 public interface Matrix extends Copyable<Matrix>, Iterable<Matrix.Entry> {
 
-
-   static Vector fold(@NonNull Matrix... matrices) {
-      int dimension = 0;
-      for (Matrix matrix : matrices) {
-         dimension += (matrix.numberOfRows() * matrix.numberOfColumns());
-      }
-      Vector vector = Vector.dZeros(dimension);
-      int offset = 0;
-      for (Matrix matrix : matrices) {
-         for (int c = 0; c < matrix.numberOfColumns(); c++) {
-            for (int r = 0; r < matrix.numberOfRows(); r++) {
-               vector.set(offset++, matrix.get(r, c));
-            }
-         }
-      }
-      return vector;
-   }
-
-   static Matrix[] unfold(@NonNull Vector vector, @NonNull int[][] shapes) {
-      Matrix[] toReturn = new Matrix[shapes.length];
-      for (int i = 0; i < shapes.length; i++) {
-         toReturn[i] = new DenseMatrix(shapes[i][0], shapes[i][1]);
-      }
-
-      int index = 0;
-      for (int i = 0; i < shapes.length; i++) {
-         int numberOfRows = shapes[i][0];
-         int numberOfColumns = shapes[i][1];
-         for (int c = 0; c < numberOfColumns; c++) {
-            for (int r = 0; r < numberOfRows; r++) {
-               toReturn[i].set(r, c, vector.get(index++));
-            }
-         }
-      }
-
-      return toReturn;
-   }
-
    /**
     * Transpose matrix.
     *
@@ -490,6 +452,10 @@ public interface Matrix extends Copyable<Matrix>, Iterable<Matrix.Entry> {
     * @return the shape
     */
    Tuple2<Integer, Integer> shape();
+
+   Matrix slice(int rowFrom, int rowTo, int colFrom, int colTo);
+
+   Matrix slice(int rowFrom, int colFrom);
 
    /**
     * Subtract matrix.

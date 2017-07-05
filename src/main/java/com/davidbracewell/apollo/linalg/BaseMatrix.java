@@ -482,6 +482,20 @@ public abstract class BaseMatrix implements Matrix, Serializable {
    }
 
    @Override
+   public Matrix slice(int rowFrom, int rowTo, int colFrom, int colTo) {
+      Matrix m = createNew(rowTo - rowFrom, colTo - colFrom);
+      for (int r = rowFrom; r < rowTo; r++) {
+         m.setRow(r - rowFrom, row(r).slice(colFrom, colTo).copy());
+      }
+      return m;
+   }
+
+   @Override
+   public Matrix slice(int rowFrom, int colFrom) {
+      return slice(rowFrom, numberOfRows(), colFrom, numberOfColumns());
+   }
+
+   @Override
    public Matrix subtract(@NonNull Matrix other) {
       return copy().subtractSelf(other);
    }

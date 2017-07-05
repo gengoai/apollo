@@ -54,7 +54,7 @@ public class BernouliRBMLayer implements Layer {
 
    @Override
    public Vector forward(Vector input) {
-      return SigmoidActivation.INSTANCE.apply(this.weights.dot(input.add(visibleBias)));
+      return SigmoidActivation.INSTANCE.apply(this.weights.getTheta().dot(input.add(visibleBias)).column(0));
    }
 
    @Override
@@ -89,41 +89,36 @@ public class BernouliRBMLayer implements Layer {
                                 .collect(Collectors.toList());
 
 
-      Matrix m = new DenseMatrix(vectors.size(), inputSize);
+      Matrix m = new DenseMatrix(vectors.size(), inputSize + 1);
       for (int i = 0; i < vectors.size(); i++) {
-         m.setRow(i, vectors.get(i));
+         m.setRow(i, vectors.get(i).insert(0, 1));
       }
 
-      Matrix positiveHiddenProbabilities = m.multiply(weights.getTheta().T())
-                                            .addRowSelf(weights.getBias())
-                                            .mapSelf(SigmoidActivation.INSTANCE::apply);
-      Matrix positiveHiddenStates = positiveHiddenProbabilities.map(d -> d >= Math.random() ? 1 : 0);
+      Matrix theta = weights.getTheta();
+      Matrix W = DenseMatrix.zeroes(theta.numberOfRows() + 1, theta.numberOfColumns() + 1);
+      for (int r = 1; r <= theta.numberOfRows(); r++) {
+         W.setRow(r, theta.row(r - 1).insert(0, 0));
+      }
+
+      Matrix positiveHiddenProbabilities = m.multiply(W.T()).mapSelf(SigmoidActivation.INSTANCE::apply);
+      Matrix positiveHiddenStates = positiveHiddenProbabilities.map(d -> d > Math.random() ? 1 : 0);
       Matrix positiveAssociations = m.T().multiply(positiveHiddenProbabilities);
 
 //      negative CD phase
-      Matrix negativeVisibleProbabilities = positiveHiddenStates.multiply(weights.getTheta())
-                                                                .addRowSelf(visibleBias)
+      //negative CD phase
+      Matrix negativeVisibleProbabilities = positiveHiddenStates.multiply(W)
                                                                 .mapSelf(SigmoidActivation.INSTANCE::apply);
       negativeVisibleProbabilities.setColumn(0, DenseVector.ones(negativeVisibleProbabilities.numberOfRows()));
 
-      Matrix negativeHiddenProbabilities = negativeVisibleProbabilities
-                                              .multiply(weights.getTheta().T())
-                                              .mapSelf(SigmoidActivation.INSTANCE::apply);
+      Matrix negativeHiddenProbabilities = negativeVisibleProbabilities.multiply(W.T())
+                                                                       .mapSelf(SigmoidActivation.INSTANCE::apply);
       Matrix negativeAssociations = negativeVisibleProbabilities.T().multiply(negativeHiddenProbabilities);
 
-      Matrix gradient = positiveAssociations.subtract(negativeAssociations)
-                                            .map(d -> d / vectors.size()).T()
-                                            .scaleSelf(learningRate);
-      weights.getTheta().addSelf(gradient);
-
-      Vector rowSum = Vector.dZeros(gradient.numberOfColumns());
-      gradient.rowIterator().forEachRemaining(rowSum::addSelf);
-
-      Vector colSum = Vector.dZeros(gradient.numberOfRows());
-      gradient.columnIterator().forEachRemaining(colSum::addSelf);
-
-      weights.getBias().addSelf(colSum);
-      visibleBias.addSelf(rowSum);
+      W.addSelf(positiveAssociations.subtract(negativeAssociations)
+                                    .map(d -> learningRate * d / vectors.size()).T());
+      weights.setTheta(W.slice(1, 1));
+      weights.setBias(W.column(0).slice(1).copy());
+      visibleBias = W.row(0).slice(1).copy();
       return StreamingContext.local().stream(out);
    }
 }// END OF RBMLayer

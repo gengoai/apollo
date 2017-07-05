@@ -130,16 +130,17 @@ public class BernoulliRBM implements Serializable {
     *
     * @param data the data
     */
-   public void train(List<Vector> data) {
+   public void train(List<Vector> data, int maxIterations) {
       int numExamples = data.size();
 
       Matrix m = new DenseMatrix(data.size(), nV + 1);
       for (int i = 0; i < data.size(); i++) {
+         System.out.println(m.shape() + " : " + data.get(i).dimension());
          m.setRow(i, data.get(i).insert(0, 1));
       }
 
       final Random rnd = new Random();
-      for (int epoch = 0; epoch < 200; epoch++) {
+      for (int epoch = 0; epoch < maxIterations; epoch++) {
          double error = 0;
          //positive CD phase
          Matrix positiveHiddenProbabilities = m.multiply(W).mapSelf(SigmoidActivation.INSTANCE::apply);

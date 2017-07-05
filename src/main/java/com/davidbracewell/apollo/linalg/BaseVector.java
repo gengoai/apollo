@@ -432,7 +432,7 @@ public abstract class BaseVector implements Vector, Serializable {
 
    @Override
    public Vector slice(int from, int to) {
-      Preconditions.checkPositionIndex(from, dimension());
+      Preconditions.checkPositionIndex(from, dimension() + 1);
       Preconditions.checkPositionIndex(to, dimension() + 1);
       Preconditions.checkState(to > from, "To index must be > from index");
       Vector vPrime = createNew(to - from);
@@ -440,6 +440,11 @@ public abstract class BaseVector implements Vector, Serializable {
          vPrime.set(i - from, get(i));
       }
       return vPrime;
+   }
+
+   @Override
+   public Vector slice(int from) {
+      return slice(from, dimension());
    }
 
    @Override

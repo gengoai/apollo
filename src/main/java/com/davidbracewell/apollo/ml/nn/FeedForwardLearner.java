@@ -12,6 +12,7 @@ import com.davidbracewell.apollo.optimization.loss.LogLoss;
 import com.davidbracewell.apollo.optimization.loss.LossFunction;
 import com.davidbracewell.apollo.optimization.update.DeltaRule;
 import com.davidbracewell.apollo.optimization.update.WeightUpdate;
+import com.davidbracewell.function.SerializableConsumer;
 import com.davidbracewell.guava.common.util.concurrent.AtomicDouble;
 import com.davidbracewell.stream.MStream;
 import com.davidbracewell.stream.StreamingContext;
@@ -80,6 +81,10 @@ public class FeedForwardLearner extends ClassifierLearner {
    @Builder.Default
    private WeightInitializer weightInitializer = WeightInitializer.DEFAULT;
    private int numberOfWeightLayers = 0;
+   @Getter
+   @Setter
+   @Builder.Default
+   private SerializableConsumer<Layer> layerProcessor = (layer -> {});
 
    private void connect(Layer current, Layer previous) {
       current.connect(previous);
@@ -144,6 +149,9 @@ public class FeedForwardLearner extends ClassifierLearner {
          });
       }
 
+      for (Layer layer : model.layers) {
+         layerProcessor.accept(layer);
+      }
 
       CostWeightTuple optimal = optimizer.optimize(theta,
                                                    dataset::asVectors,

@@ -566,6 +566,8 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
     */
    Vector slice(int from, int to);
 
+   Vector slice(int from);
+
    /**
     * Sparse tuple 2.
     *

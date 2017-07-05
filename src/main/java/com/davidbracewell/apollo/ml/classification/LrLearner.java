@@ -61,6 +61,9 @@ public class LrLearner extends BinaryClassifierLearner {
 //                      () -> new DBNLearner(),
 //                      10
 //                     ).output(System.out);
+
+
+
       crossValidation(dataset,
                       () -> FeedForwardLearner.builder()
                                               //One hidden layer of size 100

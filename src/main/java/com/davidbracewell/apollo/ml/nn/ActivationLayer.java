@@ -22,6 +22,10 @@ public class ActivationLayer implements Layer {
       return delta.multiply(activation.valueGradient(output));
    }
 
+   public static LayerBuilder builder(@NonNull DifferentiableActivation activation) {
+      return new ActivationBuilder(activation);
+   }
+
    @Override
    public void connect(Layer previousLayer) {
       this.inputSize = previousLayer.getOutputSize();
@@ -46,6 +50,19 @@ public class ActivationLayer implements Layer {
    @Override
    public boolean hasWeights() {
       return false;
+   }
+
+   private static class ActivationBuilder extends LayerBuilder {
+      private final DifferentiableActivation activation;
+
+      private ActivationBuilder(DifferentiableActivation activation) {
+         this.activation = activation;
+      }
+
+      @Override
+      public Layer build() {
+         return new ActivationLayer(activation);
+      }
    }
 
 }// END OF ActivationLayer

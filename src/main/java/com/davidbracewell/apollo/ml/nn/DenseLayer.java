@@ -6,6 +6,8 @@ import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.optimization.Weights;
 
 /**
+ * The type Dense layer.
+ *
  * @author David B. Bracewell
  */
 public class DenseLayer implements Layer {
@@ -14,6 +16,11 @@ public class DenseLayer implements Layer {
    private Weights weights;
    private int inputSize;
 
+   /**
+    * Instantiates a new Dense layer.
+    *
+    * @param nOut the n out
+    */
    public DenseLayer(int nOut) {
       this.outputSize = nOut;
    }

@@ -102,6 +102,51 @@ public class Sequence implements Example, Serializable, Iterable<Instance> {
                                 .collect(Collectors.toList()));
    }
 
+   public Instance asInstance(int labelIndex, int maxSequenceSize) {
+      if (sequence.size() == 0) {
+         return new Instance();
+      }
+      List<Feature> instFeatures = new ArrayList<>();
+      int index = 0;
+      for (Instance instance : sequence) {
+         if (index >= maxSequenceSize) {
+            break;
+         }
+         for (Feature feature : instance) {
+            instFeatures.add(Feature.real(feature.getName() + "-" + index, feature.getValue()));
+         }
+         index++;
+      }
+      return Instance.create(instFeatures, sequence.get(labelIndex).getLabel());
+   }
+
+   @Override
+   public List<Instance> asInstances() {
+      return sequence;
+   }
+
+   @Override
+   public Sequence copy() {
+      return new Sequence(sequence.stream().map(Instance::copy).collect(Collectors.toList()));
+   }
+
+   @Override
+   public void fromJson(JsonReader reader) throws IOException {
+      sequence.clear();
+      sequence.addAll(reader.nextCollection(ArrayList::new, "sequence", Instance.class));
+      sequence.trimToSize();
+   }
+
+   /**
+    * Get the instance at the given index.
+    *
+    * @param index the index of the instance to retrieve
+    * @return the instance
+    * @throws IndexOutOfBoundsException if the index is not in the sequence
+    */
+   public Instance get(int index) {
+      return sequence.get(index);
+   }
 
    @Override
    public Stream<String> getFeatureSpace() {
@@ -119,19 +164,8 @@ public class Sequence implements Example, Serializable, Iterable<Instance> {
    }
 
    @Override
-   public Sequence copy() {
-      return new Sequence(sequence.stream().map(Instance::copy).collect(Collectors.toList()));
-   }
-
-   /**
-    * Get the instance at the given index.
-    *
-    * @param index the index of the instance to retrieve
-    * @return the instance
-    * @throws IndexOutOfBoundsException if the index is not in the sequence
-    */
-   public Instance get(int index) {
-      return sequence.get(index);
+   public Context<Instance> iterator() {
+      return new SequenceIterator();
    }
 
    /**
@@ -144,13 +178,8 @@ public class Sequence implements Example, Serializable, Iterable<Instance> {
    }
 
    @Override
-   public Context<Instance> iterator() {
-      return new SequenceIterator();
-   }
-
-   @Override
-   public List<Instance> asInstances() {
-      return sequence;
+   public void toJson(JsonWriter writer) throws IOException {
+      writer.property("sequence", sequence);
    }
 
    @Override
@@ -158,25 +187,8 @@ public class Sequence implements Example, Serializable, Iterable<Instance> {
       return sequence.toString();
    }
 
-   @Override
-   public void fromJson(JsonReader reader) throws IOException {
-      sequence.clear();
-      sequence.addAll(reader.nextCollection(ArrayList::new, "sequence", Instance.class));
-      sequence.trimToSize();
-   }
-
-   @Override
-   public void toJson(JsonWriter writer) throws IOException {
-      writer.property("sequence", sequence);
-   }
-
    private class SequenceIterator extends Context<Instance> {
       private static final long serialVersionUID = 1L;
-
-      @Override
-      public int size() {
-         return Sequence.this.size();
-      }
 
       @Override
       protected Optional<Instance> getContextAt(int index) {
@@ -192,6 +204,11 @@ public class Sequence implements Example, Serializable, Iterable<Instance> {
             return Optional.of(get(index).getLabel()).map(Object::toString);
          }
          return Optional.empty();
+      }
+
+      @Override
+      public int size() {
+         return Sequence.this.size();
       }
    }
 }// END OF Sequence

@@ -127,7 +127,7 @@ public interface Featurizer<INPUT> extends Serializable {
     * @param labeledDatum the labeled datum to featurize
     * @return the instance
     */
-   default Instance extractInstance(@NonNull LabeledDatum<INPUT> labeledDatum) {
+   default Instance extractInstance(@NonNull LabeledDatum<? extends INPUT> labeledDatum) {
       return Instance.create(apply(labeledDatum.getData()), labeledDatum.getLabel());
    }
 

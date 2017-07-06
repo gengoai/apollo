@@ -102,16 +102,13 @@ public class Sequence implements Example, Serializable, Iterable<Instance> {
                                 .collect(Collectors.toList()));
    }
 
-   public Instance asInstance(int labelIndex, int maxSequenceSize) {
+   public Instance asInstance(int labelIndex) {
       if (sequence.size() == 0) {
          return new Instance();
       }
       List<Feature> instFeatures = new ArrayList<>();
       int index = 0;
       for (Instance instance : sequence) {
-         if (index >= maxSequenceSize) {
-            break;
-         }
          for (Feature feature : instance) {
             instFeatures.add(Feature.real(feature.getName() + "-" + index, feature.getValue()));
          }

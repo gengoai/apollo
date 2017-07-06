@@ -2,16 +2,23 @@ package com.davidbracewell.apollo.ml.nn;
 
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.optimization.Weights;
-import com.davidbracewell.stream.MStream;
+import com.davidbracewell.conversion.Cast;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 import java.io.Serializable;
 
 /**
- * The interface Layer.
- *
  * @author David B. Bracewell
  */
-public interface Layer extends Serializable {
+@AllArgsConstructor
+public abstract class Layer implements Serializable {
+   private static final long serialVersionUID = 1L;
+   @Getter
+   private final int inputSize;
+   @Getter
+   private final int outputSize;
+
 
    /**
     * Backward vector.
@@ -20,14 +27,7 @@ public interface Layer extends Serializable {
     * @param delta  the delta
     * @return the vector
     */
-   Vector backward(Vector output, Vector delta);
-
-   /**
-    * Connect.
-    *
-    * @param previousLayer the previous layer
-    */
-   void connect(Layer previousLayer);
+   abstract Vector backward(Vector output, Vector delta);
 
    /**
     * Forward vector.
@@ -35,28 +35,14 @@ public interface Layer extends Serializable {
     * @param input the input
     * @return the vector
     */
-   Vector forward(Vector input);
-
-   /**
-    * Gets input size.
-    *
-    * @return the input size
-    */
-   int getInputSize();
-
-   /**
-    * Gets output size.
-    *
-    * @return the output size
-    */
-   int getOutputSize();
+   abstract Vector forward(Vector input);
 
    /**
     * Gets weights.
     *
     * @return the weights
     */
-   default Weights getWeights() {
+   public Weights getWeights() {
       return null;
    }
 
@@ -65,18 +51,39 @@ public interface Layer extends Serializable {
     *
     * @param weights the weights
     */
-   default void setWeights(Weights weights) {
+   public void setWeights(Weights weights) {
+
    }
+
 
    /**
     * Has weights boolean.
     *
     * @return the boolean
     */
-   boolean hasWeights();
-
-   default MStream<Vector> preTrain(MStream<Vector> previousOutput, double learningRate) {
-      return previousOutput;
+   public boolean hasWeights() {
+      return false;
    }
 
-}//END OF Layer
+   public static abstract class LayerBuilder<T extends LayerBuilder> implements Serializable {
+      private static final long serialVersionUID = 1L;
+      @Getter
+      private int inputSize;
+      @Getter
+      private int outputSize;
+
+      public abstract Layer build();
+
+
+      public T inputSize(int inputSize) {
+         this.inputSize = inputSize;
+         return Cast.as(this);
+      }
+
+      public T outputSize(int outputSize) {
+         this.outputSize = outputSize;
+         return Cast.as(this);
+      }
+   }
+
+}// END OF Layer

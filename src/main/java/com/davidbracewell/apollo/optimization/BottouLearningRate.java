@@ -8,6 +8,10 @@ public class BottouLearningRate implements LearningRate {
    private final double eta0;
    private final double lambda;
 
+   public BottouLearningRate() {
+      this(0.1, 0.001);
+   }
+
    public BottouLearningRate(double eta0, double lambda) {
       this.eta0 = eta0;
       this.lambda = lambda;

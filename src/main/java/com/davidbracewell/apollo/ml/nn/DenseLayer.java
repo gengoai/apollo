@@ -1,73 +1,35 @@
 package com.davidbracewell.apollo.ml.nn;
 
-import com.davidbracewell.apollo.linalg.DenseMatrix;
-import com.davidbracewell.apollo.linalg.DenseVector;
-import com.davidbracewell.apollo.linalg.Vector;
-import com.davidbracewell.apollo.optimization.Weights;
+import com.davidbracewell.apollo.optimization.WeightInitializer;
+import com.davidbracewell.apollo.optimization.activation.Activation;
+import lombok.NonNull;
 
 /**
- * The type Dense layer.
- *
  * @author David B. Bracewell
  */
-public class DenseLayer implements Layer {
+public class DenseLayer extends WeightLayer {
    private static final long serialVersionUID = 1L;
-   private final int outputSize;
-   private Weights weights;
-   private int inputSize;
 
-   /**
-    * Instantiates a new Dense layer.
-    *
-    * @param nOut the n out
-    */
-   public DenseLayer(int nOut) {
-      this.outputSize = nOut;
+
+   public DenseLayer(int inputSize, int outputSize, @NonNull Activation activation, @NonNull WeightInitializer weightInitializer) {
+      super(inputSize, outputSize, activation, weightInitializer);
    }
 
-   @Override
-   public Vector backward(Vector output, Vector delta) {
-      return delta.toMatrix()
-                  .multiply(weights.getTheta())
-                  .row(0);
+   public static Builder relu() {
+      return new Builder().activation(Activation.RELU);
    }
 
-   @Override
-   public void connect(Layer previousLayer) {
-      this.inputSize = previousLayer.getOutputSize();
-      this.weights = new Weights(DenseMatrix.zeroes(outputSize, inputSize),
-                                 DenseVector.zeros(outputSize),
-                                 outputSize <= 2
-      );
+   public static Builder sigmoid() {
+      return new Builder().activation(Activation.SIGMOID);
    }
 
-   @Override
-   public Vector forward(Vector input) {
-      return this.weights.dot(input);
+   public static class Builder extends WeightLayerBuilder<Builder> {
+
+      @Override
+      public Layer build() {
+         return new DenseLayer(getInputSize(), getOutputSize(), getActivation(), getWeightInitializer());
+      }
    }
 
-   @Override
-   public int getInputSize() {
-      return inputSize;
-   }
 
-   @Override
-   public int getOutputSize() {
-      return outputSize;
-   }
-
-   @Override
-   public Weights getWeights() {
-      return weights;
-   }
-
-   @Override
-   public void setWeights(Weights weights) {
-      this.weights = weights;
-   }
-
-   @Override
-   public boolean hasWeights() {
-      return true;
-   }
 }// END OF DenseLayer

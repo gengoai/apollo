@@ -14,6 +14,10 @@ public class DecayLearningRate implements LearningRate, Serializable {
    private final double initialRate;
 
 
+   public DecayLearningRate() {
+      this(0.1, 0.001);
+   }
+
    /**
     * Instantiates a new Decay learning rate.
     *

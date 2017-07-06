@@ -5,12 +5,12 @@ import com.davidbracewell.apollo.linalg.Vector;
 /**
  * @author David B. Bracewell
  */
-public class SoftmaxActivation implements DifferentiableActivation {
+public class SoftmaxActivation implements Activation {
    private static final long serialVersionUID = 1L;
 
    @Override
    public double apply(double x) {
-      return SigmoidActivation.INSTANCE.apply(x);
+      return Activation.SIGMOID.apply(x);
    }
 
    @Override

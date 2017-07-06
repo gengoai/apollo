@@ -19,7 +19,7 @@ public class Gradient {
       return this;
    }
 
-   public Gradient mapDivideSelf(@NonNull double number) {
+   public Gradient mapDivideSelf(double number) {
       this.weightGradient.scaleSelf(1d / number);
       this.biasGradient.mapDivideSelf(number);
       return this;

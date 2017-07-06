@@ -1,7 +1,7 @@
 package com.davidbracewell.apollo.ml.nn;
 
 import com.davidbracewell.apollo.linalg.*;
-import com.davidbracewell.apollo.optimization.activation.SigmoidActivation;
+import com.davidbracewell.apollo.optimization.activation.Activation;
 import org.apache.commons.math3.util.FastMath;
 
 import java.io.Serializable;
@@ -100,7 +100,7 @@ public class BernoulliRBM implements Serializable {
    public Vector runHiddenProbs(Vector v) {
       Matrix m = new DenseMatrix(1, nH + 1);
       m.setRow(0, v.insert(0, 1));
-      return m.multiply(W.T()).mapSelf(SigmoidActivation.INSTANCE::apply).row(0).slice(1, nV + 1);
+      return m.multiply(W.T()).mapSelf(Activation.SIGMOID::apply).row(0).slice(1, nV + 1);
    }
 
    /**
@@ -122,7 +122,7 @@ public class BernoulliRBM implements Serializable {
    public Vector runVisibleProbs(Vector v) {
       Matrix m = new DenseMatrix(1, nV + 1);
       m.setRow(0, v.insert(0, 1));
-      return m.multiply(W).mapSelf(SigmoidActivation.INSTANCE::apply).row(0).slice(1, nH + 1);
+      return m.multiply(W).mapSelf(Activation.SIGMOID::apply).row(0).slice(1, nH + 1);
    }
 
    /**
@@ -143,17 +143,17 @@ public class BernoulliRBM implements Serializable {
       for (int epoch = 0; epoch < maxIterations; epoch++) {
          double error = 0;
          //positive CD phase
-         Matrix positiveHiddenProbabilities = m.multiply(W).mapSelf(SigmoidActivation.INSTANCE::apply);
+         Matrix positiveHiddenProbabilities = m.multiply(W).mapSelf(Activation.SIGMOID::apply);
          Matrix positiveHiddenStates = positiveHiddenProbabilities.map(d -> d > rnd.nextGaussian() ? 1 : 0);
          Matrix positiveAssociations = m.T().multiply(positiveHiddenProbabilities);
 
          //negative CD phase
          Matrix negativeVisibleProbabilities = positiveHiddenStates.multiply(W.T())
-                                                                   .mapSelf(SigmoidActivation.INSTANCE::apply);
+                                                                   .mapSelf(Activation.SIGMOID::apply);
          negativeVisibleProbabilities.setColumn(0, DenseVector.ones(negativeVisibleProbabilities.numberOfRows()));
 
          Matrix negativeHiddenProbabilities = negativeVisibleProbabilities.multiply(W)
-                                                                          .mapSelf(SigmoidActivation.INSTANCE::apply);
+                                                                          .mapSelf(Activation.SIGMOID::apply);
          Matrix negativeAssociations = negativeVisibleProbabilities.T().multiply(negativeHiddenProbabilities);
 
          W.addSelf(positiveAssociations.subtract(negativeAssociations)

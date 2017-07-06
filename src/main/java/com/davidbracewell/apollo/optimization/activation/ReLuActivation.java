@@ -3,7 +3,7 @@ package com.davidbracewell.apollo.optimization.activation;
 /**
  * @author David B. Bracewell
  */
-public class ReLuActivation implements DifferentiableActivation {
+public class ReLuActivation implements Activation {
 
    @Override
    public double apply(double x) {

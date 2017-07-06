@@ -13,6 +13,10 @@ import java.io.Serializable;
  */
 public interface Activation extends Serializable {
 
+   Activation RELU = new ReLuActivation();
+   Activation SIGMOID = new SigmoidActivation();
+   Activation SOFTMAX = new SoftmaxActivation();
+
    /**
     * Apply double.
     *
@@ -32,10 +36,35 @@ public interface Activation extends Serializable {
    }
 
 
+   /**
+    * Apply matrix.
+    *
+    * @param m the m
+    * @return the matrix
+    */
    default Matrix apply(@NonNull Matrix m) {
       return m.mapRow(this::apply);
    }
 
+   /**
+    * Gradient vector.
+    *
+    * @param in the in
+    * @return the vector
+    */
+   default Vector gradient(@NonNull Vector in) {
+      return valueGradient(apply(in));
+   }
+
+   /**
+    * Gradient double.
+    *
+    * @param in the in
+    * @return the double
+    */
+   default double gradient(double in) {
+      return valueGradient(apply(in));
+   }
 
    /**
     * Is probabilistic boolean.
@@ -46,5 +75,22 @@ public interface Activation extends Serializable {
       return false;
    }
 
+   /**
+    * Value gradient double.
+    *
+    * @param activated the activated
+    * @return the double
+    */
+   double valueGradient(double activated);
+
+   /**
+    * Value gradient vector.
+    *
+    * @param activated the activated
+    * @return the vector
+    */
+   default Vector valueGradient(@NonNull Vector activated) {
+      return activated.map(this::valueGradient);
+   }
 
 }//END OF Activation

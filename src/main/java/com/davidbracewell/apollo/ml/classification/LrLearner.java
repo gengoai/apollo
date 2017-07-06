@@ -6,9 +6,9 @@ import com.davidbracewell.apollo.ml.Feature;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.ml.data.source.DenseCSVDataSource;
-import com.davidbracewell.apollo.ml.nn.BernouliRBMLayer;
-import com.davidbracewell.apollo.ml.nn.FeedForwardLearner;
-import com.davidbracewell.apollo.optimization.BatchOptimizer;
+import com.davidbracewell.apollo.ml.nn.DenseLayer;
+import com.davidbracewell.apollo.ml.nn.FeedForwardNetworkLearner;
+import com.davidbracewell.apollo.ml.nn.OutputLayer;
 import com.davidbracewell.apollo.optimization.loss.CrossEntropyLoss;
 import com.davidbracewell.io.Resources;
 import com.davidbracewell.io.resource.Resource;
@@ -34,91 +34,18 @@ public class LrLearner extends BinaryClassifierLearner {
       Dataset<Instance> dataset = Dataset.classification()
                                          .source(dataSource)
                                          .shuffle(new Random(1234));
-//      crossValidation(dataset,
-//                      () -> new SoftmaxLearner()
-//                               .setParameter("learningRate",
-//                                             new BottouLearningRate(0.1, 0.001))
-//                               .setParameter("weightUpdater", new L1Regularizer(0.001))
-//                               .setParameter("batchSize", 20),
-//                      10
-//                     )
-//         .output(System.out);
-//
-//      crossValidation(dataset,
-//                      () -> {
-//                         SequentialNetworkLearner learner = new SequentialNetworkLearner();
-//                         learner.add(new DenseLayer(new SigmoidActivation(), 100));
-//                         learner.add(new DenseLayer(new SigmoidActivation(), 100));
-//                         learner.setLearningRate(new BottouLearningRate(0.1, 0.0001));
-//                         learner.setMaxIterations(1000);
-//                         return learner;
-//                      },
-//                      10
-//                     ).output(System.out);
-
-
-//      crossValidation(dataset,
-//                      () -> new DBNLearner(),
-//                      10
-//                     ).output(System.out);
-
 
 
       crossValidation(dataset,
-                      () -> FeedForwardLearner.builder()
-                                              //One hidden layer of size 100
-//                                              .layer(new DenseLayer(100))
-//                                              .layer(new ActivationLayer(new SigmoidActivation()))
-                                              .layer(new BernouliRBMLayer(10))
-                                              .layer(new BernouliRBMLayer(10))
-                                              .lossFunction(new CrossEntropyLoss())
-                                              .optimizer(BatchOptimizer.builder()
-                                                                       .batchSize(10)
-                                                                       .build())
-                                              .maxPreTrainIterations(100)
-                                              .build(),
+                      () -> FeedForwardNetworkLearner.builder()
+                                                     //One hidden layer of size 100
+                                                     .layer(DenseLayer.sigmoid().outputSize(100))
+                                                     .layer(DenseLayer.sigmoid().outputSize(25))
+                                                     .layer(OutputLayer.softmax())
+                                                     .lossFunction(new CrossEntropyLoss())
+                                                     .build(),
                       10
                      ).output(System.out);
-//
-//
-
-//      crossValidation(dataset,
-//                      () -> BinarySGDLearner.logisticRegression()
-//                                            .oneVsRest()
-//                                            .setParameter("normalize", true)
-//                                            .setParameter("learningRate", new BottouLearningRate(0.1, 0.001))
-//                                            .setParameter("weightUpdater", new L1Regularizer(0.001)),
-//                      10
-//                     ).output(System.out);
-//
-//      crossValidation(dataset,
-//                      () -> BinarySGDLearner
-//                               .linearSVM()
-//                               .setParameter("learningRate",
-//                                             new BottouLearningRate(0.1, 0.001))
-//                               .oneVsRest(),
-//                      10
-//                     ).output(System.out);
-//
-
-//      crossValidation(dataset,
-//                      () -> new LibLinearLearner()
-//                               .setParameter("solver", SolverType.L1R_LR)
-//                               .setParameter("c", 1)
-//                               .setParameter("eps", 0.001)
-//                               .setParameter("bias", true),
-//                      10
-//                     )
-//         .output(System.out);
-//      MultiCounter<String, String> mm = new SGDLearner()
-//                                           .setParameter("learningRate", new DecayLearningRate(0.1, 0.001))
-//                                           .setParameter("weightUpdater", new L1Regularization(0.001))
-//                                           .setParameter("activation", new SoftmaxFunction())
-//                                           .setParameter("batchSize", 0)
-//                                           .train(dataset)
-//                                           .getModelParameters()
-//                                           .transpose();
-//      mm.firstKeys().forEach(k1 -> System.out.println(k1 + " : " + mm.get(k1)));
    }
 
    @Override

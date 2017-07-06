@@ -5,7 +5,7 @@ import org.apache.commons.math3.util.FastMath;
 /**
  * @author David B. Bracewell
  */
-public class TanH implements DifferentiableActivation {
+public class TanH implements Activation {
 
    @Override
    public double apply(double x) {

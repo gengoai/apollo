@@ -24,24 +24,29 @@ public interface WeightInitializer extends Serializable {
             m.set(r, c, min + (max - min) * Math.random());
          }
       }
+      return m;
    };
 
-   WeightInitializer ZEROES = (m) -> m.nonZeroIterator().forEachRemaining(e -> m.set(e.row, e.column, 0));
+   WeightInitializer ZEROES = (m) -> {
+      m.nonZeroIterator().forEachRemaining(e -> m.set(e.row, e.column, 0));
+      return m;
+   };
 
    /**
     * Initialize.
     *
     * @param weights the weights
     */
-   void initialize(Matrix weights);
+   Matrix initialize(Matrix weights);
 
    /**
     * Initialize.
     *
     * @param weights the weights
     */
-   default void initialize(@NonNull Weights weights) {
+   default Weights initialize(@NonNull Weights weights) {
       initialize(weights.getTheta());
+      return weights;
    }
 
 }// END OF WeightInitializer

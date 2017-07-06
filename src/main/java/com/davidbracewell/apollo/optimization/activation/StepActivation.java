@@ -7,7 +7,7 @@ import com.davidbracewell.apollo.linalg.Vector;
  *
  * @author David B. Bracewell
  */
-public class StepActivation implements DifferentiableActivation {
+public class StepActivation implements Activation {
    private static final long serialVersionUID = 1L;
    private final double threshold;
 

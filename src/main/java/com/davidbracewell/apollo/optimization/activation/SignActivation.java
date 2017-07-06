@@ -13,5 +13,10 @@ public class SignActivation implements Activation {
       return FastMath.signum(x);
    }
 
+   @Override
+   public double valueGradient(double activated) {
+      return 2 * activated;
+   }
+
 }// END OF SignActivation
 

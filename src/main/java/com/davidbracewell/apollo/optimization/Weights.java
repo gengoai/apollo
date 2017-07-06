@@ -1,10 +1,7 @@
 package com.davidbracewell.apollo.optimization;
 
 import com.davidbracewell.Copyable;
-import com.davidbracewell.apollo.linalg.Matrix;
-import com.davidbracewell.apollo.linalg.SparseMatrix;
-import com.davidbracewell.apollo.linalg.SparseVector;
-import com.davidbracewell.apollo.linalg.Vector;
+import com.davidbracewell.apollo.linalg.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NonNull;
@@ -24,6 +21,13 @@ public class Weights implements Serializable, Copyable<Weights> {
    private Matrix theta;
    private Vector bias;
    private boolean binary;
+
+   public Weights(int numberOfRows, int numberOfColumns, WeightInitializer weightInitializer) {
+      this.theta = weightInitializer.initialize(DenseMatrix.zeroes(numberOfRows, numberOfColumns));
+      this.bias = DenseVector.zeros(numberOfRows);
+      this.binary = numberOfColumns <= 2;
+
+   }
 
    /**
     * Random binary weights.
@@ -74,32 +78,6 @@ public class Weights implements Serializable, Copyable<Weights> {
       return new Weights(new SparseMatrix(w), SparseVector.zeros(numClasses), false);
    }
 
-   /**
-    * Random binary weights.
-    *
-    * @param numFeatures the num features
-    * @return the weights
-    */
-   public static Weights randomBinary(int numFeatures) {
-      return new Weights(new SparseMatrix(SparseVector.zeros(numFeatures)), SparseVector.zeros(1), true);
-   }
-
-   /**
-    * Random multi class weights.
-    *
-    * @param numClasses  the num classes
-    * @param numFeatures the num features
-    * @param min         the min
-    * @param max         the max
-    * @return the weights
-    */
-   public static Weights randomMultiClass(int numClasses, int numFeatures, double min, double max) {
-      List<Vector> w = new ArrayList<>();
-      for (int i = 0; i < numClasses; i++) {
-         w.add(SparseVector.random(numFeatures, min, max));
-      }
-      return new Weights(new SparseMatrix(w), SparseVector.zeros(numClasses), false);
-   }
 
    @Override
    public Weights copy() {

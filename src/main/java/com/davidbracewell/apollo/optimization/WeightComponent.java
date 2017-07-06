@@ -5,6 +5,7 @@ import lombok.NonNull;
 
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Iterator;
 
 /**
@@ -15,6 +16,10 @@ import java.util.Iterator;
 public class WeightComponent implements Serializable, Iterable<Weights> {
    private static final long serialVersionUID = 1L;
    private final Weights[] weights;
+
+   public WeightComponent(Collection<Weights> weights) {
+      this.weights = weights.toArray(new Weights[weights.size()]);
+   }
 
    /**
     * Instantiates a new Weight component.

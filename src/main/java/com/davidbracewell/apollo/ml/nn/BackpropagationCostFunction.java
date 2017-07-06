@@ -10,11 +10,11 @@ import com.davidbracewell.apollo.optimization.loss.LossFunction;
 /**
  * @author David B. Bracewell
  */
-public class NeuralNetworkCostFunction implements CostFunction {
+public class BackpropagationCostFunction implements CostFunction {
    private final FeedForwardNetwork network;
    private final LossFunction lossFunction;
 
-   public NeuralNetworkCostFunction(FeedForwardNetwork network, LossFunction lossFunction) {
+   public BackpropagationCostFunction(FeedForwardNetwork network, LossFunction lossFunction) {
       this.network = network;
       this.lossFunction = lossFunction;
    }

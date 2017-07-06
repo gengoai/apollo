@@ -3,8 +3,7 @@ package com.davidbracewell.apollo.optimization.activation;
 /**
  * @author David B. Bracewell
  */
-public class SigmoidActivation implements DifferentiableActivation {
-   public static final SigmoidActivation INSTANCE = new SigmoidActivation();
+public class SigmoidActivation implements Activation {
    private static final long serialVersionUID = 1L;
 
    @Override

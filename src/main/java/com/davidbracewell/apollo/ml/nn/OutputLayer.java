@@ -3,6 +3,7 @@ package com.davidbracewell.apollo.ml.nn;
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.optimization.WeightInitializer;
 import com.davidbracewell.apollo.optimization.activation.Activation;
+import com.davidbracewell.apollo.optimization.activation.SigmoidActivation;
 import com.davidbracewell.apollo.optimization.activation.SoftmaxActivation;
 import lombok.NonNull;
 
@@ -15,6 +16,10 @@ public class OutputLayer extends WeightLayer {
 
    public OutputLayer(int inputSize, int outputSize, @NonNull Activation activation, @NonNull WeightInitializer weightInitializer) {
       super(inputSize, outputSize, activation, weightInitializer);
+   }
+
+   public static Builder sigmoid() {
+      return new Builder().activation(new SigmoidActivation());
    }
 
    public static Builder softmax() {

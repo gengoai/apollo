@@ -33,7 +33,7 @@ public class OutputLayer extends WeightLayer {
                   .row(0);
    }
 
-   public Builder builder() {
+   public static Builder builder() {
       return new Builder();
    }
 

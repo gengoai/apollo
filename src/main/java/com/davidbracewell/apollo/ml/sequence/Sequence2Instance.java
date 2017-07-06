@@ -14,18 +14,26 @@ import java.util.List;
  *
  * @author David B. Bracewell
  */
-public class Seq2Inst implements SerializableFunction<Sequence, Instance> {
+public class Sequence2Instance implements SerializableFunction<Sequence, Instance> {
 
    private final int maxSequenceSize;
+   private final int labelIndex;
+
+
+   public Sequence2Instance(int maxSequenceSize) {
+      this(0, maxSequenceSize);
+   }
+
 
    /**
     * Instantiates a new Seq 2 inst.
     *
     * @param maxSequenceSize the max sequence size
     */
-   public Seq2Inst(int maxSequenceSize) {
+   public Sequence2Instance(int labelIndex, int maxSequenceSize) {
       Preconditions.checkArgument(maxSequenceSize > 0, "Maximum sequence size must be > 0");
       this.maxSequenceSize = maxSequenceSize;
+      this.labelIndex = labelIndex;
    }
 
    @Override
@@ -44,7 +52,7 @@ public class Seq2Inst implements SerializableFunction<Sequence, Instance> {
          }
          index++;
       }
-      return Instance.create(instFeatures, sequence.get(0).getLabel());
+      return Instance.create(instFeatures, sequence.get(labelIndex).getLabel());
    }
 
 }// END OF Seq2Inst

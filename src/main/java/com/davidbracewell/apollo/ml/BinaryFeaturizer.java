@@ -24,6 +24,7 @@ package com.davidbracewell.apollo.ml;
 import com.davidbracewell.cache.Cached;
 
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -42,7 +43,10 @@ public abstract class BinaryFeaturizer<T> implements Featurizer<T> {
       if (t == null) {
          return Collections.emptySet();
       }
-      return applyImpl(t).stream().map(Feature::TRUE).collect(Collectors.toSet());
+      return applyImpl(t)
+                .stream()
+                .map(Feature::TRUE)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
    }
 
    /**

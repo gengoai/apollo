@@ -25,6 +25,7 @@ import com.davidbracewell.cache.Cached;
 import com.davidbracewell.collection.counter.Counter;
 
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -43,8 +44,10 @@ public abstract class RealFeaturizer<T> implements Featurizer<T> {
       if (input == null) {
          return Collections.emptySet();
       }
-      return applyImpl(input).entries().stream().map(entry -> Feature.real(entry.getKey(), entry.getValue())).collect(
-         Collectors.toSet());
+      return applyImpl(input).entries()
+                             .stream()
+                             .map(entry -> Feature.real(entry.getKey(), entry.getValue()))
+                             .collect(Collectors.toCollection(LinkedHashSet::new));
    }
 
    /**

@@ -35,7 +35,10 @@ public abstract class BaseVector implements Vector, Serializable {
 
    @Override
    public Vector add(@NonNull Vector rhs) {
-      return copy().addSelf(rhs);
+      Preconditions.checkArgument(rhs.dimension() == dimension(), "Dimension mismatch");
+      Vector toReturn = createNew(dimension());
+      iterator().forEachRemaining(e -> toReturn.set(e.index, e.value + rhs.get(e.index)));
+      return toReturn;
    }
 
    @Override
@@ -95,7 +98,10 @@ public abstract class BaseVector implements Vector, Serializable {
 
    @Override
    public Vector divide(@NonNull Vector rhs) {
-      return copy().divideSelf(rhs);
+      Preconditions.checkArgument(rhs.dimension() == dimension(), "Dimension mismatch");
+      Vector toReturn = createNew(dimension());
+      iterator().forEachRemaining(e -> toReturn.set(e.index, e.value / rhs.get(e.index)));
+      return toReturn;
    }
 
    @Override
@@ -248,17 +254,24 @@ public abstract class BaseVector implements Vector, Serializable {
 
    @Override
    public Vector map(@NonNull DoubleUnaryOperator function) {
-      return copy().mapSelf(function);
+      Vector toReturn = createNew(dimension());
+      iterator().forEachRemaining(e -> toReturn.set(e.index, function.applyAsDouble(e.value)));
+      return toReturn;
    }
 
    @Override
    public Vector map(@NonNull Vector v, @NonNull DoubleBinaryOperator function) {
-      return copy().mapSelf(v, function);
+      Preconditions.checkArgument(v.dimension() == dimension(), "Dimension mismatch");
+      Vector toReturn = createNew(dimension());
+      iterator().forEachRemaining(e -> toReturn.set(e.index, function.applyAsDouble(e.value, v.get(e.index))));
+      return toReturn;
    }
 
    @Override
    public Vector mapAdd(double amount) {
-      return copy().mapAddSelf(amount);
+      Vector toReturn = createNew(dimension());
+      iterator().forEachRemaining(e -> toReturn.set(e.index, e.value + amount));
+      return toReturn;
    }
 
    @Override
@@ -271,7 +284,9 @@ public abstract class BaseVector implements Vector, Serializable {
 
    @Override
    public Vector mapDivide(double amount) {
-      return copy().mapDivideSelf(amount);
+      Vector toReturn = createNew(dimension());
+      iterator().forEachRemaining(e -> toReturn.set(e.index, e.value / amount));
+      return toReturn;
    }
 
    @Override
@@ -282,7 +297,9 @@ public abstract class BaseVector implements Vector, Serializable {
 
    @Override
    public Vector mapMultiply(double amount) {
-      return copy().mapMultiplySelf(amount);
+      Vector toReturn = createNew(dimension());
+      iterator().forEachRemaining(e -> toReturn.set(e.index, e.value * amount));
+      return toReturn;
    }
 
    @Override
@@ -310,7 +327,9 @@ public abstract class BaseVector implements Vector, Serializable {
 
    @Override
    public Vector mapSubtract(double amount) {
-      return copy().mapSubtractSelf(amount);
+      Vector toReturn = createNew(dimension());
+      iterator().forEachRemaining(e -> toReturn.set(e.index, e.value - amount));
+      return toReturn;
    }
 
    @Override
@@ -343,7 +362,10 @@ public abstract class BaseVector implements Vector, Serializable {
 
    @Override
    public Vector multiply(@NonNull Vector rhs) {
-      return copy().multiplySelf(rhs);
+      Preconditions.checkArgument(rhs.dimension() == dimension(), "Dimension mismatch");
+      Vector toReturn = createNew(dimension());
+      iterator().forEachRemaining(e -> toReturn.set(e.index, e.value * rhs.get(e.index)));
+      return toReturn;
    }
 
    @Override
@@ -468,7 +490,10 @@ public abstract class BaseVector implements Vector, Serializable {
 
    @Override
    public Vector subtract(@NonNull Vector rhs) {
-      return copy().subtractSelf(rhs);
+      Preconditions.checkArgument(rhs.dimension() == dimension(), "Dimension mismatch");
+      Vector toReturn = createNew(dimension());
+      iterator().forEachRemaining(e -> toReturn.set(e.index, e.value - rhs.get(e.index)));
+      return toReturn;
    }
 
    @Override

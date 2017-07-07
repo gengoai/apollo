@@ -40,7 +40,7 @@ public class SGD implements Optimizer, Serializable, Loggable {
       int iteration = 0;
       for (; iteration < terminationCriteria.maxIterations(); iteration++) {
          final int time = iteration;
-         double sumTotal = stream.get().shuffle().mapToDouble(v -> {
+         double sumTotal = stream.get().shuffle().javaStream().sequential().mapToDouble(v -> {
             double cost = step(v, theta, costFunction, weightUpdater, lr.get());
             numProcessed.incrementAndGet();
             lr.set(learningRate.get(lr.get(), time, numProcessed.get()));

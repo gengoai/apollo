@@ -23,16 +23,12 @@ public class Dropout extends TrainOnlyLayer {
 
    @Override
    Vector backward(Vector output, Vector delta) {
-      return delta;
+      return delta.multiplySelf(output);
    }
 
    @Override
    Vector forward(Vector input) {
-      Vector v = Vector.sZeros(input.dimension());
-      for (int i = 0; i < v.dimension(); i++) {
-         v.set(i, Math.random() >= dropoutRate ? 1.0 : 0.0);
-      }
-      return input.multiply(v);
+      return input.map(d -> Math.random() >= dropoutRate ? d / (1.0 - dropoutRate) : 0);
    }
 
    @Accessors(fluent = true)

@@ -1,14 +1,15 @@
 package com.davidbracewell.apollo.optimization;
 
 import com.davidbracewell.Copyable;
-import com.davidbracewell.apollo.linalg.*;
+import com.davidbracewell.apollo.linalg.DenseMatrix;
+import com.davidbracewell.apollo.linalg.DenseVector;
+import com.davidbracewell.apollo.linalg.Matrix;
+import com.davidbracewell.apollo.linalg.Vector;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NonNull;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * The type Weights.
@@ -28,56 +29,6 @@ public class Weights implements Serializable, Copyable<Weights> {
       this.binary = numberOfColumns <= 2;
 
    }
-
-   /**
-    * Random binary weights.
-    *
-    * @param numFeatures the num features
-    * @param min         the min
-    * @param max         the max
-    * @return the weights
-    */
-   public static Weights binary(int numFeatures, double min, double max) {
-      return new Weights(new SparseMatrix(SparseVector.random(numFeatures, min, max)), SparseVector.zeros(1), true);
-   }
-
-
-   /**
-    * Binary weights.
-    *
-    * @param numFeatures the num features
-    * @return the weights
-    */
-   public static Weights binary(int numFeatures) {
-      return new Weights(new SparseMatrix(SparseVector.zeros(numFeatures)), SparseVector.zeros(1), true);
-   }
-
-   /**
-    * From weights.
-    *
-    * @param theta the theta
-    * @param bias  the bias
-    * @return the weights
-    */
-   public static Weights from(@NonNull Matrix theta, @NonNull Vector bias) {
-      return new Weights(theta, bias, bias.size() == 1);
-   }
-
-   /**
-    * Random multi class weights.
-    *
-    * @param numClasses  the num classes
-    * @param numFeatures the num features
-    * @return the weights
-    */
-   public static Weights multiClass(int numClasses, int numFeatures) {
-      List<Vector> w = new ArrayList<>();
-      for (int i = 0; i < numClasses; i++) {
-         w.add(SparseVector.zeros(numFeatures));
-      }
-      return new Weights(new SparseMatrix(w), SparseVector.zeros(numClasses), false);
-   }
-
 
    @Override
    public Weights copy() {

@@ -92,30 +92,30 @@ public class BinarySGDLearner extends BinaryClassifierLearner {
    @Override
    protected Classifier trainForLabel(Dataset<Instance> dataset, double trueLabel) {
       BinaryGLM model = new BinaryGLM(this);
-      WeightComponent component = new WeightComponent(new int[][]{{2, model.numberOfFeatures()}},
-                                                      WeightInitializer.ZEROES);
+      WeightComponent component = new WeightComponent(new Weights(2, model.numberOfFeatures(),
+                                                                  WeightInitializer.DEFAULT));
       Optimizer optimizer = new SGD();
       Weights weights = optimizer.optimize(component,
-                                            () -> dataset.asVectors()
-                                                         .map(fv -> {
-                                                            if (fv.getLabelAsDouble() == trueLabel) {
-                                                               fv.setLabel(1);
-                                                            } else {
-                                                               fv.setLabel(0);
-                                                            }
-                                                            return fv;
-                                                         })
-                                                         .cache(),
-                                            new GradientDescentCostFunction(loss, activation),
-                                            TerminationCriteria.create()
-                                                               .maxIterations(maxIterations)
-                                                               .historySize(3)
-                                                               .tolerance(tolerance),
-                                            learningRate,
-                                            weightUpdater,
-                                            verbose
-                                           ).getComponents()
-                                  .get(0);
+                                           () -> dataset.asVectors()
+                                                        .map(fv -> {
+                                                           if (fv.getLabelAsDouble() == trueLabel) {
+                                                              fv.setLabel(1);
+                                                           } else {
+                                                              fv.setLabel(0);
+                                                           }
+                                                           return fv;
+                                                        })
+                                                        .cache(),
+                                           new GradientDescentCostFunction(loss, activation),
+                                           TerminationCriteria.create()
+                                                              .maxIterations(maxIterations)
+                                                              .historySize(3)
+                                                              .tolerance(tolerance),
+                                           learningRate,
+                                           weightUpdater,
+                                           verbose
+                                          ).getComponents()
+                                 .get(0);
       model.weights = weights.getTheta().row(0).copy();
       model.bias = weights.getBias().get(0);
       model.activation = activation;

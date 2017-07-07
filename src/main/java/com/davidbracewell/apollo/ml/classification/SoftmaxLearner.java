@@ -47,8 +47,8 @@ public class SoftmaxLearner extends ClassifierLearner {
    protected Classifier trainImpl(Dataset<Instance> dataset) {
       GLM model = new GLM(this);
       Optimizer optimizer = new SGD();
-      WeightComponent component = new WeightComponent(new int[][]{{model.numberOfLabels(), model.numberOfFeatures()}},
-                                                      WeightInitializer.ZEROES);
+      WeightComponent component = new WeightComponent(new Weights(model.numberOfLabels(), model.numberOfFeatures(),
+                                                                  WeightInitializer.DEFAULT));
       model.weights = optimizer.optimize(component,
                                          dataset::asVectors,
                                          new GradientDescentCostFunction(loss, activation),

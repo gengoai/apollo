@@ -206,6 +206,11 @@ public class DenseMatrix extends BaseMatrix {
    }
 
    @Override
+   public Matrix scale(double value) {
+      return new DenseMatrix(matrix.mul(value));
+   }
+
+   @Override
    public Matrix scaleSelf(double value) {
       matrix.muli(value);
       return this;

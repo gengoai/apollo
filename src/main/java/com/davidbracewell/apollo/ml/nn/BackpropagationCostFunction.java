@@ -22,14 +22,14 @@ public class BackpropagationCostFunction implements CostFunction {
    @Override
    public CostGradientTuple evaluate(Vector input, WeightComponent theta) {
       Vector y = input.getLabelVector(network.numberOfLabels());
-      int numLayers = network.layers.length;
+      int numLayers = network.layers.size();
 
       Vector[] activations = new Vector[numLayers];
       for (int i = 0; i < numLayers; i++) {
          if (i == 0) {
-            activations[i] = network.layers[i].forward(input);
+            activations[i] = network.layers.get(i).forward(input);
          } else {
-            activations[i] = network.layers[i].forward(activations[i - 1]);
+            activations[i] = network.layers.get(i).forward(activations[i - 1]);
          }
       }
       Vector predicted = activations[activations.length - 1];
@@ -38,14 +38,14 @@ public class BackpropagationCostFunction implements CostFunction {
 
       deltas[numLayers] = lossFunction.derivative(predicted, y).getBiasGradient();
       for (int i = numLayers - 1; i >= 0; i--) {
-         deltas[i] = network.layers[i].backward(activations[i], deltas[i + 1]);
+         deltas[i] = network.layers.get(i).backward(activations[i], deltas[i + 1]);
       }
 
       Gradient[] gradients = new Gradient[theta.size()];
       int index = 0;
       for (int i = 0; i < numLayers; i++) {
          Vector a = i == 0 ? input : activations[i - 1];
-         if (network.layers[i].hasWeights()) {
+         if (network.layers.get(i).hasWeights()) {
             gradients[index] = Gradient.of(deltas[i + 1].transpose().multiply(a.toMatrix()),
                                            deltas[i + 1]);
             index++;

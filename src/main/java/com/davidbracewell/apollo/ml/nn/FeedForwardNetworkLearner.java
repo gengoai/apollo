@@ -59,14 +59,17 @@ public class FeedForwardNetworkLearner extends ClassifierLearner {
 
    private WeightComponent buildNetwork(FeedForwardNetwork network, int numFeatures, int numLabels) {
       int inputSize = numFeatures;
-      network.layers = new com.davidbracewell.apollo.ml.nn.Layer[layers.size()];
+      network.layers = new ArrayList<>();
       List<Weights> weights = new ArrayList<>();
       layers.get(layers.size() - 1).outputSize(numLabels);
       for (int i = 0; i < layers.size(); i++) {
          LayerBuilder layer = layers.get(i);
-         network.layers[i] = layer.inputSize(inputSize).build();
-         if (network.layers[i].hasWeights()) {
-            weights.add(network.layers[i].getWeights());
+         if (layer.getOutputSize() <= 0) {
+            layer.outputSize(inputSize);
+         }
+         network.layers.add(layer.inputSize(inputSize).build());
+         if (network.layers.get(i).hasWeights()) {
+            weights.add(network.layers.get(i).getWeights());
          }
          inputSize = layer.getOutputSize();
       }
@@ -93,11 +96,14 @@ public class FeedForwardNetworkLearner extends ClassifierLearner {
                                                    verbose
                                                   );
       for (int i = 0, index = 0; i < layers.size(); i++) {
-         if (network.layers[i].hasWeights()) {
-            network.layers[i].setWeights(optimal.getComponents().get(index));
+         if (network.layers.get(i).hasWeights()) {
+            network.layers.get(i).setWeights(optimal.getComponents().get(index));
             index++;
          }
       }
+
+      network.layers.removeIf(layer -> layer instanceof TrainOnlyLayer);
+      network.layers.trimToSize();
       return network;
    }
 

@@ -55,7 +55,6 @@ public abstract class Layer implements Serializable {
 
    }
 
-
    /**
     * Has weights boolean.
     *

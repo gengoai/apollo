@@ -7,6 +7,7 @@ import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.ml.data.source.DenseCSVDataSource;
 import com.davidbracewell.apollo.ml.nn.DenseLayer;
+import com.davidbracewell.apollo.ml.nn.Dropout;
 import com.davidbracewell.apollo.ml.nn.FeedForwardNetworkLearner;
 import com.davidbracewell.apollo.ml.nn.OutputLayer;
 import com.davidbracewell.apollo.optimization.loss.CrossEntropyLoss;
@@ -39,8 +40,8 @@ public class LrLearner extends BinaryClassifierLearner {
       crossValidation(dataset,
                       () -> FeedForwardNetworkLearner.builder()
                                                      //One hidden layer of size 100
-                                                     .layer(DenseLayer.sigmoid().outputSize(100))
-                                                     .layer(DenseLayer.sigmoid().outputSize(25))
+                                                     .layer(DenseLayer.sigmoid().outputSize(10))
+                                                     .layer(Dropout.builder().dropoutRate(0.2))
                                                      .layer(OutputLayer.softmax())
                                                      .lossFunction(new CrossEntropyLoss())
                                                      .build(),

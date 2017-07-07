@@ -5,6 +5,8 @@ import com.davidbracewell.apollo.ml.classification.Classification;
 import com.davidbracewell.apollo.ml.classification.Classifier;
 import com.davidbracewell.apollo.ml.classification.ClassifierLearner;
 
+import java.util.ArrayList;
+
 /**
  * The type Feed forward network.
  *
@@ -14,7 +16,7 @@ public class FeedForwardNetwork extends Classifier {
    /**
     * The Layers.
     */
-   Layer[] layers;
+   ArrayList<Layer> layers;
 
    /**
     * Instantiates a new Classifier.

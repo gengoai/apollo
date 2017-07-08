@@ -2,7 +2,9 @@ package com.davidbracewell.apollo.optimization;
 
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.optimization.update.WeightUpdate;
+import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.function.SerializableSupplier;
+import com.davidbracewell.guava.common.base.Stopwatch;
 import com.davidbracewell.guava.common.util.concurrent.AtomicDouble;
 import com.davidbracewell.logging.Loggable;
 import com.davidbracewell.stream.MStream;
@@ -12,6 +14,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.io.Serializable;
+import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -39,13 +42,17 @@ public class SGD implements Optimizer, Serializable, Loggable {
       final AtomicInteger numProcessed = new AtomicInteger(0);
       int iteration = 0;
       for (; iteration < terminationCriteria.maxIterations(); iteration++) {
-         final int time = iteration;
-         double sumTotal = stream.get().shuffle().mapToDouble(v -> {
-            double cost = step(v, theta, costFunction, weightUpdater, lr.get());
+         double sumTotal = 0d;
+         Stopwatch sw = Stopwatch.createStarted();
+         for (Iterator<Vector> itr = Cast.as(
+            stream.get().shuffle().javaStream().sequential().iterator()); itr.hasNext(); ) {
+            sumTotal += step(itr.next(), theta, costFunction, weightUpdater, lr.get());
             numProcessed.incrementAndGet();
-            lr.set(learningRate.get(lr.get(), time, numProcessed.get()));
-            return cost;
-         }).sum();
+            lr.set(learningRate.get(lr.get(), iteration, numProcessed.get()));
+
+         }
+         System.out.println(sw);
+
          if (verbose && iteration % reportInterval == 0) {
             logInfo("iteration={0}, total_cost={1}", iteration, sumTotal);
          }

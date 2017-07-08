@@ -36,14 +36,22 @@ public class L1Regularizer extends DeltaRule implements Serializable {
 
       double shrinkage = l1 * learningRate;
       AtomicDouble addedCost = new AtomicDouble();
-      weights.getTheta().mapSelf(weight -> {
-         double nW = FastMath.signum(weight) * FastMath.max(0.0, FastMath.abs(weight) - shrinkage);
+      weights.getTheta().nonZeroIterator().forEachRemaining(entry -> {
+         double nW = FastMath.signum(entry.value) * FastMath.max(0.0, FastMath.abs(entry.value) - shrinkage);
          if (FastMath.abs(nW) <= tolerance) {
-            return 0;
+            weights.getTheta().set(entry.row,entry.column,0d);
          }
-         addedCost.addAndGet(FastMath.abs(weight));
-         return nW;
+         addedCost.addAndGet(FastMath.abs(entry.value));
+         weights.getTheta().set(entry.row, entry.column, nW);
       });
+//      weights.getTheta().mapSelf(weight -> {
+//         double nW = FastMath.signum(weight) * FastMath.max(0.0, FastMath.abs(weight) - shrinkage);
+//         if (FastMath.abs(nW) <= tolerance) {
+//            return 0;
+//         }
+//         addedCost.addAndGet(FastMath.abs(weight));
+//         return nW;
+//      });
       return addedCost.get() * l1;
    }
 }// END OF L1Regularizer

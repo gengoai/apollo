@@ -1,10 +1,7 @@
 package com.davidbracewell.apollo.optimization;
 
 import com.davidbracewell.Copyable;
-import com.davidbracewell.apollo.linalg.DenseMatrix;
-import com.davidbracewell.apollo.linalg.DenseVector;
-import com.davidbracewell.apollo.linalg.Matrix;
-import com.davidbracewell.apollo.linalg.Vector;
+import com.davidbracewell.apollo.linalg.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NonNull;
@@ -24,8 +21,8 @@ public class Weights implements Serializable, Copyable<Weights> {
    private boolean binary;
 
    public Weights(int numberOfRows, int numberOfColumns, WeightInitializer weightInitializer) {
-      this.theta = weightInitializer.initialize(DenseMatrix.zeroes(numberOfRows, numberOfColumns));
-      this.bias = DenseVector.zeros(numberOfRows);
+      this.theta = weightInitializer.initialize(SparseMatrix.zeroes(numberOfRows, numberOfColumns));
+      this.bias = SparseVector.zeros(numberOfRows);
       this.binary = numberOfColumns <= 2;
 
    }

@@ -44,7 +44,7 @@ public class BatchOptimizer implements Optimizer, Loggable, Serializable {
       AtomicInteger numProcessed = new AtomicInteger(0);
       for (int i = 0; i < iterations; i++) {
          final int iteration = i;
-         lastLoss = stream.get().shuffle().split(batchSize).mapToDouble(batch -> {
+         lastLoss = stream.get().shuffle().split(batchSize).javaStream().sequential().mapToDouble(batch -> {
             final SubUpdate subUpdate = new SubUpdate();
             subOptimizer.optimize(theta, () -> StreamingContext.local().stream(batch),
                                   costFunction, terminationCriteria,

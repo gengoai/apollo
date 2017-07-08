@@ -662,6 +662,7 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
        * The Value.
        */
       public final double value;
+
    }
 
 }//END OF Vector

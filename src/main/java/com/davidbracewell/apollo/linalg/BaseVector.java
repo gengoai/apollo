@@ -298,7 +298,9 @@ public abstract class BaseVector implements Vector, Serializable {
    @Override
    public Vector mapMultiply(double amount) {
       Vector toReturn = createNew(dimension());
-      iterator().forEachRemaining(e -> toReturn.set(e.index, e.value * amount));
+      if (amount != 0) {
+         nonZeroIterator().forEachRemaining(e -> toReturn.set(e.index, e.value * amount));
+      }
       return toReturn;
    }
 
@@ -526,7 +528,7 @@ public abstract class BaseVector implements Vector, Serializable {
 
    @Override
    public Matrix toMatrix() {
-      return new DenseMatrix(1, dimension()).setRow(0, this);
+      return new SparseMatrix(1, dimension()).setRow(0, this);
    }
 
    @Override
@@ -541,7 +543,7 @@ public abstract class BaseVector implements Vector, Serializable {
 
    @Override
    public Matrix transpose() {
-      Matrix matrix = new DenseMatrix(dimension(), 1);
+      Matrix matrix = new SparseMatrix(dimension(), 1);
       for (int i = 0; i < dimension(); i++) {
          matrix.set(i, 0, get(i));
       }
@@ -552,4 +554,5 @@ public abstract class BaseVector implements Vector, Serializable {
    public Vector zero() {
       return createNew(dimension());
    }
+
 }// END OF BaseVector

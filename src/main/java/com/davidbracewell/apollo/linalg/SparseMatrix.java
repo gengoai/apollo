@@ -23,7 +23,6 @@ package com.davidbracewell.apollo.linalg;
 
 import com.davidbracewell.guava.common.base.Preconditions;
 import lombok.NonNull;
-import org.apache.commons.math3.linear.OpenMapRealMatrix;
 import org.apache.commons.math3.linear.RealMatrix;
 
 import java.util.*;
@@ -39,7 +38,7 @@ public class SparseMatrix extends BaseMatrix {
    /**
     * The Matrix.
     */
-   final OpenMapRealMatrix matrix;
+   final RRMatrix matrix;
 
    public SparseMatrix(int numRows, @NonNull Vector template) {
       this(numRows, template.dimension());
@@ -55,7 +54,7 @@ public class SparseMatrix extends BaseMatrix {
     * @param numColumns the number of columns
     */
    public SparseMatrix(int numRows, int numColumns) {
-      this.matrix = new OpenMapRealMatrix(numRows, numColumns);
+      this.matrix = new RRMatrix(numRows, numColumns);
    }
 
    /**
@@ -73,8 +72,8 @@ public class SparseMatrix extends BaseMatrix {
     *
     * @param matrix the matrix
     */
-   public SparseMatrix(@NonNull OpenMapRealMatrix matrix) {
-      this.matrix = new OpenMapRealMatrix(matrix);
+   public SparseMatrix(@NonNull RRMatrix matrix) {
+      this.matrix = new RRMatrix(matrix);
    }
 
    /**
@@ -83,7 +82,7 @@ public class SparseMatrix extends BaseMatrix {
     * @param matrix the matrix
     */
    public SparseMatrix(@NonNull RealMatrix matrix) {
-      this.matrix = new OpenMapRealMatrix(matrix.getRowDimension(), matrix.getColumnDimension());
+      this.matrix = new RRMatrix(matrix.getRowDimension(), matrix.getColumnDimension());
       for (int r = 0; r < matrix.getRowDimension(); r++) {
          for (int c = 0; c < matrix.getColumnDimension(); c++) {
             this.matrix.setEntry(r, c, matrix.getEntry(r, c));
@@ -115,7 +114,7 @@ public class SparseMatrix extends BaseMatrix {
                 .get(0)
                 .dimension();
       }
-      this.matrix = new OpenMapRealMatrix(r, c);
+      this.matrix = new RRMatrix(r, c);
       for (int i = 0; i < vectors.size(); i++) {
          setRow(i, vectors.get(i));
       }
@@ -216,50 +215,7 @@ public class SparseMatrix extends BaseMatrix {
 
    @Override
    public Iterator<Entry> nonZeroIterator() {
-      return new Iterator<Entry>() {
-         private PrimitiveIterator.OfInt rowItr = IntStream
-                                                     .range(0, matrix.getRowDimension())
-                                                     .iterator();
-         private int row;
-         private Integer currentColumn = null;
-         private Iterator<Vector.Entry> colItr;
-
-         private boolean advance() {
-
-            while (currentColumn == null) {
-               if (colItr == null && !rowItr.hasNext()) {
-                  return false;
-               } else if (colItr == null) {
-                  row = rowItr.next();
-                  colItr = row(row).nonZeroIterator();
-               } else if (colItr.hasNext()) {
-                  currentColumn = colItr
-                                     .next()
-                                     .getIndex();
-               } else {
-                  currentColumn = null;
-                  colItr = null;
-               }
-            }
-
-            return currentColumn != null;
-         }
-
-         @Override
-         public boolean hasNext() {
-            return advance();
-         }
-
-         @Override
-         public Entry next() {
-            if (!advance()) {
-               throw new NoSuchElementException();
-            }
-            int c = currentColumn;
-            currentColumn = null;
-            return new Matrix.Entry(row, c, get(row, c));
-         }
-      };
+      return matrix.nonZeroIterator();
    }
 
    @Override

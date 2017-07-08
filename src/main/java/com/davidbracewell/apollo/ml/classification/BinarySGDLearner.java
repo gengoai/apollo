@@ -94,7 +94,13 @@ public class BinarySGDLearner extends BinaryClassifierLearner {
       BinaryGLM model = new BinaryGLM(this);
       WeightComponent component = new WeightComponent(new Weights(2, model.numberOfFeatures(),
                                                                   WeightInitializer.DEFAULT));
-      Optimizer optimizer = new SGD();
+
+      Optimizer optimizer;
+      if (batchSize > 0) {
+         optimizer = new BatchOptimizer(new SGD(), batchSize, 5);
+      } else {
+         optimizer = new SGD();
+      }
       Weights weights = optimizer.optimize(component,
                                            () -> dataset.asVectors()
                                                         .map(fv -> {

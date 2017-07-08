@@ -23,16 +23,17 @@ package com.davidbracewell.apollo.linalg;
 
 import com.davidbracewell.Math2;
 import com.davidbracewell.guava.common.base.Preconditions;
+import it.unimi.dsi.fastutil.ints.Int2DoubleMap;
 import it.unimi.dsi.fastutil.ints.Int2DoubleOpenHashMap;
-import it.unimi.dsi.fastutil.ints.IntIterator;
+import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import lombok.NonNull;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.commons.math3.random.Well19937c;
 
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Random;
-import java.util.function.Consumer;
 
 /**
  * A sparse vector implementation backed by a map
@@ -206,27 +207,21 @@ public class SparseVector extends BaseVector {
    @Override
    public Iterator<Vector.Entry> nonZeroIterator() {
       return new Iterator<Vector.Entry>() {
-         private final IntIterator indexIter = map.keySet().iterator();
-
-         @Override
-         public void forEachRemaining(Consumer<? super Entry> action) {
-            while (hasNext()) {
-               action.accept(next());
-            }
-         }
+         private final ObjectIterator<Int2DoubleMap.Entry> iterator = map.int2DoubleEntrySet()
+                                                                         .iterator();
 
          @Override
          public boolean hasNext() {
-            return indexIter.hasNext();
+            return iterator.hasNext();
          }
 
          @Override
          public Vector.Entry next() {
-            if (!indexIter.hasNext()) {
+            if (!iterator.hasNext()) {
                throw new NoSuchElementException();
             }
-            int index = indexIter.nextInt();
-            return new Vector.Entry(index, get(index));
+            Int2DoubleMap.Entry entry = iterator.next();
+            return new Vector.Entry(entry.getIntKey(), entry.getDoubleValue());
          }
       };
    }
@@ -234,20 +229,25 @@ public class SparseVector extends BaseVector {
    @Override
    public Iterator<Vector.Entry> orderedNonZeroIterator() {
       return new Iterator<Vector.Entry>() {
-         private final Iterator<Integer> indexIter = map.keySet().stream().sorted().iterator();
+         private final Iterator<Int2DoubleMap.Entry> iterator = map.int2DoubleEntrySet()
+                                                                   .stream()
+                                                                   .sorted(Comparator.comparing(
+                                                                      Int2DoubleMap.Entry::getIntKey))
+                                                                   .iterator();
+
 
          @Override
          public boolean hasNext() {
-            return indexIter.hasNext();
+            return iterator.hasNext();
          }
 
          @Override
          public Vector.Entry next() {
-            if (!indexIter.hasNext()) {
+            if (!iterator.hasNext()) {
                throw new NoSuchElementException();
             }
-            int index = indexIter.next();
-            return new Vector.Entry(index, get(index));
+            Int2DoubleMap.Entry entry = iterator.next();
+            return new Vector.Entry(entry.getIntKey(), entry.getDoubleValue());
          }
       };
    }

@@ -4,7 +4,6 @@ import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.optimization.update.WeightUpdate;
 import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.function.SerializableSupplier;
-import com.davidbracewell.guava.common.base.Stopwatch;
 import com.davidbracewell.guava.common.util.concurrent.AtomicDouble;
 import com.davidbracewell.logging.Loggable;
 import com.davidbracewell.stream.MStream;
@@ -43,16 +42,13 @@ public class SGD implements Optimizer, Serializable, Loggable {
       int iteration = 0;
       for (; iteration < terminationCriteria.maxIterations(); iteration++) {
          double sumTotal = 0d;
-         Stopwatch sw = Stopwatch.createStarted();
          for (Iterator<Vector> itr = Cast.as(
-            stream.get().shuffle().javaStream().sequential().iterator()); itr.hasNext(); ) {
+            stream.get().javaStream().sequential().iterator()); itr.hasNext(); ) {
             sumTotal += step(itr.next(), theta, costFunction, weightUpdater, lr.get());
             numProcessed.incrementAndGet();
             lr.set(learningRate.get(lr.get(), iteration, numProcessed.get()));
 
          }
-         System.out.println(sw);
-
          if (verbose && iteration % reportInterval == 0) {
             logInfo("iteration={0}, total_cost={1}", iteration, sumTotal);
          }

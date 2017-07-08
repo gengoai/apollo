@@ -66,8 +66,6 @@ public class SGD implements Optimizer, Serializable, Loggable {
                        WeightUpdate updater,
                        double lr
                       ) {
-      synchronized (this) {
-         return updater.update(theta, costFunction.evaluate(next, theta), lr);
-      }
+      return updater.update(theta, costFunction.evaluate(next, theta), lr);
    }
 }//END OF SGD

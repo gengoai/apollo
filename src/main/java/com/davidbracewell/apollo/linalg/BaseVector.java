@@ -526,10 +526,7 @@ public abstract class BaseVector implements Vector, Serializable {
 
    @Override
    public Matrix toMatrix() {
-      if (isSparse()) {
-         return new SparseMatrix(this);
-      }
-      return new DenseMatrix(1, dimension(), this.toArray());
+      return new DenseMatrix(1, dimension()).setRow(0, this);
    }
 
    @Override
@@ -544,8 +541,7 @@ public abstract class BaseVector implements Vector, Serializable {
 
    @Override
    public Matrix transpose() {
-      Matrix matrix = isSparse() ? new SparseMatrix(dimension(), 1) :
-                      new DenseMatrix(dimension(), 1);
+      Matrix matrix = new DenseMatrix(dimension(), 1);
       for (int i = 0; i < dimension(); i++) {
          matrix.set(i, 0, get(i));
       }

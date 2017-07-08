@@ -472,7 +472,7 @@ public abstract class BaseMatrix implements Matrix, Serializable {
    public Matrix setRow(int row, Vector vector) {
       Preconditions.checkElementIndex(row, numberOfRows());
       Preconditions.checkArgument(vector.dimension() == numberOfColumns(), "Dimension Mismatch");
-      vector.forEach(e -> set(row, e.index, e.value));
+      vector.forEachSparse(e -> set(row, e.index, e.value));
       return this;
    }
 

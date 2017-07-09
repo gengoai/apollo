@@ -12,7 +12,7 @@ import java.io.Serializable;
  * @author David B. Bracewell
  */
 public interface Activation extends Serializable {
-
+   Activation LINEAR = new LinearActivation();
    Activation RELU = new ReLuActivation();
    Activation SIGMOID = new SigmoidActivation();
    Activation SOFTMAX = new SoftmaxActivation();

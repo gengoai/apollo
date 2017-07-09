@@ -185,11 +185,7 @@ public class SparseVector extends BaseVector {
    @Override
    public Vector increment(int index, double amount) {
       if (amount != 0) {
-         if (map.containsKey(index)) {
-            map.merge(index, amount, Math2::add);
-         } else {
-            map.put(index, amount);
-         }
+         map.merge(index, amount, Math2::add);
       }
       return this;
    }

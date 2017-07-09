@@ -1,5 +1,6 @@
 package com.davidbracewell.apollo.optimization.alt;
 
+import com.davidbracewell.apollo.linalg.SparseVector;
 import com.davidbracewell.apollo.linalg.Vector;
 import lombok.Getter;
 
@@ -17,7 +18,7 @@ public class WeightVector implements Serializable {
 
 
    public WeightVector(int dimension) {
-      this.weights = Vector.sZeros(dimension);
+      this.weights = SparseVector.random(dimension, -1, 1);
    }
 
    public double dot(Vector v) {

@@ -27,7 +27,7 @@ public class BGD extends ClassifierLearner {
          new GradientDescentCostFunction(new LogLoss(), Activation.SIGMOID),
          TerminationCriteria.create().maxIterations(20).tolerance(1e-4).historySize(3),
          new ConstantLearningRate(1.0),
-         new L1Regularizer(0.01),
+         new DeltaRule(),
          false
                                           );
       glm.bias = tuple.getWeights().getBias();

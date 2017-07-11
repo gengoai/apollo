@@ -11,9 +11,12 @@ import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
 
 import java.io.Serializable;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
 
+import static com.davidbracewell.tuple.Tuples.$;
 import static org.nd4j.linalg.ops.transforms.Transforms.sigmoid;
 
 /**
@@ -33,12 +36,6 @@ public class WeightMatrix implements Serializable {
       }
       this.numRows = nR;
       this.numCols = nC;
-   }
-
-   public WeightMatrix(WeightVector weightVector) {
-      this.rows = new WeightVector[]{weightVector};
-      this.numRows = 1;
-      this.numCols = weightVector.getWeights().dimension();
    }
 
    public static void main(String[] args) {
@@ -90,6 +87,22 @@ public class WeightMatrix implements Serializable {
 
    public Vector dot(Vector input) {
       return dot(input, Activation.LINEAR);
+   }
+
+   public Iterator<Map.Entry<Integer, WeightVector>> entryIterator() {
+      return new Iterator<Map.Entry<Integer, WeightVector>>() {
+         int row = 0;
+
+         @Override
+         public boolean hasNext() {
+            return row < numRows;
+         }
+
+         @Override
+         public Map.Entry<Integer, WeightVector> next() {
+            return $(row, rows[row++]);
+         }
+      };
    }
 
    public WeightVector get(int r) {

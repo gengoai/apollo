@@ -6,9 +6,16 @@ import com.davidbracewell.apollo.ml.Feature;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.ml.data.source.DenseCSVDataSource;
+import com.davidbracewell.apollo.optimization.TerminationCriteria;
+import com.davidbracewell.apollo.optimization.activation.Activation;
+import com.davidbracewell.apollo.optimization.alt.Gradient;
+import com.davidbracewell.apollo.optimization.alt.WeightVector;
+import com.davidbracewell.apollo.optimization.loss.CrossEntropyLoss;
+import com.davidbracewell.guava.common.base.Stopwatch;
 import com.davidbracewell.io.Resources;
 import com.davidbracewell.io.resource.Resource;
 
+import java.util.List;
 import java.util.Random;
 
 import static com.davidbracewell.apollo.ml.classification.ClassifierEvaluation.crossValidation;
@@ -32,9 +39,14 @@ public class LrLearner extends BinaryClassifierLearner {
                                          .shuffle(new Random(1234));
 
 
-      crossValidation(dataset, () -> new BGD().oneVsRest(), 10).output(System.out);
-      crossValidation(dataset, SoftmaxLearner::new, 10)
-         .output(System.out);
+      Stopwatch sw = Stopwatch.createStarted();
+      crossValidation(dataset, () -> new CCLearner(), 10).output(System.out);
+      sw.stop();
+      System.out.println(sw);
+
+//      crossValidation(dataset, () -> new BGD().oneVsRest(), 10).output(System.out);
+//      crossValidation(dataset, SoftmaxLearner::new, 10)
+//         .output(System.out);
    }
 
    @Override
@@ -98,6 +110,78 @@ public class LrLearner extends BinaryClassifierLearner {
 
       model.weights.mapDivideSelf(model.weights.l1Norm());
       return model;
+   }
+
+   private static class CCLearner extends ClassifierLearner {
+
+      @Override
+      protected void resetLearnerParameters() {
+
+      }
+
+      @Override
+      protected Classifier trainImpl(Dataset<Instance> dataset) {
+         List<Vector> data = dataset.asVectors().collect();
+         int nL = dataset.getLabelEncoder().size();
+         int nF = dataset.getFeatureEncoder().size();
+
+         WeightVector[] weights = new WeightVector[nL];
+         for (int i = 0; i < nL; i++) {
+            weights[i] = new WeightVector(nF);
+         }
+         CrossEntropyLoss cel = new CrossEntropyLoss();
+
+         double lr = 0.1;
+         TerminationCriteria tc = TerminationCriteria.create()
+                                                     .maxIterations(200)
+                                                     .historySize(3)
+                                                     .tolerance(1e-4);
+         for (int iteration = 0; iteration < tc.maxIterations(); iteration++) {
+            double loss = 0;
+            for (Vector v : data) {
+               Vector predicted = Vector.sZeros(nL);
+               for (int i = 0; i < weights.length; i++) {
+                  predicted.set(i, weights[i].dot(v));
+               }
+               predicted = Activation.SOFTMAX.apply(predicted);
+               Vector y = v.getLabelVector(nL);
+               loss += cel.loss(predicted, y);
+               Vector gradient = predicted.subtract(y);
+               for (int i = 0; i < weights.length; i++) {
+                  weights[i].update(Gradient.of(v.mapMultiply(gradient.get(i) * lr), gradient.get(i) * lr));
+               }
+            }
+//            System.out.println("iteration=" + iteration + ", loss=" + loss);
+            if (tc.check(loss)) {
+               break;
+            }
+            lr *= 0.95;
+         }
+
+         CC model = new CC(this);
+         model.weights = weights;
+         model.nL = nL;
+         return model;
+      }
+   }
+
+   private static class CC extends Classifier {
+      WeightVector[] weights;
+      int nL;
+
+      protected CC(ClassifierLearner learner) {
+         super(learner);
+      }
+
+
+      @Override
+      public Classification classify(Vector v) {
+         Vector predicted = Vector.sZeros(nL);
+         for (int i = 0; i < weights.length; i++) {
+            predicted.set(i, weights[i].dot(v));
+         }
+         return createResult(Activation.SOFTMAX.apply(predicted).toArray());
+      }
    }
 
    public static class LrClassifier extends BinaryGLM {

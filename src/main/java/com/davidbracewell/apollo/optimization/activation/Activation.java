@@ -32,7 +32,7 @@ public interface Activation extends Serializable {
     * @return the vector
     */
    default Vector apply(@NonNull Vector x) {
-      return x.map(this::apply);
+      return x.mapSelf(this::apply);
    }
 
 
@@ -43,7 +43,7 @@ public interface Activation extends Serializable {
     * @return the matrix
     */
    default Matrix apply(@NonNull Matrix m) {
-      return m.mapRow(this::apply);
+      return m.mapRowSelf(this::apply);
    }
 
    /**

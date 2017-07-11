@@ -128,9 +128,10 @@ public abstract class BaseMatrix implements Matrix, Serializable {
    public Matrix dot(@NonNull Vector vector) {
       Preconditions.checkArgument(vector.dimension() == numberOfColumns(), "Dimension mismatch");
       Matrix dot = createNew(numberOfRows(), 1);
-      for (int r = 0; r < numberOfRows(); r++) {
-         dot.set(r, 0, row(r).dot(vector));
-      }
+      IntStream.range(0, numberOfRows())
+               .parallel()
+               .mapToObj(r -> $(r, row(r).dot(vector)))
+               .forEach(t -> dot.set(t.v1, 0, t.v2));
       return dot;
    }
 
@@ -138,9 +139,9 @@ public abstract class BaseMatrix implements Matrix, Serializable {
    public Matrix dot(@NonNull Matrix matrix) {
       Preconditions.checkArgument(shape().equals(matrix.shape()), "Dimension mismatch");
       Matrix dot = createNew(numberOfRows(), 1);
-      for (int r = 0; r < numberOfRows(); r++) {
-         dot.set(r, 0, row(r).dot(matrix.row(r)));
-      }
+      IntStream.range(0, numberOfRows())
+               .parallel()
+               .forEach(r -> row(r).dot(matrix.row(r)));
       return dot;
    }
 
@@ -152,9 +153,9 @@ public abstract class BaseMatrix implements Matrix, Serializable {
    @Override
    public Matrix ebeMultiplySelf(Matrix matrix) {
       Preconditions.checkArgument(shape().equals(matrix.shape()), "Dimension mismatch");
-      for (int r = 0; r < numberOfRows(); r++) {
-         row(r).multiplySelf(matrix.row(r));
-      }
+      IntStream.range(0, numberOfRows())
+               .parallel()
+               .forEach(r -> row(r).multiplySelf(matrix.row(r)));
       return this;
    }
 
@@ -281,7 +282,11 @@ public abstract class BaseMatrix implements Matrix, Serializable {
 
    @Override
    public Matrix mapRow(@NonNull Vector vector, @NonNull DoubleBinaryOperator operator) {
-      return copy().mapRowSelf(vector, operator);
+      Matrix copy = createNew(numberOfRows(), numberOfColumns());
+      IntStream.range(0, numberOfRows())
+               .parallel()
+               .forEach(r -> copy.setRow(r, row(r).map(vector, operator)));
+      return copy;
    }
 
    @Override

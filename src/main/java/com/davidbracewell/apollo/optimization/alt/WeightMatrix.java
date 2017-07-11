@@ -1,13 +1,17 @@
 package com.davidbracewell.apollo.optimization.alt;
 
-import com.davidbracewell.apollo.linalg.SparseVector;
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.optimization.activation.Activation;
 import com.davidbracewell.guava.common.base.Preconditions;
 import com.davidbracewell.guava.common.base.Stopwatch;
+import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.factory.Nd4j;
 
 import java.io.Serializable;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
+
+import static org.nd4j.linalg.ops.transforms.Transforms.sigmoid;
 
 /**
  * @author David B. Bracewell
@@ -33,27 +37,32 @@ public class WeightMatrix implements Serializable {
    }
 
    public static void main(String[] args) {
-      WeightMatrix layer1 = new WeightMatrix(256, 784);
-      WeightMatrix layer2 = new WeightMatrix(9, 256);
+      INDArray layer1 = Nd4j.rand(256, 100_000);
+      INDArray layer2 = Nd4j.rand(1, 256);
 
       Stopwatch sw = Stopwatch.createStarted();
-      for (int i = 0; i < 100_000; i++) {
-         Vector a0 = SparseVector.random(784, -1, 1);
-         Vector a1 = layer1.dot(a0, Activation.SIGMOID);
-         Vector a2 = layer2.dot(a1, Activation.SIGMOID);
-         Vector a3Delta = a2.subtract(Vector.sZeros(9).set((int) (Math.random() * 9), 1));
-         Vector a2Delta = layer2.multiply(a3Delta);
-         GradientMatrix a2Gradient = new GradientMatrix(a1, a3Delta);
-         GradientMatrix a1Gradient = new GradientMatrix(a0, a2Delta.multiply(Activation.SIGMOID.valueGradient(a1)));
-         layer1.subtract(a1Gradient);
-         layer2.subtract(a2Gradient);
-         if (i % 100 == 0) {
-            System.out.println(i + ": " + sw);
-         }
-      }
-      sw.stop();
-      System.out.println(sw);
+      for (int i = 0; i < 25_000; i++) {
+         INDArray a0 = Nd4j.rand(1, 100_000);
+         INDArray a1 = sigmoid(layer1.mmul(a0.transposei()));
+         INDArray a2 = sigmoid(layer2.mmul(a1));
 
+         INDArray a3Delta = a2.sub(Nd4j.create(1));
+         INDArray a2Delta = a3Delta.mmul(layer2);
+         INDArray a1Delta = a2Delta.mmul(layer1);
+
+         INDArray a2Gradient = a1.mmul(a3Delta);
+         INDArray a1Gradient = a0.transposei().mmul(a2Delta).transposei();
+
+         layer1.subi(a1Gradient);
+         layer2.subi(a2Gradient);
+
+         if (i % 1000 == 0) {
+            System.out.println(i + ": " + sw.elapsed(TimeUnit.SECONDS));
+         }
+
+      }
+
+      System.out.println(sw.elapsed(TimeUnit.SECONDS));
    }
 
    public Vector dot(Vector input) {

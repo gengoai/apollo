@@ -112,7 +112,7 @@ public class LrLearner extends BinaryClassifierLearner {
       return model;
    }
 
-   private static class CCLearner extends ClassifierLearner {
+   public static class CCLearner extends ClassifierLearner {
 
       @Override
       protected void resetLearnerParameters() {
@@ -165,7 +165,7 @@ public class LrLearner extends BinaryClassifierLearner {
       }
    }
 
-   private static class CC extends Classifier {
+   public static class CC extends Classifier {
       WeightVector[] weights;
       int nL;
 

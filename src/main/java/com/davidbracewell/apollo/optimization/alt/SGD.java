@@ -84,12 +84,12 @@ public class SGD implements Optimizer {
          double totalLoss = 0;
          for (Vector datum : stream.shuffle()) {
             CostGradientTuple cgt = costFunction.evaluate(datum, theta);
-            totalLoss += weightUpdater.update(theta, cgt.getGradient(), lr);
+            totalLoss += cgt.getCost() + weightUpdater.update(theta, cgt.getGradient(), lr);
             numProcessed++;
             lr = learningRate.get(lr, iteration, numProcessed);
          }
          sw.stop();
-         System.out.println("iteration=" + (iteration + 1) + ", totalLoss=" + totalLoss + ", time=" + sw);
+//         System.out.println("iteration=" + (iteration + 1) + ", totalLoss=" + totalLoss + ", time=" + sw);
          lastLoss = totalLoss;
          if (terminationCriteria.check(totalLoss)) {
             break;

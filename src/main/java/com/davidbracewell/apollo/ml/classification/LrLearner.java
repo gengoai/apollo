@@ -6,11 +6,6 @@ import com.davidbracewell.apollo.ml.Feature;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.ml.data.source.DenseCSVDataSource;
-import com.davidbracewell.apollo.ml.nn.DenseLayer;
-import com.davidbracewell.apollo.ml.nn.Dropout;
-import com.davidbracewell.apollo.ml.nn.FeedForwardNetworkLearner;
-import com.davidbracewell.apollo.ml.nn.OutputLayer;
-import com.davidbracewell.apollo.optimization.loss.CrossEntropyLoss;
 import com.davidbracewell.io.Resources;
 import com.davidbracewell.io.resource.Resource;
 
@@ -37,16 +32,9 @@ public class LrLearner extends BinaryClassifierLearner {
                                          .shuffle(new Random(1234));
 
 
-      crossValidation(dataset,
-                      () -> FeedForwardNetworkLearner.builder()
-                                                     //One hidden layer of size 100
-                                                     .layer(DenseLayer.sigmoid().outputSize(10))
-                                                     .layer(Dropout.builder().dropoutRate(0.2))
-                                                     .layer(OutputLayer.softmax())
-                                                     .lossFunction(new CrossEntropyLoss())
-                                                     .build(),
-                      10
-                     ).output(System.out);
+      crossValidation(dataset, () -> new BGD().oneVsRest(), 10).output(System.out);
+      crossValidation(dataset, SoftmaxLearner::new, 10)
+         .output(System.out);
    }
 
    @Override

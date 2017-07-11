@@ -23,7 +23,7 @@ import lombok.Setter;
 public class BinarySGDLearner extends BinaryClassifierLearner {
    @Getter
    @Setter
-   private LearningRate learningRate = new ConstantLearningRate(0.1);
+   private LearningRate learningRate = new BottouLearningRate();
    @Getter
    @Setter
    private WeightUpdate weightUpdater = new DeltaRule();

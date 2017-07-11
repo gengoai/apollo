@@ -1,9 +1,12 @@
 package com.davidbracewell.apollo.optimization.alt;
 
+import com.davidbracewell.apollo.linalg.Matrix;
+import com.davidbracewell.apollo.linalg.SparseMatrix;
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.optimization.activation.Activation;
 import com.davidbracewell.guava.common.base.Preconditions;
 import com.davidbracewell.guava.common.base.Stopwatch;
+import lombok.Getter;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
 
@@ -18,7 +21,9 @@ import static org.nd4j.linalg.ops.transforms.Transforms.sigmoid;
  */
 public class WeightMatrix implements Serializable {
    private WeightVector[] rows;
+   @Getter
    private int numRows;
+   @Getter
    private int numCols;
 
    public WeightMatrix(int nR, int nC) {
@@ -65,8 +70,12 @@ public class WeightMatrix implements Serializable {
       System.out.println(sw.elapsed(TimeUnit.SECONDS));
    }
 
-   public Vector dot(Vector input) {
-      return dot(input, Activation.LINEAR);
+   public Vector biases() {
+      Vector v = Vector.sZeros(numRows);
+      for (int r = 0; r < numRows; r++) {
+         v.set(r, rows[r].getBias());
+      }
+      return v;
    }
 
    public Vector dot(Vector input, Activation activation) {
@@ -77,6 +86,14 @@ public class WeightMatrix implements Serializable {
                   out.set(i, activation.apply(rows[i].dot(input)));
                });
       return out;
+   }
+
+   public Vector dot(Vector input) {
+      return dot(input, Activation.LINEAR);
+   }
+
+   public WeightVector get(int r) {
+      return rows[r];
    }
 
    public Vector multiply(Vector v) {
@@ -93,11 +110,24 @@ public class WeightMatrix implements Serializable {
       return out;
    }
 
-
    public void subtract(GradientMatrix gradients) {
       IntStream.range(0, numRows)
                .parallel()
                .forEach(i -> rows[i].update(gradients.gradients[i]));
+   }
+
+   public Matrix toMatrix() {
+      Matrix m = SparseMatrix.zeroes(numRows, numRows);
+      for (int r = 0; r < numRows; r++) {
+         m.setRow(r, rows[r].getWeights());
+      }
+      return m;
+   }
+
+   public void update(GradientMatrix gradient) {
+      for (int r = 0; r < rows.length; r++) {
+         rows[r].update(gradient.gradients[r]);
+      }
    }
 
 

@@ -1,7 +1,11 @@
 package com.davidbracewell.apollo.optimization;
 
 import com.davidbracewell.Copyable;
-import com.davidbracewell.apollo.linalg.*;
+import com.davidbracewell.apollo.linalg.Matrix;
+import com.davidbracewell.apollo.linalg.SparseMatrix;
+import com.davidbracewell.apollo.linalg.SparseVector;
+import com.davidbracewell.apollo.linalg.Vector;
+import com.davidbracewell.apollo.optimization.alt.WeightMatrix;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NonNull;
@@ -25,6 +29,11 @@ public class Weights implements Serializable, Copyable<Weights> {
       this.bias = SparseVector.zeros(numberOfRows);
       this.binary = numberOfColumns <= 2;
 
+   }
+
+   public Weights(WeightMatrix matrix) {
+      this.theta = matrix.toMatrix();
+      this.bias = matrix.biases();
    }
 
    @Override

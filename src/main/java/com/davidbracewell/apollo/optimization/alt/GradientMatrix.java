@@ -7,7 +7,7 @@ import java.io.Serializable;
 /**
  * @author David B. Bracewell
  */
- public class GradientMatrix implements Serializable {
+public class GradientMatrix implements Serializable {
    Gradient[] gradients;
 
    public GradientMatrix(Vector input, Vector delta) {
@@ -21,6 +21,10 @@ import java.io.Serializable;
                         .increment(r, input.get(r) * delta.get(c));
          }
       }
+   }
+
+   public GradientMatrix(Gradient[] gradients) {
+      this.gradients = gradients;
    }
 
    public GradientMatrix(Gradient gradient) {

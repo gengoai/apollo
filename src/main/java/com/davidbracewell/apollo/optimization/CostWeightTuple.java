@@ -7,6 +7,6 @@ import lombok.Value;
  */
 @Value(staticConstructor = "of")
 public class CostWeightTuple {
-   double loss;
-   WeightComponent components;
-}// END OF CostWeightTuple
+   double cost;
+   WeightMatrix weights;
+}//END OF CostWeightTuple

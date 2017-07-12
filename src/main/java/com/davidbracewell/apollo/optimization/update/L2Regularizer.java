@@ -1,8 +1,8 @@
 package com.davidbracewell.apollo.optimization.update;
 
 import com.davidbracewell.apollo.linalg.Vector;
-import com.davidbracewell.apollo.optimization.Gradient;
-import com.davidbracewell.apollo.optimization.Weights;
+import com.davidbracewell.apollo.optimization.GradientMatrix;
+import com.davidbracewell.apollo.optimization.WeightMatrix;
 
 import java.io.Serializable;
 
@@ -19,15 +19,15 @@ public class L2Regularizer extends DeltaRule implements Serializable {
    }
 
    @Override
-   public double update(Weights weights, Gradient gradient, double learningRate) {
+   public double update(WeightMatrix weights, GradientMatrix gradient, double learningRate) {
       if (l2 == 0) {
          return super.update(weights, gradient, learningRate);
       }
       double cost = 0;
-      for (int r = 0; r < weights.getTheta().numberOfRows(); r++) {
-         Vector row = weights.getTheta().row(r);
-         cost += l2 * row.map(d -> d * d).sum() / 2d;
-         gradient.getWeightGradient().row(r).addSelf(row.mapMultiply(l2));
+      for (int i = 0; i < weights.numberOfWeightVectors(); i++) {
+         Vector w = weights.getWeightVector(i);
+         cost += l2 * w.map(d -> d * d).sum() / 2d;
+         gradient.get(i).getWeightGradient().addSelf(w.mapMultiply(l2));
       }
       super.update(weights, gradient, learningRate);
       return cost;

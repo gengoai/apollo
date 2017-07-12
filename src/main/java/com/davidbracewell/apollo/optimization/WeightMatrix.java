@@ -1,4 +1,4 @@
-package com.davidbracewell.apollo.optimization.alt.again;
+package com.davidbracewell.apollo.optimization;
 
 import com.davidbracewell.apollo.linalg.DenseVector;
 import com.davidbracewell.apollo.linalg.Vector;

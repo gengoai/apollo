@@ -2,73 +2,47 @@ package com.davidbracewell.apollo.optimization;
 
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.optimization.update.WeightUpdate;
-import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.function.SerializableSupplier;
-import com.davidbracewell.guava.common.util.concurrent.AtomicDouble;
 import com.davidbracewell.logging.Loggable;
 import com.davidbracewell.stream.MStream;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import java.io.Serializable;
-import java.util.Iterator;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author David B. Bracewell
  */
-@NoArgsConstructor
-@AllArgsConstructor
 public class SGD implements Optimizer, Serializable, Loggable {
    private static final long serialVersionUID = 1L;
-   @Getter
-   @Setter
-   private int reportInterval = 100;
 
    @Override
-   public CostWeightTuple optimize(WeightComponent theta,
-                                   SerializableSupplier<MStream<? extends Vector>> stream,
+   public CostWeightTuple optimize(WeightMatrix theta,
+                                   SerializableSupplier<MStream<Vector>> stream,
                                    CostFunction costFunction,
                                    TerminationCriteria terminationCriteria,
                                    LearningRate learningRate,
                                    WeightUpdate weightUpdater,
-                                   boolean verbose
+                                   int reportInterval
                                   ) {
-      final AtomicDouble lr = new AtomicDouble(learningRate.getInitialRate());
-      double lastLoss = 0;
-      final AtomicInteger numProcessed = new AtomicInteger(0);
-      int iteration = 0;
-      for (; iteration < terminationCriteria.maxIterations(); iteration++) {
-         double sumTotal = 0d;
-         for (Iterator<Vector> itr = Cast.as(
-            stream.get().javaStream().sequential().iterator()); itr.hasNext(); ) {
-            sumTotal += step(itr.next(), theta, costFunction, weightUpdater, lr.get());
-            numProcessed.incrementAndGet();
-            lr.set(learningRate.get(lr.get(), iteration, numProcessed.get()));
-
+      int numProcessed = 0;
+      double lr = learningRate.getInitialRate();
+      double lastLoss = 0d;
+      for (int iteration = 0; iteration < terminationCriteria.maxIterations(); iteration++) {
+         double totalLoss = 0;
+         for (Vector datum : stream.get().shuffle()) {
+            CostGradientTuple cgt = costFunction.evaluate(datum, theta);
+            totalLoss += cgt.getCost() + weightUpdater.update(theta, cgt.getGradient(), lr);
+            numProcessed++;
+            lr = learningRate.get(lr, iteration, numProcessed);
          }
-         if (verbose && iteration % reportInterval == 0) {
-            logInfo("iteration={0}, total_cost={1}", iteration, sumTotal);
+         if (reportInterval > 0 && (iteration == 0 || (iteration + 1) % reportInterval == 0 || iteration == terminationCriteria
+                                                                                                               .maxIterations() - 1)) {
+            logInfo("iteration={0}, loss={1}", (iteration + 1), totalLoss);
          }
-         lastLoss = sumTotal;
-         if (terminationCriteria.check(sumTotal)) {
+         lastLoss = totalLoss;
+         if (terminationCriteria.check(totalLoss)) {
             break;
          }
       }
-      if (verbose) {
-         logInfo("Finished: iteration={0}, total_cost={1}", iteration, terminationCriteria.lastLoss());
-      }
       return CostWeightTuple.of(lastLoss, theta);
    }
-
-   private double step(Vector next,
-                       WeightComponent theta,
-                       CostFunction costFunction,
-                       WeightUpdate updater,
-                       double lr
-                      ) {
-      return updater.update(theta, costFunction.evaluate(next, theta), lr);
-   }
-}//END OF SGD
+}// END OF Optimizer

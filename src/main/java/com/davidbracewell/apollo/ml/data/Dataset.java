@@ -34,6 +34,7 @@ import com.davidbracewell.collection.counter.Counter;
 import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.function.SerializableFunction;
 import com.davidbracewell.function.SerializablePredicate;
+import com.davidbracewell.function.SerializableSupplier;
 import com.davidbracewell.guava.common.base.Preconditions;
 import com.davidbracewell.io.resource.Resource;
 import com.davidbracewell.json.JsonReader;
@@ -157,6 +158,22 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
       return stream().parallel()
                      .flatMap(ii -> ii.asInstances().stream())
                      .map(ii -> ii.toVector(encoders));
+   }
+
+   public MStream<Vector> asVectors(double trueLabel) {
+      encode();
+      return stream().parallel()
+                     .flatMap(ii -> ii.asInstances().stream())
+                     .map(ii -> {
+                        Vector v = ii.toVector(encoders);
+                        if (v.getLabelAsDouble() == trueLabel) {
+                           v.setLabel(1d);
+                        } else {
+                           v.setLabel(0d);
+
+                        }
+                        return v;
+                     });
    }
 
    /**
@@ -319,7 +336,6 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
     * @return the dataset type (e.g. OffHeap, InMemory, Distributed)
     */
    public abstract DatasetType getType();
-
 
    @Override
    public Iterator<T> iterator() {
@@ -536,6 +552,40 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
          dataset.addAll(sample);
       }
       return dataset;
+   }
+
+   public SerializableSupplier<MStream<Vector>> vectorStream(boolean cacheData) {
+      final MStream<Vector> mStream;
+      if (cacheData) {
+         mStream = asVectors().cache();
+      } else {
+         mStream = null;
+      }
+
+      SerializableSupplier<MStream<Vector>> dataSupplier;
+      if (mStream != null) {
+         dataSupplier = () -> mStream;
+      } else {
+         dataSupplier = () -> asVectors();
+      }
+      return dataSupplier;
+   }
+
+   public SerializableSupplier<MStream<Vector>> vectorStream(boolean cacheData, double trueLabel) {
+      final MStream<Vector> mStream;
+      if (cacheData) {
+         mStream = asVectors(trueLabel).cache();
+      } else {
+         mStream = null;
+      }
+
+      SerializableSupplier<MStream<Vector>> dataSupplier;
+      if (mStream != null) {
+         dataSupplier = () -> mStream;
+      } else {
+         dataSupplier = () -> asVectors(trueLabel);
+      }
+      return dataSupplier;
    }
 
    /**

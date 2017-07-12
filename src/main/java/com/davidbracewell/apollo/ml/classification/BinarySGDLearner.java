@@ -1,6 +1,5 @@
 package com.davidbracewell.apollo.ml.classification;
 
-import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.optimization.*;
@@ -23,7 +22,7 @@ import lombok.Setter;
 public class BinarySGDLearner extends BinaryClassifierLearner {
    @Getter
    @Setter
-   private LearningRate learningRate = new BottouLearningRate();
+   private LearningRate learningRate = new BottouLearningRate(1.0, 0.9);
    @Getter
    @Setter
    private WeightUpdate weightUpdater = new DeltaRule();
@@ -35,16 +34,19 @@ public class BinarySGDLearner extends BinaryClassifierLearner {
    private Activation activation = new SigmoidActivation();
    @Getter
    @Setter
-   private int maxIterations = 300;
+   private int maxIterations = 200;
    @Getter
    @Setter
    private int batchSize = -1;
    @Getter
    @Setter
-   private double tolerance = 1e-9;
+   private double tolerance = 1e-4;
    @Getter
    @Setter
-   private boolean verbose = false;
+   private int reportInterval = 0;
+   @Getter
+   @Setter
+   private boolean cacheData = true;
 
    /**
     * Linear svm binary sgd learner.
@@ -80,10 +82,6 @@ public class BinarySGDLearner extends BinaryClassifierLearner {
       return learner;
    }
 
-   private CostGradientTuple observe(Vector next, Weights weights) {
-      return loss.lossAndDerivative(activation.apply(weights.dot(next)), next.getLabelVector(weights.numClasses()));
-   }
-
    @Override
    public void resetLearnerParameters() {
 
@@ -92,38 +90,22 @@ public class BinarySGDLearner extends BinaryClassifierLearner {
    @Override
    protected Classifier trainForLabel(Dataset<Instance> dataset, double trueLabel) {
       BinaryGLM model = new BinaryGLM(this);
-      WeightComponent component = new WeightComponent(new Weights(2, model.numberOfFeatures(),
-                                                                  WeightInitializer.DEFAULT));
+      WeightMatrix theta = new WeightMatrix(2, model.numberOfFeatures());
+      Optimizer optimizer = new SGD();
 
-      Optimizer optimizer;
-      if (batchSize > 0) {
-         optimizer = new BatchOptimizer(new SGD(), batchSize, 5);
-      } else {
-         optimizer = new SGD();
-      }
-      Weights weights = optimizer.optimize(component,
-                                           () -> dataset.asVectors()
-                                                        .map(fv -> {
-                                                           if (fv.getLabelAsDouble() == trueLabel) {
-                                                              fv.setLabel(1);
-                                                           } else {
-                                                              fv.setLabel(0);
-                                                           }
-                                                           return fv;
-                                                        })
-                                                        .cache(),
-                                           new GradientDescentCostFunction(loss, activation),
-                                           TerminationCriteria.create()
-                                                              .maxIterations(maxIterations)
-                                                              .historySize(3)
-                                                              .tolerance(tolerance),
-                                           learningRate,
-                                           weightUpdater,
-                                           verbose
-                                          ).getComponents()
-                                 .get(0);
-      model.weights = weights.getTheta().row(0).copy();
-      model.bias = weights.getBias().get(0);
+      CostWeightTuple result = optimizer.optimize(theta,
+                                                  dataset.vectorStream(cacheData, trueLabel),
+                                                  new GradientDescentCostFunction(loss, activation),
+                                                  TerminationCriteria.create()
+                                                                     .maxIterations(maxIterations)
+                                                                     .historySize(3)
+                                                                     .tolerance(tolerance),
+                                                  learningRate,
+                                                  weightUpdater,
+                                                  reportInterval
+                                                 );
+      model.weights = result.getWeights().getWeightVector(0);
+      model.bias = result.getWeights().getBias(0);
       model.activation = activation;
       return model;
    }

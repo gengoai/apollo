@@ -1,11 +1,13 @@
 package com.davidbracewell.apollo.optimization.update;
 
-import com.davidbracewell.apollo.optimization.Gradient;
-import com.davidbracewell.apollo.optimization.Weights;
-import com.davidbracewell.guava.common.util.concurrent.AtomicDouble;
+import com.davidbracewell.apollo.linalg.Vector;
+import com.davidbracewell.apollo.optimization.GradientMatrix;
+import com.davidbracewell.apollo.optimization.WeightMatrix;
 import org.apache.commons.math3.util.FastMath;
 
 import java.io.Serializable;
+
+import static com.davidbracewell.collection.list.Lists.asArrayList;
 
 /**
  * @author David B. Bracewell
@@ -28,30 +30,24 @@ public class L1Regularizer extends DeltaRule implements Serializable {
 
 
    @Override
-   public double update(Weights weights, Gradient gradient, double learningRate) {
+   public double update(WeightMatrix weights, GradientMatrix gradient, double learningRate) {
       super.update(weights, gradient, learningRate);
       if (l1 == 0) {
          return 0d;
       }
-
       double shrinkage = l1 * learningRate;
-      AtomicDouble addedCost = new AtomicDouble();
-      weights.getTheta().nonZeroIterator().forEachRemaining(entry -> {
-         double nW = FastMath.signum(entry.value) * FastMath.max(0.0, FastMath.abs(entry.value) - shrinkage);
-         if (FastMath.abs(nW) <= tolerance) {
-            weights.getTheta().set(entry.row,entry.column,0d);
+      double addedCost = 0d;
+      for (int wi = 0; wi < weights.numberOfWeightVectors(); wi++) {
+         Vector w = weights.getWeightVector(wi);
+         for (Vector.Entry entry : asArrayList(w.nonZeroIterator())) {
+            double nW = FastMath.signum(entry.value) * FastMath.max(0.0, FastMath.abs(entry.value) - shrinkage);
+            if (FastMath.abs(nW) <= tolerance) {
+               w.set(entry.index, 0d);
+            }
+            addedCost += FastMath.abs(entry.value);
+            w.set(entry.index, nW);
          }
-         addedCost.addAndGet(FastMath.abs(entry.value));
-         weights.getTheta().set(entry.row, entry.column, nW);
-      });
-//      weights.getTheta().mapSelf(weight -> {
-//         double nW = FastMath.signum(weight) * FastMath.max(0.0, FastMath.abs(weight) - shrinkage);
-//         if (FastMath.abs(nW) <= tolerance) {
-//            return 0;
-//         }
-//         addedCost.addAndGet(FastMath.abs(weight));
-//         return nW;
-//      });
-      return addedCost.get() * l1;
+      }
+      return addedCost * l1;
    }
 }// END OF L1Regularizer

@@ -6,11 +6,10 @@ import com.davidbracewell.apollo.ml.Feature;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.ml.data.source.DenseCSVDataSource;
-import com.davidbracewell.apollo.optimization.BottouLearningRate;
-import com.davidbracewell.apollo.optimization.TerminationCriteria;
+import com.davidbracewell.apollo.optimization.*;
 import com.davidbracewell.apollo.optimization.activation.Activation;
-import com.davidbracewell.apollo.optimization.alt.LogLoss;
-import com.davidbracewell.apollo.optimization.alt.again.*;
+import com.davidbracewell.apollo.optimization.loss.LogLoss;
+import com.davidbracewell.apollo.optimization.update.DeltaRule;
 import com.davidbracewell.guava.common.base.Stopwatch;
 import com.davidbracewell.io.Resources;
 import com.davidbracewell.io.resource.Resource;
@@ -40,7 +39,7 @@ public class LrLearner extends BinaryClassifierLearner {
 
 
       Stopwatch sw = Stopwatch.createStarted();
-      crossValidation(dataset, () -> new CCLearner(), 10).output(System.out);
+      crossValidation(dataset, SoftmaxLearner::new, 10).output(System.out);
       sw.stop();
       System.out.println(sw);
 

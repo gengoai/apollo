@@ -1,38 +1,26 @@
 package com.davidbracewell.apollo.optimization;
 
-import com.davidbracewell.apollo.linalg.Matrix;
 import com.davidbracewell.apollo.linalg.Vector;
-import lombok.NonNull;
-import lombok.Value;
+import lombok.Data;
 
 /**
  * @author David B. Bracewell
  */
-@Value(staticConstructor = "of")
+@Data
 public class Gradient {
-   Matrix weightGradient;
-   Vector biasGradient;
+   private Vector weightGradient;
+   private double biasGradient;
 
-   public Gradient addSelf(@NonNull Gradient other) {
-      this.weightGradient.addSelf(other.weightGradient);
-      this.biasGradient.addSelf(other.biasGradient);
-      return this;
+   public static Gradient of(Vector weightGradient, double biasGradient) {
+      Gradient g = new Gradient();
+      g.weightGradient = weightGradient;
+      g.biasGradient = biasGradient;
+      return g;
    }
 
-   public Gradient mapDivideSelf(double number) {
-      this.weightGradient.scaleSelf(1d / number);
-      this.biasGradient.mapDivideSelf(number);
-      return this;
-   }
-
-   public Gradient respectToInput(@NonNull Vector vector) {
-      return Gradient.of(this.weightGradient.multiply(vector.toMatrix()), biasGradient);
-   }
-
-   public Gradient scaleSelf(double scale) {
-      this.weightGradient.scaleSelf(scale);
-      this.biasGradient.mapMultiplySelf(scale);
-      return this;
+   public void scale(double scale) {
+      weightGradient.mapMultiplySelf(scale);
+      biasGradient *= scale;
    }
 
 }//END OF Gradient

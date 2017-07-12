@@ -35,8 +35,10 @@ public class SoftmaxLearner extends ClassifierLearner {
    private double tolerance = 1e-9;
    @Getter
    @Setter
-   private boolean verbose = false;
-
+   private int reportInterval = 0;
+   @Getter
+   @Setter
+   private boolean cacheData = true;
 
    @Override
    public void resetLearnerParameters() {
@@ -45,12 +47,11 @@ public class SoftmaxLearner extends ClassifierLearner {
 
    @Override
    protected Classifier trainImpl(Dataset<Instance> dataset) {
-      GLM model = new GLM(this);
+      GeneralizedLinearModel model = new GeneralizedLinearModel(this);
       Optimizer optimizer = new SGD();
-      WeightComponent component = new WeightComponent(new Weights(model.numberOfLabels(), model.numberOfFeatures(),
-                                                                  WeightInitializer.DEFAULT));
-      model.weights = optimizer.optimize(component,
-                                         dataset::asVectors,
+      WeightMatrix theta = new WeightMatrix(model.numberOfLabels(), model.numberOfFeatures());
+      model.weights = optimizer.optimize(theta,
+                                         dataset.vectorStream(cacheData),
                                          new GradientDescentCostFunction(loss, activation),
                                          TerminationCriteria.create()
                                                             .maxIterations(maxIterations)
@@ -58,7 +59,7 @@ public class SoftmaxLearner extends ClassifierLearner {
                                                             .tolerance(tolerance),
                                          learningRate,
                                          weightUpdater,
-                                         verbose).getComponents().get(0);
+                                         reportInterval).getWeights();
       model.activation = activation;
       return model;
    }

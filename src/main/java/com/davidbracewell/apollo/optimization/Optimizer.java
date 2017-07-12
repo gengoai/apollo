@@ -10,13 +10,13 @@ import com.davidbracewell.stream.MStream;
  */
 public interface Optimizer {
 
-   CostWeightTuple optimize(WeightComponent initialTheta,
-                            SerializableSupplier<MStream<? extends Vector>> stream,
+   CostWeightTuple optimize(WeightMatrix theta,
+                            SerializableSupplier<MStream<Vector>> stream,
                             CostFunction costFunction,
                             TerminationCriteria terminationCriteria,
                             LearningRate learningRate,
                             WeightUpdate weightUpdater,
-                            boolean verbose
+                            int reportInterval
                            );
 
 }// END OF Optimizer

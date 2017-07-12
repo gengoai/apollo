@@ -3,25 +3,23 @@ package com.davidbracewell.apollo.optimization;
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.optimization.activation.Activation;
 import com.davidbracewell.apollo.optimization.loss.LossFunction;
+import lombok.Value;
 
 /**
  * @author David B. Bracewell
  */
+@Value
 public class GradientDescentCostFunction implements CostFunction {
-   private final LossFunction lossFunction;
-   private final Activation activation;
-
-   public GradientDescentCostFunction(LossFunction lossFunction, Activation activation) {
-      this.lossFunction = lossFunction;
-      this.activation = activation;
-   }
+   LossFunction lossFunction;
+   Activation activation;
 
    @Override
-   public CostGradientTuple evaluate(Vector vector, WeightComponent theta) {
-      Vector predicted = activation.apply(theta.get(0).dot(vector));
-      Vector y = vector.getLabelVector(predicted.dimension());
-      CostGradientTuple tuple = lossFunction.lossAndDerivative(predicted, y);
-      return CostGradientTuple.of(tuple.getLoss(), tuple.getGradient().respectToInput(vector));
+   public CostGradientTuple evaluate(Vector vector, WeightMatrix theta) {
+      Vector predicted = theta.isBinary()
+                         ? theta.binaryDot(vector, activation)
+                         : theta.dot(vector, activation);
+      Vector y = vector.getLabelVector(theta.numberOfWeightVectors());
+      Vector derivative = lossFunction.derivative(predicted, y);
+      return CostGradientTuple.of(lossFunction.loss(predicted, y), GradientMatrix.calculate(vector, derivative));
    }
-
-}// END OF SGDLinearCostFunction
+}//END OF GradientDescentCostFunction

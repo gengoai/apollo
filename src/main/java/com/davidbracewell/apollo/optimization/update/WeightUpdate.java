@@ -1,25 +1,14 @@
 package com.davidbracewell.apollo.optimization.update;
 
-import com.davidbracewell.apollo.optimization.CostGradientTuple;
-import com.davidbracewell.apollo.optimization.Gradient;
-import com.davidbracewell.apollo.optimization.WeightComponent;
-import com.davidbracewell.apollo.optimization.Weights;
+
+import com.davidbracewell.apollo.optimization.GradientMatrix;
+import com.davidbracewell.apollo.optimization.WeightMatrix;
 
 /**
  * @author David B. Bracewell
  */
 public interface WeightUpdate {
 
-   default double update(WeightComponent theta, CostGradientTuple observation, double learningRate) {
-      double extraLoss = 0;
-      for (int i = 0; i < theta.size(); i++) {
-         Weights weights = theta.get(i);
-         Gradient gradient = observation.getGradient(i);
-         extraLoss += update(weights, gradient, learningRate);
-      }
-      return observation.getLoss() + extraLoss;
-   }
-
-   double update(Weights weights, Gradient gradient, double learningRate);
+   double update(WeightMatrix weights, GradientMatrix gradient, double learningRate);
 
 }//END OF WeightUpdate

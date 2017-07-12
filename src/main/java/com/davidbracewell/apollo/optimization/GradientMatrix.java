@@ -39,6 +39,14 @@ public class GradientMatrix implements Serializable {
       return gm;
    }
 
+   public GradientMatrix add(@NonNull GradientMatrix other) {
+      for (int i = 0; i < gradients.length; i++) {
+         gradients[i].getWeightGradient().addSelf(other.gradients[i].getWeightGradient());
+         gradients[i].setBiasGradient(gradients[i].getBiasGradient() + other.gradients[i].getBiasGradient());
+      }
+      return this;
+   }
+
    /**
     * Get gradient.
     *

@@ -91,8 +91,9 @@ public class BinarySGDLearner extends BinaryClassifierLearner {
    protected Classifier trainForLabel(Dataset<Instance> dataset, double trueLabel) {
       BinaryGLM model = new BinaryGLM(this);
       WeightMatrix theta = new WeightMatrix(2, model.numberOfFeatures());
-      Optimizer optimizer = new SGD();
-
+      Optimizer optimizer = (batchSize > 0)
+                            ? BatchOptimizer.builder().batchSize(batchSize).subOptimizer(new SGD()).build()
+                            : new SGD();
       CostWeightTuple result = optimizer.optimize(theta,
                                                   dataset.vectorStream(cacheData, trueLabel),
                                                   new GradientDescentCostFunction(loss, activation),

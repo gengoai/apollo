@@ -10,6 +10,7 @@ import com.davidbracewell.apollo.optimization.*;
 import com.davidbracewell.apollo.optimization.activation.Activation;
 import com.davidbracewell.apollo.optimization.loss.LogLoss;
 import com.davidbracewell.apollo.optimization.update.DeltaRule;
+import com.davidbracewell.apollo.optimization.update.L2Regularizer;
 import com.davidbracewell.guava.common.base.Stopwatch;
 import com.davidbracewell.io.Resources;
 import com.davidbracewell.io.resource.Resource;
@@ -39,7 +40,13 @@ public class LrLearner extends BinaryClassifierLearner {
 
 
       Stopwatch sw = Stopwatch.createStarted();
-      crossValidation(dataset, SoftmaxLearner::new, 10).output(System.out);
+      crossValidation(dataset, () -> {
+         SoftmaxLearner learner = new SoftmaxLearner();
+         learner.setBatchSize(20);
+         learner.setReportInterval(100);
+         learner.setWeightUpdater(new L2Regularizer(0.01));
+         return learner;
+      }, 10).output(System.out);
       sw.stop();
       System.out.println(sw);
 

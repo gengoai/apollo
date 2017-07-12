@@ -48,7 +48,9 @@ public class SoftmaxLearner extends ClassifierLearner {
    @Override
    protected Classifier trainImpl(Dataset<Instance> dataset) {
       GeneralizedLinearModel model = new GeneralizedLinearModel(this);
-      Optimizer optimizer = new SGD();
+      Optimizer optimizer = (batchSize > 0)
+                            ? BatchOptimizer.builder().batchSize(batchSize).subOptimizer(new SGD()).build()
+                            : new SGD();
       WeightMatrix theta = new WeightMatrix(model.numberOfLabels(), model.numberOfFeatures());
       model.weights = optimizer.optimize(theta,
                                          dataset.vectorStream(cacheData),

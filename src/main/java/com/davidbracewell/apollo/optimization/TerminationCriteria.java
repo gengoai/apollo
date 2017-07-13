@@ -43,6 +43,10 @@ public final class TerminationCriteria implements Serializable {
     */
    public boolean check(double sumLoss) {
       boolean converged = false;
+      if (!Double.isFinite(sumLoss)) {
+         System.err.println("Non Finite loss, aborting");
+         return true;
+      }
       if (history.size() >= historySize) {
          converged = Math.abs(sumLoss - history.removeLast()) <= tolerance;
          Iterator<Double> itr = history.iterator();

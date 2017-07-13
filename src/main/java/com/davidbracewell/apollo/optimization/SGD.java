@@ -28,7 +28,7 @@ public class SGD implements Optimizer, Serializable, Loggable {
       double lastLoss = 0d;
       for (int iteration = 0; iteration < terminationCriteria.maxIterations(); iteration++) {
          double totalLoss = 0;
-         for (Vector datum : stream.get().shuffle()) {
+         for (Vector datum : stream.get()) {
             CostGradientTuple cgt = costFunction.evaluate(datum, theta);
             totalLoss += cgt.getCost() + weightUpdater.update(theta, cgt.getGradient(), lr);
             numProcessed++;
@@ -39,7 +39,7 @@ public class SGD implements Optimizer, Serializable, Loggable {
             logInfo("iteration={0}, loss={1}", (iteration + 1), totalLoss);
          }
          lastLoss = totalLoss;
-         if (terminationCriteria.check(totalLoss)) {
+         if ((iteration + 1) < terminationCriteria.maxIterations() && terminationCriteria.check(totalLoss)) {
             break;
          }
       }

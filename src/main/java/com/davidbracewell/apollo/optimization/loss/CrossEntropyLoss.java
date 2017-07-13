@@ -1,5 +1,6 @@
 package com.davidbracewell.apollo.optimization.loss;
 
+import com.davidbracewell.Math2;
 import com.davidbracewell.apollo.linalg.Vector;
 import org.apache.commons.math3.util.FastMath;
 
@@ -23,7 +24,7 @@ public class CrossEntropyLoss implements LossFunction, Serializable {
 
    @Override
    public double loss(Vector predictedValue, Vector trueValue) {
-      return -trueValue.subtract(predictedValue.map(FastMath::log)).sum();
+      return -trueValue.multiply(predictedValue.map(Math2::safeLog)).sum();
    }
 
 }// END OF CrossEntropyLoss

@@ -60,9 +60,10 @@ public class BatchOptimizer implements Optimizer, Loggable, Serializable {
                lr.set(learningRate.get(lr.get(), iteration, numProcessed.get()));
                if (subUpdate.gradient != null) {
                   subUpdate.gradient.scale(1d / batchSize);
-                  return cwt.getCost() + weightUpdater.update(theta, subUpdate.gradient, lr.get());
+                  return cwt.getCost() / batchSize +
+                            weightUpdater.update(theta, subUpdate.gradient, lr.get()) / batchSize;
                }
-               return cwt.getCost();
+               return cwt.getCost() / batchSize;
             }).sum();
          if (reportInterval > 0 && ((i + 1) == terminationCriteria.maxIterations() || (i + 1) % reportInterval == 0)) {
             logInfo("iteration=" + (i + 1) + ", totalCost=" + lastLoss);

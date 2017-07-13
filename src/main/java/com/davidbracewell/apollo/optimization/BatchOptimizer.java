@@ -48,18 +48,16 @@ public class BatchOptimizer implements Optimizer, Loggable, Serializable {
          final int iteration = i;
          lastLoss = stream.get().shuffle().split(batchSize).mapToDouble(batch -> {
             final SubUpdate subUpdate = new SubUpdate();
-
+            final LearningRate subLearningRate = new ConstantLearningRate(lr.get());
             CostWeightTuple cwt = subOptimizer.optimize(theta, stream,
                                                         costFunction, terminationCriteria,
-                                                        learningRate, subUpdate, 0);
+                                                        subLearningRate, subUpdate, 0);
             numProcessed.addAndGet(batchSize);
-            lr.set(learningRate.get(lr.get(), iteration, numProcessed.get()));
-
-
             if (subUpdate.gradient != null) {
                subUpdate.gradient.scale(1d / batchSize);
-               return cwt.getCost() + weightUpdater.update(theta, subUpdate.gradient, lr.get());
+               return cwt.getCost() + (weightUpdater.update(theta, subUpdate.gradient, lr.get()) / batchSize);
             }
+            lr.set(learningRate.get(lr.get(), iteration, numProcessed.get()));
             return cwt.getCost();
          }).sum();
          if (reportInterval > 0 && i % reportInterval == 0) {

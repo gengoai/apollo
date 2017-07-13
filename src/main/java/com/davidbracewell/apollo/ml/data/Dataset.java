@@ -22,9 +22,7 @@
 package com.davidbracewell.apollo.ml.data;
 
 import com.davidbracewell.Copyable;
-import com.davidbracewell.apollo.linalg.DenseMatrix;
 import com.davidbracewell.apollo.linalg.Matrix;
-import com.davidbracewell.apollo.linalg.SparseMatrix;
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.*;
 import com.davidbracewell.apollo.ml.preprocess.Preprocessor;
@@ -524,16 +522,6 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
       return stream().take(n);
    }
 
-   public Matrix toDenseMatrix() {
-      encode();
-      return fillMatrix(DenseMatrix.zeroes(size(), getFeatureEncoder().size()));
-   }
-
-   public Matrix toSparseMatrix() {
-      encode();
-      return fillMatrix(SparseMatrix.zeroes(size(), getFeatureEncoder().size()));
-   }
-
    /**
     * Creates a balanced dataset by undersampling the items
     *
@@ -566,7 +554,7 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
       if (mStream != null) {
          dataSupplier = () -> mStream;
       } else {
-         dataSupplier = () -> asVectors();
+         dataSupplier = this::asVectors;
       }
       return dataSupplier;
    }

@@ -19,7 +19,7 @@ public class L1Regularizer extends DeltaRule implements Serializable {
    private final double tolerance;
 
    public L1Regularizer(double l1) {
-      this(l1, l1);
+      this(l1, 0.000001);
    }
 
 
@@ -41,7 +41,7 @@ public class L1Regularizer extends DeltaRule implements Serializable {
          Vector w = weights.getWeightVector(wi);
          for (Vector.Entry entry : asArrayList(w.nonZeroIterator())) {
             double nW = FastMath.signum(entry.value) * FastMath.max(0.0, FastMath.abs(entry.value) - shrinkage);
-            if (FastMath.abs(nW) <= tolerance) {
+            if (tolerance != 0 && FastMath.abs(nW) <= tolerance) {
                w.set(entry.index, 0d);
             }
             addedCost += FastMath.abs(entry.value);

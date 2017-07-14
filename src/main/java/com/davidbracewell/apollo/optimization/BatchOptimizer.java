@@ -47,24 +47,25 @@ public class BatchOptimizer implements Optimizer, Loggable, Serializable {
       for (int i = 0; i < iterations; i++) {
          final int iteration = i;
          lastLoss = stream.get()
-                          .shuffle()
+//                          .shuffle()
                           .split(batchSize)
-                          .javaStream()
-                          .sequential().mapToDouble(batch -> {
-               final SubUpdate subUpdate = new SubUpdate();
-               final LearningRate subLearningRate = new ConstantLearningRate(lr.get());
-               CostWeightTuple cwt = subOptimizer.optimize(theta, stream,
-                                                           costFunction, terminationCriteria,
-                                                           subLearningRate, subUpdate, 0);
-               numProcessed.addAndGet(batchSize);
-               lr.set(learningRate.get(lr.get(), iteration, numProcessed.get()));
-               if (subUpdate.gradient != null) {
-                  subUpdate.gradient.scale(1d / batchSize);
-                  return cwt.getCost() / batchSize +
-                            weightUpdater.update(theta, subUpdate.gradient, lr.get()) / batchSize;
-               }
-               return cwt.getCost() / batchSize;
-            }).sum();
+                          .mapToDouble(batch -> {
+                             final SubUpdate subUpdate = new SubUpdate();
+                             final LearningRate subLearningRate = new ConstantLearningRate(lr.get());
+                             CostWeightTuple cwt = subOptimizer.optimize(theta, stream,
+                                                                         costFunction, terminationCriteria,
+                                                                         subLearningRate, subUpdate, 0);
+                             numProcessed.addAndGet(batchSize);
+                             lr.set(learningRate.get(lr.get(), iteration, numProcessed.get()));
+                             if (subUpdate.gradient != null) {
+                                subUpdate.gradient.scale(1d / batchSize);
+                                synchronized (this) {
+                                   return cwt.getCost() / batchSize +
+                                             weightUpdater.update(theta, subUpdate.gradient, lr.get()) / batchSize;
+                                }
+                             }
+                             return cwt.getCost() / batchSize;
+                          }).sum();
          if (reportInterval > 0 && ((i + 1) == terminationCriteria.maxIterations() || (i + 1) % reportInterval == 0)) {
             logInfo("iteration=" + (i + 1) + ", totalCost=" + lastLoss);
          }

@@ -30,7 +30,7 @@ public class SGD implements Optimizer, Serializable, Loggable {
          double totalLoss = 0;
          for (Vector datum : stream.get()) {
             CostGradientTuple cgt = costFunction.evaluate(datum, theta);
-            totalLoss += cgt.getCost() + weightUpdater.update(theta, cgt.getGradient(), lr);
+            totalLoss += cgt.getCost() + weightUpdater.update(theta, cgt.getGradient(), lr, iteration);
             numProcessed++;
             lr = learningRate.get(lr, iteration, numProcessed);
          }

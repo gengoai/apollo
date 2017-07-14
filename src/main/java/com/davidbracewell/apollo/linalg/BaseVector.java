@@ -135,12 +135,12 @@ public abstract class BaseVector implements Vector, Serializable {
 
    @Override
    public void forEachOrderedSparse(@NonNull Consumer<Entry> consumer) {
-      Streams.asStream(orderedNonZeroIterator()).forEach(consumer);
+      orderedNonZeroIterator().forEachRemaining(consumer);
    }
 
    @Override
    public void forEachSparse(@NonNull Consumer<Vector.Entry> consumer) {
-      Streams.asStream(nonZeroIterator()).forEach(consumer);
+      nonZeroIterator().forEachRemaining(consumer);
    }
 
    @Override

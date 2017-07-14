@@ -348,7 +348,7 @@ public class ClassifierEvaluation implements Evaluation<Instance, Classifier>, S
     * @return the macro recall
     */
    public double macroRecall() {
-      return recallPerClass().average();
+      return recallPerClass().sum() / matrix.firstKeys().size();
    }
 
    @Override

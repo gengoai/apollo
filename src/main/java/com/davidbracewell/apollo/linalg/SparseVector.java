@@ -21,7 +21,6 @@
 
 package com.davidbracewell.apollo.linalg;
 
-import com.davidbracewell.Math2;
 import com.davidbracewell.guava.common.base.Preconditions;
 import it.unimi.dsi.fastutil.ints.Int2DoubleMap;
 import it.unimi.dsi.fastutil.ints.Int2DoubleOpenHashMap;
@@ -185,7 +184,7 @@ public class SparseVector extends BaseVector {
    @Override
    public Vector increment(int index, double amount) {
       if (amount != 0) {
-         map.merge(index, amount, Math2::add);
+         map.put(index, amount + map.get(index));
       }
       return this;
    }

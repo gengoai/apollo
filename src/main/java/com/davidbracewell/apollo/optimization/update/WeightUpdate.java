@@ -9,6 +9,6 @@ import com.davidbracewell.apollo.optimization.WeightMatrix;
  */
 public interface WeightUpdate {
 
-   double update(WeightMatrix weights, GradientMatrix gradient, double learningRate);
+   double update(WeightMatrix weights, GradientMatrix gradient, double learningRate, int iteration);
 
 }//END OF WeightUpdate

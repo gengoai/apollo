@@ -13,7 +13,7 @@ public class DeltaRule implements WeightUpdate, Serializable {
    private static final long serialVersionUID = 1L;
 
    @Override
-   public double update(WeightMatrix weights, GradientMatrix gradient, double learningRate) {
+   public double update(WeightMatrix weights, GradientMatrix gradient, double learningRate, int iteration) {
       weights.subtract(gradient);
       return 0;
    }

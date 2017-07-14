@@ -19,9 +19,9 @@ public class L2Regularizer extends DeltaRule implements Serializable {
    }
 
    @Override
-   public double update(WeightMatrix weights, GradientMatrix gradient, double learningRate) {
+   public double update(WeightMatrix weights, GradientMatrix gradient, double learningRate, int iteration) {
       if (l2 == 0) {
-         return super.update(weights, gradient, learningRate);
+         return super.update(weights, gradient, learningRate, iteration);
       }
       double cost = 0;
       for (int i = 0; i < weights.numberOfWeightVectors(); i++) {
@@ -29,7 +29,7 @@ public class L2Regularizer extends DeltaRule implements Serializable {
          cost += l2 * w.map(d -> d * d).sum() / 2d;
          gradient.get(i).getWeightGradient().addSelf(w.mapMultiply(l2));
       }
-      super.update(weights, gradient, learningRate);
+      super.update(weights, gradient, learningRate, iteration);
       return cost;
    }
 }// END OF L2Regularizer

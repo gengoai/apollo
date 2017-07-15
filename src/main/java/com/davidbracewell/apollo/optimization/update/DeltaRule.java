@@ -14,7 +14,7 @@ public class DeltaRule implements WeightUpdate, Serializable {
 
    @Override
    public double update(WeightMatrix weights, GradientMatrix gradient, double learningRate, int iteration) {
-      weights.subtract(gradient);
+      weights.subtract(gradient.scale(learningRate));
       return 0;
    }
 

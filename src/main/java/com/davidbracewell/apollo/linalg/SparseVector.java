@@ -184,7 +184,7 @@ public class SparseVector extends BaseVector {
    @Override
    public Vector increment(int index, double amount) {
       if (amount != 0) {
-         map.put(index, amount + map.get(index));
+         map.addTo(index, amount);
       }
       return this;
    }

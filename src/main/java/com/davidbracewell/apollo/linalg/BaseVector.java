@@ -7,7 +7,6 @@ import com.davidbracewell.collection.Collect;
 import com.davidbracewell.collection.Streams;
 import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.guava.common.base.Preconditions;
-import com.davidbracewell.guava.common.util.concurrent.AtomicDouble;
 import com.davidbracewell.tuple.Tuple2;
 import lombok.NonNull;
 
@@ -114,11 +113,14 @@ public abstract class BaseVector implements Vector, Serializable {
    @Override
    public double dot(@NonNull Vector rhs) {
       Preconditions.checkArgument(rhs.dimension() == dimension(), "Dimension mismatch");
-      AtomicDouble dot = new AtomicDouble(0d);
       Vector small = size() < rhs.size() ? this : rhs;
       Vector big = size() < rhs.size() ? rhs : this;
-      small.forEachSparse(e -> dot.addAndGet(e.value * big.get(e.index)));
-      return dot.get();
+      double dot = 0;
+      for (Iterator<Entry> itr = small.nonZeroIterator(); itr.hasNext(); ) {
+         Entry e = itr.next();
+         dot += e.value * big.get(e.index);
+      }
+      return dot;
    }
 
    @Override
@@ -135,12 +137,18 @@ public abstract class BaseVector implements Vector, Serializable {
 
    @Override
    public void forEachOrderedSparse(@NonNull Consumer<Entry> consumer) {
-      orderedNonZeroIterator().forEachRemaining(consumer);
+//      for (Iterator<Entry> itr = orderedNonZeroIterator(); itr.hasNext(); ) {
+//         consumer.accept(itr.next());
+//      }
+      nonZeroIterator().forEachRemaining(consumer);
    }
 
    @Override
    public void forEachSparse(@NonNull Consumer<Vector.Entry> consumer) {
       nonZeroIterator().forEachRemaining(consumer);
+//      for (Iterator<Entry> itr = nonZeroIterator(); itr.hasNext(); ) {
+//         consumer.accept(itr.next());
+//      }
    }
 
    @Override

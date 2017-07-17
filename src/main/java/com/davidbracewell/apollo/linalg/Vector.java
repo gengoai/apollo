@@ -23,6 +23,7 @@ package com.davidbracewell.apollo.linalg;
 
 import com.davidbracewell.Copyable;
 import com.davidbracewell.EnhancedDoubleStatistics;
+import com.davidbracewell.collection.Collect;
 import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.tuple.Tuple2;
 import lombok.NonNull;
@@ -647,6 +648,10 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
     * @return This vector
     */
    Vector zero();
+
+   default Iterable<Entry> nonZeroEntries() {
+      return Collect.asIterable(nonZeroIterator());
+   }
 
    /**
     * Defines an entry in the vector using its coordinate (index) and its value

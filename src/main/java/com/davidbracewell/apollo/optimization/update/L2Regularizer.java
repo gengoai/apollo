@@ -5,6 +5,7 @@ import com.davidbracewell.apollo.optimization.GradientMatrix;
 import com.davidbracewell.apollo.optimization.WeightMatrix;
 
 import java.io.Serializable;
+import java.util.Iterator;
 
 /**
  * @author David B. Bracewell
@@ -26,10 +27,14 @@ public class L2Regularizer extends DeltaRule implements Serializable {
       double cost = 0;
       for (int i = 0; i < weights.numberOfWeightVectors(); i++) {
          Vector w = weights.getWeightVector(i);
-         cost += l2 * w.map(d -> d * d).sum() / 2d;
-         gradient.get(i).getWeightGradient().addSelf(w.mapMultiply(l2));
+         double sum = 0;
+         for (Iterator<Vector.Entry> itr = w.nonZeroIterator(); itr.hasNext(); ) {
+            Vector.Entry e = itr.next();
+            sum += (e.value * e.value);
+         }
+         cost += l2 * sum / 2d;
+         gradient.get(i).getWeightGradient().mapMultiplySelf(l2 * sum / 2d);
       }
-      super.update(weights, gradient, learningRate, iteration);
-      return cost;
+      return cost + super.update(weights, gradient, learningRate, iteration);
    }
 }// END OF L2Regularizer

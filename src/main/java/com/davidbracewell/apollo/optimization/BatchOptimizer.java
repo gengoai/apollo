@@ -48,7 +48,6 @@ public class BatchOptimizer implements Optimizer, Loggable, Serializable {
       AtomicInteger numProcessed = new AtomicInteger(0);
       for (int i = 0; i < iterations; i++) {
          Stopwatch sw = Stopwatch.createStarted();
-         final int iteration = i;
          double loss = 0d;
          for (Iterable<Vector> batch : stream.get().split(batchSize)) {
             final SubUpdate subUpdate = new SubUpdate();
@@ -57,13 +56,11 @@ public class BatchOptimizer implements Optimizer, Loggable, Serializable {
                                                         costFunction, terminationCriteria,
                                                         subLearningRate, subUpdate, 0);
             numProcessed.addAndGet(batchSize);
-            lr.set(learningRate.get(lr.get(), iteration, numProcessed.get()));
+            lr.set(learningRate.get(lr.get(), i, numProcessed.get()));
             if (subUpdate.gradient != null) {
                subUpdate.gradient.scale(1d / batchSize);
-               synchronized (this) {
-                  loss += cwt.getCost() / batchSize +
-                             weightUpdater.update(theta, subUpdate.gradient, lr.get(), iteration) / batchSize;
-               }
+               loss += cwt.getCost() / batchSize +
+                          weightUpdater.update(theta, subUpdate.gradient, lr.get(), i) / batchSize;
             } else {
                loss += cwt.getCost();
             }

@@ -24,7 +24,6 @@ package com.davidbracewell.apollo.linalg;
 import com.davidbracewell.guava.common.base.Preconditions;
 import it.unimi.dsi.fastutil.ints.Int2DoubleMap;
 import it.unimi.dsi.fastutil.ints.Int2DoubleOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import lombok.NonNull;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.commons.math3.random.Well19937c;
@@ -170,6 +169,7 @@ public class SparseVector extends BaseVector {
       return new SparseVector(dimension);
    }
 
+
    @Override
    public int dimension() {
       return dimension;
@@ -202,21 +202,23 @@ public class SparseVector extends BaseVector {
    @Override
    public Iterator<Vector.Entry> nonZeroIterator() {
       return new Iterator<Vector.Entry>() {
-         private final ObjectIterator<Int2DoubleMap.Entry> iterator = map.int2DoubleEntrySet()
-                                                                         .iterator();
+         private final int[] keys = map.keySet().toIntArray();
+         private int index = -1;
 
          @Override
          public boolean hasNext() {
-            return iterator.hasNext();
+            return index < keys.length;
          }
 
          @Override
          public Vector.Entry next() {
-            if (!iterator.hasNext()) {
+            if (index >= keys.length) {
                throw new NoSuchElementException();
             }
-            Int2DoubleMap.Entry entry = iterator.next();
-            return new Vector.Entry(entry.getIntKey(), entry.getDoubleValue());
+            index++;
+            int key = keys[index];
+            double value = get(key);
+            return new Vector.Entry(key, value);
          }
       };
    }

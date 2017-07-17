@@ -27,7 +27,6 @@ import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lombok.NonNull;
 
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -84,7 +83,7 @@ public class InMemoryLSHVectorStore<KEY> extends LSHVectorStore<KEY> {
 
    @Override
    public Set<KEY> keySet() {
-      return new HashSet<>(keys.keySet());
+      return Collections.unmodifiableSet(keys.keySet());
    }
 
    @Override

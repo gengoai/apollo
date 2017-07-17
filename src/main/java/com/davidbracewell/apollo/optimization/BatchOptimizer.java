@@ -4,7 +4,6 @@ import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.optimization.update.WeightUpdate;
 import com.davidbracewell.function.SerializableSupplier;
 import com.davidbracewell.guava.common.base.Stopwatch;
-import com.davidbracewell.guava.common.util.concurrent.AtomicDouble;
 import com.davidbracewell.logging.Loggable;
 import com.davidbracewell.stream.MStream;
 import com.davidbracewell.stream.StreamingContext;
@@ -12,7 +11,6 @@ import lombok.*;
 import lombok.experimental.Accessors;
 
 import java.io.Serializable;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author David B. Bracewell
@@ -44,23 +42,23 @@ public class BatchOptimizer implements Optimizer, Loggable, Serializable {
       int iterations = terminationCriteria.maxIterations();
       terminationCriteria.maxIterations(1);
       double lastLoss = 0;
-      AtomicDouble lr = new AtomicDouble(learningRate.getInitialRate());
-      AtomicInteger numProcessed = new AtomicInteger(0);
+      double lr = learningRate.getInitialRate();
+      int numProcessed = 0;
       for (int i = 0; i < iterations; i++) {
          Stopwatch sw = Stopwatch.createStarted();
          double loss = 0d;
          for (Iterable<Vector> batch : stream.get().split(batchSize)) {
             final SubUpdate subUpdate = new SubUpdate();
-            final LearningRate subLearningRate = new ConstantLearningRate(lr.get());
+            final LearningRate subLearningRate = new ConstantLearningRate(lr);
             CostWeightTuple cwt = subOptimizer.optimize(theta, () -> StreamingContext.local().stream(batch),
                                                         costFunction, terminationCriteria,
                                                         subLearningRate, subUpdate, 0);
-            numProcessed.addAndGet(batchSize);
-            lr.set(learningRate.get(lr.get(), i, numProcessed.get()));
+            numProcessed += batchSize;
+            lr = learningRate.get(lr, i, numProcessed);
             if (subUpdate.gradient != null) {
                subUpdate.gradient.scale(1d / batchSize);
                loss += cwt.getCost() / batchSize +
-                          weightUpdater.update(theta, subUpdate.gradient, lr.get(), i) / batchSize;
+                          weightUpdater.update(theta, subUpdate.gradient, lr, i) / batchSize;
             } else {
                loss += cwt.getCost();
             }

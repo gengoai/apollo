@@ -22,12 +22,12 @@
 package com.davidbracewell.apollo.linalg;
 
 import com.davidbracewell.guava.common.base.Preconditions;
-import it.unimi.dsi.fastutil.ints.Int2DoubleOpenHashMap;
 import lombok.NonNull;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.commons.math3.random.Well19937c;
+import org.apache.mahout.math.list.IntArrayList;
+import org.apache.mahout.math.map.OpenIntDoubleHashMap;
 
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Random;
@@ -39,7 +39,7 @@ import java.util.Random;
  */
 public class SparseVector extends BaseVector {
    private static final long serialVersionUID = 1L;
-   private final Int2DoubleOpenHashMap map;
+   private final OpenIntDoubleHashMap map;
    private final int dimension;
 
 
@@ -55,7 +55,7 @@ public class SparseVector extends BaseVector {
    public SparseVector(int dimension) {
       Preconditions.checkArgument(dimension >= 0, "Dimension must be non-negative.");
       this.dimension = dimension;
-      this.map = new Int2DoubleOpenHashMap();
+      this.map = new OpenIntDoubleHashMap();
    }
 
    /**
@@ -65,7 +65,7 @@ public class SparseVector extends BaseVector {
     */
    public SparseVector(@NonNull Vector vector) {
       this.dimension = vector.dimension();
-      this.map = new Int2DoubleOpenHashMap(vector.size());
+      this.map = new OpenIntDoubleHashMap(vector.size());
       for (Iterator<Vector.Entry> itr = vector.nonZeroIterator(); itr.hasNext(); ) {
          Vector.Entry de = itr.next();
          this.map.put(de.index, de.value);
@@ -151,7 +151,7 @@ public class SparseVector extends BaseVector {
 
    @Override
    public Vector compress() {
-      map.trim();
+      map.trimToSize();
       return this;
    }
 
@@ -183,7 +183,7 @@ public class SparseVector extends BaseVector {
    @Override
    public Vector increment(int index, double amount) {
       if (amount != 0) {
-         map.addTo(index, amount);
+         map.adjustOrPutValue(index, amount, amount);
       }
       return this;
    }
@@ -200,55 +200,18 @@ public class SparseVector extends BaseVector {
 
    @Override
    public Iterator<Vector.Entry> nonZeroIterator() {
-      return new Iterator<Vector.Entry>() {
-         private final int[] keys = map.keySet().toIntArray();
-         private int index = 0;
-
-         @Override
-         public boolean hasNext() {
-            return index < keys.length;
-         }
-
-         @Override
-         public Vector.Entry next() {
-            if (index >= keys.length) {
-               throw new NoSuchElementException();
-            }
-            int key = keys[index++];
-            double value = get(key);
-            return new Vector.Entry(key, value);
-         }
-      };
+      return new itr(false);
    }
 
    @Override
    public Iterator<Vector.Entry> orderedNonZeroIterator() {
-      final int[] keys = map.keySet().toIntArray();
-      Arrays.sort(keys);
-      return new Iterator<Vector.Entry>() {
-         private int index = 0;
-
-         @Override
-         public boolean hasNext() {
-            return index < keys.length;
-         }
-
-         @Override
-         public Vector.Entry next() {
-            if (index >= keys.length) {
-               throw new NoSuchElementException();
-            }
-            int key = keys[index++];
-            double value = get(key);
-            return new Vector.Entry(key, value);
-         }
-      };
+      return new itr(true);
    }
 
    @Override
    public Vector set(int index, double value) {
       if (value == 0) {
-         map.remove(index);
+         map.removeKey(index);
       } else {
          map.put(index, value);
       }
@@ -264,6 +227,34 @@ public class SparseVector extends BaseVector {
    public Vector zero() {
       this.map.clear();
       return this;
+   }
+
+   private class itr implements Iterator<Vector.Entry> {
+      private final IntArrayList keys;
+      private int index = 0;
+
+      public itr(boolean sorted) {
+         keys = map.keys();
+         if (sorted) {
+            keys.sort();
+         }
+      }
+
+      @Override
+      public boolean hasNext() {
+         return index < keys.size();
+      }
+
+      @Override
+      public Entry next() {
+         if (index >= keys.size()) {
+            throw new NoSuchElementException();
+         }
+         int key = keys.get(index);
+         index++;
+         double value = get(key);
+         return new Vector.Entry(key, value);
+      }
    }
 
 }//END OF SparseVector

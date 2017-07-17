@@ -55,11 +55,6 @@
     </licenses>
     <dependencies>
         <dependency>
-            <groupId>org.nd4j</groupId>
-            <artifactId>nd4j-native-platform</artifactId>
-            <version>0.8.0</version>
-        </dependency>
-        <dependency>
             <groupId>com.davidbracewell</groupId>
             <artifactId>mango</artifactId>
             <version>0.5-SNAPSHOT</version>

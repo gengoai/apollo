@@ -28,12 +28,15 @@ public class L2Regularizer extends DeltaRule implements Serializable {
       for (int i = 0; i < weights.numberOfWeightVectors(); i++) {
          Vector w = weights.getWeightVector(i);
          double sum = 0;
+         Vector wPrime = Vector.sZeros(w.dimension());
          for (Iterator<Vector.Entry> itr = w.nonZeroIterator(); itr.hasNext(); ) {
             Vector.Entry e = itr.next();
-            sum += (e.value * e.value);
+            double square = e.value * e.value;
+            sum += square;
+            wPrime.set(e.index, 2.0 * e.value * l2);
          }
          cost += l2 * sum / 2d;
-         gradient.get(i).getWeightGradient().mapMultiplySelf(l2 * sum / 2d);
+         gradient.get(i).getWeightGradient().addSelf(wPrime);
       }
       super.update(weights, gradient, learningRate, iteration);
       return cost;

@@ -35,6 +35,7 @@ public class L2Regularizer extends DeltaRule implements Serializable {
          cost += l2 * sum / 2d;
          gradient.get(i).getWeightGradient().mapMultiplySelf(l2 * sum / 2d);
       }
-      return cost + super.update(weights, gradient, learningRate, iteration);
+      super.update(weights, gradient, learningRate, iteration);
+      return cost;
    }
 }// END OF L2Regularizer

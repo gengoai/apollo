@@ -22,13 +22,12 @@
 package com.davidbracewell.apollo.linalg;
 
 import com.davidbracewell.guava.common.base.Preconditions;
-import it.unimi.dsi.fastutil.ints.Int2DoubleMap;
 import it.unimi.dsi.fastutil.ints.Int2DoubleOpenHashMap;
 import lombok.NonNull;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.commons.math3.random.Well19937c;
 
-import java.util.Comparator;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Random;
@@ -203,7 +202,7 @@ public class SparseVector extends BaseVector {
    public Iterator<Vector.Entry> nonZeroIterator() {
       return new Iterator<Vector.Entry>() {
          private final int[] keys = map.keySet().toIntArray();
-         private int index = -1;
+         private int index = 0;
 
          @Override
          public boolean hasNext() {
@@ -215,8 +214,7 @@ public class SparseVector extends BaseVector {
             if (index >= keys.length) {
                throw new NoSuchElementException();
             }
-            index++;
-            int key = keys[index];
+            int key = keys[index++];
             double value = get(key);
             return new Vector.Entry(key, value);
          }
@@ -225,26 +223,24 @@ public class SparseVector extends BaseVector {
 
    @Override
    public Iterator<Vector.Entry> orderedNonZeroIterator() {
+      final int[] keys = map.keySet().toIntArray();
+      Arrays.sort(keys);
       return new Iterator<Vector.Entry>() {
-         private final Iterator<Int2DoubleMap.Entry> iterator = map.int2DoubleEntrySet()
-                                                                   .stream()
-                                                                   .sorted(Comparator.comparing(
-                                                                      Int2DoubleMap.Entry::getIntKey))
-                                                                   .iterator();
-
+         private int index = 0;
 
          @Override
          public boolean hasNext() {
-            return iterator.hasNext();
+            return index < keys.length;
          }
 
          @Override
          public Vector.Entry next() {
-            if (!iterator.hasNext()) {
+            if (index >= keys.length) {
                throw new NoSuchElementException();
             }
-            Int2DoubleMap.Entry entry = iterator.next();
-            return new Vector.Entry(entry.getIntKey(), entry.getDoubleValue());
+            int key = keys[index++];
+            double value = get(key);
+            return new Vector.Entry(key, value);
          }
       };
    }

@@ -1,5 +1,6 @@
 package com.davidbracewell.apollo.linalg;
 
+import com.davidbracewell.apollo.linalg.decompose.TruncatedSVD;
 import lombok.NonNull;
 
 import java.util.Arrays;
@@ -101,6 +102,22 @@ public enum VectorCompositions implements VectorComposition {
                          })
                         );
          return rval;
+      }
+   },
+   SVD {
+      @Override
+      public Vector compose(int dimension, @NonNull Collection<Vector> vectors) {
+         if (vectors.size() == 0) {
+            return new SparseVector(dimension);
+         }
+         DenseMatrix matrix = new DenseMatrix(vectors.size(), dimension);
+         int r = 0;
+         for (Vector vector : vectors) {
+            matrix.setRow(r, vector);
+            r++;
+         }
+         TruncatedSVD svd = new TruncatedSVD(1);
+         return svd.decompose(matrix)[2].row(0).copy();
       }
    }
 

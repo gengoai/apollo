@@ -12,6 +12,7 @@ import java.io.Serializable;
  */
 @EqualsAndHashCode(callSuper = false)
 public final class EncoderPair implements Serializable {
+   public static final EncoderPair NO_OPT = new EncoderPair(new NoOptLabelEncoder(), new NoOptEncoder());
    private static final long serialVersionUID = 1L;
    private final LabelEncoder labelEncoder;
    private final Encoder featureEncoder;

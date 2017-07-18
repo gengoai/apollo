@@ -29,7 +29,6 @@ import com.davidbracewell.apollo.linalg.store.CosineSignature;
 import com.davidbracewell.apollo.linalg.store.InMemoryLSH;
 import com.davidbracewell.apollo.linalg.store.VectorStore;
 import com.davidbracewell.apollo.ml.Encoder;
-import com.davidbracewell.apollo.ml.EncoderPair;
 import com.davidbracewell.apollo.ml.IndexEncoder;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.data.Dataset;
@@ -139,7 +138,7 @@ public class SVDEmbedding extends EmbeddingLearner {
       for (int i = 0; i < em.numberOfRows(); i++) {
          vectorStore.add(featureEncoder.decode(i).toString(), em.row(i).copy());
       }
-      return new Embedding(new EncoderPair(dataset.getLabelEncoder(), featureEncoder), vectorStore);
+      return new Embedding(vectorStore);
    }
 
 }//END OF SparkLSA

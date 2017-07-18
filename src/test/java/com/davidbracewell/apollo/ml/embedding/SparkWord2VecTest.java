@@ -70,7 +70,7 @@ public class SparkWord2VecTest {
 
 
       Vector blackAndRed = model.compose(VectorCompositions.Sum, "black", "red");
-      assertArrayEquals(model.getVector("black").add(model.getVector("red")).toArray(), blackAndRed.toArray(), 0.001);
+      assertArrayEquals(model.get("black").add(model.get("red")).toArray(), blackAndRed.toArray(), 0.001);
 
 
       n = model.nearest($("black"), 2);

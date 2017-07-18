@@ -5,7 +5,6 @@ import com.davidbracewell.apollo.linalg.store.CosineSignature;
 import com.davidbracewell.apollo.linalg.store.InMemoryLSH;
 import com.davidbracewell.apollo.linalg.store.VectorStore;
 import com.davidbracewell.apollo.ml.Encoder;
-import com.davidbracewell.apollo.ml.EncoderPair;
 import com.davidbracewell.apollo.ml.IndexEncoder;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.data.Dataset;
@@ -81,7 +80,7 @@ public class SparkWord2Vec extends EmbeddingLearner {
          encoder.encode(vector.getKey());
          vectorStore.add(vector.getKey(), new DenseVector(Convert.convert(vector.getValue(), double[].class)));
       }
-      return new Embedding(new EncoderPair(dataset.getLabelEncoder(), encoder), vectorStore);
+      return new Embedding(vectorStore);
    }
 
 

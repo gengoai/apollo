@@ -39,16 +39,14 @@ public class CompositionRetrofitting implements Retrofitting {
    }
 
    @Override
-   public Embedding process(@NonNull Embedding embedding) {
-      VectorStore<String> newEmbedding = embedding
-                                            .getVectorStore()
-                                            .createNew();
+   public Embedding process(@NonNull VectorStore<String> embedding) {
+      VectorStore<String> newEmbedding = embedding.createNew();
       embedding
-         .getVocab()
+         .keys()
          .forEach(term -> {
-            Vector tv = embedding.getVector(term).copy();
+            Vector tv = embedding.get(term).copy();
             if (background.contains(term)) {
-               tv.addSelf(background.getVector(term));
+               tv.addSelf(background.get(term));
                if (neighborSize > 0 && neighborWeight > 0) {
                   background
                      .nearest(term, neighborSize, neighborThreshold)
@@ -58,6 +56,6 @@ public class CompositionRetrofitting implements Retrofitting {
             newEmbedding.add(term, tv);
          });
 
-      return new Embedding(embedding.getEncoderPair(), newEmbedding);
+      return new Embedding(newEmbedding);
    }
 }// END OF CompositionRetrofitting

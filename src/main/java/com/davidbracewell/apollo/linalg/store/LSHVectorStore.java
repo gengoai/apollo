@@ -24,8 +24,8 @@ package com.davidbracewell.apollo.linalg.store;
 import com.davidbracewell.apollo.affinity.Measure;
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.guava.common.collect.MinMaxPriorityQueue;
-import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import lombok.NonNull;
+import org.apache.mahout.math.set.OpenIntHashSet;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -143,9 +143,9 @@ public abstract class LSHVectorStore<KEY> implements VectorStore<KEY>, Serializa
    protected abstract int nextUniqueID();
 
    private List<Vector> query(@NonNull Vector vector) {
-      IntOpenHashSet ids = lsh.query(vector);
+      OpenIntHashSet ids = lsh.query(vector);
       List<Vector> vectors = new ArrayList<>();
-      ids.forEach(id -> vectors.add(getVectorByID(id)));
+      ids.forEachKey(id -> vectors.add(getVectorByID(id)));
       return vectors;
    }
 

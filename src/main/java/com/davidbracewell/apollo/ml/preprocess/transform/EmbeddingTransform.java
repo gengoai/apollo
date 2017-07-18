@@ -72,10 +72,10 @@ public class EmbeddingTransform extends RestrictedInstancePreprocessor implement
    @Override
    protected Stream<Feature> restrictedProcessImpl(Stream<Feature> featureStream, Instance originalExample) {
       Embedding embedding = getEmbedding();
-      return asStream(composition.compose(embedding.getDimension(),
+      return asStream(composition.compose(embedding.dimension(),
                                           featureStream.map(Feature::getName)
                                                        .filter(embedding::contains)
-                                                       .map(embedding::getVector)
+                                                       .map(embedding::get)
                                                        .collect(Collectors.toList()))
                                  .nonZeroIterator())
                 .map(e -> Feature.real(embeddingFeaturePrefix + "-" + e.getIndex(), e.getValue()));

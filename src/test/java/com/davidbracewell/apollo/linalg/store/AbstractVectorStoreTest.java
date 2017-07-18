@@ -68,7 +68,7 @@ public abstract class AbstractVectorStoreTest {
 
    @Test
    public void keySet() throws Exception {
-      assertEquals(Sets.set("A", "B", "C", "D", "E"), vs.keySet());
+      assertEquals(Sets.set("A", "B", "C", "D", "E"), vs.keys());
    }
 
    @Test

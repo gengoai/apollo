@@ -40,8 +40,8 @@ import java.util.stream.Collectors;
 public class DefaultVectorStore<KEY> implements VectorStore<KEY>, Serializable {
    private static final long serialVersionUID = 1L;
    private final Map<KEY, Vector> vectorMap = new HashMap<>();
-   private final int dimension;
-   private final Measure queryMeasure;
+   private int dimension;
+   private Measure queryMeasure;
 
    /**
     * Instantiates a new Default vector store.
@@ -88,7 +88,7 @@ public class DefaultVectorStore<KEY> implements VectorStore<KEY>, Serializable {
    }
 
    @Override
-   public Set<KEY> keySet() {
+   public Set<KEY> keys() {
       return Collections.unmodifiableSet(vectorMap.keySet());
    }
 
@@ -138,10 +138,7 @@ public class DefaultVectorStore<KEY> implements VectorStore<KEY>, Serializable {
 
    @Override
    public boolean remove(@NonNull Vector vector) {
-      if (vector.getLabel() == null) {
-         return false;
-      }
-      return vectorMap.remove(vector.getLabel()) != null;
+      return vector.getLabel() != null && vectorMap.remove(vector.getLabel()) != null;
    }
 
    @Override

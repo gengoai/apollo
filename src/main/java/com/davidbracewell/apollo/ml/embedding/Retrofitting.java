@@ -1,5 +1,7 @@
 package com.davidbracewell.apollo.ml.embedding;
 
+import com.davidbracewell.apollo.linalg.store.VectorStore;
+
 /**
  * The interface Retrofitting.
  *
@@ -13,6 +15,6 @@ public interface Retrofitting {
     * @param embedding the embedding
     * @return the embedding
     */
-   Embedding process(Embedding embedding);
+   Embedding process(VectorStore<String> embedding);
 
 }//END OF Retrofitting

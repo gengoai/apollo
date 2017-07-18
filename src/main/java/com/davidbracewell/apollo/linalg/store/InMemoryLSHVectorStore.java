@@ -22,13 +22,13 @@
 package com.davidbracewell.apollo.linalg.store;
 
 import com.davidbracewell.apollo.linalg.Vector;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lombok.NonNull;
+import org.apache.mahout.math.map.OpenIntObjectHashMap;
+import org.apache.mahout.math.map.OpenObjectIntHashMap;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -40,8 +40,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class InMemoryLSHVectorStore<KEY> extends LSHVectorStore<KEY> {
    private static final long serialVersionUID = 1L;
    private final AtomicInteger vectorIDGenerator = new AtomicInteger();
-   private final Int2ObjectOpenHashMap<Vector> vectorIDMap = new Int2ObjectOpenHashMap<>();
-   private final Object2IntOpenHashMap<KEY> keys = new Object2IntOpenHashMap<>();
+   private final OpenIntObjectHashMap<Vector> vectorIDMap = new OpenIntObjectHashMap<>();
+   private final OpenObjectIntHashMap<KEY> keys = new OpenObjectIntHashMap<>();
 
    /**
     * Instantiates a new in-memory LSH vector store
@@ -54,7 +54,7 @@ public class InMemoryLSHVectorStore<KEY> extends LSHVectorStore<KEY> {
 
    @Override
    public boolean containsKey(KEY key) {
-      return keySet().contains(key);
+      return keys.containsKey(key);
    }
 
    public VectorStore<KEY> createNew() {
@@ -68,7 +68,7 @@ public class InMemoryLSHVectorStore<KEY> extends LSHVectorStore<KEY> {
 
    @Override
    protected int getID(KEY key) {
-      return keys.getInt(key);
+      return keys.get(key);
    }
 
    @Override
@@ -82,8 +82,8 @@ public class InMemoryLSHVectorStore<KEY> extends LSHVectorStore<KEY> {
    }
 
    @Override
-   public Set<KEY> keySet() {
-      return Collections.unmodifiableSet(keys.keySet());
+   public Collection<KEY> keys() {
+      return keys.keys();
    }
 
    @Override
@@ -99,8 +99,8 @@ public class InMemoryLSHVectorStore<KEY> extends LSHVectorStore<KEY> {
 
    @Override
    protected void removeVector(Vector vector, int id) {
-      vectorIDMap.remove(id);
-      keys.remove(vector.getLabel());
+      vectorIDMap.removeKey(id);
+      keys.removeKey(vector.getLabel());
    }
 
    @Override

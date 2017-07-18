@@ -2,7 +2,6 @@ package com.davidbracewell.apollo.ml.embedding;
 
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.linalg.store.VectorStore;
-import com.davidbracewell.apollo.ml.EncoderPair;
 import com.davidbracewell.guava.common.collect.HashMultimap;
 import com.davidbracewell.guava.common.collect.Sets;
 import com.davidbracewell.guava.common.primitives.Doubles;
@@ -50,11 +49,8 @@ public class FaruquiRetrofitting implements Retrofitting {
    }
 
    @Override
-   public Embedding process(@NonNull Embedding embedding) {
-      EncoderPair encoderPair = embedding.getEncoderPair();
-      VectorStore<String> origVectors = embedding.getVectorStore();
-
-      Set<String> sourceVocab = new HashSet<>(origVectors.keySet());
+   public Embedding process(@NonNull VectorStore<String> origVectors) {
+      Set<String> sourceVocab = new HashSet<>(origVectors.keys());
       Set<String> sharedVocab = Sets.intersection(sourceVocab, lexicon.keySet());
       Map<String, Vector> unitNormedVectors = new HashMap<>();
       Map<String, Vector> retrofittedVectors = new HashMap<>();
@@ -88,9 +84,9 @@ public class FaruquiRetrofitting implements Retrofitting {
          });
       }
 
-      VectorStore<String> newVectors = embedding.getVectorStore().createNew();
+      VectorStore<String> newVectors = origVectors.createNew();
       retrofittedVectors.forEach(newVectors::add);
-      return new Embedding(encoderPair, newVectors);
+      return new Embedding(newVectors);
    }
 
    public void setLexicon(@NonNull Resource resource) throws IOException {

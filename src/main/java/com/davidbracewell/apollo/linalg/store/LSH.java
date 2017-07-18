@@ -24,18 +24,17 @@ package com.davidbracewell.apollo.linalg.store;
 import com.davidbracewell.apollo.affinity.Measure;
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.optimization.Optimum;
-import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import lombok.Getter;
 import lombok.NonNull;
+import org.apache.mahout.math.set.OpenIntHashSet;
 
 import java.io.Serializable;
 import java.util.function.BiFunction;
 
 /**
  * <p>Implementation of <a href="https://en.wikipedia.org/wiki/Locality-sensitive_hashing">Locality-sensitive
- * hashing</a> which reduces high dimensional vectors into a lower k using signature functions.  The hash
- * functions cause similar vectors to be mapped into the same low k buckets facilitating fast nearest neighbor
- * searches.</p>
+ * hashing</a> which reduces high dimensional vectors into a lower k using signature functions.  The hash functions
+ * cause similar vectors to be mapped into the same low k buckets facilitating fast nearest neighbor searches.</p>
  *
  * @author David B. Bracewell
  */
@@ -151,7 +150,7 @@ public abstract class LSH implements Serializable {
     * @param bucket the bucket
     * @return the vector ids
     */
-   protected abstract IntOpenHashSet get(int band, int bucket);
+   protected abstract OpenIntHashSet get(int band, int bucket);
 
    /**
     * Gets the measure use to calculate the affinity between query vectors and the vectors in the table
@@ -197,12 +196,12 @@ public abstract class LSH implements Serializable {
     * @param vector the vector
     * @return the int ids of the nearest vectors
     */
-   public IntOpenHashSet query(@NonNull Vector vector) {
-      IntOpenHashSet matches = new IntOpenHashSet();
+   public OpenIntHashSet query(@NonNull Vector vector) {
+      OpenIntHashSet matches = new OpenIntHashSet();
       int[] hash = hash(vector);
       for (int i = 0; i < bands; i++) {
          get(i, hash[i])
-            .forEach(matches::add);
+            .forEachKey(matches::add);
       }
       return matches;
    }

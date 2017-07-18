@@ -21,14 +21,21 @@
 
 package com.davidbracewell.apollo.linalg.store;
 
+import com.davidbracewell.apollo.linalg.DenseVector;
+import com.davidbracewell.apollo.linalg.SparseVector;
 import com.davidbracewell.apollo.linalg.Vector;
+import com.davidbracewell.apollo.linalg.VectorComposition;
+import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.io.Commitable;
+import com.davidbracewell.tuple.Tuple;
 import lombok.NonNull;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static com.davidbracewell.tuple.Tuples.$;
 
 /**
  * <p>A vector store provides access and lookup of vectors by labels and to find vectors in the store closest to query
@@ -40,26 +47,11 @@ import java.util.Set;
 public interface VectorStore<KEY> extends Iterable<Vector>, AutoCloseable, Closeable, Commitable {
 
    /**
-    * The number of vectors stored
-    *
-    * @return the number of vectors
-    */
-   int size();
-
-   /**
-    * The dimension of the vectors in the store
-    *
-    * @return the dimension of the vectors
-    */
-   int dimension();
-
-   /**
     * Adds a vector to the store
     *
     * @param vector the vector to add
     */
    void add(Vector vector);
-
 
    /**
     * Adds a vector to the store associating it with the given key
@@ -71,6 +63,74 @@ public interface VectorStore<KEY> extends Iterable<Vector>, AutoCloseable, Close
       add(vector.setLabel(key));
    }
 
+   @Override
+   default void close() throws IOException {
+
+   }
+
+   @Override
+   default void commit() {
+
+   }
+
+   /**
+    * Creates a vector using the given vector composition for the given words.
+    *
+    * @param composition the composition function to use
+    * @param words       the words whose vectors we want to compose
+    * @return a composite vector consisting of the given words and calculated using the given vector composition
+    */
+   @SuppressWarnings("unchecked")
+   default Vector compose(@NonNull VectorComposition composition, KEY... words) {
+      if (words == null) {
+         return new SparseVector(dimension());
+      } else if (words.length == 1) {
+         return get(words[0]);
+      }
+      List<Vector> vectors = new ArrayList<>();
+      for (KEY w : words) {
+         vectors.add(get(w));
+      }
+      return composition.compose(dimension(), vectors);
+   }
+
+   /**
+    * Determines if a vector with the label of the given key is in the store.
+    *
+    * @param key the key
+    * @return True if a vector is associated with the given key, False otherwise
+    */
+   boolean containsKey(KEY key);
+
+   /**
+    * Create new vector store.
+    *
+    * @return the vector store
+    */
+   VectorStore<KEY> createNew();
+
+   /**
+    * The dimension of the vectors in the store
+    *
+    * @return the dimension of the vectors
+    */
+   int dimension();
+
+   /**
+    * Gets the vector associated with the given key.
+    *
+    * @param key the key to look up
+    * @return the labeled vector or null if key is not in store
+    */
+   Vector get(KEY key);
+
+   /**
+    * The label keys in the store
+    *
+    * @return the set of vector label keys
+    */
+   Collection<KEY> keys();
+
    /**
     * Queries the vector store for the nearest vectors to the given <code>query</code> vector returning only matches
     * whose score pass the given <code>threshold</code>. How the threshold is used is determined by the type of measure
@@ -81,7 +141,6 @@ public interface VectorStore<KEY> extends Iterable<Vector>, AutoCloseable, Close
     * @return the list of vectors with their labels and scored by the stores measure with respect to the query vector.
     */
    List<Vector> nearest(Vector query, double threshold);
-
 
    /**
     * Queries the vector store for the nearest vectors to the given <code>query</code> vector returning only the top
@@ -103,7 +162,6 @@ public interface VectorStore<KEY> extends Iterable<Vector>, AutoCloseable, Close
     */
    List<Vector> nearest(Vector query);
 
-
    /**
     * Queries the vector store for the nearest vectors to the given <code>query</code> vector returning only the top
     * <code>K</code>.
@@ -114,29 +172,77 @@ public interface VectorStore<KEY> extends Iterable<Vector>, AutoCloseable, Close
     */
    List<Vector> nearest(@NonNull Vector query, int K);
 
+   /**
+    * Finds the closest K vectors to the given word/feature in the embedding
+    *
+    * @param word the word/feature whose neighbors we want
+    * @param K    the maximum number of neighbors to return
+    * @return the list of scored K-nearest vectors
+    */
+   default List<Vector> nearest(@NonNull KEY word, int K) {
+      return nearest(word, K, Double.NEGATIVE_INFINITY);
+   }
 
    /**
-    * The label keys in the store
+    * Finds the closest K vectors to the given word/feature in the embedding
     *
-    * @return the set of vector label keys
+    * @param word      the word/feature whose neighbors we want
+    * @param K         the maximum number of neighbors to return
+    * @param threshold threshold for selecting vectors
+    * @return the list of scored K-nearest vectors
     */
-   Set<KEY> keySet();
+   default List<Vector> nearest(@NonNull KEY word, int K, double threshold) {
+      Vector v1 = get(word);
+      if (v1 == null) {
+         return Collections.emptyList();
+      }
+      List<Vector> near = nearest(v1, K + 1, threshold)
+                             .stream()
+                             .filter(slv -> !word.equals(slv.getLabel()))
+                             .collect(Collectors.toList());
+      return near.subList(0, Math.min(K, near.size()));
+   }
 
    /**
-    * Gets the vector associated with the given key.
+    * Finds the closest K vectors to the given positive tuple of words/features and not near the negative tuple of
+    * words/features in the embedding
     *
-    * @param key the key to look up
-    * @return the labeled vector or null if key is not in store
+    * @param positive  a tuple of words/features (the individual vectors are composed using vector addition) whose
+    *                  neighbors we want
+    * @param negative  a tuple of words/features (the individual vectors are composed using vector addition) subtracted
+    *                  from the positive vectors.
+    * @param K         the maximum number of neighbors to return
+    * @param threshold threshold for selecting vectors
+    * @return the list of scored K-nearest vectors
     */
-   Vector get(KEY key);
+   default List<Vector> nearest(@NonNull Tuple positive, @NonNull Tuple negative, int K, double threshold) {
+      Vector pVec = new DenseVector(dimension());
+      positive.forEach(word -> pVec.addSelf(get(Cast.as(word))));
+      Vector nVec = new DenseVector(dimension());
+      negative.forEach(word -> nVec.addSelf(get(Cast.as(word))));
+      Set<String> ignore = new HashSet<>();
+      positive.forEach(o -> ignore.add(o.toString()));
+      negative.forEach(o -> ignore.add(o.toString()));
+      List<Vector> vectors = nearest(pVec.subtract(nVec), K + positive.degree() + negative.degree(),
+                                     threshold)
+                                .stream()
+                                .filter(slv -> !ignore.contains(slv.<String>getLabel()))
+                                .collect(Collectors.toList());
+      return vectors.subList(0, Math.min(K, vectors.size()));
+   }
 
    /**
-    * Determines if a vector with the label of the given key is in the store.
+    * Finds the closest K vectors to the given tuple of words/features in the embedding
     *
-    * @param key the key
-    * @return True if a vector is associated with the given key, False otherwise
+    * @param words a tuple of words/features (the individual vectors are composed using vector addition) whose neighbors
+    *              we want
+    * @param K     the maximum number of neighbors to return
+    * @return the list of scored K-nearest vectors
     */
-   boolean containsKey(KEY key);
+   default List<Vector> nearest(@NonNull Tuple words, int K) {
+      return nearest(words, $(), K, Double.NEGATIVE_INFINITY);
+   }
+
 
    /**
     * Removes the given vector
@@ -146,15 +252,11 @@ public interface VectorStore<KEY> extends Iterable<Vector>, AutoCloseable, Close
     */
    boolean remove(Vector vector);
 
-   @Override
-   default void commit() {
+   /**
+    * The number of vectors stored
+    *
+    * @return the number of vectors
+    */
+   int size();
 
-   }
-
-   VectorStore<KEY> createNew();
-
-   @Override
-   default void close() throws IOException {
-
-   }
 }// END OF VectorStore

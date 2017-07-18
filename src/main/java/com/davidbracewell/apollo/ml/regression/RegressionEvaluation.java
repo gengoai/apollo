@@ -7,8 +7,8 @@ import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.guava.common.base.Preconditions;
 import com.davidbracewell.string.TableFormatter;
-import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import lombok.NonNull;
+import org.apache.mahout.math.list.DoubleArrayList;
 
 import java.io.PrintStream;
 import java.util.Arrays;
@@ -76,8 +76,8 @@ public class RegressionEvaluation implements Evaluation<Instance, Regression> {
    public void merge(@NonNull Evaluation<Instance, Regression> evaluation) {
       Preconditions.checkArgument(evaluation instanceof RegressionEvaluation);
       RegressionEvaluation re = Cast.as(evaluation);
-      gold.addAll(re.gold);
-      predicted.addAll(re.predicted);
+      gold.addAllOf(re.gold);
+      predicted.addAllOf(re.predicted);
    }
 
    @Override
@@ -97,11 +97,11 @@ public class RegressionEvaluation implements Evaluation<Instance, Regression> {
     * @return the r2
     */
    public double r2() {
-      double yMean = Math2.sum(gold) / gold.size();
-      double SStot = gold.parallelStream().mapToDouble(d -> Math.pow(d - yMean, 2)).sum();
+      double yMean = Math2.sum(gold.elements()) / gold.size();
+      double SStot = Arrays.stream(gold.elements()).map(d -> Math.pow(d - yMean, 2)).sum();
       double SSres = 0;
       for (int i = 0; i < gold.size(); i++) {
-         SSres += Math.pow(gold.getDouble(i) - predicted.getDouble(i), 2);
+         SSres += Math.pow(gold.get(i) - predicted.get(i), 2);
       }
       return 1.0 - SSres / SStot;
    }
@@ -132,7 +132,7 @@ public class RegressionEvaluation implements Evaluation<Instance, Regression> {
    public double squaredError() {
       double error = 0;
       for (int i = 0; i < gold.size(); i++) {
-         error += Math.pow(predicted.getDouble(i) - gold.getDouble(i), 2);
+         error += Math.pow(predicted.get(i) - gold.get(i), 2);
       }
       return error;
    }

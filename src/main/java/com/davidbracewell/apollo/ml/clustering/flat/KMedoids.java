@@ -29,13 +29,13 @@ import com.davidbracewell.apollo.ml.clustering.Clusterer;
 import com.davidbracewell.guava.common.util.concurrent.AtomicDouble;
 import com.davidbracewell.stream.MStream;
 import com.davidbracewell.tuple.Tuple2;
-import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
-import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import lombok.Data;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import org.apache.mahout.math.map.OpenIntIntHashMap;
+import org.apache.mahout.math.set.OpenIntHashSet;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -96,13 +96,13 @@ public class KMedoids extends Clusterer<FlatClustering> {
       Map<Tuple2<Integer, Integer>, Double> distanceCache = new ConcurrentHashMap<>();
 
       List<TempCluster> tempClusters = new ArrayList<>();
-      IntOpenHashSet seen = new IntOpenHashSet();
+      OpenIntHashSet seen = new OpenIntHashSet();
       while (seen.size() < K) {
          seen.add((int) Math.round(Math.random() * K));
       }
-      seen.forEach(i -> tempClusters.add(new TempCluster().centroid(i)));
+      seen.forEachKey(i -> tempClusters.add(new TempCluster().centroid(i)));
 
-      Int2IntOpenHashMap assignments = new Int2IntOpenHashMap();
+      OpenIntIntHashMap assignments = new OpenIntIntHashMap();
 
       for (int iteration = 0; iteration < maxIterations; iteration++) {
          System.err.println("iteration " + iteration);
@@ -124,7 +124,7 @@ public class KMedoids extends Clusterer<FlatClustering> {
                            minDistance = d;
                         }
                      }
-                     int old = assignments.getOrDefault(i, -1);
+                     int old = assignments.containsKey(i) ? assignments.get(i) : -1;
                      assignments.put(i, minC);
                      if (old != minC) {
                         numChanged.incrementAndGet();
@@ -141,18 +141,20 @@ public class KMedoids extends Clusterer<FlatClustering> {
                      .forEach(c -> {
                         AtomicInteger minPoint = new AtomicInteger();
                         AtomicDouble minDistance = new AtomicDouble(Double.POSITIVE_INFINITY);
-                        c.points().forEach(i -> {
+                        c.points().forEachKey(i -> {
                            AtomicDouble sum = new AtomicDouble();
                            AtomicLong total = new AtomicLong();
-                           c.points().forEach(j -> {
+                           c.points().forEachKey(j -> {
                               total.incrementAndGet();
                               sum.addAndGet(distance(i, j, instances, distanceCache));
+                              return true;
                            });
                            double avg = sum.get() / total.get();
                            if (avg < minDistance.get()) {
                               minDistance.set(avg);
                               minPoint.set(i);
                            }
+                           return true;
                         });
                         c.centroid(minPoint.get());
                      });
@@ -166,12 +168,14 @@ public class KMedoids extends Clusterer<FlatClustering> {
          c.setCentroid(instances.get(tc.centroid));
          AtomicDouble sum = new AtomicDouble();
          AtomicLong total = new AtomicLong();
-         tc.points().forEach(i -> {
+         tc.points().forEachKey(i -> {
             c.addPoint(instances.get(i));
-            tc.points().forEach(j -> {
+            tc.points().forEachKey(j -> {
                total.incrementAndGet();
                sum.addAndGet(distance(i, j, instances, distanceCache));
+               return true;
             });
+            return true;
          });
          c.setScore(sum.get() / total.get());
          finalClusters.add(c);
@@ -198,7 +202,7 @@ public class KMedoids extends Clusterer<FlatClustering> {
    @Accessors(fluent = true)
    private static class TempCluster {
       int centroid;
-      IntOpenHashSet points = new IntOpenHashSet();
+      OpenIntHashSet points = new OpenIntHashSet();
    }
 
 }//END OF KMedoids

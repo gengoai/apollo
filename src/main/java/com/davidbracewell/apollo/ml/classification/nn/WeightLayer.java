@@ -1,6 +1,7 @@
 package com.davidbracewell.apollo.ml.classification.nn;
 
 import com.davidbracewell.apollo.linalg.Vector;
+import com.davidbracewell.apollo.optimization.GradientMatrix;
 import com.davidbracewell.apollo.optimization.WeightInitializer;
 import com.davidbracewell.apollo.optimization.WeightMatrix;
 import com.davidbracewell.apollo.optimization.activation.Activation;
@@ -23,8 +24,14 @@ public abstract class WeightLayer extends Layer {
    }
 
    @Override
-   public Vector backward(Vector output, Vector delta) {
-      return weights.backward(delta.multiplySelf(activation.valueGradient(output)));
+   public Vector backward(Vector input, Vector output, Vector delta) {
+      delta.multiplySelf(activation.valueGradient(output));
+      if (getGradient() == null) {
+         setGradient(GradientMatrix.calculate(input, delta));
+      } else {
+         getGradient().add(GradientMatrix.calculate(input, delta));
+      }
+      return weights.backward(delta);
    }
 
    @Override

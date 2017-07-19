@@ -1,17 +1,17 @@
 package com.davidbracewell.apollo.ml.classification.nn;
 
 import com.davidbracewell.apollo.linalg.Vector;
+import com.davidbracewell.apollo.optimization.GradientMatrix;
 import com.davidbracewell.apollo.optimization.WeightMatrix;
 import com.davidbracewell.conversion.Cast;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.io.Serializable;
 
 /**
  * @author David B. Bracewell
  */
-@AllArgsConstructor
 public abstract class Layer implements Serializable {
    private static final long serialVersionUID = 1L;
    @Getter
@@ -19,6 +19,14 @@ public abstract class Layer implements Serializable {
    @Getter
    private final int outputSize;
 
+   @Getter
+   @Setter
+   private GradientMatrix gradient;
+
+   protected Layer(int inputSize, int outputSize) {
+      this.inputSize = inputSize;
+      this.outputSize = outputSize;
+   }
 
    /**
     * Backward vector.
@@ -27,7 +35,7 @@ public abstract class Layer implements Serializable {
     * @param delta  the delta
     * @return the vector
     */
-   abstract Vector backward(Vector output, Vector delta);
+   abstract Vector backward(Vector input, Vector output, Vector delta);
 
    /**
     * Forward vector.

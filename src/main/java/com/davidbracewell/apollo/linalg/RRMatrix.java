@@ -72,7 +72,6 @@ public class RRMatrix extends AbstractRealMatrix {
          private int row = -1;
          private Iterator<Vector.Entry> colIterator = null;
          private Matrix.Entry next = null;
-         private int currentRow = -1;
 
          private boolean advance() {
             if (next == null) {
@@ -83,7 +82,7 @@ public class RRMatrix extends AbstractRealMatrix {
                }
                if (colIterator.hasNext()) {
                   Vector.Entry e = colIterator.next();
-                  next = new Matrix.Entry(currentRow, e.getIndex(), e.getValue());
+                  next = new Matrix.Entry(row, e.getIndex(), e.getValue());
                } else {
                   return false;
                }

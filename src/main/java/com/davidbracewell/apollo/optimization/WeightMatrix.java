@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.NonNull;
 
 import java.io.Serializable;
+import java.util.stream.IntStream;
 
 /**
  * The type Weight matrix.
@@ -59,14 +60,16 @@ public class WeightMatrix implements Serializable {
    }
 
    public Vector backward(@NonNull Vector input) {
-      Vector output = Vector.sZeros(numberOfFeatures);
-      for (int i = 0; i < numberOfFeatures; i++) {
-         double sum = 0;
-         for (int l = 0; l < numberOfWeightVectors(); l++) {
-            sum += weights[l].get(i);
-         }
-         output.set(i, sum);
-      }
+      Vector output = Vector.dZeros(numberOfFeatures);
+      IntStream.range(0, numberOfFeatures)
+               .parallel()
+               .forEach(i -> {
+                  double sum = 0;
+                  for (int l = 0; l < numberOfWeightVectors(); l++) {
+                     sum += input.get(l) * weights[l].get(i);
+                  }
+                  output.set(i, sum);
+               });
       return output;
    }
 

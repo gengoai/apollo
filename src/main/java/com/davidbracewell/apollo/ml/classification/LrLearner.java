@@ -4,6 +4,7 @@ import com.davidbracewell.apollo.linalg.SparseVector;
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.Feature;
 import com.davidbracewell.apollo.ml.Instance;
+import com.davidbracewell.apollo.ml.classification.nn.DenseLayer;
 import com.davidbracewell.apollo.ml.classification.nn.FeedForwardNetworkLearner;
 import com.davidbracewell.apollo.ml.classification.nn.OutputLayer;
 import com.davidbracewell.apollo.ml.data.Dataset;
@@ -41,14 +42,38 @@ public class LrLearner extends BinaryClassifierLearner {
 
 
       Stopwatch sw = Stopwatch.createStarted();
-      crossValidation(dataset, () -> {
-         FeedForwardNetworkLearner learner = FeedForwardNetworkLearner.builder()
-//                                                                      .layer(DenseLayer.sigmoid().outputSize(20))
-                                                                      .layer(OutputLayer.softmax())
-                                                                      .maxIterations(250)
-                                                                      .build();
-         return learner;
-      }, 10).output(System.out);
+//
+//      Matrix w = SparseMatrix.random(3, 4);
+//      Vector delta = Vector.sRandom(3, 0, 1);
+//
+//      Matrix mp = delta.toMatrix().multiply(w);
+//      for (int i = 0; i < mp.numberOfRows(); i++) {
+//         System.out.println(mp.row(i));
+//      }
+//
+//      System.out.println();
+//      System.out.println();
+//      System.out.println();
+//
+//      WeightMatrix wm = new WeightMatrix(3, 4);
+//      for (int i = 0; i < w.numberOfRows(); i++) {
+//         wm.getWeightVector(i).addSelf(w.row(i));
+//      }
+//
+//      System.out.println(wm.backward(delta));
+
+
+      crossValidation(dataset, () ->
+//      new SoftmaxLearner(),
+                                  FeedForwardNetworkLearner.builder()
+                                                           .layer(DenseLayer.relu().outputSize(50))
+                                                           .layer(OutputLayer.softmax())
+                                                           .learningRate(new ConstantLearningRate(0.1))
+                                                           .maxIterations(300)
+                                                           .batchSize(20)
+                                                           .reportInterval(0)
+                                                           .build(),
+                      10).output(System.out);
       sw.stop();
       System.out.println(sw);
 

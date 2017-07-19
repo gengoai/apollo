@@ -1,6 +1,7 @@
 package com.davidbracewell.apollo.ml.classification.nn;
 
 import com.davidbracewell.apollo.linalg.Vector;
+import com.davidbracewell.apollo.optimization.GradientMatrix;
 import com.davidbracewell.apollo.optimization.WeightInitializer;
 import com.davidbracewell.apollo.optimization.activation.Activation;
 import com.davidbracewell.apollo.optimization.activation.SigmoidActivation;
@@ -31,8 +32,14 @@ public class OutputLayer extends WeightLayer {
    }
 
    @Override
-   public Vector backward(Vector output, Vector delta) {
-      return getWeights().backward(delta);
+   public Vector backward(Vector input, Vector output, Vector delta) {
+      Vector deltaOut = getWeights().backward(delta);
+      if (getGradient() == null) {
+         setGradient(GradientMatrix.calculate(input, delta));
+      } else {
+         getGradient().add(GradientMatrix.calculate(input, delta));
+      }
+      return deltaOut;
    }
 
    public static class Builder extends WeightLayerBuilder<Builder> {

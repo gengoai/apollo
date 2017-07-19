@@ -6,7 +6,7 @@ import com.davidbracewell.apollo.ml.classification.Classifier;
 import com.davidbracewell.apollo.ml.classification.ClassifierLearner;
 import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.optimization.*;
-import com.davidbracewell.apollo.optimization.loss.LogLoss;
+import com.davidbracewell.apollo.optimization.loss.CrossEntropyLoss;
 import com.davidbracewell.apollo.optimization.loss.LossFunction;
 import com.davidbracewell.apollo.optimization.update.DeltaRule;
 import com.davidbracewell.apollo.optimization.update.WeightUpdate;
@@ -41,7 +41,7 @@ public class FeedForwardNetworkLearner extends ClassifierLearner implements Logg
    @Getter
    @Setter
    @Builder.Default
-   private LossFunction lossFunction = new LogLoss();
+   private LossFunction lossFunction = new CrossEntropyLoss();
    @Getter
    @Setter
    @Builder.Default
@@ -49,7 +49,7 @@ public class FeedForwardNetworkLearner extends ClassifierLearner implements Logg
    @Getter
    @Setter
    @Builder.Default
-   private double tolerance = 1e-4;
+   private double tolerance = 1e-9;
    @Getter
    @Setter
    @Builder.Default
@@ -57,7 +57,7 @@ public class FeedForwardNetworkLearner extends ClassifierLearner implements Logg
    @Getter
    @Setter
    @Builder.Default
-   private int batchSize = 50;
+   private int batchSize = 20;
    @Getter
    @Setter
    @Builder.Default
@@ -77,7 +77,7 @@ public class FeedForwardNetworkLearner extends ClassifierLearner implements Logg
       }
    }
 
-   private List<CostGradientTuple> evaluate(FeedForwardNetwork network, Vector input) {
+   private double evaluate(FeedForwardNetwork network, Vector input) {
       Vector y = input.getLabelVector(network.numberOfLabels());
       int numLayers = network.layers.size();
 
@@ -91,23 +91,13 @@ public class FeedForwardNetworkLearner extends ClassifierLearner implements Logg
       }
       Vector predicted = activations[activations.length - 1];
       double totalError = lossFunction.loss(predicted, y);
-      Vector[] deltas = new Vector[numLayers + 1];
 
-      deltas[numLayers] = lossFunction.derivative(predicted, y);
+      Vector cDelta = lossFunction.derivative(predicted, y);
       for (int i = numLayers - 1; i >= 0; i--) {
-         deltas[i] = network.layers.get(i).backward(activations[i], deltas[i + 1]);
+         Vector inputVector = i == 0 ? input : activations[i - 1];
+         cDelta = network.layers.get(i).backward(inputVector, activations[i], cDelta);
       }
-
-      List<CostGradientTuple> gradients = new ArrayList<>();
-      for (int i = 0; i < numLayers; i++) {
-         Vector a = i == 0 ? input : activations[i - 1];
-         if (network.layers.get(i).hasWeights()) {
-            GradientMatrix gm = GradientMatrix.calculate(a, deltas[i + 1]);
-            gradients.add(CostGradientTuple.of(totalError, gm));
-         }
-      }
-
-      return gradients;
+      return totalError;
    }
 
    @Override
@@ -128,43 +118,34 @@ public class FeedForwardNetworkLearner extends ClassifierLearner implements Logg
       int numProcessed = 0;
       final int effectiveBatchSize = batchSize <= 0 ? 1 : batchSize;
       List<Vector> vectors = dataset.asVectors().collect();
-      for (int i = 0; i < terminationCriteria.maxIterations(); i++) {
+      for (int iteration = 0; iteration < terminationCriteria.maxIterations(); iteration++) {
          Stopwatch sw = Stopwatch.createStarted();
          double loss = 0d;
          Collections.shuffle(vectors);
          for (int b = 0; b < vectors.size(); b += effectiveBatchSize) {
-            List<CostGradientTuple> gradients = null;
             int count = 0;
-            for (Vector datum : vectors.subList(b, Math.min(b + batchSize, vectors.size()))) {
-               List<CostGradientTuple> c = evaluate(network, datum);
-               loss += c.get(0).getCost();
-               if (gradients == null) {
-                  gradients = c;
-               } else {
-                  for (int j = 0; j < gradients.size(); j++) {
-                     gradients.get(j).getGradient().add(c.get(j).getGradient());
-                  }
-               }
+            for (int j = b; j < Math.min(b + batchSize, vectors.size()); j++) {
+               loss += evaluate(network, vectors.get(j));
                count++;
             }
             numProcessed += count;
-            lr = learningRate.get(lr, i, numProcessed);
-            if (gradients != null) {
-               for (CostGradientTuple gradient : gradients) {
-                  gradient.getGradient().scale(1d / batchSize);
-               }
-               int index = 0;
+            lr = learningRate.get(lr, iteration, numProcessed);
+            if (count > 0) {
                for (Layer layer : network.layers) {
                   if (layer.hasWeights()) {
-                     weightUpdate.update(layer.getWeights(), gradients.get(index).getGradient(), lr, i);
-                     index++;
+                     if (count > 1) {
+                        layer.getGradient().scale(1d / count);
+                     }
+                     loss += weightUpdate.update(layer.getWeights(), layer.getGradient(), lr, iteration);
+                     layer.setGradient(null);
                   }
                }
             }
+
          }
          sw.stop();
-         if (reportInterval > 0 && ((i + 1) == terminationCriteria.maxIterations() || (i + 1) % reportInterval == 0)) {
-            logInfo("iteration={0}, totalLoss={1}, time={2}", (i + 1), loss, sw);
+         if (reportInterval > 0 && ((iteration + 1) == terminationCriteria.maxIterations() || (iteration + 1) % reportInterval == 0)) {
+            logInfo("iteration={0}, totalLoss={1}, time={2}", (iteration + 1), loss, sw);
          }
          lastLoss = loss;
          if (terminationCriteria.check(lastLoss)) {

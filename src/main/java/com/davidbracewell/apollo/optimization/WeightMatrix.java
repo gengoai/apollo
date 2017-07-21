@@ -10,6 +10,8 @@ import lombok.NonNull;
 import java.io.Serializable;
 import java.util.stream.IntStream;
 
+import static com.davidbracewell.tuple.Tuples.$;
+
 /**
  * The type Weight matrix.
  *
@@ -63,13 +65,14 @@ public class WeightMatrix implements Serializable {
       Vector output = Vector.dZeros(numberOfFeatures);
       IntStream.range(0, numberOfFeatures)
                .parallel()
-               .forEach(i -> {
-                  double sum = 0;
+               .mapToObj(f -> {
+                  double v = 0;
                   for (int l = 0; l < numberOfWeightVectors(); l++) {
-                     sum += input.get(l) * weights[l].get(i);
+                     v += input.get(l) * weights[l].get(f);
                   }
-                  output.set(i, sum);
-               });
+                  return $(f, v);
+               })
+               .forEach(p -> output.set(p.v1, p.v2));
       return output;
    }
 

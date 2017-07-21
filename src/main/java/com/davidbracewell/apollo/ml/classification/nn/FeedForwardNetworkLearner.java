@@ -20,6 +20,7 @@ import lombok.Singular;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.IntStream;
 
 /**
  * @author David B. Bracewell
@@ -123,11 +124,13 @@ public class FeedForwardNetworkLearner extends ClassifierLearner implements Logg
          double loss = 0d;
          Collections.shuffle(vectors);
          for (int b = 0; b < vectors.size(); b += effectiveBatchSize) {
-            int count = 0;
-            for (int j = b; j < Math.min(b + batchSize, vectors.size()); j++) {
-               loss += evaluate(network, vectors.get(j));
-               count++;
+            int count = Math.min(b + effectiveBatchSize, vectors.size()) - b;
+            if (count == 0) {
+               continue;
             }
+            loss += IntStream.range(b, Math.min(b + effectiveBatchSize, vectors.size()))
+                             .mapToDouble(j -> evaluate(network, vectors.get(j)))
+                             .sum();
             numProcessed += count;
             lr = learningRate.get(lr, iteration, numProcessed);
             if (count > 0) {
@@ -144,7 +147,8 @@ public class FeedForwardNetworkLearner extends ClassifierLearner implements Logg
 
          }
          sw.stop();
-         if (reportInterval > 0 && ((iteration + 1) == terminationCriteria.maxIterations() || (iteration + 1) % reportInterval == 0)) {
+         if (reportInterval > 0 &&
+                (iteration == 0 || (iteration + 1) == terminationCriteria.maxIterations() || (iteration + 1) % reportInterval == 0)) {
             logInfo("iteration={0}, totalLoss={1}, time={2}", (iteration + 1), loss, sw);
          }
          lastLoss = loss;

@@ -72,6 +72,15 @@ public class OffHeapDataset<T extends Example> extends Dataset<T> {
    }
 
    @Override
+   public Dataset<T> cache() {
+      InMemoryDataset<T> dd = new InMemoryDataset<>(getFeatureEncoder(), getLabelEncoder(), getPreprocessors());
+      for (T example : this) {
+         dd.add(example);
+      }
+      return dd;
+   }
+
+   @Override
    public void close() {
       outputResource.delete();
    }

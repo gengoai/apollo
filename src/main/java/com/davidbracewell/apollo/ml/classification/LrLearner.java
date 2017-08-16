@@ -13,14 +13,21 @@ import com.davidbracewell.apollo.optimization.*;
 import com.davidbracewell.apollo.optimization.activation.Activation;
 import com.davidbracewell.apollo.optimization.loss.LogLoss;
 import com.davidbracewell.apollo.optimization.update.DeltaRule;
+import com.davidbracewell.conversion.Convert;
 import com.davidbracewell.guava.common.base.Stopwatch;
 import com.davidbracewell.io.Resources;
 import com.davidbracewell.io.resource.Resource;
 import com.davidbracewell.stream.MStream;
+import com.davidbracewell.tuple.Tuple2;
+import lombok.val;
+import org.jblas.FloatMatrix;
+import org.jblas.MatrixFunctions;
 
 import java.util.Random;
 
 import static com.davidbracewell.apollo.ml.classification.ClassifierEvaluation.crossValidation;
+import static com.davidbracewell.tuple.Tuples.$;
+import static org.jblas.MatrixFunctions.log;
 
 /**
  * Stochastic Gradient Descent Training for L1-regularized Log-linear Models with Cumulative Penalty
@@ -28,6 +35,10 @@ import static com.davidbracewell.apollo.ml.classification.ClassifierEvaluation.c
  * @author David B. Bracewell
  */
 public class LrLearner extends BinaryClassifierLearner {
+
+   public static FloatMatrix dsigmoid(FloatMatrix in) {
+      return in.mul(FloatMatrix.ones(in.rows, in.columns).subi(in));
+   }
 
    public static void main(String[] args) {
       Resource url = Resources.from(
@@ -41,26 +52,75 @@ public class LrLearner extends BinaryClassifierLearner {
                                          .shuffle(new Random(1234));
 
 
+      dataset.encode();
+      int nL = dataset.getLabelEncoder().size();
+      int nF = dataset.getFeatureEncoder().size();
+      int X_size = dataset.size();
+      FloatMatrix X = FloatMatrix.zeros(nF, X_size);
+      FloatMatrix Y = FloatMatrix.zeros(nL, X_size);
+      dataset.asVectors()
+             .zipWithIndex()
+             .forEach((vec, column) -> {
+                         Y.put((int) vec.getLabelAsDouble(), column.intValue(), 1.0f);
+                         X.putColumn(column.intValue(),
+                                     new FloatMatrix(vec.dimension(), 1,
+                                                     Convert.convert(vec.toArray(),
+                                                                     float[].class)));
+                      }
+                     );
+      X.subiColumnVector(X.rowMeans())
+       .diviColumnVector(X.rowSums());
+
       Stopwatch sw = Stopwatch.createStarted();
-//
-//      Matrix w = SparseMatrix.random(3, 4);
-//      Vector delta = Vector.sRandom(3, 0, 1);
-//
-//      Matrix mp = delta.toMatrix().multiply(w);
-//      for (int i = 0; i < mp.numberOfRows(); i++) {
-//         System.out.println(mp.row(i));
-//      }
-//
-//      System.out.println();
-//      System.out.println();
-//      System.out.println();
-//
-//      WeightMatrix wm = new WeightMatrix(3, 4);
-//      for (int i = 0; i < w.numberOfRows(); i++) {
-//         wm.getWeightVector(i).addSelf(w.row(i));
-//      }
-//
-//      System.out.println(wm.backward(delta));
+
+      FloatMatrix w1 = rand(50, nF);
+      FloatMatrix w2 = rand(nL, 50);
+      FloatMatrix b1 = FloatMatrix.zeros(50, 1);
+      FloatMatrix b2 = FloatMatrix.zeros(nL, 1);
+      float lr = 0.005f;
+      for (int i = 0; i < 3000; i++) {
+         //Forward prop
+         val z1 = (w1.mmul(X)).addiColumnVector(b1);
+         val a1 = sigmoid(z1);
+         val z2 = (w2.mmul(a1)).addiColumnVector(b2);
+         val a2 = softmax(z2);
+
+         double cost = log(a2).mul(Y)
+                              .add(log(a2.rsub(1.0f)).mul(Y.rsub(1.0f)))
+                              .sum();
+
+         System.out.println(cost);
+
+         //backward prop
+         val dz2 = a2.sub(Y);
+         val dw2 = dz2.mmul(a1.transpose()).divi(X_size);
+         val db2 = dz2.rowSums().divi(X_size);
+         val dz1 = w2.transpose().mmul(dz2).muli(dsigmoid(a1));
+         val dw1 = dz1.mmul(X.transpose()).divi(X_size);
+         val db1 = dz1.rowSums().divi(X_size);
+
+         //Weight update
+         w2.subi(dw2.muli(lr));
+         b2.subi(db2.muli(lr));
+         w1.subi(dw1.muli(lr));
+         b1.subi(db1.muli(lr));
+      }
+
+      System.out.println(sw);
+      val a1 = sigmoid((w1.mmul(X)).addiColumnVector(b1));
+      val a2 = softmax((w2.mmul(a1)).addiColumnVector(b2));
+      val pred_Y = a2.columnArgmaxs();
+      val gold_Y = Y.columnArgmaxs();
+      double correct = 0;
+      for (int i = 0; i < pred_Y.length; i++) {
+         if (pred_Y[i] == gold_Y[i]) {
+            correct++;
+         }
+      }
+      System.out.println((correct / pred_Y.length));
+      if (Math.random() < 2) {
+         System.exit(0);
+      }
 
 
       crossValidation(dataset, () ->
@@ -80,6 +140,33 @@ public class LrLearner extends BinaryClassifierLearner {
 //      crossValidation(dataset, () -> new BGD().oneVsRest(), 10).output(System.out);
 //      crossValidation(dataset, SoftmaxLearner::new, 10)
 //         .output(System.out);
+   }
+
+   public static FloatMatrix rand(int numRows, int numCols) {
+      float max = (float) (Math.sqrt(6.0) / Math.sqrt(numCols + numRows));
+      float min = -max;
+      FloatMatrix f = FloatMatrix.zeros(numRows, numCols);
+      for (int i = 0; i < f.length; i++) {
+         f.data[i] = (float) (min + (max - min) * Math.random());
+      }
+      return f;
+   }
+
+   public static Tuple2<Integer, Integer> shape(FloatMatrix m) {
+      return $(m.rows, m.columns);
+   }
+
+   public static FloatMatrix sigmoid(FloatMatrix in) {
+      return in.gt(0);
+//      return MatrixFunctions.expi(in.neg())
+//                            .addi(1.0f).rdiv(1.0f);
+   }
+
+   public static FloatMatrix softmax(FloatMatrix in) {
+      val max = in.columnMaxs();
+      val exp = MatrixFunctions.exp(in.subRowVector(max));
+      val sums = exp.columnSums();
+      return exp.diviRowVector(sums);
    }
 
    @Override

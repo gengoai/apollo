@@ -31,7 +31,6 @@ public abstract class BaseVector implements Vector, Serializable {
    private double weight;
    private double predicted;
 
-
    @Override
    public Vector add(@NonNull Vector rhs) {
       Preconditions.checkArgument(rhs.dimension() == dimension(), "Dimension mismatch");
@@ -526,6 +525,13 @@ public abstract class BaseVector implements Vector, Serializable {
          matrix.set(i, i, get(i));
       }
       return matrix;
+   }
+
+   @Override
+   public float[] toFloatArray() {
+      float[] out = new float[dimension()];
+      forEachSparse(e -> out[e.index] = (float) e.value);
+      return out;
    }
 
    @Override

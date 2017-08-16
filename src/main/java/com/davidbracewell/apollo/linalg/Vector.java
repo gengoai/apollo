@@ -613,6 +613,8 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
     */
    double[] toArray();
 
+   float[] toFloatArray();
+
    /**
     * Constructs a new <code>k x k</code> matrix with the elements of this vector on the diagonal.
     *

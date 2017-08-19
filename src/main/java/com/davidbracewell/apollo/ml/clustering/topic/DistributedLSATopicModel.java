@@ -22,7 +22,6 @@
 package com.davidbracewell.apollo.ml.clustering.topic;
 
 import com.davidbracewell.apollo.affinity.Similarity;
-import com.davidbracewell.apollo.linalg.Matrix;
 import com.davidbracewell.apollo.ml.clustering.Cluster;
 import com.davidbracewell.apollo.ml.clustering.Clusterer;
 import com.davidbracewell.stream.MStream;
@@ -32,6 +31,7 @@ import lombok.Setter;
 import org.apache.spark.mllib.linalg.DenseVector;
 import org.apache.spark.mllib.linalg.Vector;
 import org.apache.spark.mllib.linalg.distributed.RowMatrix;
+import org.jblas.DoubleMatrix;
 
 import static com.davidbracewell.apollo.linalg.SparkLinearAlgebra.sparkSVD;
 import static com.davidbracewell.apollo.linalg.SparkLinearAlgebra.toMatrix;
@@ -54,11 +54,11 @@ public class DistributedLSATopicModel extends Clusterer<LSAModel> {
       //since we have document x word, V is the word x component matrix
       // U = document x component, E = singular components, V = word x component
       // Transpose V to get component (topics) x words
-      Matrix topics = toMatrix(sparkSVD(mat, K).V().transpose());
+      DoubleMatrix topics = toMatrix(sparkSVD(mat, K).V().transpose());
       LSAModel model = new LSAModel(this, Similarity.Cosine.asDistanceMeasure(), K);
       for (int i = 0; i < K; i++) {
          Cluster c = new Cluster();
-         c.addPoint(topics.row(i).copy());
+         c.addPoint(new com.davidbracewell.apollo.linalg.DenseVector(topics.getRow(i).toArray()));
          model.addCluster(c);
       }
       return model;

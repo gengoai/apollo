@@ -1,99 +1,198 @@
-/*
- * (c) 2005 David B. Bracewell
- *
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
- */
-
 package com.davidbracewell.apollo.linalg;
 
-
 import com.davidbracewell.Copyable;
-import com.davidbracewell.function.SerializableFunction;
-import com.davidbracewell.tuple.Tuple2;
 import lombok.NonNull;
-import lombok.Value;
+import org.jblas.DoubleMatrix;
+import org.jblas.FloatMatrix;
 
-import java.util.Iterator;
-import java.util.function.Consumer;
 import java.util.function.DoubleBinaryOperator;
+import java.util.function.DoublePredicate;
 import java.util.function.DoubleUnaryOperator;
 
 /**
- * <p>Interface for Matrices</p>
+ * The interface M.
  *
  * @author David B. Bracewell
  */
-public interface Matrix extends Copyable<Matrix>, Iterable<Matrix.Entry> {
+public interface Matrix extends Copyable<Matrix> {
 
    /**
-    * Transpose matrix.
-    *
-    * @return the matrix
-    */
-   Matrix T();
-
-   /**
-    * Add matrix.
+    * Add m.
     *
     * @param other the other
-    * @return the matrix
+    * @return the m
     */
-   Matrix add(@NonNull Matrix other);
+   Matrix add(Matrix other);
 
    /**
-    * Add column matrix.
+    * Add m.
     *
-    * @param vector the vector
-    * @return the matrix
+    * @param scalar the scalar
+    * @return the m
     */
-   Matrix addColumn(@NonNull Vector vector);
+   Matrix add(double scalar);
 
    /**
-    * Add column self matrix.
+    * Add column vector m.
     *
-    * @param vector the vector
-    * @return the matrix
+    * @param columnVector the column vector
+    * @return the m
     */
-   Matrix addColumnSelf(@NonNull Vector vector);
+   Matrix addColumnVector(Matrix columnVector);
 
    /**
-    * Add row matrix.
+    * Add row vector m.
     *
-    * @param vector the vector
-    * @return the matrix
+    * @param rowVector the row vector
+    * @return the m
     */
-   Matrix addRow(@NonNull Vector vector);
+   Matrix addRowVector(Matrix rowVector);
 
    /**
-    * Add row self matrix.
-    *
-    * @param vector the vector
-    * @return the matrix
-    */
-   Matrix addRowSelf(@NonNull Vector vector);
-
-   /**
-    * Add self matrix.
+    * Addi m.
     *
     * @param other the other
-    * @return the matrix
+    * @return the m
     */
-   Matrix addSelf(@NonNull Matrix other);
+   Matrix addi(Matrix other);
+
+   /**
+    * Addi m.
+    *
+    * @param scalar the scalar
+    * @return the m
+    */
+   Matrix addi(double scalar);
+
+   /**
+    * Addi column vector m.
+    *
+    * @param columnVector the column vector
+    * @return the m
+    */
+   Matrix addiColumnVector(Matrix columnVector);
+
+   /**
+    * Addi row vector m.
+    *
+    * @param rowVector the row vector
+    * @return the m
+    */
+   Matrix addiRowVector(Matrix rowVector);
+
+   int[] columnArgMaxs();
+
+   int[] columnArgMins();
+
+   /**
+    * Column maxs m.
+    *
+    * @return the m
+    */
+   Matrix columnMaxs();
+
+   Matrix columnMeans();
+
+   /**
+    * Column mins m.
+    *
+    * @return the m
+    */
+   Matrix columnMins();
+
+   /**
+    * Column sums m.
+    *
+    * @return the m
+    */
+   Matrix columnSums();
+
+   /**
+    * Div m.
+    *
+    * @param other the other
+    * @return the m
+    */
+   Matrix div(Matrix other);
+
+   /**
+    * Div m.
+    *
+    * @param scalar the scalar
+    * @return the m
+    */
+   Matrix div(double scalar);
+
+   /**
+    * Div column vector m.
+    *
+    * @param columnVector the column vector
+    * @return the m
+    */
+   Matrix divColumnVector(Matrix columnVector);
+
+   /**
+    * Div row vector m.
+    *
+    * @param rowVector the row vector
+    * @return the m
+    */
+   Matrix divRowVector(Matrix rowVector);
+
+   /**
+    * Divi m.
+    *
+    * @param other the other
+    * @return the m
+    */
+   Matrix divi(Matrix other);
+
+   int numCols();
+
+   int numRows();
+
+   /**
+    * Divi m.
+    *
+    * @param scalar the scalar
+    * @return the m
+    */
+   Matrix divi(double scalar);
+
+   /**
+    * Divi column vector m.
+    *
+    * @param columnVector the column vector
+    * @return the m
+    */
+   Matrix diviColumnVector(Matrix columnVector);
+
+   /**
+    * Divi row vector m.
+    *
+    * @param rowVector the row vector
+    * @return the m
+    */
+   Matrix diviRowVector(Matrix rowVector);
+
+   /**
+    * Dot double.
+    *
+    * @param other the other
+    * @return the double
+    */
+   double dot(Matrix other);
+
+   /**
+    * Exp m.
+    *
+    * @return the m
+    */
+   Matrix exp();
+
+   double get(int r, int c);
+
+   double get(int i);
 
    /**
     * Gets column.
@@ -101,265 +200,24 @@ public interface Matrix extends Copyable<Matrix>, Iterable<Matrix.Entry> {
     * @param column the column
     * @return the column
     */
-   Vector column(int column);
+   Matrix getColumn(int column);
+
+   Matrix getColumns(int from, int to);
 
    /**
-    * Column iterator iterator.
+    * Gets columns.
     *
-    * @return the iterator
+    * @param cindexes the cindexes
+    * @return the columns
     */
-   Iterator<Vector> columnIterator();
+   Matrix getColumns(int[] cindexes);
 
    /**
-    * Decrement matrix.
+    * Gets element type.
     *
-    * @param row    the row
-    * @param col    the col
-    * @param amount the amount
-    * @return the matrix
+    * @return the element type
     */
-   Matrix decrement(int row, int col, double amount);
-
-   /**
-    * Decrement matrix.
-    *
-    * @param row the row
-    * @param col the col
-    * @return the matrix
-    */
-   Matrix decrement(int row, int col);
-
-   /**
-    * Diag matrix.
-    *
-    * @return the matrix
-    */
-   Matrix diag();
-
-   /**
-    * Diag vector vector.
-    *
-    * @return the vector
-    */
-   Vector diagVector();
-
-   /**
-    * Dot vector.
-    *
-    * @param vector the vector
-    * @return the vector
-    */
-   Matrix dot(Vector vector);
-
-   Matrix dot(Matrix matrix);
-
-   Matrix ebeMultiply(Matrix matrix);
-
-   Matrix ebeMultiplySelf(Matrix matrix);
-
-   /**
-    * For each column.
-    *
-    * @param consumer the consumer
-    */
-   void forEachColumn(@NonNull Consumer<Vector> consumer);
-
-   /**
-    * For each ordered sparse.
-    *
-    * @param consumer the consumer
-    */
-   void forEachOrderedSparse(@NonNull Consumer<Matrix.Entry> consumer);
-
-   /**
-    * For each row.
-    *
-    * @param consumer the consumer
-    */
-   void forEachRow(@NonNull Consumer<Vector> consumer);
-
-   /**
-    * For each sparse.
-    *
-    * @param consumer the consumer
-    */
-   void forEachSparse(@NonNull Consumer<Matrix.Entry> consumer);
-
-   /**
-    * Get double.
-    *
-    * @param row    the row
-    * @param column the column
-    * @return the double
-    */
-   double get(int row, int column);
-
-   /**
-    * Increment matrix.
-    *
-    * @param value the value
-    * @return the matrix
-    */
-   Matrix increment(double value);
-
-   /**
-    * Increment matrix.
-    *
-    * @param row the row
-    * @param col the col
-    * @return the matrix
-    */
-   Matrix increment(int row, int col);
-
-   /**
-    * Increment matrix.
-    *
-    * @param row    the row
-    * @param col    the col
-    * @param amount the amount
-    * @return the matrix
-    */
-   Matrix increment(int row, int col, double amount);
-
-   /**
-    * Increment self.
-    *
-    * @param value the value
-    * @return the matrix
-    */
-   Matrix incrementSelf(double value);
-
-   boolean isDense();
-
-   /**
-    * Is sparse.
-    *
-    * @return the boolean
-    */
-   boolean isSparse();
-
-   @Override
-   Iterator<Entry> iterator();
-
-   /**
-    * Map matrix.
-    *
-    * @param operator the operator
-    * @return the matrix
-    */
-   Matrix map(@NonNull DoubleUnaryOperator operator);
-
-   /**
-    * Map column matrix.
-    *
-    * @param vector   the vector
-    * @param operator the operator
-    * @return the matrix
-    */
-   Matrix mapColumn(@NonNull Vector vector, @NonNull DoubleBinaryOperator operator);
-
-   /**
-    * Map column self matrix.
-    *
-    * @param vector   the vector
-    * @param operator the operator
-    * @return the matrix
-    */
-   Matrix mapColumnSelf(@NonNull Vector vector, @NonNull DoubleBinaryOperator operator);
-
-   /**
-    * Map row matrix.
-    *
-    * @param vector   the vector
-    * @param operator the operator
-    * @return the matrix
-    */
-   Matrix mapRow(@NonNull Vector vector, @NonNull DoubleBinaryOperator operator);
-
-   /**
-    * Map row matrix.
-    *
-    * @param function the function
-    * @return the matrix
-    */
-   Matrix mapRow(@NonNull SerializableFunction<Vector, Vector> function);
-
-   /**
-    * Map row self matrix.
-    *
-    * @param vector   the vector
-    * @param operator the operator
-    * @return the matrix
-    */
-   Matrix mapRowSelf(@NonNull Vector vector, @NonNull DoubleBinaryOperator operator);
-
-   /**
-    * Map row self matrix.
-    *
-    * @param function the function
-    * @return the matrix
-    */
-   Matrix mapRowSelf(@NonNull SerializableFunction<Vector, Vector> function);
-
-   /**
-    * Map self matrix.
-    *
-    * @param operator the operator
-    * @return the matrix
-    */
-   Matrix mapSelf(@NonNull DoubleUnaryOperator operator);
-
-   /**
-    * Multiply matrix.
-    *
-    * @param m the m
-    * @return the matrix
-    */
-   Matrix multiply(@NonNull Matrix m);
-
-   /**
-    * Multiply vector matrix.
-    *
-    * @param v the v
-    * @return the matrix
-    */
-   Matrix multiplyVector(@NonNull Vector v);
-
-   /**
-    * Multiply vector self matrix.
-    *
-    * @param v the v
-    * @return the matrix
-    */
-   Matrix multiplyVectorSelf(@NonNull Vector v);
-
-   /**
-    * Non zero iterator iterator.
-    *
-    * @return the iterator
-    */
-   Iterator<Matrix.Entry> nonZeroIterator();
-
-   /**
-    * Column dimension.
-    *
-    * @return the int
-    */
-   int numberOfColumns();
-
-   /**
-    * Row dimension.
-    *
-    * @return the int
-    */
-   int numberOfRows();
-
-   /**
-    * Ordered non zero iterator iterator.
-    *
-    * @return the iterator
-    */
-   Iterator<Matrix.Entry> orderedNonZeroIterator();
+   ElementType getElementType();
 
    /**
     * Gets row.
@@ -367,143 +225,462 @@ public interface Matrix extends Copyable<Matrix>, Iterable<Matrix.Entry> {
     * @param row the row
     * @return the row
     */
-   Vector row(int row);
+   Matrix getRow(int row);
 
    /**
-    * Row iterator iterator.
+    * Gets rows.
     *
-    * @return the iterator
+    * @param rindexes the rindexes
+    * @return the rows
     */
-   Iterator<Vector> rowIterator();
+   Matrix getRows(int[] rindexes);
+
+   Matrix getRows(int from, int to);
 
    /**
-    * Scale matrix.
+    * Is column vector boolean.
+    *
+    * @return the boolean
+    */
+   boolean isColumnVector();
+
+   /**
+    * Is empty boolean.
+    *
+    * @return the boolean
+    */
+   boolean isEmpty();
+
+   /**
+    * Is infinite m.
+    *
+    * @return the m
+    */
+   Matrix isInfinite();
+
+   /**
+    * Is infinitei m.
+    *
+    * @return the m
+    */
+   Matrix isInfinitei();
+
+   /**
+    * Is lower triangular boolean.
+    *
+    * @return the boolean
+    */
+   boolean isLowerTriangular();
+
+   /**
+    * Is na n m.
+    *
+    * @return the m
+    */
+   Matrix isNaN();
+
+   /**
+    * Is na ni m.
+    *
+    * @return the m
+    */
+   Matrix isNaNi();
+
+   /**
+    * Is row vector boolean.
+    *
+    * @return the boolean
+    */
+   boolean isRowVector();
+
+   /**
+    * Is scalar boolean.
+    *
+    * @return the boolean
+    */
+   boolean isScalar();
+
+   /**
+    * Is square boolean.
+    *
+    * @return the boolean
+    */
+   boolean isSquare();
+
+   /**
+    * Is upper triangular boolean.
+    *
+    * @return the boolean
+    */
+   boolean isUpperTriangular();
+
+   /**
+    * Is vector boolean.
+    *
+    * @return the boolean
+    */
+   boolean isVector();
+
+   /**
+    * Log m.
+    *
+    * @return the m
+    */
+   Matrix log();
+
+   /**
+    * Map m.
+    *
+    * @param operator the operator
+    * @return the m
+    */
+   Matrix map(DoubleUnaryOperator operator);
+
+   /**
+    * Map m.
+    *
+    * @param operator the operator
+    * @param other    the other
+    * @return the m
+    */
+   Matrix map(DoubleBinaryOperator operator, Matrix other);
+
+   /**
+    * Mapi m.
+    *
+    * @param operator the operator
+    * @return the m
+    */
+   Matrix mapi(DoubleUnaryOperator operator);
+
+   /**
+    * Mapi m.
+    *
+    * @param operator the operator
+    * @param other    the other
+    * @return the m
+    */
+   Matrix mapi(DoubleBinaryOperator operator, Matrix other);
+
+   /**
+    * Max m.
+    *
+    * @param scalar the scalar
+    * @return the m
+    */
+   Matrix max(double scalar);
+
+   /**
+    * Max m.
     *
     * @param other the other
-    * @return the matrix
+    * @return the m
     */
-   Matrix scale(@NonNull Matrix other);
+   Matrix max(Matrix other);
 
    /**
-    * Scale matrix.
+    * Maxi m.
     *
-    * @param value the value
-    * @return the matrix
+    * @param scalar the scalar
+    * @return the m
     */
-   Matrix scale(double value);
+   Matrix maxi(double scalar);
 
    /**
-    * Scale matrix.
-    *
-    * @param r      the r
-    * @param c      the c
-    * @param amount the amount
-    * @return the matrix
-    */
-   Matrix scale(int r, int c, double amount);
-
-   /**
-    * Scale self matrix.
+    * Maxi m.
     *
     * @param other the other
-    * @return the matrix
+    * @return the m
     */
-   Matrix scaleSelf(Matrix other);
+   Matrix maxi(Matrix other);
 
    /**
-    * Scale self.
+    * Mean double.
     *
-    * @param value the value
-    * @return the matrix
+    * @return the double
     */
-   Matrix scaleSelf(double value);
+   double mean();
 
    /**
-    * Set void.
-    *
-    * @param row    the row
-    * @param column the column
-    * @param value  the value
-    * @return the matrix
-    */
-   Matrix set(int row, int column, double value);
-
-   /**
-    * Sets column vector.
-    *
-    * @param column the column
-    * @param vector the vector
-    * @return the column
-    */
-   Matrix setColumn(int column, @NonNull Vector vector);
-
-   /**
-    * Sets row vector.
-    *
-    * @param row    the row
-    * @param vector the vector
-    * @return the row
-    */
-   Matrix setRow(int row, Vector vector);
-
-   /**
-    * The shape of the matrix as <code>number of rows</code>, <code>number of columns</code> tuple
-    *
-    * @return the shape
-    */
-   Tuple2<Integer, Integer> shape();
-
-   Matrix slice(int rowFrom, int rowTo, int colFrom, int colTo);
-
-   Matrix slice(int rowFrom, int colFrom);
-
-   /**
-    * Subtract matrix.
+    * Mmul m.
     *
     * @param other the other
-    * @return the matrix
+    * @return the m
     */
-   Matrix subtract(@NonNull Matrix other);
+   Matrix mmul(Matrix other);
 
    /**
-    * Subtract column matrix.
-    *
-    * @param vector the vector
-    * @return the matrix
-    */
-   Matrix subtractColumn(@NonNull Vector vector);
-
-   /**
-    * Subtract column self matrix.
-    *
-    * @param vector the vector
-    * @return the matrix
-    */
-   Matrix subtractColumnSelf(@NonNull Vector vector);
-
-   /**
-    * Subtract row matrix.
-    *
-    * @param vector the vector
-    * @return the matrix
-    */
-   Matrix subtractRow(@NonNull Vector vector);
-
-   /**
-    * Subtract row self matrix.
-    *
-    * @param vector the vector
-    * @return the matrix
-    */
-   Matrix subtractRowSelf(@NonNull Vector vector);
-
-   /**
-    * Subtract self matrix.
+    * Mmuli m.
     *
     * @param other the other
-    * @return the matrix
+    * @return the m
     */
-   Matrix subtractSelf(@NonNull Matrix other);
+   Matrix mmuli(Matrix other);
+
+   /**
+    * Mul m.
+    *
+    * @param other the other
+    * @return the m
+    */
+   Matrix mul(Matrix other);
+
+   /**
+    * Mul m.
+    *
+    * @param scalar the scalar
+    * @return the m
+    */
+   Matrix mul(double scalar);
+
+   /**
+    * Mul column vector m.
+    *
+    * @param columnVector the column vector
+    * @return the m
+    */
+   Matrix mulColumnVector(Matrix columnVector);
+
+   /**
+    * Mul row vector m.
+    *
+    * @param rowVector the row vector
+    * @return the m
+    */
+   Matrix mulRowVector(Matrix rowVector);
+
+   /**
+    * Muli m.
+    *
+    * @param other the other
+    * @return the m
+    */
+   Matrix muli(Matrix other);
+
+   /**
+    * Muli m.
+    *
+    * @param scalar the scalar
+    * @return the m
+    */
+   Matrix muli(double scalar);
+
+   /**
+    * Muli column vector m.
+    *
+    * @param columnVector the column vector
+    * @return the m
+    */
+   Matrix muliColumnVector(Matrix columnVector);
+
+   /**
+    * Muli row vector m.
+    *
+    * @param rowVector the row vector
+    * @return the m
+    */
+   Matrix muliRowVector(Matrix rowVector);
+
+   /**
+    * Neg m.
+    *
+    * @return the m
+    */
+   Matrix neg();
+
+   /**
+    * Negi m.
+    *
+    * @return the m
+    */
+   Matrix negi();
+
+   /**
+    * Predicate m.
+    *
+    * @param predicate the predicate
+    * @return the m
+    */
+   Matrix predicate(DoublePredicate predicate);
+
+   /**
+    * Predicatei m.
+    *
+    * @param predicate the predicate
+    * @return the m
+    */
+   Matrix predicatei(DoublePredicate predicate);
+
+   /**
+    * Rdiv m.
+    *
+    * @param other the other
+    * @return the m
+    */
+   default Matrix rdiv(@NonNull Matrix other) {
+      return other.div(this);
+   }
+
+   /**
+    * Rdiv m.
+    *
+    * @param scalar the scalar
+    * @return the m
+    */
+   Matrix rdiv(double scalar);
+
+   /**
+    * Rdivi m.
+    *
+    * @param other the other
+    * @return the m
+    */
+   Matrix rdivi(Matrix other);
+
+   /**
+    * Rdivi m.
+    *
+    * @param scalar the scalar
+    * @return the m
+    */
+   Matrix rdivi(double scalar);
+
+   int[] rowArgMaxs();
+
+   int[] rowArgMins();
+
+   Matrix rowMaxs();
+
+   Matrix rowMeans();
+
+   Matrix rowMins();
+
+   /**
+    * Row sums m.
+    *
+    * @return the m
+    */
+   Matrix rowSums();
+
+   /**
+    * Rsub m.
+    *
+    * @param other the other
+    * @return the m
+    */
+   default Matrix rsub(@NonNull Matrix other) {
+      return other.sub(this);
+   }
+
+   /**
+    * Rsub m.
+    *
+    * @param scalar the scalar
+    * @return the m
+    */
+   Matrix rsub(double scalar);
+
+   /**
+    * Rsubi m.
+    *
+    * @param other the other
+    * @return the m
+    */
+   Matrix rsubi(Matrix other);
+
+   /**
+    * Rsubi m.
+    *
+    * @param scalar the scalar
+    * @return the m
+    */
+   Matrix rsubi(double scalar);
+
+   /**
+    * Select m.
+    *
+    * @param where the where
+    * @return the m
+    */
+   Matrix select(Matrix where);
+
+   /**
+    * Selecti m.
+    *
+    * @param where the where
+    * @return the m
+    */
+   Matrix selecti(Matrix where);
+
+   void set(int r, int c, double value);
+
+   void setColumn(int c, Matrix columnVector);
+
+   void setRow(int r, Matrix rowVector);
+
+   /**
+    * Sub m.
+    *
+    * @param other the other
+    * @return the m
+    */
+   Matrix sub(Matrix other);
+
+   /**
+    * Sub m.
+    *
+    * @param scalar the scalar
+    * @return the m
+    */
+   Matrix sub(double scalar);
+
+   /**
+    * Sub column vector m.
+    *
+    * @param columnVector the column vector
+    * @return the m
+    */
+   Matrix subColumnVector(Matrix columnVector);
+
+   /**
+    * Sub row vector m.
+    *
+    * @param rowVector the row vector
+    * @return the m
+    */
+   Matrix subRowVector(Matrix rowVector);
+
+   /**
+    * Subi m.
+    *
+    * @param other the other
+    * @return the m
+    */
+   Matrix subi(Matrix other);
+
+   /**
+    * Subi m.
+    *
+    * @param scalar the scalar
+    * @return the m
+    */
+   Matrix subi(double scalar);
+
+   /**
+    * Subi column vector m.
+    *
+    * @param columnVector the column vector
+    * @return the m
+    */
+   Matrix subiColumnVector(Matrix columnVector);
+
+   /**
+    * Subi row vector m.
+    *
+    * @param rowVector the row vector
+    * @return the m
+    */
+   Matrix subiRowVector(Matrix rowVector);
 
    /**
     * Sum double.
@@ -513,37 +690,56 @@ public interface Matrix extends Copyable<Matrix>, Iterable<Matrix.Entry> {
    double sum();
 
    /**
-    * To array.
+    * To double array double [ ].
     *
-    * @return the double [ ] [ ]
+    * @return the double [ ]
     */
-   double[][] toArray();
+   double[] toDoubleArray();
 
    /**
-    * Converts the matrix to a dense matrix.
+    * To double matrix double matrix.
     *
-    * @return the dense matrix
+    * @return the double matrix
     */
-   DenseMatrix toDense();
+   DoubleMatrix toDoubleMatrix();
 
    /**
-    * The type Entry.
+    * To float array float [ ].
+    *
+    * @return the float [ ]
     */
-   @Value
-   class Entry {
-      /**
-       * The Row.
-       */
-      public int row;
-      /**
-       * The Column.
-       */
-      public int column;
-      /**
-       * The Value.
-       */
-      public double value;
+   float[] toFloatArray();
 
+   /**
+    * To float matrix float matrix.
+    *
+    * @return the float matrix
+    */
+   FloatMatrix toFloatMatrix();
+
+   /**
+    * Transpose m.
+    *
+    * @return the m
+    */
+   Matrix transpose();
+
+   /**
+    * The enum Element type.
+    */
+   enum ElementType {
+      /**
+       * Float element type.
+       */
+      FLOAT,
+      /**
+       * Double element type.
+       */
+      DOUBLE,
+      /**
+       * Int element type.
+       */
+      INT
    }
 
-}//END OF Matrix
+}//END OF M

@@ -28,6 +28,7 @@ import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.tuple.Tuple2;
 import lombok.NonNull;
 import lombok.Value;
+import org.jblas.FloatMatrix;
 
 import java.io.Serializable;
 import java.util.Iterator;
@@ -507,6 +508,10 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
     */
    Vector multiplySelf(@NonNull Vector rhs);
 
+   default Iterable<Entry> nonZeroEntries() {
+      return Collect.asIterable(nonZeroIterator());
+   }
+
    /**
     * Creates an <code>Iterator</code> over non-zero values in the vector. The order is optimized based on the
     * underlying structure.
@@ -549,16 +554,16 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
    Vector set(int index, double value);
 
    /**
-    * The current number of values stored in the underlying implementation. Note that size may not equal k for
-    * sparse implementations.
+    * The current number of values stored in the underlying implementation. Note that size may not equal k for sparse
+    * implementations.
     *
     * @return the number of values stored in the underlying implementation
     */
    int size();
 
    /**
-    * Constructs a new vector whose k is <code>to-from</code> and whose values are come from this vector at
-    * indexes <code>from</code> to <code>to</code>. Note that to is not inclusive.
+    * Constructs a new vector whose k is <code>to-from</code> and whose values are come from this vector at indexes
+    * <code>from</code> to <code>to</code>. Note that to is not inclusive.
     *
     * @param from Starting point for the slice (inclusive)
     * @param to   Ending point for the slice (not inclusive)
@@ -613,21 +618,21 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
     */
    double[] toArray();
 
-   float[] toFloatArray();
-
    /**
     * Constructs a new <code>k x k</code> matrix with the elements of this vector on the diagonal.
     *
     * @return the matrix
     */
-   Matrix toDiagMatrix();
+   FloatMatrix toDiagMatrix();
+
+   float[] toFloatArray();
 
    /**
     * Constructs a new <code>1 x k</code> matrix containing this vector.
     *
     * @return the matrix
     */
-   Matrix toMatrix();
+   FloatMatrix toMatrix();
 
    /**
     * To unit vector vector.
@@ -641,8 +646,7 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
     *
     * @return the matrix
     */
-   Matrix transpose();
-
+   FloatMatrix transpose();
 
    /**
     * Sets all elements in the vector to zero.
@@ -650,10 +654,6 @@ public interface Vector extends Iterable<Vector.Entry>, Copyable<Vector> {
     * @return This vector
     */
    Vector zero();
-
-   default Iterable<Entry> nonZeroEntries() {
-      return Collect.asIterable(nonZeroIterator());
-   }
 
    /**
     * Defines an entry in the vector using its coordinate (index) and its value

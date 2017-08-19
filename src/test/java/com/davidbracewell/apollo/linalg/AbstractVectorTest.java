@@ -69,12 +69,12 @@ public abstract class AbstractVectorTest {
 
    @Test
    public void toMatrix() throws Exception {
-      assertEquals($(1, 10), v.toMatrix().shape());
+      assertEquals($(1, 10), $(v.toMatrix().rows, v.toMatrix().columns));
    }
 
    @Test
    public void transpose() throws Exception {
-      assertEquals($(10, 1), v.transpose().shape());
+      assertEquals($(10, 1), $(v.transpose().rows, v.transpose().columns));
    }
 
    @Test

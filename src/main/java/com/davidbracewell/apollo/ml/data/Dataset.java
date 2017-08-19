@@ -22,7 +22,6 @@
 package com.davidbracewell.apollo.ml.data;
 
 import com.davidbracewell.Copyable;
-import com.davidbracewell.apollo.linalg.Matrix;
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.*;
 import com.davidbracewell.apollo.ml.preprocess.Preprocessor;
@@ -233,14 +232,6 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
       }
       log.fine("Encoded {0} Features and {1} Labels", getFeatureEncoder().size(), getLabelEncoder().size());
       return this;
-   }
-
-   private Matrix fillMatrix(Matrix m) {
-      int row = 0;
-      for (Iterator<T> ii = iterator(); ii.hasNext(); row++) {
-         m.setRow(row, ii.next().asInstances().get(0).toVector(encoders));
-      }
-      return m;
    }
 
    /**

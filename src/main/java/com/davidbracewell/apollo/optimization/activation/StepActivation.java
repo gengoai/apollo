@@ -1,5 +1,6 @@
 package com.davidbracewell.apollo.optimization.activation;
 
+import com.davidbracewell.apollo.linalg.Matrix;
 import com.davidbracewell.apollo.linalg.Vector;
 
 /**
@@ -35,9 +36,20 @@ public class StepActivation implements Activation {
 
 
    @Override
+   public Matrix apply(Matrix m) {
+      return m.predicate(x -> x > threshold);
+   }
+
+   @Override
+   public Matrix valueGradient(Matrix m) {
+      return m;
+   }
+
+   @Override
    public double valueGradient(double activated) {
       return activated;
    }
+
 
    @Override
    public Vector valueGradient(Vector activated) {

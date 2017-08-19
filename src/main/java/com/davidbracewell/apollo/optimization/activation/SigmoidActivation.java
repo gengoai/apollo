@@ -1,5 +1,7 @@
 package com.davidbracewell.apollo.optimization.activation;
 
+import com.davidbracewell.apollo.linalg.Matrix;
+
 /**
  * @author David B. Bracewell
  */
@@ -15,6 +17,13 @@ public class SigmoidActivation implements Activation {
       return z / (1 + z);
    }
 
+
+   @Override
+   public Matrix apply(Matrix m) {
+      return m.map(this::apply);
+   }
+
+
    @Override
    public boolean isProbabilistic() {
       return true;
@@ -24,5 +33,11 @@ public class SigmoidActivation implements Activation {
    public double valueGradient(double activated) {
       return activated * (1.0 - activated);
    }
+
+   @Override
+   public Matrix valueGradient(Matrix m) {
+      return m.mul(m.rsub(1.0f));
+   }
+
 
 }// END OF SigmoidActivation

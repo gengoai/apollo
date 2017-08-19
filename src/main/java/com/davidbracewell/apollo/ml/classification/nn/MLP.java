@@ -1,64 +1,35 @@
 package com.davidbracewell.apollo.ml.classification.nn;
 
+import com.davidbracewell.apollo.linalg.DenseFloatMatrix;
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.classification.Classification;
 import com.davidbracewell.apollo.ml.classification.Classifier;
 import com.davidbracewell.apollo.ml.classification.ClassifierLearner;
+import com.davidbracewell.apollo.optimization.activation.Activation;
 import lombok.val;
-import org.jblas.DoubleMatrix;
-import org.jblas.MatrixFunctions;
 
 /**
  * @author David B. Bracewell
  */
 public class MLP extends Classifier {
-   DoubleMatrix w1;
-   DoubleMatrix w2;
-   DoubleMatrix b1;
-   DoubleMatrix b2;
+   DenseFloatMatrix w1;
+   DenseFloatMatrix w2;
+   Activation l1Activation = Activation.SIGMOID;
+   DenseFloatMatrix b1;
+   DenseFloatMatrix b2;
+   Activation l2Activation = Activation.SOFTMAX;
 
    protected MLP(ClassifierLearner learner) {
       super(learner);
    }
 
-   public static DoubleMatrix dsigmoid(DoubleMatrix in) {
-      return in.mul(DoubleMatrix.ones(in.rows, in.columns).subi(in));
-   }
-
-   public static DoubleMatrix relu(DoubleMatrix in){
-      return in.max(0);//DoubleMatrix.zeros(in.length));
-   }
-
-   public static DoubleMatrix drelu(DoubleMatrix in) {
-      return in.gt(0);
-   }
-
-
-   public static DoubleMatrix sigmoid(DoubleMatrix in) {
-      return MatrixFunctions.expi(in.neg())
-                            .addi(1.0f).rdiv(1.0f);
-   }
-
-   public static DoubleMatrix softmax(DoubleMatrix in) {
-      val max = in.columnMaxs();
-      val exp = MatrixFunctions.exp(in.subRowVector(max));
-      val sums = exp.columnSums();
-      return exp.diviRowVector(sums);
-   }
 
    @Override
    public Classification classify(Vector vector) {
-      DoubleMatrix in = new DoubleMatrix(vector.dimension(), 1, vector.toArray());
-      val a1 = sigmoid((w1.mmul(in)).addiColumnVector(b1));
-      val a2 = softmax((w2.mmul(a1)).addiColumnVector(b2));
-      return createResult(a2.toArray());
+      DenseFloatMatrix in = new DenseFloatMatrix(vector.dimension(), 1, vector.toFloatArray());
+      val a1 = l1Activation.apply(w1.mmul(in).addiColumnVector(b1));
+      val a2 = l2Activation.apply(w2.mmul(a1).addiColumnVector(b2));
+      return createResult(a2.toDoubleArray());
    }
 
-   private double[] toDouble(float[] array) {
-      double[] d = new double[array.length];
-      for (int i = 0; i < array.length; i++) {
-         d[i] = array[i];
-      }
-      return d;
-   }
 }// END OF MLP

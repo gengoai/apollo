@@ -9,6 +9,9 @@ import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.mllib.linalg.Vector;
 import org.apache.spark.mllib.linalg.Vectors;
 import org.apache.spark.mllib.linalg.distributed.RowMatrix;
+import org.jblas.DoubleMatrix;
+
+import java.util.List;
 
 /**
  * Convenience methods for working Spark's linear algebra structures and methods
@@ -22,32 +25,31 @@ public final class SparkLinearAlgebra {
    }
 
    /**
-    * Performs Principal component analysis on the given Spark <code>RowMatrix</code> with the given number of
-    * principle components
+    * Performs Principal component analysis on the given Spark <code>RowMatrix</code> with the given number of principle
+    * components
     *
     * @param mat                    the matrix to perform PCA on
     * @param numPrincipalComponents the number of principal components
     */
-   public static Matrix pca(@NonNull RowMatrix mat, int numPrincipalComponents) {
+   public static DoubleMatrix pca(@NonNull RowMatrix mat, int numPrincipalComponents) {
       Preconditions.checkArgument(numPrincipalComponents > 0, "Number of principal components must be > 0");
       return toMatrix(mat.multiply(mat.computePrincipalComponents(numPrincipalComponents)));
    }
 
    /**
-    * Performs Principal component analysis on the given Matrix with the given number of
-    * principle components
+    * Performs Principal component analysis on the given Matrix with the given number of principle components
     *
     * @param mat                    the matrix to perform PCA on
     * @param numPrincipalComponents the number of principal components
     */
-   public static Matrix pca(@NonNull Matrix mat, int numPrincipalComponents) {
+   public static DoubleMatrix pca(@NonNull DoubleMatrix mat, int numPrincipalComponents) {
       Preconditions.checkArgument(numPrincipalComponents > 0, "Number of principal components must be > 0");
       return toMatrix(toRowMatrix(mat).computePrincipalComponents(numPrincipalComponents));
    }
 
    /**
-    * Performs Principal component analysis on the given Spark <code>RowMatrix</code> with the given number of
-    * principle components
+    * Performs Principal component analysis on the given Spark <code>RowMatrix</code> with the given number of principle
+    * components
     *
     * @param mat                    the matrix to perform PCA on
     * @param numPrincipalComponents the number of principal components
@@ -70,17 +72,17 @@ public final class SparkLinearAlgebra {
    }
 
    /**
-    * Performs Singular Value Decomposition on a Spark <code>RowMatrix</code> returning the decomposition as an array
-    * of Apollo matrices in (U,S,V) order.
+    * Performs Singular Value Decomposition on a Spark <code>RowMatrix</code> returning the decomposition as an array of
+    * Apollo matrices in (U,S,V) order.
     *
     * @param mat the matrix to perform svd on
     * @param K   the number of singular values
     * @return Thee resulting decomposition
     */
-   public static Matrix[] svd(@NonNull RowMatrix mat, int K) {
+   public static DoubleMatrix[] svd(@NonNull RowMatrix mat, int K) {
       org.apache.spark.mllib.linalg.SingularValueDecomposition<RowMatrix, org.apache.spark.mllib.linalg.Matrix> svd = sparkSVD(
          mat, K);
-      return new Matrix[]{toMatrix(svd.U()), toDiagonalMatrix(svd.s()), toMatrix(svd.V())};
+      return new DoubleMatrix[]{toMatrix(svd.U()), toDiagonalMatrix(svd.s()), toMatrix(svd.V())};
    }
 
    /**
@@ -91,10 +93,10 @@ public final class SparkLinearAlgebra {
     * @param K   the number of singular values
     * @return Thee resulting decomposition
     */
-   public static Matrix[] svd(@NonNull Matrix mat, int K) {
+   public static DoubleMatrix[] svd(@NonNull DoubleMatrix mat, int K) {
       org.apache.spark.mllib.linalg.SingularValueDecomposition<RowMatrix, org.apache.spark.mllib.linalg.Matrix> svd = sparkSVD(
          toRowMatrix(mat), K);
-      return new Matrix[]{toMatrix(svd.U()), toDiagonalMatrix(svd.s()), toMatrix(svd.V())};
+      return new DoubleMatrix[]{toMatrix(svd.U()), toDiagonalMatrix(svd.s()), toMatrix(svd.V())};
    }
 
    /**
@@ -103,8 +105,8 @@ public final class SparkLinearAlgebra {
     * @param v the vector to convert
     * @return the diagonal matrix
     */
-   public static Matrix toDiagonalMatrix(@NonNull org.apache.spark.mllib.linalg.Vector v) {
-      return new DenseVector(v.toArray()).toDiagMatrix();
+   public static DoubleMatrix toDiagonalMatrix(@NonNull org.apache.spark.mllib.linalg.Vector v) {
+      return new DoubleMatrix(v.toArray()).diag();
    }
 
    /**
@@ -113,13 +115,13 @@ public final class SparkLinearAlgebra {
     * @param m the matrix to convert
     * @return the Apollo matrix
     */
-   public static Matrix toMatrix(@NonNull RowMatrix m) {
-      final Matrix mprime = new DenseMatrix((int) m.numRows(), (int) m.numCols());
+   public static DoubleMatrix toMatrix(@NonNull RowMatrix m) {
+      final DoubleMatrix mprime = new DoubleMatrix((int) m.numRows(), (int) m.numCols());
       m.rows()
        .toJavaRDD()
        .zipWithIndex()
        .toLocalIterator()
-       .forEachRemaining(t -> mprime.setRow(t._2().intValue(), new DenseVector(t._1().toArray())));
+       .forEachRemaining(t -> mprime.putRow(t._2().intValue(), Matrices.doubleRowMatrix(t._1.toArray())));
       return mprime;
    }
 
@@ -129,14 +131,8 @@ public final class SparkLinearAlgebra {
     * @param m the matrix to convert
     * @return the Apollo matrix
     */
-   public static Matrix toMatrix(@NonNull org.apache.spark.mllib.linalg.Matrix m) {
-      Matrix mprime = new DenseMatrix(m.numRows(), m.numCols());
-      for (int i = 0; i < m.numRows(); i++) {
-         for (int j = 0; j < m.numCols(); j++) {
-            mprime.set(i, j, m.apply(i, j));
-         }
-      }
-      return mprime;
+   public static DoubleMatrix toMatrix(@NonNull org.apache.spark.mllib.linalg.Matrix m) {
+      return new DoubleMatrix(m.numRows(), m.numCols(), m.toArray());
    }
 
    /**
@@ -145,11 +141,21 @@ public final class SparkLinearAlgebra {
     * @param m the matrix to convert
     * @return the RowMatrix
     */
-   public static RowMatrix toRowMatrix(Matrix m) {
+   public static RowMatrix toRowMatrix(DoubleMatrix m) {
       JavaRDD<Vector> rdd = StreamingContext
                                .distributed()
-                               .range(0, m.numberOfRows())
-                               .map(r -> Vectors.dense(m.row(r).toArray()))
+                               .range(0, m.rows)
+                               .map(r -> Vectors.dense(m.getRow(r).toArray()))
+                               .cache()
+                               .getRDD();
+      return new RowMatrix(rdd.rdd());
+   }
+
+   public static RowMatrix toRowMatrix(List<com.davidbracewell.apollo.linalg.Vector> vectors) {
+      JavaRDD<Vector> rdd = StreamingContext
+                               .distributed()
+                               .range(0, vectors.size())
+                               .map(r -> Vectors.dense(vectors.get(r).toArray()))
                                .cache()
                                .getRDD();
       return new RowMatrix(rdd.rdd());

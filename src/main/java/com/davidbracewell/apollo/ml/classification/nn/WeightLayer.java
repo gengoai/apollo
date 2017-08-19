@@ -20,7 +20,7 @@ public abstract class WeightLayer extends Layer {
    public WeightLayer(int inputSize, int outputSize, Activation activation, WeightInitializer weightInitializer) {
       super(inputSize, outputSize);
       this.activation = activation;
-      this.weights = weightInitializer.initialize(new WeightMatrix(outputSize, inputSize));
+      this.weights = new WeightMatrix(outputSize, inputSize);
    }
 
    @Override

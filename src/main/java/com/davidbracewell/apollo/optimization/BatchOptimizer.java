@@ -47,6 +47,7 @@ public class BatchOptimizer implements Optimizer, Loggable, Serializable {
       for (int i = 0; i < iterations; i++) {
          Stopwatch sw = Stopwatch.createStarted();
          double loss = 0d;
+         double numBatch = 0;
          for (Iterable<Vector> batch : stream.get().split(batchSize)) {
             final SubUpdate subUpdate = new SubUpdate();
             final LearningRate subLearningRate = new ConstantLearningRate(lr);
@@ -62,10 +63,11 @@ public class BatchOptimizer implements Optimizer, Loggable, Serializable {
             } else {
                loss += cwt.getCost();
             }
+            numBatch++;
          }
          sw.stop();
          if (reportInterval > 0 && ((i + 1) == terminationCriteria.maxIterations() || (i + 1) % reportInterval == 0)) {
-            logInfo("iteration={0}, totalLoss={1}, time={2}", (i + 1), loss, sw);
+            logInfo("iteration={0}, loss={1}, time={2}", (i + 1), (loss / numBatch), sw);
          }
          lastLoss = loss;
          if (terminationCriteria.check(lastLoss)) {

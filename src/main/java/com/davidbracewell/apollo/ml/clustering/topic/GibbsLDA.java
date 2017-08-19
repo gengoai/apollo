@@ -2,7 +2,7 @@ package com.davidbracewell.apollo.ml.clustering.topic;
 
 import com.davidbracewell.apollo.affinity.Similarity;
 import com.davidbracewell.apollo.distribution.ConditionalMultinomial;
-import com.davidbracewell.apollo.linalg.Matrix;
+import com.davidbracewell.apollo.linalg.Matrices;
 import com.davidbracewell.apollo.linalg.SparseVector;
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.clustering.Cluster;
@@ -60,7 +60,7 @@ public class GibbsLDA extends Clusterer<LDAModel> {
    private ConditionalMultinomial nd;
    private int V;
    private int M;
-   private Matrix documentMatrix;
+   private Matrices documentMatrix;
    private int[][] documents;
    private int[][] z;
    private Vector[] thetasum;

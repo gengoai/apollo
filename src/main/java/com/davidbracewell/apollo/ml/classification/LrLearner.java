@@ -4,16 +4,14 @@ import com.davidbracewell.apollo.linalg.SparseVector;
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.Feature;
 import com.davidbracewell.apollo.ml.Instance;
-import com.davidbracewell.apollo.ml.classification.nn.DenseLayer;
-import com.davidbracewell.apollo.ml.classification.nn.FeedForwardNetworkLearner;
-import com.davidbracewell.apollo.ml.classification.nn.OutputLayer;
+import com.davidbracewell.apollo.ml.classification.nn.slt.FeedForwardNetworkLearner;
+import com.davidbracewell.apollo.ml.classification.nn.slt.OutputLayer;
 import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.ml.data.source.DenseCSVDataSource;
 import com.davidbracewell.apollo.optimization.*;
 import com.davidbracewell.apollo.optimization.activation.Activation;
 import com.davidbracewell.apollo.optimization.loss.LogLoss;
 import com.davidbracewell.apollo.optimization.update.DeltaRule;
-import com.davidbracewell.conversion.Convert;
 import com.davidbracewell.guava.common.base.Stopwatch;
 import com.davidbracewell.io.Resources;
 import com.davidbracewell.io.resource.Resource;
@@ -27,7 +25,6 @@ import java.util.Random;
 
 import static com.davidbracewell.apollo.ml.classification.ClassifierEvaluation.crossValidation;
 import static com.davidbracewell.tuple.Tuples.$;
-import static org.jblas.MatrixFunctions.log;
 
 /**
  * Stochastic Gradient Descent Training for L1-regularized Log-linear Models with Cumulative Penalty
@@ -51,95 +48,107 @@ public class LrLearner extends BinaryClassifierLearner {
                                          .source(dataSource)
                                          .shuffle(new Random(1234));
 
-
-      dataset.encode();
-      int nL = dataset.getLabelEncoder().size();
-      int nF = dataset.getFeatureEncoder().size();
-      int X_size = dataset.size();
-      FloatMatrix X = FloatMatrix.zeros(nF, X_size);
-      FloatMatrix Y = FloatMatrix.zeros(nL, X_size);
-      dataset.asVectors()
-             .zipWithIndex()
-             .forEach((vec, column) -> {
-                         Y.put((int) vec.getLabelAsDouble(), column.intValue(), 1.0f);
-                         X.putColumn(column.intValue(),
-                                     new FloatMatrix(vec.dimension(), 1,
-                                                     Convert.convert(vec.toArray(),
-                                                                     float[].class)));
-                      }
-                     );
-      X.subiColumnVector(X.rowMeans())
-       .diviColumnVector(X.rowSums());
-
-      Stopwatch sw = Stopwatch.createStarted();
-
-      FloatMatrix w1 = rand(50, nF);
-      FloatMatrix w2 = rand(nL, 50);
-      FloatMatrix b1 = FloatMatrix.zeros(50, 1);
-      FloatMatrix b2 = FloatMatrix.zeros(nL, 1);
-      float lr = 0.005f;
-      for (int i = 0; i < 3000; i++) {
-         //Forward prop
-         val z1 = (w1.mmul(X)).addiColumnVector(b1);
-         val a1 = sigmoid(z1);
-         val z2 = (w2.mmul(a1)).addiColumnVector(b2);
-         val a2 = softmax(z2);
-
-         double cost = log(a2).mul(Y)
-                              .add(log(a2.rsub(1.0f)).mul(Y.rsub(1.0f)))
-                              .sum();
-
-         System.out.println(cost);
-
-         //backward prop
-         val dz2 = a2.sub(Y);
-         val dw2 = dz2.mmul(a1.transpose()).divi(X_size);
-         val db2 = dz2.rowSums().divi(X_size);
-         val dz1 = w2.transpose().mmul(dz2).muli(dsigmoid(a1));
-         val dw1 = dz1.mmul(X.transpose()).divi(X_size);
-         val db1 = dz1.rowSums().divi(X_size);
-
-         //Weight update
-         w2.subi(dw2.muli(lr));
-         b2.subi(db2.muli(lr));
-         w1.subi(dw1.muli(lr));
-         b1.subi(db1.muli(lr));
-      }
-
-      System.out.println(sw);
-      val a1 = sigmoid((w1.mmul(X)).addiColumnVector(b1));
-      val a2 = softmax((w2.mmul(a1)).addiColumnVector(b2));
-      val pred_Y = a2.columnArgmaxs();
-      val gold_Y = Y.columnArgmaxs();
-      double correct = 0;
-      for (int i = 0; i < pred_Y.length; i++) {
-         if (pred_Y[i] == gold_Y[i]) {
-            correct++;
-         }
-      }
-      System.out.println((correct / pred_Y.length));
-      if (Math.random() < 2) {
-         System.exit(0);
-      }
+      val timer = Stopwatch.createStarted();
+      crossValidation(dataset, () -> {
+//         return new SoftmaxLearner();
+         return FeedForwardNetworkLearner.builder()
+                                         .maxIterations(300)
+                                         .batchSize(32)
+                                         .reportInterval(-1)
+                                         .tolerance(1e-9)
+                                         .learningRate(new ConstantLearningRate(0.1))
+                                         .layer(OutputLayer.softmax())
+                                         .build();
+      }, 10)
+         .output(System.out);
+      System.out.println(timer);
 
 
-      crossValidation(dataset, () ->
-//      new SoftmaxLearner(),
-                                  FeedForwardNetworkLearner.builder()
-                                                           .layer(DenseLayer.relu().outputSize(50))
-                                                           .layer(OutputLayer.softmax())
-                                                           .learningRate(new ConstantLearningRate(0.1))
-                                                           .maxIterations(300)
-                                                           .batchSize(20)
-                                                           .reportInterval(0)
-                                                           .build(),
-                      10).output(System.out);
-      sw.stop();
-      System.out.println(sw);
+//      dataset.encode();
+//      int nL = dataset.getLabelEncoder().size();
+//      int nF = dataset.getFeatureEncoder().size();
+//      int X_size = dataset.size();
+//      FloatMatrix X = FloatMatrix.zeros(nF, X_size);
+//      FloatMatrix Y = FloatMatrix.zeros(nL, X_size);
+//      dataset.asVectors()
+//             .zipWithIndex()
+//             .forEach((vec, column) -> {
+//                         Y.put((int) vec.getLabelAsDouble(), column.intValue(), 1.0f);
+//                         X.putColumn(column.intValue(),
+//                                     new FloatMatrix(vec.dimension(), 1,
+//                                                     Convert.convert(vec.toArray(),
+//                                                                     float[].class)));
+//                      }
+//                     );
+//      X.subiColumnVector(X.rowMeans())
+//       .diviColumnVector(X.rowSums());
+//
+//      Stopwatch sw = Stopwatch.createStarted();
+//
+//      FloatMatrix w1 = rand(50, nF);
+//      FloatMatrix w2 = rand(nL, 50);
+//      FloatMatrix b1 = FloatMatrix.zeros(50, 1);
+//      FloatMatrix b2 = FloatMatrix.zeros(nL, 1);
+//      float lr = 0.005f;
+//      for (int i = 0; i < 3000; i++) {
+//         //Forward prop
+//         val z1 = (w1.mmul(X)).addiColumnVector(b1);
+//         val a1 = sigmoid(z1);
+//         val z2 = (w2.mmul(a1)).addiColumnVector(b2);
+//         val a2 = softmax(z2);
+//
+//         double cost = log(a2).mul(Y)
+//                              .add(log(a2.rsub(1.0f)).mul(Y.rsub(1.0f)))
+//                              .sum();
+//
+//         System.out.println(cost);
+//
+//         //backward prop
+//         val dz2 = a2.sub(Y);
+//         val dw2 = dz2.mmul(a1.transpose()).divi(X_size);
+//         val db2 = dz2.rowSums().divi(X_size);
+//         val dz1 = w2.transpose().mmul(dz2).muli(dsigmoid(a1));
+//         val dw1 = dz1.mmul(X.transpose()).divi(X_size);
+//         val db1 = dz1.rowSums().divi(X_size);
+//
+//         //Weight update
+//         w2.subi(dw2.muli(lr));
+//         b2.subi(db2.muli(lr));
+//         w1.subi(dw1.muli(lr));
+//         b1.subi(db1.muli(lr));
+//      }
+//
+//      System.out.println(sw);
+//      val a1 = sigmoid((w1.mmul(X)).addiColumnVector(b1));
+//      val a2 = softmax((w2.mmul(a1)).addiColumnVector(b2));
+//      val pred_Y = a2.columnArgmaxs();
+//      val gold_Y = Y.columnArgmaxs();
+//      double correct = 0;
+//      for (int i = 0; i < pred_Y.length; i++) {
+//         if (pred_Y[i] == gold_Y[i]) {
+//            correct++;
+//         }
+//      }
+//      System.out.println((correct / pred_Y.length));
+//      if (Math.random() < 2) {
+//         System.exit(0);
+//      }
+//
+//
+//      crossValidation(dataset, () ->
+////      new SoftmaxLearner(),
+//                                  FeedForwardNetworkLearner.builder()
+//                                                           .layer(DenseLayer.relu().outputSize(50))
+//                                                           .layer(OutputLayer.softmax())
+//                                                           .learningRate(new ConstantLearningRate(0.1))
+//                                                           .maxIterations(300)
+//                                                           .batchSize(20)
+//                                                           .reportInterval(0)
+//                                                           .build(),
+//                      10).output(System.out);
+//      sw.stop();
+//      System.out.println(sw);
 
-//      crossValidation(dataset, () -> new BGD().oneVsRest(), 10).output(System.out);
-//      crossValidation(dataset, SoftmaxLearner::new, 10)
-//         .output(System.out);
    }
 
    public static FloatMatrix rand(int numRows, int numCols) {

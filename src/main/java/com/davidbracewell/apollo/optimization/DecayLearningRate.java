@@ -31,6 +31,9 @@ public class DecayLearningRate implements LearningRate, Serializable {
 
    @Override
    public double get(double currentLearningRate, int time, int numProcessed) {
+      if (decayRate == 0 || time == 0) {
+         return currentLearningRate;
+      }
       return currentLearningRate * 1.0 / (1.0 + decayRate * time);
    }
 

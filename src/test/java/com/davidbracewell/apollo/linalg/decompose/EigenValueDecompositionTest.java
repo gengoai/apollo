@@ -21,38 +21,31 @@
 
 package com.davidbracewell.apollo.linalg.decompose;
 
-import com.davidbracewell.apollo.linalg.DenseMatrix;
-import com.davidbracewell.apollo.linalg.Matrix;
-import org.junit.Before;
-import org.junit.Test;
-
-import static org.junit.Assert.*;
-
 /**
  * @author David B. Bracewell
  */
 public class EigenValueDecompositionTest {
 
-   Matrix m;
-
-   @Before
-   public void setUp() throws Exception {
-      m = new DenseMatrix(new double[][]{
-         new double[]{1, 2, 1},
-         new double[]{6, -1, 0},
-         new double[]{-1, -2, -1}
-      });
-   }
-
-
-   @Test
-   public void decompose() throws Exception {
-      EigenValueDecomposition decomposition = new EigenValueDecomposition();
-      Matrix[] result = decomposition.decompose(m);
-      assertEquals(-4, result[0].get(0, 0), 0.01);
-      assertEquals(3, result[0].get(1, 0), 0.01);
-      assertEquals(0, result[0].get(2, 0), 0.01);
-   }
+//   Matrix m;
+//
+//   @Before
+//   public void setUp() throws Exception {
+//      m = new DenseMatrix(new double[][]{
+//         new double[]{1, 2, 1},
+//         new double[]{6, -1, 0},
+//         new double[]{-1, -2, -1}
+//      });
+//   }
+//
+//
+//   @Test
+//   public void decompose() throws Exception {
+//      EigenValueDecomposition decomposition = new EigenValueDecomposition();
+//      Matrix[] result = decomposition.decompose(m);
+//      assertEquals(-4, result[0].get(0, 0), 0.01);
+//      assertEquals(3, result[0].get(1, 0), 0.01);
+//      assertEquals(0, result[0].get(2, 0), 0.01);
+//   }
 
 
 }

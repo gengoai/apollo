@@ -3,8 +3,10 @@ package com.davidbracewell.apollo.optimization;
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.optimization.update.WeightUpdate;
 import com.davidbracewell.function.SerializableSupplier;
+import com.davidbracewell.guava.common.base.Stopwatch;
 import com.davidbracewell.logging.Loggable;
 import com.davidbracewell.stream.MStream;
+import lombok.val;
 
 import java.io.Serializable;
 
@@ -27,6 +29,7 @@ public class SGD implements Optimizer, Serializable, Loggable {
       double lr = learningRate.getInitialRate();
       double lastLoss = 0d;
       for (int iteration = 0; iteration < terminationCriteria.maxIterations(); iteration++) {
+         val timer = Stopwatch.createStarted();
          double totalLoss = 0;
          for (Vector datum : stream.get()) {
             CostGradientTuple cgt = costFunction.evaluate(datum, theta);
@@ -36,7 +39,7 @@ public class SGD implements Optimizer, Serializable, Loggable {
          }
          if (reportInterval > 0 && (iteration == 0 || (iteration + 1) % reportInterval == 0 || iteration == terminationCriteria
                                                                                                                .maxIterations() - 1)) {
-            logInfo("iteration={0}, loss={1}", (iteration + 1), totalLoss);
+            logInfo("iteration={0}, loss={1}, time={2}", (iteration + 1), totalLoss, timer);
          }
          lastLoss = totalLoss;
          if ((iteration + 1) < terminationCriteria.maxIterations() && terminationCriteria.check(totalLoss)) {

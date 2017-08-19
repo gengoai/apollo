@@ -21,48 +21,41 @@
 
 package com.davidbracewell.apollo.linalg.decompose;
 
-import com.davidbracewell.apollo.linalg.DenseMatrix;
-import com.davidbracewell.apollo.linalg.Matrix;
-import org.junit.Before;
-import org.junit.Test;
-
-import static org.junit.Assert.*;
-
 /**
  * @author David B. Bracewell
  */
 public class TruncatedSVDTest {
 
-   Matrix m;
-
-   @Before
-   public void setUp() throws Exception {
-      m = new DenseMatrix(new double[][]{
-         new double[]{1, 0, 1, 0, 0},
-         new double[]{1, 1, 0, 0, 0},
-         new double[]{0, 1, 0, 0, 0},
-         new double[]{0, 1, 1, 0, 0},
-         new double[]{0, 0, 0, 1, 0},
-         new double[]{0, 0, 1, 1, 0},
-         new double[]{0, 0, 0, 1, 0},
-         new double[]{0, 0, 0, 1, 1},
-      });
-   }
-
-
-   @Test
-   public void decompose() throws Exception {
-      TruncatedSVD tSvd = new TruncatedSVD(2);
-      Matrix[] tUSv = tSvd.decompose(m);
-      assertEquals(2.29, tUSv[1].get(0, 0), 0.01);
-      assertEquals(2.01, tUSv[1].get(1, 1), 0.01);
-
-      Matrix us = tUSv[0].multiply(tUSv[1]);
-
-      //Vector of first word
-      assertEquals(-0.91, us.get(0, 0), 0.01);
-      assertEquals(-0.56, us.get(0, 1), 0.01);
-
-
-   }
+//   Matrix m;
+//
+//   @Before
+//   public void setUp() throws Exception {
+//      m = new DenseMatrix(new double[][]{
+//         new double[]{1, 0, 1, 0, 0},
+//         new double[]{1, 1, 0, 0, 0},
+//         new double[]{0, 1, 0, 0, 0},
+//         new double[]{0, 1, 1, 0, 0},
+//         new double[]{0, 0, 0, 1, 0},
+//         new double[]{0, 0, 1, 1, 0},
+//         new double[]{0, 0, 0, 1, 0},
+//         new double[]{0, 0, 0, 1, 1},
+//      });
+//   }
+//
+//
+//   @Test
+//   public void decompose() throws Exception {
+//      TruncatedSVD tSvd = new TruncatedSVD(2);
+//      Matrix[] tUSv = tSvd.decompose(m);
+//      assertEquals(2.29, tUSv[1].get(0, 0), 0.01);
+//      assertEquals(2.01, tUSv[1].get(1, 1), 0.01);
+//
+//      Matrix us = tUSv[0].multiply(tUSv[1]);
+//
+//      //Vector of first word
+//      assertEquals(-0.91, us.get(0, 0), 0.01);
+//      assertEquals(-0.56, us.get(0, 1), 0.01);
+//
+//
+//   }
 }

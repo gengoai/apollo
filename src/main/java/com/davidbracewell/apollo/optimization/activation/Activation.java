@@ -36,15 +36,8 @@ public interface Activation extends Serializable {
    }
 
 
-   /**
-    * Apply matrix.
-    *
-    * @param m the m
-    * @return the matrix
-    */
-   default Matrix apply(@NonNull Matrix m) {
-      return m.mapRowSelf(this::apply);
-   }
+   Matrix apply(Matrix m);
+
 
    /**
     * Gradient vector.
@@ -82,6 +75,8 @@ public interface Activation extends Serializable {
     * @return the double
     */
    double valueGradient(double activated);
+
+   Matrix valueGradient(Matrix m);
 
    /**
     * Value gradient vector.

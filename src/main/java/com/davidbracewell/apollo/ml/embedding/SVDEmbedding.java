@@ -43,6 +43,7 @@ import org.apache.spark.mllib.linalg.Matrix;
 import org.apache.spark.mllib.linalg.SingularValueDecomposition;
 import org.apache.spark.mllib.linalg.Vector;
 import org.apache.spark.mllib.linalg.distributed.RowMatrix;
+import org.jblas.DoubleMatrix;
 
 import java.util.Map;
 
@@ -134,9 +135,12 @@ public class SVDEmbedding extends EmbeddingLearner {
                                            .createVectorStore();
 
       SingularValueDecomposition<RowMatrix, Matrix> svd = sparkSVD(mat, getDimension());
-      com.davidbracewell.apollo.linalg.Matrix em = toMatrix(svd.U()).multiply(toDiagonalMatrix(svd.s()));
-      for (int i = 0; i < em.numberOfRows(); i++) {
-         vectorStore.add(featureEncoder.decode(i).toString(), em.row(i).copy());
+      DoubleMatrix em = toMatrix(svd.U()).mmul(toDiagonalMatrix(svd.s()));
+      for (int i = 0; i < em.rows; i++) {
+         vectorStore.add(featureEncoder.decode(i).toString(), new com.davidbracewell.apollo.linalg.DenseVector(
+                                                                                                                 em.getRow(
+                                                                                                                    i)
+                                                                                                                   .toArray()));
       }
       return new Embedding(vectorStore);
    }

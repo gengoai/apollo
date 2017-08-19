@@ -9,6 +9,7 @@ import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.guava.common.base.Preconditions;
 import com.davidbracewell.tuple.Tuple2;
 import lombok.NonNull;
+import org.jblas.FloatMatrix;
 
 import java.io.Serializable;
 import java.util.*;
@@ -519,10 +520,10 @@ public abstract class BaseVector implements Vector, Serializable {
    }
 
    @Override
-   public Matrix toDiagMatrix() {
-      SparseMatrix matrix = new SparseMatrix(dimension(), dimension());
+   public FloatMatrix toDiagMatrix() {
+      FloatMatrix matrix = FloatMatrix.zeros(dimension(), dimension());
       for (int i = 0; i < dimension(); i++) {
-         matrix.set(i, i, get(i));
+         matrix.put(i, i, (float) get(i));
       }
       return matrix;
    }
@@ -535,8 +536,8 @@ public abstract class BaseVector implements Vector, Serializable {
    }
 
    @Override
-   public Matrix toMatrix() {
-      return new SparseMatrix(1, dimension()).setRow(0, this);
+   public FloatMatrix toMatrix() {
+      return new FloatMatrix(1, dimension(), toFloatArray());
    }
 
    @Override
@@ -550,12 +551,8 @@ public abstract class BaseVector implements Vector, Serializable {
    }
 
    @Override
-   public Matrix transpose() {
-      Matrix matrix = new SparseMatrix(dimension(), 1);
-      for (int i = 0; i < dimension(); i++) {
-         matrix.set(i, 0, get(i));
-      }
-      return matrix;
+   public FloatMatrix transpose() {
+      return new FloatMatrix(dimension(), 1, toFloatArray());
    }
 
    @Override

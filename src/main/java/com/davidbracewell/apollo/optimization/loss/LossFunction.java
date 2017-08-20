@@ -1,5 +1,6 @@
 package com.davidbracewell.apollo.optimization.loss;
 
+import com.davidbracewell.apollo.linalg.Matrix;
 import com.davidbracewell.apollo.linalg.Vector;
 
 /**
@@ -8,6 +9,10 @@ import com.davidbracewell.apollo.linalg.Vector;
  * @author David B. Bracewell
  */
 public interface LossFunction {
+
+   double loss(Matrix predictedValue, Matrix trueValue);
+
+   Matrix derivative(Matrix predictedValue, Matrix trueValue);
 
    /**
     * Derivative double.

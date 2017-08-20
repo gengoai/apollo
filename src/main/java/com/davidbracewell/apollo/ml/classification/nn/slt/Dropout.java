@@ -2,8 +2,11 @@ package com.davidbracewell.apollo.ml.classification.nn.slt;
 
 import com.davidbracewell.apollo.linalg.DenseFloatMatrix;
 import com.davidbracewell.apollo.linalg.Matrix;
+import com.davidbracewell.tuple.Tuple2;
 import lombok.Getter;
 import lombok.val;
+
+import static com.davidbracewell.tuple.Tuples.$;
 
 /**
  * @author David B. Bracewell
@@ -25,13 +28,20 @@ public class Dropout extends Layer {
    }
 
    @Override
-   Matrix backward(Matrix input, Matrix output, Matrix delta, double learningRate, int layerIndex) {
+   public Matrix backward(Matrix input, Matrix output, Matrix delta, double learningRate, int layerIndex, int iteration) {
       return delta;
    }
 
    @Override
+   public Tuple2<Matrix, Double> backward(WeightUpdate updater, Matrix input, Matrix output, Matrix delta, int iteration, boolean calcuateDelta) {
+      return $(delta, 0d);
+   }
+
+   @Override
    Matrix forward(Matrix input) {
-      val mask = DenseFloatMatrix.rand(input.toFloatArray().length).predicate(x -> x > rate);
+      val mask = DenseFloatMatrix.rand(input.numRows(), input.numCols())
+                                 .predicate(x -> x > rate)
+                                 .mapi(x -> x / (1.0 - rate));
       return input.muli(mask);
    }
 

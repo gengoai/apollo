@@ -78,11 +78,11 @@ public class DenseDoubleMatrix implements Matrix, Serializable {
       return new DenseDoubleMatrix(fm);
    }
 
-   public static DenseDoubleMatrix zeroes(int rows, int columns) {
+   public static DenseDoubleMatrix zeros(int rows, int columns) {
       return new DenseDoubleMatrix(rows, columns);
    }
 
-   public static DenseDoubleMatrix zeroes(int length) {
+   public static DenseDoubleMatrix zeros(int length) {
       return new DenseDoubleMatrix(length);
    }
 
@@ -192,16 +192,6 @@ public class DenseDoubleMatrix implements Matrix, Serializable {
    }
 
    @Override
-   public int numCols() {
-      return matrix.columns;
-   }
-
-   @Override
-   public int numRows() {
-      return matrix.rows;
-   }
-
-   @Override
    public Matrix divi(double scalar) {
       matrix.divi((float) scalar);
       return this;
@@ -257,6 +247,11 @@ public class DenseDoubleMatrix implements Matrix, Serializable {
    @Override
    public ElementType getElementType() {
       return ElementType.FLOAT;
+   }
+
+   @Override
+   public MatrixFactory getFactory() {
+      return MatrixFactory.DENSE_DOUBLE;
    }
 
    @Override
@@ -471,6 +466,16 @@ public class DenseDoubleMatrix implements Matrix, Serializable {
    }
 
    @Override
+   public int numCols() {
+      return matrix.columns;
+   }
+
+   @Override
+   public int numRows() {
+      return matrix.rows;
+   }
+
+   @Override
    public Matrix predicate(DoublePredicate predicate) {
       double[] out = new double[matrix.length];
       for (int i = 0; i < out.length; i++) {
@@ -562,20 +567,45 @@ public class DenseDoubleMatrix implements Matrix, Serializable {
    }
 
    @Override
-   public void set(int r, int c, double value) {
+   public Matrix set(int r, int c, double value) {
       matrix.put(r, c, (float) value);
+      return this;
    }
 
    @Override
-   public void setColumn(int c, Matrix columnVector) {
+   public Matrix set(int index, double value) {
+      matrix.put(index, (float) value);
+      return this;
+   }
+
+   @Override
+   public Matrix reshape(int rows, int columns) {
+      matrix.reshape(rows, columns);
+      return this;
+   }
+
+   @Override
+   public Matrix resize(int rows, int columns) {
+      matrix.resize(rows, columns);
+      return this;
+   }
+
+   @Override
+   public Matrix setColumn(int c, Matrix columnVector) {
       matrix.putColumn(c, columnVector.toDoubleMatrix());
+      return this;
    }
 
    @Override
-   public void setRow(int r, Matrix rowVector) {
-      matrix.putRow(r, rowVector.toDoubleMatrix());
+   public int length() {
+      return matrix.length;
    }
 
+   @Override
+   public Matrix setRow(int r, Matrix rowVector) {
+      matrix.putRow(r, rowVector.toDoubleMatrix());
+      return this;
+   }
    @Override
    public Matrix sub(Matrix other) {
       return wrap(matrix.sub(other.toDoubleMatrix()));

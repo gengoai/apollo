@@ -2,6 +2,7 @@ package com.davidbracewell.apollo.ml.classification.nn.slt;
 
 import com.davidbracewell.apollo.linalg.Matrix;
 import com.davidbracewell.conversion.Cast;
+import com.davidbracewell.tuple.Tuple2;
 import lombok.Getter;
 
 import java.io.Serializable;
@@ -25,7 +26,9 @@ public abstract class Layer implements Serializable {
     * @param delta  the delta
     * @return the vector
     */
-   abstract Matrix backward(Matrix input, Matrix output, Matrix delta, double learningRate, int layerIndex);
+   public abstract Matrix backward(Matrix input, Matrix output, Matrix delta, double learningRate, int layerIndex, int iteration);
+
+   public abstract Tuple2<Matrix, Double> backward(WeightUpdate updater, Matrix input, Matrix output, Matrix delta, int iteration, boolean calcuateDelta);
 
    /**
     * Forward vector.

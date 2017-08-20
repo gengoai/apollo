@@ -1,6 +1,7 @@
 package com.davidbracewell.apollo.linalg;
 
 import com.davidbracewell.Copyable;
+import com.davidbracewell.tuple.Tuple2;
 import lombok.NonNull;
 import org.jblas.DoubleMatrix;
 import org.jblas.FloatMatrix;
@@ -8,6 +9,8 @@ import org.jblas.FloatMatrix;
 import java.util.function.DoubleBinaryOperator;
 import java.util.function.DoublePredicate;
 import java.util.function.DoubleUnaryOperator;
+
+import static com.davidbracewell.tuple.Tuples.$;
 
 /**
  * The interface M.
@@ -147,10 +150,6 @@ public interface Matrix extends Copyable<Matrix> {
     */
    Matrix divi(Matrix other);
 
-   int numCols();
-
-   int numRows();
-
    /**
     * Divi m.
     *
@@ -218,6 +217,8 @@ public interface Matrix extends Copyable<Matrix> {
     * @return the element type
     */
    ElementType getElementType();
+
+   MatrixFactory getFactory();
 
    /**
     * Gets row.
@@ -320,6 +321,8 @@ public interface Matrix extends Copyable<Matrix> {
     * @return the boolean
     */
    boolean isVector();
+
+   int length();
 
    /**
     * Log m.
@@ -495,6 +498,10 @@ public interface Matrix extends Copyable<Matrix> {
     */
    Matrix negi();
 
+   int numCols();
+
+   int numRows();
+
    /**
     * Predicate m.
     *
@@ -544,6 +551,10 @@ public interface Matrix extends Copyable<Matrix> {
     * @return the m
     */
    Matrix rdivi(double scalar);
+
+   Matrix reshape(int rows, int columns);
+
+   Matrix resize(int rows, int columns);
 
    int[] rowArgMaxs();
 
@@ -612,11 +623,17 @@ public interface Matrix extends Copyable<Matrix> {
     */
    Matrix selecti(Matrix where);
 
-   void set(int r, int c, double value);
+   Matrix set(int r, int c, double value);
 
-   void setColumn(int c, Matrix columnVector);
+   Matrix set(int index, double value);
 
-   void setRow(int r, Matrix rowVector);
+   Matrix setColumn(int c, Matrix columnVector);
+
+   Matrix setRow(int r, Matrix rowVector);
+
+   default Tuple2<Integer, Integer> shape() {
+      return $(numRows(), numCols());
+   }
 
    /**
     * Sub m.

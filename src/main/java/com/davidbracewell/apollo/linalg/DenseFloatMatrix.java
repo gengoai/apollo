@@ -254,6 +254,11 @@ public class DenseFloatMatrix implements Matrix, Serializable {
    }
 
    @Override
+   public MatrixFactory getFactory() {
+      return MatrixFactory.DENSE_FLOAT;
+   }
+
+   @Override
    public Matrix getRow(int row) {
       return wrap(matrix.getRow(row));
    }
@@ -508,6 +513,18 @@ public class DenseFloatMatrix implements Matrix, Serializable {
    }
 
    @Override
+   public Matrix reshape(int rows, int columns) {
+      matrix.reshape(rows, columns);
+      return this;
+   }
+
+   @Override
+   public Matrix resize(int rows, int columns) {
+      matrix.resize(rows, columns);
+      return this;
+   }
+
+   @Override
    public int[] rowArgMaxs() {
       return matrix.rowArgmaxs();
    }
@@ -566,18 +583,32 @@ public class DenseFloatMatrix implements Matrix, Serializable {
    }
 
    @Override
-   public void set(int r, int c, double value) {
+   public Matrix set(int r, int c, double value) {
       matrix.put(r, c, (float) value);
+      return this;
    }
 
    @Override
-   public void setColumn(int c, Matrix columnVector) {
+   public Matrix set(int index, double value) {
+      matrix.put(index, (float) value);
+      return this;
+   }
+
+   @Override
+   public Matrix setColumn(int c, Matrix columnVector) {
       matrix.putColumn(c, columnVector.toFloatMatrix());
+      return this;
    }
 
    @Override
-   public void setRow(int r, Matrix rowVector) {
+   public int length() {
+      return matrix.length;
+   }
+
+   @Override
+   public Matrix setRow(int r, Matrix rowVector) {
       matrix.putRow(r, rowVector.toFloatMatrix());
+      return this;
    }
 
    @Override
@@ -651,6 +682,11 @@ public class DenseFloatMatrix implements Matrix, Serializable {
    @Override
    public FloatMatrix toFloatMatrix() {
       return matrix;
+   }
+
+   @Override
+   public String toString() {
+      return matrix.toString();
    }
 
    @Override

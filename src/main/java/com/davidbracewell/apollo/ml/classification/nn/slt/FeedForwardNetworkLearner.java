@@ -5,11 +5,9 @@ import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.classification.Classifier;
 import com.davidbracewell.apollo.ml.classification.ClassifierLearner;
 import com.davidbracewell.apollo.ml.data.Dataset;
-import com.davidbracewell.apollo.optimization.*;
+import com.davidbracewell.apollo.optimization.TerminationCriteria;
 import com.davidbracewell.apollo.optimization.loss.CrossEntropyLoss;
 import com.davidbracewell.apollo.optimization.loss.LossFunction;
-import com.davidbracewell.apollo.optimization.update.DeltaRule;
-import com.davidbracewell.apollo.optimization.update.WeightUpdate;
 import com.davidbracewell.guava.common.base.Stopwatch;
 import com.davidbracewell.logging.Loggable;
 import com.davidbracewell.tuple.Tuple2;
@@ -39,15 +37,7 @@ public class FeedForwardNetworkLearner extends ClassifierLearner implements Logg
    @Getter
    @Setter
    @Builder.Default
-   private LearningRate learningRate = new BottouLearningRate();
-   @Getter
-   @Setter
-   @Builder.Default
    private LossFunction lossFunction = new CrossEntropyLoss();
-   @Getter
-   @Setter
-   @Builder.Default
-   private WeightUpdate weightUpdate = new DeltaRule();
    @Getter
    @Setter
    @Builder.Default
@@ -63,7 +53,7 @@ public class FeedForwardNetworkLearner extends ClassifierLearner implements Logg
    @Getter
    @Setter
    @Builder.Default
-   private Optimizer optimizer = new SGD();
+   private WeightUpdate weightUpdate = SGD.builder().build();
 
    static float correct(FloatMatrix predicted, FloatMatrix gold) {
       int[] pMax = predicted.columnArgmaxs();
@@ -104,7 +94,6 @@ public class FeedForwardNetworkLearner extends ClassifierLearner implements Logg
                                                                    .maxIterations(maxIterations)
                                                                    .tolerance(tolerance)
                                                                    .historySize(3);
-      double lr = learningRate.getInitialRate();
       int numProcessed = 0;
       final int effectiveBatchSize = batchSize <= 0 ? 1 : batchSize;
 
@@ -114,8 +103,12 @@ public class FeedForwardNetworkLearner extends ClassifierLearner implements Logg
          e.printStackTrace();
       }
 
+      List<WeightUpdate> weightUpdates = new ArrayList<>();
+      for (int i = 0; i < network.layers.size(); i++) {
+         weightUpdates.add(weightUpdate.copy());
+      }
+
       for (int iteration = 0; iteration < terminationCriteria.maxIterations(); iteration++) {
-         lr = learningRate.get(lr, iteration, numProcessed);
          Stopwatch timer = Stopwatch.createStarted();
          double loss = 0d;
          float numBatch = 0;
@@ -133,12 +126,15 @@ public class FeedForwardNetworkLearner extends ClassifierLearner implements Logg
                cai = layer.forward(cai);
                ai.add(cai);
             }
-            loss += -cai.log().mul(Y).sum() / bSize;
+            loss += lossFunction.loss(cai, Y) / bSize;
             correct += correct(cai.toFloatMatrix(), Y.toFloatMatrix());
-            Matrix dz = cai.sub(Y);
+            Matrix dz = lossFunction.derivative(cai, Y);
             for (int i = network.layers.size() - 1; i >= 0; i--) {
                Matrix input = i == 0 ? X : ai.get(i - 1);
-               dz = network.layers.get(i).backward(input, ai.get(i), dz, lr, i);
+               Tuple2<Matrix, Double> gradCost = network.layers.get(i).backward(weightUpdates.get(i), input, ai.get(i),
+                                                                                dz, iteration, i > 0);
+               dz = gradCost.v1;
+               loss += gradCost.v2;
             }
             numProcessed += bSize;
          }

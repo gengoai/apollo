@@ -1,5 +1,6 @@
 package com.davidbracewell.apollo.optimization.loss;
 
+import com.davidbracewell.apollo.linalg.Matrix;
 import org.apache.commons.math3.util.FastMath;
 
 import java.io.Serializable;
@@ -30,6 +31,11 @@ public class HingeLoss implements LossFunction, Serializable {
    }
 
    @Override
+   public Matrix derivative(Matrix predictedValue, Matrix trueValue) {
+      return predictedValue.map(this::derivative, trueValue);
+   }
+
+   @Override
    public double derivative(double predictedValue, double trueValue) {
       trueValue = trueValue <= 0 ? -1 : 1;
       predictedValue = predictedValue <= 0 ? -1 : 1;
@@ -37,6 +43,11 @@ public class HingeLoss implements LossFunction, Serializable {
          return -trueValue;
       }
       return 0;
+   }
+
+   @Override
+   public double loss(Matrix predictedValue, Matrix trueValue) {
+      return predictedValue.map(this::loss, trueValue).sum();
    }
 
    @Override

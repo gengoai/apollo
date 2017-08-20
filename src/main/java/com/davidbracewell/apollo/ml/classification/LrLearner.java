@@ -53,10 +53,10 @@ public class LrLearner extends BinaryClassifierLearner {
 //         return new SoftmaxLearner();
          return FeedForwardNetworkLearner.builder()
                                          .maxIterations(300)
-                                         .batchSize(32)
+                                         .batchSize(1)
                                          .reportInterval(-1)
                                          .tolerance(1e-9)
-                                         .learningRate(new ConstantLearningRate(0.1))
+//                                         .learningRate(new ConstantLearningRate(0.1))
                                          .layer(OutputLayer.softmax())
                                          .build();
       }, 10)

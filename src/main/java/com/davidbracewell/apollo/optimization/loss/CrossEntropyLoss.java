@@ -1,6 +1,7 @@
 package com.davidbracewell.apollo.optimization.loss;
 
 import com.davidbracewell.Math2;
+import com.davidbracewell.apollo.linalg.Matrix;
 import com.davidbracewell.apollo.linalg.Vector;
 
 import java.io.Serializable;
@@ -12,8 +13,18 @@ public class CrossEntropyLoss implements LossFunction, Serializable {
    private static final long serialVersionUID = 1L;
 
    @Override
+   public Matrix derivative(Matrix predictedValue, Matrix trueValue) {
+      return predictedValue.sub(trueValue);
+   }
+
+   @Override
    public double derivative(double predictedValue, double trueValue) {
       return predictedValue - trueValue;
+   }
+
+   @Override
+   public double loss(Matrix predictedValue, Matrix trueValue) {
+      return -trueValue.mul(predictedValue.map(Math2::safeLog)).sum();
    }
 
    @Override

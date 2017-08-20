@@ -5,6 +5,7 @@ import com.davidbracewell.apollo.optimization.WeightInitializer;
 import com.davidbracewell.apollo.optimization.activation.Activation;
 import com.davidbracewell.apollo.optimization.activation.SigmoidActivation;
 import com.davidbracewell.apollo.optimization.activation.SoftmaxActivation;
+import com.davidbracewell.tuple.Tuple2;
 import lombok.val;
 
 /**
@@ -28,7 +29,13 @@ public class OutputLayer extends WeightLayer {
    }
 
    @Override
-   public Matrix backward(Matrix input, Matrix output, Matrix delta, double learningRate, int layerIndex) {
+   public Tuple2<Matrix, Double> backward(WeightUpdate updater, Matrix input, Matrix output, Matrix delta, int iteration, boolean calcuateDelta) {
+      return updater.update(this.weights, this.bias, input, output, delta, iteration, calcuateDelta);
+   }
+
+
+   @Override
+   public Matrix backward(Matrix input, Matrix output, Matrix delta, double learningRate, int layerIndex, int iteration) {
       Matrix dzOut = layerIndex > 0
                      ? weights.transpose().mmul(delta)
                      : null;
@@ -36,8 +43,10 @@ public class OutputLayer extends WeightLayer {
                     .divi(input.numCols());
       val db = delta.rowSums()
                     .divi(input.numCols());
-      weights.subi(dw.muli(learningRate));
+      v.muli(0.9).subi(dw.muli(learningRate));
+      weights.addi(v);
       bias.subi(db.muli(learningRate));
+      l1Update(learningRate, iteration);
       return dzOut;
    }
 
@@ -45,7 +54,8 @@ public class OutputLayer extends WeightLayer {
 
       @Override
       public Layer build() {
-         return new OutputLayer(getInputSize(), getOutputSize(), getActivation(), getWeightInitializer(),getL1(),getL2());
+         return new OutputLayer(getInputSize(), getOutputSize(), getActivation(), getWeightInitializer(), getL1(),
+                                getL2());
       }
    }
 

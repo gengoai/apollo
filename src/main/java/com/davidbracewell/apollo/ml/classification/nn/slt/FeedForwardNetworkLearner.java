@@ -20,6 +20,12 @@ import org.jblas.FloatMatrix;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+
+import static com.davidbracewell.tuple.Tuples.$;
 
 /**
  * @author David B. Bracewell
@@ -107,6 +113,7 @@ public class FeedForwardNetworkLearner extends ClassifierLearner implements Logg
       for (int i = 0; i < network.layers.size(); i++) {
          weightUpdates.add(weightUpdate.copy());
       }
+      final ExecutorService executor = Executors.newFixedThreadPool(4);
 
       for (int iteration = 0; iteration < terminationCriteria.maxIterations(); iteration++) {
          Stopwatch timer = Stopwatch.createStarted();
@@ -114,33 +121,42 @@ public class FeedForwardNetworkLearner extends ClassifierLearner implements Logg
          float numBatch = 0;
          double correct = 0;
          data.shuffle();
+         List<Future<Tuple2<Double, Double>>> results = new ArrayList<>();
          for (Iterator<Tuple2<Matrix, Matrix>> itr = data.iterator(effectiveBatchSize); itr.hasNext(); ) {
             numBatch++;
-            Tuple2<Matrix, Matrix> tuple = itr.next();
-            Matrix X = tuple.v1;
-            Matrix Y = tuple.v2;
-            double bSize = X.numCols();
-            List<Matrix> ai = new ArrayList<>();
-            Matrix cai = X;
-            for (Layer layer : network.layers) {
-               cai = layer.forward(cai);
-               ai.add(cai);
-            }
-            loss += lossFunction.loss(cai, Y) / bSize;
-            correct += correct(cai.toFloatMatrix(), Y.toFloatMatrix());
-            Matrix dz = lossFunction.derivative(cai, Y);
-            for (int i = network.layers.size() - 1; i >= 0; i--) {
-               Matrix input = i == 0 ? X : ai.get(i - 1);
-               Tuple2<Matrix, Double> gradCost = network.layers.get(i).backward(weightUpdates.get(i), input, ai.get(i),
-                                                                                dz, iteration, i > 0);
-               dz = gradCost.v1;
-               loss += gradCost.v2;
-            }
-            numProcessed += bSize;
+            results.add(executor.submit(new WorkerThread(itr.next(), network, lossFunction, weightUpdates, iteration)));
+//            Tuple2<Matrix, Matrix> tuple = itr.next();
+//            Matrix X = tuple.v1;
+//            Matrix Y = tuple.v2;
+//            double bSize = X.numCols();
+//            List<Matrix> ai = new ArrayList<>();
+//            Matrix cai = X;
+//            for (Layer layer : network.layers) {
+//               cai = layer.forward(cai);
+//               ai.add(cai);
+//            }
+//            loss += lossFunction.loss(cai, Y) / bSize;
+//            correct += correct(cai.toFloatMatrix(), Y.toFloatMatrix());
+//            Matrix dz = lossFunction.derivative(cai, Y);
+//            for (int i = network.layers.size() - 1; i >= 0; i--) {
+//               Matrix input = i == 0 ? X : ai.get(i - 1);
+//               Tuple2<Matrix, Double> gradCost = network.layers.get(i).backward(weightUpdates.get(i), input, ai.get(i),
+//                                                                                dz, iteration, i > 0);
+//               dz = gradCost.v1;
+//               loss += gradCost.v2;
+//            }
+//            numProcessed += bSize;
          }
-         if (numBatch == 0) {
-            continue;
+         for (Future<Tuple2<Double, Double>> future : results) {
+            try {
+               Tuple2<Double, Double> costAcc = future.get();
+               loss += costAcc.v1;
+               correct += costAcc.v2;
+            } catch (Exception e) {
+               e.printStackTrace();
+            }
          }
+         numProcessed += data.size();
          if (reportInterval > 0 &&
                 (iteration == 0 || (iteration + 1) == terminationCriteria.maxIterations() || (iteration + 1) % reportInterval == 0)) {
             logInfo("iteration={0}, totalLoss={1}, accuracy={2}, time={3}",
@@ -157,6 +173,50 @@ public class FeedForwardNetworkLearner extends ClassifierLearner implements Logg
       network.layers.removeIf(Layer::trainOnly);
       network.layers.trimToSize();
       return network;
+   }
+
+   public static class WorkerThread implements Callable<Tuple2<Double, Double>> {
+      final Matrix X;
+      final Matrix Y;
+      final FeedForwardNetwork network;
+      final LossFunction lossFunction;
+      final List<WeightUpdate> weightUpdates;
+      final int iteration;
+
+      public WorkerThread(Tuple2<Matrix, Matrix> xy, FeedForwardNetwork network, LossFunction lossFunction, List<WeightUpdate> weightUpdates, int iteration) {
+         this.X = xy.v1;
+         this.Y = xy.v2;
+         this.network = network;
+         this.lossFunction = lossFunction;
+         this.weightUpdates = weightUpdates;
+         this.iteration = iteration;
+      }
+
+      @Override
+      public Tuple2<Double, Double> call() throws Exception {
+         double bSize = X.numCols();
+         List<Matrix> ai = new ArrayList<>();
+         Matrix cai = X;
+         for (Layer layer : network.layers) {
+            cai = layer.forward(cai);
+            ai.add(cai);
+         }
+         double loss = lossFunction.loss(cai, Y) / bSize;
+         double correct = correct(cai.toFloatMatrix(), Y.toFloatMatrix());
+         Matrix dz = lossFunction.derivative(cai, Y);
+         synchronized (network) {
+            for (int i = network.layers.size() - 1; i >= 0; i--) {
+               Matrix input = i == 0 ? X : ai.get(i - 1);
+               Tuple2<Matrix, Double> gradCost = network.layers.get(i).backward(weightUpdates.get(i), input, ai.get(i),
+                                                                                dz, iteration, i > 0);
+               dz = gradCost.v1;
+               loss += gradCost.v2;
+            }
+         }
+         return $(loss, correct);
+      }
+
+
    }
 
    public static class NetworkBuilder {

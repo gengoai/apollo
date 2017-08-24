@@ -24,7 +24,7 @@ import java.util.List;
 /**
  * @author David B. Bracewell
  */
-@Builder
+@Builder(builderClassName = "NetworkBuilder")
 public class FeedForwardNetworkLearner extends ClassifierLearner implements Loggable {
    @Getter
    @Setter
@@ -157,6 +157,24 @@ public class FeedForwardNetworkLearner extends ClassifierLearner implements Logg
       network.layers.removeIf(Layer::trainOnly);
       network.layers.trimToSize();
       return network;
+   }
+
+   public static class NetworkBuilder {
+
+      public NetworkBuilder optimizer(String optimizer) {
+         switch (optimizer.toLowerCase()) {
+            case "sgd":
+               this.weightUpdate(SGD.builder().build());
+               break;
+            case "adam":
+               this.weightUpdate(Adam.builder().build());
+               break;
+            default:
+               throw new IllegalArgumentException("Unknown optimizer " + optimizer);
+         }
+         return this;
+      }
+
    }
 
 }// END OF FeedForwardNetworkLearner

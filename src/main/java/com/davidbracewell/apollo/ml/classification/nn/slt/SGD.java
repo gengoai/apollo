@@ -53,6 +53,19 @@ public class SGD implements WeightUpdate, Serializable {
       return 0;
    }
 
+   protected double l2Update(Matrix gradient) {
+      if (l2 > 0) {
+         AtomicDouble addedCost = new AtomicDouble(0d);
+         gradient.mapi(x -> {
+            double square = x * x;
+            addedCost.addAndGet(square);
+            return x * l2;
+         });
+         return l2 * addedCost.get() / 2d;
+      }
+      return 0;
+   }
+
    @Override
    public Tuple2<Matrix, Double> update(Matrix weights, Matrix bias, Matrix input, Matrix output, Matrix delta, int iteration, boolean calculateOutDelta) {
       if (momentum > 0 && v == null) {
@@ -60,14 +73,17 @@ public class SGD implements WeightUpdate, Serializable {
       }
       double lr = learningRate / (1.0 + decayRate * iteration);
 
-
+      double addedCost = 0;
       Matrix dzOut = calculateOutDelta
                      ? weights.transpose().mmul(delta)
                      : null;
+
       val dw = delta.mmul(input.transpose())
                     .divi(input.numCols());
       val db = delta.rowSums()
                     .divi(input.numCols());
+
+      addedCost += l2Update(dw);
 
       if (momentum > 0) {
          v = v.muli(momentum).subi(dw.muli(lr));
@@ -78,7 +94,6 @@ public class SGD implements WeightUpdate, Serializable {
 
       bias.subi(db.muli(lr));
 
-      double addedCost = 0;
       addedCost += l1Update(weights, lr, iteration);
 
 

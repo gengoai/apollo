@@ -34,6 +34,17 @@ public abstract class WeightLayer extends Layer {
    }
 
    @Override
+   public BackpropResult backward(Matrix input, Matrix output, Matrix delta, boolean calculateDelta) {
+      delta.muli(activation.valueGradient(output));
+      Matrix dzOut = calculateDelta
+                     ? weights.transpose().mmul(delta)
+                     : null;
+      val dw = delta.mmul(input.transpose());
+      val db = delta.rowSums();
+      return BackpropResult.from(dzOut, dw, db);
+   }
+
+   @Override
    public Tuple2<Matrix, Double> backward(WeightUpdate updater, Matrix input, Matrix output, Matrix delta, int iteration, boolean calcuateDelta) {
       return updater.update(this.weights, this.bias, input, output, delta.muli(activation.valueGradient(output)),
                             iteration, calcuateDelta);
@@ -73,6 +84,11 @@ public abstract class WeightLayer extends Layer {
             return xp;
          });
       }
+   }
+
+   @Override
+   public double update(WeightUpdate weightUpdate, Matrix wGrad, Matrix bBrad, int iteration) {
+      return weightUpdate.update(this.weights, this.bias, wGrad, bBrad, iteration);
    }
 
    protected static abstract class WeightLayerBuilder<T extends WeightLayerBuilder> extends LayerBuilder<T> {

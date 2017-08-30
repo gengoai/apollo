@@ -46,6 +46,10 @@ public class DenseFloatMatrix implements Matrix, Serializable {
       return wrap(FloatMatrix.diag(matrix.toFloatMatrix(), rows, columns));
    }
 
+   public static DenseFloatMatrix empty() {
+      return wrap(FloatMatrix.EMPTY);
+   }
+
    public static DenseFloatMatrix eye(int n) {
       return wrap(FloatMatrix.eye(n));
    }
@@ -336,6 +340,11 @@ public class DenseFloatMatrix implements Matrix, Serializable {
    }
 
    @Override
+   public int length() {
+      return matrix.length;
+   }
+
+   @Override
    public Matrix log() {
       return wrap(MatrixFunctions.log(matrix));
    }
@@ -598,11 +607,6 @@ public class DenseFloatMatrix implements Matrix, Serializable {
    public Matrix setColumn(int c, Matrix columnVector) {
       matrix.putColumn(c, columnVector.toFloatMatrix());
       return this;
-   }
-
-   @Override
-   public int length() {
-      return matrix.length;
    }
 
    @Override

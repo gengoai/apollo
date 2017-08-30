@@ -33,6 +33,11 @@ public class Dropout extends Layer {
    }
 
    @Override
+   public BackpropResult backward(Matrix input, Matrix output, Matrix delta, boolean calculateDelta) {
+      return BackpropResult.from(delta, DenseFloatMatrix.empty(), DenseFloatMatrix.empty());
+   }
+
+   @Override
    public Tuple2<Matrix, Double> backward(WeightUpdate updater, Matrix input, Matrix output, Matrix delta, int iteration, boolean calcuateDelta) {
       return $(delta, 0d);
    }
@@ -48,6 +53,11 @@ public class Dropout extends Layer {
    @Override
    public boolean trainOnly() {
       return true;
+   }
+
+   @Override
+   public double update(WeightUpdate weightUpdate, Matrix wGrad, Matrix bBrad, int iteration) {
+      return 0;
    }
 
    public static class DropoutBuilder extends LayerBuilder<DropoutBuilder> {

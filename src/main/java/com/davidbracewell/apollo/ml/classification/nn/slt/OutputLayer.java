@@ -33,6 +33,15 @@ public class OutputLayer extends WeightLayer {
       return updater.update(this.weights, this.bias, input, output, delta, iteration, calcuateDelta);
    }
 
+   @Override
+   public BackpropResult backward(Matrix input, Matrix output, Matrix delta, boolean calculateDelta) {
+      Matrix dzOut = calculateDelta
+                     ? weights.transpose().mmul(delta)
+                     : null;
+      val dw = delta.mmul(input.transpose());
+      val db = delta.rowSums();
+      return BackpropResult.from(dzOut, dw, db);
+   }
 
    @Override
    public Matrix backward(Matrix input, Matrix output, Matrix delta, double learningRate, int layerIndex, int iteration) {

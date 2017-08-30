@@ -65,6 +65,11 @@ public interface MatrixFactory {
       public Matrix zeros(int length) {
          return DenseDoubleMatrix.zeros(length);
       }
+
+      @Override
+      public Matrix empty() {
+         return DenseDoubleMatrix.empty();
+      }
    };
    MatrixFactory DENSE_FLOAT = new MatrixFactory() {
       @Override
@@ -126,6 +131,11 @@ public interface MatrixFactory {
       public Matrix zeros(int length) {
          return DenseFloatMatrix.zeros(length);
       }
+
+      @Override
+      public Matrix empty() {
+         return DenseFloatMatrix.empty();
+      }
    };
 
    Matrix diag(Matrix m);
@@ -151,6 +161,8 @@ public interface MatrixFactory {
    Matrix zeros(int rows, int columns);
 
    Matrix zeros(int length);
+
+   Matrix empty();
 
 
 }// END OF MatrixFactory

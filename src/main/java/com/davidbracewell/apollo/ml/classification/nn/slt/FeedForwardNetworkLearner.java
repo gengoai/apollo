@@ -11,6 +11,7 @@ import com.davidbracewell.apollo.optimization.loss.LossFunction;
 import com.davidbracewell.guava.common.base.Stopwatch;
 import com.davidbracewell.logging.Loggable;
 import com.davidbracewell.tuple.Tuple2;
+import com.davidbracewell.tuple.Tuple3;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -121,41 +122,74 @@ public class FeedForwardNetworkLearner extends ClassifierLearner implements Logg
          float numBatch = 0;
          double correct = 0;
          data.shuffle();
-         List<Future<Tuple2<Double, Double>>> results = new ArrayList<>();
+         List<Future<Tuple3<Double, Double, BackpropResult[]>>> results = new ArrayList<>();
          for (Iterator<Tuple2<Matrix, Matrix>> itr = data.iterator(effectiveBatchSize); itr.hasNext(); ) {
             numBatch++;
             results.add(executor.submit(new WorkerThread(itr.next(), network, lossFunction, weightUpdates, iteration)));
-//            Tuple2<Matrix, Matrix> tuple = itr.next();
-//            Matrix X = tuple.v1;
-//            Matrix Y = tuple.v2;
-//            double bSize = X.numCols();
-//            List<Matrix> ai = new ArrayList<>();
-//            Matrix cai = X;
-//            for (Layer layer : network.layers) {
-//               cai = layer.forward(cai);
-//               ai.add(cai);
-//            }
-//            loss += lossFunction.loss(cai, Y) / bSize;
-//            correct += correct(cai.toFloatMatrix(), Y.toFloatMatrix());
-//            Matrix dz = lossFunction.derivative(cai, Y);
-//            for (int i = network.layers.size() - 1; i >= 0; i--) {
-//               Matrix input = i == 0 ? X : ai.get(i - 1);
-//               Tuple2<Matrix, Double> gradCost = network.layers.get(i).backward(weightUpdates.get(i), input, ai.get(i),
-//                                                                                dz, iteration, i > 0);
-//               dz = gradCost.v1;
-//               loss += gradCost.v2;
-//            }
-//            numProcessed += bSize;
+////            Tuple2<Matrix, Matrix> tuple = itr.next();
+////            Matrix X = tuple.v1;
+////            Matrix Y = tuple.v2;
+////            double bSize = X.numCols();
+////            List<Matrix> ai = new ArrayList<>();
+////            Matrix cai = X;
+////            for (Layer layer : network.layers) {
+////               cai = layer.forward(cai);
+////               ai.add(cai);
+////            }
+////            loss += lossFunction.loss(cai, Y) / bSize;
+////            correct += correct(cai.toFloatMatrix(), Y.toFloatMatrix());
+////            Matrix dz = lossFunction.derivative(cai, Y);
+////            for (int i = network.layers.size() - 1; i >= 0; i--) {
+////               Matrix input = i == 0 ? X : ai.get(i - 1);
+////               Tuple2<Matrix, Double> gradCost = network.layers.get(i).backward(weightUpdates.get(i), input, ai.get(i),
+////                                                                                dz, iteration, i > 0);
+////               dz = gradCost.v1;
+////               loss += gradCost.v2;
+////            }
+////            numProcessed += bSize;
          }
-         for (Future<Tuple2<Double, Double>> future : results) {
+         Matrix[] wGrad = new Matrix[network.layers.size()];
+         Matrix[] bGrad = new Matrix[network.layers.size()];
+         for (Future<Tuple3<Double, Double, BackpropResult[]>> future : results) {
             try {
-               Tuple2<Double, Double> costAcc = future.get();
+               Tuple3<Double, Double, BackpropResult[]> costAcc = future.get();
                loss += costAcc.v1;
                correct += costAcc.v2;
+               BackpropResult[] bp = costAcc.v3;
+               for (int i = 0; i < bp.length; i++) {
+                  if (wGrad[i] == null && !bp[i].getWeightGradient().isEmpty()) {
+                     wGrad[i] = bp[i].getWeightGradient();
+                  } else if (!bp[i].getWeightGradient().isEmpty()) {
+                     wGrad[i].addi(bp[i].getWeightGradient());
+                  }
+                  if (bGrad[i] == null && !bp[i].getBiasGradient().isEmpty()) {
+                     bGrad[i] = bp[i].getBiasGradient();
+                  } else if (!bp[i].getBiasGradient().isEmpty()) {
+                     bGrad[i].addi(bp[i].getBiasGradient());
+                  }
+               }
             } catch (Exception e) {
                e.printStackTrace();
             }
          }
+
+         for (int i = 0; i < wGrad.length; i++) {
+            if (wGrad[i] != null) {
+               wGrad[i].divi(data.size());
+            }
+            if (bGrad[i] != null) {
+               bGrad[i].divi(data.size());
+            }
+         }
+
+         for (int i = 0; i < network.layers.size(); i++) {
+            loss += network.layers.get(i).update(
+               weightUpdates.get(i),
+               wGrad[i],
+               bGrad[i],
+               iteration);
+         }
+
          numProcessed += data.size();
          if (reportInterval > 0 &&
                 (iteration == 0 || (iteration + 1) == terminationCriteria.maxIterations() || (iteration + 1) % reportInterval == 0)) {
@@ -170,12 +204,13 @@ public class FeedForwardNetworkLearner extends ClassifierLearner implements Logg
          }
 
       }
+      executor.shutdown();
       network.layers.removeIf(Layer::trainOnly);
       network.layers.trimToSize();
       return network;
    }
 
-   public static class WorkerThread implements Callable<Tuple2<Double, Double>> {
+   public static class WorkerThread implements Callable<Tuple3<Double, Double, BackpropResult[]>> {
       final Matrix X;
       final Matrix Y;
       final FeedForwardNetwork network;
@@ -193,7 +228,7 @@ public class FeedForwardNetworkLearner extends ClassifierLearner implements Logg
       }
 
       @Override
-      public Tuple2<Double, Double> call() throws Exception {
+      public Tuple3<Double, Double, BackpropResult[]> call() throws Exception {
          double bSize = X.numCols();
          List<Matrix> ai = new ArrayList<>();
          Matrix cai = X;
@@ -204,16 +239,22 @@ public class FeedForwardNetworkLearner extends ClassifierLearner implements Logg
          double loss = lossFunction.loss(cai, Y) / bSize;
          double correct = correct(cai.toFloatMatrix(), Y.toFloatMatrix());
          Matrix dz = lossFunction.derivative(cai, Y);
-         synchronized (network) {
-            for (int i = network.layers.size() - 1; i >= 0; i--) {
-               Matrix input = i == 0 ? X : ai.get(i - 1);
-               Tuple2<Matrix, Double> gradCost = network.layers.get(i).backward(weightUpdates.get(i), input, ai.get(i),
-                                                                                dz, iteration, i > 0);
-               dz = gradCost.v1;
-               loss += gradCost.v2;
-            }
+         BackpropResult[] results = new BackpropResult[network.layers.size()];
+         for (int i = network.layers.size() - 1; i >= 0; i--) {
+            Matrix input = i == 0 ? X : ai.get(i - 1);
+            results[i] = network.layers.get(i).backward(input, ai.get(i), dz, i > 0);
+            dz = results[i].getDelta();
          }
-         return $(loss, correct);
+//         synchronized (network) {
+//            for (int i = network.layers.size() - 1; i >= 0; i--) {
+//               Matrix input = i == 0 ? X : ai.get(i - 1);
+//               Tuple2<Matrix, Double> gradCost = network.layers.get(i).backward(weightUpdates.get(i), input, ai.get(i),
+//                                                                                dz, iteration, i > 0);
+//               dz = gradCost.v1;
+//               loss += gradCost.v2;
+//            }
+//         }
+         return $(loss, correct, results);
       }
 
 

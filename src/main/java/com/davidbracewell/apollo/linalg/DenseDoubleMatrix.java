@@ -25,6 +25,11 @@ public class DenseDoubleMatrix implements Matrix, Serializable {
       this.matrix = new DoubleMatrix(rows, columns, values);
    }
 
+   public static DenseDoubleMatrix empty() {
+      return wrap(DoubleMatrix.EMPTY);
+   }
+
+
    public DenseDoubleMatrix(int len) {
       this.matrix = new DoubleMatrix(len);
    }

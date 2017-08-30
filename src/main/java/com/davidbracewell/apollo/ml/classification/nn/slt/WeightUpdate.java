@@ -9,6 +9,12 @@ import com.davidbracewell.tuple.Tuple2;
  */
 public interface WeightUpdate extends Copyable<WeightUpdate> {
 
+   double update(Matrix weights,
+                 Matrix bias,
+                 Matrix wGrad,
+                 Matrix bGrad,
+                 int iteration
+                );
 
    Tuple2<Matrix, Double> update(Matrix weights,
                                  Matrix bias,

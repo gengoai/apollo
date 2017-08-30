@@ -30,6 +30,8 @@ public abstract class Layer implements Serializable {
 
    public abstract Tuple2<Matrix, Double> backward(WeightUpdate updater, Matrix input, Matrix output, Matrix delta, int iteration, boolean calcuateDelta);
 
+   public abstract BackpropResult backward(Matrix input, Matrix output, Matrix delta, boolean calculateDelta);
+
    /**
     * Forward vector.
     *
@@ -41,6 +43,8 @@ public abstract class Layer implements Serializable {
    public boolean trainOnly() {
       return false;
    }
+
+   public abstract double update(WeightUpdate weightUpdate, Matrix wGrad, Matrix bBrad, int iteration);
 
    protected static abstract class LayerBuilder<T extends LayerBuilder> implements Serializable {
       private static final long serialVersionUID = 1L;

@@ -67,6 +67,28 @@ public class SGD implements WeightUpdate, Serializable {
    }
 
    @Override
+   public double update(Matrix weights, Matrix bias, Matrix wGrad, Matrix bGrad, int iteration) {
+      if (momentum > 0 && v == null) {
+         v = weights.getFactory().zeros(weights.numRows(), weights.numCols());
+      }
+      double lr = learningRate / (1.0 + decayRate * iteration);
+      double addedCost = 0;
+      addedCost += l2Update(wGrad);
+
+      if (momentum > 0) {
+         v = v.muli(momentum).subi(wGrad.muli(lr));
+         weights.addi(v);
+      } else {
+         weights.subi(wGrad.muli(lr));
+      }
+
+      bias.subi(bGrad.muli(lr));
+
+      addedCost += l1Update(weights, lr, iteration);
+      return addedCost;
+   }
+
+   @Override
    public Tuple2<Matrix, Double> update(Matrix weights, Matrix bias, Matrix input, Matrix output, Matrix delta, int iteration, boolean calculateOutDelta) {
       if (momentum > 0 && v == null) {
          v = weights.getFactory().zeros(output.numRows(), input.numRows());

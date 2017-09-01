@@ -16,6 +16,10 @@ public class OutputLayer extends WeightLayer {
       super(inputSize, outputSize, activation, weightInitializer, l1, l2);
    }
 
+   public OutputLayer(WeightLayer layer) {
+      super(layer);
+   }
+
    public static Builder builder() {
       return new Builder();
    }
@@ -57,6 +61,11 @@ public class OutputLayer extends WeightLayer {
       bias.subi(db.muli(learningRate));
       l1Update(learningRate, iteration);
       return dzOut;
+   }
+
+   @Override
+   public Layer copy() {
+      return new OutputLayer(this);
    }
 
    public static class Builder extends WeightLayerBuilder<Builder> {

@@ -43,6 +43,11 @@ public class Dropout extends Layer {
    }
 
    @Override
+   public Layer copy() {
+      return new Dropout(getInputSize(), getOutputSize(), rate);
+   }
+
+   @Override
    Matrix forward(Matrix input) {
       val mask = DenseFloatMatrix.rand(input.numRows(), input.numCols())
                                  .predicate(x -> x > rate)
@@ -75,4 +80,18 @@ public class Dropout extends Layer {
       }
    }
 
+   @Override
+   public Matrix getWeights() {
+      return DenseFloatMatrix.empty();
+   }
+
+   @Override
+   public Matrix getBias() {
+      return DenseFloatMatrix.empty();
+   }
+
+   @Override
+   public void update(Matrix[] weights, Matrix[] bias) {
+
+   }
 }// END OF Dropout

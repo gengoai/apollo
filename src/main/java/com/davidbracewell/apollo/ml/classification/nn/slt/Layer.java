@@ -1,5 +1,6 @@
 package com.davidbracewell.apollo.ml.classification.nn.slt;
 
+import com.davidbracewell.Copyable;
 import com.davidbracewell.apollo.linalg.Matrix;
 import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.tuple.Tuple2;
@@ -10,8 +11,10 @@ import java.io.Serializable;
 /**
  * @author David B. Bracewell
  */
-public abstract class Layer implements Serializable {
+public abstract class Layer implements Serializable, Copyable<Layer> {
+   @Getter
    private final int inputSize;
+   @Getter
    private final int outputSize;
 
    protected Layer(int inputSize, int outputSize) {
@@ -66,5 +69,13 @@ public abstract class Layer implements Serializable {
          return Cast.as(this);
       }
    }
+
+   public abstract Matrix getWeights();
+
+   public abstract Matrix getBias();
+
+
+   public abstract void update(Matrix[] weights, Matrix[] bias);
+
 
 }// END OF Layer

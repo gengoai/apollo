@@ -50,7 +50,6 @@ public class Adam implements WeightUpdate, Serializable {
 
       m = m.mul(beta1).add(wGrad.mul(1d - beta1));
       v = v.mul(beta2).add(wGrad.map(x -> (x * x) * (1 - beta2)));
-
       double lr_t = learningRate *
                        (
                           Math.sqrt(1.0 - FastMath.pow(beta2, iteration)) /

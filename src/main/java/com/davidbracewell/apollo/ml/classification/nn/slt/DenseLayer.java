@@ -11,6 +11,10 @@ public class DenseLayer extends WeightLayer {
       super(inputSize, outputSize, activation, weightInitializer, l1, l2);
    }
 
+   public DenseLayer(WeightLayer layer) {
+      super(layer);
+   }
+
    public static Builder relu() {
       return new Builder().activation(Activation.RELU);
    }
@@ -26,6 +30,11 @@ public class DenseLayer extends WeightLayer {
          return new DenseLayer(getInputSize(), getOutputSize(), getActivation(), getWeightInitializer(), getL1(),
                                getL2());
       }
+   }
+
+   @Override
+   public Layer copy() {
+      return new DenseLayer(this);
    }
 
 }// END OF DenseLayer

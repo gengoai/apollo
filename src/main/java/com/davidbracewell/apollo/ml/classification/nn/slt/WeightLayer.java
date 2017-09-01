@@ -16,11 +16,12 @@ import org.apache.commons.math3.util.FastMath;
  */
 public abstract class WeightLayer extends Layer {
    private static final long serialVersionUID = 1L;
+   @Getter
    protected final Activation activation;
-   protected final Matrix weights;
-   protected final Matrix bias;
    protected final double l1;
    protected final double l2;
+   protected Matrix weights;
+   protected Matrix bias;
    protected transient Matrix v;
 
    public WeightLayer(int inputSize, int outputSize, Activation activation, WeightInitializer weightInitializer, double l1, double l2) {
@@ -32,6 +33,17 @@ public abstract class WeightLayer extends Layer {
       this.l1 = l1;
       this.l2 = l2;
    }
+
+   public WeightLayer(WeightLayer layer) {
+      super(layer.getInputSize(), layer.getOutputSize());
+      this.activation = layer.getActivation();
+      this.bias = layer.bias.copy();
+      this.weights = layer.weights.copy();
+      this.l1 = layer.l1;
+      this.l2 = layer.l2;
+      this.v = DenseFloatMatrix.zeros(layer.getOutputSize(), layer.getInputSize());
+   }
+
 
    @Override
    public BackpropResult backward(Matrix input, Matrix output, Matrix delta, boolean calculateDelta) {
@@ -72,6 +84,16 @@ public abstract class WeightLayer extends Layer {
       return activation.apply(weights.mmul(input).addiColumnVector(bias));
    }
 
+   @Override
+   public Matrix getBias() {
+      return bias;
+   }
+
+   @Override
+   public Matrix getWeights() {
+      return weights;
+   }
+
    protected void l1Update(double learningRate, int iteration) {
       if (l1 > 0) {
          //L1 Regularization
@@ -89,6 +111,22 @@ public abstract class WeightLayer extends Layer {
    @Override
    public double update(WeightUpdate weightUpdate, Matrix wGrad, Matrix bBrad, int iteration) {
       return weightUpdate.update(this.weights, this.bias, wGrad, bBrad, iteration);
+   }
+
+   @Override
+   public void update(Matrix[] weights, Matrix[] bias) {
+      Matrix wP = this.weights.getFactory().zeros(getOutputSize(),getInputSize());
+      Matrix bP = this.weights.getFactory().zeros(getOutputSize());
+      for (int i = 0; i < weights.length; i++) {
+         wP.addi(weights[i]);
+         bP.addi(bias[i]);
+      }
+      if( weights.length > 0 ) {
+         wP.divi(weights.length);
+         bP.divi(weights.length);
+         this.weights = wP;
+         this.bias = bP;
+      }
    }
 
    protected static abstract class WeightLayerBuilder<T extends WeightLayerBuilder> extends LayerBuilder<T> {

@@ -1,27 +1,21 @@
 package com.davidbracewell.apollo.ml.classification.nn;
 
-import com.davidbracewell.apollo.linalg.Vector;
-import com.davidbracewell.apollo.optimization.GradientMatrix;
-import com.davidbracewell.apollo.optimization.WeightMatrix;
+import com.davidbracewell.Copyable;
+import com.davidbracewell.apollo.linalg.Matrix;
 import com.davidbracewell.conversion.Cast;
+import com.davidbracewell.tuple.Tuple2;
 import lombok.Getter;
-import lombok.Setter;
 
 import java.io.Serializable;
 
 /**
  * @author David B. Bracewell
  */
-public abstract class Layer implements Serializable {
-   private static final long serialVersionUID = 1L;
+public abstract class Layer implements Serializable, Copyable<Layer> {
    @Getter
    private final int inputSize;
    @Getter
    private final int outputSize;
-
-   @Getter
-   @Setter
-   private GradientMatrix gradient;
 
    protected Layer(int inputSize, int outputSize) {
       this.inputSize = inputSize;
@@ -35,7 +29,11 @@ public abstract class Layer implements Serializable {
     * @param delta  the delta
     * @return the vector
     */
-   abstract Vector backward(Vector input, Vector output, Vector delta);
+   public abstract Matrix backward(Matrix input, Matrix output, Matrix delta, double learningRate, int layerIndex, int iteration);
+
+   public abstract Tuple2<Matrix, Double> backward(WeightUpdate updater, Matrix input, Matrix output, Matrix delta, int iteration, boolean calcuateDelta);
+
+   public abstract BackpropResult backward(Matrix input, Matrix output, Matrix delta, boolean calculateDelta);
 
    /**
     * Forward vector.
@@ -43,27 +41,15 @@ public abstract class Layer implements Serializable {
     * @param input the input
     * @return the vector
     */
-   abstract Vector forward(Vector input);
+   abstract Matrix forward(Matrix input);
 
-   /**
-    * Gets weights.
-    *
-    * @return the weights
-    */
-   public WeightMatrix getWeights() {
-      return null;
-   }
-
-   /**
-    * Has weights boolean.
-    *
-    * @return the boolean
-    */
-   public boolean hasWeights() {
+   public boolean trainOnly() {
       return false;
    }
 
-   public static abstract class LayerBuilder<T extends LayerBuilder> implements Serializable {
+   public abstract double update(WeightUpdate weightUpdate, Matrix wGrad, Matrix bBrad, int iteration);
+
+   protected static abstract class LayerBuilder<T extends LayerBuilder> implements Serializable {
       private static final long serialVersionUID = 1L;
       @Getter
       private int inputSize;
@@ -83,5 +69,13 @@ public abstract class Layer implements Serializable {
          return Cast.as(this);
       }
    }
+
+   public abstract Matrix getWeights();
+
+   public abstract Matrix getBias();
+
+
+   public abstract void update(Matrix[] weights, Matrix[] bias);
+
 
 }// END OF Layer

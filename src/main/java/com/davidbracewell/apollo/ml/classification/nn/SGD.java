@@ -1,4 +1,4 @@
-package com.davidbracewell.apollo.ml.classification.nn.slt;
+package com.davidbracewell.apollo.ml.classification.nn;
 
 import com.davidbracewell.apollo.linalg.Matrix;
 import com.davidbracewell.guava.common.util.concurrent.AtomicDouble;

@@ -1,6 +1,7 @@
 package com.davidbracewell.apollo.ml.classification;
 
 import com.davidbracewell.apollo.ml.Instance;
+import com.davidbracewell.apollo.ml.classification.nn.SGD;
 import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.optimization.*;
 import com.davidbracewell.apollo.optimization.activation.Activation;
@@ -92,7 +93,7 @@ public class BinarySGDLearner extends BinaryClassifierLearner {
       BinaryGLM model = new BinaryGLM(this);
       WeightMatrix theta = new WeightMatrix(2, model.numberOfFeatures());
       Optimizer optimizer = (batchSize > 0)
-                            ? BatchOptimizer.builder().batchSize(batchSize).subOptimizer(new SGD()).build()
+                            ? BatchOptimizer.builder().batchSize(batchSize).subOptimizer(new com.davidbracewell.apollo.ml.classification.nn.SGD()).build()
                             : new SGD();
       CostWeightTuple result = optimizer.optimize(theta,
                                                   dataset.vectorStream(cacheData, trueLabel),

@@ -1,6 +1,7 @@
 package com.davidbracewell.apollo.ml.classification;
 
 import com.davidbracewell.apollo.ml.Instance;
+import com.davidbracewell.apollo.ml.classification.nn.SGD;
 import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.optimization.*;
 import com.davidbracewell.apollo.optimization.activation.Activation;
@@ -49,7 +50,7 @@ public class SoftmaxLearner extends ClassifierLearner {
    protected Classifier trainImpl(Dataset<Instance> dataset) {
       GeneralizedLinearModel model = new GeneralizedLinearModel(this);
       Optimizer optimizer = (batchSize > 0)
-                            ? BatchOptimizer.builder().batchSize(batchSize).subOptimizer(new SGD()).build()
+                            ? BatchOptimizer.builder().batchSize(batchSize).subOptimizer(new com.davidbracewell.apollo.ml.classification.nn.SGD()).build()
                             : new SGD();
       WeightMatrix theta = new WeightMatrix(model.numberOfLabels(), model.numberOfFeatures());
       model.weights = optimizer.optimize(theta,

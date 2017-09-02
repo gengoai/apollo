@@ -1,4 +1,4 @@
-package com.davidbracewell.apollo.ml.classification.nn.slt;
+package com.davidbracewell.apollo.ml.classification.nn;
 
 import com.davidbracewell.Copyable;
 import com.davidbracewell.apollo.linalg.Matrix;

@@ -4,8 +4,9 @@ import com.davidbracewell.apollo.linalg.SparseVector;
 import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.Feature;
 import com.davidbracewell.apollo.ml.Instance;
-import com.davidbracewell.apollo.ml.classification.nn.slt.FeedForwardNetworkLearner;
-import com.davidbracewell.apollo.ml.classification.nn.slt.OutputLayer;
+import com.davidbracewell.apollo.ml.classification.nn.FeedForwardNetworkLearner;
+import com.davidbracewell.apollo.ml.classification.nn.OutputLayer;
+import com.davidbracewell.apollo.ml.classification.nn.SGD;
 import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.ml.data.source.DenseCSVDataSource;
 import com.davidbracewell.apollo.optimization.*;
@@ -255,7 +256,7 @@ public class LrLearner extends BinaryClassifierLearner {
 
          MStream<Vector> vectors = dataset.asVectors().cache();
          WeightMatrix weights = new WeightMatrix(nL, nF);
-         SGD sgd = new SGD();
+         com.davidbracewell.apollo.ml.classification.nn.SGD sgd = new SGD();
          CostWeightTuple cwt = sgd.optimize(weights,
                                             () -> vectors,
                                             new GradientDescentCostFunction(new LogLoss(), Activation.SOFTMAX),

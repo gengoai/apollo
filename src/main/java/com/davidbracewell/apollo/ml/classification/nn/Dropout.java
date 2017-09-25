@@ -50,9 +50,18 @@ public class Dropout extends Layer {
    @Override
    Matrix forward(Matrix input) {
       val mask = DenseFloatMatrix.rand(input.numRows(), input.numCols())
-                                 .predicate(x -> x > rate)
-                                 .mapi(x -> x / (1.0 - rate));
-      return input.muli(mask);
+                                 .predicate(x -> x < rate);
+      return input.mul(mask).divi(rate);
+   }
+
+   @Override
+   public Matrix getBias() {
+      return DenseFloatMatrix.empty();
+   }
+
+   @Override
+   public Matrix getWeights() {
+      return DenseFloatMatrix.empty();
    }
 
    @Override
@@ -63,6 +72,11 @@ public class Dropout extends Layer {
    @Override
    public double update(WeightUpdate weightUpdate, Matrix wGrad, Matrix bBrad, int iteration) {
       return 0;
+   }
+
+   @Override
+   public void update(Matrix[] weights, Matrix[] bias) {
+
    }
 
    public static class DropoutBuilder extends LayerBuilder<DropoutBuilder> {
@@ -78,20 +92,5 @@ public class Dropout extends Layer {
          this.rate = rate;
          return this;
       }
-   }
-
-   @Override
-   public Matrix getWeights() {
-      return DenseFloatMatrix.empty();
-   }
-
-   @Override
-   public Matrix getBias() {
-      return DenseFloatMatrix.empty();
-   }
-
-   @Override
-   public void update(Matrix[] weights, Matrix[] bias) {
-
    }
 }// END OF Dropout

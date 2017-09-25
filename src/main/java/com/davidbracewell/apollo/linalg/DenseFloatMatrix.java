@@ -697,4 +697,6 @@ public class DenseFloatMatrix implements Matrix, Serializable {
    public Matrix transpose() {
       return wrap(matrix.transpose());
    }
+
+
 }// END OF DenseFloatMatrix

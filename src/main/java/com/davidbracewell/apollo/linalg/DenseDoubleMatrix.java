@@ -363,7 +363,7 @@ public class DenseDoubleMatrix implements Matrix, Serializable {
    @Override
    public Matrix mapi(DoubleUnaryOperator operator) {
       for (int i = 0; i < matrix.data.length; i++) {
-         matrix.data[i] = (float) operator.applyAsDouble(matrix.data[i]);
+         matrix.data[i] = operator.applyAsDouble(matrix.data[i]);
       }
       return this;
    }
@@ -372,7 +372,7 @@ public class DenseDoubleMatrix implements Matrix, Serializable {
    public Matrix mapi(DoubleBinaryOperator operator, Matrix other) {
       DoubleMatrix om = other.toDoubleMatrix();
       for (int i = 0; i < matrix.data.length; i++) {
-         matrix.data[i] = (float) operator.applyAsDouble(matrix.data[i], om.data[i]);
+         matrix.data[i] = operator.applyAsDouble(matrix.data[i], om.data[i]);
       }
       return this;
    }

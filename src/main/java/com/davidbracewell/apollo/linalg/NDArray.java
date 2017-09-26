@@ -3,9 +3,11 @@ package com.davidbracewell.apollo.linalg;
 import com.davidbracewell.Copyable;
 import com.davidbracewell.Math2;
 import com.davidbracewell.collection.Streams;
+import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.guava.common.base.Preconditions;
 import lombok.NonNull;
 import org.apache.commons.math3.util.FastMath;
+import org.apache.mahout.math.set.OpenDoubleHashSet;
 import org.jblas.DoubleMatrix;
 import org.jblas.FloatMatrix;
 
@@ -20,7 +22,7 @@ import java.util.function.DoublePredicate;
 import java.util.function.DoubleUnaryOperator;
 
 /**
- * The interface Nd array.
+ * An n-dimension array of double values used for vectors and matrices.
  *
  * @author David B. Bracewell
  */
@@ -44,6 +46,9 @@ public interface NDArray extends Copyable<NDArray> {
     * @return the new NDArray with the scalar value added
     */
    default NDArray add(double scalar) {
+      if (scalar == 0) {
+         return copy();
+      }
       return map(d -> d + scalar);
    }
 
@@ -78,6 +83,9 @@ public interface NDArray extends Copyable<NDArray> {
     * @return this NDArray with the scalar value added
     */
    default NDArray addi(double scalar) {
+      if (scalar == 0) {
+         return this;
+      }
       return mapi(d -> d + scalar);
    }
 
@@ -89,7 +97,9 @@ public interface NDArray extends Copyable<NDArray> {
     * @throws IllegalArgumentException If the shape of this NDArray does not match that of the other NDArray
     */
    default NDArray addi(@NonNull NDArray other) {
-      return mapi(other, Math2::add);
+      shape().checkDimensionMatch(other.shape());
+      other.forEachSparse(e -> increment(e.getI(), e.getJ(), e.getValue()));
+      return this;
    }
 
    /**
@@ -106,10 +116,10 @@ public interface NDArray extends Copyable<NDArray> {
    }
 
    /**
-    * Arg max int [ ].
+    * Calculates the index of the maximum along each row or column based on the given axis.
     *
-    * @param axis the axis
-    * @return the int [ ]
+    * @param axis the axis (row/column) to calculate the max for
+    * @return int array of row/column indexes relating to max values
     */
    default int[] argMax(@NonNull Axis axis) {
       NDArray aMax = getFactory().zeros(shape().get(axis), axis);
@@ -128,10 +138,10 @@ public interface NDArray extends Copyable<NDArray> {
    }
 
    /**
-    * Arg min int [ ].
+    * Calculates the index of the minimum along each row or column based on the given axis.
     *
-    * @param axis the axis
-    * @return the int [ ]
+    * @param axis the axis (row/column) to calculate the min for
+    * @return int array of row/column indexes relating to min values
     */
    default int[] argMin(@NonNull Axis axis) {
       NDArray aMin = getFactory().zeros(shape().get(axis), axis);
@@ -159,13 +169,69 @@ public interface NDArray extends Copyable<NDArray> {
    }
 
    /**
+    * Decrements the value at the given index by 1
+    *
+    * @param index the index to decrement
+    * @return this NDArray
+    */
+   default NDArray decrement(int index) {
+      return decrement(index, 1d);
+   }
+
+   /**
+    * Decrements the value at the given index by a given amount
+    *
+    * @param index  the index to decrement
+    * @param amount the amount to decrement
+    * @return this NDArray
+    */
+   default NDArray decrement(int index, double amount) {
+      set(index, get(index) - amount);
+      return this;
+   }
+
+   /**
+    * Decrements the value at the given subscript by 1
+    *
+    * @param i the index of the first dimension
+    * @param j the index of the second dimension
+    * @return this NDArray
+    */
+   default NDArray decrement(int i, int j) {
+      return decrement(i, j, 1d);
+   }
+
+   /**
+    * Decrements the value at the given subscript by a given amount
+    *
+    * @param i      the index of the first dimension
+    * @param j      the index of the second dimension
+    * @param amount the amount to decrement
+    * @return this NDArray
+    */
+   default NDArray decrement(int i, int j, double amount) {
+      set(i, j, get(i, j) - amount);
+      return this;
+   }
+
+   default NDArray diag() {
+      NDArray toReturn = getFactory().zeros(shape());
+      for (int i = 0; i < shape().i; i++) {
+         if (i < shape().j) {
+            toReturn.set(i, i, get(i, i));
+         }
+      }
+      return toReturn;
+   }
+
+   /**
     * Divides a scalar value to each element in the NDArray
     *
     * @param scalar the value to divided
     * @return the new NDArray with the scalar value divided
     */
    default NDArray div(double scalar) {
-      return map(d -> d / scalar);
+      return mapSparse(d -> d / scalar);
    }
 
    /**
@@ -176,7 +242,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @throws IllegalArgumentException If the shape of this NDArray does not match that of the other NDArray
     */
    default NDArray div(@NonNull NDArray other) {
-      return map(other, Math2::divide);
+      return mapSparse(other, Math2::divide);
    }
 
    /**
@@ -189,7 +255,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @throws IllegalArgumentException If the row/column shape of this NDArray does not match that of the other NDArray
     */
    default NDArray div(@NonNull NDArray other, @NonNull Axis axis) {
-      return map(other, axis, Math2::divide);
+      return mapSparse(other, axis, Math2::divide);
    }
 
    /**
@@ -199,7 +265,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @return this NDArray with the scalar value divided
     */
    default NDArray divi(double scalar) {
-      return mapi(d -> d / scalar);
+      return mapiSparse(d -> d / scalar);
    }
 
    /**
@@ -210,7 +276,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @throws IllegalArgumentException If the shape of this NDArray does not match that of the other NDArray
     */
    default NDArray divi(@NonNull NDArray other) {
-      return mapi(other, Math2::divide);
+      return mapiSparse(other, Math2::divide);
    }
 
    /**
@@ -223,7 +289,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @throws IllegalArgumentException If the row/column shape of this NDArray does not match that of the other NDArray
     */
    default NDArray divi(@NonNull NDArray other, @NonNull Axis axis) {
-      return mapi(other, axis, Math2::divide);
+      return mapiSparse(other, axis, Math2::divide);
    }
 
    /**
@@ -235,33 +301,52 @@ public interface NDArray extends Copyable<NDArray> {
     */
    default double dot(@NonNull NDArray other) {
       shape().checkDimensionMatch(other.shape());
-      return Streams.asStream(sparseIterator())
-                    .mapToDouble(e -> e.getValue() * other.get(e.getI(), e.getJ()))
-                    .sum();
+      if (size() < other.size()) {
+         return Streams.asStream(sparseIterator())
+                       .mapToDouble(e -> e.getValue() * other.get(e.getI(), e.getJ()))
+                       .sum();
+      } else {
+         return Streams.asStream(other.sparseIterator())
+                       .mapToDouble(e -> e.getValue() * get(e.getI(), e.getJ()))
+                       .sum();
+      }
    }
 
    /**
-    * Exp nd array.
+    * Convenience method for calculating <code>e^x</code> where <code>x</code> is the element value of the NDArray, i.e.
+    * <code>Math.exp(x)</code>.
     *
-    * @return the nd array
+    * @return the new NDArray
     */
    default NDArray exp() {
       return map(FastMath::exp);
    }
 
    /**
-    * Expi nd array.
+    * Convenience method for calculating <code>e^x</code> where <code>x</code> is the element value of the NDArray
+    * in-place, i.e. <code>Math.exp(x)</code>.
     *
-    * @return the nd array
+    * @return this NDArray
     */
    default NDArray expi() {
       return mapi(FastMath::exp);
    }
 
    /**
-    * For each.
+    * Sets the values of elements in the NDArray to given value (in-place).
     *
-    * @param consumer the consumer
+    * @param value the value to assign to all elements.
+    * @return this NDArray
+    */
+   default NDArray fill(double value) {
+      mapi(d -> value);
+      return this;
+   }
+
+   /**
+    * Performs the given action for each element in the NDArray.
+    *
+    * @param consumer the consumer to use for processing the NDArray entries
     */
    default void forEach(@NonNull Consumer<Entry> consumer) {
       iterator().forEachRemaining(consumer);
@@ -273,7 +358,16 @@ public interface NDArray extends Copyable<NDArray> {
     * @param consumer Entry consumer
     */
    default void forEachSparse(@NonNull Consumer<Entry> consumer) {
-      forEach(consumer);
+      sparseIterator().forEachRemaining(consumer);
+   }
+
+   /**
+    * Processes each sparse entry, in an ordered fashion, in this NDArray using the given consumer
+    *
+    * @param consumer Entry consumer
+    */
+   default void forEachSparseOrdered(@NonNull Consumer<Entry> consumer) {
+      sparseOrderedIterator().forEachRemaining(consumer);
    }
 
    /**
@@ -282,6 +376,7 @@ public interface NDArray extends Copyable<NDArray> {
     *
     * @param index the index into the storage
     * @return the value at the given index
+    * @throws IndexOutOfBoundsException if the index is invalid
     */
    double get(int index);
 
@@ -291,6 +386,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @param i the r subscript
     * @param j the c subscript.
     * @return The value at <code>(r, c)</code>
+    * @throws IndexOutOfBoundsException if the dimensions are invalid
     */
    double get(int i, int j);
 
@@ -299,19 +395,21 @@ public interface NDArray extends Copyable<NDArray> {
     *
     * @param subscript the subscript whose value we want
     * @return The value at <code>(r, c)</code>
+    * @throws IndexOutOfBoundsException if the dimensions are invalid
     */
    default double get(@NonNull Subscript subscript) {
       return get(subscript.i, subscript.j);
    }
 
    /**
-    * Get double.
+    * Gets the value of the NDArray at the given subscript .
     *
-    * @param a1   the a 1
-    * @param dim1 the dim 1
-    * @param a2   the a 2
-    * @param dim2 the dim 2
-    * @return the double
+    * @param a1   the axis of the first subscript
+    * @param dim1 the index of the first axis's dimension
+    * @param a2   the axis of the second subscript
+    * @param dim2 the index of the second axis's dimension
+    * @return the element value
+    * @throws IndexOutOfBoundsException if the dimensions are invalid
     */
    default double get(@NonNull Axis a1, int dim1, @NonNull Axis a2, int dim2) {
       int[] dims = {-1, -1};
@@ -326,6 +424,46 @@ public interface NDArray extends Copyable<NDArray> {
     * @return the factory
     */
    NDArrayFactory getFactory();
+
+   /**
+    * Gets the label / key, if any, associated with the NDArray.
+    *
+    * @param <T> the expected type of the label
+    * @return the label
+    */
+   <T> T getLabel();
+
+   /**
+    * Sets the label associated with the NDArray.
+    *
+    * @param label the new Label
+    * @return this NDArray
+    */
+   NDArray setLabel(Object label);
+
+   /**
+    * Gets the label/key, if any, associated with the NDArray as a double value (casting).
+    *
+    * @return the label as double
+    */
+   default double getLabelAsDouble() {
+      return Cast.as(getLabel());
+   }
+
+   /**
+    * Gets the label/key, if any, associated with the NDArray as a double set. Will create a new set of size 1 if the
+    * label is not already a set.
+    *
+    * @return the label as double set
+    */
+   default OpenDoubleHashSet getLabelAsDoubleSet() {
+      if (getLabel() instanceof OpenDoubleHashSet) {
+         return Cast.as(getLabel());
+      }
+      OpenDoubleHashSet set = new OpenDoubleHashSet(1);
+      set.add(getLabelAsDouble());
+      return set;
+   }
 
    /**
     * Gets a vector along the given axis at the given index
@@ -345,12 +483,76 @@ public interface NDArray extends Copyable<NDArray> {
    }
 
    /**
+    * Checks if the NDArray has a label
+    *
+    * @return True if the NDArray has a label (non null label value), False otherwise (null label value)
+    */
+   default boolean hasLabel() {
+      return getLabel() != null;
+   }
+
+   /**
+    * Increments the value of the element at the given index by 1
+    *
+    * @param index the index whose value will be incremented
+    * @return this NDArray
+    */
+   default NDArray increment(int index) {
+      return increment(index, 1d);
+   }
+
+   /**
+    * Increments the value of the element at the given index by the given amount
+    *
+    * @param index  the index whose value will be incremented
+    * @param amount the amount to increment by
+    * @return this NDArray
+    */
+   default NDArray increment(int index, double amount) {
+      set(index, get(index) + amount);
+      return this;
+   }
+
+   /**
+    * Increments the value of the element at the given subscript by 1
+    *
+    * @param i the index of the first dimension
+    * @param j the index of the second dimension
+    * @return this NDArray
+    */
+   default NDArray increment(int i, int j) {
+      return increment(i, j, 1d);
+   }
+
+   /**
+    * Increments the value of the element at the given index by the given amount
+    *
+    * @param i      the index of the first dimension
+    * @param j      the index of the second dimension
+    * @param amount the amount to increment by
+    * @return this NDArray
+    */
+   default NDArray increment(int i, int j, double amount) {
+      set(i, j, get(i, j) + amount);
+      return this;
+   }
+
+   /**
     * Checks if this NDArray is a column vector, i.e. has 1 column and multiple rows
     *
     * @return true if column vector, false otherwise
     */
    default boolean isColumnVector() {
       return shape().i > 1 && shape().j == 1;
+   }
+
+   /**
+    * Checks if the NDArray empty
+    *
+    * @return True if empty (shape of (0,0)), False if not
+    */
+   default boolean isEmpty() {
+      return shape().i == 0 && shape().j == 0;
    }
 
    /**
@@ -381,9 +583,9 @@ public interface NDArray extends Copyable<NDArray> {
    }
 
    /**
-    * Is vector boolean.
+    * Checks if the NDArray is a vector (dimension of one shape is 1)
     *
-    * @return the boolean
+    * @return True if vector, False otherwise
     */
    default boolean isVector() {
       return isColumnVector() || isRowVector();
@@ -403,7 +605,7 @@ public interface NDArray extends Copyable<NDArray> {
    }
 
    /**
-    * Iterator iterator.
+    * Iterator over the entries (subscripts, index, and value) of the NDArray
     *
     * @return the iterator
     */
@@ -419,18 +621,18 @@ public interface NDArray extends Copyable<NDArray> {
    }
 
    /**
-    * Log nd array.
+    * Applies the log function to each value in the NDArray
     *
-    * @return the nd array
+    * @return new NDArray with logged values
     */
    default NDArray log() {
       return map(Math2::safeLog);
    }
 
    /**
-    * Logi nd array.
+    * Applies the log function to each value in the NDArray in-place
     *
-    * @return the nd array
+    * @return this NDArray
     */
    default NDArray logi() {
       return mapi(Math2::safeLog);
@@ -491,11 +693,12 @@ public interface NDArray extends Copyable<NDArray> {
    }
 
    /**
-    * Map if nd array.
+    * Applies the given operator to elements in the NDArray if the their values test positive using given the
+    * predicate.
     *
-    * @param predicate the predicate
-    * @param operator  the operator
-    * @return the nd array
+    * @param predicate the predicate to use to test values.
+    * @param operator  the operator to apply
+    * @return the new NDArray
     */
    default NDArray mapIf(@NonNull DoublePredicate predicate, @NonNull DoubleUnaryOperator operator) {
       final NDArray toReturn = getFactory().zeros(shape());
@@ -506,6 +709,57 @@ public interface NDArray extends Copyable<NDArray> {
             toReturn.set(i, get(i));
          }
       }
+      return toReturn;
+   }
+
+   /**
+    * Applies the given operator to each sparse element in this NDArray and the given vector along the given axis
+    * creating a new NDArray in the process.
+    *
+    * @param vector   the vector of values to combine with this NDArray
+    * @param axis     the axis to apply the operator to
+    * @param operator the operator to apply to the elements in this NDArray and the given vector
+    * @return the new NDArray
+    */
+   default NDArray mapSparse(@NonNull NDArray vector, @NonNull Axis axis, @NonNull DoubleBinaryOperator operator) {
+      shape().checkDimensionMatch(axis.T(), vector.shape(), axis.T());
+      Preconditions.checkArgument(vector.isVector(axis));
+      NDArray toReturn = getFactory().zeros(shape());
+      forEachSparse(e ->
+                       toReturn.set(e.getI(),
+                                    e.getJ(),
+                                    operator.applyAsDouble(e.getValue(),
+                                                           vector.get(axis.T().select(e.getI(), e.getJ()))))
+                   );
+      return toReturn;
+   }
+
+   /**
+    * Applies an operation to the sparse elements in this NDArray and given other NDArray using the given operator
+    * producing a new NDArray as its outcome.
+    *
+    * @param other    the other NDArray to perform operation over
+    * @param operator the operator to apply
+    * @return the new NDArray
+    */
+   default NDArray mapSparse(@NonNull NDArray other, @NonNull DoubleBinaryOperator operator) {
+      shape().checkDimensionMatch(other.shape());
+      NDArray toReturn = getFactory().zeros(shape());
+      forEachSparse(entry -> toReturn.set(entry.getI(), entry.getJ(),
+                                          operator.applyAsDouble(entry.getValue(),
+                                                                 other.get(entry.getI(), entry.getJ()))));
+      return toReturn;
+   }
+
+   /**
+    * Applies the given operator to each sparse element in this NDArray creating a new NDArray in the process.
+    *
+    * @param operator the operator to apply
+    * @return the new NDArray with values calculated using the given operator
+    */
+   default NDArray mapSparse(@NonNull DoubleUnaryOperator operator) {
+      NDArray toReturn = getFactory().zeros(shape());
+      forEachSparse(e -> toReturn.set(e.getIndex(), operator.applyAsDouble(e.getValue())));
       return toReturn;
    }
 
@@ -559,11 +813,12 @@ public interface NDArray extends Copyable<NDArray> {
    }
 
    /**
-    * Mapi if nd array.
+    * Applies the given operator to elements in the NDArray if the their values test positive using given the predicate
+    * in-place.
     *
-    * @param predicate the predicate
-    * @param operator  the operator
-    * @return the nd array
+    * @param predicate the predicate to use to test values.
+    * @param operator  the operator to apply
+    * @return this NDArray
     */
    default NDArray mapiIf(@NonNull DoublePredicate predicate, @NonNull DoubleUnaryOperator operator) {
       for (int i = 0; i < length(); i++) {
@@ -571,6 +826,50 @@ public interface NDArray extends Copyable<NDArray> {
             set(i, operator.applyAsDouble(get(i)));
          }
       }
+      return this;
+   }
+
+   /**
+    * Applies the given operator to each sparse element in this NDArray and the given vector along the given axis
+    * creating a new NDArray in the process.
+    *
+    * @param vector   the vector of values to combine with this NDArray
+    * @param axis     the axis to apply the operator to
+    * @param operator the operator to apply to the elements in this NDArray and the given vector
+    * @return the new NDArray
+    */
+   default NDArray mapiSparse(@NonNull NDArray vector, @NonNull Axis axis, @NonNull DoubleBinaryOperator operator) {
+      shape().checkDimensionMatch(axis.T(), vector.shape(), axis.T());
+      Preconditions.checkArgument(vector.isVector(axis));
+      forEachSparse(e ->
+                       e.setValue(operator.applyAsDouble(e.getValue(), vector.get(axis.T().select(e.getI(), e.getJ()))))
+                   );
+      return this;
+   }
+
+   /**
+    * Applies an operation to the sparse elements in this NDArray and given other NDArray using the given operator
+    * in-place.
+    *
+    * @param other    the other NDArray to perform operation over
+    * @param operator the operator to apply
+    * @return this NDArray
+    */
+   default NDArray mapiSparse(@NonNull NDArray other, @NonNull DoubleBinaryOperator operator) {
+      shape().checkDimensionMatch(other.shape());
+      forEachSparse(
+         entry -> entry.setValue(operator.applyAsDouble(entry.getValue(), other.get(entry.getI(), entry.getJ()))));
+      return this;
+   }
+
+   /**
+    * Applies the given operator to each sparse element in this NDArray in-place.
+    *
+    * @param operator the operator to apply
+    * @return this NDArray with values calculated using the given operator
+    */
+   default NDArray mapiSparse(@NonNull DoubleUnaryOperator operator) {
+      forEachSparse(entry -> entry.setValue(operator.applyAsDouble(entry.getValue())));
       return this;
    }
 
@@ -687,7 +986,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @return the new NDArray with the scalar value multiplied
     */
    default NDArray mul(double scalar) {
-      return map(d -> d * scalar);
+      return mapSparse(d -> d * scalar);
    }
 
    /**
@@ -698,7 +997,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @throws IllegalArgumentException If the shape of this NDArray does not match that of the other NDArray
     */
    default NDArray mul(@NonNull NDArray other) {
-      return map(other, Math2::multiply);
+      return mapSparse(other, Math2::multiply);
    }
 
    /**
@@ -711,7 +1010,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @throws IllegalArgumentException If the row/column shape of this NDArray does not match that of the other NDArray
     */
    default NDArray mul(@NonNull NDArray other, @NonNull Axis axis) {
-      return map(other, axis, Math2::multiply);
+      return mapSparse(other, axis, Math2::multiply);
    }
 
    /**
@@ -721,7 +1020,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @return this NDArray with the scalar value multiplied
     */
    default NDArray muli(double scalar) {
-      return mapi(d -> d * scalar);
+      return mapiSparse(d -> d * scalar);
    }
 
    /**
@@ -732,7 +1031,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @throws IllegalArgumentException If the shape of this NDArray does not match that of the other NDArray
     */
    default NDArray muli(@NonNull NDArray other) {
-      return mapi(other, Math2::multiply);
+      return mapiSparse(other, Math2::multiply);
    }
 
    /**
@@ -745,31 +1044,31 @@ public interface NDArray extends Copyable<NDArray> {
     * @throws IllegalArgumentException If the row/column shape of this NDArray does not match that of the other NDArray
     */
    default NDArray muli(@NonNull NDArray other, @NonNull Axis axis) {
-      return mapi(other, axis, Math2::multiply);
+      return mapiSparse(other, axis, Math2::multiply);
    }
 
    /**
-    * Neg nd array.
+    * Negates the values in the NDArray
     *
-    * @return the nd array
+    * @return the new NDArray with negated values
     */
    default NDArray neg() {
       return map(d -> -d);
    }
 
    /**
-    * Negi nd array.
+    * Negates the values in the NDArray in-place
     *
-    * @return the nd array
+    * @return this NDArray
     */
    default NDArray negi() {
       return mapi(d -> -d);
    }
 
    /**
-    * Norm 1 double.
+    * Calculates the L1-norm of the NDArray
     *
-    * @return the double
+    * @return the L1-norm
     */
    default double norm1() {
       return Streams.asStream(sparseIterator())
@@ -778,36 +1077,41 @@ public interface NDArray extends Copyable<NDArray> {
    }
 
    /**
-    * Norm 2 double.
+    * Calculates the L2-norm (magnitude) of the NDArray
     *
-    * @return the double
+    * @return the L2-norm
     */
    default double norm2() {
-      return Streams.asStream(sparseIterator())
-                    .mapToDouble(e -> FastMath.pow(e.getValue(), 2))
-                    .sum();
+      return Math.sqrt(Streams.asStream(sparseIterator())
+                              .mapToDouble(e -> FastMath.pow(e.getValue(), 2))
+                              .sum());
    }
 
    /**
-    * Pow nd array.
+    * Raises the value of each element in the NDArray by the given power.
     *
-    * @param pow the pow
-    * @return the nd array
+    * @param pow the power to raise values to
+    * @return the new NDArray
     */
-   default NDArray pow(int pow) {
+   default NDArray pow(double pow) {
       return map(d -> FastMath.pow(d, pow));
    }
 
    /**
-    * Powi nd array.
+    * Raises the value of each element in the NDArray by the given power in-place.
     *
-    * @param pow the pow
-    * @return the nd array
+    * @param pow the power to raise values to
+    * @return this NDArray
     */
-   default NDArray powi(int pow) {
+   default NDArray powi(double pow) {
       return mapi(d -> FastMath.pow(d, pow));
    }
 
+   /**
+    * Pretty prints the NDArray
+    *
+    * @param stream the stream to print the NDArray to
+    */
    default void pprint(PrintStream stream) {
       final DecimalFormat df = new DecimalFormat("0.000");
       PrintWriter writer = new PrintWriter(stream);
@@ -822,7 +1126,7 @@ public interface NDArray extends Copyable<NDArray> {
          writer.print(df.format(get(i, 0)));
          for (int j = 1; j < shape().j; j++) {
             writer.print(", ");
-            writer.print(df.format(get(i, 0)));
+            writer.print(df.format(get(i, j)));
          }
       }
       writer.println("]]");
@@ -1046,10 +1350,10 @@ public interface NDArray extends Copyable<NDArray> {
    }
 
    /**
-    * Select nd array.
+    * Selects all values matching the given predicate
     *
-    * @param predicate the predicate
-    * @return the nd array
+    * @param predicate the predicate to test
+    * @return new NDArray with values passing the given predicate and zeros elsewhere
     */
    default NDArray select(@NonNull DoublePredicate predicate) {
       final NDArray toReturn = getFactory().zeros(shape());
@@ -1062,10 +1366,10 @@ public interface NDArray extends Copyable<NDArray> {
    }
 
    /**
-    * Select nd array.
+    * Selects all values in this NDArray whose corresponding element in the given predicate NDArray is not zero.
     *
-    * @param predicate the predicate
-    * @return the nd array
+    * @param predicate the predicate NDArray test
+    * @return new NDArray with values passing the given predicate and zeros elsewhere
     */
    default NDArray select(@NonNull NDArray predicate) {
       shape().checkDimensionMatch(predicate.shape());
@@ -1079,10 +1383,10 @@ public interface NDArray extends Copyable<NDArray> {
    }
 
    /**
-    * Selecti nd array.
+    * Selects all values matching the given predicate in-place
     *
-    * @param predicate the predicate
-    * @return the nd array
+    * @param predicate the predicate to test
+    * @return this NDArray with values passing the given predicate and zeros elsewhere
     */
    default NDArray selecti(@NonNull DoublePredicate predicate) {
       forEach(entry -> {
@@ -1094,10 +1398,11 @@ public interface NDArray extends Copyable<NDArray> {
    }
 
    /**
-    * Selecti nd array.
+    * Selects all values in this NDArray whose corresponding element in the given predicate NDArray is not zero
+    * in-place.
     *
-    * @param predicate the predicate
-    * @return the nd array
+    * @param predicate the predicate NDArray test
+    * @return this NDArray with values passing the given predicate and zeros elsewhere
     */
    default NDArray selecti(@NonNull NDArray predicate) {
       shape().checkDimensionMatch(predicate.shape());
@@ -1140,12 +1445,12 @@ public interface NDArray extends Copyable<NDArray> {
    }
 
    /**
-    * Sets vector.
+    * Sets the values along the given axis at the given index to those in the given vector in-place.
     *
-    * @param index  the index
-    * @param vector the vector
-    * @param axis   the axis
-    * @return the vector
+    * @param index  the index of the row/column
+    * @param vector the vector whose values are to replace those in this NDArray
+    * @param axis   the axis (row/column) being set
+    * @return this NDArray
     */
    default NDArray setVector(int index, @NonNull NDArray vector, @NonNull Axis axis) {
       Preconditions.checkArgument(index >= 0 && index < shape().get(axis), "Invalid index");
@@ -1167,20 +1472,21 @@ public interface NDArray extends Copyable<NDArray> {
    Shape shape();
 
    /**
-    * Size int.
+    * The sparse size of the NDArray
     *
-    * @return the int
+    * @return the sparse size of the NDArray
     */
    default int size() {
       return length();
    }
 
    /**
-    * Slice nd array.
+    * Slices vector-based NDArrays using the given range of indexes (inclusive from, exclusive to)
     *
-    * @param from the from
-    * @param to   the to
-    * @return the nd array
+    * @param from the index to start slicing at
+    * @param to   the index to slice up to, but not including
+    * @return the new sliced NDArray
+    * @throws IllegalArgumentException if the NDArrays is not a vector
     */
    default NDArray slice(int from, int to) {
       if (isRowVector()) {
@@ -1200,13 +1506,13 @@ public interface NDArray extends Copyable<NDArray> {
    }
 
    /**
-    * Slice nd array.
+    * Slices the NDArray using the given subscript ranges (inclusive from, exclusive to)
     *
-    * @param iFrom the from
-    * @param iTo   the to
-    * @param jFrom the j from
-    * @param jTo   the j to
-    * @return the nd array
+    * @param iFrom the index of the first dimension to start slicing at
+    * @param iTo   the index of the first dimension  to slice up to, but not including
+    * @param jFrom the index of the second dimension to start slicing at
+    * @param jTo   the index of the second dimension  to slice up to, but not including
+    * @return the new sliced NDArray
     */
    default NDArray slice(int iFrom, int iTo, int jFrom, int jTo) {
       NDArray toReturn = getFactory().zeros(iTo - iFrom, jTo - jFrom);
@@ -1219,11 +1525,11 @@ public interface NDArray extends Copyable<NDArray> {
    }
 
    /**
-    * Slice nd array.
+    * Slices the NDArray by taking all elements along the given axis for the given indexes
     *
-    * @param axis    the axis
-    * @param indexes the indexes
-    * @return the nd array
+    * @param axis    the axis to slice
+    * @param indexes the indexes of the axis to slice
+    * @return the sliced NDArray
     */
    default NDArray slice(@NonNull Axis axis, @NonNull int... indexes) {
       NDArray toReturn;
@@ -1264,7 +1570,10 @@ public interface NDArray extends Copyable<NDArray> {
     * @return the new NDArray with the scalar value subtracted
     */
    default NDArray sub(double scalar) {
-      return map(d -> d + scalar);
+      if (scalar == 0) {
+         return copy();
+      }
+      return map(d -> d - scalar);
    }
 
    /**
@@ -1298,7 +1607,10 @@ public interface NDArray extends Copyable<NDArray> {
     * @return the new NDArray with the scalar value subtracted
     */
    default NDArray subi(double scalar) {
-      return mapi(d -> d + scalar);
+      if (scalar == 0) {
+         return this;
+      }
+      return mapi(d -> d - scalar);
    }
 
    /**
@@ -1309,7 +1621,9 @@ public interface NDArray extends Copyable<NDArray> {
     * @throws IllegalArgumentException If the shape of this NDArray does not match that of the other NDArray
     */
    default NDArray subi(@NonNull NDArray other) {
-      return mapi(other, Math2::subtract);
+      shape().checkDimensionMatch(other.shape());
+      other.forEachSparse(e -> decrement(e.getI(), e.getJ(), e.getValue()));
+      return this;
    }
 
    /**
@@ -1349,10 +1663,10 @@ public interface NDArray extends Copyable<NDArray> {
    }
 
    /**
-    * Test nd array.
+    * Tests the given predicate on the values in the NDArray returning 1 when TRUE and 0 when FALSE
     *
-    * @param predicate the predicate
-    * @return the nd array
+    * @param predicate the predicate to test
+    * @return new NDArray with test results
     */
    default NDArray test(@NonNull DoublePredicate predicate) {
       NDArray toReturn = getFactory().zeros(shape());
@@ -1365,15 +1679,17 @@ public interface NDArray extends Copyable<NDArray> {
    }
 
    /**
-    * Testi nd array.
+    * Tests the given predicate on the values in the NDArray returning 1 when TRUE and 0 when FALSE in-place
     *
-    * @param predicate the predicate
-    * @return the nd array
+    * @param predicate the predicate to test
+    * @return this with test results
     */
    default NDArray testi(@NonNull DoublePredicate predicate) {
       forEach(entry -> {
          if (predicate.test(entry.getValue())) {
             entry.setValue(1d);
+         } else {
+            entry.setValue(0d);
          }
       });
       return this;
@@ -1384,19 +1700,27 @@ public interface NDArray extends Copyable<NDArray> {
     *
     * @return 2D array view of the data
     */
-   double[][] to2DArray();
+   default double[][] to2DArray() {
+      final double[][] array = new double[shape().i][shape().j];
+      forEachSparse(e -> array[e.getI()][e.getJ()] = e.getValue());
+      return array;
+   }
 
    /**
     * The data in the NDArray as a 1d array
     *
     * @return 1d array view of thedata
     */
-   double[] toArray();
+   default double[] toArray() {
+      double[] toReturn = new double[length()];
+      forEachSparse(e -> toReturn[e.getIndex()] = e.getValue());
+      return toReturn;
+   }
 
    /**
-    * To boolean array boolean [ ].
+    * Generates a boolean view of the NDArray
     *
-    * @return the boolean [ ]
+    * @return 1d array of boolean values
     */
    default boolean[] toBooleanArray() {
       boolean[] toReturn = new boolean[length()];
@@ -1405,7 +1729,7 @@ public interface NDArray extends Copyable<NDArray> {
    }
 
    /**
-    * To double matrix double matrix.
+    * Generates a JBlas DoubleMatrix view of the data
     *
     * @return the double matrix
     */
@@ -1414,9 +1738,9 @@ public interface NDArray extends Copyable<NDArray> {
    }
 
    /**
-    * To float array float [ ].
+    * Generates a float view of the NDArray
     *
-    * @return the float [ ]
+    * @return 1d array of float values
     */
    default float[] toFloatArray() {
       float[] toReturn = new float[length()];
@@ -1425,7 +1749,7 @@ public interface NDArray extends Copyable<NDArray> {
    }
 
    /**
-    * To float matrix float matrix.
+    * Generates a JBlas FloatMatrix view of the data
     *
     * @return the float matrix
     */
@@ -1434,9 +1758,9 @@ public interface NDArray extends Copyable<NDArray> {
    }
 
    /**
-    * To int array int [ ].
+    * Generates an int view of the NDArray
     *
-    * @return the int [ ]
+    * @return 1d array of int values
     */
    default int[] toIntArray() {
       int[] toReturn = new int[length()];
@@ -1444,57 +1768,67 @@ public interface NDArray extends Copyable<NDArray> {
       return toReturn;
    }
 
+   /**
+    * Sets all element values to zero
+    *
+    * @return this NDArray
+    */
+   default NDArray zero() {
+      return fill(0d);
+   }
+
 
    /**
-    * The interface Entry.
+    * Defines an entry in the NDArray, which is the dimensions (i and j), the index (vector, direct storage), and
+    * value.
     */
    interface Entry extends Serializable {
 
       /**
-       * Get int.
+       * Gets the subscript index for the given axis
        *
-       * @param axis the axis
-       * @return the int
+       * @param axis the axis whose subscript index is wanted
+       * @return the subscript index
        */
-      default int get(Axis axis) {
+      default int get(@NonNull Axis axis) {
          return axis == Axis.ROW ? getI() : getJ();
       }
 
       /**
-       * Gets i.
+       * Gets the subscript index of the first dimension.
        *
-       * @return the i
+       * @return the subscript index of the first dimension
        */
       int getI();
 
       /**
-       * Gets index.
+       * Gets the index of the element in the NDArray (useful for vectors)
        *
        * @return the index
        */
       int getIndex();
 
       /**
-       * Gets j.
+       * Gets the subscript index of the second dimension.
        *
-       * @return the j
+       * @return the subscript index of the second dimension
        */
       int getJ();
 
       /**
-       * Gets value.
+       * Gets the value at the current subscript/index
        *
        * @return the value
        */
       double getValue();
 
       /**
-       * Sets value.
+       * Sets the value at the current subscript/index
        *
-       * @param value the value
+       * @param value the new value
        */
       void setValue(double value);
 
-   }
+   }//END OF Entry
 
 }//END OF NDArray

@@ -1,19 +1,24 @@
 package com.davidbracewell.apollo.linalg;
 
+import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.guava.common.base.Preconditions;
 import lombok.NonNull;
 import org.jblas.DoubleMatrix;
 import org.jblas.FloatMatrix;
 import org.jblas.ranges.IntervalRange;
 
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.Objects;
 
 /**
  * @author David B. Bracewell
  */
-public class DenseDoubleNDArray implements NDArray {
+public class DenseDoubleNDArray implements NDArray, Serializable {
+   private static final long serialVersionUID = 1L;
    private DoubleMatrix storage;
+   private Object label;
 
    public DenseDoubleNDArray(DoubleMatrix matrix) {
       this.storage = matrix;
@@ -86,7 +91,9 @@ public class DenseDoubleNDArray implements NDArray {
 
    @Override
    public NDArray copy() {
-      return new DenseDoubleNDArray(storage.dup());
+      NDArray array = new DenseDoubleNDArray(storage.dup());
+      array.setLabel(this.label);
+      return array;
    }
 
    @Override
@@ -139,6 +146,14 @@ public class DenseDoubleNDArray implements NDArray {
    }
 
    @Override
+   public boolean equals(Object o) {
+      return o != null
+                && o instanceof NDArray
+                && shape().equals(Cast.<NDArray>as(o).shape())
+                && Arrays.equals(Cast.<NDArray>as(o).toArray(), toArray());
+   }
+
+   @Override
    public double get(int index) {
       return storage.get(index);
    }
@@ -150,12 +165,22 @@ public class DenseDoubleNDArray implements NDArray {
 
    @Override
    public NDArrayFactory getFactory() {
-      return NDArrayFactory.DenseDoubleNDArrayFactor.INSTANCE;
+      return NDArrayFactory.DENSE_DOUBLE;
+   }
+
+   @Override
+   public <T> T getLabel() {
+      return Cast.as(label);
    }
 
    @Override
    public NDArray getVector(int index, @NonNull Axis axis) {
       return new DenseDoubleNDArray(axis == Axis.ROW ? storage.getRow(index) : storage.getColumn(index));
+   }
+
+   @Override
+   public int hashCode() {
+      return Objects.hash(label, storage);
    }
 
    @Override
@@ -217,7 +242,7 @@ public class DenseDoubleNDArray implements NDArray {
 
    @Override
    public NDArray mul(@NonNull NDArray other, @NonNull Axis axis) {
-      shape().checkDimensionMatch(other.shape(),axis.T());
+      shape().checkDimensionMatch(other.shape(), axis.T());
       if (axis == Axis.ROW) {
          return new DenseDoubleNDArray(storage.mulRowVector(other.toDoubleMatrix()));
       }
@@ -338,6 +363,12 @@ public class DenseDoubleNDArray implements NDArray {
    @Override
    public NDArray set(int r, int c, double value) {
       storage.put(r, c, value);
+      return this;
+   }
+
+   @Override
+   public NDArray setLabel(Object label) {
+      this.label = label;
       return this;
    }
 
@@ -464,7 +495,7 @@ public class DenseDoubleNDArray implements NDArray {
 
    @Override
    public String toString() {
-      return storage.toString();
+      return storage.toString("%f", "[", "]", ", ", ", ");
    }
 
    private class DoubleIterator implements Iterator<NDArray.Entry> {

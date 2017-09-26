@@ -251,7 +251,7 @@ public class DenseDoubleMatrix implements Matrix, Serializable {
 
    @Override
    public ElementType getElementType() {
-      return ElementType.FLOAT;
+      return ElementType.DOUBLE;
    }
 
    @Override

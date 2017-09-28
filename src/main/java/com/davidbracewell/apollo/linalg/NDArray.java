@@ -60,7 +60,10 @@ public interface NDArray extends Copyable<NDArray> {
     * @throws IllegalArgumentException If the shape of this NDArray does not match that of the other NDArray
     */
    default NDArray add(@NonNull NDArray other) {
-      return map(other, Math2::add);
+      shape().checkDimensionMatch(other.shape());
+      NDArray toReturn = getFactory().zeros(shape());
+      other.forEachSparse(e -> toReturn.increment(e.getI(), e.getJ(), e.getValue()));
+      return toReturn;
    }
 
    /**
@@ -301,15 +304,13 @@ public interface NDArray extends Copyable<NDArray> {
     */
    default double dot(@NonNull NDArray other) {
       shape().checkDimensionMatch(other.shape());
-      if (size() < other.size()) {
-         return Streams.asStream(sparseIterator())
-                       .mapToDouble(e -> e.getValue() * other.get(e.getI(), e.getJ()))
-                       .sum();
-      } else {
-         return Streams.asStream(other.sparseIterator())
-                       .mapToDouble(e -> e.getValue() * get(e.getI(), e.getJ()))
-                       .sum();
+      double dot = 0d;
+      for (int i = 0; i < shape().i; i++) {
+         for (int j = 0; j < shape().j; j++) {
+            dot += get(i, j) * other.get(i, j);
+         }
       }
+      return dot;
    }
 
    /**
@@ -319,7 +320,10 @@ public interface NDArray extends Copyable<NDArray> {
     * @return the new NDArray
     */
    default NDArray exp() {
-      return map(FastMath::exp);
+      NDArray toReturn = getFactory().ones(shape());
+      forEachSparse(e -> toReturn.set(e.getIndex(), FastMath.exp(e.getValue())));
+      return toReturn;
+      //return map(FastMath::exp);
    }
 
    /**
@@ -1094,7 +1098,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @return the new NDArray
     */
    default NDArray pow(double pow) {
-      return map(d -> FastMath.pow(d, pow));
+      return mapSparse(d -> FastMath.pow(d, pow));
    }
 
    /**
@@ -1104,7 +1108,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @return this NDArray
     */
    default NDArray powi(double pow) {
-      return mapi(d -> FastMath.pow(d, pow));
+      return mapiSparse(d -> FastMath.pow(d, pow));
    }
 
    /**
@@ -1584,7 +1588,10 @@ public interface NDArray extends Copyable<NDArray> {
     * @throws IllegalArgumentException If the shape of this NDArray does not match that of the other NDArray
     */
    default NDArray sub(@NonNull NDArray other) {
-      return map(other, Math2::subtract);
+      shape().checkDimensionMatch(other.shape());
+      NDArray toReturn = copy();
+      other.forEachSparse(e -> toReturn.decrement(e.getI(), e.getJ(), e.getValue()));
+      return toReturn;
    }
 
    /**

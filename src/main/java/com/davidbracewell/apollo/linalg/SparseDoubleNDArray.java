@@ -9,10 +9,9 @@ import org.apache.mahout.math.list.IntArrayList;
 import org.apache.mahout.math.map.OpenIntDoubleHashMap;
 
 import java.io.Serializable;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.DoubleUnaryOperator;
 
 /**
  * @author David B. Bracewell
@@ -48,7 +47,6 @@ public class SparseDoubleNDArray implements NDArray, Serializable {
       copy.label = this.label;
       return copy;
    }
-
 
    @Override
    public boolean equals(Object o) {
@@ -94,6 +92,16 @@ public class SparseDoubleNDArray implements NDArray, Serializable {
    @Override
    public Iterator<Entry> iterator() {
       return new Alliterator();
+   }
+
+   @Override
+   public NDArray mapSparse(@NonNull DoubleUnaryOperator operator) {
+      NDArray toReturn = getFactory().zeros(shape);
+      storage.forEachPair((index, value) -> {
+         toReturn.set(index, operator.applyAsDouble(value));
+         return true;
+      });
+      return toReturn;
    }
 
    @Override

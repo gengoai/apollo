@@ -1,5 +1,6 @@
 package com.davidbracewell.apollo.distribution;
 
+import com.davidbracewell.Math2;
 import com.davidbracewell.guava.common.base.Preconditions;
 
 import java.io.Serializable;
@@ -26,7 +27,7 @@ public interface UnivariateDistribution extends Serializable {
     * @return the log probability of <code>x</code>
     */
    default double logProbability(double x) {
-      return Math.log(probability(x));
+      return Math2.safeLog(probability(x));
    }
 
    /**

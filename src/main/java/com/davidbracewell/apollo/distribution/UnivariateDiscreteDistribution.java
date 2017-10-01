@@ -32,25 +32,24 @@ import com.davidbracewell.guava.common.base.Preconditions;
 public interface UnivariateDiscreteDistribution<T extends UnivariateDiscreteDistribution> extends UnivariateDistribution {
 
    /**
-    * Draws one random sample from the distribution.
+    * Decrements number of times the given variable has been observed by the given amount.
     *
-    * @return the randomly drawn discrete random variable
+    * @param variable             the variable to decrement
+    * @param numberOfObservations the number of observations of <code>variable</code> to remove
+    * @return this discrete distribution
     */
-   int sample();
+   default T decrement(int variable, int numberOfObservations) {
+      return increment(variable, -numberOfObservations);
+   }
 
    /**
-    * Draws <code>sampleSize</code> number random samples from the distribution.
+    * Decrements number of times the given variable has been observed by one.
     *
-    * @param sampleSize the number of samples to take.
-    * @return An array of <code>sampleSize</code> randomly drawn discrete random variables
+    * @param variable the variable to decrement
+    * @return this discrete distribution
     */
-   default int[] sample(int sampleSize) {
-      Preconditions.checkArgument(sampleSize > 0, "Size must be > 0");
-      int[] samples = new int[sampleSize];
-      for (int i = 0; i < sampleSize; i++) {
-         samples[i] = sample();
-      }
-      return samples;
+   default T decrement(int variable) {
+      return increment(variable, -1);
    }
 
    /**
@@ -73,24 +72,25 @@ public interface UnivariateDiscreteDistribution<T extends UnivariateDiscreteDist
    }
 
    /**
-    * Decrements number of times the given variable has been observed by the given amount.
+    * Draws one random sample from the distribution.
     *
-    * @param variable             the variable to decrement
-    * @param numberOfObservations the number of observations of <code>variable</code> to remove
-    * @return this discrete distribution
+    * @return the randomly drawn discrete random variable
     */
-   default T decrement(int variable, int numberOfObservations) {
-      return increment(variable, -numberOfObservations);
-   }
+   int sample();
 
    /**
-    * Decrements number of times the given variable has been observed by one.
+    * Draws <code>sampleSize</code> number random samples from the distribution.
     *
-    * @param variable the variable to decrement
-    * @return this discrete distribution
+    * @param sampleSize the number of samples to take.
+    * @return An array of <code>sampleSize</code> randomly drawn discrete random variables
     */
-   default T decrement(int variable) {
-      return increment(variable, -1);
+   default int[] sample(int sampleSize) {
+      Preconditions.checkArgument(sampleSize > 0, "Size must be > 0");
+      int[] samples = new int[sampleSize];
+      for (int i = 0; i < sampleSize; i++) {
+         samples[i] = sample();
+      }
+      return samples;
    }
 
 

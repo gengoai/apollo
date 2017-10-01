@@ -33,23 +33,13 @@ public class NormalDistribution implements UnivariateRealDistribution<NormalDist
    }
 
    @Override
-   public double getMode() {
-      return statistics.getMean();
-   }
-
-   @Override
-   public double getMean() {
-      return statistics.getMean();
-   }
-
-   @Override
-   public double getVariance() {
-      return statistics.getVariance();
-   }
-
-   @Override
-   public double probability(double x) {
-      return getDistribution().density(x);
+   public NormalDistribution addValue(double value) {
+      if (statistics == null) {
+         throw new UnsupportedOperationException("Distribution initialized with a mean and standard deviation");
+      }
+      this.wrapped = null;
+      statistics.addValue(value);
+      return this;
    }
 
    @Override
@@ -60,16 +50,6 @@ public class NormalDistribution implements UnivariateRealDistribution<NormalDist
    @Override
    public double cumulativeProbability(double lowerBound, double higherBound) {
       return getDistribution().probability(lowerBound, higherBound);
-   }
-
-   @Override
-   public double inverseCumulativeProbability(double p) {
-      return getDistribution().inverseCumulativeProbability(p);
-   }
-
-   @Override
-   public double sample() {
-      return getDistribution().sample();
    }
 
    private org.apache.commons.math3.distribution.NormalDistribution getDistribution() {
@@ -89,13 +69,33 @@ public class NormalDistribution implements UnivariateRealDistribution<NormalDist
    }
 
    @Override
-   public NormalDistribution addValue(double value) {
-      if (statistics == null) {
-         throw new UnsupportedOperationException("Distribution initialized with a mean and standard deviation");
-      }
-      this.wrapped = null;
-      statistics.addValue(value);
-      return this;
+   public double getMean() {
+      return statistics.getMean();
+   }
+
+   @Override
+   public double getMode() {
+      return statistics.getMean();
+   }
+
+   @Override
+   public double getVariance() {
+      return statistics.getVariance();
+   }
+
+   @Override
+   public double inverseCumulativeProbability(double p) {
+      return getDistribution().inverseCumulativeProbability(p);
+   }
+
+   @Override
+   public double probability(double x) {
+      return getDistribution().density(x);
+   }
+
+   @Override
+   public double sample() {
+      return getDistribution().sample();
    }
 
 

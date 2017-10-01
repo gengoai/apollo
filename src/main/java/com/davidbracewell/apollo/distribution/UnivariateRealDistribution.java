@@ -11,11 +11,12 @@ import com.davidbracewell.guava.common.base.Preconditions;
 public interface UnivariateRealDistribution<T extends UnivariateRealDistribution> extends UnivariateDistribution {
 
    /**
-    * Draws one random values from the distribution.
+    * Adds the given observed value as part of the distribution
     *
-    * @return the randomly drawn real value
+    * @param value the observed value
+    * @return this distribution
     */
-   double sample();
+   T addValue(double value);
 
    /**
     * Draws <code>sampleSize</code> number random values from the distribution.
@@ -32,14 +33,12 @@ public interface UnivariateRealDistribution<T extends UnivariateRealDistribution
       return samples;
    }
 
-
    /**
-    * Adds the given observed value as part of the distribution
+    * Draws one random values from the distribution.
     *
-    * @param value the observed value
-    * @return this distribution
+    * @return the randomly drawn real value
     */
-   T addValue(double value);
+   double sample();
 
 
 }//END OF RealDistribution

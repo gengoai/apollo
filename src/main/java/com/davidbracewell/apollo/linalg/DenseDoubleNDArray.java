@@ -18,7 +18,6 @@ import java.util.Objects;
 public class DenseDoubleNDArray implements NDArray, Serializable {
    private static final long serialVersionUID = 1L;
    private DoubleMatrix storage;
-   private Object label;
 
    public DenseDoubleNDArray(DoubleMatrix matrix) {
       this.storage = matrix;
@@ -91,9 +90,7 @@ public class DenseDoubleNDArray implements NDArray, Serializable {
 
    @Override
    public NDArray copy() {
-      NDArray array = new DenseDoubleNDArray(storage.dup());
-      array.setLabel(this.label);
-      return array;
+      return new DenseDoubleNDArray(storage.dup());
    }
 
    @Override
@@ -169,18 +166,13 @@ public class DenseDoubleNDArray implements NDArray, Serializable {
    }
 
    @Override
-   public <T> T getLabel() {
-      return Cast.as(label);
-   }
-
-   @Override
    public NDArray getVector(int index, @NonNull Axis axis) {
       return new DenseDoubleNDArray(axis == Axis.ROW ? storage.getRow(index) : storage.getColumn(index));
    }
 
    @Override
    public int hashCode() {
-      return Objects.hash(label, storage);
+      return Objects.hash(storage);
    }
 
    @Override
@@ -363,12 +355,6 @@ public class DenseDoubleNDArray implements NDArray, Serializable {
    @Override
    public NDArray set(int r, int c, double value) {
       storage.put(r, c, value);
-      return this;
-   }
-
-   @Override
-   public NDArray setLabel(Object label) {
-      this.label = label;
       return this;
    }
 

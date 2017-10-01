@@ -21,9 +21,9 @@
 
 package com.davidbracewell.apollo.affinity;
 
-import com.davidbracewell.apollo.optimization.Optimum;
 import com.davidbracewell.apollo.linalg.DenseVector;
 import com.davidbracewell.apollo.linalg.Vector;
+import com.davidbracewell.apollo.optimization.Optimum;
 import com.davidbracewell.collection.counter.Counter;
 import com.davidbracewell.guava.common.collect.Maps;
 import lombok.NonNull;

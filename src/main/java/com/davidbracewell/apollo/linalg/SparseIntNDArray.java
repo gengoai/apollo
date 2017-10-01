@@ -2,7 +2,6 @@ package com.davidbracewell.apollo.linalg;
 
 
 import com.davidbracewell.collection.Streams;
-import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.guava.common.base.Preconditions;
 import lombok.NonNull;
 import org.apache.mahout.math.list.IntArrayList;
@@ -17,7 +16,6 @@ import java.util.Iterator;
 public class SparseIntNDArray implements NDArray, Serializable {
    private static final long serialVersionUID = 1L;
    private OpenIntIntHashMap storage;
-   private Object label;
    private Shape shape;
 
    public SparseIntNDArray(int i, int j) {
@@ -32,7 +30,6 @@ public class SparseIntNDArray implements NDArray, Serializable {
          toReturn.set(index, value);
          return true;
       });
-      toReturn.setLabel(label);
       return toReturn;
    }
 
@@ -53,11 +50,6 @@ public class SparseIntNDArray implements NDArray, Serializable {
    }
 
    @Override
-   public <T> T getLabel() {
-      return Cast.as(label);
-   }
-
-   @Override
    public Iterator<Entry> iterator() {
       return new Alliterator();
    }
@@ -72,12 +64,6 @@ public class SparseIntNDArray implements NDArray, Serializable {
    @Override
    public NDArray set(int r, int c, double value) {
       return set(shape.rowMajorIndex(r, c), value);
-   }
-
-   @Override
-   public NDArray setLabel(Object label) {
-      this.label = label;
-      return this;
    }
 
    @Override

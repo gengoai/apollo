@@ -22,7 +22,6 @@ public class SparseFloatNDArray implements NDArray, Serializable {
 
    private Shape shape;
    private OpenIntFloatHashMap storage = new OpenIntFloatHashMap();
-   private Object label;
 
    public SparseFloatNDArray(int nRows, int nCols) {
       this.shape = Shape.shape(nRows, nCols);
@@ -45,7 +44,6 @@ public class SparseFloatNDArray implements NDArray, Serializable {
          copy.storage.put(index, value);
          return true;
       });
-      copy.label = this.label;
       return copy;
    }
 
@@ -82,13 +80,8 @@ public class SparseFloatNDArray implements NDArray, Serializable {
    }
 
    @Override
-   public <T> T getLabel() {
-      return Cast.as(label);
-   }
-
-   @Override
    public int hashCode() {
-      return Objects.hash(label, storage);
+      return Objects.hash(storage);
    }
 
    @Override
@@ -141,12 +134,6 @@ public class SparseFloatNDArray implements NDArray, Serializable {
    @Override
    public NDArray set(int r, int c, double value) {
       return set(shape.rowMajorIndex(r, c), value);
-   }
-
-   @Override
-   public NDArray setLabel(Object label) {
-      this.label = label;
-      return this;
    }
 
    @Override

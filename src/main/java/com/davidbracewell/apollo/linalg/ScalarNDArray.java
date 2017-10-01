@@ -1,6 +1,5 @@
 package com.davidbracewell.apollo.linalg;
 
-import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.guava.common.base.Preconditions;
 
 import java.util.Collections;
@@ -11,7 +10,6 @@ import java.util.Iterator;
  */
 public class ScalarNDArray implements NDArray {
    private double value;
-   private Object label;
 
    public ScalarNDArray(double value) {
       this.value = value;
@@ -19,7 +17,7 @@ public class ScalarNDArray implements NDArray {
 
    @Override
    public NDArray copy() {
-      return new ScalarNDArray(value).setLabel(label);
+      return new ScalarNDArray(value);
    }
 
    @Override
@@ -45,10 +43,6 @@ public class ScalarNDArray implements NDArray {
       return NDArrayFactory.DENSE_DOUBLE;
    }
 
-   @Override
-   public <T> T getLabel() {
-      return Cast.as(label);
-   }
 
    @Override
    public int hashCode() {
@@ -72,12 +66,6 @@ public class ScalarNDArray implements NDArray {
       Preconditions.checkPositionIndex(r, 0, "Invalid row");
       Preconditions.checkPositionIndex(c, 1, "Invalid column");
       this.value = value;
-      return this;
-   }
-
-   @Override
-   public NDArray setLabel(Object label) {
-      this.label = label;
       return this;
    }
 

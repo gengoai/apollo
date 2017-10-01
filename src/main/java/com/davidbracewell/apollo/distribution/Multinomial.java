@@ -82,61 +82,13 @@ public class Multinomial implements UnivariateDiscreteDistribution<Multinomial>,
    }
 
    @Override
-   public double getMode() {
-      int max = values[0];
-      int maxi = 0;
-      for (int i = 1; i < values.length; i++) {
-         if (values[i] > max) {
-            max = values[i];
-            maxi = i;
-         }
-      }
-      return maxi;
+   public double cumulativeProbability(double x) {
+      return getDistribution().cumulativeProbability((int) x);
    }
 
    @Override
-   public double getMean() {
-      return getDistribution().getNumericalMean();
-   }
-
-   @Override
-   public double getVariance() {
-      return getDistribution().getNumericalVariance();
-   }
-
-   /**
-    * Gets the total number of observations
-    *
-    * @return the total number of observations
-    */
-   public double getTotalObservations() {
-      return sum;
-   }
-
-   @Override
-   public Multinomial increment(int variable, int numberOfObservations) {
-      this.values[variable] += numberOfObservations;
-      this.sum += numberOfObservations;
-      this.wrapped = null;
-      return this;
-   }
-
-   @Override
-   public double probability(double x) {
-      if (x < 0 || x >= values.length) {
-         return 0.0;
-      }
-      return (values[(int) x] + alpha) / (sum + alphaTimesV);
-   }
-
-   @Override
-   public int sample() {
-      return getDistribution().sample();
-   }
-
-   @Override
-   public String toString() {
-      return Arrays.toString(values);
+   public double cumulativeProbability(double lowerBound, double higherBound) {
+      return getDistribution().cumulativeProbability((int) lowerBound, (int) higherBound);
    }
 
    private EnumeratedIntegerDistribution getDistribution() {
@@ -158,18 +110,66 @@ public class Multinomial implements UnivariateDiscreteDistribution<Multinomial>,
    }
 
    @Override
-   public double cumulativeProbability(double x) {
-      return getDistribution().cumulativeProbability((int) x);
+   public double getMean() {
+      return getDistribution().getNumericalMean();
    }
 
    @Override
-   public double cumulativeProbability(double lowerBound, double higherBound) {
-      return getDistribution().cumulativeProbability((int) lowerBound, (int) higherBound);
+   public double getMode() {
+      int max = values[0];
+      int maxi = 0;
+      for (int i = 1; i < values.length; i++) {
+         if (values[i] > max) {
+            max = values[i];
+            maxi = i;
+         }
+      }
+      return maxi;
+   }
+
+   /**
+    * Gets the total number of observations
+    *
+    * @return the total number of observations
+    */
+   public double getTotalObservations() {
+      return sum;
+   }
+
+   @Override
+   public double getVariance() {
+      return getDistribution().getNumericalVariance();
+   }
+
+   @Override
+   public Multinomial increment(int variable, int numberOfObservations) {
+      this.values[variable] += numberOfObservations;
+      this.sum += numberOfObservations;
+      this.wrapped = null;
+      return this;
    }
 
    @Override
    public double inverseCumulativeProbability(double p) {
       return getDistribution().inverseCumulativeProbability((int) p);
+   }
+
+   @Override
+   public double probability(double x) {
+      if (x < 0 || x >= values.length) {
+         return 0.0;
+      }
+      return (values[(int) x] + alpha) / (sum + alphaTimesV);
+   }
+
+   @Override
+   public int sample() {
+      return getDistribution().sample();
+   }
+
+   @Override
+   public String toString() {
+      return Arrays.toString(values);
    }
 
 }//END OF Multinomial

@@ -3,11 +3,9 @@ package com.davidbracewell.apollo.linalg;
 import com.davidbracewell.Copyable;
 import com.davidbracewell.Math2;
 import com.davidbracewell.collection.Streams;
-import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.guava.common.base.Preconditions;
 import lombok.NonNull;
 import org.apache.commons.math3.util.FastMath;
-import org.apache.mahout.math.set.OpenDoubleHashSet;
 import org.jblas.DoubleMatrix;
 import org.jblas.FloatMatrix;
 
@@ -429,45 +427,6 @@ public interface NDArray extends Copyable<NDArray> {
     */
    NDArrayFactory getFactory();
 
-   /**
-    * Gets the label / key, if any, associated with the NDArray.
-    *
-    * @param <T> the expected type of the label
-    * @return the label
-    */
-   <T> T getLabel();
-
-   /**
-    * Sets the label associated with the NDArray.
-    *
-    * @param label the new Label
-    * @return this NDArray
-    */
-   NDArray setLabel(Object label);
-
-   /**
-    * Gets the label/key, if any, associated with the NDArray as a double value (casting).
-    *
-    * @return the label as double
-    */
-   default double getLabelAsDouble() {
-      return Cast.as(getLabel());
-   }
-
-   /**
-    * Gets the label/key, if any, associated with the NDArray as a double set. Will create a new set of size 1 if the
-    * label is not already a set.
-    *
-    * @return the label as double set
-    */
-   default OpenDoubleHashSet getLabelAsDoubleSet() {
-      if (getLabel() instanceof OpenDoubleHashSet) {
-         return Cast.as(getLabel());
-      }
-      OpenDoubleHashSet set = new OpenDoubleHashSet(1);
-      set.add(getLabelAsDouble());
-      return set;
-   }
 
    /**
     * Gets a vector along the given axis at the given index
@@ -484,15 +443,6 @@ public interface NDArray extends Copyable<NDArray> {
          toReturn.set(i, get(axis, index, axis.T(), i));
       }
       return toReturn;
-   }
-
-   /**
-    * Checks if the NDArray has a label
-    *
-    * @return True if the NDArray has a label (non null label value), False otherwise (null label value)
-    */
-   default boolean hasLabel() {
-      return getLabel() != null;
    }
 
    /**

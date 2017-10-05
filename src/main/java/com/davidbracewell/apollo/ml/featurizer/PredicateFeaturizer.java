@@ -19,14 +19,15 @@
  * under the License.
  */
 
-package com.davidbracewell.apollo.ml;
+package com.davidbracewell.apollo.ml.featurizer;
 
+import com.davidbracewell.apollo.ml.Feature;
 import com.davidbracewell.string.StringUtils;
 import lombok.Getter;
 import lombok.NonNull;
 
 import java.util.Collections;
-import java.util.Set;
+import java.util.List;
 
 /**
  * <p>Specialized featurizer that produces one feature in the form <code>PREFIX=PREDICATE</code> allowing access to the
@@ -49,12 +50,12 @@ public abstract class PredicateFeaturizer<INPUT> implements Featurizer<INPUT> {
    }
 
    @Override
-   public final Set<Feature> apply(@NonNull INPUT input) {
+   public final List<Feature> apply(@NonNull INPUT input) {
       String predicate = extractPredicate(input);
       if (StringUtils.isNullOrBlank(predicate)) {
-         return Collections.emptySet();
+         return Collections.emptyList();
       }
-      return Collections.singleton(Feature.TRUE(prefix, predicate));
+      return Collections.singletonList(Feature.TRUE(prefix, predicate));
    }
 
    /**

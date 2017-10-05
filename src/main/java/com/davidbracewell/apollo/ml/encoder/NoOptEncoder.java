@@ -19,8 +19,9 @@
  * under the License.
  */
 
-package com.davidbracewell.apollo.ml;
+package com.davidbracewell.apollo.ml.encoder;
 
+import com.davidbracewell.apollo.ml.Example;
 import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.stream.MStream;
 
@@ -29,16 +30,16 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * <p>Specialized label encoder that doesn't do any encoding. This is mainly useful for word embedding algorithms.</p>
+ * <p>Specialized encoder that doesn't do any encoding. This is mainly useful for word embedding algorithms.</p>
  *
  * @author David B. Bracewell
  */
-public class NoOptLabelEncoder implements LabelEncoder, Serializable {
+public class NoOptEncoder implements Encoder, Serializable {
    private static final long serialVersionUID = 1L;
 
    @Override
-   public LabelEncoder createNew() {
-      return new NoOptLabelEncoder();
+   public Encoder createNew() {
+      return new NoOptEncoder();
    }
 
    @Override
@@ -90,4 +91,4 @@ public class NoOptLabelEncoder implements LabelEncoder, Serializable {
    public List<Object> values() {
       return Collections.emptyList();
    }
-}//END OF NoOptLabelEncoder
+}//END OF NoOptEncoder

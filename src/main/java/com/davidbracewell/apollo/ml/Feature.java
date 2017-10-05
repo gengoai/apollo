@@ -38,9 +38,12 @@ public final class Feature implements Serializable, Comparable<Feature>, Copyabl
       }
       if (position != null) {
          builder.append('[').append(position).append(']');
-      } else {
+      }
+
+      if (builder.length() > 0) {
          builder.append("=");
       }
+
       this.featureName = builder.append(predicate).toString();
    }
 

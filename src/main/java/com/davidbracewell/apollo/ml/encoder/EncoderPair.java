@@ -1,5 +1,6 @@
-package com.davidbracewell.apollo.ml;
+package com.davidbracewell.apollo.ml.encoder;
 
+import com.davidbracewell.apollo.ml.Example;
 import lombok.EqualsAndHashCode;
 import lombok.NonNull;
 

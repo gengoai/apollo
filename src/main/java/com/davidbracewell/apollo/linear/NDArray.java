@@ -4,6 +4,7 @@ import com.davidbracewell.Copyable;
 import com.davidbracewell.EnhancedDoubleStatistics;
 import com.davidbracewell.Math2;
 import com.davidbracewell.collection.Streams;
+import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.guava.common.base.Preconditions;
 import lombok.NonNull;
 import org.apache.commons.math3.util.FastMath;
@@ -14,6 +15,7 @@ import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.text.DecimalFormat;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.function.Consumer;
 import java.util.function.DoubleBinaryOperator;
@@ -25,14 +27,19 @@ import java.util.function.DoubleUnaryOperator;
  *
  * @author David B. Bracewell
  */
-public interface NDArray extends Copyable<NDArray> {
+public abstract class NDArray implements Serializable, Copyable<NDArray> {
+   private static final long serialVersionUID = 1L;
+
+   private Object label;
+   private double weight;
+   private Object predicted;
 
    /**
     * Flips the matrix on its diagonal switching the rows and columns
     *
     * @return the transposed array
     */
-   default NDArray T() {
+   public NDArray T() {
       NDArray t = getFactory().zeros(shape().j, shape().i);
       forEachSparse(entry -> t.set(entry.getJ(), entry.getI(), entry.getValue()));
       return t;
@@ -44,7 +51,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @param scalar the value to add
     * @return the new NDArray with the scalar value added
     */
-   default NDArray add(double scalar) {
+   public NDArray add(double scalar) {
       if (scalar == 0) {
          return copy();
       }
@@ -58,7 +65,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @return the new NDArray with the result of this + other
     * @throws IllegalArgumentException If the shape of this NDArray does not match that of the other NDArray
     */
-   default NDArray add(@NonNull NDArray other) {
+   public NDArray add(@NonNull NDArray other) {
       return map(other, Math2::add);
    }
 
@@ -71,7 +78,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @return the new NDArray with the result of this + other
     * @throws IllegalArgumentException If the row/column shape of this NDArray does not match that of the other NDArray
     */
-   default NDArray add(@NonNull NDArray other, @NonNull Axis axis) {
+   public NDArray add(@NonNull NDArray other, @NonNull Axis axis) {
       return map(other, axis, Math2::add);
    }
 
@@ -81,7 +88,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @param scalar the value to add
     * @return this NDArray with the scalar value added
     */
-   default NDArray addi(double scalar) {
+   public NDArray addi(double scalar) {
       if (scalar == 0) {
          return this;
       }
@@ -95,7 +102,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @return this NDArray with the result of this + other
     * @throws IllegalArgumentException If the shape of this NDArray does not match that of the other NDArray
     */
-   default NDArray addi(@NonNull NDArray other) {
+   public NDArray addi(@NonNull NDArray other) {
       shape().checkDimensionMatch(other.shape());
       other.forEachSparse(e -> increment(e.getI(), e.getJ(), e.getValue()));
       return this;
@@ -110,7 +117,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @return this NDArray with the result of this + other
     * @throws IllegalArgumentException If the row/column shape of this NDArray does not match that of the other NDArray
     */
-   default NDArray addi(@NonNull NDArray other, @NonNull Axis axis) {
+   public NDArray addi(@NonNull NDArray other, @NonNull Axis axis) {
       return mapi(other, axis, Math2::add);
    }
 
@@ -120,7 +127,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @param axis the axis (row/column) to calculate the max for
     * @return int array of row/column indexes relating to max values
     */
-   default int[] argMax(@NonNull Axis axis) {
+   public int[] argMax(@NonNull Axis axis) {
       NDArray aMax = getFactory().zeros(shape().get(axis), axis);
       NDArray vMax = getFactory().zeros(shape().get(axis), axis);
       vMax.mapi(d -> Double.NEGATIVE_INFINITY);
@@ -142,7 +149,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @param axis the axis (row/column) to calculate the min for
     * @return int array of row/column indexes relating to min values
     */
-   default int[] argMin(@NonNull Axis axis) {
+   public int[] argMin(@NonNull Axis axis) {
       NDArray aMin = getFactory().zeros(shape().get(axis), axis);
       NDArray vMin = getFactory().zeros(shape().get(axis), axis);
       vMin.mapi(d -> Double.POSITIVE_INFINITY);
@@ -163,8 +170,29 @@ public interface NDArray extends Copyable<NDArray> {
     *
     * @return this NDArray
     */
-   default NDArray compress() {
+   public NDArray compress() {
       return this;
+   }
+
+   @Override
+   public NDArray copy() {
+      return copyData().setLabel(label).setPredicted(predicted).setWeight(weight);
+   }
+
+   protected abstract NDArray copyData();
+
+   @Override
+   public boolean equals(Object o) {
+      return o != null
+                && o instanceof NDArray
+                && shape().equals(Cast.<NDArray>as(o).shape())
+                && Arrays.equals(Cast.<NDArray>as(o).toArray(), toArray());
+   }
+
+
+   @Override
+   public String toString() {
+      return Arrays.toString(toArray());
    }
 
    /**
@@ -173,7 +201,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @param index the index to decrement
     * @return this NDArray
     */
-   default NDArray decrement(int index) {
+   public NDArray decrement(int index) {
       return decrement(index, 1d);
    }
 
@@ -184,7 +212,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @param amount the amount to decrement
     * @return this NDArray
     */
-   default NDArray decrement(int index, double amount) {
+   public NDArray decrement(int index, double amount) {
       set(index, get(index) - amount);
       return this;
    }
@@ -196,7 +224,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @param j the index of the second dimension
     * @return this NDArray
     */
-   default NDArray decrement(int i, int j) {
+   public NDArray decrement(int i, int j) {
       return decrement(i, j, 1d);
    }
 
@@ -208,7 +236,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @param amount the amount to decrement
     * @return this NDArray
     */
-   default NDArray decrement(int i, int j, double amount) {
+   public NDArray decrement(int i, int j, double amount) {
       set(i, j, get(i, j) - amount);
       return this;
    }
@@ -218,7 +246,7 @@ public interface NDArray extends Copyable<NDArray> {
     *
     * @return the nd array
     */
-   default NDArray diag() {
+   public NDArray diag() {
       if (isEmpty()) {
          return new EmptyNDArray();
       } else if (isScalar()) {
@@ -256,7 +284,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @param scalar the value to divided
     * @return the new NDArray with the scalar value divided
     */
-   default NDArray div(double scalar) {
+   public NDArray div(double scalar) {
       return mapSparse(d -> d / scalar);
    }
 
@@ -267,7 +295,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @return the new NDArray with the result of this / other
     * @throws IllegalArgumentException If the shape of this NDArray does not match that of the other NDArray
     */
-   default NDArray div(@NonNull NDArray other) {
+   public NDArray div(@NonNull NDArray other) {
       return mapSparse(other, Math2::divide);
    }
 
@@ -280,7 +308,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @return the new NDArray with the result of this / other
     * @throws IllegalArgumentException If the row/column shape of this NDArray does not match that of the other NDArray
     */
-   default NDArray div(@NonNull NDArray other, @NonNull Axis axis) {
+   public NDArray div(@NonNull NDArray other, @NonNull Axis axis) {
       return mapSparse(other, axis, Math2::divide);
    }
 
@@ -290,7 +318,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @param scalar the value to divided
     * @return this NDArray with the scalar value divided
     */
-   default NDArray divi(double scalar) {
+   public NDArray divi(double scalar) {
       return mapiSparse(d -> d / scalar);
    }
 
@@ -301,7 +329,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @return this NDArray with the result of this / other
     * @throws IllegalArgumentException If the shape of this NDArray does not match that of the other NDArray
     */
-   default NDArray divi(@NonNull NDArray other) {
+   public NDArray divi(@NonNull NDArray other) {
       return mapiSparse(other, Math2::divide);
    }
 
@@ -314,7 +342,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @return this NDArray with the result of this / other
     * @throws IllegalArgumentException If the row/column shape of this NDArray does not match that of the other NDArray
     */
-   default NDArray divi(@NonNull NDArray other, @NonNull Axis axis) {
+   public NDArray divi(@NonNull NDArray other, @NonNull Axis axis) {
       return mapiSparse(other, axis, Math2::divide);
    }
 
@@ -325,7 +353,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @return The dot product
     * @throws IllegalArgumentException If the shapes do not match
     */
-   default double dot(@NonNull NDArray other) {
+   public double dot(@NonNull NDArray other) {
       shape().checkDimensionMatch(other.shape());
       double dot = 0d;
       for (int i = 0; i < shape().i; i++) {
@@ -342,7 +370,7 @@ public interface NDArray extends Copyable<NDArray> {
     *
     * @return the new NDArray
     */
-   default NDArray exp() {
+   public NDArray exp() {
       NDArray toReturn = getFactory().ones(shape());
       forEachSparse(e -> toReturn.set(e.getIndex(), FastMath.exp(e.getValue())));
       return toReturn;
@@ -354,7 +382,7 @@ public interface NDArray extends Copyable<NDArray> {
     *
     * @return this NDArray
     */
-   default NDArray expi() {
+   public NDArray expi() {
       return mapi(FastMath::exp);
    }
 
@@ -364,7 +392,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @param value the value to assign to all elements.
     * @return this NDArray
     */
-   default NDArray fill(double value) {
+   public NDArray fill(double value) {
       mapi(d -> value);
       return this;
    }
@@ -374,7 +402,7 @@ public interface NDArray extends Copyable<NDArray> {
     *
     * @param consumer the consumer to use for processing the NDArray entries
     */
-   default void forEach(@NonNull Consumer<Entry> consumer) {
+   public void forEach(@NonNull Consumer<Entry> consumer) {
       iterator().forEachRemaining(consumer);
    }
 
@@ -383,7 +411,7 @@ public interface NDArray extends Copyable<NDArray> {
     *
     * @param consumer Entry consumer
     */
-   default void forEachSparse(@NonNull Consumer<Entry> consumer) {
+   public void forEachSparse(@NonNull Consumer<Entry> consumer) {
       sparseIterator().forEachRemaining(consumer);
    }
 
@@ -392,7 +420,7 @@ public interface NDArray extends Copyable<NDArray> {
     *
     * @param consumer Entry consumer
     */
-   default void forEachSparseOrdered(@NonNull Consumer<Entry> consumer) {
+   public void forEachSparseOrdered(@NonNull Consumer<Entry> consumer) {
       sparseOrderedIterator().forEachRemaining(consumer);
    }
 
@@ -404,7 +432,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @return the value at the given index
     * @throws IndexOutOfBoundsException if the index is invalid
     */
-   double get(int index);
+   public abstract double get(int index);
 
    /**
     * Gets the value of the NDArray at the given subscript <code>(r, c)</code>.
@@ -414,7 +442,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @return The value at <code>(r, c)</code>
     * @throws IndexOutOfBoundsException if the dimensions are invalid
     */
-   double get(int i, int j);
+   public abstract double get(int i, int j);
 
    /**
     * Gets the value of the NDArray at the given subscript.
@@ -423,7 +451,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @return The value at <code>(r, c)</code>
     * @throws IndexOutOfBoundsException if the dimensions are invalid
     */
-   default double get(@NonNull Subscript subscript) {
+   public double get(@NonNull Subscript subscript) {
       return get(subscript.i, subscript.j);
    }
 
@@ -437,7 +465,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @return the element value
     * @throws IndexOutOfBoundsException if the dimensions are invalid
     */
-   default double get(@NonNull Axis a1, int dim1, @NonNull Axis a2, int dim2) {
+   public double get(@NonNull Axis a1, int dim1, @NonNull Axis a2, int dim2) {
       int[] dims = {-1, -1};
       dims[a1.index] = dim1;
       dims[a2.index] = dim2;
@@ -449,7 +477,57 @@ public interface NDArray extends Copyable<NDArray> {
     *
     * @return the factory
     */
-   NDArrayFactory getFactory();
+   public abstract NDArrayFactory getFactory();
+
+   public <T> T getLabel() {
+      return Cast.as(label);
+   }
+
+   public NDArray setLabel(Object label) {
+      this.label = label;
+      return this;
+   }
+
+   public double getLabelAsDouble() {
+      if (label == null) {
+         return Double.NaN;
+      }
+      return Cast.<Number>as(label).doubleValue();
+   }
+
+   public NDArray getLabelAsNDArray() {
+      if (label == null) {
+         return new EmptyNDArray();
+      } else if (label instanceof Number) {
+         return new ScalarNDArray(Cast.<Number>as(label).doubleValue());
+      }
+      return Cast.as(label);
+   }
+
+   public <T> T getPredicted() {
+      return Cast.as(predicted);
+   }
+
+   public NDArray setPredicted(Object predicted) {
+      this.predicted = predicted;
+      return this;
+   }
+
+   public double getPredictedAsDouble() {
+      if (predicted == null) {
+         return Double.NaN;
+      }
+      return Cast.<Number>as(predicted).doubleValue();
+   }
+
+   public NDArray getPredictedAsNDArray() {
+      if (predicted == null) {
+         return new EmptyNDArray();
+      } else if (predicted instanceof Number) {
+         return new ScalarNDArray(Cast.<Number>as(predicted).doubleValue());
+      }
+      return Cast.as(predicted);
+   }
 
    /**
     * Gets a vector along the given axis at the given index
@@ -458,7 +536,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @param axis  the axis the index belongs
     * @return An vector NDArray
     */
-   default NDArray getVector(int index, @NonNull Axis axis) {
+   public NDArray getVector(int index, @NonNull Axis axis) {
       Preconditions.checkElementIndex(index, shape().get(axis),
                                       "Invalid index " + index + " [0, " + shape().get(axis) + ")");
       NDArray toReturn = getFactory().zeros(shape().get(axis.T()), axis);
@@ -468,13 +546,30 @@ public interface NDArray extends Copyable<NDArray> {
       return toReturn;
    }
 
+   public double getWeight() {
+      return weight;
+   }
+
+   public NDArray setWeight(double weight) {
+      this.weight = weight;
+      return this;
+   }
+
+   public boolean hasLabel() {
+      return label != null;
+   }
+
+   public boolean hasPredictedLabel() {
+      return predicted != null;
+   }
+
    /**
     * Increments the value of the element at the given index by 1
     *
     * @param index the index whose value will be incremented
     * @return this NDArray
     */
-   default NDArray increment(int index) {
+   public NDArray increment(int index) {
       return increment(index, 1d);
    }
 
@@ -485,7 +580,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @param amount the amount to increment by
     * @return this NDArray
     */
-   default NDArray increment(int index, double amount) {
+   public NDArray increment(int index, double amount) {
       set(index, get(index) + amount);
       return this;
    }
@@ -497,7 +592,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @param j the index of the second dimension
     * @return this NDArray
     */
-   default NDArray increment(int i, int j) {
+   public NDArray increment(int i, int j) {
       return increment(i, j, 1d);
    }
 
@@ -509,7 +604,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @param amount the amount to increment by
     * @return this NDArray
     */
-   default NDArray increment(int i, int j, double amount) {
+   public NDArray increment(int i, int j, double amount) {
       set(i, j, get(i, j) + amount);
       return this;
    }
@@ -519,7 +614,7 @@ public interface NDArray extends Copyable<NDArray> {
     *
     * @return true if column vector, false otherwise
     */
-   default boolean isColumnVector() {
+   public boolean isColumnVector() {
       return shape().i > 1 && shape().j == 1;
    }
 
@@ -528,7 +623,7 @@ public interface NDArray extends Copyable<NDArray> {
     *
     * @return True if empty (shape of (0,0)), False if not
     */
-   default boolean isEmpty() {
+   public boolean isEmpty() {
       return shape().i == 0 && shape().j == 0;
    }
 
@@ -537,7 +632,7 @@ public interface NDArray extends Copyable<NDArray> {
     *
     * @return true if row vector, false otherwise
     */
-   default boolean isRowVector() {
+   public boolean isRowVector() {
       return shape().i == 1 && shape().j > 1;
    }
 
@@ -546,7 +641,7 @@ public interface NDArray extends Copyable<NDArray> {
     *
     * @return true if scalar, false otherwise
     */
-   default boolean isScalar() {
+   public boolean isScalar() {
       return shape().i == 1 && shape().j == 1;
    }
 
@@ -555,14 +650,14 @@ public interface NDArray extends Copyable<NDArray> {
     *
     * @return the boolean
     */
-   boolean isSparse();
+   public abstract boolean isSparse();
 
    /**
     * Checks if this NDArray is square, i.e. the number of rows equals  the number of columns
     *
     * @return true if square, false otherwise
     */
-   default boolean isSquare() {
+   public boolean isSquare() {
       return shape().i == shape().j && shape().i > 1;
    }
 
@@ -571,7 +666,7 @@ public interface NDArray extends Copyable<NDArray> {
     *
     * @return True if vector, False otherwise
     */
-   default boolean isVector() {
+   public boolean isVector() {
       return isColumnVector() || isRowVector();
    }
 
@@ -581,7 +676,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @param axis The axis to check
     * @return True if vector along given axis
     */
-   default boolean isVector(@NonNull Axis axis) {
+   public boolean isVector(@NonNull Axis axis) {
       if (axis == Axis.ROW) {
          return isRowVector();
       }
@@ -593,14 +688,14 @@ public interface NDArray extends Copyable<NDArray> {
     *
     * @return the iterator
     */
-   Iterator<Entry> iterator();
+   public abstract Iterator<Entry> iterator();
 
    /**
     * The single dimension length of the data, i.e. <code>numberOfRows * numberOfColumns</code>
     *
     * @return the length
     */
-   default int length() {
+   public int length() {
       return shape().length();
    }
 
@@ -609,7 +704,7 @@ public interface NDArray extends Copyable<NDArray> {
     *
     * @return new NDArray with logged values
     */
-   default NDArray log() {
+   public NDArray log() {
       return map(Math2::safeLog);
    }
 
@@ -618,7 +713,7 @@ public interface NDArray extends Copyable<NDArray> {
     *
     * @return this NDArray
     */
-   default NDArray logi() {
+   public NDArray logi() {
       return mapi(Math2::safeLog);
    }
 
@@ -628,7 +723,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @param operator the operator to apply
     * @return the new NDArray with values calculated using the given operator
     */
-   default NDArray map(@NonNull DoubleUnaryOperator operator) {
+   public NDArray map(@NonNull DoubleUnaryOperator operator) {
       NDArray toReturn = getFactory().zeros(shape());
       for (int i = 0; i < length(); i++) {
          toReturn.set(i, operator.applyAsDouble(get(i)));
@@ -645,7 +740,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @param operator the operator to apply to the elements in this NDArray and the given vector
     * @return the new NDArray
     */
-   default NDArray map(@NonNull NDArray vector, @NonNull Axis axis, @NonNull DoubleBinaryOperator operator) {
+   public NDArray map(@NonNull NDArray vector, @NonNull Axis axis, @NonNull DoubleBinaryOperator operator) {
       shape().checkDimensionMatch(vector.shape(), axis.T());
       Preconditions.checkArgument(vector.isVector(axis), "Not a " + axis + " vector.");
       NDArray toReturn = getFactory().zeros(shape());
@@ -665,7 +760,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @param operator the operator to apply
     * @return the new NDArray
     */
-   default NDArray map(@NonNull NDArray other, @NonNull DoubleBinaryOperator operator) {
+   public NDArray map(@NonNull NDArray other, @NonNull DoubleBinaryOperator operator) {
       shape().checkDimensionMatch(other.shape());
       NDArray toReturn = getFactory().zeros(shape());
       for (int r = 0; r < shape().i; r++) {
@@ -684,7 +779,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @param operator  the operator to apply
     * @return the new NDArray
     */
-   default NDArray mapIf(@NonNull DoublePredicate predicate, @NonNull DoubleUnaryOperator operator) {
+   public NDArray mapIf(@NonNull DoublePredicate predicate, @NonNull DoubleUnaryOperator operator) {
       final NDArray toReturn = getFactory().zeros(shape());
       for (int i = 0; i < length(); i++) {
          if (predicate.test(get(i))) {
@@ -705,7 +800,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @param operator the operator to apply to the elements in this NDArray and the given vector
     * @return the new NDArray
     */
-   default NDArray mapSparse(@NonNull NDArray vector, @NonNull Axis axis, @NonNull DoubleBinaryOperator operator) {
+   public NDArray mapSparse(@NonNull NDArray vector, @NonNull Axis axis, @NonNull DoubleBinaryOperator operator) {
       shape().checkDimensionMatch(vector.shape(), axis.T());
       Preconditions.checkArgument(vector.isVector(axis));
       NDArray toReturn = getFactory().zeros(shape());
@@ -726,7 +821,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @param operator the operator to apply
     * @return the new NDArray
     */
-   default NDArray mapSparse(@NonNull NDArray other, @NonNull DoubleBinaryOperator operator) {
+   public NDArray mapSparse(@NonNull NDArray other, @NonNull DoubleBinaryOperator operator) {
       shape().checkDimensionMatch(other.shape());
       NDArray toReturn = getFactory().zeros(shape());
       forEachSparse(entry -> toReturn.set(entry.getI(), entry.getJ(),
@@ -741,7 +836,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @param operator the operator to apply
     * @return the new NDArray with values calculated using the given operator
     */
-   default NDArray mapSparse(@NonNull DoubleUnaryOperator operator) {
+   public NDArray mapSparse(@NonNull DoubleUnaryOperator operator) {
       NDArray toReturn = getFactory().zeros(shape());
       forEachSparse(e -> toReturn.set(e.getIndex(), operator.applyAsDouble(e.getValue())));
       return toReturn;
@@ -754,7 +849,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @param operator the operator to apply
     * @return this NDArray
     */
-   default NDArray mapi(@NonNull NDArray other, @NonNull DoubleBinaryOperator operator) {
+   public NDArray mapi(@NonNull NDArray other, @NonNull DoubleBinaryOperator operator) {
       shape().checkDimensionMatch(other.shape());
       for (int r = 0; r < shape().i; r++) {
          for (int c = 0; c < shape().j; c++) {
@@ -770,7 +865,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @param operator the operator to apply
     * @return this NDArray with values calculated using the given operator
     */
-   default NDArray mapi(@NonNull DoubleUnaryOperator operator) {
+   public NDArray mapi(@NonNull DoubleUnaryOperator operator) {
       for (int i = 0; i < length(); i++) {
          set(i, operator.applyAsDouble(get(i)));
       }
@@ -785,7 +880,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @param operator the operator to apply to the elements in this NDArray and the given vector
     * @return this NDArray with operator applied
     */
-   default NDArray mapi(@NonNull NDArray vector, @NonNull Axis axis, @NonNull DoubleBinaryOperator operator) {
+   public NDArray mapi(@NonNull NDArray vector, @NonNull Axis axis, @NonNull DoubleBinaryOperator operator) {
       shape().checkDimensionMatch(axis.T(), vector.shape(), axis.T());
       Preconditions.checkArgument(vector.isVector(axis));
       for (int r = 0; r < shape().i; r++) {
@@ -804,7 +899,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @param operator  the operator to apply
     * @return this NDArray
     */
-   default NDArray mapiIf(@NonNull DoublePredicate predicate, @NonNull DoubleUnaryOperator operator) {
+   public NDArray mapiIf(@NonNull DoublePredicate predicate, @NonNull DoubleUnaryOperator operator) {
       for (int i = 0; i < length(); i++) {
          if (predicate.test(get(i))) {
             set(i, operator.applyAsDouble(get(i)));
@@ -822,7 +917,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @param operator the operator to apply to the elements in this NDArray and the given vector
     * @return the new NDArray
     */
-   default NDArray mapiSparse(@NonNull NDArray vector, @NonNull Axis axis, @NonNull DoubleBinaryOperator operator) {
+   public NDArray mapiSparse(@NonNull NDArray vector, @NonNull Axis axis, @NonNull DoubleBinaryOperator operator) {
       shape().checkDimensionMatch(axis.T(), vector.shape(), axis.T());
       Preconditions.checkArgument(vector.isVector(axis), "Not a " + axis + " vector.");
       forEachSparse(e ->
@@ -839,7 +934,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @param operator the operator to apply
     * @return this NDArray
     */
-   default NDArray mapiSparse(@NonNull NDArray other, @NonNull DoubleBinaryOperator operator) {
+   public NDArray mapiSparse(@NonNull NDArray other, @NonNull DoubleBinaryOperator operator) {
       shape().checkDimensionMatch(other.shape());
       forEachSparse(
          entry -> entry.setValue(operator.applyAsDouble(entry.getValue(), other.get(entry.getI(), entry.getJ()))));
@@ -852,7 +947,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @param operator the operator to apply
     * @return this NDArray with values calculated using the given operator
     */
-   default NDArray mapiSparse(@NonNull DoubleUnaryOperator operator) {
+   public NDArray mapiSparse(@NonNull DoubleUnaryOperator operator) {
       forEachSparse(entry -> entry.setValue(operator.applyAsDouble(entry.getValue())));
       return this;
    }
@@ -862,7 +957,7 @@ public interface NDArray extends Copyable<NDArray> {
     *
     * @return the maximum value in the NDArray
     */
-   default double max() {
+   public double max() {
       double max = Double.NEGATIVE_INFINITY;
       for (Iterator<Entry> itr = sparseIterator(); itr.hasNext(); ) {
          double v = itr.next().getValue();
@@ -879,7 +974,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @param axis The axis to calculate the max for
     * @return An NDArray of the max values
     */
-   default NDArray max(@NonNull Axis axis) {
+   public NDArray max(@NonNull Axis axis) {
       NDArray toReturn = getFactory().zeros(shape().get(axis), axis);
       toReturn.mapi(d -> Double.NEGATIVE_INFINITY);
       forEach(entry -> {
@@ -895,7 +990,7 @@ public interface NDArray extends Copyable<NDArray> {
     *
     * @return the mean
     */
-   default double mean() {
+   public double mean() {
       return sum() / length();
    }
 
@@ -905,7 +1000,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @param axis The axis to calculate the mean for
     * @return An NDArray of the mean
     */
-   default NDArray mean(@NonNull Axis axis) {
+   public NDArray mean(@NonNull Axis axis) {
       return sum(axis).divi(shape().get(axis.T()));
    }
 
@@ -914,7 +1009,7 @@ public interface NDArray extends Copyable<NDArray> {
     *
     * @return the minimum value in the NDArray
     */
-   default double min() {
+   public double min() {
       double min = Double.POSITIVE_INFINITY;
       for (Iterator<Entry> itr = sparseIterator(); itr.hasNext(); ) {
          double v = itr.next().getValue();
@@ -931,7 +1026,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @param axis The axis to calculate the min for
     * @return An NDArray of the min values
     */
-   default NDArray min(@NonNull Axis axis) {
+   public NDArray min(@NonNull Axis axis) {
       NDArray toReturn = getFactory().zeros(shape().get(axis), axis);
       toReturn.mapi(d -> Double.POSITIVE_INFINITY);
       forEach(entry -> {
@@ -948,7 +1043,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @param other The other NDArray to multiple
     * @return a new NDArray that is the result of this X other
     */
-   default NDArray mmul(@NonNull NDArray other) {
+   public NDArray mmul(@NonNull NDArray other) {
       shape().checkCanMultiply(other.shape());
       NDArray toReturn = getFactory().zeros(shape().i, other.shape().j);
       for (int r = 0; r < shape().i; r++) {
@@ -969,7 +1064,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @param scalar the value to multiplied
     * @return the new NDArray with the scalar value multiplied
     */
-   default NDArray mul(double scalar) {
+   public NDArray mul(double scalar) {
       return mapSparse(d -> d * scalar);
    }
 
@@ -980,7 +1075,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @return the new NDArray with the result of this * other
     * @throws IllegalArgumentException If the shape of this NDArray does not match that of the other NDArray
     */
-   default NDArray mul(@NonNull NDArray other) {
+   public NDArray mul(@NonNull NDArray other) {
       return mapSparse(other, Math2::multiply);
    }
 
@@ -993,7 +1088,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @return the new NDArray with the result of this * other
     * @throws IllegalArgumentException If the row/column shape of this NDArray does not match that of the other NDArray
     */
-   default NDArray mul(@NonNull NDArray other, @NonNull Axis axis) {
+   public NDArray mul(@NonNull NDArray other, @NonNull Axis axis) {
       return mapSparse(other, axis, Math2::multiply);
    }
 
@@ -1003,7 +1098,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @param scalar the value to multiplied
     * @return this NDArray with the scalar value multiplied
     */
-   default NDArray muli(double scalar) {
+   public NDArray muli(double scalar) {
       return mapiSparse(d -> d * scalar);
    }
 
@@ -1014,7 +1109,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @return this NDArray with the result of this * other
     * @throws IllegalArgumentException If the shape of this NDArray does not match that of the other NDArray
     */
-   default NDArray muli(@NonNull NDArray other) {
+   public NDArray muli(@NonNull NDArray other) {
       return mapiSparse(other, Math2::multiply);
    }
 
@@ -1027,7 +1122,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @return this NDArray with the result of this * other
     * @throws IllegalArgumentException If the row/column shape of this NDArray does not match that of the other NDArray
     */
-   default NDArray muli(@NonNull NDArray other, @NonNull Axis axis) {
+   public NDArray muli(@NonNull NDArray other, @NonNull Axis axis) {
       return mapiSparse(other, axis, Math2::multiply);
    }
 
@@ -1036,7 +1131,7 @@ public interface NDArray extends Copyable<NDArray> {
     *
     * @return the new NDArray with negated values
     */
-   default NDArray neg() {
+   public NDArray neg() {
       return map(d -> -d);
    }
 
@@ -1045,7 +1140,7 @@ public interface NDArray extends Copyable<NDArray> {
     *
     * @return this NDArray
     */
-   default NDArray negi() {
+   public NDArray negi() {
       return mapi(d -> -d);
    }
 
@@ -1054,7 +1149,7 @@ public interface NDArray extends Copyable<NDArray> {
     *
     * @return the L1-norm
     */
-   default double norm1() {
+   public double norm1() {
       return Streams.asStream(sparseIterator())
                     .mapToDouble(e -> Math.abs(e.getValue()))
                     .sum();
@@ -1065,7 +1160,7 @@ public interface NDArray extends Copyable<NDArray> {
     *
     * @return the L2-norm
     */
-   default double norm2() {
+   public double norm2() {
       return Math.sqrt(sumOfSquares());
    }
 
@@ -1075,7 +1170,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @param pow the power to raise values to
     * @return the new NDArray
     */
-   default NDArray pow(double pow) {
+   public NDArray pow(double pow) {
       return mapSparse(d -> d == 0 ? 0d : FastMath.pow(d, pow));
    }
 
@@ -1085,7 +1180,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @param pow the power to raise values to
     * @return this NDArray
     */
-   default NDArray powi(double pow) {
+   public NDArray powi(double pow) {
       return mapiSparse(d -> d == 0 ? 0d : FastMath.pow(d, pow));
    }
 
@@ -1094,7 +1189,7 @@ public interface NDArray extends Copyable<NDArray> {
     *
     * @param stream the stream to print the NDArray to
     */
-   default void pprint(PrintStream stream) {
+   public void pprint(PrintStream stream) {
       final DecimalFormat df = new DecimalFormat("0.000");
       PrintWriter writer = new PrintWriter(stream);
       writer.print('[');
@@ -1121,7 +1216,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @param scalar the value to divide
     * @return the new NDArray with the scalar value divided
     */
-   default NDArray rdiv(double scalar) {
+   public NDArray rdiv(double scalar) {
       return map(d -> scalar / d);
    }
 
@@ -1132,7 +1227,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @return the new NDArray with the result of other / this
     * @throws IllegalArgumentException If the shape of this NDArray does not match that of the other NDArray
     */
-   default NDArray rdiv(@NonNull NDArray other) {
+   public NDArray rdiv(@NonNull NDArray other) {
       return rmap(other, Math2::divide);
    }
 
@@ -1145,7 +1240,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @return the new NDArray with the result of this / other
     * @throws IllegalArgumentException If the row/column shape of this NDArray does not match that of the other NDArray
     */
-   default NDArray rdiv(@NonNull NDArray other, @NonNull Axis axis) {
+   public NDArray rdiv(@NonNull NDArray other, @NonNull Axis axis) {
       return rmap(other, axis, Math2::divide);
    }
 
@@ -1155,7 +1250,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @param scalar the value to divide
     * @return thisNDArray with the scalar value divided
     */
-   default NDArray rdivi(double scalar) {
+   public NDArray rdivi(double scalar) {
       return mapi(d -> scalar / d);
    }
 
@@ -1166,7 +1261,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @return this NDArray with the result of other / this
     * @throws IllegalArgumentException If the shape of this NDArray does not match that of the other NDArray
     */
-   default NDArray rdivi(@NonNull NDArray other) {
+   public NDArray rdivi(@NonNull NDArray other) {
       return rmapi(other, Math2::divide);
    }
 
@@ -1179,7 +1274,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @return this NDArray with the result of this / other
     * @throws IllegalArgumentException If the row/column shape of this NDArray does not match that of the other NDArray
     */
-   default NDArray rdivi(@NonNull NDArray other, @NonNull Axis axis) {
+   public NDArray rdivi(@NonNull NDArray other, @NonNull Axis axis) {
       return rmapi(other, axis, Math2::divide);
    }
 
@@ -1193,7 +1288,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @param operator the operator to apply
     * @return this NDArray
     */
-   default NDArray rmap(@NonNull NDArray vector, @NonNull Axis axis, @NonNull DoubleBinaryOperator operator) {
+   public NDArray rmap(@NonNull NDArray vector, @NonNull Axis axis, @NonNull DoubleBinaryOperator operator) {
       shape().checkDimensionMatch(axis.T(), vector.shape(), axis.T());
       Preconditions.checkArgument(vector.isVector(axis));
       NDArray toReturn = getFactory().zeros(shape());
@@ -1213,7 +1308,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @param operator the operator to apply
     * @return the new NDArray
     */
-   default NDArray rmap(@NonNull NDArray other, @NonNull DoubleBinaryOperator operator) {
+   public NDArray rmap(@NonNull NDArray other, @NonNull DoubleBinaryOperator operator) {
       shape().checkDimensionMatch(other.shape());
       NDArray toReturn = getFactory().zeros(shape());
       for (int r = 0; r < shape().i; r++) {
@@ -1232,7 +1327,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @param operator the operator to apply
     * @return this NDArray
     */
-   default NDArray rmapi(@NonNull NDArray other, @NonNull DoubleBinaryOperator operator) {
+   public NDArray rmapi(@NonNull NDArray other, @NonNull DoubleBinaryOperator operator) {
       shape().checkDimensionMatch(other.shape());
       for (int r = 0; r < shape().i; r++) {
          for (int c = 0; c < shape().j; c++) {
@@ -1252,7 +1347,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @param operator the operator to apply
     * @return this NDArray
     */
-   default NDArray rmapi(@NonNull NDArray vector, @NonNull Axis axis, @NonNull DoubleBinaryOperator operator) {
+   public NDArray rmapi(@NonNull NDArray vector, @NonNull Axis axis, @NonNull DoubleBinaryOperator operator) {
       shape().checkDimensionMatch(axis.T(), vector.shape(), axis.T());
       Preconditions.checkArgument(vector.isVector(axis));
       for (int r = 0; r < shape().i; r++) {
@@ -1269,7 +1364,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @param scalar the value to subtract
     * @return the new NDArray with the scalar value subtracted
     */
-   default NDArray rsub(double scalar) {
+   public NDArray rsub(double scalar) {
       return map(d -> scalar - d);
    }
 
@@ -1280,7 +1375,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @return the new NDArray with the result of other - this
     * @throws IllegalArgumentException If the shape of this NDArray does not match that of the other NDArray
     */
-   default NDArray rsub(@NonNull NDArray other) {
+   public NDArray rsub(@NonNull NDArray other) {
       return other.map(this, Math2::subtract);
    }
 
@@ -1293,7 +1388,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @return the new NDArray with the result of this - other
     * @throws IllegalArgumentException If the row/column shape of this NDArray does not match that of the other NDArray
     */
-   default NDArray rsub(@NonNull NDArray other, @NonNull Axis axis) {
+   public NDArray rsub(@NonNull NDArray other, @NonNull Axis axis) {
       return rmap(other, axis, Math2::subtract);
    }
 
@@ -1303,7 +1398,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @param scalar the value to subtract
     * @return the new NDArray with the scalar value subtracted
     */
-   default NDArray rsubi(double scalar) {
+   public NDArray rsubi(double scalar) {
       return mapi(d -> scalar - d);
    }
 
@@ -1314,7 +1409,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @return the new NDArray with the result of other - this
     * @throws IllegalArgumentException If the shape of this NDArray does not match that of the other NDArray
     */
-   default NDArray rsubi(@NonNull NDArray other) {
+   public NDArray rsubi(@NonNull NDArray other) {
       return rmapi(other, Math2::subtract);
    }
 
@@ -1327,7 +1422,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @return the new NDArray with the result of this - other
     * @throws IllegalArgumentException If the row/column shape of this NDArray does not match that of the other NDArray
     */
-   default NDArray rsubi(@NonNull NDArray other, @NonNull Axis axis) {
+   public NDArray rsubi(@NonNull NDArray other, @NonNull Axis axis) {
       return rmapi(other, axis, Math2::subtract);
    }
 
@@ -1336,7 +1431,7 @@ public interface NDArray extends Copyable<NDArray> {
     *
     * @return the double
     */
-   default double scalarValue() {
+   public double scalarValue() {
       Preconditions.checkState(isScalar(), "NDArray must be scalar");
       return get(0);
    }
@@ -1347,7 +1442,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @param predicate the predicate to test
     * @return new NDArray with values passing the given predicate and zeros elsewhere
     */
-   default NDArray select(@NonNull DoublePredicate predicate) {
+   public NDArray select(@NonNull DoublePredicate predicate) {
       final NDArray toReturn = getFactory().zeros(shape());
       forEach(entry -> {
          if (predicate.test(entry.getValue())) {
@@ -1363,7 +1458,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @param predicate the predicate NDArray test
     * @return new NDArray with values passing the given predicate and zeros elsewhere
     */
-   default NDArray select(@NonNull NDArray predicate) {
+   public NDArray select(@NonNull NDArray predicate) {
       shape().checkDimensionMatch(predicate.shape());
       NDArray toReturn = getFactory().zeros(shape());
       predicate.forEachSparse(entry -> {
@@ -1380,7 +1475,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @param predicate the predicate to test
     * @return this NDArray with values passing the given predicate and zeros elsewhere
     */
-   default NDArray selecti(@NonNull DoublePredicate predicate) {
+   public NDArray selecti(@NonNull DoublePredicate predicate) {
       forEach(entry -> {
          if (!predicate.test(entry.getValue())) {
             entry.setValue(0d);
@@ -1396,7 +1491,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @param predicate the predicate NDArray test
     * @return this NDArray with values passing the given predicate and zeros elsewhere
     */
-   default NDArray selecti(@NonNull NDArray predicate) {
+   public NDArray selecti(@NonNull NDArray predicate) {
       shape().checkDimensionMatch(predicate.shape());
       predicate.forEachSparse(entry -> {
          if (entry.getValue() == 0) {
@@ -1413,7 +1508,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @param value the new value to set
     * @return this NDArray
     */
-   NDArray set(int index, double value);
+   public abstract NDArray set(int index, double value);
 
    /**
     * Sets the value at the given subscript.
@@ -1423,7 +1518,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @param value the value to set
     * @return this NDArray
     */
-   NDArray set(int r, int c, double value);
+   public abstract NDArray set(int r, int c, double value);
 
    /**
     * Sets the value at the given subscript
@@ -1432,7 +1527,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @param value     the new value
     * @return this NDArray
     */
-   default NDArray set(@NonNull Subscript subscript, double value) {
+   public NDArray set(@NonNull Subscript subscript, double value) {
       return set(subscript.i, subscript.j, value);
    }
 
@@ -1444,7 +1539,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @param axis   the axis (row/column) being set
     * @return this NDArray
     */
-   default NDArray setVector(int index, @NonNull NDArray vector, @NonNull Axis axis) {
+   public NDArray setVector(int index, @NonNull NDArray vector, @NonNull Axis axis) {
       Preconditions.checkArgument(index >= 0 && index < shape().get(axis), "Invalid index");
       shape().checkDimensionMatch(vector.shape(), axis.T());
       Preconditions.checkArgument(vector.isVector(axis));
@@ -1461,14 +1556,14 @@ public interface NDArray extends Copyable<NDArray> {
     *
     * @return the shape
     */
-   Shape shape();
+   public abstract Shape shape();
 
    /**
     * The sparse size of the NDArray
     *
     * @return the sparse size of the NDArray
     */
-   default int size() {
+   public int size() {
       return length();
    }
 
@@ -1480,7 +1575,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @return the new sliced NDArray
     * @throws IllegalArgumentException if the NDArrays is not a vector
     */
-   default NDArray slice(int from, int to) {
+   public NDArray slice(int from, int to) {
       if (isRowVector()) {
          NDArray toReturn = getFactory().zeros(to - from, Axis.ROW);
          for (int i = from; i < to; i++) {
@@ -1506,7 +1601,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @param jTo   the index of the second dimension  to slice up to, but not including
     * @return the new sliced NDArray
     */
-   default NDArray slice(int iFrom, int iTo, int jFrom, int jTo) {
+   public NDArray slice(int iFrom, int iTo, int jFrom, int jTo) {
       NDArray toReturn = getFactory().zeros(iTo - iFrom, jTo - jFrom);
       for (int i = iFrom; i < iTo; i++) {
          for (int j = jFrom; j < jTo; j++) {
@@ -1523,7 +1618,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @param indexes the indexes of the axis to slice
     * @return the sliced NDArray
     */
-   default NDArray slice(@NonNull Axis axis, @NonNull int... indexes) {
+   public NDArray slice(@NonNull Axis axis, @NonNull int... indexes) {
       NDArray toReturn;
       if (axis == Axis.ROW) {
          toReturn = getFactory().zeros(indexes.length, shape().j);
@@ -1541,7 +1636,7 @@ public interface NDArray extends Copyable<NDArray> {
     *
     * @return the iterator
     */
-   default Iterator<Entry> sparseIterator() {
+   public Iterator<Entry> sparseIterator() {
       return iterator();
    }
 
@@ -1551,7 +1646,7 @@ public interface NDArray extends Copyable<NDArray> {
     *
     * @return the iterator
     */
-   default Iterator<Entry> sparseOrderedIterator() {
+   public Iterator<Entry> sparseOrderedIterator() {
       return iterator();
    }
 
@@ -1560,7 +1655,7 @@ public interface NDArray extends Copyable<NDArray> {
     *
     * @return the enhanced double statistics
     */
-   default EnhancedDoubleStatistics statistics() {
+   public EnhancedDoubleStatistics statistics() {
       EnhancedDoubleStatistics toReturn = new EnhancedDoubleStatistics();
       forEach(e -> toReturn.accept(e.getValue()));
       return toReturn;
@@ -1572,7 +1667,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @param scalar the value to subtract
     * @return the new NDArray with the scalar value subtracted
     */
-   default NDArray sub(double scalar) {
+   public NDArray sub(double scalar) {
       if (scalar == 0) {
          return copy();
       }
@@ -1586,7 +1681,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @return the new NDArray with the result of this - other
     * @throws IllegalArgumentException If the shape of this NDArray does not match that of the other NDArray
     */
-   default NDArray sub(@NonNull NDArray other) {
+   public NDArray sub(@NonNull NDArray other) {
       shape().checkDimensionMatch(other.shape());
       NDArray toReturn = copy();
       other.forEachSparse(e -> toReturn.decrement(e.getI(), e.getJ(), e.getValue()));
@@ -1602,7 +1697,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @return the new NDArray with the result of this - other
     * @throws IllegalArgumentException If the row/column shape of this NDArray does not match that of the other NDArray
     */
-   default NDArray sub(@NonNull NDArray other, @NonNull Axis axis) {
+   public NDArray sub(@NonNull NDArray other, @NonNull Axis axis) {
       return map(other, axis, Math2::subtract);
    }
 
@@ -1612,7 +1707,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @param scalar the value to subtract
     * @return the new NDArray with the scalar value subtracted
     */
-   default NDArray subi(double scalar) {
+   public NDArray subi(double scalar) {
       if (scalar == 0) {
          return this;
       }
@@ -1626,7 +1721,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @return the new NDArray with the result of this - other
     * @throws IllegalArgumentException If the shape of this NDArray does not match that of the other NDArray
     */
-   default NDArray subi(@NonNull NDArray other) {
+   public NDArray subi(@NonNull NDArray other) {
       shape().checkDimensionMatch(other.shape());
       other.forEachSparse(e -> decrement(e.getI(), e.getJ(), e.getValue()));
       return this;
@@ -1641,7 +1736,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @return the new NDArray with the result of this - other
     * @throws IllegalArgumentException If the row/column shape of this NDArray does not match that of the other NDArray
     */
-   default NDArray subi(@NonNull NDArray other, @NonNull Axis axis) {
+   public NDArray subi(@NonNull NDArray other, @NonNull Axis axis) {
       return mapi(other, axis, Math2::subtract);
    }
 
@@ -1651,7 +1746,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @param axis The axis to calculate the sum for
     * @return An NDArray of the sum
     */
-   default NDArray sum(@NonNull Axis axis) {
+   public NDArray sum(@NonNull Axis axis) {
       NDArray toReturn = getFactory().zeros(shape().get(axis), axis.T());
       forEachSparse(entry -> toReturn.set(entry.get(axis), toReturn.get(entry.get(axis)) + entry.getValue()));
       return toReturn;
@@ -1662,7 +1757,7 @@ public interface NDArray extends Copyable<NDArray> {
     *
     * @return the sum all values
     */
-   default double sum() {
+   public double sum() {
       return Streams.asStream(sparseIterator())
                     .mapToDouble(Entry::getValue)
                     .sum();
@@ -1673,7 +1768,7 @@ public interface NDArray extends Copyable<NDArray> {
     *
     * @return the double
     */
-   default double sumOfSquares() {
+   public double sumOfSquares() {
       return Streams.asStream(sparseIterator())
                     .mapToDouble(e -> FastMath.pow(e.getValue(), 2))
                     .sum();
@@ -1685,7 +1780,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @param predicate the predicate to test
     * @return new NDArray with test results
     */
-   default NDArray test(@NonNull DoublePredicate predicate) {
+   public NDArray test(@NonNull DoublePredicate predicate) {
       NDArray toReturn = getFactory().zeros(shape());
       forEach(entry -> {
          if (predicate.test(entry.getValue())) {
@@ -1701,7 +1796,7 @@ public interface NDArray extends Copyable<NDArray> {
     * @param predicate the predicate to test
     * @return this with test results
     */
-   default NDArray testi(@NonNull DoublePredicate predicate) {
+   public NDArray testi(@NonNull DoublePredicate predicate) {
       forEach(entry -> {
          if (predicate.test(entry.getValue())) {
             entry.setValue(1d);
@@ -1717,7 +1812,7 @@ public interface NDArray extends Copyable<NDArray> {
     *
     * @return 2D array view of the data
     */
-   default double[][] to2DArray() {
+   public double[][] to2DArray() {
       final double[][] array = new double[shape().i][shape().j];
       forEachSparse(e -> array[e.getI()][e.getJ()] = e.getValue());
       return array;
@@ -1728,7 +1823,7 @@ public interface NDArray extends Copyable<NDArray> {
     *
     * @return 1d array view of thedata
     */
-   default double[] toArray() {
+   public double[] toArray() {
       double[] toReturn = new double[length()];
       forEachSparse(e -> toReturn[e.getIndex()] = e.getValue());
       return toReturn;
@@ -1739,7 +1834,7 @@ public interface NDArray extends Copyable<NDArray> {
     *
     * @return 1d array of boolean values
     */
-   default boolean[] toBooleanArray() {
+   public boolean[] toBooleanArray() {
       boolean[] toReturn = new boolean[length()];
       forEachSparse(e -> toReturn[e.getIndex()] = e.getValue() == 1);
       return toReturn;
@@ -1750,7 +1845,7 @@ public interface NDArray extends Copyable<NDArray> {
     *
     * @return the double matrix
     */
-   default DoubleMatrix toDoubleMatrix() {
+   public DoubleMatrix toDoubleMatrix() {
       return new DoubleMatrix(shape().i, shape().j, toArray());
    }
 
@@ -1759,7 +1854,7 @@ public interface NDArray extends Copyable<NDArray> {
     *
     * @return 1d array of float values
     */
-   default float[] toFloatArray() {
+   public float[] toFloatArray() {
       float[] toReturn = new float[length()];
       forEachSparse(e -> toReturn[e.getIndex()] = (float) e.getValue());
       return toReturn;
@@ -1770,7 +1865,7 @@ public interface NDArray extends Copyable<NDArray> {
     *
     * @return the float matrix
     */
-   default FloatMatrix toFloatMatrix() {
+   public FloatMatrix toFloatMatrix() {
       return new FloatMatrix(shape().i, shape().j, toFloatArray());
    }
 
@@ -1779,7 +1874,7 @@ public interface NDArray extends Copyable<NDArray> {
     *
     * @return 1d array of int values
     */
-   default int[] toIntArray() {
+   public int[] toIntArray() {
       int[] toReturn = new int[length()];
       forEachSparse(e -> toReturn[e.getIndex()] = (int) e.getValue());
       return toReturn;
@@ -1790,7 +1885,7 @@ public interface NDArray extends Copyable<NDArray> {
     *
     * @return this NDArray
     */
-   default NDArray zero() {
+   public NDArray zero() {
       return fill(0d);
    }
 
@@ -1799,7 +1894,7 @@ public interface NDArray extends Copyable<NDArray> {
     * Defines an entry in the NDArray, which is the dimensions (i and j), the index (vector, direct storage), and
     * value.
     */
-   interface Entry extends Serializable {
+   public interface Entry extends Serializable {
 
       /**
        * Gets the subscript index for the given axis

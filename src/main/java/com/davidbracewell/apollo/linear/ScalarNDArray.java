@@ -1,16 +1,14 @@
 package com.davidbracewell.apollo.linear;
 
-import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.guava.common.base.Preconditions;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 
 /**
  * @author David B. Bracewell
  */
-public class ScalarNDArray implements NDArray {
+public class ScalarNDArray extends NDArray {
    private double value;
 
    public ScalarNDArray(double value) {
@@ -18,16 +16,8 @@ public class ScalarNDArray implements NDArray {
    }
 
    @Override
-   public NDArray copy() {
+   public NDArray copyData() {
       return new ScalarNDArray(value);
-   }
-
-   @Override
-   public boolean equals(Object o) {
-      return o != null
-                && o instanceof NDArray
-                && shape().equals(Cast.<NDArray>as(o).shape())
-                && Arrays.equals(Cast.<NDArray>as(o).toArray(), toArray());
    }
 
    @Override

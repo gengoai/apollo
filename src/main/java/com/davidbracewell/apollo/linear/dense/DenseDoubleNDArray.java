@@ -11,7 +11,6 @@ import org.jblas.DoubleMatrix;
 import org.jblas.FloatMatrix;
 import org.jblas.ranges.IntervalRange;
 
-import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Objects;
@@ -19,7 +18,7 @@ import java.util.Objects;
 /**
  * @author David B. Bracewell
  */
-public class DenseDoubleNDArray implements NDArray, Serializable {
+public class DenseDoubleNDArray extends NDArray {
    private static final long serialVersionUID = 1L;
    private DoubleMatrix storage;
 
@@ -93,7 +92,7 @@ public class DenseDoubleNDArray implements NDArray, Serializable {
    }
 
    @Override
-   public NDArray copy() {
+   protected NDArray copyData() {
       return new DenseDoubleNDArray(storage.dup());
    }
 

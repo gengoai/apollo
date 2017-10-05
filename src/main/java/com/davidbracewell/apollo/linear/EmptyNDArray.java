@@ -6,10 +6,10 @@ import java.util.Iterator;
 /**
  * @author David B. Bracewell
  */
-public class EmptyNDArray implements NDArray {
+public class EmptyNDArray extends NDArray {
 
    @Override
-   public NDArray copy() {
+   public NDArray copyData() {
       return new EmptyNDArray();
    }
 

@@ -2,15 +2,12 @@ package com.davidbracewell.apollo.linear.sparse;
 
 import com.davidbracewell.apollo.linear.*;
 import com.davidbracewell.collection.Streams;
-import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.guava.common.base.Preconditions;
 import lombok.NonNull;
 import org.apache.mahout.math.function.IntFloatProcedure;
 import org.apache.mahout.math.list.IntArrayList;
 import org.apache.mahout.math.map.OpenIntFloatHashMap;
 
-import java.io.Serializable;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -18,7 +15,7 @@ import java.util.function.Consumer;
 /**
  * @author David B. Bracewell
  */
-public class SparseFloatNDArray implements NDArray, Serializable {
+public class SparseFloatNDArray extends NDArray {
    private static final long serialVersionUID = 1L;
 
    private Shape shape;
@@ -39,22 +36,13 @@ public class SparseFloatNDArray implements NDArray, Serializable {
    }
 
    @Override
-   public NDArray copy() {
+   public NDArray copyData() {
       SparseFloatNDArray copy = new SparseFloatNDArray(this.shape);
       storage.forEachPair((index, value) -> {
          copy.storage.put(index, value);
          return true;
       });
       return copy;
-   }
-
-
-   @Override
-   public boolean equals(Object o) {
-      return o != null
-                && o instanceof NDArray
-                && shape.equals(Cast.<NDArray>as(o).shape())
-                && Arrays.equals(Cast.<NDArray>as(o).toArray(), toArray());
    }
 
    @Override
@@ -83,6 +71,11 @@ public class SparseFloatNDArray implements NDArray, Serializable {
    @Override
    public int hashCode() {
       return Objects.hash(storage);
+   }
+
+   @Override
+   public boolean isSparse() {
+      return true;
    }
 
    @Override
@@ -116,7 +109,7 @@ public class SparseFloatNDArray implements NDArray, Serializable {
       if (value == 0) {
          this.storage.removeKey(index);
       } else {
-         this.storage.put(index, (float)value);
+         this.storage.put(index, (float) value);
       }
       return this;
    }
@@ -127,14 +120,9 @@ public class SparseFloatNDArray implements NDArray, Serializable {
       if (value == 0) {
          this.storage.removeKey(shape.colMajorIndex(subscript));
       } else {
-         this.storage.put(shape.colMajorIndex(subscript), (float)value);
+         this.storage.put(shape.colMajorIndex(subscript), (float) value);
       }
       return this;
-   }
-
-   @Override
-   public boolean isSparse() {
-      return true;
    }
 
    @Override
@@ -188,11 +176,6 @@ public class SparseFloatNDArray implements NDArray, Serializable {
          return true;
       });
       return array;
-   }
-
-   @Override
-   public String toString() {
-      return Arrays.toString(toArray());
    }
 
    @Override

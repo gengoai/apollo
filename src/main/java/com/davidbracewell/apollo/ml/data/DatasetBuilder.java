@@ -2,6 +2,9 @@ package com.davidbracewell.apollo.ml.data;
 
 import com.davidbracewell.apollo.ml.*;
 import com.davidbracewell.apollo.ml.data.source.DataSource;
+import com.davidbracewell.apollo.ml.encoder.Encoder;
+import com.davidbracewell.apollo.ml.encoder.IndexEncoder;
+import com.davidbracewell.apollo.ml.encoder.LabelEncoder;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.guava.common.base.Throwables;
 import com.davidbracewell.io.resource.Resource;

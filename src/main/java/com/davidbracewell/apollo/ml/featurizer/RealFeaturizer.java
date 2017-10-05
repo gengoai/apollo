@@ -19,14 +19,14 @@
  * under the License.
  */
 
-package com.davidbracewell.apollo.ml;
+package com.davidbracewell.apollo.ml.featurizer;
 
+import com.davidbracewell.apollo.ml.Feature;
 import com.davidbracewell.cache.Cached;
 import com.davidbracewell.collection.counter.Counter;
 
 import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -40,14 +40,14 @@ public abstract class RealFeaturizer<T> implements Featurizer<T> {
 
    @Override
    @Cached
-   public final Set<Feature> apply(T input) {
+   public final List<Feature> apply(T input) {
       if (input == null) {
-         return Collections.emptySet();
+         return Collections.emptyList();
       }
       return applyImpl(input).entries()
                              .stream()
                              .map(entry -> Feature.real(entry.getKey(), entry.getValue()))
-                             .collect(Collectors.toCollection(LinkedHashSet::new));
+                             .collect(Collectors.toList());
    }
 
    /**

@@ -22,6 +22,10 @@
 package com.davidbracewell.apollo.ml;
 
 import com.davidbracewell.Interner;
+import com.davidbracewell.apollo.linear.NDArray;
+import com.davidbracewell.apollo.linear.NDArrayFactory;
+import com.davidbracewell.apollo.ml.encoder.EncoderPair;
+import com.davidbracewell.apollo.ml.encoder.HashingEncoder;
 import com.davidbracewell.collection.counter.Counter;
 import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.conversion.Val;
@@ -337,29 +341,29 @@ public class Instance implements Example, Serializable, Iterable<Feature> {
       if (inArray) writer.endObject();
    }
 
-//   /**
-//    * Converts the instance into a feature vector using the given encoder pair to map feature names and labels to double
-//    * values
-//    *
-//    * @param encoderPair the encoder pair
-//    * @return the vector
-//    */
-//   public Vector toVector(@NonNull EncoderPair encoderPair) {
-//      Vector vector = new FeatureVector(encoderPair);
-//      boolean isHash = encoderPair.getFeatureEncoder() instanceof HashingEncoder;
-//      features.forEach(f -> {
-//         int fi = (int) encoderPair.encodeFeature(f.getFeatureName());
-//         if (fi != -1) {
-//            if (isHash) {
-//               vector.set(fi, 1.0);
-//            } else {
-//               vector.set(fi, f.getValue());
-//            }
-//         }
-//      });
-//      vector.setLabel(encoderPair.encodeLabel(label));
-//      vector.setWeight(weight);
-//      return vector;
-//   }
+   /**
+    * Converts the instance into a feature vector using the given encoder pair to map feature names and labels to double
+    * values
+    *
+    * @param encoderPair the encoder pair
+    * @return the vector
+    */
+   public NDArray toVector(@NonNull EncoderPair encoderPair) {
+      NDArray vector = NDArrayFactory.defaultFactory().zeros(encoderPair.numberOfFeatures());
+      boolean isHash = encoderPair.getFeatureEncoder() instanceof HashingEncoder;
+      features.forEach(f -> {
+         int fi = (int) encoderPair.encodeFeature(f.getFeatureName());
+         if (fi != -1) {
+            if (isHash) {
+               vector.set(fi, 1.0);
+            } else {
+               vector.set(fi, f.getValue());
+            }
+         }
+      });
+      vector.setLabel(encoderPair.encodeLabel(label));
+      vector.setWeight(weight);
+      return vector;
+   }
 
 }//END OF Instance

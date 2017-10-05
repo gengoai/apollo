@@ -3,21 +3,18 @@ package com.davidbracewell.apollo.linear.sparse;
 
 import com.davidbracewell.apollo.linear.*;
 import com.davidbracewell.collection.Streams;
-import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.guava.common.base.Preconditions;
 import lombok.NonNull;
 import org.apache.mahout.math.list.IntArrayList;
 import org.apache.mahout.math.map.OpenIntIntHashMap;
 
-import java.io.Serializable;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Objects;
 
 /**
  * @author David B. Bracewell
  */
-public class SparseIntNDArray implements NDArray, Serializable {
+public class SparseIntNDArray extends NDArray {
    private static final long serialVersionUID = 1L;
    private OpenIntIntHashMap storage;
    private Shape shape;
@@ -28,21 +25,13 @@ public class SparseIntNDArray implements NDArray, Serializable {
    }
 
    @Override
-   public NDArray copy() {
+   public NDArray copyData() {
       SparseIntNDArray toReturn = new SparseIntNDArray(shape.i, shape.j);
       storage.forEachPair((index, value) -> {
          toReturn.set(index, value);
          return true;
       });
       return toReturn;
-   }
-
-   @Override
-   public boolean equals(Object o) {
-      return o != null
-                && o instanceof NDArray
-                && shape.equals(Cast.<NDArray>as(o).shape())
-                && Arrays.equals(Cast.<NDArray>as(o).toArray(), toArray());
    }
 
    @Override
@@ -101,11 +90,6 @@ public class SparseIntNDArray implements NDArray, Serializable {
    @Override
    public Iterator<Entry> sparseOrderedIterator() {
       return new SparseIterator(true);
-   }
-
-   @Override
-   public String toString() {
-      return Arrays.toString(toArray());
    }
 
    private class EntryImpl implements NDArray.Entry {

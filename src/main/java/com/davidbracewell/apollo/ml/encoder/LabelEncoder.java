@@ -1,4 +1,4 @@
-package com.davidbracewell.apollo.ml;
+package com.davidbracewell.apollo.ml.encoder;
 
 /**
  * <p>Specialized encoders for class labels.</p>

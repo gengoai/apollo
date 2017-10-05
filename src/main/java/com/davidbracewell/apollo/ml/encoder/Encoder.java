@@ -1,5 +1,6 @@
-package com.davidbracewell.apollo.ml;
+package com.davidbracewell.apollo.ml.encoder;
 
+import com.davidbracewell.apollo.ml.Example;
 import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.stream.MStream;

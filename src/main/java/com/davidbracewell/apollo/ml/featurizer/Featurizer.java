@@ -1,12 +1,15 @@
-package com.davidbracewell.apollo.ml;
+package com.davidbracewell.apollo.ml.featurizer;
 
+import com.davidbracewell.apollo.ml.Feature;
+import com.davidbracewell.apollo.ml.Instance;
+import com.davidbracewell.apollo.ml.LabeledDatum;
 import com.davidbracewell.cache.CacheProxy;
 import com.davidbracewell.cache.Cached;
 import com.davidbracewell.conversion.Cast;
 import lombok.NonNull;
 
 import java.io.Serializable;
-import java.util.Set;
+import java.util.List;
 
 /**
  * @author David B. Bracewell
@@ -51,7 +54,7 @@ public interface Featurizer<INPUT> extends Serializable {
     * @return the set of features
     */
    @Cached
-   Set<Feature> apply(INPUT input);
+   List<Feature> apply(INPUT input);
 
    /**
     * Cache featurizer.

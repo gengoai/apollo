@@ -1,6 +1,8 @@
 package com.davidbracewell.apollo.ml;
 
+import com.davidbracewell.apollo.ml.classification.Classifier;
 import com.davidbracewell.apollo.ml.data.Dataset;
+import com.davidbracewell.apollo.ml.encoder.EncoderPair;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.reflection.BeanMap;
@@ -26,15 +28,15 @@ public abstract class Learner<T extends Example, M extends Model> implements Ser
    @Getter
    private PreprocessorList<T> preprocessors;
 
-//   /**
-//    * Creates a builder for constructing Classification learners
-//    *
-//    * @return the learner builder
-//    */
-//   public static LearnerBuilder<Instance, Classifier> classification() {
-//      return new LearnerBuilder<>();
-//   }
-//
+   /**
+    * Creates a builder for constructing Classification learners
+    *
+    * @return the learner builder
+    */
+   public static LearnerBuilder<Instance, Classifier> classification() {
+      return new LearnerBuilder<>();
+   }
+
 //   /**
 //    * Creates a builder for constructing clusterers
 //    *

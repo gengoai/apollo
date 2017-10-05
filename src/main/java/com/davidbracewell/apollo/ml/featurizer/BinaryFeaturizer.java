@@ -19,13 +19,13 @@
  * under the License.
  */
 
-package com.davidbracewell.apollo.ml;
+package com.davidbracewell.apollo.ml.featurizer;
 
+import com.davidbracewell.apollo.ml.Feature;
 import com.davidbracewell.cache.Cached;
 
 import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -39,14 +39,14 @@ public abstract class BinaryFeaturizer<T> implements Featurizer<T> {
 
    @Override
    @Cached
-   public final Set<Feature> apply(T t) {
+   public final List<Feature> apply(T t) {
       if (t == null) {
-         return Collections.emptySet();
+         return Collections.emptyList();
       }
       return applyImpl(t)
                 .stream()
                 .map(Feature::TRUE)
-                .collect(Collectors.toCollection(LinkedHashSet::new));
+                .collect(Collectors.toList());
    }
 
    /**
@@ -56,6 +56,6 @@ public abstract class BinaryFeaturizer<T> implements Featurizer<T> {
     * @param input the input to process
     * @return the set of feature names
     */
-   protected abstract Set<String> applyImpl(T input);
+   protected abstract List<String> applyImpl(T input);
 
 }//END OF BinaryFeaturizer

@@ -1,7 +1,7 @@
 package com.davidbracewell.apollo.ml.preprocess.transform;
 
 import com.davidbracewell.apollo.ml.Feature;
-import com.davidbracewell.apollo.ml.IndexEncoder;
+import com.davidbracewell.apollo.ml.encoder.IndexEncoder;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.preprocess.RestrictedInstancePreprocessor;
 import com.davidbracewell.stream.MStream;

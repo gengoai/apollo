@@ -19,13 +19,15 @@
  * under the License.
  */
 
-package com.davidbracewell.apollo.ml;
+package com.davidbracewell.apollo.ml.featurizer;
 
+import com.davidbracewell.apollo.ml.Feature;
 import com.davidbracewell.conversion.Cast;
 import lombok.NonNull;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -65,10 +67,10 @@ class FeaturizerChain<INPUT> implements Featurizer<INPUT> {
    }
 
    @Override
-   public Set<Feature> apply(@NonNull INPUT input) {
+   public List<Feature> apply(@NonNull INPUT input) {
       return featurizers.parallelStream()
                         .flatMap(f -> f.apply(input).stream())
-                        .collect(Collectors.toSet());
+                        .collect(Collectors.toList());
    }
 
 }//END OF FeaturizerChain

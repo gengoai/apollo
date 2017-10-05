@@ -4,6 +4,7 @@ import com.davidbracewell.apollo.linear.dense.DenseDoubleNDArray;
 import com.davidbracewell.apollo.linear.sparse.SparseDoubleNDArray;
 import com.davidbracewell.apollo.linear.sparse.SparseFloatNDArray;
 import com.davidbracewell.apollo.linear.sparse.SparseIntNDArray;
+import com.davidbracewell.config.Config;
 import com.davidbracewell.guava.common.base.Preconditions;
 import com.davidbracewell.guava.common.collect.Iterables;
 import lombok.NonNull;
@@ -103,12 +104,40 @@ public enum NDArrayFactory {
    };
 
 
-   public static NDArray wrap(@NonNull double[] values) {
-      return new DenseDoubleNDArray(new DoubleMatrix(values));
+   private static volatile NDArrayFactory DEFAULT_INSTANCE;
+
+   public static NDArrayFactory defaultFactory() {
+      if (DEFAULT_INSTANCE == null) {
+         synchronized (NDArrayFactory.class) {
+            if (DEFAULT_INSTANCE == null) {
+               DEFAULT_INSTANCE = Config.get("ndarray.factory")
+                                        .as(NDArrayFactory.class, SPARSE_DOUBLE);
+            }
+         }
+      }
+      return DEFAULT_INSTANCE;
    }
 
+   /**
+    * Wrap nd array.
+    *
+    * @param rows   the rows
+    * @param cols   the cols
+    * @param values the values
+    * @return the nd array
+    */
    public static NDArray wrap(int rows, int cols, @NonNull double[] values) {
       return new DenseDoubleNDArray(new DoubleMatrix(rows, cols, values));
+   }
+
+   /**
+    * Wrap nd array.
+    *
+    * @param values the values
+    * @return the nd array
+    */
+   public static NDArray wrap(@NonNull double[] values) {
+      return new DenseDoubleNDArray(new DoubleMatrix(values));
    }
 
    /**
@@ -207,6 +236,12 @@ public enum NDArrayFactory {
       return z;
    }
 
+   /**
+    * From row vectors nd array.
+    *
+    * @param vectors the vectors
+    * @return the nd array
+    */
    public NDArray fromRowVectors(@NonNull Collection<NDArray> vectors) {
       if (vectors.isEmpty()) {
          return new EmptyNDArray();

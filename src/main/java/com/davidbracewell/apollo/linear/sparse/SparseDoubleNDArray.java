@@ -2,22 +2,21 @@ package com.davidbracewell.apollo.linear.sparse;
 
 import com.davidbracewell.apollo.linear.*;
 import com.davidbracewell.collection.Streams;
-import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.guava.common.base.Preconditions;
 import lombok.NonNull;
 import org.apache.mahout.math.function.IntDoubleProcedure;
 import org.apache.mahout.math.list.IntArrayList;
 import org.apache.mahout.math.map.OpenIntDoubleHashMap;
 
-import java.io.Serializable;
-import java.util.*;
+import java.util.Iterator;
+import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.DoubleUnaryOperator;
 
 /**
  * @author David B. Bracewell
  */
-public class SparseDoubleNDArray implements NDArray, Serializable {
+public class SparseDoubleNDArray extends NDArray {
    private static final long serialVersionUID = 1L;
 
    private Shape shape;
@@ -38,21 +37,13 @@ public class SparseDoubleNDArray implements NDArray, Serializable {
    }
 
    @Override
-   public NDArray copy() {
+   public NDArray copyData() {
       SparseDoubleNDArray copy = new SparseDoubleNDArray(this.shape);
       storage.forEachPair((index, value) -> {
          copy.storage.put(index, value);
          return true;
       });
       return copy;
-   }
-
-   @Override
-   public boolean equals(Object o) {
-      return o != null
-                && o instanceof NDArray
-                && shape.equals(Cast.<NDArray>as(o).shape())
-                && Arrays.equals(Cast.<NDArray>as(o).toArray(), toArray());
    }
 
    @Override
@@ -81,6 +72,11 @@ public class SparseDoubleNDArray implements NDArray, Serializable {
    @Override
    public int hashCode() {
       return Objects.hash(storage);
+   }
+
+   @Override
+   public boolean isSparse() {
+      return true;
    }
 
    @Override
@@ -141,12 +137,6 @@ public class SparseDoubleNDArray implements NDArray, Serializable {
    }
 
    @Override
-   public boolean isSparse() {
-      return true;
-   }
-
-
-   @Override
    public NDArray set(int r, int c, double value) {
       return set(shape.colMajorIndex(r, c), value);
    }
@@ -200,10 +190,6 @@ public class SparseDoubleNDArray implements NDArray, Serializable {
       return array;
    }
 
-   @Override
-   public String toString() {
-      return Arrays.toString(toArray());
-   }
 
    @Override
    public NDArray zero() {

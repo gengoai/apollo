@@ -1,8 +1,8 @@
 package com.davidbracewell.apollo.ml.data;
 
-import com.davidbracewell.apollo.ml.Encoder;
+import com.davidbracewell.apollo.ml.encoder.Encoder;
 import com.davidbracewell.apollo.ml.Example;
-import com.davidbracewell.apollo.ml.LabelEncoder;
+import com.davidbracewell.apollo.ml.encoder.LabelEncoder;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.function.SerializableFunction;
 import com.davidbracewell.stream.MStream;

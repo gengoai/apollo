@@ -35,13 +35,13 @@ public class LabelIndexEncoder extends IndexEncoder implements LabelEncoder {
    @Override
    public void fit(@NonNull Dataset<? extends Example> dataset) {
       if (!isFrozen()) {
-         MAccumulator<String, Set<String>> accumulator = dataset.getStreamingContext().setAccumulator();
-         dataset.stream()
-                .parallel()
-                .flatMap(ex -> ex.getLabelSpace().map(Object::toString))
-                .filter(Objects::nonNull)
-                .forEach(accumulator::add);
-         this.index.addAll(accumulator.value());
+//         MAccumulator<String, Set<String>> accumulator = dataset.getStreamingContext().setAccumulator();
+//         dataset.stream()
+//                .parallel()
+//                .flatMap(ex -> ex.getLabelSpace().map(Object::toString))
+//                .filter(Objects::nonNull)
+//                .forEach(accumulator::add);
+//         this.index.addAll(accumulator.value());
       }
    }
 }// END OF LabelIndexEncoder

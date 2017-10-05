@@ -110,7 +110,7 @@ public class Sequence implements Example, Serializable, Iterable<Instance> {
       int index = 0;
       for (Instance instance : sequence) {
          for (Feature feature : instance) {
-            instFeatures.add(Feature.real(feature.getName() + "-" + index, feature.getValue()));
+            instFeatures.add(Feature.real(feature.getFeatureName() + "-" + index, feature.getValue()));
          }
          index++;
       }

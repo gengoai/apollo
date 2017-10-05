@@ -1,11 +1,11 @@
 package com.davidbracewell.apollo.ml.preprocess.filter;
 
-import com.davidbracewell.apollo.affinity.AssociationMeasures;
-import com.davidbracewell.apollo.affinity.ContingencyTable;
-import com.davidbracewell.apollo.affinity.ContingencyTableCalculator;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.ml.preprocess.InstancePreprocessor;
+import com.davidbracewell.apollo.stat.measure.AssociationMeasures;
+import com.davidbracewell.apollo.stat.measure.ContingencyTable;
+import com.davidbracewell.apollo.stat.measure.ContingencyTableCalculator;
 import com.davidbracewell.collection.counter.HashMapMultiCounter;
 import com.davidbracewell.collection.counter.MultiCounter;
 import com.davidbracewell.json.JsonReader;
@@ -56,6 +56,18 @@ public class ContingencyFeatureSelection implements FilterProcessor<Instance>, I
 
    }
 
+   @Override
+   public Instance apply(Instance example) {
+      example.getFeatures().removeIf(f -> !finalFeatures.contains(f.getFeatureName()));
+      return example;
+   }
+
+   @Override
+   public String describe() {
+      return getClass().getSimpleName() + "{calculator=" + calculator
+                                                              .getClass()
+                                                              .getSimpleName() + ", numberOfFeaturesPerClass=" + numFeaturesPerClass + ", threshold=" + threshold + "}";
+   }
 
    @Override
    public void fit(@NonNull Dataset<Instance> dataset) {
@@ -104,33 +116,6 @@ public class ContingencyFeatureSelection implements FilterProcessor<Instance>, I
    }
 
    @Override
-   public void reset() {
-      finalFeatures.clear();
-   }
-
-   @Override
-   public String describe() {
-      return getClass().getSimpleName() + "{calculator=" + calculator
-                                                              .getClass()
-                                                              .getSimpleName() + ", numberOfFeaturesPerClass=" + numFeaturesPerClass + ", threshold=" + threshold + "}";
-   }
-
-
-   @Override
-   public Instance apply(Instance example) {
-      example.getFeatures().removeIf(f -> !finalFeatures.contains(f.getName()));
-      return example;
-   }
-
-
-   @Override
-   public void toJson(@NonNull JsonWriter writer) throws IOException {
-      writer.property("calculator", calculator.toString());
-      writer.property("numFeaturesPerClass", numFeaturesPerClass);
-      writer.property("threshold", threshold);
-   }
-
-   @Override
    public void fromJson(@NonNull JsonReader reader) throws IOException {
       reset();
       while (reader.peek() != JsonTokenType.END_OBJECT) {
@@ -146,6 +131,18 @@ public class ContingencyFeatureSelection implements FilterProcessor<Instance>, I
                break;
          }
       }
+   }
+
+   @Override
+   public void reset() {
+      finalFeatures.clear();
+   }
+
+   @Override
+   public void toJson(@NonNull JsonWriter writer) throws IOException {
+      writer.property("calculator", calculator.toString());
+      writer.property("numFeaturesPerClass", numFeaturesPerClass);
+      writer.property("threshold", threshold);
    }
 
    @Override

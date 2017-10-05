@@ -43,6 +43,13 @@ public interface Example extends Copyable<Example>, JsonSerializable {
    }
 
    /**
+    * Returns the example as a list of instances
+    *
+    * @return The example as a list of instances
+    */
+   List<Instance> asInstances();
+
+   /**
     * Gets the feature space of the example. The feature space is the set of distinct feature names in the example.
     *
     * @return the feature space
@@ -63,13 +70,5 @@ public interface Example extends Copyable<Example>, JsonSerializable {
     * @return the example
     */
    Example intern(Interner<String> interner);
-
-
-   /**
-    * Returns the example as a list of instances
-    *
-    * @return The example as a list of instances
-    */
-   List<Instance> asInstances();
 
 }//END OF Example

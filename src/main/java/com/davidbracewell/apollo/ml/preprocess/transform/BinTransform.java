@@ -92,10 +92,10 @@ public class BinTransform extends RestrictedInstancePreprocessor implements Tran
       return featureStream.map(f -> {
          for (int i = 0; i < bins.length; i++) {
             if (f.getValue() < bins[i]) {
-               return Feature.TRUE(f.getName(), Integer.toString(i));
+               return Feature.TRUE(f.getFeatureName(), Integer.toString(i));
             }
          }
-         return Feature.TRUE(f.getName(), Integer.toString(bins.length - 1));
+         return Feature.TRUE(f.getFeatureName(), Integer.toString(bins.length - 1));
       });
    }
 

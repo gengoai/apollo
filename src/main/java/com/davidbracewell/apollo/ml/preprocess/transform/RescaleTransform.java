@@ -46,7 +46,7 @@ public class RescaleTransform extends RestrictedInstancePreprocessor implements 
       if (!applyToAll()) {
          name += "[" + getRestriction() + "]";
       }
-      return name + "{newMin=" + newMin + ", newMax=" + newMax + ", perFeature=" + perFeature +"}";
+      return name + "{newMin=" + newMin + ", newMax=" + newMax + ", perFeature=" + perFeature + "}";
    }
 
    @Override
@@ -87,10 +87,12 @@ public class RescaleTransform extends RestrictedInstancePreprocessor implements 
       stream.forEach(features -> {
          for (Feature feature : features) {
             if (perFeature) {
-               mins.put(feature.getName(), FastMath.min(mins.getOrDefault(feature.getName(), Double.POSITIVE_INFINITY),
-                                                        feature.getValue()));
-               maxs.put(feature.getName(), FastMath.max(maxs.getOrDefault(feature.getName(), Double.NEGATIVE_INFINITY),
-                                                        feature.getValue()));
+               mins.put(feature.getFeatureName(),
+                        FastMath.min(mins.getOrDefault(feature.getFeatureName(), Double.POSITIVE_INFINITY),
+                                     feature.getValue()));
+               maxs.put(feature.getFeatureName(),
+                        FastMath.max(maxs.getOrDefault(feature.getFeatureName(), Double.NEGATIVE_INFINITY),
+                                     feature.getValue()));
             } else {
                mins.put(SINGLE_FEATURE, FastMath.min(mins.getOrDefault(SINGLE_FEATURE, Double.POSITIVE_INFINITY),
                                                      feature.getValue()));
@@ -106,11 +108,13 @@ public class RescaleTransform extends RestrictedInstancePreprocessor implements 
    protected Stream<Feature> restrictedProcessImpl(Stream<Feature> featureStream, Instance originalExample) {
       return featureStream.map(feature -> {
          if (perFeature) {
-            return Feature.real(feature.getName(), Math2.rescale(feature.getValue(), mins.get(feature.getName()),
-                                                                 maxs.get(feature.getName()), newMin, newMax));
+            return Feature.real(feature.getFeatureName(),
+                                Math2.rescale(feature.getValue(), mins.get(feature.getFeatureName()),
+                                              maxs.get(feature.getFeatureName()), newMin,
+                                              newMax));
          }
-         return Feature.real(feature.getName(), Math2.rescale(feature.getValue(), mins.get(SINGLE_FEATURE),
-                                                              maxs.get(SINGLE_FEATURE), newMin, newMax));
+         return Feature.real(feature.getFeatureName(), Math2.rescale(feature.getValue(), mins.get(SINGLE_FEATURE),
+                                                                     maxs.get(SINGLE_FEATURE), newMin, newMax));
       });
    }
 

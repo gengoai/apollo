@@ -56,37 +56,11 @@ public class TopNFilter extends RestrictedInstancePreprocessor implements Filter
    }
 
    @Override
-   protected void restrictedFitImpl(MStream<List<Feature>> stream) {
-      selectedFeatures = new HashSet<>(Counters.newCounter(stream.flatMap(l -> l.stream().map(Feature::getName))
-                                                                 .countByValue())
-                                               .topN(topN).items());
-   }
-
-   @Override
-   public void reset() {
-      selectedFeatures.clear();
-   }
-
-   @Override
-   protected Stream<Feature> restrictedProcessImpl(Stream<Feature> featureStream, Instance originalExample) {
-      return featureStream.filter(f -> selectedFeatures.contains(f.getName()));
-   }
-
-   @Override
    public String describe() {
       if (applyToAll()) {
          return "TopNFilter{minCount=" + topN + "}";
       }
       return "TopNFilter[" + getRestriction() + "]{minCount=" + topN + "}";
-   }
-
-   @Override
-   public void toJson(@NonNull JsonWriter writer) throws IOException {
-      if (!applyToAll()) {
-         writer.property("restriction", getRestriction());
-      }
-      writer.property("topN", topN);
-      writer.property("selected", selectedFeatures);
    }
 
    @Override
@@ -105,5 +79,31 @@ public class TopNFilter extends RestrictedInstancePreprocessor implements Filter
                break;
          }
       }
+   }
+
+   @Override
+   public void reset() {
+      selectedFeatures.clear();
+   }
+
+   @Override
+   protected void restrictedFitImpl(MStream<List<Feature>> stream) {
+      selectedFeatures = new HashSet<>(Counters.newCounter(stream.flatMap(l -> l.stream().map(Feature::getFeatureName))
+                                                                 .countByValue())
+                                               .topN(topN).items());
+   }
+
+   @Override
+   protected Stream<Feature> restrictedProcessImpl(Stream<Feature> featureStream, Instance originalExample) {
+      return featureStream.filter(f -> selectedFeatures.contains(f.getFeatureName()));
+   }
+
+   @Override
+   public void toJson(@NonNull JsonWriter writer) throws IOException {
+      if (!applyToAll()) {
+         writer.property("restriction", getRestriction());
+      }
+      writer.property("topN", topN);
+      writer.property("selected", selectedFeatures);
    }
 }// END OF TopNFilter

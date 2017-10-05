@@ -10,7 +10,7 @@ import java.io.Serializable;
  *
  * @author David B. Bracewell
  */
-@EqualsAndHashCode(callSuper = false)
+@EqualsAndHashCode
 public final class EncoderPair implements Serializable {
    public static final EncoderPair NO_OPT = new EncoderPair(new NoOptLabelEncoder(), new NoOptEncoder());
    private static final long serialVersionUID = 1L;

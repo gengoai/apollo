@@ -54,7 +54,7 @@ public class OneHotEncoding extends RestrictedInstancePreprocessor implements Tr
    @Override
    protected void restrictedFitImpl(MStream<List<Feature>> stream) {
       encoder.unFreeze();
-      encoder.fit(stream.flatMap(Collection::stream).map(Feature::getName));
+      encoder.fit(stream.flatMap(Collection::stream).map(Feature::getFeatureName));
       encoder.freeze();
       numFeatures = encoder.size() + 1;
    }
@@ -64,7 +64,7 @@ public class OneHotEncoding extends RestrictedInstancePreprocessor implements Tr
       List<Feature> newFeatures = new ArrayList<>();
       List<Feature> from = featureStream.collect(Collectors.toList());
       for (int i = 0; i < Math.min(maxFeatures, from.size()); i++) {
-         int fi = encoder.index(from.get(i).getName());
+         int fi = encoder.index(from.get(i).getFeatureName());
          if (fi == -1) {
             fi = numFeatures - 1;
          }

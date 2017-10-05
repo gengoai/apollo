@@ -1,6 +1,7 @@
 package com.davidbracewell.apollo.ml.preprocess.filter;
 
-import com.davidbracewell.apollo.affinity.AssociationMeasures;
+
+import com.davidbracewell.apollo.stat.measure.AssociationMeasures;
 
 /**
  * <p>Feature selection using the x2 statistic.</p>

@@ -22,7 +22,6 @@
 package com.davidbracewell.apollo.ml.data;
 
 import com.davidbracewell.Copyable;
-import com.davidbracewell.apollo.linalg.Vector;
 import com.davidbracewell.apollo.ml.*;
 import com.davidbracewell.apollo.ml.preprocess.Preprocessor;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
@@ -31,7 +30,6 @@ import com.davidbracewell.collection.counter.Counter;
 import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.function.SerializableFunction;
 import com.davidbracewell.function.SerializablePredicate;
-import com.davidbracewell.function.SerializableSupplier;
 import com.davidbracewell.guava.common.base.Preconditions;
 import com.davidbracewell.io.resource.Resource;
 import com.davidbracewell.json.JsonReader;
@@ -145,33 +143,33 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
       addAll(Arrays.asList(instances));
    }
 
-   /**
-    * Creates a stream of {@link FeatureVector} from the examples in the dataset
-    *
-    * @return the stream of FeatureVectors
-    */
-   public MStream<Vector> asVectors() {
-      encode();
-      return stream().parallel()
-                     .flatMap(ii -> ii.asInstances().stream())
-                     .map(ii -> ii.toVector(encoders));
-   }
-
-   public MStream<Vector> asVectors(double trueLabel) {
-      encode();
-      return stream().parallel()
-                     .flatMap(ii -> ii.asInstances().stream())
-                     .map(ii -> {
-                        Vector v = ii.toVector(encoders);
-                        if (v.getLabelAsDouble() == trueLabel) {
-                           v.setLabel(1d);
-                        } else {
-                           v.setLabel(0d);
-
-                        }
-                        return v;
-                     });
-   }
+//   /**
+//    * Creates a stream of {@link FeatureVector} from the examples in the dataset
+//    *
+//    * @return the stream of FeatureVectors
+//    */
+//   public MStream<Vector> asVectors() {
+//      encode();
+//      return stream().parallel()
+//                     .flatMap(ii -> ii.asInstances().stream())
+//                     .map(ii -> ii.toVector(encoders));
+//   }
+//
+//   public MStream<Vector> asVectors(double trueLabel) {
+//      encode();
+//      return stream().parallel()
+//                     .flatMap(ii -> ii.asInstances().stream())
+//                     .map(ii -> {
+//                        Vector v = ii.toVector(encoders);
+//                        if (v.getLabelAsDouble() == trueLabel) {
+//                           v.setLabel(1d);
+//                        } else {
+//                           v.setLabel(0d);
+//
+//                        }
+//                        return v;
+//                     });
+//   }
 
    /**
     * Caches the computations performed on the dataset.
@@ -533,39 +531,39 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
       return dataset;
    }
 
-   public SerializableSupplier<MStream<Vector>> vectorStream(boolean cacheData) {
-      final MStream<Vector> mStream;
-      if (cacheData) {
-         mStream = asVectors().cache();
-      } else {
-         mStream = null;
-      }
-
-      SerializableSupplier<MStream<Vector>> dataSupplier;
-      if (mStream != null) {
-         dataSupplier = () -> mStream;
-      } else {
-         dataSupplier = this::asVectors;
-      }
-      return dataSupplier;
-   }
-
-   public SerializableSupplier<MStream<Vector>> vectorStream(boolean cacheData, double trueLabel) {
-      final MStream<Vector> mStream;
-      if (cacheData) {
-         mStream = asVectors(trueLabel).cache();
-      } else {
-         mStream = null;
-      }
-
-      SerializableSupplier<MStream<Vector>> dataSupplier;
-      if (mStream != null) {
-         dataSupplier = () -> mStream;
-      } else {
-         dataSupplier = () -> asVectors(trueLabel);
-      }
-      return dataSupplier;
-   }
+//   public SerializableSupplier<MStream<Vector>> vectorStream(boolean cacheData) {
+//      final MStream<Vector> mStream;
+//      if (cacheData) {
+//         mStream = asVectors().cache();
+//      } else {
+//         mStream = null;
+//      }
+//
+//      SerializableSupplier<MStream<Vector>> dataSupplier;
+//      if (mStream != null) {
+//         dataSupplier = () -> mStream;
+//      } else {
+//         dataSupplier = this::asVectors;
+//      }
+//      return dataSupplier;
+//   }
+//
+//   public SerializableSupplier<MStream<Vector>> vectorStream(boolean cacheData, double trueLabel) {
+//      final MStream<Vector> mStream;
+//      if (cacheData) {
+//         mStream = asVectors(trueLabel).cache();
+//      } else {
+//         mStream = null;
+//      }
+//
+//      SerializableSupplier<MStream<Vector>> dataSupplier;
+//      if (mStream != null) {
+//         dataSupplier = () -> mStream;
+//      } else {
+//         dataSupplier = () -> asVectors(trueLabel);
+//      }
+//      return dataSupplier;
+//   }
 
    /**
     * Writes the dataset to the given resource in JSON format.

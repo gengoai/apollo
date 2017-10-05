@@ -64,25 +64,11 @@ public class NameFilter implements FilterProcessor<Instance>, InstancePreprocess
    }
 
    @Override
-   public void fit(Dataset<Instance> dataset) {
-   }
-
-   @Override
-   public void reset() {
-   }
-
-   @Override
-   public String describe() {
-      return "NameFilter{patterns=" + patterns + "}";
-   }
-
-
-   @Override
    public Instance apply(Instance example) {
       return Instance.create(
          example.getFeatures().stream().filter(f -> {
             for (Pattern pattern : patterns) {
-               if (pattern.matcher(f.getName()).find()) {
+               if (pattern.matcher(f.getFeatureName()).find()) {
                   return false;
                }
             }
@@ -93,18 +79,12 @@ public class NameFilter implements FilterProcessor<Instance>, InstancePreprocess
    }
 
    @Override
-   public void toJson(JsonWriter writer) throws IOException {
-      for (Pattern pattern : patterns) {
-         writer.beginObject();
-         writer.property("pattern", pattern.toString());
-         writer.property("flags", pattern.flags());
-         writer.endObject();
-      }
+   public String describe() {
+      return "NameFilter{patterns=" + patterns + "}";
    }
 
    @Override
-   public boolean requiresFit() {
-      return false;
+   public void fit(Dataset<Instance> dataset) {
    }
 
    @Override
@@ -126,6 +106,25 @@ public class NameFilter implements FilterProcessor<Instance>, InstancePreprocess
          }
          patterns.add(Pattern.compile(pattern, flags));
          reader.endObject();
+      }
+   }
+
+   @Override
+   public boolean requiresFit() {
+      return false;
+   }
+
+   @Override
+   public void reset() {
+   }
+
+   @Override
+   public void toJson(JsonWriter writer) throws IOException {
+      for (Pattern pattern : patterns) {
+         writer.beginObject();
+         writer.property("pattern", pattern.toString());
+         writer.property("flags", pattern.flags());
+         writer.endObject();
       }
    }
 

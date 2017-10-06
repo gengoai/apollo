@@ -445,6 +445,135 @@ public enum NDArrayFactory {
    }
 
    /**
+    * Rand nd array.
+    *
+    * @param shape the shape
+    * @return the nd array
+    */
+   public NDArray randn(@NonNull Shape shape) {
+      return randn(shape, new Random());
+   }
+
+   /**
+    * Rand nd array.
+    *
+    * @param shape the shape
+    * @param rnd   the rnd
+    * @return the nd array
+    */
+   public NDArray randn(@NonNull Shape shape, @NonNull Random rnd) {
+      return zeros(shape).mapi(d -> rnd.nextGaussian());
+   }
+
+   /**
+    * Rand nd array.
+    *
+    * @param random     the random
+    * @param dimensions the dimensions
+    * @return the nd array
+    */
+   public NDArray randn(@NonNull Random random, int... dimensions) {
+      return zeros(dimensions).mapi(d -> random.nextGaussian());
+   }
+
+   /**
+    * Rand nd array.
+    *
+    * @param sparsity   the sparsity
+    * @param random     the random
+    * @param dimensions the dimensions
+    * @return the nd array
+    */
+   public NDArray randn(double sparsity, @NonNull Random random, int... dimensions) {
+      NDArray toReturn = zeros(dimensions);
+      int nonZero = (int) Math.floor((1d - sparsity) * toReturn.length());
+      OpenIntHashSet indexes = new OpenIntHashSet();
+      while (indexes.size() < nonZero) {
+         indexes.add(random.nextInt(toReturn.length()));
+      }
+      indexes.forEachKey(i -> {
+         toReturn.set(i, random.nextGaussian());
+         return true;
+      });
+      return toReturn;
+   }
+
+   /**
+    * Rand nd array.
+    *
+    * @param dimensions the dimensions
+    * @return the nd array
+    */
+   public NDArray randn(int... dimensions) {
+      return randn(new Random(), dimensions);
+   }
+
+   /**
+    * Rand nd array.
+    *
+    * @param sparsity   the sparsity
+    * @param dimensions the dimensions
+    * @return the nd array
+    */
+   public NDArray randn(double sparsity, int... dimensions) {
+      return randn(sparsity, new Random(), dimensions);
+   }
+
+   /**
+    * Rand nd array.
+    *
+    * @param a1   the a 1
+    * @param dim1 the dim 1
+    * @param a2   the a 2
+    * @param dim2 the dim 2
+    * @return the nd array
+    */
+   public NDArray randn(@NonNull Axis a1, int dim1, @NonNull Axis a2, int dim2) {
+      return randn(a1, dim1, a2, dim2, new Random());
+   }
+
+   /**
+    * Rand nd array.
+    *
+    * @param a1     the a 1
+    * @param dim1   the dim 1
+    * @param a2     the a 2
+    * @param dim2   the dim 2
+    * @param random the random
+    * @return the nd array
+    */
+   public NDArray randn(@NonNull Axis a1, int dim1, @NonNull Axis a2, int dim2, @NonNull Random random) {
+      int[] dimensions = {-1, -1};
+      dimensions[a1.index] = dim1;
+      dimensions[a2.index] = dim2;
+      return rand(random, dimensions[0], dimensions[1]);
+   }
+
+   /**
+    * Rand nd array.
+    *
+    * @param dimension the dimension
+    * @param axis      the axis
+    * @return the nd array
+    */
+   public NDArray randn(int dimension, @NonNull Axis axis) {
+      return randn(axis, dimension, axis.T(), 1);
+   }
+
+   /**
+    * Rand nd array.
+    *
+    * @param dimension the dimension
+    * @param axis      the axis
+    * @param random    the random
+    * @return the nd array
+    */
+   public NDArray randn(int dimension, @NonNull Axis axis, @NonNull Random random) {
+      return randn(axis, dimension, axis.T(), 1, random);
+   }
+
+
+   /**
     * Scalar nd array.
     *
     * @param value the value

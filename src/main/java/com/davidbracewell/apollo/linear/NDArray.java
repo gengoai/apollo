@@ -34,6 +34,13 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
    private double weight;
    private Object predicted;
 
+   public NDArray toUnitVector(){
+      Preconditions.checkArgument(isVector(), "NDArray must be a vector");
+      double mag = norm2();
+      return div(mag);
+   }
+
+
    /**
     * Flips the matrix on its diagonal switching the rows and columns
     *

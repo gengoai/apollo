@@ -20,13 +20,13 @@ public final class Feature implements Serializable, Comparable<Feature>, Copyabl
    @Getter
    private final String predicate;
    @Getter
-   private final Integer position;
+   private final String position;
    @Getter
    private final double value;
    @Getter
    private final String featureName;
 
-   public Feature(String prefix, String predicate, Integer position, double value) {
+   public Feature(String prefix, String predicate, String position, double value) {
       Preconditions.checkArgument(StringUtils.isNotNullOrBlank(predicate), "The predicate must not be null or blank.");
       this.prefix = prefix;
       this.predicate = predicate;
@@ -60,7 +60,7 @@ public final class Feature implements Serializable, Comparable<Feature>, Copyabl
    }
 
 
-   public static Feature TRUE(String prefix, String predicate, int position) {
+   public static Feature TRUE(String prefix, String predicate, String position) {
       return new Feature(prefix, predicate, position, 1.0);
    }
 
@@ -84,7 +84,7 @@ public final class Feature implements Serializable, Comparable<Feature>, Copyabl
       return new Feature(predicate, value);
    }
 
-   public static Feature real(String prefix, String predicate, int position, double value) {
+   public static Feature real(String prefix, String predicate, String position, double value) {
       return new Feature(prefix, predicate, position, value);
    }
 

@@ -3,6 +3,7 @@ package com.davidbracewell.apollo.ml.featurizer;
 import com.davidbracewell.apollo.ml.Feature;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.LabeledDatum;
+import com.davidbracewell.apollo.ml.sequence.SequenceFeaturizer;
 import com.davidbracewell.cache.CacheProxy;
 import com.davidbracewell.cache.Cached;
 import com.davidbracewell.conversion.Cast;
@@ -107,14 +108,14 @@ public interface Featurizer<INPUT> extends Serializable {
    }
 
 
-//   /**
-//    * Converts this instance featurizer into a <code>SequenceFeaturizer</code> that acts on the current item in the
-//    * sequence.
-//    *
-//    * @return the sequence featurizer
-//    */
-//   default SequenceFeaturizer<INPUT> asSequenceFeaturizer() {
-//      return itr -> apply(itr.getCurrent());
-//   }
+   /**
+    * Converts this instance featurizer into a <code>SequenceFeaturizer</code> that acts on the current item in the
+    * sequence.
+    *
+    * @return the sequence featurizer
+    */
+   default SequenceFeaturizer<INPUT> asSequenceFeaturizer() {
+      return itr -> apply(itr.getCurrent());
+   }
 
 }// END OF Featurizer

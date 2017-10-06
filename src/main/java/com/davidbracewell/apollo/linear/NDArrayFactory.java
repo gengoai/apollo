@@ -4,6 +4,7 @@ import com.davidbracewell.apollo.linear.dense.DenseDoubleNDArray;
 import com.davidbracewell.apollo.linear.sparse.SparseDoubleNDArray;
 import com.davidbracewell.apollo.linear.sparse.SparseFloatNDArray;
 import com.davidbracewell.apollo.linear.sparse.SparseIntNDArray;
+import com.davidbracewell.apollo.ml.optimization.WeightInitializer;
 import com.davidbracewell.config.Config;
 import com.davidbracewell.guava.common.base.Preconditions;
 import com.davidbracewell.guava.common.collect.Iterables;
@@ -146,6 +147,18 @@ public enum NDArrayFactory {
     * @return the nd array
     */
    public abstract NDArray copyOf(NDArray array);
+
+   public NDArray create(int i, int j, @NonNull WeightInitializer initializer) {
+      return initializer.initialize(zeros(i, j));
+   }
+
+   public NDArray create(int dimension, @NonNull WeightInitializer initializer) {
+      return initializer.initialize(zeros(dimension));
+   }
+
+   public NDArray create(@NonNull Shape shape, @NonNull WeightInitializer initializer) {
+      return initializer.initialize(zeros(shape));
+   }
 
    /**
     * Diag nd array.
@@ -572,7 +585,6 @@ public enum NDArrayFactory {
       return randn(axis, dimension, axis.T(), 1, random);
    }
 
-
    /**
     * Scalar nd array.
     *
@@ -646,5 +658,6 @@ public enum NDArrayFactory {
       dimensions[a2.index] = dim2;
       return zeros(dimensions[0], dimensions[1]);
    }
+
 
 }//END OF NDArrayFactory

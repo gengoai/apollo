@@ -40,6 +40,14 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
       return div(mag);
    }
 
+   public int numCols(){
+      return shape().j;
+   }
+
+   public int numRows() {
+      return shape().i;
+   }
+
 
    /**
     * Flips the matrix on its diagonal switching the rows and columns

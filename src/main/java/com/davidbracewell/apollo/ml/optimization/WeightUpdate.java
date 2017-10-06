@@ -11,7 +11,7 @@ public interface WeightUpdate extends Copyable<WeightUpdate> {
 
    void reset();
 
-   Tuple2<Double, NDArray> update(LinearModelParameters weights,
+   Tuple2<NDArray, Double> update(LinearModelParameters weights,
                                   NDArray input,
                                   NDArray output,
                                   NDArray delta,

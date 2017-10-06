@@ -11,6 +11,8 @@ import org.apache.commons.math3.util.FastMath;
 
 import java.io.Serializable;
 
+import static com.davidbracewell.tuple.Tuples.$;
+
 /**
  * @author David B. Bracewell
  */
@@ -71,8 +73,36 @@ public class SGDUpdater implements WeightUpdate, Serializable {
    }
 
    @Override
-   public Tuple2<Double, NDArray> update(LinearModelParameters weights, NDArray input, NDArray output, NDArray delta, int iteration, boolean calculateOutDelta) {
-      return null;
+   public Tuple2<NDArray, Double> update(LinearModelParameters weights, NDArray input, NDArray output, NDArray delta, int iteration, boolean calculateOutDelta) {
+      if (momentum > 0 && v == null) {
+         v = weights.getWeights().getFactory().zeros(output.numRows(), input.numRows());
+      }
+      double lr = learningRate / (1.0 + decayRate * iteration);
+
+      double addedCost = 0;
+      NDArray dzOut = calculateOutDelta
+                      ? weights.getWeights().T().mmul(delta)
+                      : null;
+
+      val dw = delta.mmul(input.T())
+                    .divi(input.numCols());
+      val db = delta.sum(Axis.ROW)
+                    .divi(input.numCols());
+
+      addedCost += l2Update(dw);
+
+      if (momentum > 0) {
+         v = v.muli(momentum).subi(dw.muli(lr));
+         weights.getWeights().addi(v);
+      } else {
+         weights.getWeights().subi(dw.muli(lr));
+      }
+
+      weights.getBias().subi(db.muli(lr));
+
+      addedCost += l1Update(weights.getWeights(), lr, iteration);
+
+      return $(dzOut, addedCost);
    }
 
    @Override

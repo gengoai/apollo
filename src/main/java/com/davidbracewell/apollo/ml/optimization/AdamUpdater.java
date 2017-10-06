@@ -70,7 +70,7 @@ public class AdamUpdater implements WeightUpdate, Serializable {
    }
 
    @Override
-   public Tuple2<Double, NDArray> update(LinearModelParameters weights, NDArray input, NDArray output, NDArray delta, int iteration, boolean calculateOutDelta) {
+   public Tuple2<NDArray, Double> update(LinearModelParameters weights, NDArray input, NDArray output, NDArray delta, int iteration, boolean calculateOutDelta) {
       if (m == null) {
          m = weights.getWeights().getFactory().zeros(output.shape());
       }
@@ -103,6 +103,6 @@ public class AdamUpdater implements WeightUpdate, Serializable {
       weights.getWeights().subi(m.mul(lr_t).div(v.map(x -> Math.sqrt(x) + eps)));
       NDArray db = delta.sum(Axis.ROW).divi(input.shape().j);
       weights.getBias().subi(db.muli(lr_t));
-      return $(addedCost, dzOut);
+      return $(dzOut, addedCost);
    }
 }// END OF AdamUpdater

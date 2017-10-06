@@ -110,8 +110,7 @@ public enum NDArrayFactory {
       if (DEFAULT_INSTANCE == null) {
          synchronized (NDArrayFactory.class) {
             if (DEFAULT_INSTANCE == null) {
-               DEFAULT_INSTANCE = Config.get("ndarray.factory")
-                                        .as(NDArrayFactory.class, SPARSE_DOUBLE);
+               DEFAULT_INSTANCE = Config.get("ndarray.factory").as(NDArrayFactory.class, DENSE_DOUBLE);
             }
          }
       }
@@ -234,6 +233,20 @@ public enum NDArrayFactory {
          }
       }
       return z;
+   }
+
+   public NDArray fromColumnVectors(@NonNull Collection<NDArray> vectors) {
+      if (vectors.isEmpty()) {
+         return new EmptyNDArray();
+      }
+      int rowdim = Iterables.getFirst(vectors, null).shape().i;
+      NDArray toReturn = zeros(rowdim, vectors.size());
+      int idx = 0;
+      for (NDArray vector : vectors) {
+         toReturn.setVector(idx, vector, Axis.COlUMN);
+         idx++;
+      }
+      return toReturn;
    }
 
    /**

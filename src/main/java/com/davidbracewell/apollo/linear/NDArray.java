@@ -181,20 +181,6 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
 
    protected abstract NDArray copyData();
 
-   @Override
-   public boolean equals(Object o) {
-      return o != null
-                && o instanceof NDArray
-                && shape().equals(Cast.<NDArray>as(o).shape())
-                && Arrays.equals(Cast.<NDArray>as(o).toArray(), toArray());
-   }
-
-
-   @Override
-   public String toString() {
-      return Arrays.toString(toArray());
-   }
-
    /**
     * Decrements the value at the given index by 1
     *
@@ -364,6 +350,14 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
       return dot;
    }
 
+   @Override
+   public boolean equals(Object o) {
+      return o != null
+                && o instanceof NDArray
+                && shape().equals(Cast.<NDArray>as(o).shape())
+                && Arrays.equals(Cast.<NDArray>as(o).toArray(), toArray());
+   }
+
    /**
     * Convenience method for calculating <code>e^x</code> where <code>x</code> is the element value of the NDArray, i.e.
     * <code>Math.exp(x)</code>.
@@ -500,6 +494,16 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
          return new EmptyNDArray();
       } else if (label instanceof Number) {
          return new ScalarNDArray(Cast.<Number>as(label).doubleValue());
+      }
+      return Cast.as(label);
+   }
+
+   public NDArray getLabelAsNDArray(int dimension) {
+      if (label == null) {
+         return new EmptyNDArray();
+      } else if (label instanceof Number) {
+         return getFactory().zeros(dimension)
+                            .set(Cast.<Number>as(label).intValue(), 1d);
       }
       return Cast.as(label);
    }
@@ -975,7 +979,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return An NDArray of the max values
     */
    public NDArray max(@NonNull Axis axis) {
-      NDArray toReturn = getFactory().zeros(shape().get(axis), axis);
+      NDArray toReturn = getFactory().zeros(shape().get(axis), axis.T());
       toReturn.mapi(d -> Double.NEGATIVE_INFINITY);
       forEach(entry -> {
          if (toReturn.get(entry.get(axis)) < entry.getValue()) {
@@ -1878,6 +1882,11 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
       int[] toReturn = new int[length()];
       forEachSparse(e -> toReturn[e.getIndex()] = (int) e.getValue());
       return toReturn;
+   }
+
+   @Override
+   public String toString() {
+      return Arrays.toString(toArray());
    }
 
    /**

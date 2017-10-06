@@ -22,6 +22,8 @@
 package com.davidbracewell.apollo.ml.classification;
 
 import com.davidbracewell.apollo.linear.NDArray;
+import com.davidbracewell.apollo.ml.optimization.activation.Activation;
+import com.davidbracewell.apollo.ml.optimization.activation.LinearActivation;
 
 /**
  * <p>A binary class generalized linear model.</p>
@@ -39,7 +41,7 @@ public class BinaryGLM extends Classifier {
     */
    double bias;
 
-//   Activation activation = new LinearActivation();
+   Activation activation = new LinearActivation();
 
    protected BinaryGLM(ClassifierLearner learner) {
       super(learner);
@@ -48,13 +50,12 @@ public class BinaryGLM extends Classifier {
    @Override
    public Classification classify(NDArray vector) {
       double[] dist = new double[2];
-      dist[1] = weights.dot(vector) + bias;
-      //activation.apply(weights.dot(vector) + bias);
-//      if (activation.isProbabilistic()) {
-//         dist[0] = 1d - dist[1];
-//      } else {
-//         dist[0] = -dist[1];
-//      }
+      dist[1] = activation.apply(weights.dot(vector) + bias);
+      if (activation.isProbabilistic()) {
+         dist[0] = 1d - dist[1];
+      } else {
+         dist[0] = -dist[1];
+      }
       return createResult(dist);
    }
 

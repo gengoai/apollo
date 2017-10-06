@@ -23,6 +23,7 @@ package com.davidbracewell.apollo.ml.classification;
 
 import com.davidbracewell.apollo.linear.NDArray;
 import com.davidbracewell.apollo.linear.NDArrayFactory;
+import com.davidbracewell.apollo.ml.optimization.activation.Activation;
 
 /**
  * <p>Classifier tha employs a one-vs-rest strategy of combining binary classifiers to produce a multi-class
@@ -54,10 +55,7 @@ public class OneVsRestClassifier extends Classifier {
       }
       if (normalize) {
          //Softmax normalization and log normalization
-         distribution.subi(distribution.max())
-                     .expi();
-         distribution.divi(distribution.sum())
-                     .logi();
+         distribution = Activation.SOFTMAX.apply(distribution).logi();
       }
       return new Classification(distribution.toArray(), getLabelEncoder());
    }

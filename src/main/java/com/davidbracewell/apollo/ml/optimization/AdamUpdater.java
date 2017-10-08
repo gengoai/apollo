@@ -27,7 +27,9 @@ public class AdamUpdater implements WeightUpdate, Serializable {
    @Builder.Default
    private double decay = 0;
 
+   @Builder.Default
    private transient NDArray m = null;
+   @Builder.Default
    private transient NDArray v = null;
 
    @Override

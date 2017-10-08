@@ -28,6 +28,7 @@ import com.davidbracewell.apollo.ml.encoder.EncoderPair;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.collection.counter.Counter;
 import com.davidbracewell.collection.counter.MultiCounter;
+import lombok.Getter;
 import lombok.NonNull;
 
 /**
@@ -37,12 +38,18 @@ import lombok.NonNull;
  */
 public abstract class Classifier implements Model {
    private static final long serialVersionUID = 1L;
+   @Getter
    private final PreprocessorList<Instance> preprocessors;
    private final EncoderPair encoderPair;
 
    protected Classifier(@NonNull ClassifierLearner learner) {
       this.preprocessors = learner.getPreprocessors().getModelProcessors();
       this.encoderPair = learner.getEncoderPair();
+   }
+
+   protected Classifier(@NonNull PreprocessorList<Instance> preprocessors, EncoderPair encoderPair){
+      this.preprocessors = preprocessors.getModelProcessors();
+      this.encoderPair = encoderPair;
    }
 
    /**

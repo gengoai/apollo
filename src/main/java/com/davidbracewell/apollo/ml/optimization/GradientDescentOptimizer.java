@@ -14,6 +14,7 @@ import java.util.Iterator;
  */
 @Builder
 public class GradientDescentOptimizer implements Optimizer<LinearModelParameters> {
+   @Builder.Default
    double cost = Double.POSITIVE_INFINITY;
    @Getter
    @Setter

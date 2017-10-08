@@ -94,7 +94,7 @@ public class AveragedPerceptronLearner extends BinaryClassifierLearner {
 
    @Override
    protected Classifier trainForLabel(Dataset<Instance> dataset, double trueLabel) {
-      BinaryGLM model = new BinaryGLM(this);
+      LinearModel model = new LinearModel(this);
 
       totalWeights = NDArrayFactory.defaultFactory().zeros(model.numberOfFeatures());
       stamps = NDArrayFactory.defaultFactory().zeros(model.numberOfFeatures());
@@ -119,8 +119,8 @@ public class AveragedPerceptronLearner extends BinaryClassifierLearner {
                   updateFeature(model, entry.getIndex(), c, eta);
                }
                double timeSpan = c - biasStamps;
-               totalBias += (timeSpan * model.bias);
-               model.bias += eta;
+               totalBias += (timeSpan * model.bias.get(0));
+               model.bias.increment(0, eta);
                biasStamps = c;
             }
             c++;
@@ -151,14 +151,14 @@ public class AveragedPerceptronLearner extends BinaryClassifierLearner {
          model.weights.set(entry.getIndex(), total);
       }
       double total = totalBias;
-      total += (time - biasStamps) * model.bias;
+      total += (time - biasStamps) * model.bias.get(0);
       total = new BigDecimal(total / time).setScale(3, RoundingMode.HALF_UP).doubleValue();
-      model.bias = total;
+      model.bias.set(0, total);
       model.activation = Activation.LINEAR;
       return model;
    }
 
-   private void updateFeature(BinaryGLM model, int featureId, double time, double value) {
+   private void updateFeature(LinearModel model, int featureId, double time, double value) {
       double timeAtWeight = time - stamps.get(featureId);
       double curWeight = model.weights.get(featureId);
       totalWeights.increment(featureId, timeAtWeight * curWeight);

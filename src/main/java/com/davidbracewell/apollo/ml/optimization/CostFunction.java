@@ -1,9 +1,5 @@
 package com.davidbracewell.apollo.ml.optimization;
 
-/**
- * @author David B. Bracewell
- */
-
 import com.davidbracewell.apollo.linear.NDArray;
 
 /**

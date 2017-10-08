@@ -18,7 +18,7 @@ public class CrossEntropyLoss implements LossFunction, Serializable {
 
    @Override
    public double loss(NDArray predictedValue, NDArray trueValue) {
-      return -trueValue.mul(predictedValue.map(Math2::safeLog)).sum();
+      return -trueValue.map(predictedValue, (d1, d2) -> d1 * Math2.safeLog(d2)).sum();
    }
 
    @Override

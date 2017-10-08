@@ -20,6 +20,16 @@ public class LinearModel extends Classifier implements LinearModelParameters {
    @Override
    public Classification classify(NDArray vector) {
       //vector is numFeatures x 1
+      if (isBinary()) {
+         double[] dist = new double[2];
+         dist[1] = activation.apply(weights.dot(vector) + bias.get(0));
+         if (activation.isProbabilistic()) {
+            dist[0] = 1d - dist[1];
+         } else {
+            dist[0] = -dist[1];
+         }
+         return createResult(dist);
+      }
       return createResult(activation.apply(weights.mmul(vector).addi(bias)).toArray());
    }
 

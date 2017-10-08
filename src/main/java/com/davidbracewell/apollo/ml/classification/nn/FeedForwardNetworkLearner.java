@@ -99,12 +99,19 @@ public class FeedForwardNetworkLearner extends ClassifierLearner implements Logg
                                                                    .tolerance(tolerance)
                                                                    .historySize(3);
       final int effectiveBatchSize = batchSize <= 0 ? 1 : batchSize;
-      try {
-         dataset.close();
-      } catch (Exception e) {
-         e.printStackTrace();
-      }
+//      try {
+//         dataset.close();
+//      } catch (Exception e) {
+//         e.printStackTrace();
+//      }
 
+      Backprop bp = new Backprop();
+      bp.setWeightUpdate(weightUpdate);
+      bp.setBatchSize(batchSize);
+      bp.optimize(network, dataset.vectorStream(true), null, terminationCriteria, reportInterval);
+      if (Math.random() > 0) {
+         return network;
+      }
       List<List<WeightUpdate>> threadedWeightUpdates = new ArrayList<>();
       for (int j = 0; j < 4; j++) {
          threadedWeightUpdates.add(new ArrayList<>());
@@ -304,7 +311,8 @@ public class FeedForwardNetworkLearner extends ClassifierLearner implements Logg
                }
             }
          }
-         return $(loss / size, correct, layers);
+         loss = size > 0 ? loss / size : loss;
+         return $(loss, correct, layers);
       }
    }
 

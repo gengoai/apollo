@@ -58,7 +58,7 @@ public class BigramSequenceFeaturizer<E> implements SequenceFeaturizer<E> {
       final String c0 = featurizer.extractPredicate(iterator.getCurrent());
       final String p1 = iterator.getPrevious(1).map(featurizer::extractPredicate).orElse(BOS);
       final String n1 = iterator.getNext(1).map(featurizer::extractPredicate).orElse(EOS);
-      return Lists.list(Feature.TRUE(featurizer.getPrefix(), p1 + "_" + c0, "-1,0"),
-                        Feature.TRUE(featurizer.getPrefix(), c0 + "_" + p1, "0,+1"));
+      return Lists.list(Feature.TRUE(featurizer.getPrefix() + "[-1,0]", p1, c0),
+                        Feature.TRUE(featurizer.getPrefix() + "[0,+1]", c0, n1));
    }
 }//END OF BigramSequenceFeaturizer

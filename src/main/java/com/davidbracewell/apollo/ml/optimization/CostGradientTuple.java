@@ -1,5 +1,6 @@
 package com.davidbracewell.apollo.ml.optimization;
 
+import com.davidbracewell.apollo.linear.NDArray;
 import lombok.Value;
 
 /**
@@ -9,4 +10,5 @@ import lombok.Value;
 public class CostGradientTuple {
    double cost;
    GradientParameter gradient;
+   NDArray[] activations;
 }// END OF CostGradientTuple

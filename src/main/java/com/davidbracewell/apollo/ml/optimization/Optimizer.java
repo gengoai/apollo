@@ -16,6 +16,7 @@ public interface Optimizer<THETA> extends Loggable {
                  SerializableSupplier<MStream<NDArray>> stream,
                  CostFunction<THETA> costFunction,
                  TerminationCriteria terminationCriteria,
+                 WeightUpdate weightUpdate,
                  int reportInterval
                 );
 

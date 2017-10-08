@@ -106,9 +106,13 @@ public class FeedForwardNetworkLearner extends ClassifierLearner implements Logg
 //      }
 
       Backprop bp = new Backprop();
-      bp.setWeightUpdate(weightUpdate);
       bp.setBatchSize(batchSize);
-      bp.optimize(network, dataset.vectorStream(true), null, terminationCriteria, reportInterval);
+      bp.optimize(network,
+                  dataset.vectorStream(true),
+                  new FeedForwardCostFunction(lossFunction),
+                  terminationCriteria,
+                  weightUpdate,
+                  reportInterval);
       if (Math.random() > 0) {
          return network;
       }

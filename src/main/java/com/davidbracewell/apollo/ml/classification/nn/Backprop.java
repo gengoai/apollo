@@ -2,15 +2,13 @@ package com.davidbracewell.apollo.ml.classification.nn;
 
 import com.davidbracewell.apollo.linear.NDArray;
 import com.davidbracewell.apollo.ml.optimization.*;
-import com.davidbracewell.apollo.ml.optimization.loss.CrossEntropyLoss;
-import com.davidbracewell.apollo.ml.optimization.loss.LossFunction;
 import com.davidbracewell.function.SerializableSupplier;
 import com.davidbracewell.stream.MStream;
 import com.davidbracewell.tuple.Tuple2;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
@@ -22,12 +20,6 @@ public class Backprop implements Optimizer<FeedForwardNetwork> {
    @Getter
    @Setter
    private int batchSize = 32;
-   @Getter
-   @Setter
-   private WeightUpdate weightUpdate = SGDUpdater.builder().build();
-   @Getter
-   @Setter
-   private LossFunction lossFunction = new CrossEntropyLoss();
 
    @Override
    public double getFinalCost() {
@@ -39,6 +31,7 @@ public class Backprop implements Optimizer<FeedForwardNetwork> {
                         SerializableSupplier<MStream<NDArray>> stream,
                         CostFunction<FeedForwardNetwork> costFunction,
                         TerminationCriteria terminationCriteria,
+                        WeightUpdate weightUpdate,
                         int reportInterval
                        ) {
 
@@ -57,17 +50,10 @@ public class Backprop implements Optimizer<FeedForwardNetwork> {
          data.shuffle();
          for (Iterator<NDArray> itr = data.iterator(batchSize); itr.hasNext(); ) {
             NDArray X = itr.next();
-            NDArray Y = X.getLabelAsNDArray();
-
-            List<NDArray> ai = new ArrayList<>();
-            NDArray cai = X;
-            for (Layer layer : startingTheta.layers) {
-               cai = layer.forward(cai);
-               ai.add(cai);
-            }
-            loss += lossFunction.loss(cai, Y) / X.numCols();
-
-            NDArray dz = lossFunction.derivative(cai, Y);
+            CostGradientTuple cgt = costFunction.evaluate(X, startingTheta);
+            List<NDArray> ai = Arrays.asList(cgt.getActivations());
+            NDArray dz = cgt.getGradient().getWeightGradient();
+            loss += cgt.getCost();
             for (int i = layers.size() - 1; i >= 0; i--) {
                NDArray input = i == 0 ? X : ai.get(i - 1);
                Tuple2<NDArray, Double> t = layers.get(i).backward(layerUpdates[i], input, ai.get(i), dz, iteration,
@@ -77,7 +63,6 @@ public class Backprop implements Optimizer<FeedForwardNetwork> {
                   loss += t.v2 / X.numCols();
                }
             }
-
          }
          boolean converged = terminationCriteria.check(loss);
          report(reportInterval, iteration, terminationCriteria.maxIterations(), converged, loss);

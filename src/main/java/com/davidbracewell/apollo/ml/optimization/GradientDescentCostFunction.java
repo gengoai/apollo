@@ -20,6 +20,8 @@ public class GradientDescentCostFunction implements CostFunction<LinearModelPara
       NDArray predicted = theta.activate(vector);
       NDArray y = vector.getLabelAsNDArray(theta.getNumberOfWeightVectors());
       NDArray derivative = lossFunction.derivative(predicted, y);
-      return CostGradientTuple.of(lossFunction.loss(predicted, y), GradientParameter.calculate(vector, derivative));
+      return CostGradientTuple.of(lossFunction.loss(predicted, y),
+                                  GradientParameter.calculate(vector, derivative),
+                                  new NDArray[]{predicted});
    }
 }//END OF GradientDescentCostFunction

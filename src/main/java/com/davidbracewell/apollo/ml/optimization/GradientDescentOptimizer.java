@@ -18,19 +18,7 @@ public class GradientDescentOptimizer implements Optimizer<LinearModelParameters
    @Getter
    @Setter
    @Builder.Default
-   WeightUpdate weightUpdater = SGDUpdater.builder().build();
-   @Getter
-   @Setter
-   @Builder.Default
-   int maxIterations = 100;
-   @Getter
-   @Setter
-   @Builder.Default
    int batchSize = 32;
-   @Getter
-   @Setter
-   @Builder.Default
-   double tolerance = 1e-6;
 
    @Override
    public double getFinalCost() {
@@ -42,20 +30,20 @@ public class GradientDescentOptimizer implements Optimizer<LinearModelParameters
                         SerializableSupplier<MStream<NDArray>> stream,
                         CostFunction<LinearModelParameters> costFunction,
                         TerminationCriteria terminationCriteria,
+                        WeightUpdate weightUpdater,
                         int reportInterval
                        ) {
       BatchIterator iterator = new BatchIterator(stream.get().collect(), 3, 4);
-      TerminationCriteria tc = TerminationCriteria.create().maxIterations(maxIterations)
-                                                  .tolerance(tolerance);
-      for (int iteration = 0; iteration < tc.maxIterations(); iteration++) {
+      for (int iteration = 0; iteration < terminationCriteria.maxIterations(); iteration++) {
          cost = 0;
+         iterator.shuffle();
          for (Iterator<NDArray> batch = iterator.iterator(batchSize); batch.hasNext(); ) {
             NDArray input = batch.next();
             CostGradientTuple cgt = costFunction.evaluate(input, startingTheta);
             cost += cgt.getCost() + weightUpdater.update(startingTheta, cgt.getGradient(), iteration);
          }
-         boolean converged = tc.check(cost);
-         report(reportInterval, iteration, tc.maxIterations(), converged, cost);
+         boolean converged = terminationCriteria.check(cost);
+         report(reportInterval, iteration, terminationCriteria.maxIterations(), converged, cost);
          if (converged) {
             break;
          }
@@ -66,6 +54,5 @@ public class GradientDescentOptimizer implements Optimizer<LinearModelParameters
    @Override
    public void reset() {
       cost = Double.POSITIVE_INFINITY;
-      weightUpdater.reset();
    }
 }// END OF SGD

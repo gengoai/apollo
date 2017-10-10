@@ -53,15 +53,15 @@ public interface NDArrayFactory {
       throw new IllegalArgumentException();
    }
 
-   enum SparseNDArrayFactory implements NDArrayFactory {
-      INSTANCE;
-
-      @Override
-      public NDArray zeros(Shape dimensions) {
-         return new SparseNDArray(dimensions);
-      }
-
-   }
+//   enum SparseNDArrayFactory implements NDArrayFactory {
+//      INSTANCE;
+//
+//      @Override
+//      public NDArray zeros(Shape dimensions) {
+//         return new SparseNDArray(dimensions);
+//      }
+//
+//   }
 
    enum DenseDoubleNDArrayFactor implements NDArrayFactory {
       INSTANCE {

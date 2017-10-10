@@ -20,10 +20,21 @@ public interface Optimizer<THETA> extends Loggable {
                  int reportInterval
                 );
 
-   default void report(int interval, int iteration, int maxIteration, boolean converged, double cost) {
-      if (interval > 0 && (iteration == 0 || (iteration + 1) % interval == 0 || (iteration + 1) == maxIteration || converged)) {
-         logInfo("iteration={0}, totalLoss={1}", (iteration + 1), cost);
+   default boolean report(int interval,
+                          int iteration,
+                          TerminationCriteria terminationCriteria,
+                          double cost,
+                          String time
+                         ) {
+      boolean converged = terminationCriteria.check(cost);
+      if (interval > 0
+             && (iteration == 0
+                    || (iteration + 1) % interval == 0
+                    || (iteration + 1) == terminationCriteria.maxIterations()
+                    || converged)) {
+         logInfo("iteration={0}, loss={1}, time={2}", (iteration + 1), cost, time);
       }
+      return converged;
    }
 
    void reset();

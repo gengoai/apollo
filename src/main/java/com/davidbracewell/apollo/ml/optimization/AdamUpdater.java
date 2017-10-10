@@ -44,7 +44,10 @@ public class AdamUpdater implements WeightUpdate, Serializable {
    }
 
    @Override
-   public double update(LinearModelParameters weights, GradientParameter gradient, int iteration) {
+   public double update(LinearModelParameters weights,
+                        GradientParameter gradient,
+                        int iteration
+                       ) {
       if (m == null) {
          m = weights.getWeights().getFactory().zeros(gradient.getWeightGradient().shape());
       }
@@ -72,12 +75,18 @@ public class AdamUpdater implements WeightUpdate, Serializable {
    }
 
    @Override
-   public Tuple2<NDArray, Double> update(LinearModelParameters weights, NDArray input, NDArray output, NDArray delta, int iteration, boolean calculateOutDelta) {
+   public Tuple2<NDArray, Double> update(LinearModelParameters weights,
+                                         NDArray input,
+                                         NDArray output,
+                                         NDArray delta,
+                                         int iteration,
+                                         boolean calculateOutDelta
+                                        ) {
       if (m == null) {
-         m = weights.getWeights().getFactory().zeros(output.shape());
+         m = weights.getWeights().getFactory().zeros(output.shape().i, input.shape().i);
       }
       if (v == null) {
-         v = weights.getWeights().getFactory().zeros(output.shape());
+         v = weights.getWeights().getFactory().zeros(output.shape().i, input.shape().i);
       }
       double addedCost = 0d;
 

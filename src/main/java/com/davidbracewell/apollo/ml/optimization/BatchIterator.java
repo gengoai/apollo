@@ -107,5 +107,43 @@ public class BatchIterator implements Serializable {
       return X.size();
    }
 
+   public Iterator<List<NDArray>> threadIterator(final int batchSize, final int numberOfThreads) {
+      final int numberOfBatches = (size() / batchSize);
+      final int batchesPerThread = numberOfBatches / numberOfThreads;
+      return new Iterator<List<NDArray>>() {
+         final Iterator<NDArray> itr = iterator(batchSize);
+         int thread = 1;
+         List<NDArray> b = null;
+
+         private boolean forward() {
+            if (b == null && itr.hasNext()) {
+               b = new ArrayList<>();
+               int i = 0;
+               while (itr.hasNext() && (i < batchesPerThread || thread == numberOfThreads)) {
+                  i++;
+                  b.add(itr.next());
+               }
+               thread++;
+            }
+            return b != null && !b.isEmpty();
+         }
+
+         @Override
+         public boolean hasNext() {
+            return forward();
+         }
+
+         @Override
+         public List<NDArray> next() {
+            if (!forward()) {
+               throw new NoSuchElementException();
+            }
+            List<NDArray> toReturn = b;
+            b = null;
+            return toReturn;
+         }
+      };
+   }
+
 
 }// END OF BatchIterator

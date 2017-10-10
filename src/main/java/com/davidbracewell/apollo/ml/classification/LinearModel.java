@@ -17,6 +17,13 @@ public class LinearModel extends Classifier implements LinearModelParameters {
       super(learner);
    }
 
+   protected LinearModel(LinearModel model) {
+      super(model.getPreprocessors(), model.getEncoderPair());
+      this.weights = model.weights.copy();
+      this.bias = model.bias.copy();
+      this.activation = model.activation;
+   }
+
    @Override
    public Classification classify(NDArray vector) {
       //vector is numFeatures x 1
@@ -32,6 +39,11 @@ public class LinearModel extends Classifier implements LinearModelParameters {
       }
       return createResult(activation.apply(weights.mmul(vector).addi(bias)).toArray());
    }
+
+//   @Override
+//   public LinearModelParameters copy() {
+//      return new LinearModel(this);
+//   }
 
    @Override
    public Activation getActivation() {

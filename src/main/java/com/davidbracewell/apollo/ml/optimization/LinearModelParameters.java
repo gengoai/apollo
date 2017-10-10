@@ -7,7 +7,7 @@ import com.davidbracewell.apollo.ml.optimization.activation.Activation;
 /**
  * @author David B. Bracewell
  */
-public interface LinearModelParameters {
+public interface LinearModelParameters  {
 
    default NDArray activate(NDArray input) {
       return getActivation().apply(getWeights().mmul(input).addi(getBias(), Axis.COlUMN));

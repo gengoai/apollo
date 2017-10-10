@@ -34,21 +34,6 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
    private double weight;
    private Object predicted;
 
-   public NDArray toUnitVector(){
-      Preconditions.checkArgument(isVector(), "NDArray must be a vector");
-      double mag = norm2();
-      return div(mag);
-   }
-
-   public int numCols(){
-      return shape().j;
-   }
-
-   public int numRows() {
-      return shape().i;
-   }
-
-
    /**
     * Flips the matrix on its diagonal switching the rows and columns
     *
@@ -194,6 +179,11 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
       return copyData().setLabel(label).setPredicted(predicted).setWeight(weight);
    }
 
+   /**
+    * Copy data nd array.
+    *
+    * @return the nd array
+    */
    protected abstract NDArray copyData();
 
    /**
@@ -488,15 +478,32 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     */
    public abstract NDArrayFactory getFactory();
 
+   /**
+    * Gets label.
+    *
+    * @param <T> the type parameter
+    * @return the label
+    */
    public <T> T getLabel() {
       return Cast.as(label);
    }
 
+   /**
+    * Sets label.
+    *
+    * @param label the label
+    * @return the label
+    */
    public NDArray setLabel(Object label) {
       this.label = label;
       return this;
    }
 
+   /**
+    * Gets label as double.
+    *
+    * @return the label as double
+    */
    public double getLabelAsDouble() {
       if (label == null) {
          return Double.NaN;
@@ -504,6 +511,11 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
       return Cast.<Number>as(label).doubleValue();
    }
 
+   /**
+    * Gets label as nd array.
+    *
+    * @return the label as nd array
+    */
    public NDArray getLabelAsNDArray() {
       if (label == null) {
          return new EmptyNDArray();
@@ -513,6 +525,12 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
       return Cast.as(label);
    }
 
+   /**
+    * Gets label as nd array.
+    *
+    * @param dimension the dimension
+    * @return the label as nd array
+    */
    public NDArray getLabelAsNDArray(int dimension) {
       if (label == null) {
          return new EmptyNDArray();
@@ -523,15 +541,32 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
       return Cast.as(label);
    }
 
+   /**
+    * Gets predicted.
+    *
+    * @param <T> the type parameter
+    * @return the predicted
+    */
    public <T> T getPredicted() {
       return Cast.as(predicted);
    }
 
+   /**
+    * Sets predicted.
+    *
+    * @param predicted the predicted
+    * @return the predicted
+    */
    public NDArray setPredicted(Object predicted) {
       this.predicted = predicted;
       return this;
    }
 
+   /**
+    * Gets predicted as double.
+    *
+    * @return the predicted as double
+    */
    public double getPredictedAsDouble() {
       if (predicted == null) {
          return Double.NaN;
@@ -539,6 +574,11 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
       return Cast.<Number>as(predicted).doubleValue();
    }
 
+   /**
+    * Gets predicted as nd array.
+    *
+    * @return the predicted as nd array
+    */
    public NDArray getPredictedAsNDArray() {
       if (predicted == null) {
          return new EmptyNDArray();
@@ -565,19 +605,40 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
       return toReturn;
    }
 
+   /**
+    * Gets weight.
+    *
+    * @return the weight
+    */
    public double getWeight() {
       return weight;
    }
 
+   /**
+    * Sets weight.
+    *
+    * @param weight the weight
+    * @return the weight
+    */
    public NDArray setWeight(double weight) {
       this.weight = weight;
       return this;
    }
 
+   /**
+    * Has label boolean.
+    *
+    * @return the boolean
+    */
    public boolean hasLabel() {
       return label != null;
    }
 
+   /**
+    * Has predicted label boolean.
+    *
+    * @return the boolean
+    */
    public boolean hasPredictedLabel() {
       return predicted != null;
    }
@@ -1065,15 +1126,20 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
    public NDArray mmul(@NonNull NDArray other) {
       shape().checkCanMultiply(other.shape());
       NDArray toReturn = getFactory().zeros(shape().i, other.shape().j);
-      for (int r = 0; r < shape().i; r++) {
+      sparseIterator().forEachRemaining(e1 -> {
          for (int c = 0; c < other.shape().j; c++) {
-            double sum = 0;
-            for (int c2 = 0; c2 < shape().j; c2++) {
-               sum += get(r, c2) * other.get(c2, c);
-            }
-            toReturn.set(r, c, sum);
+            toReturn.increment(e1.getI(), c, e1.getValue()*other.get(e1.getJ(),c));
          }
-      }
+      });
+//      for (int r = 0; r < shape().i; r++) {
+//         for (int c = 0; c < other.shape().j; c++) {
+//            double sum = 0;
+//            for (int c2 = 0; c2 < shape().j; c2++) {
+//               sum += get(r, c2) * other.get(c2, c);
+//            }
+//            toReturn.set(r, c, sum);
+//         }
+//      }
       return toReturn;
    }
 
@@ -1181,6 +1247,24 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     */
    public double norm2() {
       return Math.sqrt(sumOfSquares());
+   }
+
+   /**
+    * Num cols int.
+    *
+    * @return the int
+    */
+   public int numCols() {
+      return shape().j;
+   }
+
+   /**
+    * Num rows int.
+    *
+    * @return the int
+    */
+   public int numRows() {
+      return shape().i;
    }
 
    /**
@@ -1902,6 +1986,17 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
    @Override
    public String toString() {
       return Arrays.toString(toArray());
+   }
+
+   /**
+    * To unit vector nd array.
+    *
+    * @return the nd array
+    */
+   public NDArray toUnitVector() {
+      Preconditions.checkArgument(isVector(), "NDArray must be a vector");
+      double mag = norm2();
+      return div(mag);
    }
 
    /**

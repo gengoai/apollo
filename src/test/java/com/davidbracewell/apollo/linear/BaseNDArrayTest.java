@@ -169,6 +169,12 @@ public abstract class BaseNDArrayTest {
    }
 
    @Test
+   public void mmul() throws Exception {
+      assertEquals(
+         factory.from(3, 3, new double[]{70.0, 80.0, 90.0, 158.0, 184.0, 210.0, 246.0, 288.0, 330.0}), m1.mmul(m2));
+   }
+
+   @Test
    public void mul() throws Exception {
       assertEquals(factory.from(1, 4, new double[]{0.0, 1.0, 4.0, 3.0}), v1.mul(1));
       assertEquals(factory.from(1, 4, new double[]{0.0, 1.0, 4.0, 3.0}), v1.copy().muli(1));

@@ -4,11 +4,13 @@ import com.davidbracewell.apollo.linear.Axis;
 import com.davidbracewell.apollo.linear.NDArray;
 import com.davidbracewell.apollo.ml.optimization.*;
 import com.davidbracewell.function.SerializableSupplier;
+import com.davidbracewell.guava.common.base.Stopwatch;
 import com.davidbracewell.stream.MStream;
 import com.davidbracewell.tuple.Tuple2;
 import com.davidbracewell.tuple.Tuple3;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.val;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -67,7 +69,7 @@ public class Backprop implements Optimizer<FeedForwardNetwork> {
 //
 //      ExecutorService executor = Executors.newFixedThreadPool(threads);
       for (int iteration = 0; iteration < terminationCriteria.maxIterations(); iteration++) {
-//         loss = 0d;
+         loss = 0d;
 //         data.shuffle();
 //         List<Future<Tuple3<Double, Double, List<Layer>>>> futures = new ArrayList<>();
 //         for (Iterator<NDArray> itr = data.iterator(batchSize); itr.hasNext(); ) {
@@ -99,6 +101,7 @@ public class Backprop implements Optimizer<FeedForwardNetwork> {
 //         });
 
          List<Layer> layers = startingTheta.layers;
+         val timer = Stopwatch.createStarted();
          for (Iterator<NDArray> itr = data.iterator(batchSize); itr.hasNext(); ) {
             NDArray X = itr.next();
             CostGradientTuple cgt = costFunction.evaluate(X, startingTheta);
@@ -115,9 +118,8 @@ public class Backprop implements Optimizer<FeedForwardNetwork> {
                }
             }
          }
-         boolean converged = terminationCriteria.check(loss);
-         report(reportInterval, iteration, terminationCriteria.maxIterations(), converged, loss);
-         if (converged) {
+         timer.stop();
+         if (report(reportInterval, iteration, terminationCriteria, loss, timer.toString())) {
             break;
          }
       }

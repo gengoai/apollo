@@ -25,6 +25,7 @@ import com.davidbracewell.apollo.linear.NDArray;
 import com.davidbracewell.guava.common.base.Preconditions;
 import lombok.NonNull;
 import org.apache.commons.math3.distribution.TDistribution;
+import org.apache.commons.math3.util.FastMath;
 
 /**
  * <p>Defines methodology to determine how related two items are.</p>
@@ -50,7 +51,7 @@ public interface CorrelationMeasure extends SimilarityMeasure {
 
 
    /**
-    * Calculates the p-value for the correlation coefficient when N >= 6 using a t-Test.
+    * Calculates the p-value for the correlation coefficient when N >= 6 using a one-tailed t-Test.
     *
     * @param r the correlation coefficient.
     * @param N the number of items
@@ -58,8 +59,10 @@ public interface CorrelationMeasure extends SimilarityMeasure {
     */
    default double pValue(double r, int N) {
       Preconditions.checkArgument(N >= 6, "N must be >= 6.");
-      double t = r / Math.sqrt((1 - r * r) / (N - 2));
-      return 1.0 - new TDistribution(N - 2).cumulativeProbability(t);
+      double t = (r * FastMath.sqrt(N - 2.0)) / FastMath.sqrt(1.0 - r * r);
+      return 1.0 - new TDistribution(N - 2, 1)
+                      .cumulativeProbability(t);
    }
+
 
 }//END OF CorrelationMeasure

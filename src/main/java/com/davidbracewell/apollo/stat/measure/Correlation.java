@@ -24,10 +24,10 @@ package com.davidbracewell.apollo.stat.measure;
 import com.davidbracewell.Lazy;
 import com.davidbracewell.guava.common.base.Preconditions;
 import lombok.NonNull;
+import lombok.val;
 import org.apache.commons.math3.stat.correlation.KendallsCorrelation;
-import org.apache.commons.math3.stat.correlation.PearsonsCorrelation;
 import org.apache.commons.math3.stat.correlation.SpearmansCorrelation;
-import org.apache.commons.math3.stat.regression.SimpleRegression;
+import org.apache.commons.math3.util.FastMath;
 
 /**
  * <p>Common methods for calculating the correlation between arrays of values.</p>
@@ -40,11 +40,26 @@ public enum Correlation implements CorrelationMeasure {
     * correlation coefficient.</a>
     */
    Pearson {
-      final transient Lazy<PearsonsCorrelation> pearsonCorrelation = new Lazy<>(PearsonsCorrelation::new);
-
       @Override
-      public double calculate(@NonNull double[] v1, @NonNull double[] v2) {
-         return pearsonCorrelation.get().correlation(v1, v2);
+      public double calculate(@NonNull double[] x, @NonNull double[] y) {
+         Preconditions.checkArgument(x.length == y.length,
+                                     "Dimension mismatch dim(x)=" + x.length + " != dim(y)=" + y.length);
+         double x2 = 0d;
+         double y2 = 0d;
+         double sumX = 0d;
+         double sumY = 0d;
+         double xy = 0d;
+         for (int i = 0; i < x.length; i++) {
+            sumX += x[i];
+            x2 += x[i] * x[i];
+            sumY += y[i];
+            y2 += y[i] * y[i];
+            xy += x[i] * y[i];
+         }
+         double SSx = x2 - ((sumX * sumX) / x.length);
+         double SSy = y2 - ((sumY * sumY) / x.length);
+         double SSxy = xy - ((sumY * sumX) / x.length);
+         return SSxy / Math.sqrt(SSx * SSy);
       }
    },
    /**
@@ -80,14 +95,15 @@ public enum Correlation implements CorrelationMeasure {
    R_Squared {
       @Override
       public double calculate(double[] v1, double[] v2) {
-         Preconditions.checkArgument(v1.length == v2.length,
-                                     "Vector dimension mismatch " + v1.length + " != " + v2.length);
-         SimpleRegression regression = new SimpleRegression();
-         for (int i = 0; i < v1.length; ++i) {
-            regression.addData(v1[i], v2[i]);
-         }
-         return regression.getRSquare();
+         return FastMath.pow(Pearson.calculate(v1, v2), 2d);
       }
+   };
+
+   public static void main(String[] args) {
+      val x = new double[]{490, 500, 530, 550, 580, 590, 600, 600, 650, 700};
+      val y = new double[]{560, 500, 510, 600, 600, 620, 550, 630, 650, 750};
+      System.out.println(Pearson.calculate(x, y));
+      System.out.println(Pearson.pValue(Pearson.calculate(x, y), x.length));
    }
 
 

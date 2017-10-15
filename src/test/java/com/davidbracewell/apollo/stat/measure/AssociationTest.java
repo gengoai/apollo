@@ -8,7 +8,7 @@ import static org.junit.Assert.*;
 /**
  * @author David B. Bracewell
  */
-public class AssociationMeasuresTest {
+public class AssociationTest {
   ContingencyTable table;
 
   @Before
@@ -23,41 +23,41 @@ public class AssociationMeasuresTest {
 
   @Test
   public void testMI() throws Exception {
-    assertEquals(2.52E-05, AssociationMeasures.MI.calculate(table), 0.01);
+    assertEquals(2.52E-05, Association.MI.calculate(table), 0.01);
   }
 
   @Test
   public void testX2() throws Exception {
-    assertEquals(4938255.94, AssociationMeasures.CHI_SQUARE.calculate(table), 0.01);
+    assertEquals(4938255.94, Association.CHI_SQUARE.calculate(table), 0.01);
   }
 
   @Test
   public void testPMI() throws Exception {
-    assertEquals(17.91, AssociationMeasures.PMI.calculate(table), 0.01);
+    assertEquals(17.91, Association.PMI.calculate(table), 0.01);
   }
 
   @Test
   public void testOdds() throws Exception {
-    assertEquals(1818175.45, AssociationMeasures.ODDS_RATIO.calculate(table), 0.01);
+    assertEquals(1818175.45, Association.ODDS_RATIO.calculate(table), 0.01);
   }
 
   @Test
   public void testPS() throws Exception {
-    assertEquals(228.34, AssociationMeasures.POISSON_STIRLING.calculate(table), 0.01);
+    assertEquals(228.34, Association.POISSON_STIRLING.calculate(table), 0.01);
   }
 
   @Test
   public void testNPMI() throws Exception {
-    assertEquals(0.923, AssociationMeasures.NPMI.calculate(table), 0.01);
+    assertEquals(0.923, Association.NPMI.calculate(table), 0.01);
   }
 
   @Test
   public void testT() throws Exception {
-    assertEquals(4.47, AssociationMeasures.T_SCORE.calculate(table), 0.01);
+    assertEquals(4.47, Association.T_SCORE.calculate(table), 0.01);
   }
 
   @Test
   public void testLL() throws Exception {
-    assertEquals(489.32, AssociationMeasures.G_SQUARE.calculate(table), 0.01);
+    assertEquals(489.32, Association.G_SQUARE.calculate(table), 0.01);
   }
 }

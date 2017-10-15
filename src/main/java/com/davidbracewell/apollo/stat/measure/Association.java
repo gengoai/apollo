@@ -28,13 +28,14 @@ import com.davidbracewell.guava.common.primitives.Doubles;
 import lombok.NonNull;
 import org.apache.commons.math3.distribution.ChiSquaredDistribution;
 import org.apache.commons.math3.distribution.TDistribution;
+import org.apache.commons.math3.util.FastMath;
 
 /**
  * Common measures to determine the association, or dependence, of variables in a contingency table.
  *
  * @author David B. Bracewell
  */
-public enum AssociationMeasures implements ContingencyTableCalculator {
+public enum Association implements ContingencyTableCalculator {
    /**
     * Measures based on Mikolov et. al's "Distributed Representations of Words and Phrases and their Compositionality"
     */
@@ -165,7 +166,7 @@ public enum AssociationMeasures implements ContingencyTableCalculator {
          for (int row = 0; row < table.rowCount(); row++) {
             for (int col = 0; col < table.columnCount(); col++) {
                double expected = table.getExpected(row, col);
-               sumSq += Math.pow(table.get(row, col) - expected, 2) / expected;
+               sumSq += FastMath.pow(table.get(row, col) - expected, 2) / expected;
             }
          }
          return Doubles.isFinite(sumSq) ? sumSq : 0d;
@@ -216,6 +217,6 @@ public enum AssociationMeasures implements ContingencyTableCalculator {
          NormalDistribution distribution = new NormalDistribution(0, 1);
          return 1.0 - distribution.cumulativeProbability(Math.log(calculate(table)));
       }
-   }
+   };
 
 }//END OF AssociationMeasures

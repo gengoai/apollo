@@ -31,7 +31,7 @@ import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.ml.encoder.Encoder;
 import com.davidbracewell.apollo.ml.encoder.IndexEncoder;
 import com.davidbracewell.apollo.ml.sequence.Sequence;
-import com.davidbracewell.apollo.stat.measure.AssociationMeasures;
+import com.davidbracewell.apollo.stat.measure.Association;
 import com.davidbracewell.apollo.stat.measure.ContingencyTable;
 import com.davidbracewell.apollo.stat.measure.ContingencyTableCalculator;
 import com.davidbracewell.collection.counter.MultiCounter;
@@ -58,7 +58,7 @@ public class SVDEmbedding extends EmbeddingLearner {
    private static final long serialVersionUID = 1L;
    @Getter
    @Setter
-   private ContingencyTableCalculator calculator = AssociationMeasures.PPMI;
+   private ContingencyTableCalculator calculator = Association.PPMI;
    @Getter
    @Setter
    private int windowSize = 5;

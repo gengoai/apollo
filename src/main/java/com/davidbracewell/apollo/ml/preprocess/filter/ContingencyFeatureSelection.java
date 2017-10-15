@@ -3,7 +3,7 @@ package com.davidbracewell.apollo.ml.preprocess.filter;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.ml.preprocess.InstancePreprocessor;
-import com.davidbracewell.apollo.stat.measure.AssociationMeasures;
+import com.davidbracewell.apollo.stat.measure.Association;
 import com.davidbracewell.apollo.stat.measure.ContingencyTable;
 import com.davidbracewell.apollo.stat.measure.ContingencyTableCalculator;
 import com.davidbracewell.collection.counter.HashMapMultiCounter;
@@ -121,7 +121,7 @@ public class ContingencyFeatureSelection implements FilterProcessor<Instance>, I
       while (reader.peek() != JsonTokenType.END_OBJECT) {
          switch (reader.peekName()) {
             case "calculator":
-               this.calculator = AssociationMeasures.valueOf(reader.nextKeyValue().v2.asString());
+               this.calculator = Association.valueOf(reader.nextKeyValue().v2.asString());
                break;
             case "threshold":
                this.threshold = reader.nextKeyValue().v2.asDoubleValue();

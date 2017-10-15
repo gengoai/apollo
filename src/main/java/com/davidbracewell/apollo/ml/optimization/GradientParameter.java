@@ -11,10 +11,10 @@ public class GradientParameter {
    NDArray weightGradient;
    NDArray biasGradient;
 
-   public static GradientParameter calculate(NDArray input,
-                                             NDArray error
-                                            ) {
-      
+   public static GradientParameter calculate(NDArray input, NDArray error) {
+      //input is numFeatures x numExamples
+      //error is numLabels x numExamples
+      //output should be numLabels x numFeatures
       return GradientParameter.of(error.mmul(input.T()), error);
    }
 

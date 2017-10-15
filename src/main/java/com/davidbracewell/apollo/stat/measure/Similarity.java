@@ -52,7 +52,7 @@ public enum Similarity implements SimilarityMeasure {
    Dice {
       @Override
       public double calculate(@NonNull NDArray v1, @NonNull NDArray v2) {
-         return (2 * v1.dot(v2)) / (v1.pow(2).sum() + v2.pow(2).sum());
+         return 2 * v1.map(v2, Math::min).sum() / v1.add(v2).sum();
       }
 
       @Override
@@ -104,8 +104,7 @@ public enum Similarity implements SimilarityMeasure {
    Jaccard {
       @Override
       public double calculate(@NonNull NDArray v1, @NonNull NDArray v2) {
-         double dp = v1.dot(v2);
-         return dp / (v1.sumOfSquares() + v2.sumOfSquares() - dp);
+         return v1.map(v2, Math::min).sum() / v1.map(v2, Math::max).sum();
       }
 
       @Override

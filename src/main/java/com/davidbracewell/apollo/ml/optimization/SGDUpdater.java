@@ -73,7 +73,13 @@ public class SGDUpdater implements WeightUpdate, Serializable {
    }
 
    @Override
-   public Tuple2<NDArray, Double> update(LinearModelParameters weights, NDArray input, NDArray output, NDArray delta, int iteration, boolean calculateOutDelta) {
+   public Tuple2<NDArray, Double> update(LinearModelParameters weights,
+                                         NDArray input,
+                                         NDArray output,
+                                         NDArray delta,
+                                         int iteration,
+                                         boolean calculateOutDelta
+                                        ) {
       if (momentum > 0 && v == null) {
          v = weights.getWeights().getFactory().zeros(output.numRows(), input.numRows());
       }

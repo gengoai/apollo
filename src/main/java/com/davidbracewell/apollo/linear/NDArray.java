@@ -121,6 +121,17 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
       return mapi(other, axis, Math2::add);
    }
 
+   public NDArray addiVector(int index, @NonNull NDArray vector, @NonNull Axis axis) {
+      shape().checkDimensionMatch(axis.T(), vector.shape(), axis.T());
+      Preconditions.checkArgument(vector.isVector(axis));
+      if (axis == Axis.ROW) {
+         vector.forEachSparse(entry -> increment(index, entry.getJ(), entry.getValue()));
+      } else {
+         vector.forEachSparse(entry -> increment(entry.getI(), index, entry.getValue()));
+      }
+      return this;
+   }
+
    /**
     * Calculates the index of the maximum along each row or column based on the given axis.
     *
@@ -1126,20 +1137,15 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
    public NDArray mmul(@NonNull NDArray other) {
       shape().checkCanMultiply(other.shape());
       NDArray toReturn = getFactory().zeros(shape().i, other.shape().j);
-      sparseIterator().forEachRemaining(e1 -> {
+      for (int r = 0; r < shape().i; r++) {
          for (int c = 0; c < other.shape().j; c++) {
-            toReturn.increment(e1.getI(), c, e1.getValue()*other.get(e1.getJ(),c));
+            double sum = 0;
+            for (int c2 = 0; c2 < shape().j; c2++) {
+               sum += get(r, c2) * other.get(c2, c);
+            }
+            toReturn.set(r, c, sum);
          }
-      });
-//      for (int r = 0; r < shape().i; r++) {
-//         for (int c = 0; c < other.shape().j; c++) {
-//            double sum = 0;
-//            for (int c2 = 0; c2 < shape().j; c2++) {
-//               sum += get(r, c2) * other.get(c2, c);
-//            }
-//            toReturn.set(r, c, sum);
-//         }
-//      }
+      }
       return toReturn;
    }
 
@@ -1209,6 +1215,21 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     */
    public NDArray muli(@NonNull NDArray other, @NonNull Axis axis) {
       return mapiSparse(other, axis, Math2::multiply);
+   }
+
+   public NDArray muliVector(int index, @NonNull NDArray vector, @NonNull Axis axis) {
+      shape().checkDimensionMatch(axis.T(), vector.shape(), axis.T());
+      Preconditions.checkArgument(vector.isVector(axis));
+      if (axis == Axis.ROW) {
+         vector.forEachSparse(entry -> {
+            set(index, entry.getJ(), get(index, entry.getJ()) * entry.getValue());
+         });
+      } else {
+         vector.forEachSparse(entry -> {
+            set(entry.getI(), index, get(entry.getI(), index) * entry.getValue());
+         });
+      }
+      return this;
    }
 
    /**
@@ -1734,6 +1755,10 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
       return toReturn;
    }
 
+   public Iterator<NDArray.Entry> sparseColumnIterator(int column) {
+      return null;
+   }
+
    /**
     * Sparse iterator over the entries in the NDArray (will act like <code>iterator</code> for dense implementations)
     *
@@ -1751,6 +1776,11 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     */
    public Iterator<Entry> sparseOrderedIterator() {
       return iterator();
+   }
+
+   public Iterator<Entry> sparseRowIterator(int row) {
+      return null;
+
    }
 
    /**
@@ -1841,6 +1871,21 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     */
    public NDArray subi(@NonNull NDArray other, @NonNull Axis axis) {
       return mapi(other, axis, Math2::subtract);
+   }
+
+   public NDArray subiVector(int index, @NonNull NDArray vector, @NonNull Axis axis) {
+      shape().checkDimensionMatch(axis.T(), vector.shape(), axis.T());
+      Preconditions.checkArgument(vector.isVector(axis));
+      if (axis == Axis.ROW) {
+         vector.forEachSparse(entry -> {
+            decrement(index, entry.getJ(), entry.getValue());
+         });
+      } else {
+         vector.forEachSparse(entry -> {
+            decrement(entry.getI(), index, entry.getValue());
+         });
+      }
+      return this;
    }
 
    /**

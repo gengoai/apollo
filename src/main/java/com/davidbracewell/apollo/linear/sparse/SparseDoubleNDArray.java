@@ -4,9 +4,7 @@ import com.davidbracewell.apollo.linear.*;
 import com.davidbracewell.collection.Streams;
 import com.davidbracewell.guava.common.base.Preconditions;
 import lombok.NonNull;
-import org.apache.mahout.math.function.IntDoubleProcedure;
 import org.apache.mahout.math.list.IntArrayList;
-import org.apache.mahout.math.map.OpenIntDoubleHashMap;
 
 import java.util.Iterator;
 import java.util.Objects;
@@ -19,15 +17,14 @@ import java.util.function.DoubleUnaryOperator;
 public class SparseDoubleNDArray extends NDArray {
    private static final long serialVersionUID = 1L;
 
-   private Shape shape;
-   private OpenIntDoubleHashMap storage = new OpenIntDoubleHashMap();
+   private Sparse2dArray storage;
 
    public SparseDoubleNDArray(int nRows, int nCols) {
-      this.shape = Shape.shape(nRows, nCols);
+      this.storage = new Sparse2dArray(Shape.shape(nRows, nCols));
    }
 
    public SparseDoubleNDArray(@NonNull Shape shape) {
-      this.shape = shape.copy();
+      this.storage = new Sparse2dArray(shape);
    }
 
    @Override
@@ -38,7 +35,7 @@ public class SparseDoubleNDArray extends NDArray {
 
    @Override
    public NDArray copyData() {
-      SparseDoubleNDArray copy = new SparseDoubleNDArray(this.shape);
+      SparseDoubleNDArray copy = new SparseDoubleNDArray(this.storage.getShape());
       storage.forEachPair((index, value) -> {
          copy.storage.put(index, value);
          return true;
@@ -48,10 +45,7 @@ public class SparseDoubleNDArray extends NDArray {
 
    @Override
    public void forEachSparse(@NonNull Consumer<Entry> consumer) {
-      storage.forEachPair((index, value) -> {
-         consumer.accept(new EntryImpl(index));
-         return true;
-      });
+      storage.forEach(consumer);
    }
 
    @Override
@@ -61,7 +55,7 @@ public class SparseDoubleNDArray extends NDArray {
 
    @Override
    public double get(int i, int j) {
-      return this.storage.get(shape.colMajorIndex(i, j));
+      return this.storage.get(shape().colMajorIndex(i, j));
    }
 
    @Override
@@ -86,70 +80,72 @@ public class SparseDoubleNDArray extends NDArray {
 
    @Override
    public NDArray mapSparse(@NonNull DoubleUnaryOperator operator) {
-      NDArray toReturn = getFactory().zeros(shape);
-      storage.forEachPair((index, value) -> {
-         toReturn.set(index, operator.applyAsDouble(value));
-         return true;
-      });
+      NDArray toReturn = getFactory().zeros(shape());
+      storage.forEach(entry -> toReturn.set(entry.getIndex(), operator.applyAsDouble(entry.getValue())));
       return toReturn;
    }
 
    @Override
    public double max() {
-      Max max = new Max();
-      storage.forEachPair(max);
-      if (max.maxv == Double.NEGATIVE_INFINITY) {
-         return size() == length() ? max.maxv : 0d;
+      double max = storage.max();
+      if (max == Double.NEGATIVE_INFINITY) {
+         return size() == length() ? max : 0d;
       }
-      return max.maxv;
+      return max;
    }
 
    @Override
    public double min() {
-      Min min = new Min();
-      storage.forEachPair(min);
+      double min = storage.min();
       if (length() == size()) {
-         return min.minv;
+         return min;
       }
-      return Math.min(0, min.minv);
+      return Math.min(0, min);
+   }
+
+   @Override
+   public NDArray mmul(@NonNull NDArray other) {
+      NDArray toReturn = getFactory().zeros(numRows(), other.numCols());
+      storage.forEach(entry -> other.sparseRowIterator(entry.getJ())
+                                    .forEachRemaining(e2 -> toReturn.increment(entry.getI(),
+                                                                               e2.getJ(),
+                                                                               e2.getValue() * entry.getValue())
+                                                     ));
+      return toReturn;
    }
 
    @Override
    public NDArray set(int index, double value) {
       Preconditions.checkArgument(index >= 0 && index < length(), "Invalid index: " + index + " (" + length() + ")");
-      if (value == 0) {
-         this.storage.removeKey(index);
-      } else {
-         this.storage.put(index, value);
-      }
+      this.storage.put(index, value);
       return this;
    }
 
    @Override
    public NDArray set(@NonNull Subscript subscript, double value) {
-      shape.checkSubscript(subscript);
-      if (value == 0) {
-         this.storage.removeKey(shape.colMajorIndex(subscript));
-      } else {
-         this.storage.put(shape.colMajorIndex(subscript), value);
-      }
+      shape().checkSubscript(subscript);
+      this.storage.put(subscript.i, subscript.j, value);
       return this;
    }
 
    @Override
    public NDArray set(int r, int c, double value) {
-      return set(shape.colMajorIndex(r, c), value);
+      return set(shape().colMajorIndex(r, c), value);
    }
-
 
    @Override
    public Shape shape() {
-      return shape;
+      return storage.getShape();
    }
 
    @Override
    public int size() {
       return storage.size();
+   }
+
+   @Override
+   public Iterator<NDArray.Entry> sparseColumnIterator(int column) {
+      return storage.sparseColumn(column);
    }
 
    @Override
@@ -163,17 +159,20 @@ public class SparseDoubleNDArray extends NDArray {
    }
 
    @Override
+   public Iterator<Entry> sparseRowIterator(int row) {
+      return storage.sparseRow(row);
+   }
+
+   @Override
    public double sum() {
-      Summer summer = new Summer();
-      storage.forEachPair(summer);
-      return summer.sum;
+      return storage.sum();
    }
 
    @Override
    public double[][] to2DArray() {
-      final double[][] array = new double[shape.i][shape.j];
+      final double[][] array = new double[shape().i][shape().j];
       storage.forEachPair((index, value) -> {
-         Subscript ss = shape.fromColMajorIndex(index);
+         Subscript ss = shape().fromColMajorIndex(index);
          array[ss.i][ss.j] = value;
          return true;
       });
@@ -197,39 +196,6 @@ public class SparseDoubleNDArray extends NDArray {
       return this;
    }
 
-   static class Max implements IntDoubleProcedure {
-      double maxv = Double.NEGATIVE_INFINITY;
-
-      @Override
-      public boolean apply(int i, double v) {
-         if (v > maxv) {
-            maxv = v;
-         }
-         return true;
-      }
-   }
-
-   static class Min implements IntDoubleProcedure {
-      double minv = Double.POSITIVE_INFINITY;
-
-      @Override
-      public boolean apply(int i, double v) {
-         if (v < minv) {
-            minv = v;
-         }
-         return true;
-      }
-   }
-
-   static class Summer implements IntDoubleProcedure {
-      double sum = 0;
-
-      @Override
-      public boolean apply(int i, double v) {
-         sum += v;
-         return true;
-      }
-   }
 
    private class EntryImpl implements NDArray.Entry {
       private static final long serialVersionUID = 1L;
@@ -239,7 +205,7 @@ public class SparseDoubleNDArray extends NDArray {
 
       private EntryImpl(int index) {
          this.index = index;
-         Subscript ss = shape.fromColMajorIndex(index);
+         Subscript ss = shape().fromColMajorIndex(index);
          this.i = ss.i;
          this.j = ss.j;
       }
@@ -302,7 +268,7 @@ public class SparseDoubleNDArray extends NDArray {
             keyList = new IntArrayList(Streams.asStream(sparseIterator())
                                               .map(e -> Subscript.from(e.getI(), e.getJ()))
                                               .sorted()
-                                              .mapToInt(ss -> shape.colMajorIndex(ss))
+                                              .mapToInt(ss -> shape().colMajorIndex(ss))
                                               .toArray());
          } else {
             keyList = storage.keys();

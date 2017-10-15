@@ -35,7 +35,7 @@ public class SimilarityTest {
 
    @Test
    public void dice() {
-      assertEquals(0.8481328404817187, Similarity.Dice.calculate(v1, v2), 0.0001);
+      assertEquals(0.7404632216185192, Similarity.Dice.calculate(v1, v2), 0.0001);
       assertEquals(0.4444444444444444, Similarity.Dice.calculate(table), 0.0001);
    }
 
@@ -53,7 +53,7 @@ public class SimilarityTest {
 
    @Test
    public void jaccard() {
-      assertEquals(0.7363113302374326, Similarity.Jaccard.calculate(v1, v2), 0.0001);
+      assertEquals(0.5878853514464445, Similarity.Jaccard.calculate(v1, v2), 0.0001);
       assertEquals(0.2857142857142857, Similarity.Jaccard.calculate(table), 0.0001);
    }
 

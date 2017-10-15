@@ -42,15 +42,7 @@ public class GradientDescentOptimizer implements Optimizer<LinearModelParameters
       for (int iteration = 0; iteration < terminationCriteria.maxIterations(); iteration++) {
          cost = 0;
          iterator.shuffle();
-         final int iter = iteration;
          val timer = Stopwatch.createStarted();
-//         cost = Streams.asStream(iterator.iterator(batchSize), true)
-//                       .mapToDouble(input -> {
-//                          CostGradientTuple cgt = costFunction.evaluate(input, startingTheta);
-//                          synchronized (startingTheta) {
-//                             return cgt.getCost() + weightUpdater.update(startingTheta, cgt.getGradient(), iter);
-//                          }
-//                       }).sum();
          for (Iterator<NDArray> batch = iterator.iterator(batchSize); batch.hasNext(); ) {
             NDArray input = batch.next();
             CostGradientTuple cgt = costFunction.evaluate(input, startingTheta);

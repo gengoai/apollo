@@ -6,6 +6,7 @@ import org.apache.mahout.math.list.IntArrayList;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.function.Consumer;
@@ -18,11 +19,14 @@ public class Sparse2dArray {
    @Getter
    private final Shape shape;
    private final Node[] rows;
+   private final int[] cols;
    private ArrayList<Node> nodes;
 
    public Sparse2dArray(Shape shape) {
       this.nodes = new ArrayList<>();
       this.shape = shape;
+      this.cols = new int[shape.j];
+      Arrays.fill(this.cols, -1);
       this.rows = new Node[shape.i];
    }
 
@@ -135,6 +139,11 @@ public class Sparse2dArray {
       } else if (value != 0) {
          int ii = Math.abs(index + 1);
          Node newNode = new Node(si, shape.colMajorIndex(si), value);
+         if (cols[newNode.getJ()] == -1) {
+            cols[newNode.getJ()] = newNode.index;
+         } else if (cols[newNode.getJ()] > newNode.index) {
+            cols[newNode.getJ()] = newNode.index;
+         }
          int r = newNode.getI();
          if (rows[r] == null) {
             rows[r] = newNode;
@@ -252,79 +261,58 @@ public class Sparse2dArray {
       }
    }
 
-   private class SparseRowIterator implements Iterator<NDArray.Entry> {
-      final int row;
-      int col = 0;
-      int lastIndex = -1;
-      int index = -1;
-
-      public SparseRowIterator(int row) {
-         this.row = row;
-      }
-
-      private boolean advance() {
-         if (nodes.isEmpty() || col >= shape.j || lastIndex + 1 >= nodes.size()) {
-            return false;
-         }
-         while (col < shape.j && index < 0) {
-            index = binarySearch(row, col, lastIndex + 1, nodes.size() - 1);
-            if (index < 0) {
-               int ii = Math.abs(index);
-               if (ii >= nodes.size() || nodes.get(ii).index < shape.colMajorIndex(row, col)) {
-                  col = shape.j;
-                  return false;
-               }
-            }
-            col++;
-         }
-         return index >= 0;
-      }
-
-
-      @Override
-      public boolean hasNext() {
-         return advance();
-      }
-
-      @Override
-      public NDArray.Entry next() {
-         advance();
-         lastIndex = index;
-         index = -1;
-         return nodes.get(lastIndex);
-      }
-   }
-
    private class SparseColumnIterator implements Iterator<NDArray.Entry> {
       final int column;
-      final int lower;
-      final int upper;
       int row = 0;
       int index = -1;
       int lastIndex = -1;
 
       public SparseColumnIterator(int column) {
          this.column = column;
-         this.lower = Math.abs(binarySearch(shape.colMajorIndex(0, column)));
-         this.upper = Math.min(this.lower + shape.i, nodes.size() - 1);
+         this.index = cols[column];
+         if (this.index >= 0) {
+            this.row = nodes.get(this.index).getI();
+         } else {
+            this.row = shape.i;
+         }
       }
 
       private boolean advance() {
-         if (nodes.isEmpty() || row >= shape.i || lastIndex > upper || index >= nodes.size()) {
+         if (index >= 0) {
+            return true;
+         }
+         if (nodes.isEmpty() || lastIndex + 1 >= nodes.size() || row >= shape.i) {
             return false;
          }
-         while (index < 0 && row < shape.i) {
-            index = binarySearch(row, column, lastIndex + 1, upper);
-            if (index < 0) {
-               int ii = Math.abs(index);
-               if (ii >= nodes.size() || nodes.get(ii).getJ() > column) {
-                  row = shape.i;
-                  return false;
-               }
-            }
-            row++;
+         index = lastIndex + 1;
+         Node n = nodes.get(index);
+         if (n.getJ() != column) {
+            row = shape.j;
+            index = -1;
+            return false;
          }
-         return index >= 0 && index < nodes.size();
+         row = n.getI();
+         return true;
+//         if (row == 0) { //initial step
+//            index = binarySearch(shape.colMajorIndex(0, column));
+//            if (index >= 0) {
+//               return true;
+//            }
+//            int aindex = Math.abs(index);
+//            if (aindex >= nodes.size()) {
+//               index = nodes.size();
+//               return false;
+//            }
+//            if (nodes.get(aindex).getJ() == column) {
+//               row = nodes.get(aindex).getI();
+//               index = nodes.get(aindex).index;
+//               return true;
+//            }
+//            row = shape.i;
+//            return false;
+//         }
+//         index = lastIndex + 1;
+//         return index < nodes.size() && nodes.get(index).getJ() == column;
       }
 
       @Override

@@ -348,6 +348,31 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
       return mapiSparse(other, axis, Math2::divide);
    }
 
+   public NDArray dot(@NonNull NDArray other, @NonNull Axis axis) {
+      NDArray dot = getFactory().zeros(axis, 1, axis.T(), shape().get(axis));
+      if (axis == Axis.ROW) {
+         for (int i = 0; i < numRows(); i++) {
+            double sum = 0d;
+            for (Iterator<Entry> itr = sparseRowIterator(i); itr.hasNext(); ) {
+               Entry e = itr.next();
+               sum += e.getValue() * other.get(axis.T(), e.get(axis), axis, e.get(axis.T()));
+            }
+            dot.set(i, 0, sum);
+         }
+      } else {
+         for (int i = 0; i < numCols(); i++) {
+            double sum = 0d;
+            for (Iterator<Entry> itr = sparseRowIterator(i); itr.hasNext(); ) {
+               Entry e = itr.next();
+               sum += e.getValue() * other.get(axis.T(), e.get(axis), axis, e.get(axis.T()));
+            }
+            dot.set(0, i, sum);
+         }
+      }
+
+      return dot;
+   }
+
    /**
     * Calculates the dot product between this  NDArray and a given other
     *
@@ -808,6 +833,10 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
       return mapi(Math2::safeLog);
    }
 
+   public Axis majorMode() {
+      return Axis.COlUMN;
+   }
+
    /**
     * Applies the given operator to each element in this NDArray creating a new NDArray in the process.
     *
@@ -852,11 +881,18 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return the new NDArray
     */
    public NDArray map(@NonNull NDArray other, @NonNull DoubleBinaryOperator operator) {
-      shape().checkDimensionMatch(other.shape());
       NDArray toReturn = getFactory().zeros(shape());
-      for (int r = 0; r < shape().i; r++) {
-         for (int c = 0; c < shape().j; c++) {
-            toReturn.set(r, c, operator.applyAsDouble(get(r, c), other.get(r, c)));
+      if (majorMode() == other.majorMode()) {
+         shape().checkLength(other.shape());
+         for (int i = 0; i < length(); i++) {
+            toReturn.set(i, operator.applyAsDouble(get(i), other.get(i)));
+         }
+      } else {
+         shape().checkDimensionMatch(other.shape());
+         for (int r = 0; r < shape().i; r++) {
+            for (int c = 0; c < shape().j; c++) {
+               toReturn.set(r, c, operator.applyAsDouble(get(r, c), other.get(r, c)));
+            }
          }
       }
       return toReturn;
@@ -1139,10 +1175,32 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
       NDArray toReturn = getFactory().zeros(shape().i, other.shape().j);
       for (int r = 0; r < shape().i; r++) {
          for (int c = 0; c < other.shape().j; c++) {
+            Iterator<Entry> ri = sparseRowIterator(r);
+            Iterator<Entry> ci = other.sparseColumnIterator(c);
             double sum = 0;
-            for (int c2 = 0; c2 < shape().j; c2++) {
-               sum += get(r, c2) * other.get(c2, c);
+            Entry rE = null;
+            Entry cE = null;
+            while (ri.hasNext() && ci.hasNext()) {
+               if (rE == null) rE = ri.next();
+               if (cE == null) cE = ci.next();
+
+               if (rE.getJ() == cE.getI()) {
+                  sum += rE.getValue() * cE.getValue();
+                  rE = null;
+                  cE = null;
+               } else if (rE.getJ() < cE.getI()) {
+                  while (ri.hasNext() && rE.getJ() < cE.getI()) {
+                     rE = ri.next();
+                  }
+               } else if (rE.getJ() > cE.getI()) {
+                  while (ci.hasNext() && rE.getJ() > cE.getI()) {
+                     cE = ci.next();
+                  }
+               }
             }
+//            for (int c2 = 0; c2 < shape().j; c2++) {
+//               sum += get(r, c2) * other.get(c2, c);
+//            }
             toReturn.set(r, c, sum);
          }
       }
@@ -1768,6 +1826,10 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
       return iterator();
    }
 
+   public Iterator<Entry> sparseOrderedColumnIterator(int column) {
+      return null;
+   }
+
    /**
     * Sparse iterator over the entries in the NDArray (will act like <code>iterator</code> for dense implementations)
     * ordered by subscript.
@@ -1778,9 +1840,12 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
       return iterator();
    }
 
+   public Iterator<Entry> sparseOrderedRowIterator(int row) {
+      return null;
+   }
+
    public Iterator<Entry> sparseRowIterator(int row) {
       return null;
-
    }
 
    /**

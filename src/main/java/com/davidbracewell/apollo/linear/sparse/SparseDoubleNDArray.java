@@ -94,6 +94,14 @@ public class SparseDoubleNDArray extends NDArray {
       return max;
    }
 
+   public Iterator<Entry> sparseOrderedRowIterator(int row) {
+      return storage.sparseRow(row);
+   }
+
+   public Iterator<Entry> sparseOrderedColumnIterator(int column) {
+      return storage.sparseColumn(column);
+   }
+
    @Override
    public double min() {
       double min = storage.min();

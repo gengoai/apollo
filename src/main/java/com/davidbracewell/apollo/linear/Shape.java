@@ -43,6 +43,12 @@ public class Shape extends Subscript implements Copyable<Shape> {
       }
    }
 
+   public void checkLength(Shape other){
+      if (length() != other.length()){
+         throw new IllegalArgumentException("Dimension mismatch " + length() + " != " + other.length());
+      }
+   }
+
    public void checkOppDimensionMatch(Shape other, Axis axis) {
       if (!oppDimensionMatch(other, axis)) {
          throw new IllegalArgumentException("Dimension mismatch: "

@@ -2,6 +2,7 @@ package com.davidbracewell.apollo.linear;
 
 import com.davidbracewell.Copyable;
 import lombok.EqualsAndHashCode;
+import lombok.NonNull;
 
 /**
  * @author David B. Bracewell
@@ -43,21 +44,6 @@ public class Shape extends Subscript implements Copyable<Shape> {
       }
    }
 
-   public void checkLength(Shape other){
-      if (length() != other.length()){
-         throw new IllegalArgumentException("Dimension mismatch " + length() + " != " + other.length());
-      }
-   }
-
-   public void checkOppDimensionMatch(Shape other, Axis axis) {
-      if (!oppDimensionMatch(other, axis)) {
-         throw new IllegalArgumentException("Dimension mismatch: "
-                                               + get(axis.T())
-                                               + " is not equal to "
-                                               + other.get(axis));
-      }
-   }
-
    public void checkDimensionMatch(Shape other, Axis axis) {
       if (!dimensionMatch(other, axis)) {
          throw new IllegalArgumentException("Dimension mismatch: "
@@ -76,6 +62,21 @@ public class Shape extends Subscript implements Copyable<Shape> {
       }
    }
 
+   public void checkLength(Shape other) {
+      if (length() != other.length()) {
+         throw new IllegalArgumentException("Dimension mismatch " + length() + " != " + other.length());
+      }
+   }
+
+   public void checkOppDimensionMatch(Shape other, Axis axis) {
+      if (!oppDimensionMatch(other, axis)) {
+         throw new IllegalArgumentException("Dimension mismatch: "
+                                               + get(axis.T())
+                                               + " is not equal to "
+                                               + other.get(axis));
+      }
+   }
+
    public void checkSubscript(Subscript ss) {
       if (ss.i < 0 || ss.i > this.i || ss.j < 0 || ss.j > this.j) {
          throw new IllegalArgumentException("Subscript " + ss + " out of range " + this);
@@ -85,13 +86,6 @@ public class Shape extends Subscript implements Copyable<Shape> {
    public int colMajorIndex(int i, int j) {
       return i + this.i * j;
    }
-
-   public Subscript fromColMajorIndex(int index) {
-      int r = index % this.i;
-      int c = index / this.i;
-      return Subscript.from(r, c);
-   }
-
 
    public int colMajorIndex(Subscript s) {
       return colMajorIndex(s.i, s.j);
@@ -106,13 +100,14 @@ public class Shape extends Subscript implements Copyable<Shape> {
       return get(axis) == other.get(axis);
    }
 
-   public boolean oppDimensionMatch(Shape other, Axis axis) {
-      return get(axis.T()) == other.get(axis);
-   }
-
-
    public boolean dimensionMatch(Shape other) {
       return this.equals(other);
+   }
+
+   public Subscript fromColMajorIndex(int index) {
+      int r = index % this.i;
+      int c = index / this.i;
+      return Subscript.from(r, c);
    }
 
    public Subscript fromRowMajorIndex(int index) {
@@ -123,6 +118,30 @@ public class Shape extends Subscript implements Copyable<Shape> {
 
    public int length() {
       return i * j;
+   }
+
+   public Subscript nextByColumn(@NonNull Subscript subscript) {
+      if (subscript.i >= i) {
+         if (subscript.j < j) {
+            return Subscript.from(0, subscript.j + 1);
+         }
+         return Subscript.from(-1, -1);
+      }
+      return Subscript.from(subscript.i + 1, subscript.j);
+   }
+
+   public Subscript nextByRow(@NonNull Subscript subscript) {
+      if (subscript.j >= j) {
+         if (subscript.i < i) {
+            return Subscript.from(subscript.i + 1, subscript.j);
+         }
+         return Subscript.from(-1, -1);
+      }
+      return Subscript.from(subscript.i, subscript.j + 1);
+   }
+
+   public boolean oppDimensionMatch(Shape other, Axis axis) {
+      return get(axis.T()) == other.get(axis);
    }
 
    public int rowMajorIndex(int i, int j) {

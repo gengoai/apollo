@@ -1,6 +1,5 @@
 package com.davidbracewell.apollo.ml.optimization;
 
-import com.davidbracewell.apollo.linear.Axis;
 import com.davidbracewell.apollo.linear.NDArray;
 import com.davidbracewell.apollo.linear.NDArrayFactory;
 import com.davidbracewell.apollo.ml.Instance;
@@ -60,13 +59,21 @@ public class BatchIterator implements Serializable {
          return cols.get(indicies[start]);
       }
 
-      NDArray matrix = NDArrayFactory.defaultFactory().zeros(rows, numCols);
-      int mi = 0;
+      NDArray[] concat = new NDArray[numCols];
+int mi = 0;
       for (int c = start; c < end; c++) {
-         matrix.setVector(mi, cols.get(indicies[c]), Axis.COlUMN);
+         concat[mi] = cols.get(indicies[c]);
          mi++;
       }
-      return matrix;
+      return NDArrayFactory.defaultFactory().concatColumns(concat);
+
+//      NDArray matrix = NDArrayFactory.defaultFactory().zeros(rows, numCols);
+//      int mi = 0;
+//      for (int c = start; c < end; c++) {
+//         matrix.setVector(mi, cols.get(indicies[c]), Axis.COlUMN);
+//         mi++;
+//      }
+//      return matrix;
    }
 
    public Iterator<NDArray> iterator(final int batchSize) {

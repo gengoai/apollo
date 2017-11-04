@@ -30,8 +30,30 @@ public class Sparse2dArray {
       this.rows = new Node[shape.i];
    }
 
-   private int binarySearch(Subscript si) {
-      return binarySearch(shape.colMajorIndex(si));
+   public Sparse2dArray(double[][] array) {
+      this(Shape.shape(array.length, array[0].length));
+      Node[] last = new Node[array.length];
+      for (int column = 0; column < array[0].length; column++) {
+         List<Node> temp = new ArrayList<>();
+         for (int row = 0; row < array.length; row++) {
+            if (array[row][column] != 0) {
+               Node n = new Node(Subscript.from(row, column), shape.colMajorIndex(row, column), array[row][column]);
+               if (rows[row] == null) {
+                  rows[row] = n;
+               }
+               if (last[row] != null) {
+                  last[row].nextRow = n;
+               }
+               last[row] = n;
+               if (cols[column] == -1) {
+                  cols[column] = nodes.size();
+               }
+               temp.add(n);
+            }
+         }
+         nodes.addAll(temp);
+      }
+
    }
 
    private int binarySearch(int i, int j) {
@@ -40,10 +62,6 @@ public class Sparse2dArray {
 
    private int binarySearch(int index) {
       return binarySearch(index, 0, nodes.size() - 1);
-   }
-
-   private int binarySearch(int i, int j, int low, int high) {
-      return binarySearch(shape.colMajorIndex(i, j), low, high);
    }
 
    private int binarySearch(int index, int low, int high) {
@@ -140,9 +158,9 @@ public class Sparse2dArray {
          int ii = Math.abs(index + 1);
          Node newNode = new Node(si, shape.colMajorIndex(si), value);
          if (cols[newNode.getJ()] == -1) {
-            cols[newNode.getJ()] = newNode.index;
-         } else if (cols[newNode.getJ()] > newNode.index) {
-            cols[newNode.getJ()] = newNode.index;
+            cols[newNode.getJ()] = ii;
+         } else if (cols[newNode.getJ()] > ii) {
+            cols[newNode.getJ()] = ii;
          }
          int r = newNode.getI();
          if (rows[r] == null) {
@@ -287,32 +305,12 @@ public class Sparse2dArray {
          index = lastIndex + 1;
          Node n = nodes.get(index);
          if (n.getJ() != column) {
-            row = shape.j;
+            row = shape.i;
             index = -1;
             return false;
          }
          row = n.getI();
          return true;
-//         if (row == 0) { //initial step
-//            index = binarySearch(shape.colMajorIndex(0, column));
-//            if (index >= 0) {
-//               return true;
-//            }
-//            int aindex = Math.abs(index);
-//            if (aindex >= nodes.size()) {
-//               index = nodes.size();
-//               return false;
-//            }
-//            if (nodes.get(aindex).getJ() == column) {
-//               row = nodes.get(aindex).getI();
-//               index = nodes.get(aindex).index;
-//               return true;
-//            }
-//            row = shape.i;
-//            return false;
-//         }
-//         index = lastIndex + 1;
-//         return index < nodes.size() && nodes.get(index).getJ() == column;
       }
 
       @Override

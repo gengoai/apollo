@@ -27,6 +27,10 @@ public class SparseDoubleNDArray extends NDArray {
       this.storage = new Sparse2dArray(shape);
    }
 
+   public SparseDoubleNDArray(@NonNull Sparse2dArray array) {
+      this.storage = array;
+   }
+
    @Override
    public NDArray compress() {
       this.storage.trimToSize();
@@ -94,14 +98,6 @@ public class SparseDoubleNDArray extends NDArray {
       return max;
    }
 
-   public Iterator<Entry> sparseOrderedRowIterator(int row) {
-      return storage.sparseRow(row);
-   }
-
-   public Iterator<Entry> sparseOrderedColumnIterator(int column) {
-      return storage.sparseColumn(column);
-   }
-
    @Override
    public double min() {
       double min = storage.min();
@@ -136,6 +132,7 @@ public class SparseDoubleNDArray extends NDArray {
       return this;
    }
 
+
    @Override
    public NDArray set(int r, int c, double value) {
       return set(shape().colMajorIndex(r, c), value);
@@ -161,9 +158,17 @@ public class SparseDoubleNDArray extends NDArray {
       return new SparseIterator(false);
    }
 
+   public Iterator<Entry> sparseOrderedColumnIterator(int column) {
+      return storage.sparseColumn(column);
+   }
+
    @Override
    public Iterator<Entry> sparseOrderedIterator() {
       return new SparseIterator(true);
+   }
+
+   public Iterator<Entry> sparseOrderedRowIterator(int row) {
+      return storage.sparseRow(row);
    }
 
    @Override

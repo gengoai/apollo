@@ -1,9 +1,7 @@
 package com.davidbracewell.apollo.linear;
 
 import com.davidbracewell.apollo.linear.dense.DenseDoubleNDArray;
-import com.davidbracewell.apollo.linear.sparse.SparseDoubleNDArray;
-import com.davidbracewell.apollo.linear.sparse.SparseFloatNDArray;
-import com.davidbracewell.apollo.linear.sparse.SparseIntNDArray;
+import com.davidbracewell.apollo.linear.sparse.*;
 import com.davidbracewell.apollo.ml.optimization.WeightInitializer;
 import com.davidbracewell.config.Config;
 import com.davidbracewell.guava.common.base.Preconditions;
@@ -24,8 +22,24 @@ public enum NDArrayFactory {
     */
    SPARSE_DOUBLE {
       @Override
+      public NDArray concatColumns(@NonNull NDArray... columns) {
+         if (columns.length == 0) {
+            return empty();
+         } else if (columns.length == 1) {
+            return columns[0];
+         }
+         double[][] array = new double[columns[0].numRows()][columns.length];
+         for (int column = 0; column < columns.length; column++) {
+            for (int i = 0; i < array.length; i++) {
+               array[i][column] = columns[column].get(i);
+            }
+         }
+         return new Sparse2DoubleNDArray(new CCS(array));
+      }
+
+      @Override
       public NDArray copyOf(@NonNull NDArray array) {
-         if (array instanceof SparseDoubleNDArray) {
+         if (array instanceof Sparse2DoubleNDArray) {
             return array.copy();
          }
          return zeros(array.shape()).addi(array);
@@ -35,7 +49,7 @@ public enum NDArrayFactory {
       public NDArray zeros(int r, int c) {
          Preconditions.checkArgument(r > 0, "r must be > 0");
          Preconditions.checkArgument(c > 0, "c must be > 0");
-         return new SparseDoubleNDArray(r, c);
+         return new Sparse2DoubleNDArray(r, c);
       }
 
    },
@@ -43,6 +57,11 @@ public enum NDArrayFactory {
     * The Sparse int.
     */
    SPARSE_INT {
+      @Override
+      public NDArray concatColumns(NDArray... columns) {
+         return null;
+      }
+
       @Override
       public NDArray copyOf(@NonNull NDArray array) {
          if (array instanceof SparseIntNDArray) {
@@ -64,6 +83,11 @@ public enum NDArrayFactory {
     */
    SPARSE_FLOAT {
       @Override
+      public NDArray concatColumns(NDArray... columns) {
+         return null;
+      }
+
+      @Override
       public NDArray copyOf(@NonNull NDArray array) {
          if (array instanceof SparseFloatNDArray) {
             return array.copy();
@@ -83,6 +107,25 @@ public enum NDArrayFactory {
     * The Dense double.
     */
    DENSE_DOUBLE {
+      @Override
+      public NDArray concatColumns(@NonNull NDArray... columns) {
+         if (columns.length == 0) {
+            return empty();
+         } else if (columns.length == 1) {
+            return columns[0];
+         }
+         if (columns.length == 2) {
+            return new DenseDoubleNDArray(DoubleMatrix.concatHorizontally(columns[0].toDoubleMatrix(),
+                                                                          columns[1].toDoubleMatrix()));
+         }
+         int l = columns[0].length();
+         double[] a = new double[l * columns.length];
+         for (int i = 0; i < columns.length; i++) {
+            System.arraycopy(columns[i].toArray(), 0, a, i * l, l);
+         }
+         return new DenseDoubleNDArray(new DoubleMatrix(columns[0].length(), columns.length, a));
+      }
+
       @Override
       public NDArray copyOf(@NonNull NDArray array) {
          if (array instanceof DenseDoubleNDArray) {
@@ -139,6 +182,8 @@ public enum NDArrayFactory {
    public static NDArray wrap(@NonNull double[] values) {
       return new DenseDoubleNDArray(new DoubleMatrix(values));
    }
+
+   public abstract NDArray concatColumns(NDArray... columns);
 
    /**
     * Copy of nd array.
@@ -249,17 +294,18 @@ public enum NDArrayFactory {
    }
 
    public NDArray fromColumnVectors(@NonNull Collection<NDArray> vectors) {
-      if (vectors.isEmpty()) {
-         return new EmptyNDArray();
-      }
-      int rowdim = Iterables.getFirst(vectors, null).shape().i;
-      NDArray toReturn = zeros(rowdim, vectors.size());
-      int idx = 0;
-      for (NDArray vector : vectors) {
-         toReturn.setVector(idx, vector, Axis.COlUMN);
-         idx++;
-      }
-      return toReturn;
+//      if (vectors.isEmpty()) {
+//         return new EmptyNDArray();
+//      }
+//      int rowdim = Iterables.getFirst(vectors, null).shape().i;
+//      NDArray toReturn = zeros(rowdim, vectors.size());
+//      int idx = 0;
+//      for (NDArray vector : vectors) {
+//         toReturn.setVector(idx, vector, Axis.COlUMN);
+//         idx++;
+//      }
+//      return toReturn;
+      return concatColumns(vectors.toArray(new NDArray[vectors.size()]));
    }
 
    /**

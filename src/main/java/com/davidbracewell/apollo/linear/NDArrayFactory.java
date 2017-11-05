@@ -1,7 +1,9 @@
 package com.davidbracewell.apollo.linear;
 
 import com.davidbracewell.apollo.linear.dense.DenseDoubleNDArray;
-import com.davidbracewell.apollo.linear.sparse.*;
+import com.davidbracewell.apollo.linear.sparse.SparseDoubleNDArray;
+import com.davidbracewell.apollo.linear.sparse.SparseFloatNDArray;
+import com.davidbracewell.apollo.linear.sparse.SparseIntNDArray;
 import com.davidbracewell.apollo.ml.optimization.WeightInitializer;
 import com.davidbracewell.config.Config;
 import com.davidbracewell.guava.common.base.Preconditions;
@@ -34,12 +36,12 @@ public enum NDArrayFactory {
                array[i][column] = columns[column].get(i);
             }
          }
-         return new Sparse2DoubleNDArray(new CCS(array));
+         return new SparseDoubleNDArray(new Sparse2dArray(array));
       }
 
       @Override
       public NDArray copyOf(@NonNull NDArray array) {
-         if (array instanceof Sparse2DoubleNDArray) {
+         if (array instanceof SparseDoubleNDArray) {
             return array.copy();
          }
          return zeros(array.shape()).addi(array);
@@ -49,7 +51,7 @@ public enum NDArrayFactory {
       public NDArray zeros(int r, int c) {
          Preconditions.checkArgument(r > 0, "r must be > 0");
          Preconditions.checkArgument(c > 0, "c must be > 0");
-         return new Sparse2DoubleNDArray(r, c);
+         return new SparseDoubleNDArray(r, c);
       }
 
    },

@@ -199,8 +199,8 @@ public abstract class BaseNDArrayTest {
 
    @Test
    public void pow() throws Exception {
-      assertEquals(factory.ones(1, 4).set(0, 0), v1.pow(0));
-      assertEquals(factory.ones(1, 4).set(0, 0), v1.copy().powi(0));
+      assertEquals(factory.ones(1, 4), v1.pow(0));
+      assertEquals(factory.ones(1, 4), v1.copy().powi(0));
       assertEquals(v1, v1.pow(1));
       assertEquals(v1, v1.copy().powi(1));
       assertEquals(factory.from(1, 4, new double[]{0.0, 1.0, 16.0, 9.0}), v1.pow(2));
@@ -271,7 +271,6 @@ public abstract class BaseNDArrayTest {
 
 
       v1.set(Subscript.from(0, 0), 10d);
-      assertEquals(10, v1.get(Subscript.from(0, 0)), 0d);
       v1.set(Subscript.from(0, 0), 0d);
 
       value = m1.get(0, 0);
@@ -282,7 +281,6 @@ public abstract class BaseNDArrayTest {
       assertEquals(1, m1.get(Axis.ROW, 0, Axis.COlUMN, 0), 0d);
 
       m1.set(Subscript.from(0, 0), 100d);
-      assertEquals(100d, m1.get(Subscript.from(0, 0)), 0d);
       m1.set(Subscript.from(0, 0), 1);
    }
 

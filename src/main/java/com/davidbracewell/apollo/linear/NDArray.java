@@ -3,6 +3,7 @@ package com.davidbracewell.apollo.linear;
 import com.davidbracewell.Copyable;
 import com.davidbracewell.EnhancedDoubleStatistics;
 import com.davidbracewell.Math2;
+import com.davidbracewell.apollo.Optimum;
 import com.davidbracewell.collection.Streams;
 import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.guava.common.base.Preconditions;
@@ -34,13 +35,31 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
    private double weight;
    private Object predicted;
 
+   public static void checkCanMultiply(NDArray a, NDArray b) {
+      if (a.numCols() == b.numRows()) {
+         throw new IllegalArgumentException("Cannot multiple number of columns: " + a.numCols() + " !=  number of rows" + b.numRows());
+      }
+   }
+
+   public static void checkDimensionMatch(int dim1, int dim2) {
+      if (dim1 != dim2) {
+         throw new IllegalArgumentException("Dimension mismatch: " + dim1 + " != " + dim2);
+      }
+   }
+
+   public static void checkLengthMatch(int l1, int l2) {
+      if (l1 != l2) {
+         throw new IllegalArgumentException("Length mismatch: " + l1 + " != " + l2);
+      }
+   }
+
    /**
     * Flips the matrix on its diagonal switching the rows and columns
     *
     * @return the transposed array
     */
    public NDArray T() {
-      NDArray t = getFactory().zeros(shape().j, shape().i);
+      NDArray t = getFactory().zeros(numCols(), numRows());
       forEachSparse(entry -> t.set(entry.getJ(), entry.getI(), entry.getValue()));
       return t;
    }
@@ -103,7 +122,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @throws IllegalArgumentException If the shape of this NDArray does not match that of the other NDArray
     */
    public NDArray addi(@NonNull NDArray other) {
-      shape().checkDimensionMatch(other.shape());
+      checkLengthMatch(length(), other.length());
       other.forEachSparse(e -> increment(e.getI(), e.getJ(), e.getValue()));
       return this;
    }
@@ -121,17 +140,6 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
       return mapi(other, axis, Math2::add);
    }
 
-   public NDArray addiVector(int index, @NonNull NDArray vector, @NonNull Axis axis) {
-      shape().checkDimensionMatch(axis.T(), vector.shape(), axis.T());
-      Preconditions.checkArgument(vector.isVector(axis));
-      if (axis == Axis.ROW) {
-         vector.forEachSparse(entry -> increment(index, entry.getJ(), entry.getValue()));
-      } else {
-         vector.forEachSparse(entry -> increment(entry.getI(), index, entry.getValue()));
-      }
-      return this;
-   }
-
    /**
     * Calculates the index of the maximum along each row or column based on the given axis.
     *
@@ -139,8 +147,8 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return int array of row/column indexes relating to max values
     */
    public int[] argMax(@NonNull Axis axis) {
-      NDArray aMax = getFactory().zeros(shape().get(axis), axis);
-      NDArray vMax = getFactory().zeros(shape().get(axis), axis);
+      NDArray aMax = getFactory().zeros(dimension(axis));
+      NDArray vMax = getFactory().zeros(dimension(axis));
       vMax.mapi(d -> Double.NEGATIVE_INFINITY);
       forEach(entry -> {
          int index = entry.get(axis);
@@ -149,9 +157,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
             aMax.set(index, entry.get(axis.T()));
          }
       });
-      int[] toReturn = new int[aMax.length()];
-      aMax.forEach(e -> toReturn[e.getIndex()] = (int) e.getValue());
-      return toReturn;
+      return aMax.toIntArray();
    }
 
    /**
@@ -161,8 +167,8 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return int array of row/column indexes relating to min values
     */
    public int[] argMin(@NonNull Axis axis) {
-      NDArray aMin = getFactory().zeros(shape().get(axis), axis);
-      NDArray vMin = getFactory().zeros(shape().get(axis), axis);
+      NDArray aMin = getFactory().zeros(dimension(axis), axis);
+      NDArray vMin = getFactory().zeros(dimension(axis), axis);
       vMin.mapi(d -> Double.POSITIVE_INFINITY);
       forEach(entry -> {
          int index = entry.get(axis);
@@ -171,9 +177,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
             aMin.set(index, entry.get(axis.T()));
          }
       });
-      int[] toReturn = new int[aMin.length()];
-      aMin.forEach(e -> toReturn[e.getIndex()] = (int) e.getValue());
-      return toReturn;
+      return aMin.toIntArray();
    }
 
    /**
@@ -186,8 +190,11 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
    }
 
    @Override
-   public NDArray copy() {
-      return copyData().setLabel(label).setPredicted(predicted).setWeight(weight);
+   public final NDArray copy() {
+      return copyData()
+                .setLabel(label)
+                .setPredicted(predicted)
+                .setWeight(weight);
    }
 
    /**
@@ -256,21 +263,21 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
       }
 
       if (isColumnVector()) {
-         NDArray toReturn = getFactory().zeros(shape().i, shape().i);
-         for (int i = 0; i < shape().i; i++) {
+         NDArray toReturn = getFactory().zeros(numRows(), numRows());
+         for (int i = 0; i < numRows(); i++) {
             toReturn.set(i, i, get(i, 0));
          }
          return toReturn;
       } else if (isRowVector()) {
-         NDArray toReturn = getFactory().zeros(shape().j, shape().j);
-         for (int j = 0; j < shape().j; j++) {
+         NDArray toReturn = getFactory().zeros(numCols(), numCols());
+         for (int j = 0; j < numCols(); j++) {
             toReturn.set(j, j, get(0, j));
          }
          return toReturn;
       } else if (isSquare()) {
-         NDArray toReturn = getFactory().zeros(shape());
-         for (int i = 0; i < shape().i; i++) {
-            if (i < shape().j) {
+         NDArray toReturn = getFactory().zeros(numRows(), numCols());
+         for (int i = 0; i < numRows(); i++) {
+            if (i < numCols()) {
                toReturn.set(i, i, get(i, i));
             }
          }
@@ -278,6 +285,10 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
       }
 
       throw new IllegalStateException("Rectangular matrices are not supported.");
+   }
+
+   public int dimension(@NonNull Axis axis) {
+      return axis == Axis.ROW ? numRows() : numCols();
    }
 
    /**
@@ -348,8 +359,15 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
       return mapiSparse(other, axis, Math2::divide);
    }
 
+   /**
+    * Dot nd array.
+    *
+    * @param other the other
+    * @param axis  the axis
+    * @return the nd array
+    */
    public NDArray dot(@NonNull NDArray other, @NonNull Axis axis) {
-      NDArray dot = getFactory().zeros(axis, 1, axis.T(), shape().get(axis));
+      NDArray dot = getFactory().zeros(axis, 1, axis.T(), dimension(axis));
       if (axis == Axis.ROW) {
          for (int i = 0; i < numRows(); i++) {
             double sum = 0d;
@@ -381,22 +399,22 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @throws IllegalArgumentException If the shapes do not match
     */
    public double dot(@NonNull NDArray other) {
-      shape().checkDimensionMatch(other.shape());
+      checkLengthMatch(length(), other.length());
       double dot = 0d;
-      for (int i = 0; i < shape().i; i++) {
-         for (int j = 0; j < shape().j; j++) {
-            dot += get(i, j) * other.get(i, j);
-         }
+      for (Iterator<Entry> itr = sparseIterator(); itr.hasNext(); ) {
+         Entry e = itr.next();
+         dot += e.getValue() * other.get(e.getIndex());
       }
       return dot;
    }
 
    @Override
    public boolean equals(Object o) {
-      return o != null
-                && o instanceof NDArray
-                && shape().equals(Cast.<NDArray>as(o).shape())
-                && Arrays.equals(Cast.<NDArray>as(o).toArray(), toArray());
+      if (o == null || !(o instanceof NDArray)) {
+         return false;
+      }
+      NDArray on = Cast.as(o);
+      return on.numRows() == numRows() && on.numCols() == numCols() && Arrays.equals(on.toArray(), toArray());
    }
 
    /**
@@ -406,7 +424,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return the new NDArray
     */
    public NDArray exp() {
-      NDArray toReturn = getFactory().ones(shape());
+      NDArray toReturn = getFactory().ones(numRows(), numCols());
       forEachSparse(e -> toReturn.set(e.getIndex(), FastMath.exp(e.getValue())));
       return toReturn;
    }
@@ -451,15 +469,6 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
    }
 
    /**
-    * Processes each sparse entry, in an ordered fashion, in this NDArray using the given consumer
-    *
-    * @param consumer Entry consumer
-    */
-   public void forEachSparseOrdered(@NonNull Consumer<Entry> consumer) {
-      sparseOrderedIterator().forEachRemaining(consumer);
-   }
-
-   /**
     * Gets the value of the NDArray at the given index. This method is useful for vectors and accessing storage
     * directly.
     *
@@ -478,17 +487,6 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @throws IndexOutOfBoundsException if the dimensions are invalid
     */
    public abstract double get(int i, int j);
-
-   /**
-    * Gets the value of the NDArray at the given subscript.
-    *
-    * @param subscript the subscript whose value we want
-    * @return The value at <code>(r, c)</code>
-    * @throws IndexOutOfBoundsException if the dimensions are invalid
-    */
-   public double get(@NonNull Subscript subscript) {
-      return get(subscript.i, subscript.j);
-   }
 
    /**
     * Gets the value of the NDArray at the given subscript .
@@ -632,10 +630,10 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return An vector NDArray
     */
    public NDArray getVector(int index, @NonNull Axis axis) {
-      Preconditions.checkElementIndex(index, shape().get(axis),
-                                      "Invalid index " + index + " [0, " + shape().get(axis) + ")");
-      NDArray toReturn = getFactory().zeros(shape().get(axis.T()), axis);
-      for (int i = 0; i < shape().get(axis.T()); i++) {
+      Preconditions.checkElementIndex(index, dimension(axis),
+                                      "Invalid index " + index + " [0, " + dimension(axis) + ")");
+      NDArray toReturn = getFactory().zeros(dimension(axis.T()), axis);
+      for (int i = 0; i < dimension(axis.T()); i++) {
          toReturn.set(i, get(axis, index, axis.T(), i));
       }
       return toReturn;
@@ -731,7 +729,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return true if column vector, false otherwise
     */
    public boolean isColumnVector() {
-      return shape().i > 1 && shape().j == 1;
+      return numCols() == 1;
    }
 
    /**
@@ -740,7 +738,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return True if empty (shape of (0,0)), False if not
     */
    public boolean isEmpty() {
-      return shape().i == 0 && shape().j == 0;
+      return numCols() == 0 && numRows() == 0;
    }
 
    /**
@@ -749,7 +747,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return true if row vector, false otherwise
     */
    public boolean isRowVector() {
-      return shape().i == 1 && shape().j > 1;
+      return numRows() == 1;
    }
 
    /**
@@ -758,7 +756,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return true if scalar, false otherwise
     */
    public boolean isScalar() {
-      return shape().i == 1 && shape().j == 1;
+      return numCols() == 1 && numRows() == 1;
    }
 
    /**
@@ -774,7 +772,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return true if square, false otherwise
     */
    public boolean isSquare() {
-      return shape().i == shape().j && shape().i > 1;
+      return numRows() == numCols();
    }
 
    /**
@@ -783,7 +781,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return True if vector, False otherwise
     */
    public boolean isVector() {
-      return isColumnVector() || isRowVector();
+      return numCols() == 1 || numRows() == 1;
    }
 
    /**
@@ -793,10 +791,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return True if vector along given axis
     */
    public boolean isVector(@NonNull Axis axis) {
-      if (axis == Axis.ROW) {
-         return isRowVector();
-      }
-      return isColumnVector();
+      return axis == Axis.ROW ? isRowVector() : isColumnVector();
    }
 
    /**
@@ -812,7 +807,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return the length
     */
    public int length() {
-      return shape().length();
+      return numRows() * numCols();
    }
 
    /**
@@ -833,10 +828,6 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
       return mapi(Math2::safeLog);
    }
 
-   public Axis majorMode() {
-      return Axis.COlUMN;
-   }
-
    /**
     * Applies the given operator to each element in this NDArray creating a new NDArray in the process.
     *
@@ -844,7 +835,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return the new NDArray with values calculated using the given operator
     */
    public NDArray map(@NonNull DoubleUnaryOperator operator) {
-      NDArray toReturn = getFactory().zeros(shape());
+      NDArray toReturn = getFactory().zeros(numRows(), numCols());
       for (int i = 0; i < length(); i++) {
          toReturn.set(i, operator.applyAsDouble(get(i)));
       }
@@ -861,11 +852,10 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return the new NDArray
     */
    public NDArray map(@NonNull NDArray vector, @NonNull Axis axis, @NonNull DoubleBinaryOperator operator) {
-      shape().checkDimensionMatch(vector.shape(), axis.T());
-      Preconditions.checkArgument(vector.isVector(axis), "Not a " + axis + " vector.");
-      NDArray toReturn = getFactory().zeros(shape());
-      for (int r = 0; r < shape().i; r++) {
-         for (int c = 0; c < shape().j; c++) {
+      checkLengthMatch(dimension(axis.T()), vector.length());
+      NDArray toReturn = getFactory().zeros(numRows(), numCols());
+      for (int c = 0; c < numCols(); c++) {
+         for (int r = 0; r < numRows(); r++) {
             toReturn.set(r, c, operator.applyAsDouble(get(r, c), vector.get(axis.T().select(r, c))));
          }
       }
@@ -881,19 +871,10 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return the new NDArray
     */
    public NDArray map(@NonNull NDArray other, @NonNull DoubleBinaryOperator operator) {
-      NDArray toReturn = getFactory().zeros(shape());
-      if (majorMode() == other.majorMode()) {
-         shape().checkLength(other.shape());
-         for (int i = 0; i < length(); i++) {
-            toReturn.set(i, operator.applyAsDouble(get(i), other.get(i)));
-         }
-      } else {
-         shape().checkDimensionMatch(other.shape());
-         for (int r = 0; r < shape().i; r++) {
-            for (int c = 0; c < shape().j; c++) {
-               toReturn.set(r, c, operator.applyAsDouble(get(r, c), other.get(r, c)));
-            }
-         }
+      checkLengthMatch(length(), other.length());
+      NDArray toReturn = getFactory().zeros(numRows(), numCols());
+      for (int i = 0; i < length(); i++) {
+         toReturn.set(i, operator.applyAsDouble(get(i), other.get(i)));
       }
       return toReturn;
    }
@@ -907,7 +888,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return the new NDArray
     */
    public NDArray mapIf(@NonNull DoublePredicate predicate, @NonNull DoubleUnaryOperator operator) {
-      final NDArray toReturn = getFactory().zeros(shape());
+      final NDArray toReturn = getFactory().zeros(numRows(), numCols());
       for (int i = 0; i < length(); i++) {
          if (predicate.test(get(i))) {
             toReturn.set(i, operator.applyAsDouble(get(i)));
@@ -928,15 +909,11 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return the new NDArray
     */
    public NDArray mapSparse(@NonNull NDArray vector, @NonNull Axis axis, @NonNull DoubleBinaryOperator operator) {
-      shape().checkDimensionMatch(vector.shape(), axis.T());
-      Preconditions.checkArgument(vector.isVector(axis));
-      NDArray toReturn = getFactory().zeros(shape());
-      forEachSparse(e ->
-                       toReturn.set(e.getI(),
-                                    e.getJ(),
-                                    operator.applyAsDouble(e.getValue(),
-                                                           vector.get(axis.T().select(e.getI(), e.getJ()))))
-                   );
+      checkLengthMatch(dimension(axis.T()), vector.length());
+      NDArray toReturn = getFactory().zeros(numRows(), numCols());
+      forEachSparse(e -> toReturn.set(e.getIndex(),
+                                      operator.applyAsDouble(e.getValue(),
+                                                             vector.get(axis.T().select(e.getI(), e.getJ())))));
       return toReturn;
    }
 
@@ -949,8 +926,8 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return the new NDArray
     */
    public NDArray mapSparse(@NonNull NDArray other, @NonNull DoubleBinaryOperator operator) {
-      shape().checkDimensionMatch(other.shape());
-      NDArray toReturn = getFactory().zeros(shape());
+      checkLengthMatch(length(), other.length());
+      NDArray toReturn = getFactory().zeros(numRows(), numCols());
       forEachSparse(entry -> toReturn.set(entry.getI(), entry.getJ(),
                                           operator.applyAsDouble(entry.getValue(),
                                                                  other.get(entry.getI(), entry.getJ()))));
@@ -964,7 +941,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return the new NDArray with values calculated using the given operator
     */
    public NDArray mapSparse(@NonNull DoubleUnaryOperator operator) {
-      NDArray toReturn = getFactory().zeros(shape());
+      NDArray toReturn = getFactory().zeros(numRows(), numCols());
       forEachSparse(e -> toReturn.set(e.getIndex(), operator.applyAsDouble(e.getValue())));
       return toReturn;
    }
@@ -977,11 +954,9 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return this NDArray
     */
    public NDArray mapi(@NonNull NDArray other, @NonNull DoubleBinaryOperator operator) {
-      shape().checkDimensionMatch(other.shape());
-      for (int r = 0; r < shape().i; r++) {
-         for (int c = 0; c < shape().j; c++) {
-            set(r, c, operator.applyAsDouble(get(r, c), other.get(r, c)));
-         }
+      checkLengthMatch(length(), other.length());
+      for (int i = 0; i < length(); i++) {
+         set(i, operator.applyAsDouble(get(i), other.get(i)));
       }
       return this;
    }
@@ -1008,10 +983,9 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return this NDArray with operator applied
     */
    public NDArray mapi(@NonNull NDArray vector, @NonNull Axis axis, @NonNull DoubleBinaryOperator operator) {
-      shape().checkDimensionMatch(axis.T(), vector.shape(), axis.T());
-      Preconditions.checkArgument(vector.isVector(axis));
-      for (int r = 0; r < shape().i; r++) {
-         for (int c = 0; c < shape().j; c++) {
+      checkLengthMatch(dimension(axis.T()), vector.length());
+      for (int c = 0; c < numCols(); c++) {
+         for (int r = 0; r < numRows(); r++) {
             set(r, c, operator.applyAsDouble(get(r, c), vector.get(axis.T().select(r, c))));
          }
       }
@@ -1045,8 +1019,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return the new NDArray
     */
    public NDArray mapiSparse(@NonNull NDArray vector, @NonNull Axis axis, @NonNull DoubleBinaryOperator operator) {
-      shape().checkDimensionMatch(axis.T(), vector.shape(), axis.T());
-      Preconditions.checkArgument(vector.isVector(axis), "Not a " + axis + " vector.");
+      checkLengthMatch(dimension(axis.T()), vector.length());
       forEachSparse(e ->
                        e.setValue(operator.applyAsDouble(e.getValue(), vector.get(axis.T().select(e.getI(), e.getJ()))))
                    );
@@ -1062,7 +1035,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return this NDArray
     */
    public NDArray mapiSparse(@NonNull NDArray other, @NonNull DoubleBinaryOperator operator) {
-      shape().checkDimensionMatch(other.shape());
+      checkLengthMatch(length(), other.length());
       forEachSparse(
          entry -> entry.setValue(operator.applyAsDouble(entry.getValue(), other.get(entry.getI(), entry.getJ()))));
       return this;
@@ -1085,14 +1058,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return the maximum value in the NDArray
     */
    public double max() {
-      double max = Double.NEGATIVE_INFINITY;
-      for (Iterator<Entry> itr = sparseIterator(); itr.hasNext(); ) {
-         double v = itr.next().getValue();
-         if (v > max) {
-            max = v;
-         }
-      }
-      return max;
+      return Optimum.MAXIMUM.optimum(toArray()).v2;
    }
 
    /**
@@ -1102,7 +1068,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return An NDArray of the max values
     */
    public NDArray max(@NonNull Axis axis) {
-      NDArray toReturn = getFactory().zeros(shape().get(axis), axis.T());
+      NDArray toReturn = getFactory().zeros(dimension(axis), axis.T());
       toReturn.mapi(d -> Double.NEGATIVE_INFINITY);
       forEach(entry -> {
          if (toReturn.get(entry.get(axis)) < entry.getValue()) {
@@ -1128,7 +1094,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return An NDArray of the mean
     */
    public NDArray mean(@NonNull Axis axis) {
-      return sum(axis).divi(shape().get(axis.T()));
+      return sum(axis).divi(dimension(axis.T()));
    }
 
    /**
@@ -1137,14 +1103,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return the minimum value in the NDArray
     */
    public double min() {
-      double min = Double.POSITIVE_INFINITY;
-      for (Iterator<Entry> itr = sparseIterator(); itr.hasNext(); ) {
-         double v = itr.next().getValue();
-         if (v < min) {
-            min = v;
-         }
-      }
-      return min;
+      return Optimum.MINIMUM.optimum(toArray()).v2;
    }
 
    /**
@@ -1154,7 +1113,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return An NDArray of the min values
     */
    public NDArray min(@NonNull Axis axis) {
-      NDArray toReturn = getFactory().zeros(shape().get(axis), axis);
+      NDArray toReturn = getFactory().zeros(dimension(axis), axis);
       toReturn.mapi(d -> Double.POSITIVE_INFINITY);
       forEach(entry -> {
          if (toReturn.get(entry.get(axis)) > entry.getValue()) {
@@ -1170,42 +1129,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @param other The other NDArray to multiple
     * @return a new NDArray that is the result of this X other
     */
-   public NDArray mmul(@NonNull NDArray other) {
-      shape().checkCanMultiply(other.shape());
-      NDArray toReturn = getFactory().zeros(shape().i, other.shape().j);
-      for (int r = 0; r < shape().i; r++) {
-         for (int c = 0; c < other.shape().j; c++) {
-            Iterator<Entry> ri = sparseRowIterator(r);
-            Iterator<Entry> ci = other.sparseColumnIterator(c);
-            double sum = 0;
-            Entry rE = null;
-            Entry cE = null;
-            while (ri.hasNext() && ci.hasNext()) {
-               if (rE == null) rE = ri.next();
-               if (cE == null) cE = ci.next();
-
-               if (rE.getJ() == cE.getI()) {
-                  sum += rE.getValue() * cE.getValue();
-                  rE = null;
-                  cE = null;
-               } else if (rE.getJ() < cE.getI()) {
-                  while (ri.hasNext() && rE.getJ() < cE.getI()) {
-                     rE = ri.next();
-                  }
-               } else if (rE.getJ() > cE.getI()) {
-                  while (ci.hasNext() && rE.getJ() > cE.getI()) {
-                     cE = ci.next();
-                  }
-               }
-            }
-//            for (int c2 = 0; c2 < shape().j; c2++) {
-//               sum += get(r, c2) * other.get(c2, c);
-//            }
-            toReturn.set(r, c, sum);
-         }
-      }
-      return toReturn;
-   }
+   public abstract NDArray mmul(NDArray other);
 
    /**
     * Multiplies a scalar value to each element in the NDArray
@@ -1214,6 +1138,9 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return the new NDArray with the scalar value multiplied
     */
    public NDArray mul(double scalar) {
+      if (scalar == 0) {
+         return getFactory().zeros(numRows(), numCols());
+      }
       return mapSparse(d -> d * scalar);
    }
 
@@ -1248,6 +1175,9 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return this NDArray with the scalar value multiplied
     */
    public NDArray muli(double scalar) {
+      if (scalar == 0d) {
+         return zero();
+      }
       return mapiSparse(d -> d * scalar);
    }
 
@@ -1275,17 +1205,20 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
       return mapiSparse(other, axis, Math2::multiply);
    }
 
+   /**
+    * Muli vector nd array.
+    *
+    * @param index  the index
+    * @param vector the vector
+    * @param axis   the axis
+    * @return the nd array
+    */
    public NDArray muliVector(int index, @NonNull NDArray vector, @NonNull Axis axis) {
-      shape().checkDimensionMatch(axis.T(), vector.shape(), axis.T());
-      Preconditions.checkArgument(vector.isVector(axis));
+      checkLengthMatch(dimension(axis.T()), vector.length());
       if (axis == Axis.ROW) {
-         vector.forEachSparse(entry -> {
-            set(index, entry.getJ(), get(index, entry.getJ()) * entry.getValue());
-         });
+         vector.forEachSparse(e -> set(index, e.getIndex(), get(index, e.getIndex()) * e.getValue()));
       } else {
-         vector.forEachSparse(entry -> {
-            set(entry.getI(), index, get(entry.getI(), index) * entry.getValue());
-         });
+         vector.forEachSparse(e -> set(e.getIndex(), index, get(e.getIndex(), index) * e.getValue()));
       }
       return this;
    }
@@ -1296,7 +1229,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return the new NDArray with negated values
     */
    public NDArray neg() {
-      return map(d -> -d);
+      return mapSparse(d -> -d);
    }
 
    /**
@@ -1305,7 +1238,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return this NDArray
     */
    public NDArray negi() {
-      return mapi(d -> -d);
+      return mapiSparse(d -> -d);
    }
 
    /**
@@ -1333,18 +1266,14 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     *
     * @return the int
     */
-   public int numCols() {
-      return shape().j;
-   }
+   public abstract int numCols();
 
    /**
     * Num rows int.
     *
     * @return the int
     */
-   public int numRows() {
-      return shape().i;
-   }
+   public abstract int numRows();
 
    /**
     * Raises the value of each element in the NDArray by the given power.
@@ -1353,7 +1282,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return the new NDArray
     */
    public NDArray pow(double pow) {
-      return mapSparse(d -> d == 0 ? 0d : FastMath.pow(d, pow));
+      return map(d -> FastMath.pow(d, pow));
    }
 
    /**
@@ -1363,7 +1292,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return this NDArray
     */
    public NDArray powi(double pow) {
-      return mapiSparse(d -> d == 0 ? 0d : FastMath.pow(d, pow));
+      return mapi(d -> FastMath.pow(d, pow));
    }
 
    /**
@@ -1375,7 +1304,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
       final DecimalFormat df = new DecimalFormat("0.000");
       PrintWriter writer = new PrintWriter(stream);
       writer.print('[');
-      for (int i = 0; i < shape().i; i++) {
+      for (int i = 0; i < numRows(); i++) {
          if (i > 0) {
             writer.println("],");
             writer.print(" [");
@@ -1383,7 +1312,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
             writer.print('[');
          }
          writer.print(df.format(get(i, 0)));
-         for (int j = 1; j < shape().j; j++) {
+         for (int j = 1; j < numCols(); j++) {
             writer.print(", ");
             writer.print(df.format(get(i, j)));
          }
@@ -1471,11 +1400,10 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return this NDArray
     */
    public NDArray rmap(@NonNull NDArray vector, @NonNull Axis axis, @NonNull DoubleBinaryOperator operator) {
-      shape().checkDimensionMatch(axis.T(), vector.shape(), axis.T());
-      Preconditions.checkArgument(vector.isVector(axis));
-      NDArray toReturn = getFactory().zeros(shape());
-      for (int r = 0; r < shape().i; r++) {
-         for (int c = 0; c < shape().j; c++) {
+      checkLengthMatch(dimension(axis.T()), vector.length());
+      NDArray toReturn = getFactory().zeros(numRows(), numCols());
+      for (int c = 0; c < numCols(); c++) {
+         for (int r = 0; r < numRows(); r++) {
             toReturn.set(r, c, operator.applyAsDouble(vector.get(axis.T().select(r, c)), get(r, c)));
          }
       }
@@ -1491,12 +1419,10 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return the new NDArray
     */
    public NDArray rmap(@NonNull NDArray other, @NonNull DoubleBinaryOperator operator) {
-      shape().checkDimensionMatch(other.shape());
-      NDArray toReturn = getFactory().zeros(shape());
-      for (int r = 0; r < shape().i; r++) {
-         for (int c = 0; c < shape().j; c++) {
-            toReturn.set(r, c, operator.applyAsDouble(other.get(r, c), get(r, c)));
-         }
+      checkLengthMatch(length(), other.length());
+      NDArray toReturn = getFactory().zeros(numRows(), numCols());
+      for (int i = 0; i < length(); i++) {
+         toReturn.set(i, operator.applyAsDouble(other.get(i), get(i)));
       }
       return toReturn;
    }
@@ -1510,11 +1436,9 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return this NDArray
     */
    public NDArray rmapi(@NonNull NDArray other, @NonNull DoubleBinaryOperator operator) {
-      shape().checkDimensionMatch(other.shape());
-      for (int r = 0; r < shape().i; r++) {
-         for (int c = 0; c < shape().j; c++) {
-            set(r, c, operator.applyAsDouble(other.get(r, c), get(r, c)));
-         }
+      checkLengthMatch(length(), other.length());
+      for (int i = 0; i < length(); i++) {
+         set(i, operator.applyAsDouble(other.get(i), get(i)));
       }
       return this;
    }
@@ -1530,10 +1454,9 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return this NDArray
     */
    public NDArray rmapi(@NonNull NDArray vector, @NonNull Axis axis, @NonNull DoubleBinaryOperator operator) {
-      shape().checkDimensionMatch(axis.T(), vector.shape(), axis.T());
-      Preconditions.checkArgument(vector.isVector(axis));
-      for (int r = 0; r < shape().i; r++) {
-         for (int c = 0; c < shape().j; c++) {
+      checkLengthMatch(dimension(axis.T()), vector.length());
+      for (int c = 0; c < numCols(); c++) {
+         for (int r = 0; r < numRows(); r++) {
             set(r, c, operator.applyAsDouble(vector.get(axis.T().select(r, c)), get(r, c)));
          }
       }
@@ -1614,7 +1537,6 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return the double
     */
    public double scalarValue() {
-      Preconditions.checkState(isScalar(), "NDArray must be scalar");
       return get(0);
    }
 
@@ -1625,7 +1547,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return new NDArray with values passing the given predicate and zeros elsewhere
     */
    public NDArray select(@NonNull DoublePredicate predicate) {
-      final NDArray toReturn = getFactory().zeros(shape());
+      final NDArray toReturn = getFactory().zeros(numRows(), numCols());
       forEach(entry -> {
          if (predicate.test(entry.getValue())) {
             toReturn.set(entry.getI(), entry.getJ(), entry.getValue());
@@ -1641,11 +1563,11 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return new NDArray with values passing the given predicate and zeros elsewhere
     */
    public NDArray select(@NonNull NDArray predicate) {
-      shape().checkDimensionMatch(predicate.shape());
-      NDArray toReturn = getFactory().zeros(shape());
+      checkLengthMatch(length(), predicate.length());
+      NDArray toReturn = getFactory().zeros(numRows(), numCols());
       predicate.forEachSparse(entry -> {
          if (entry.getValue() != 0) {
-            toReturn.set(entry.getI(), entry.getJ(), entry.getValue());
+            toReturn.set(entry.getIndex(), entry.getValue());
          }
       });
       return toReturn;
@@ -1658,11 +1580,11 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return this NDArray with values passing the given predicate and zeros elsewhere
     */
    public NDArray selecti(@NonNull DoublePredicate predicate) {
-      forEach(entry -> {
-         if (!predicate.test(entry.getValue())) {
-            entry.setValue(0d);
+      for (int i = 0; i < length(); i++) {
+         if (get(i) == 0) {
+            set(i, 0d);
          }
-      });
+      }
       return this;
    }
 
@@ -1674,12 +1596,12 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return this NDArray with values passing the given predicate and zeros elsewhere
     */
    public NDArray selecti(@NonNull NDArray predicate) {
-      shape().checkDimensionMatch(predicate.shape());
-      predicate.forEachSparse(entry -> {
-         if (entry.getValue() == 0) {
-            set(entry.getI(), entry.getJ(), 0d);
+      checkLengthMatch(length(), predicate.length());
+      for (int i = 0; i < length(); i++) {
+         if (predicate.get(i) == 0) {
+            set(i, 0d);
          }
-      });
+      }
       return this;
    }
 
@@ -1722,9 +1644,8 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return this NDArray
     */
    public NDArray setVector(int index, @NonNull NDArray vector, @NonNull Axis axis) {
-      Preconditions.checkArgument(index >= 0 && index < shape().get(axis), "Invalid index");
-      shape().checkDimensionMatch(vector.shape(), axis.T());
-      Preconditions.checkArgument(vector.isVector(axis));
+      Preconditions.checkArgument(index >= 0 && index < dimension(axis), "Invalid index");
+      checkLengthMatch(dimension(axis.T()), vector.length());
       for (int i = 0; i < vector.length(); i++) {
          set(axis.select(index, i), //IF given axis row THEN index ELSE i
              axis.T().select(index, i), //IF given axis == row THEN index ELSE i
@@ -1803,9 +1724,9 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
    public NDArray slice(@NonNull Axis axis, @NonNull int... indexes) {
       NDArray toReturn;
       if (axis == Axis.ROW) {
-         toReturn = getFactory().zeros(indexes.length, shape().j);
+         toReturn = getFactory().zeros(indexes.length, numCols());
       } else {
-         toReturn = getFactory().zeros(shape().i, indexes.length);
+         toReturn = getFactory().zeros(numRows(), indexes.length);
       }
       for (int r = 0; r < indexes.length; r++) {
          toReturn.setVector(r, this.getVector(r, axis), axis);
@@ -1813,9 +1734,13 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
       return toReturn;
    }
 
-   public Iterator<NDArray.Entry> sparseColumnIterator(int column) {
-      return null;
-   }
+   /**
+    * Sparse column iterator iterator.
+    *
+    * @param column the column
+    * @return the iterator
+    */
+   public abstract Iterator<NDArray.Entry> sparseColumnIterator(int column);
 
    /**
     * Sparse iterator over the entries in the NDArray (will act like <code>iterator</code> for dense implementations)
@@ -1824,10 +1749,6 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     */
    public Iterator<Entry> sparseIterator() {
       return iterator();
-   }
-
-   public Iterator<Entry> sparseOrderedColumnIterator(int column) {
-      return null;
    }
 
    /**
@@ -1840,13 +1761,13 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
       return iterator();
    }
 
-   public Iterator<Entry> sparseOrderedRowIterator(int row) {
-      return null;
-   }
-
-   public Iterator<Entry> sparseRowIterator(int row) {
-      return null;
-   }
+   /**
+    * Sparse row iterator iterator.
+    *
+    * @param row the row
+    * @return the iterator
+    */
+   public abstract Iterator<Entry> sparseRowIterator(int row);
 
    /**
     * Statistics enhanced double statistics.
@@ -1880,9 +1801,9 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @throws IllegalArgumentException If the shape of this NDArray does not match that of the other NDArray
     */
    public NDArray sub(@NonNull NDArray other) {
-      shape().checkDimensionMatch(other.shape());
-      NDArray toReturn = copy();
-      other.forEachSparse(e -> toReturn.decrement(e.getI(), e.getJ(), e.getValue()));
+      checkLengthMatch(length(), other.length());
+      NDArray toReturn = getFactory().zeros(numRows(), numCols());
+      forEach(e -> toReturn.set(e.getIndex(), e.getValue() - other.get(e.getIndex())));
       return toReturn;
    }
 
@@ -1920,8 +1841,8 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @throws IllegalArgumentException If the shape of this NDArray does not match that of the other NDArray
     */
    public NDArray subi(@NonNull NDArray other) {
-      shape().checkDimensionMatch(other.shape());
-      other.forEachSparse(e -> decrement(e.getI(), e.getJ(), e.getValue()));
+      checkLengthMatch(length(), other.length());
+      other.forEachSparse(e -> decrement(e.getIndex(), e.getValue()));
       return this;
    }
 
@@ -1938,9 +1859,16 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
       return mapi(other, axis, Math2::subtract);
    }
 
+   /**
+    * Subi vector nd array.
+    *
+    * @param index  the index
+    * @param vector the vector
+    * @param axis   the axis
+    * @return the nd array
+    */
    public NDArray subiVector(int index, @NonNull NDArray vector, @NonNull Axis axis) {
-      shape().checkDimensionMatch(axis.T(), vector.shape(), axis.T());
-      Preconditions.checkArgument(vector.isVector(axis));
+      checkLengthMatch(dimension(axis.T()), vector.length());
       if (axis == Axis.ROW) {
          vector.forEachSparse(entry -> {
             decrement(index, entry.getJ(), entry.getValue());
@@ -1960,7 +1888,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return An NDArray of the sum
     */
    public NDArray sum(@NonNull Axis axis) {
-      NDArray toReturn = getFactory().zeros(shape().get(axis), axis.T());
+      NDArray toReturn = getFactory().zeros(dimension(axis), axis.T());
       forEachSparse(entry -> toReturn.set(entry.get(axis), toReturn.get(entry.get(axis)) + entry.getValue()));
       return toReturn;
    }
@@ -1994,7 +1922,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return new NDArray with test results
     */
    public NDArray test(@NonNull DoublePredicate predicate) {
-      NDArray toReturn = getFactory().zeros(shape());
+      NDArray toReturn = getFactory().zeros(numRows(), numCols());
       forEach(entry -> {
          if (predicate.test(entry.getValue())) {
             toReturn.set(entry.getI(), entry.getJ(), 1d);
@@ -2026,7 +1954,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return 2D array view of the data
     */
    public double[][] to2DArray() {
-      final double[][] array = new double[shape().i][shape().j];
+      final double[][] array = new double[numRows()][numCols()];
       forEachSparse(e -> array[e.getI()][e.getJ()] = e.getValue());
       return array;
    }
@@ -2054,12 +1982,22 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
    }
 
    /**
+    * To column int.
+    *
+    * @param index the index
+    * @return the int
+    */
+   public final int toColumn(int index) {
+      return index / numRows();
+   }
+
+   /**
     * Generates a JBlas DoubleMatrix view of the data
     *
     * @return the double matrix
     */
    public DoubleMatrix toDoubleMatrix() {
-      return new DoubleMatrix(shape().i, shape().j, toArray());
+      return new DoubleMatrix(numRows(), numCols(), toArray());
    }
 
    /**
@@ -2079,7 +2017,18 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return the float matrix
     */
    public FloatMatrix toFloatMatrix() {
-      return new FloatMatrix(shape().i, shape().j, toFloatArray());
+      return new FloatMatrix(numRows(), numCols(), toFloatArray());
+   }
+
+   /**
+    * To index int.
+    *
+    * @param i the
+    * @param j the j
+    * @return the int
+    */
+   public final int toIndex(int i, int j) {
+      return i + (numRows() * j);
    }
 
    /**
@@ -2091,6 +2040,16 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
       int[] toReturn = new int[length()];
       forEachSparse(e -> toReturn[e.getIndex()] = (int) e.getValue());
       return toReturn;
+   }
+
+   /**
+    * To row int.
+    *
+    * @param index the index
+    * @return the int
+    */
+   public final int toRow(int index) {
+      return index % numRows();
    }
 
    @Override
@@ -2117,7 +2076,6 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
    public NDArray zero() {
       return fill(0d);
    }
-
 
    /**
     * Defines an entry in the NDArray, which is the dimensions (i and j), the index (vector, direct storage), and
@@ -2171,5 +2129,6 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
       void setValue(double value);
 
    }//END OF Entry
+
 
 }//END OF NDArray

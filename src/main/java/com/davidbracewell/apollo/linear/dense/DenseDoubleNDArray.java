@@ -38,13 +38,11 @@ public class DenseDoubleNDArray extends NDArray {
 
    @Override
    public NDArray add(@NonNull NDArray other) {
-      shape().checkDimensionMatch(other.shape());
       return new DenseDoubleNDArray(storage.add(other.toDoubleMatrix()));
    }
 
    @Override
    public NDArray add(@NonNull NDArray other, @NonNull Axis axis) {
-      shape().checkDimensionMatch(other.shape(), axis.T());
       if (axis == Axis.ROW) {
          return new DenseDoubleNDArray(storage.addRowVector(other.toDoubleMatrix()));
       }
@@ -59,14 +57,12 @@ public class DenseDoubleNDArray extends NDArray {
 
    @Override
    public NDArray addi(@NonNull NDArray other) {
-      shape().checkDimensionMatch(other.shape());
       storage.addi(other.toDoubleMatrix());
       return this;
    }
 
    @Override
    public NDArray addi(@NonNull NDArray other, @NonNull Axis axis) {
-      shape().checkDimensionMatch(other.shape(), axis.T());
       if (axis == Axis.ROW) {
          storage.addiRowVector(other.toDoubleMatrix());
       } else {
@@ -74,6 +70,7 @@ public class DenseDoubleNDArray extends NDArray {
       }
       return this;
    }
+
 
    @Override
    public int[] argMax(Axis axis) {
@@ -109,7 +106,6 @@ public class DenseDoubleNDArray extends NDArray {
 
    @Override
    public NDArray div(@NonNull NDArray other, @NonNull Axis axis) {
-      shape().checkDimensionMatch(other.shape(), axis.T());
       if (axis == Axis.ROW) {
          return new DenseDoubleNDArray(storage.divRowVector(other.toDoubleMatrix()));
       }
@@ -295,6 +291,16 @@ public class DenseDoubleNDArray extends NDArray {
    }
 
    @Override
+   public int numCols() {
+      return storage.columns;
+   }
+
+   @Override
+   public int numRows() {
+      return storage.rows;
+   }
+
+   @Override
    public NDArray rdiv(double scalar) {
       return new DenseDoubleNDArray(storage.rdiv(scalar));
    }
@@ -360,6 +366,7 @@ public class DenseDoubleNDArray extends NDArray {
       return this;
    }
 
+
    @Override
    public NDArray set(int r, int c, double value) {
       storage.put(r, c, value);
@@ -393,13 +400,66 @@ public class DenseDoubleNDArray extends NDArray {
                                                 new IntervalRange(jFrom, jTo)));
    }
 
-
    @Override
    public NDArray slice(@NonNull Axis axis, int... indexes) {
       if (axis == Axis.ROW) {
          return new DenseDoubleNDArray(storage.getRows(indexes));
       }
       return new DenseDoubleNDArray(storage.getColumns(indexes));
+   }
+
+   @Override
+   public Iterator<Entry> sparseColumnIterator(int column) {
+      return new Iterator<Entry>() {
+         int row = 0;
+
+         private boolean advance() {
+            while (row < numRows() && get(row, column) == 0) {
+               row++;
+            }
+            return row < numRows();
+         }
+
+         @Override
+         public boolean hasNext() {
+            return advance();
+         }
+
+         @Override
+         public Entry next() {
+            advance();
+            DoubleEntry de = new DoubleEntry(toIndex(row, column));
+            row++;
+            return de;
+         }
+      };
+   }
+
+   @Override
+   public Iterator<Entry> sparseRowIterator(int row) {
+      return new Iterator<Entry>() {
+         int col = 0;
+
+         private boolean advance() {
+            while (col < numCols() && get(row, col) == 0) {
+               col++;
+            }
+            return col < numCols();
+         }
+
+         @Override
+         public boolean hasNext() {
+            return advance();
+         }
+
+         @Override
+         public Entry next() {
+            advance();
+            DoubleEntry de = new DoubleEntry(toIndex(row, col));
+            col++;
+            return de;
+         }
+      };
    }
 
    @Override
@@ -546,5 +606,4 @@ public class DenseDoubleNDArray extends NDArray {
          storage.put(index, value);
       }
    }
-
 }// END OF DenseDoubleNDArray

@@ -2,8 +2,6 @@ package com.davidbracewell.apollo.linear;
 
 import com.davidbracewell.apollo.linear.dense.DenseDoubleNDArray;
 import com.davidbracewell.apollo.linear.sparse.SparseDoubleNDArray;
-import com.davidbracewell.apollo.linear.sparse.SparseFloatNDArray;
-import com.davidbracewell.apollo.linear.sparse.SparseIntNDArray;
 import com.davidbracewell.apollo.ml.optimization.WeightInitializer;
 import com.davidbracewell.config.Config;
 import com.davidbracewell.guava.common.base.Preconditions;
@@ -30,13 +28,7 @@ public enum NDArrayFactory {
          } else if (columns.length == 1) {
             return columns[0];
          }
-         double[][] array = new double[columns[0].numRows()][columns.length];
-         for (int column = 0; column < columns.length; column++) {
-            for (int i = 0; i < array.length; i++) {
-               array[i][column] = columns[column].get(i);
-            }
-         }
-         return new SparseDoubleNDArray(new Sparse2dArray(array));
+         return new SparseDoubleNDArray(new Sparse2dStorage(columns));
       }
 
       @Override
@@ -52,56 +44,6 @@ public enum NDArrayFactory {
          Preconditions.checkArgument(r > 0, "r must be > 0");
          Preconditions.checkArgument(c > 0, "c must be > 0");
          return new SparseDoubleNDArray(r, c);
-      }
-
-   },
-   /**
-    * The Sparse int.
-    */
-   SPARSE_INT {
-      @Override
-      public NDArray concatColumns(NDArray... columns) {
-         return null;
-      }
-
-      @Override
-      public NDArray copyOf(@NonNull NDArray array) {
-         if (array instanceof SparseIntNDArray) {
-            return array.copy();
-         }
-         return zeros(array.shape()).addi(array);
-      }
-
-      @Override
-      public NDArray zeros(int r, int c) {
-         Preconditions.checkArgument(r > 0, "r must be > 0");
-         Preconditions.checkArgument(c > 0, "c must be > 0");
-         return new SparseIntNDArray(r, c);
-      }
-
-   },
-   /**
-    * The Sparse float.
-    */
-   SPARSE_FLOAT {
-      @Override
-      public NDArray concatColumns(NDArray... columns) {
-         return null;
-      }
-
-      @Override
-      public NDArray copyOf(@NonNull NDArray array) {
-         if (array instanceof SparseFloatNDArray) {
-            return array.copy();
-         }
-         return zeros(array.shape()).addi(array);
-      }
-
-      @Override
-      public NDArray zeros(int r, int c) {
-         Preconditions.checkArgument(r > 0, "r must be > 0");
-         Preconditions.checkArgument(c > 0, "c must be > 0");
-         return new SparseFloatNDArray(r, c);
       }
 
    },

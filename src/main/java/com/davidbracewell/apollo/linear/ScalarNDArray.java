@@ -1,6 +1,7 @@
 package com.davidbracewell.apollo.linear;
 
 import com.davidbracewell.guava.common.base.Preconditions;
+import com.davidbracewell.guava.common.collect.Iterators;
 
 import java.util.Collections;
 import java.util.Iterator;
@@ -54,6 +55,12 @@ public class ScalarNDArray extends NDArray {
    }
 
    @Override
+   public NDArray mmul(NDArray other) {
+      checkDimensionMatch(numCols(), numRows());
+      return new ScalarNDArray(scalarValue() * other.scalarValue());
+   }
+
+   @Override
    public NDArray set(int index, double value) {
       Preconditions.checkPositionIndex(index, 1);
       this.value = value;
@@ -71,6 +78,26 @@ public class ScalarNDArray extends NDArray {
    @Override
    public Shape shape() {
       return new Shape(1, 1);
+   }
+
+   @Override
+   public Iterator<Entry> sparseColumnIterator(int column) {
+      return Iterators.filter(iterator(), e -> e.getValue() != 0);
+   }
+
+   @Override
+   public Iterator<Entry> sparseRowIterator(int row) {
+      return Iterators.filter(iterator(), e -> e.getValue() != 0);
+   }
+
+   @Override
+   public int numCols() {
+      return 1;
+   }
+
+   @Override
+   public int numRows() {
+      return 1;
    }
 
    @Override

@@ -1,10 +1,8 @@
 package com.davidbracewell.apollo.linear.sparse;
 
 import com.davidbracewell.apollo.linear.*;
-import com.davidbracewell.collection.Streams;
 import com.davidbracewell.guava.common.base.Preconditions;
 import lombok.NonNull;
-import org.apache.mahout.math.list.IntArrayList;
 
 import java.util.Iterator;
 import java.util.Objects;
@@ -17,17 +15,17 @@ import java.util.function.DoubleUnaryOperator;
 public class SparseDoubleNDArray extends NDArray {
    private static final long serialVersionUID = 1L;
 
-   private Sparse2dArray storage;
+   private Sparse2dStorage storage;
 
    public SparseDoubleNDArray(int nRows, int nCols) {
-      this.storage = new Sparse2dArray(Shape.shape(nRows, nCols));
+      this.storage = new Sparse2dStorage(Shape.shape(nRows, nCols));
    }
 
    public SparseDoubleNDArray(@NonNull Shape shape) {
-      this.storage = new Sparse2dArray(shape);
+      this.storage = new Sparse2dStorage(shape);
    }
 
-   public SparseDoubleNDArray(@NonNull Sparse2dArray array) {
+   public SparseDoubleNDArray(@NonNull Sparse2dStorage array) {
       this.storage = array;
    }
 
@@ -39,7 +37,7 @@ public class SparseDoubleNDArray extends NDArray {
 
    @Override
    public NDArray copyData() {
-      SparseDoubleNDArray copy = new SparseDoubleNDArray(this.storage.getShape());
+      SparseDoubleNDArray copy = new SparseDoubleNDArray(numRows(), numCols());
       storage.forEachPair((index, value) -> {
          copy.storage.put(index, value);
          return true;
@@ -90,24 +88,6 @@ public class SparseDoubleNDArray extends NDArray {
    }
 
    @Override
-   public double max() {
-      double max = storage.max();
-      if (max == Double.NEGATIVE_INFINITY) {
-         return size() == length() ? max : 0d;
-      }
-      return max;
-   }
-
-   @Override
-   public double min() {
-      double min = storage.min();
-      if (length() == size()) {
-         return min;
-      }
-      return Math.min(0, min);
-   }
-
-   @Override
    public NDArray mmul(@NonNull NDArray other) {
       NDArray toReturn = getFactory().zeros(numRows(), other.numCols());
       storage.forEach(entry -> other.sparseRowIterator(entry.getJ())
@@ -116,6 +96,21 @@ public class SparseDoubleNDArray extends NDArray {
                                                                                e2.getValue() * entry.getValue())
                                                      ));
       return toReturn;
+   }
+
+   @Override
+   public int numCols() {
+      return shape().j;
+   }
+
+   @Override
+   public int numRows() {
+      return shape().i;
+   }
+
+   @Override
+   public int length() {
+      return storage.getShape().length();
    }
 
    @Override
@@ -155,20 +150,7 @@ public class SparseDoubleNDArray extends NDArray {
 
    @Override
    public Iterator<Entry> sparseIterator() {
-      return new SparseIterator(false);
-   }
-
-   public Iterator<Entry> sparseOrderedColumnIterator(int column) {
-      return storage.sparseColumn(column);
-   }
-
-   @Override
-   public Iterator<Entry> sparseOrderedIterator() {
-      return new SparseIterator(true);
-   }
-
-   public Iterator<Entry> sparseOrderedRowIterator(int row) {
-      return storage.sparseRow(row);
+      return storage.iterator();
    }
 
    @Override
@@ -257,6 +239,7 @@ public class SparseDoubleNDArray extends NDArray {
    private class Alliterator implements Iterator<NDArray.Entry> {
       private int index = 0;
 
+
       @Override
       public boolean hasNext() {
          return index < length();
@@ -269,36 +252,4 @@ public class SparseDoubleNDArray extends NDArray {
       }
    }
 
-   private class SparseIterator implements Iterator<NDArray.Entry> {
-      final IntArrayList keyList;
-      int index = 0;
-
-      public SparseIterator(boolean ordered) {
-         if (ordered && isVector()) {
-            keyList = storage.keys();
-            keyList.quickSort();
-         } else if (ordered) {
-            keyList = new IntArrayList(Streams.asStream(sparseIterator())
-                                              .map(e -> Subscript.from(e.getI(), e.getJ()))
-                                              .sorted()
-                                              .mapToInt(ss -> shape().colMajorIndex(ss))
-                                              .toArray());
-         } else {
-            keyList = storage.keys();
-         }
-      }
-
-      @Override
-      public boolean hasNext() {
-         return index < keyList.size();
-      }
-
-      @Override
-      public Entry next() {
-         Preconditions.checkElementIndex(index, keyList.size());
-         int dimi = keyList.get(index);
-         index++;
-         return new EntryImpl(dimi);
-      }
-   }
 }// END OF SparseDoubleNDArray

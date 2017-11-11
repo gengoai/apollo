@@ -1058,7 +1058,9 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return the maximum value in the NDArray
     */
    public double max() {
-      return Optimum.MAXIMUM.optimum(toArray()).v2;
+      return Streams.asStream(sparseIterator())
+                    .mapToDouble(Entry::getValue)
+                    .max().orElse(0d);
    }
 
    /**
@@ -1070,12 +1072,12 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
    public NDArray max(@NonNull Axis axis) {
       NDArray toReturn = getFactory().zeros(dimension(axis), axis.T());
       toReturn.mapi(d -> Double.NEGATIVE_INFINITY);
-      forEach(entry -> {
+      forEachSparse(entry -> {
          if (toReturn.get(entry.get(axis)) < entry.getValue()) {
             toReturn.set(entry.get(axis), entry.getValue());
          }
       });
-      return toReturn;
+      return toReturn.mapiIf(Double::isInfinite, d -> 0d);
    }
 
    /**

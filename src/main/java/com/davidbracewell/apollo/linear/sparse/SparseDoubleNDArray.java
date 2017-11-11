@@ -1,6 +1,9 @@
 package com.davidbracewell.apollo.linear.sparse;
 
-import com.davidbracewell.apollo.linear.*;
+import com.davidbracewell.apollo.linear.NDArray;
+import com.davidbracewell.apollo.linear.NDArrayFactory;
+import com.davidbracewell.apollo.linear.Shape;
+import com.davidbracewell.apollo.linear.Subscript;
 import com.davidbracewell.guava.common.base.Preconditions;
 import lombok.NonNull;
 
@@ -77,7 +80,12 @@ public class SparseDoubleNDArray extends NDArray {
 
    @Override
    public Iterator<Entry> iterator() {
-      return new Alliterator();
+      return storage.iterator();
+   }
+
+   @Override
+   public int length() {
+      return storage.getShape().length();
    }
 
    @Override
@@ -106,11 +114,6 @@ public class SparseDoubleNDArray extends NDArray {
    @Override
    public int numRows() {
       return shape().i;
-   }
-
-   @Override
-   public int length() {
-      return storage.getShape().length();
    }
 
    @Override
@@ -150,7 +153,7 @@ public class SparseDoubleNDArray extends NDArray {
 
    @Override
    public Iterator<Entry> sparseIterator() {
-      return storage.iterator();
+      return storage.sparseIterator();
    }
 
    @Override
@@ -191,65 +194,5 @@ public class SparseDoubleNDArray extends NDArray {
       return this;
    }
 
-
-   private class EntryImpl implements NDArray.Entry {
-      private static final long serialVersionUID = 1L;
-      final int i;
-      final int j;
-      final int index;
-
-      private EntryImpl(int index) {
-         this.index = index;
-         Subscript ss = shape().fromColMajorIndex(index);
-         this.i = ss.i;
-         this.j = ss.j;
-      }
-
-      @Override
-      public int get(@NonNull Axis axis) {
-         return axis == Axis.ROW ? i : j;
-      }
-
-      @Override
-      public int getI() {
-         return i;
-      }
-
-      @Override
-      public int getIndex() {
-         return index;
-      }
-
-      @Override
-      public int getJ() {
-         return j;
-      }
-
-      @Override
-      public double getValue() {
-         return storage.get(index);
-      }
-
-      @Override
-      public void setValue(double value) {
-         set(index, value);
-      }
-   }
-
-   private class Alliterator implements Iterator<NDArray.Entry> {
-      private int index = 0;
-
-
-      @Override
-      public boolean hasNext() {
-         return index < length();
-      }
-
-      @Override
-      public Entry next() {
-         Preconditions.checkElementIndex(index, length());
-         return new EntryImpl(index++);
-      }
-   }
 
 }// END OF SparseDoubleNDArray

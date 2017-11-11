@@ -1,5 +1,8 @@
-package com.davidbracewell.apollo.linear;
+package com.davidbracewell.apollo.linear.sparse;
 
+import com.davidbracewell.apollo.linear.NDArray;
+import com.davidbracewell.apollo.linear.Shape;
+import com.davidbracewell.apollo.linear.Subscript;
 import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.guava.common.collect.Iterators;
 import lombok.Getter;
@@ -157,13 +160,26 @@ public class Sparse2dStorage {
       return nodes.get(sparseIndex);
    }
 
-   /**
-    * Iterator iterator.
-    *
-    * @return the iterator
-    */
    public Iterator<NDArray.Entry> iterator() {
-      return Iterators.unmodifiableIterator(Cast.cast(nodes.iterator()));
+      return new Iterator<NDArray.Entry>() {
+         int index = 0;
+         int sindex = 0;
+
+         @Override
+         public boolean hasNext() {
+            return index < shape.length();
+         }
+
+         @Override
+         public NDArray.Entry next() {
+            if (sindex < nodes.size() && index == nodes.get(sindex).index) {
+               index++;
+               sindex++;
+               return nodes.get(sindex - 1);
+            }
+            return new VirtualNode(shape.fromColMajorIndex(index).i, shape.fromColMajorIndex(index).j, index);
+         }
+      };
    }
 
    /**
@@ -186,7 +202,6 @@ public class Sparse2dStorage {
    public void put(int i, int j, double value) {
       putAt(binarySearch(i, j), Subscript.from(i, j), value);
    }
-
 
    private void putAt(int index, Subscript si, double value) {
       if (index >= 0) {
@@ -285,6 +300,15 @@ public class Sparse2dStorage {
    }
 
    /**
+    * Iterator iterator.
+    *
+    * @return the iterator
+    */
+   public Iterator<NDArray.Entry> sparseIterator() {
+      return Iterators.unmodifiableIterator(Cast.cast(nodes.iterator()));
+   }
+
+   /**
     * Sparse row iterator.
     *
     * @param row the row
@@ -333,6 +357,45 @@ public class Sparse2dStorage {
       return nodes.stream().mapToDouble(n -> n.value).toArray();
    }
 
+   private class VirtualNode implements NDArray.Entry {
+      final int i;
+      final int j;
+      final int index;
+      Double value = null;
+
+      private VirtualNode(int i, int j, int index) {
+         this.i = i;
+         this.j = j;
+         this.index = index;
+      }
+
+      @Override
+      public int getI() {
+         return i;
+      }
+
+      @Override
+      public int getIndex() {
+         return index;
+      }
+
+      @Override
+      public int getJ() {
+         return j;
+      }
+
+      @Override
+      public double getValue() {
+         return value == null ? 0d : value;
+      }
+
+      @Override
+      public void setValue(double value) {
+         this.value = value;
+         put(index, value);
+      }
+   }
+
    private class Node implements NDArray.Entry, Serializable, Comparable<Node> {
       private final int index;
       private final int row;
@@ -340,6 +403,7 @@ public class Sparse2dStorage {
       private double value;
       private Node nextRow;
       private boolean zeroed = false;
+
       /**
        * Instantiates a new Node.
        *

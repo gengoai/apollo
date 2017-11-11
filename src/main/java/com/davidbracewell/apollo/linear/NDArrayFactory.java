@@ -1,6 +1,7 @@
 package com.davidbracewell.apollo.linear;
 
 import com.davidbracewell.apollo.linear.dense.DenseDoubleNDArray;
+import com.davidbracewell.apollo.linear.sparse.Sparse2dStorage;
 import com.davidbracewell.apollo.linear.sparse.SparseDoubleNDArray;
 import com.davidbracewell.apollo.ml.optimization.WeightInitializer;
 import com.davidbracewell.config.Config;

@@ -1070,7 +1070,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return An NDArray of the max values
     */
    public NDArray max(@NonNull Axis axis) {
-      NDArray toReturn = getFactory().zeros(dimension(axis), axis.T());
+      NDArray toReturn = NDArrayFactory.DENSE_DOUBLE.zeros(dimension(axis), axis.T());
       toReturn.mapi(d -> Double.NEGATIVE_INFINITY);
       forEachSparse(entry -> {
          if (toReturn.get(entry.get(axis)) < entry.getValue()) {
@@ -1115,7 +1115,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return An NDArray of the min values
     */
    public NDArray min(@NonNull Axis axis) {
-      NDArray toReturn = getFactory().zeros(dimension(axis), axis);
+      NDArray toReturn = NDArrayFactory.DENSE_DOUBLE.zeros(dimension(axis), axis);
       toReturn.mapi(d -> Double.POSITIVE_INFINITY);
       forEach(entry -> {
          if (toReturn.get(entry.get(axis)) > entry.getValue()) {

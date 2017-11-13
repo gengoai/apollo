@@ -90,7 +90,7 @@ public class SparseDoubleNDArray extends NDArray {
 
    @Override
    public NDArray mapSparse(@NonNull DoubleUnaryOperator operator) {
-      NDArray toReturn = getFactory().zeros(shape());
+      NDArray toReturn = getFactory().zeros(numRows(),numCols());
       storage.forEach(entry -> toReturn.set(entry.getIndex(), operator.applyAsDouble(entry.getValue())));
       return toReturn;
    }

@@ -597,19 +597,20 @@ public enum NDArrayFactory {
    }
 
    /**
-    * Zeros nd array.
+    * Creates a zero valued matrix
     *
-    * @param r the r
-    * @param c the c
+    * @param r the number of rows
+    * @param c the  number of columns
     * @return the nd array
+    * @throws IllegalArgumentException if the number of rows or columns <= 0
     */
    public abstract NDArray zeros(int r, int c);
 
    /**
-    * Zeros nd array.
+    * Creates a zero valued vector for the given axis
     *
     * @param dimension the dimension
-    * @param axis      the axis
+    * @param axis      the axis of the vector (row vs column vector)
     * @return the nd array
     */
    public NDArray zeros(int dimension, @NonNull Axis axis) {
@@ -617,12 +618,12 @@ public enum NDArrayFactory {
    }
 
    /**
-    * Zeros nd array.
+    * Creates a zero-value vector with the given dimensions
     *
     * @param dimensions the dimensions
     * @return the nd array
     */
-   public NDArray zeros(@NonNull int... dimensions) {
+   public NDArray zeros(int... dimensions) {
       switch (dimensions.length) {
          case 0:
             return new EmptyNDArray();
@@ -635,15 +636,17 @@ public enum NDArrayFactory {
    }
 
    /**
-    * Zeros nd array.
+    * Creates a zero-value array with the given axis dimension
     *
-    * @param a1   the a 1
-    * @param dim1 the dim 1
-    * @param a2   the a 2
-    * @param dim2 the dim 2
+    * @param a1   First axis
+    * @param dim1 dimension of axis one
+    * @param a2   Second axis
+    * @param dim2 dimension of axis two
     * @return the nd array
+    * @throws IllegalArgumentException if the two axis are the same
     */
    public NDArray zeros(@NonNull Axis a1, int dim1, @NonNull Axis a2, int dim2) {
+      Preconditions.checkArgument(a1 != a2, "Axis one and Axis 2 must not be the same");
       int[] dimensions = {-1, -1};
       dimensions[a1.index] = dim1;
       dimensions[a2.index] = dim2;

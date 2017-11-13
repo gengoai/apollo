@@ -147,8 +147,8 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return int array of row/column indexes relating to max values
     */
    public int[] argMax(@NonNull Axis axis) {
-      NDArray aMax = getFactory().zeros(dimension(axis));
-      NDArray vMax = getFactory().zeros(dimension(axis));
+      NDArray aMax = NDArrayFactory.DENSE_DOUBLE.zeros(dimension(axis));
+      NDArray vMax = NDArrayFactory.DENSE_DOUBLE.zeros(dimension(axis));
       vMax.mapi(d -> Double.NEGATIVE_INFINITY);
       forEach(entry -> {
          int index = entry.get(axis);
@@ -167,8 +167,8 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return int array of row/column indexes relating to min values
     */
    public int[] argMin(@NonNull Axis axis) {
-      NDArray aMin = getFactory().zeros(dimension(axis), axis);
-      NDArray vMin = getFactory().zeros(dimension(axis), axis);
+      NDArray aMin = NDArrayFactory.DENSE_DOUBLE.zeros(dimension(axis));
+      NDArray vMin = NDArrayFactory.DENSE_DOUBLE.zeros(dimension(axis));
       vMin.mapi(d -> Double.POSITIVE_INFINITY);
       forEach(entry -> {
          int index = entry.get(axis);

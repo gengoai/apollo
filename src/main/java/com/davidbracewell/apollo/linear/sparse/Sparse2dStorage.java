@@ -172,12 +172,17 @@ public class Sparse2dStorage {
 
          @Override
          public NDArray.Entry next() {
+            while (sindex < nodes.size() && index > nodes.get(sindex).index ){
+               sindex++;
+            }
             if (sindex < nodes.size() && index == nodes.get(sindex).index) {
                index++;
                sindex++;
                return nodes.get(sindex - 1);
             }
-            return new VirtualNode(shape.fromColMajorIndex(index).i, shape.fromColMajorIndex(index).j, index);
+            NDArray.Entry e =  new VirtualNode(shape.fromColMajorIndex(index).i, shape.fromColMajorIndex(index).j, index);
+            index++;
+            return e;
          }
       };
    }

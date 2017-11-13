@@ -149,12 +149,10 @@ public abstract class BaseNDArrayTest {
       int[] index = v1.argMax(Axis.ROW);
       assertEquals(4d, max, 0d);
       assertArrayEquals(new int[]{2}, index);
-
       double min = v1.min();
       index = v1.argMin(Axis.ROW);
       assertEquals(0d, min, 0d);
       assertArrayEquals(new int[]{0}, index);
-
 
       max = m1.max();
       index = m1.argMax(Axis.COlUMN);

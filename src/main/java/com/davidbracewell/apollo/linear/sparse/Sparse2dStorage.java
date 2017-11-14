@@ -1,11 +1,8 @@
 package com.davidbracewell.apollo.linear.sparse;
 
 import com.davidbracewell.apollo.linear.NDArray;
-import com.davidbracewell.apollo.linear.Shape;
-import com.davidbracewell.apollo.linear.Subscript;
 import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.guava.common.collect.Iterators;
-import lombok.Getter;
 import org.apache.mahout.math.function.IntDoubleProcedure;
 
 import java.io.Serializable;
@@ -18,23 +15,23 @@ import java.util.function.Consumer;
  * @author David B. Bracewell
  */
 public class Sparse2dStorage {
-   @Getter
-   private final Shape shape;
    private final Node[] rows;
    private final int[] cols;
+   private int nRows;
+   private int nColums;
    private ArrayList<Node> nodes;
+
 
    /**
     * Instantiates a new Sparse 2 d storage.
-    *
-    * @param shape the shape
     */
-   public Sparse2dStorage(Shape shape) {
+   public Sparse2dStorage(int numRows, int numCols) {
       this.nodes = new ArrayList<>();
-      this.shape = shape;
-      this.cols = new int[shape.j];
+      this.nRows = numRows;
+      this.nColums = numCols;
+      this.cols = new int[numCols];
       Arrays.fill(this.cols, -1);
-      this.rows = new Node[shape.i];
+      this.rows = new Node[numRows];
    }
 
    /**
@@ -43,7 +40,7 @@ public class Sparse2dStorage {
     * @param columns the columns
     */
    public Sparse2dStorage(NDArray... columns) {
-      this(Shape.shape(columns[0].length(), columns.length));
+      this(columns[0].length(), columns.length);
       Node[] last = new Node[columns[0].length()];
       for (int column = 0; column < columns.length; column++) {
          List<Node> temp = new ArrayList<>();
@@ -53,7 +50,7 @@ public class Sparse2dStorage {
             int row = e.getIndex();
             double v = e.getValue();
             if (v != 0) {
-               Node node = new Node(row, column, shape.colMajorIndex(row, column), v);
+               Node node = new Node(row, column, NDArray.columnMajorIndex(row, column, nRows, nColums), v);
                if (rows[row] == null) {
                   rows[row] = node;
                }
@@ -71,9 +68,8 @@ public class Sparse2dStorage {
       }
    }
 
-
    private int binarySearch(int i, int j) {
-      return binarySearch(shape.colMajorIndex(i, j));
+      return binarySearch(NDArray.columnMajorIndex(i, j, nRows, nColums));
    }
 
    private int binarySearch(int index) {
@@ -136,43 +132,25 @@ public class Sparse2dStorage {
       return 0d;
    }
 
-   /**
-    * Get double.
-    *
-    * @param i the
-    * @param j the j
-    * @return the double
-    */
-   public double get(int i, int j) {
-      Node n = rows[i];
-      while (n != null) {
-         if (n.getJ() == j) {
-            return n.value;
-         } else if (n.getJ() < j) {
-            return 0d;
-         }
-         n = n.nextRow;
-      }
-      return 0d;
-   }
 
    public NDArray.Entry getSparse(int sparseIndex) {
       return nodes.get(sparseIndex);
    }
 
    public Iterator<NDArray.Entry> iterator() {
+      final int length = nRows * nColums;
       return new Iterator<NDArray.Entry>() {
          int index = 0;
          int sindex = 0;
 
          @Override
          public boolean hasNext() {
-            return index < shape.length();
+            return index < length;
          }
 
          @Override
          public NDArray.Entry next() {
-            while (sindex < nodes.size() && index > nodes.get(sindex).index ){
+            while (sindex < nodes.size() && index > nodes.get(sindex).index) {
                sindex++;
             }
             if (sindex < nodes.size() && index == nodes.get(sindex).index) {
@@ -180,11 +158,21 @@ public class Sparse2dStorage {
                sindex++;
                return nodes.get(sindex - 1);
             }
-            NDArray.Entry e =  new VirtualNode(shape.fromColMajorIndex(index).i, shape.fromColMajorIndex(index).j, index);
+            NDArray.Entry e = new VirtualNode(NDArray.toRow(index, nRows, nColums),
+                                              NDArray.toColumn(index, nRows, nColums),
+                                              index);
             index++;
             return e;
          }
       };
+   }
+
+   public int numColumns() {
+      return nColums;
+   }
+
+   public int numRows() {
+      return nRows;
    }
 
    /**
@@ -194,7 +182,10 @@ public class Sparse2dStorage {
     * @param value the value
     */
    public void put(int index, double value) {
-      putAt(binarySearch(index), shape.fromColMajorIndex(index), value);
+      putAt(binarySearch(index),
+            NDArray.toRow(index, nRows, nColums),
+            NDArray.toColumn(index, nRows, nColums),
+            value);
    }
 
    /**
@@ -205,10 +196,10 @@ public class Sparse2dStorage {
     * @param value the value
     */
    public void put(int i, int j, double value) {
-      putAt(binarySearch(i, j), Subscript.from(i, j), value);
+      putAt(binarySearch(i, j), i, j, value);
    }
 
-   private void putAt(int index, Subscript si, double value) {
+   private void putAt(int index, int row, int column, double value) {
       if (index >= 0) {
          if (value == 0) {
             Node n = nodes.remove(index);
@@ -220,7 +211,7 @@ public class Sparse2dStorage {
          }
       } else if (value != 0) {
          int ii = Math.abs(index + 1);
-         Node newNode = new Node(si.i, si.j, shape.colMajorIndex(si), value);
+         Node newNode = new Node(row, column, NDArray.columnMajorIndex(row, column, nRows, nColums), value);
          if (cols[newNode.getJ()] == -1) {
             cols[newNode.getJ()] = ii;
          } else if (cols[newNode.getJ()] > ii) {
@@ -497,7 +488,7 @@ public class Sparse2dStorage {
          if (this.index >= 0) {
             this.row = nodes.get(this.index).getI();
          } else {
-            this.row = shape.i;
+            this.row = nRows;
          }
       }
 
@@ -505,13 +496,13 @@ public class Sparse2dStorage {
          if (index >= 0) {
             return true;
          }
-         if (nodes.isEmpty() || lastIndex + 1 >= nodes.size() || row >= shape.i) {
+         if (nodes.isEmpty() || lastIndex + 1 >= nodes.size() || row >= nRows) {
             return false;
          }
          index = lastIndex + 1;
          Node n = nodes.get(index);
          if (n.getJ() != column) {
-            row = shape.i;
+            row = nRows;
             index = -1;
             return false;
          }

@@ -53,6 +53,18 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
       }
    }
 
+   public static int columnMajorIndex(int i, int j, int numRows, int numCols) {
+      return i + (numRows * j);
+   }
+
+   public static int toColumn(int index, int numRows, int numCols) {
+      return index / numRows;
+   }
+
+   public static int toRow(int index, int numRows, int numCols) {
+      return index % numRows;
+   }
+
    /**
     * Flips the matrix on its diagonal switching the rows and columns
     *
@@ -123,7 +135,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     */
    public NDArray addi(@NonNull NDArray other) {
       checkLengthMatch(length(), other.length());
-      other.forEachSparse(e -> increment(e.getI(), e.getJ(), e.getValue()));
+      other.forEachSparse(e -> increment(e.getIndex(), e.getValue()));
       return this;
    }
 
@@ -1657,13 +1669,6 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
    }
 
    /**
-    * The shape of the NDArray
-    *
-    * @return the shape
-    */
-   public abstract Shape shape();
-
-   /**
     * The sparse size of the NDArray
     *
     * @return the sparse size of the NDArray
@@ -1990,7 +1995,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return the int
     */
    public final int toColumn(int index) {
-      return index / numRows();
+      return toColumn(index, numRows(), numCols());
    }
 
    /**
@@ -2030,7 +2035,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return the int
     */
    public final int toIndex(int i, int j) {
-      return i + (numRows() * j);
+      return columnMajorIndex(i, j, numRows(), numCols());
    }
 
    /**
@@ -2051,7 +2056,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return the int
     */
    public final int toRow(int index) {
-      return index % numRows();
+      return toRow(index, numRows(), numCols());
    }
 
    @Override

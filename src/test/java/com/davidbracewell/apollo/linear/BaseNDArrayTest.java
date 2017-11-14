@@ -30,6 +30,7 @@ public abstract class BaseNDArrayTest {
       assertEquals(factory.from(1, 4, new double[]{1.0, 2.0, 5.0, 4.0}), v1.add(1));
       assertEquals(factory.from(1, 4, new double[]{1.0, 2.0, 5.0, 4.0}), v1.copy().addi(1));
       assertEquals(factory.from(1, 4, new double[]{1.0, 3.0, 4.0, 7.0}), v1.add(v2));
+
       assertEquals(factory.from(1, 4, new double[]{1.0, 3.0, 4.0, 7.0}), v1.copy().addi(v2));
       assertEquals(
          factory.from(3, 4, new double[]{2.0, 7.0, 12.0, 6.0, 11.0, 16.0, 10.0, 15.0, 20.0, 14.0, 19.0, 24.0}),
@@ -282,12 +283,6 @@ public abstract class BaseNDArrayTest {
       m1.set(Subscript.from(0, 0), 1);
    }
 
-   @Test
-   public void shape() throws Exception {
-      assertEquals(Shape.shape(1, 4), v1.shape());
-      assertEquals(Shape.shape(3, 4), m1.shape());
-      assertEquals(Shape.shape(3, 4), m2.T().shape());
-   }
 
    @Test
    public void slice() throws Exception {

@@ -3,7 +3,6 @@ package com.davidbracewell.apollo.linear.dense;
 import com.davidbracewell.apollo.linear.Axis;
 import com.davidbracewell.apollo.linear.NDArray;
 import com.davidbracewell.apollo.linear.NDArrayFactory;
-import com.davidbracewell.apollo.linear.Shape;
 import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.guava.common.base.Preconditions;
 import lombok.NonNull;
@@ -100,7 +99,6 @@ public class DenseDoubleNDArray extends NDArray {
 
    @Override
    public NDArray div(@NonNull NDArray other) {
-      shape().checkDimensionMatch(other.shape());
       return new DenseDoubleNDArray(storage.div(other.toDoubleMatrix()));
    }
 
@@ -120,14 +118,12 @@ public class DenseDoubleNDArray extends NDArray {
 
    @Override
    public NDArray divi(@NonNull NDArray other) {
-      shape().checkDimensionMatch(other.shape());
       storage.divi(other.toDoubleMatrix());
       return this;
    }
 
    @Override
    public NDArray divi(@NonNull NDArray other, @NonNull Axis axis) {
-      shape().checkDimensionMatch(other.shape(), axis.T());
       if (axis == Axis.ROW) {
          storage.diviRowVector(other.toDoubleMatrix());
       } else {
@@ -145,7 +141,7 @@ public class DenseDoubleNDArray extends NDArray {
    public boolean equals(Object o) {
       return o != null
                 && o instanceof NDArray
-                && shape().equals(Cast.<NDArray>as(o).shape())
+                && length() == Cast.<NDArray>as(o).length()
                 && Arrays.equals(Cast.<NDArray>as(o).toArray(), toArray());
    }
 
@@ -221,7 +217,6 @@ public class DenseDoubleNDArray extends NDArray {
 
    @Override
    public NDArray mmul(@NonNull NDArray other) {
-      shape().checkCanMultiply(other.shape());
       return new DenseDoubleNDArray(storage.mmul(other.toDoubleMatrix()));
    }
 
@@ -232,13 +227,11 @@ public class DenseDoubleNDArray extends NDArray {
 
    @Override
    public NDArray mul(@NonNull NDArray other) {
-      shape().checkDimensionMatch(other.shape());
       return new DenseDoubleNDArray(storage.mul(other.toDoubleMatrix()));
    }
 
    @Override
    public NDArray mul(@NonNull NDArray other, @NonNull Axis axis) {
-      shape().checkDimensionMatch(other.shape(), axis.T());
       if (axis == Axis.ROW) {
          return new DenseDoubleNDArray(storage.mulRowVector(other.toDoubleMatrix()));
       }
@@ -253,14 +246,12 @@ public class DenseDoubleNDArray extends NDArray {
 
    @Override
    public NDArray muli(@NonNull NDArray other) {
-      shape().checkDimensionMatch(other.shape());
       storage.muli(other.toDoubleMatrix());
       return this;
    }
 
    @Override
    public NDArray muli(@NonNull NDArray other, @NonNull Axis axis) {
-      shape().checkDimensionMatch(other.shape(), axis.T());
       if (axis == Axis.ROW) {
          storage.muliRowVector(other.toDoubleMatrix());
       } else {
@@ -307,7 +298,6 @@ public class DenseDoubleNDArray extends NDArray {
 
    @Override
    public NDArray rdiv(@NonNull NDArray other) {
-      shape().checkDimensionMatch(other.shape());
       return new DenseDoubleNDArray(storage.rdiv(other.toDoubleMatrix()));
    }
 
@@ -319,7 +309,6 @@ public class DenseDoubleNDArray extends NDArray {
 
    @Override
    public NDArray rdivi(@NonNull NDArray other) {
-      shape().checkDimensionMatch(other.shape());
       storage.rdivi(other.toDoubleMatrix());
       return this;
    }
@@ -342,20 +331,17 @@ public class DenseDoubleNDArray extends NDArray {
 
    @Override
    public NDArray rsubi(@NonNull NDArray other) {
-      shape().checkDimensionMatch(other.shape());
       storage.rsubi(other.toDoubleMatrix());
       return this;
    }
 
    @Override
    public NDArray select(@NonNull NDArray predicate) {
-      shape().checkDimensionMatch(predicate.shape());
       return new DenseDoubleNDArray(storage.select(predicate.toDoubleMatrix()));
    }
 
    @Override
    public NDArray selecti(@NonNull NDArray predicate) {
-      shape().checkDimensionMatch(predicate.shape());
       storage.selecti(predicate.toDoubleMatrix());
       return this;
    }
@@ -375,7 +361,6 @@ public class DenseDoubleNDArray extends NDArray {
 
    @Override
    public NDArray setVector(int index, @NonNull NDArray vector, @NonNull Axis axis) {
-      shape().checkDimensionMatch(vector.shape(), axis.T());
       if (axis == Axis.ROW) {
          storage.putRow(index, vector.toDoubleMatrix());
       } else {
@@ -384,10 +369,6 @@ public class DenseDoubleNDArray extends NDArray {
       return this;
    }
 
-   @Override
-   public Shape shape() {
-      return new Shape(storage.rows, storage.columns);
-   }
 
    @Override
    public NDArray slice(int from, int to) {
@@ -469,13 +450,11 @@ public class DenseDoubleNDArray extends NDArray {
 
    @Override
    public NDArray sub(@NonNull NDArray other) {
-      shape().checkDimensionMatch(other.shape());
       return new DenseDoubleNDArray(storage.sub(other.toDoubleMatrix()));
    }
 
    @Override
    public NDArray sub(@NonNull NDArray other, @NonNull Axis axis) {
-      shape().checkDimensionMatch(other.shape(), axis.T());
       if (axis == Axis.ROW) {
          return new DenseDoubleNDArray(storage.subRowVector(other.toDoubleMatrix()));
       }
@@ -490,14 +469,12 @@ public class DenseDoubleNDArray extends NDArray {
 
    @Override
    public NDArray subi(@NonNull NDArray other) {
-      shape().checkDimensionMatch(other.shape());
       storage.subi(other.toDoubleMatrix());
       return this;
    }
 
    @Override
    public NDArray subi(@NonNull NDArray other, @NonNull Axis axis) {
-      shape().checkDimensionMatch(other.shape(), axis.T());
       if (axis == Axis.ROW) {
          storage.subiRowVector(other.toDoubleMatrix());
       } else {

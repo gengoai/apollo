@@ -37,7 +37,6 @@ public interface CorrelationMeasure extends SimilarityMeasure {
    @Override
    default double calculate(@NonNull NDArray v1, @NonNull NDArray v2) {
       Preconditions.checkArgument(v1.isVector() && v2.isVector(), "v1 and v2 must be bectors");
-      v1.shape().checkDimensionMatch(v2.shape());
       return calculate(v1.toArray(), v2.toArray());
    }
 

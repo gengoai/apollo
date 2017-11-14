@@ -65,11 +65,6 @@ public class EmptyNDArray extends NDArray {
    }
 
    @Override
-   public Shape shape() {
-      return Shape.shape(0, 0);
-   }
-
-   @Override
    public Iterator<Entry> sparseColumnIterator(int column) {
       return Collections.emptyIterator();
    }

@@ -37,7 +37,7 @@ public enum NDArrayFactory {
          if (array instanceof SparseDoubleNDArray) {
             return array.copy();
          }
-         return zeros(array.shape()).addi(array);
+         return zeros(array.numRows(), array.numCols()).addi(array);
       }
 
       @Override
@@ -76,7 +76,7 @@ public enum NDArrayFactory {
          if (array instanceof DenseDoubleNDArray) {
             return array.copy();
          }
-         return zeros(array.shape()).addi(array);
+         return zeros(array.numRows(), array.numCols()).addi(array);
       }
 
       @Override
@@ -146,9 +146,6 @@ public enum NDArrayFactory {
       return initializer.initialize(zeros(dimension));
    }
 
-   public NDArray create(@NonNull Shape shape, @NonNull WeightInitializer initializer) {
-      return initializer.initialize(zeros(shape));
-   }
 
    /**
     * Diag nd array.
@@ -158,7 +155,7 @@ public enum NDArrayFactory {
     */
    public NDArray diag(@NonNull NDArray other) {
       Preconditions.checkArgument(other.isVector());
-      int dim = Math.max(other.shape().i, other.shape().j);
+      int dim = Math.max(other.numRows(), other.numCols());
       NDArray toReturn = zeros(dim, dim);
       for (int i = 0; i < dim; i++) {
          toReturn.set(i, i, other.get(i));
@@ -263,7 +260,7 @@ public enum NDArrayFactory {
       if (vectors.isEmpty()) {
          return new EmptyNDArray();
       }
-      int rowdim = Iterables.getFirst(vectors, null).shape().j;
+      int rowdim = Iterables.getFirst(vectors, null).numCols();
       NDArray toReturn = zeros(vectors.size(), rowdim);
       int idx = 0;
       for (NDArray vector : vectors) {
@@ -283,15 +280,6 @@ public enum NDArrayFactory {
       return zeros(dimensions).fill(1d);
    }
 
-   /**
-    * Ones nd array.
-    *
-    * @param shape the shape
-    * @return the nd array
-    */
-   public NDArray ones(@NonNull Shape shape) {
-      return zeros(shape).fill(1d);
-   }
 
    /**
     * Ones nd array.
@@ -320,26 +308,7 @@ public enum NDArrayFactory {
       return ones(axis, dimension, axis.T(), 1);
    }
 
-   /**
-    * Rand nd array.
-    *
-    * @param shape the shape
-    * @return the nd array
-    */
-   public NDArray rand(@NonNull Shape shape) {
-      return rand(shape, new Random());
-   }
 
-   /**
-    * Rand nd array.
-    *
-    * @param shape the shape
-    * @param rnd   the rnd
-    * @return the nd array
-    */
-   public NDArray rand(@NonNull Shape shape, @NonNull Random rnd) {
-      return zeros(shape).mapi(d -> rnd.nextDouble());
-   }
 
    /**
     * Rand nd array.
@@ -446,27 +415,6 @@ public enum NDArrayFactory {
     */
    public NDArray rand(int dimension, @NonNull Axis axis, @NonNull Random random) {
       return rand(axis, dimension, axis.T(), 1, random);
-   }
-
-   /**
-    * Rand nd array.
-    *
-    * @param shape the shape
-    * @return the nd array
-    */
-   public NDArray randn(@NonNull Shape shape) {
-      return randn(shape, new Random());
-   }
-
-   /**
-    * Rand nd array.
-    *
-    * @param shape the shape
-    * @param rnd   the rnd
-    * @return the nd array
-    */
-   public NDArray randn(@NonNull Shape shape, @NonNull Random rnd) {
-      return zeros(shape).mapi(d -> rnd.nextGaussian());
    }
 
    /**
@@ -584,16 +532,6 @@ public enum NDArrayFactory {
     */
    public NDArray scalar(double value) {
       return new ScalarNDArray(value);
-   }
-
-   /**
-    * Zeros nd array.
-    *
-    * @param dimensions the dimensions
-    * @return the nd array
-    */
-   public NDArray zeros(@NonNull Shape dimensions) {
-      return zeros(dimensions.i, dimensions.j);
    }
 
    /**

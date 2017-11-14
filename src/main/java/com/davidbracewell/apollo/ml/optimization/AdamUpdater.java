@@ -49,10 +49,12 @@ public class AdamUpdater implements WeightUpdate, Serializable {
                         int iteration
                        ) {
       if (m == null) {
-         m = weights.getWeights().getFactory().zeros(gradient.getWeightGradient().shape());
+         m = weights.getWeights().getFactory().zeros(gradient.getWeightGradient().numRows(),
+                                                     gradient.getWeightGradient().numCols());
       }
       if (v == null) {
-         v = weights.getWeights().getFactory().zeros(gradient.getWeightGradient().shape());
+         v = weights.getWeights().getFactory().zeros(gradient.getWeightGradient().numRows(),
+                                                     gradient.getWeightGradient().numCols());
       }
       double addedCost = 0d;
 
@@ -83,10 +85,10 @@ public class AdamUpdater implements WeightUpdate, Serializable {
                                          boolean calculateOutDelta
                                         ) {
       if (m == null) {
-         m = weights.getWeights().getFactory().zeros(output.shape().i, input.shape().i);
+         m = weights.getWeights().getFactory().zeros(output.numRows(), input.numRows());
       }
       if (v == null) {
-         v = weights.getWeights().getFactory().zeros(output.shape().i, input.shape().i);
+         v = weights.getWeights().getFactory().zeros(output.numRows(), input.numRows());
       }
       double addedCost = 0d;
 
@@ -98,7 +100,7 @@ public class AdamUpdater implements WeightUpdate, Serializable {
                       : null;
 
       NDArray dw = delta.mmul(input.T())
-                        .divi(input.shape().j);
+                        .divi(input.numCols());
 
       m = m.mul(beta1).add(dw.mul(1d - beta1));
       v = v.mul(beta2).add(dw.map(x -> (x * x) * (1 - beta2)));
@@ -112,7 +114,7 @@ public class AdamUpdater implements WeightUpdate, Serializable {
       }
 
       weights.getWeights().subi(m.mul(lr_t).div(v.map(x -> Math.sqrt(x) + eps)));
-      NDArray db = delta.sum(Axis.ROW).divi(input.shape().j);
+      NDArray db = delta.sum(Axis.ROW).divi(input.numCols());
       weights.getBias().subi(db.muli(lr_t));
       return $(dzOut, addedCost);
    }

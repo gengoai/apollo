@@ -114,7 +114,8 @@ public class SGDUpdater implements WeightUpdate, Serializable {
    @Override
    public double update(LinearModelParameters weights, GradientParameter gradient, int iteration) {
       if (momentum > 0 && v == null) {
-         v = weights.getWeights().getFactory().zeros(weights.getWeights().shape());
+         v = weights.getWeights().getFactory().zeros(weights.getWeights().numRows(),
+                                                     weights.getWeights().numCols());
       }
       double lr = learningRate / (1.0 + decayRate * iteration);
       double addedCost = 0;

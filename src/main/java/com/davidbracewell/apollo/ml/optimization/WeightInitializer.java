@@ -17,7 +17,7 @@ public interface WeightInitializer extends Serializable {
     * The constant DEFAULT.
     */
    WeightInitializer DEFAULT = (m) -> {
-      double max = Math.sqrt(6.0) / Math.sqrt(m.shape().i + m.shape().j);
+      double max = Math.sqrt(6.0) / Math.sqrt(m.numRows() + m.numCols());
       double min = -max;
       m.mapi(x -> min + (max - min) * Math.random());
       return m;

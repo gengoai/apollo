@@ -22,7 +22,7 @@ public class LinearActivation implements Activation {
 
    @Override
    public NDArray gradient(NDArray in) {
-      return in.getFactory().ones(in.shape());
+      return in.getFactory().ones(in.numRows(), in.numCols());
    }
 
    @Override
@@ -32,6 +32,6 @@ public class LinearActivation implements Activation {
 
    @Override
    public NDArray valueGradient(NDArray activated) {
-      return activated.getFactory().ones(activated.shape());
+      return activated.getFactory().ones(activated.numRows(), activated.numCols());
    }
 }// END OF LinearActivation

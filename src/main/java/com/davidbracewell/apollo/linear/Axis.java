@@ -1,7 +1,7 @@
 package com.davidbracewell.apollo.linear;
 
 /**
- * The enum Axis.
+ * Defines the axes that an NDArray can have
  *
  * @author David B. Bracewell
  */
@@ -21,7 +21,7 @@ public enum Axis {
       }
    },
    /**
-    * C ol umn axis.
+    * Column axis.
     */
    COlUMN(1) {
       @Override
@@ -36,7 +36,7 @@ public enum Axis {
    };
 
    /**
-    * The Index.
+    * Ordinal index (0 for row, 1 for Column).
     */
    final int index;
 
@@ -44,14 +44,10 @@ public enum Axis {
       this.index = index;
    }
 
-   public abstract Axis T();
-
-   public abstract int select(int i, int j);
-
    /**
-    * From axis.
+    * Gets an axis object from its index (0 for row, 1 for column)
     *
-    * @param index the index
+    * @param index the ordinal value
     * @return the axis
     */
    public static Axis from(int index) {
@@ -63,6 +59,22 @@ public enum Axis {
       }
       throw new IllegalArgumentException("Dimension index (" + index + ") does not map to a known axis.");
    }
+
+   /**
+    * Gets this axis's opposite, or transposed, axis
+    *
+    * @return the axis
+    */
+   public abstract Axis T();
+
+   /**
+    * Selects dimension value associated with this axis
+    *
+    * @param i dimension one
+    * @param j dimension two
+    * @return the dimension associated with this axis
+    */
+   public abstract int select(int i, int j);
 
 
 }// END OF Axis

@@ -2,7 +2,6 @@ package com.davidbracewell.apollo.linear.sparse;
 
 import com.davidbracewell.apollo.linear.NDArray;
 import com.davidbracewell.apollo.linear.NDArrayFactory;
-import com.davidbracewell.apollo.linear.Shape;
 import com.davidbracewell.apollo.linear.Subscript;
 import com.davidbracewell.guava.common.base.Preconditions;
 import lombok.NonNull;
@@ -21,11 +20,7 @@ public class SparseDoubleNDArray extends NDArray {
    private Sparse2dStorage storage;
 
    public SparseDoubleNDArray(int nRows, int nCols) {
-      this.storage = new Sparse2dStorage(Shape.shape(nRows, nCols));
-   }
-
-   public SparseDoubleNDArray(@NonNull Shape shape) {
-      this.storage = new Sparse2dStorage(shape);
+      this.storage = new Sparse2dStorage(nRows, nCols);
    }
 
    public SparseDoubleNDArray(@NonNull Sparse2dStorage array) {
@@ -60,7 +55,7 @@ public class SparseDoubleNDArray extends NDArray {
 
    @Override
    public double get(int i, int j) {
-      return this.storage.get(shape().colMajorIndex(i, j));
+      return this.storage.get(toIndex(i,j));
    }
 
    @Override
@@ -84,13 +79,8 @@ public class SparseDoubleNDArray extends NDArray {
    }
 
    @Override
-   public int length() {
-      return storage.getShape().length();
-   }
-
-   @Override
    public NDArray mapSparse(@NonNull DoubleUnaryOperator operator) {
-      NDArray toReturn = getFactory().zeros(numRows(),numCols());
+      NDArray toReturn = getFactory().zeros(numRows(), numCols());
       storage.forEach(entry -> toReturn.set(entry.getIndex(), operator.applyAsDouble(entry.getValue())));
       return toReturn;
    }
@@ -108,12 +98,12 @@ public class SparseDoubleNDArray extends NDArray {
 
    @Override
    public int numCols() {
-      return shape().j;
+      return storage.numColumns();
    }
 
    @Override
    public int numRows() {
-      return shape().i;
+      return storage.numRows();
    }
 
    @Override
@@ -125,7 +115,6 @@ public class SparseDoubleNDArray extends NDArray {
 
    @Override
    public NDArray set(@NonNull Subscript subscript, double value) {
-      shape().checkSubscript(subscript);
       this.storage.put(subscript.i, subscript.j, value);
       return this;
    }
@@ -133,13 +122,10 @@ public class SparseDoubleNDArray extends NDArray {
 
    @Override
    public NDArray set(int r, int c, double value) {
-      return set(shape().colMajorIndex(r, c), value);
+      storage.put(r, c, value);
+      return this;
    }
 
-   @Override
-   public Shape shape() {
-      return storage.getShape();
-   }
 
    @Override
    public int size() {
@@ -165,28 +151,6 @@ public class SparseDoubleNDArray extends NDArray {
    public double sum() {
       return storage.sum();
    }
-
-   @Override
-   public double[][] to2DArray() {
-      final double[][] array = new double[shape().i][shape().j];
-      storage.forEachPair((index, value) -> {
-         Subscript ss = shape().fromColMajorIndex(index);
-         array[ss.i][ss.j] = value;
-         return true;
-      });
-      return array;
-   }
-
-   @Override
-   public double[] toArray() {
-      final double[] array = new double[length()];
-      storage.forEachPair((index, value) -> {
-         array[index] = value;
-         return true;
-      });
-      return array;
-   }
-
 
    @Override
    public NDArray zero() {

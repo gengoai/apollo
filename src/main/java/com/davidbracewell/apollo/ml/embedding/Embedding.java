@@ -73,7 +73,7 @@ public class Embedding implements Model, VectorStore<String>, Serializable {
            .skip(firstRow)
            .parallel()
            .map(line -> {
-              NDArray v = NDArrayFactory.defaultFactory().zeros(vectorStore.dimension());
+              NDArray v = NDArrayFactory.DEFAULT().zeros(vectorStore.dimension());
               String[] parts = line.trim().split("\\s+");
               for (int vi = 1; vi < parts.length; vi++) {
                  v.set(vi - 1, Double.parseDouble(parts[vi]));

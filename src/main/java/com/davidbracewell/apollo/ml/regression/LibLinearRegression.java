@@ -74,7 +74,7 @@ public class LibLinearRegression extends RegressionLearner {
       SimpleRegressionModel srm = new SimpleRegressionModel(this);
 
       double[] modelWeights = model.getFeatureWeights();
-      srm.weights = NDArrayFactory.defaultFactory().zeros(srm.numberOfFeatures());
+      srm.weights = NDArrayFactory.DEFAULT().zeros(srm.numberOfFeatures());
       for (int i = 0; i < srm.numberOfFeatures(); i++) {
          srm.weights.set(i, modelWeights[i]);
       }

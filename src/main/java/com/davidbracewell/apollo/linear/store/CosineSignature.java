@@ -49,7 +49,7 @@ public class CosineSignature implements SignatureFunction {
       this.dimension = dimension;
       this.randomProjections = new NDArray[signatureSize];
       for (int i = 0; i < signatureSize; i++) {
-         this.randomProjections[i] = NDArrayFactory.defaultFactory().randn(dimension);
+         this.randomProjections[i] = NDArrayFactory.DEFAULT().randn(dimension);
       }
    }
 

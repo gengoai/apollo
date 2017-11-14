@@ -349,7 +349,7 @@ public class Instance implements Example, Serializable, Iterable<Feature> {
     * @return the vector
     */
    public NDArray toVector(@NonNull EncoderPair encoderPair) {
-      NDArray vector = NDArrayFactory.defaultFactory().zeros(encoderPair.numberOfFeatures());
+      NDArray vector = NDArrayFactory.DEFAULT().zeros(encoderPair.numberOfFeatures());
       boolean isHash = encoderPair.getFeatureEncoder() instanceof HashingEncoder;
       features.forEach(f -> {
          int fi = (int) encoderPair.encodeFeature(f.getFeatureName());

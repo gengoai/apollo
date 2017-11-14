@@ -2,7 +2,6 @@ package com.davidbracewell.apollo.linear.sparse;
 
 import com.davidbracewell.apollo.linear.NDArray;
 import com.davidbracewell.apollo.linear.NDArrayFactory;
-import com.davidbracewell.apollo.linear.Subscript;
 import com.davidbracewell.guava.common.base.Preconditions;
 import lombok.NonNull;
 
@@ -110,12 +109,6 @@ public class SparseDoubleNDArray extends NDArray {
    public NDArray set(int index, double value) {
       Preconditions.checkArgument(index >= 0 && index < length(), "Invalid index: " + index + " (" + length() + ")");
       this.storage.put(index, value);
-      return this;
-   }
-
-   @Override
-   public NDArray set(@NonNull Subscript subscript, double value) {
-      this.storage.put(subscript.i, subscript.j, value);
       return this;
    }
 

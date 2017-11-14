@@ -99,7 +99,7 @@ public class LDAModel extends TopicModel {
    public double[] softCluster(@NonNull Instance instance) {
       NDArray vector = getPreprocessors().apply(instance).toVector(getEncoderPair());
       int[] docTopic = new int[K];
-      NDArray docWordTopic = NDArrayFactory.defaultFactory().zeros(getEncoderPair().numberOfFeatures());
+      NDArray docWordTopic = NDArrayFactory.DEFAULT().zeros(getEncoderPair().numberOfFeatures());
 
       for (NDArray.Entry entry : Collect.asIterable(vector.sparseIterator())) {
          int topic = randomGenerator.nextInt(K);

@@ -82,7 +82,7 @@ public interface VectorStore<KEY> extends Iterable<NDArray>, AutoCloseable, Clos
    @SuppressWarnings("unchecked")
    default NDArray compose(@NonNull VectorComposition composition, KEY... words) {
       if (words == null) {
-         return NDArrayFactory.defaultFactory().zeros(dimension());
+         return NDArrayFactory.DEFAULT().zeros(dimension());
       } else if (words.length == 1) {
          return get(words[0]);
       }
@@ -215,9 +215,9 @@ public interface VectorStore<KEY> extends Iterable<NDArray>, AutoCloseable, Clos
     * @return the list of scored K-nearest vectors
     */
    default List<NDArray> nearest(@NonNull Tuple positive, @NonNull Tuple negative, int K, double threshold) {
-      NDArray pVec = NDArrayFactory.defaultFactory().zeros(dimension());
+      NDArray pVec = NDArrayFactory.DEFAULT().zeros(dimension());
       positive.forEach(word -> pVec.addi(get(Cast.as(word))));
-      NDArray nVec = NDArrayFactory.defaultFactory().zeros(dimension());
+      NDArray nVec = NDArrayFactory.DEFAULT().zeros(dimension());
       negative.forEach(word -> nVec.addi(get(Cast.as(word))));
       Set<String> ignore = new HashSet<>();
       positive.forEach(o -> ignore.add(o.toString()));

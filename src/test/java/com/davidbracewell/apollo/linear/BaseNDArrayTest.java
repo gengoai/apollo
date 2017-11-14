@@ -269,8 +269,8 @@ public abstract class BaseNDArrayTest {
       assertEquals(0, v1.get(Axis.ROW, 0, Axis.COlUMN, 0), 0d);
 
 
-      v1.set(Subscript.from(0, 0), 10d);
-      v1.set(Subscript.from(0, 0), 0d);
+      v1.set(0,0, 10d);
+      v1.set(0,0, 0d);
 
       value = m1.get(0, 0);
       assertEquals(1, value, 0d);
@@ -279,8 +279,8 @@ public abstract class BaseNDArrayTest {
       m1.set(0, 0, 1d);
       assertEquals(1, m1.get(Axis.ROW, 0, Axis.COlUMN, 0), 0d);
 
-      m1.set(Subscript.from(0, 0), 100d);
-      m1.set(Subscript.from(0, 0), 1);
+      m1.set(0,0, 100d);
+      m1.set(0, 0, 1);
    }
 
 

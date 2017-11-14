@@ -1638,16 +1638,6 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     */
    public abstract NDArray set(int r, int c, double value);
 
-   /**
-    * Sets the value at the given subscript
-    *
-    * @param subscript the subscript of the element value to set
-    * @param value     the new value
-    * @return this NDArray
-    */
-   public NDArray set(@NonNull Subscript subscript, double value) {
-      return set(subscript.i, subscript.j, value);
-   }
 
    /**
     * Sets the values along the given axis at the given index to those in the given vector in-place.

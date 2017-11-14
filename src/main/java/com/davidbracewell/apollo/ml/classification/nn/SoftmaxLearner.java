@@ -44,8 +44,8 @@ public class SoftmaxLearner extends ClassifierLearner {
    protected Classifier trainImpl(Dataset<Instance> dataset) {
       LinearModel model = new LinearModel(this);
       GradientDescentOptimizer optimizer = GradientDescentOptimizer.builder().batchSize(batchSize).build();
-      model.weights = NDArrayFactory.defaultFactory().rand(model.numberOfLabels(), model.numberOfFeatures());
-      model.bias = NDArrayFactory.defaultFactory().zeros(model.numberOfLabels());
+      model.weights = NDArrayFactory.DEFAULT().rand(model.numberOfLabels(), model.numberOfFeatures());
+      model.bias = NDArrayFactory.DEFAULT().zeros(model.numberOfLabels());
       model.activation = Activation.SOFTMAX;
       optimizer.optimize(model,
                          dataset.vectorStream(false),

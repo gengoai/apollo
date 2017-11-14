@@ -31,9 +31,9 @@ public abstract class WeightLayer extends Layer implements LinearModelParameters
    public WeightLayer(int inputSize, int outputSize, Activation activation, WeightInitializer weightInitializer, double l1, double l2) {
       super(inputSize, outputSize);
       this.activation = activation;
-      this.weights = NDArrayFactory.defaultFactory().create(outputSize, inputSize, weightInitializer);
-      this.bias = NDArrayFactory.defaultFactory().zeros(outputSize);
-      this.v = NDArrayFactory.defaultFactory().zeros(outputSize, inputSize);
+      this.weights = NDArrayFactory.DEFAULT().create(outputSize, inputSize, weightInitializer);
+      this.bias = NDArrayFactory.DEFAULT().zeros(outputSize);
+      this.v = NDArrayFactory.DEFAULT().zeros(outputSize, inputSize);
       this.l1 = l1;
       this.l2 = l2;
    }
@@ -45,7 +45,7 @@ public abstract class WeightLayer extends Layer implements LinearModelParameters
       this.weights = layer.weights.copy();
       this.l1 = layer.l1;
       this.l2 = layer.l2;
-      this.v = NDArrayFactory.defaultFactory().zeros(layer.getOutputSize(), layer.getInputSize());
+      this.v = NDArrayFactory.DEFAULT().zeros(layer.getOutputSize(), layer.getInputSize());
    }
 
    @Override

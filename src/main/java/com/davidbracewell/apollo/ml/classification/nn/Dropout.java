@@ -35,8 +35,8 @@ public class Dropout extends Layer {
 
    @Override
    public BackpropResult backward(NDArray input, NDArray output, NDArray delta, boolean calculateDelta) {
-      return BackpropResult.from(delta, NDArrayFactory.defaultFactory().empty(),
-                                 NDArrayFactory.defaultFactory().empty());
+      return BackpropResult.from(delta, NDArrayFactory.DEFAULT().empty(),
+                                 NDArrayFactory.DEFAULT().empty());
    }
 
    @Override
@@ -51,19 +51,19 @@ public class Dropout extends Layer {
 
    @Override
    NDArray forward(NDArray input) {
-      val mask = NDArrayFactory.defaultFactory().rand(input.numRows(), input.numCols())
+      val mask = NDArrayFactory.DEFAULT().rand(input.numRows(), input.numCols())
                                .test(x -> x < rate);
       return input.mul(mask).divi(rate);
    }
 
    @Override
    public NDArray getBias() {
-      return NDArrayFactory.defaultFactory().empty();
+      return NDArrayFactory.DEFAULT().empty();
    }
 
    @Override
    public NDArray getWeights() {
-      return NDArrayFactory.defaultFactory().empty();
+      return NDArrayFactory.DEFAULT().empty();
    }
 
    @Override

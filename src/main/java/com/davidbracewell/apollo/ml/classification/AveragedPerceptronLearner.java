@@ -96,9 +96,9 @@ public class AveragedPerceptronLearner extends BinaryClassifierLearner {
    protected Classifier trainForLabel(Dataset<Instance> dataset, double trueLabel) {
       LinearModel model = new LinearModel(this);
 
-      totalWeights = NDArrayFactory.defaultFactory().zeros(model.numberOfFeatures());
-      stamps = NDArrayFactory.defaultFactory().zeros(model.numberOfFeatures());
-      model.weights = NDArrayFactory.defaultFactory().zeros(model.numberOfFeatures());
+      totalWeights = NDArrayFactory.DEFAULT().zeros(model.numberOfFeatures());
+      stamps = NDArrayFactory.DEFAULT().zeros(model.numberOfFeatures());
+      model.weights = NDArrayFactory.DEFAULT().zeros(model.numberOfFeatures());
 
       double c = 1d;
       double oldError = 0;

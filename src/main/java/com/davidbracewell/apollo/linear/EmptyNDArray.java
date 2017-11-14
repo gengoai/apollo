@@ -4,6 +4,8 @@ import java.util.Collections;
 import java.util.Iterator;
 
 /**
+ * An NDArray that has no rows or columns, i.e. is empty
+ *
  * @author David B. Bracewell
  */
 public class EmptyNDArray extends NDArray {
@@ -50,8 +52,18 @@ public class EmptyNDArray extends NDArray {
 
    @Override
    public NDArray mmul(NDArray other) {
-      checkDimensionMatch(numCols(),numRows());
+      checkDimensionMatch(numCols(), numRows());
       return new EmptyNDArray();
+   }
+
+   @Override
+   public int numCols() {
+      return 0;
+   }
+
+   @Override
+   public int numRows() {
+      return 0;
    }
 
    @Override
@@ -72,16 +84,6 @@ public class EmptyNDArray extends NDArray {
    @Override
    public Iterator<Entry> sparseRowIterator(int row) {
       return Collections.emptyIterator();
-   }
-
-   @Override
-   public int numCols() {
-      return 0;
-   }
-
-   @Override
-   public int numRows() {
-      return 0;
    }
 
    @Override

@@ -131,7 +131,7 @@ public class KMeans extends Clusterer<FlatClustering> {
          for (int i = 0; i < K; i++) {
             clustering.get(i).getPoints().removeIf(Objects::isNull);
             if (clustering.get(i).size() == 0) {
-               clustering.get(i).setCentroid(NDArrayFactory.defaultFactory().rand(instances.get(0).length(), -1, 1));
+               clustering.get(i).setCentroid(NDArrayFactory.DEFAULT().rand(instances.get(0).length(), -1, 1));
             } else {
                NDArray c = clustering.get(i).getCentroid().zero();
                for (NDArray ii : clustering.get(i)) {
@@ -168,7 +168,7 @@ public class KMeans extends Clusterer<FlatClustering> {
    private NDArray[] initCentroids(List<NDArray> instances) {
       NDArray[] centroids = new NDArray[K];
       for (int i = 0; i < K; i++) {
-         centroids[i] = NDArrayFactory.defaultFactory().zeros(instances.get(0).length());
+         centroids[i] = NDArrayFactory.DEFAULT().zeros(instances.get(0).length());
       }
       double[] cnts = new double[K];
       Random rnd = new Random();

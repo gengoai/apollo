@@ -8,26 +8,26 @@ import com.davidbracewell.config.Config;
 import com.davidbracewell.guava.common.base.Preconditions;
 import com.davidbracewell.guava.common.collect.Iterables;
 import lombok.NonNull;
-import org.apache.mahout.math.set.OpenIntHashSet;
 import org.jblas.DoubleMatrix;
 
+import java.util.Arrays;
 import java.util.Collection;
-import java.util.Random;
+import java.util.Iterator;
 
 /**
  * Factory methods for creating <code>NDArray</code>s.
  */
 public enum NDArrayFactory {
    /**
-    * The Sparse double.
+    * Factory for creating sparse double NDArrays
     */
    SPARSE_DOUBLE {
       @Override
-      public NDArray hstack(@NonNull NDArray... columns) {
-         if (columns.length == 0) {
+      public NDArray hstack(@NonNull Collection<NDArray> columns) {
+         if (columns.isEmpty()) {
             return empty();
-         } else if (columns.length == 1) {
-            return columns[0];
+         } else if (columns.size() == 1) {
+            return Iterables.getOnlyElement(columns).copy();
          }
          return new SparseDoubleNDArray(new Sparse2dStorage(columns));
       }
@@ -37,7 +37,11 @@ public enum NDArrayFactory {
          if (array instanceof SparseDoubleNDArray) {
             return array.copy();
          }
-         return zeros(array.numRows(), array.numCols()).addi(array);
+         return zeros(array.numRows(), array.numCols())
+                   .addi(array)
+                   .setLabel(array.getLabel())
+                   .setWeight(array.getWeight())
+                   .setPredicted(array.getPredicted());
       }
 
       @Override
@@ -49,26 +53,29 @@ public enum NDArrayFactory {
 
    },
    /**
-    * The Dense double.
+    * Factory for creating dense double NDArrays
     */
    DENSE_DOUBLE {
       @Override
-      public NDArray hstack(@NonNull NDArray... columns) {
-         if (columns.length == 0) {
+      public NDArray hstack(@NonNull Collection<NDArray> columns) {
+         if (columns.isEmpty()) {
             return empty();
-         } else if (columns.length == 1) {
-            return columns[0];
+         } else if (columns.size() == 1) {
+            return Iterables.getOnlyElement(columns).copy();
          }
-         if (columns.length == 2) {
-            return new DenseDoubleNDArray(DoubleMatrix.concatHorizontally(columns[0].toDoubleMatrix(),
-                                                                          columns[1].toDoubleMatrix()));
+         if (columns.size() == 2) {
+            Iterator<NDArray> itr = columns.iterator();
+            return new DenseDoubleNDArray(DoubleMatrix.concatHorizontally(itr.next().toDoubleMatrix(),
+                                                                          itr.next().toDoubleMatrix()));
          }
-         int l = columns[0].length();
-         double[] a = new double[l * columns.length];
-         for (int i = 0; i < columns.length; i++) {
-            System.arraycopy(columns[i].toArray(), 0, a, i * l, l);
+         int l = Iterables.getFirst(columns, null).length();
+         double[] a = new double[l * columns.size()];
+         int i = 0;
+         for (NDArray column : columns) {
+            System.arraycopy(column.toArray(), 0, a, i * l, l);
+            i++;
          }
-         return new DenseDoubleNDArray(new DoubleMatrix(columns[0].length(), columns.length, a));
+         return new DenseDoubleNDArray(new DoubleMatrix(l, columns.size(), a));
       }
 
       @Override
@@ -76,16 +83,20 @@ public enum NDArrayFactory {
          if (array instanceof DenseDoubleNDArray) {
             return array.copy();
          }
-         return zeros(array.numRows(), array.numCols()).addi(array);
+         return zeros(array.numRows(), array.numCols())
+                   .addi(array)
+                   .setLabel(array.getLabel())
+                   .setWeight(array.getWeight())
+                   .setPredicted(array.getPredicted());
       }
 
       @Override
-      public NDArray from(int r, int c, double[] data) {
+      public NDArray create(int r, int c, double[] data) {
          return new DenseDoubleNDArray(new DoubleMatrix(r, c, data));
       }
 
       @Override
-      public NDArray from(double[] data) {
+      public NDArray create(double[] data) {
          return new DenseDoubleNDArray(new DoubleMatrix(data));
       }
 
@@ -116,15 +127,6 @@ public enum NDArrayFactory {
          }
       }
       return DEFAULT_INSTANCE;
-   }
-
-   /**
-    * Creates a new Empty NDArray
-    *
-    * @return the NDArray
-    */
-   public static NDArray empty() {
-      return new EmptyNDArray();
    }
 
    /**
@@ -181,6 +183,52 @@ public enum NDArrayFactory {
    }
 
    /**
+    * Creates a new NDArray  that wraps the given set of values
+    *
+    * @param data the values
+    * @return the NDArray
+    */
+   public NDArray create(double[] data) {
+      NDArray z = zeros(data.length);
+      for (int i = 0; i < data.length; i++) {
+         z.set(i, data[i]);
+      }
+      return z;
+   }
+
+   /**
+    * Creates a new NDArray that wraps the given set of values
+    *
+    * @param r    the number of rows
+    * @param c    the number of columns
+    * @param data the values
+    * @return the NDArray
+    */
+   public NDArray create(int r, int c, double[] data) {
+      NDArray z = zeros(r, c);
+      for (int i = 0; i < data.length; i++) {
+         z.set(i, data[i]);
+      }
+      return z;
+   }
+
+   /**
+    * Creates a new NDArray that wraps the given set of values
+    *
+    * @param data the values
+    * @return the NDArray
+    */
+   public NDArray create(double[][] data) {
+      NDArray z = zeros(data[0].length, data.length);
+      for (int j = 0; j < data.length; j++) {
+         for (int i = 0; i < data[0].length; i++) {
+            z.set(i, j, data[i][j]);
+         }
+      }
+      return z;
+   }
+
+   /**
     * Creates a diagonal 2D NDArray from a 1D NDArray
     *
     * @param vector the 1D NDArray, or vector, to use as the diagonal
@@ -197,23 +245,12 @@ public enum NDArrayFactory {
    }
 
    /**
-    * From row vectors nd array.
+    * Creates a new Empty NDArray
     *
-    * @param vectors the vectors
-    * @return the nd array
+    * @return the NDArray
     */
-   public NDArray fromRowVectors(@NonNull Collection<NDArray> vectors) {
-      if (vectors.isEmpty()) {
-         return new EmptyNDArray();
-      }
-      int rowdim = Iterables.getFirst(vectors, null).numCols();
-      NDArray toReturn = zeros(vectors.size(), rowdim);
-      int idx = 0;
-      for (NDArray vector : vectors) {
-         toReturn.setVector(idx, vector, Axis.ROW);
-         idx++;
-      }
-      return toReturn;
+   public NDArray empty() {
+      return EmptyNDArray.INSTANCE;
    }
 
    /**
@@ -231,51 +268,14 @@ public enum NDArrayFactory {
    }
 
    /**
-    * Creates a new NDArray  that wraps the given set of values
+    * Concatenates a series of column vectors into a single NDArray
     *
-    * @param data the values
+    * @param columns columns to concatenate
     * @return the NDArray
     */
-   public NDArray from(double[] data) {
-      NDArray z = zeros(data.length);
-      for (int i = 0; i < data.length; i++) {
-         z.set(i, data[i]);
-      }
-      return z;
+   public NDArray hstack(@NonNull NDArray... columns) {
+      return hstack(Arrays.asList(columns));
    }
-
-   /**
-    * Creates a new NDArray that wraps the given set of values
-    *
-    * @param r    the number of rows
-    * @param c    the number of columns
-    * @param data the values
-    * @return the NDArray
-    */
-   public NDArray from(int r, int c, double[] data) {
-      NDArray z = zeros(r, c);
-      for (int i = 0; i < data.length; i++) {
-         z.set(i, data[i]);
-      }
-      return z;
-   }
-
-   /**
-    * Creates a new NDArray that wraps the given set of values
-    *
-    * @param data the values
-    * @return the NDArray
-    */
-   public NDArray from(double[][] data) {
-      NDArray z = zeros(data[0].length, data.length);
-      for (int j = 0; j < data.length; j++) {
-         for (int i = 0; i < data[0].length; i++) {
-            z.set(i, j, data[i][j]);
-         }
-      }
-      return z;
-   }
-
 
    /**
     * Concatenates a series of column vectors into a single NDArray
@@ -283,29 +283,30 @@ public enum NDArrayFactory {
     * @param columns columns to concatenate
     * @return the NDArray
     */
-   public abstract NDArray hstack(NDArray... columns);
+   public abstract NDArray hstack(@NonNull Collection<NDArray> columns);
 
    /**
-    * Ones nd array.
+    * Creates an NDArray with the given dimensions filled with ones.
     *
     * @param dimensions the dimensions
-    * @return the nd array
+    * @return the NDArray
     */
-   public NDArray ones(int... dimensions) {
+   public NDArray ones(@NonNull int... dimensions) {
       return zeros(dimensions).fill(1d);
    }
 
-
    /**
-    * Ones nd array.
+    * Creates a one-valued array with the given axis dimension
     *
-    * @param a1   the a 1
-    * @param dim1 the dim 1
-    * @param a2   the a 2
-    * @param dim2 the dim 2
+    * @param a1   First axis
+    * @param dim1 dimension of axis one
+    * @param a2   Second axis
+    * @param dim2 dimension of axis two
     * @return the nd array
+    * @throws IllegalArgumentException if the two axis are the same
     */
    public NDArray ones(@NonNull Axis a1, int dim1, @NonNull Axis a2, int dim2) {
+      Preconditions.checkArgument(a1 != a2, "Axis one and Axis 2 must not be the same");
       int[] dimensions = {-1, -1};
       dimensions[a1.index] = dim1;
       dimensions[a2.index] = dim2;
@@ -313,239 +314,86 @@ public enum NDArrayFactory {
    }
 
    /**
-    * Ones nd array.
+    * Creates a one valued vector for the given axis
     *
+    * @param axis      the axis of the vector (row vs column vector)
     * @param dimension the dimension
-    * @param axis      the axis
     * @return the nd array
     */
-   public NDArray ones(int dimension, @NonNull Axis axis) {
+   public NDArray ones(@NonNull Axis axis, int dimension) {
       return ones(axis, dimension, axis.T(), 1);
    }
 
-
    /**
-    * Rand nd array.
+    * Creates an NDArray of given dimensions initialized with Random values
     *
-    * @param random     the random
-    * @param dimensions the dimensions
-    * @return the nd array
+    * @param dimension the dimension
+    * @return the NDArray
     */
-   public NDArray rand(@NonNull Random random, int... dimensions) {
-      return zeros(dimensions).mapi(d -> random.nextDouble());
-   }
-
-   /**
-    * Rand nd array.
-    *
-    * @param sparsity   the sparsity
-    * @param random     the random
-    * @param dimensions the dimensions
-    * @return the nd array
-    */
-   public NDArray rand(double sparsity, @NonNull Random random, int... dimensions) {
-      NDArray toReturn = zeros(dimensions);
-      int nonZero = (int) Math.floor((1d - sparsity) * toReturn.length());
-      OpenIntHashSet indexes = new OpenIntHashSet();
-      while (indexes.size() < nonZero) {
-         indexes.add(random.nextInt(toReturn.length()));
+   public NDArray rand(@NonNull int... dimension) {
+      if (dimension.length == 0) {
+         return empty();
+      } else if (dimension.length == 1) {
+         return create(dimension[0], WeightInitializer.RAND());
       }
-      indexes.forEachKey(i -> {
-         toReturn.set(i, random.nextDouble());
-         return true;
-      });
-      return toReturn;
+      return create(dimension[0], dimension[1], WeightInitializer.RAND());
    }
 
    /**
-    * Rand nd array.
-    *
-    * @param dimensions the dimensions
-    * @return the nd array
-    */
-   public NDArray rand(int... dimensions) {
-      return rand(new Random(), dimensions);
-   }
-
-   /**
-    * Rand nd array.
-    *
-    * @param sparsity   the sparsity
-    * @param dimensions the dimensions
-    * @return the nd array
-    */
-   public NDArray rand(double sparsity, int... dimensions) {
-      return rand(sparsity, new Random(), dimensions);
-   }
-
-   /**
-    * Rand nd array.
-    *
-    * @param a1   the a 1
-    * @param dim1 the dim 1
-    * @param a2   the a 2
-    * @param dim2 the dim 2
-    * @return the nd array
-    */
-   public NDArray rand(@NonNull Axis a1, int dim1, @NonNull Axis a2, int dim2) {
-      return rand(a1, dim1, a2, dim2, new Random());
-   }
-
-   /**
-    * Rand nd array.
-    *
-    * @param a1     the a 1
-    * @param dim1   the dim 1
-    * @param a2     the a 2
-    * @param dim2   the dim 2
-    * @param random the random
-    * @return the nd array
-    */
-   public NDArray rand(@NonNull Axis a1, int dim1, @NonNull Axis a2, int dim2, @NonNull Random random) {
-      int[] dimensions = {-1, -1};
-      dimensions[a1.index] = dim1;
-      dimensions[a2.index] = dim2;
-      return rand(random, dimensions[0], dimensions[1]);
-   }
-
-   /**
-    * Rand nd array.
+    * Creates an NDArray of given dimensions initialized with Random values following a normal distribution.
     *
     * @param dimension the dimension
-    * @param axis      the axis
-    * @return the nd array
+    * @return the NDArray
     */
-   public NDArray rand(int dimension, @NonNull Axis axis) {
-      return rand(axis, dimension, axis.T(), 1);
-   }
-
-   /**
-    * Rand nd array.
-    *
-    * @param dimension the dimension
-    * @param axis      the axis
-    * @param random    the random
-    * @return the nd array
-    */
-   public NDArray rand(int dimension, @NonNull Axis axis, @NonNull Random random) {
-      return rand(axis, dimension, axis.T(), 1, random);
-   }
-
-   /**
-    * Rand nd array.
-    *
-    * @param random     the random
-    * @param dimensions the dimensions
-    * @return the nd array
-    */
-   public NDArray randn(@NonNull Random random, int... dimensions) {
-      return zeros(dimensions).mapi(d -> random.nextGaussian());
-   }
-
-   /**
-    * Rand nd array.
-    *
-    * @param sparsity   the sparsity
-    * @param random     the random
-    * @param dimensions the dimensions
-    * @return the nd array
-    */
-   public NDArray randn(double sparsity, @NonNull Random random, int... dimensions) {
-      NDArray toReturn = zeros(dimensions);
-      int nonZero = (int) Math.floor((1d - sparsity) * toReturn.length());
-      OpenIntHashSet indexes = new OpenIntHashSet();
-      while (indexes.size() < nonZero) {
-         indexes.add(random.nextInt(toReturn.length()));
+   public NDArray randn(@NonNull int... dimension) {
+      if (dimension.length == 0) {
+         return empty();
+      } else if (dimension.length == 1) {
+         return create(dimension[0], WeightInitializer.RANDN());
       }
-      indexes.forEachKey(i -> {
-         toReturn.set(i, random.nextGaussian());
-         return true;
-      });
-      return toReturn;
+      return create(dimension[0], dimension[1], WeightInitializer.RANDN());
    }
 
    /**
-    * Rand nd array.
-    *
-    * @param dimensions the dimensions
-    * @return the nd array
-    */
-   public NDArray randn(int... dimensions) {
-      return randn(new Random(), dimensions);
-   }
-
-   /**
-    * Rand nd array.
-    *
-    * @param sparsity   the sparsity
-    * @param dimensions the dimensions
-    * @return the nd array
-    */
-   public NDArray randn(double sparsity, int... dimensions) {
-      return randn(sparsity, new Random(), dimensions);
-   }
-
-   /**
-    * Rand nd array.
-    *
-    * @param a1   the a 1
-    * @param dim1 the dim 1
-    * @param a2   the a 2
-    * @param dim2 the dim 2
-    * @return the nd array
-    */
-   public NDArray randn(@NonNull Axis a1, int dim1, @NonNull Axis a2, int dim2) {
-      return randn(a1, dim1, a2, dim2, new Random());
-   }
-
-   /**
-    * Rand nd array.
-    *
-    * @param a1     the a 1
-    * @param dim1   the dim 1
-    * @param a2     the a 2
-    * @param dim2   the dim 2
-    * @param random the random
-    * @return the nd array
-    */
-   public NDArray randn(@NonNull Axis a1, int dim1, @NonNull Axis a2, int dim2, @NonNull Random random) {
-      int[] dimensions = {-1, -1};
-      dimensions[a1.index] = dim1;
-      dimensions[a2.index] = dim2;
-      return rand(random, dimensions[0], dimensions[1]);
-   }
-
-   /**
-    * Rand nd array.
-    *
-    * @param dimension the dimension
-    * @param axis      the axis
-    * @return the nd array
-    */
-   public NDArray randn(int dimension, @NonNull Axis axis) {
-      return randn(axis, dimension, axis.T(), 1);
-   }
-
-   /**
-    * Rand nd array.
-    *
-    * @param dimension the dimension
-    * @param axis      the axis
-    * @param random    the random
-    * @return the nd array
-    */
-   public NDArray randn(int dimension, @NonNull Axis axis, @NonNull Random random) {
-      return randn(axis, dimension, axis.T(), 1, random);
-   }
-
-   /**
-    * Scalar nd array.
+    * Creates an NDArray containing a single scalar value
     *
     * @param value the value
-    * @return the nd array
+    * @return the NDArray
     */
    public NDArray scalar(double value) {
       return new ScalarNDArray(value);
+   }
+
+   /**
+    * Concatenates a series of row vectors into a single NDArray
+    *
+    * @param rows rows to concatenate
+    * @return the NDArray
+    */
+   public NDArray vstack(@NonNull Collection<NDArray> rows) {
+      if (rows.isEmpty()) {
+         return EmptyNDArray.INSTANCE;
+      } else if (rows.size() == 1) {
+         return Iterables.getOnlyElement(rows);
+      }
+      int rowdim = Iterables.getFirst(rows, null).numCols();
+      NDArray toReturn = zeros(rows.size(), rowdim);
+      int idx = 0;
+      for (NDArray vector : rows) {
+         toReturn.setVector(idx, vector, Axis.ROW);
+         idx++;
+      }
+      return toReturn;
+   }
+
+   /**
+    * Concatenates a series of row vectors into a single NDArray
+    *
+    * @param rows rows to concatenate
+    * @return the NDArray
+    */
+   public NDArray vstack(@NonNull NDArray... rows) {
+      return vstack(Arrays.asList(rows));
    }
 
    /**
@@ -561,12 +409,12 @@ public enum NDArrayFactory {
    /**
     * Creates a zero valued vector for the given axis
     *
-    * @param dimension the dimension
     * @param axis      the axis of the vector (row vs column vector)
+    * @param dimension the dimension
     * @return the nd array
     */
-   public NDArray zeros(int dimension, @NonNull Axis axis) {
-      return zeros(axis.T(), dimension, axis, 1);
+   public NDArray zeros(@NonNull Axis axis, int dimension) {
+      return zeros(axis, dimension, axis.T(), 1);
    }
 
    /**
@@ -578,7 +426,7 @@ public enum NDArrayFactory {
    public NDArray zeros(int... dimensions) {
       switch (dimensions.length) {
          case 0:
-            return new EmptyNDArray();
+            return EmptyNDArray.INSTANCE;
          case 1:
             return zeros(dimensions[0], 1);
          case 2:

@@ -2,8 +2,10 @@ package com.davidbracewell.apollo.ml.optimization;
 
 
 import com.davidbracewell.apollo.linear.NDArray;
+import lombok.NonNull;
 
 import java.io.Serializable;
+import java.util.Random;
 
 /**
  * The interface Weight initializer.
@@ -24,6 +26,31 @@ public interface WeightInitializer extends Serializable {
    };
 
    WeightInitializer ZEROES = (m) -> m.mapi(x -> 0d);
+
+
+   static WeightInitializer RAND(@NonNull Random rnd) {
+      return (m) -> m.map(d -> rnd.nextDouble());
+   }
+
+   static WeightInitializer RAND() {
+      return (m) -> m.map(d -> Math.random());
+   }
+
+   static WeightInitializer RAND(@NonNull Random rnd, int min, int max) {
+      return (m) -> m.map(d -> min + rnd.nextDouble() * max);
+   }
+
+   static WeightInitializer RAND(int min, int max) {
+      return RAND(new Random(), min, max);
+   }
+
+   static WeightInitializer RANDN(@NonNull Random rnd) {
+      return (m) -> m.map(d -> rnd.nextGaussian());
+   }
+
+   static WeightInitializer RANDN() {
+      return RANDN(new Random());
+   }
 
    /**
     * Initialize.

@@ -474,6 +474,12 @@ public class DenseDoubleNDArray extends NDArray {
    }
 
    @Override
+   public NDArray reshape(int numRows, int numCols) {
+      storage.reshape(numRows, numCols);
+      return this;
+   }
+
+   @Override
    public NDArray subi(@NonNull NDArray other, @NonNull Axis axis) {
       if (axis == Axis.ROW) {
          storage.subiRowVector(other.toDoubleMatrix());

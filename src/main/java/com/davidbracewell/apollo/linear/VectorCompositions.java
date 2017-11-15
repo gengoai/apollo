@@ -26,7 +26,7 @@ public enum VectorCompositions implements VectorComposition {
       @Override
       public NDArray compose(@NonNull Collection<NDArray> vectors) {
          if (vectors.size() == 0) {
-            return new EmptyNDArray();
+            return NDArrayFactory.DEFAULT().empty();
          }
          NDArray toReturn = null;
          for (NDArray v : vectors) {
@@ -46,7 +46,7 @@ public enum VectorCompositions implements VectorComposition {
       @Override
       public NDArray compose(@NonNull Collection<NDArray> vectors) {
          if (vectors.size() == 0) {
-            return new EmptyNDArray();
+            return NDArrayFactory.DEFAULT().empty();
          }
          NDArray toReturn = null;
          for (NDArray v : vectors) {
@@ -66,7 +66,7 @@ public enum VectorCompositions implements VectorComposition {
       @Override
       public NDArray compose(@NonNull Collection<NDArray> vectors) {
          if (vectors.size() == 0) {
-            return new EmptyNDArray();
+            return NDArrayFactory.DEFAULT().empty();
          }
          NDArray toReturn = null;
          for (NDArray v : vectors) {
@@ -86,7 +86,7 @@ public enum VectorCompositions implements VectorComposition {
       @Override
       public NDArray compose(@NonNull Collection<NDArray> vectors) {
          if (vectors.size() == 0) {
-            return new EmptyNDArray();
+            return NDArrayFactory.DEFAULT().empty();
          }
          NDArray toReturn = null;
          for (NDArray v : vectors) {
@@ -103,9 +103,9 @@ public enum VectorCompositions implements VectorComposition {
       @Override
       public NDArray compose(@NonNull Collection<NDArray> vectors) {
          if (vectors.size() == 0) {
-            return new EmptyNDArray();
+            return NDArrayFactory.DEFAULT().empty();
          }
-         return com.davidbracewell.apollo.linear.SVD.truncatedSVD(NDArrayFactory.DENSE_DOUBLE.fromRowVectors(vectors),
+         return com.davidbracewell.apollo.linear.SVD.truncatedSVD(NDArrayFactory.DENSE_DOUBLE.vstack(vectors),
                                                                   1)[2].getVector(0, Axis.ROW);
       }
    }

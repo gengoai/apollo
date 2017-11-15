@@ -28,6 +28,12 @@ public class ScalarNDArray extends NDArray {
    }
 
    @Override
+   public NDArray reshape(int numRows, int numCols) {
+      throw new IllegalStateException();
+   }
+
+
+   @Override
    public double get(int i, int j) {
       Preconditions.checkPositionIndex(i, 0, "Invalid row");
       Preconditions.checkPositionIndex(j, 1, "Invalid column");

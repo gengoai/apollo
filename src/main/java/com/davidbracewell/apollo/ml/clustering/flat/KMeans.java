@@ -26,6 +26,7 @@ import com.davidbracewell.apollo.linear.NDArray;
 import com.davidbracewell.apollo.linear.NDArrayFactory;
 import com.davidbracewell.apollo.ml.clustering.Cluster;
 import com.davidbracewell.apollo.ml.clustering.Clusterer;
+import com.davidbracewell.apollo.ml.optimization.WeightInitializer;
 import com.davidbracewell.apollo.stat.measure.Distance;
 import com.davidbracewell.apollo.stat.measure.DistanceMeasure;
 import com.davidbracewell.guava.common.base.Preconditions;
@@ -131,7 +132,8 @@ public class KMeans extends Clusterer<FlatClustering> {
          for (int i = 0; i < K; i++) {
             clustering.get(i).getPoints().removeIf(Objects::isNull);
             if (clustering.get(i).size() == 0) {
-               clustering.get(i).setCentroid(NDArrayFactory.DEFAULT().rand(instances.get(0).length(), -1, 1));
+               clustering.get(i).setCentroid(
+                  NDArrayFactory.DEFAULT().create(instances.get(0).length(), WeightInitializer.RAND(-1, 1)));
             } else {
                NDArray c = clustering.get(i).getCentroid().zero();
                for (NDArray ii : clustering.get(i)) {

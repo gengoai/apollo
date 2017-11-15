@@ -8,7 +8,14 @@ import java.util.Iterator;
  *
  * @author David B. Bracewell
  */
-public class EmptyNDArray extends NDArray {
+public final class EmptyNDArray extends NDArray {
+
+   public static final NDArray INSTANCE = new EmptyNDArray();
+
+   private EmptyNDArray() {
+
+   }
+
 
    @Override
    public NDArray copyData() {
@@ -33,6 +40,11 @@ public class EmptyNDArray extends NDArray {
    @Override
    public NDArrayFactory getFactory() {
       return NDArrayFactory.DENSE_DOUBLE;
+   }
+
+   @Override
+   public NDArray reshape(int numRows, int numCols) {
+      throw new IllegalStateException();
    }
 
    @Override

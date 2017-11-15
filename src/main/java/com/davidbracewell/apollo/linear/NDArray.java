@@ -269,7 +269,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     */
    public NDArray diag() {
       if (isEmpty()) {
-         return new EmptyNDArray();
+         return NDArrayFactory.DEFAULT().empty();
       } else if (isScalar()) {
          return copy();
       }
@@ -564,7 +564,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     */
    public NDArray getLabelAsNDArray() {
       if (label == null) {
-         return new EmptyNDArray();
+         return NDArrayFactory.DEFAULT().empty();
       } else if (label instanceof Number) {
          return new ScalarNDArray(Cast.<Number>as(label).doubleValue());
       }
@@ -579,7 +579,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     */
    public NDArray getLabelAsNDArray(int dimension) {
       if (label == null) {
-         return new EmptyNDArray();
+         return NDArrayFactory.DEFAULT().empty();
       } else if (label instanceof Number) {
          return getFactory().zeros(dimension)
                             .set(Cast.<Number>as(label).intValue(), 1d);
@@ -627,7 +627,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     */
    public NDArray getPredictedAsNDArray() {
       if (predicted == null) {
-         return new EmptyNDArray();
+         return NDArrayFactory.DEFAULT().empty();
       } else if (predicted instanceof Number) {
          return new ScalarNDArray(Cast.<Number>as(predicted).doubleValue());
       }
@@ -644,12 +644,20 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
    public NDArray getVector(int index, @NonNull Axis axis) {
       Preconditions.checkElementIndex(index, dimension(axis),
                                       "Invalid index " + index + " [0, " + dimension(axis) + ")");
-      NDArray toReturn = getFactory().zeros(dimension(axis.T()), axis);
+      NDArray toReturn = getFactory().zeros(axis.T(), dimension(axis.T()));
       for (int i = 0; i < dimension(axis.T()); i++) {
          toReturn.set(i, get(axis, index, axis.T(), i));
       }
       return toReturn;
    }
+
+   /**
+    *
+    * @param numRows
+    * @param numCols
+    * @return
+    */
+   public abstract NDArray reshape(int numRows, int numCols);
 
    /**
     * Gets weight.
@@ -1082,8 +1090,9 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return An NDArray of the max values
     */
    public NDArray max(@NonNull Axis axis) {
-      NDArray toReturn = NDArrayFactory.DENSE_DOUBLE.zeros(dimension(axis), axis.T());
-      toReturn.mapi(d -> Double.NEGATIVE_INFINITY);
+      NDArray toReturn = NDArrayFactory.DENSE_DOUBLE
+                            .zeros(axis.T(),dimension(axis))
+                            .fill(Double.NEGATIVE_INFINITY);
       forEachSparse(entry -> {
          if (toReturn.get(entry.get(axis)) < entry.getValue()) {
             toReturn.set(entry.get(axis), entry.getValue());
@@ -1127,7 +1136,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return An NDArray of the min values
     */
    public NDArray min(@NonNull Axis axis) {
-      NDArray toReturn = NDArrayFactory.DENSE_DOUBLE.zeros(dimension(axis), axis);
+      NDArray toReturn = NDArrayFactory.DENSE_DOUBLE.zeros(axis, dimension(axis.T()));
       toReturn.mapi(d -> Double.POSITIVE_INFINITY);
       forEach(entry -> {
          if (toReturn.get(entry.get(axis)) > entry.getValue()) {
@@ -1677,13 +1686,13 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     */
    public NDArray slice(int from, int to) {
       if (isRowVector()) {
-         NDArray toReturn = getFactory().zeros(to - from, Axis.ROW);
+         NDArray toReturn = getFactory().zeros(Axis.ROW, to - from);
          for (int i = from; i < to; i++) {
             toReturn.set(i, get(i));
          }
          return toReturn;
       } else if (isColumnVector()) {
-         NDArray toReturn = getFactory().zeros(to - from, Axis.COlUMN);
+         NDArray toReturn = getFactory().zeros(Axis.COlUMN, to - from);
          for (int i = from; i < to; i++) {
             toReturn.set(i, get(i));
          }
@@ -1885,7 +1894,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return An NDArray of the sum
     */
    public NDArray sum(@NonNull Axis axis) {
-      NDArray toReturn = getFactory().zeros(dimension(axis), axis.T());
+      NDArray toReturn = getFactory().zeros(axis, dimension(axis));
       forEachSparse(entry -> toReturn.set(entry.get(axis), toReturn.get(entry.get(axis)) + entry.getValue()));
       return toReturn;
    }

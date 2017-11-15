@@ -2,6 +2,8 @@ package com.davidbracewell.apollo.linear.sparse;
 
 import com.davidbracewell.apollo.linear.NDArray;
 import com.davidbracewell.conversion.Cast;
+import com.davidbracewell.guava.common.base.Preconditions;
+import com.davidbracewell.guava.common.collect.Iterables;
 import com.davidbracewell.guava.common.collect.Iterators;
 import org.apache.mahout.math.function.IntDoubleProcedure;
 
@@ -15,8 +17,8 @@ import java.util.function.Consumer;
  * @author David B. Bracewell
  */
 public class Sparse2dStorage {
-   private final Node[] rows;
-   private final int[] cols;
+   private Node[] rows;
+   private int[] cols;
    private int nRows;
    private int nColums;
    private ArrayList<Node> nodes;
@@ -34,17 +36,18 @@ public class Sparse2dStorage {
       this.rows = new Node[numRows];
    }
 
+
    /**
     * Instantiates a new Sparse 2 d storage.
     *
     * @param columns the columns
     */
-   public Sparse2dStorage(NDArray... columns) {
-      this(columns[0].length(), columns.length);
-      Node[] last = new Node[columns[0].length()];
-      for (int column = 0; column < columns.length; column++) {
+   public Sparse2dStorage(Collection<NDArray> columns) {
+      this(Iterables.getFirst(columns, null).length(), columns.size());
+      Node[] last = new Node[Iterables.getFirst(columns, null).length()];
+      int column = 0;
+      for (NDArray n : columns) {
          List<Node> temp = new ArrayList<>();
-         NDArray n = columns[column];
          for (Iterator<NDArray.Entry> itr = n.sparseIterator(); itr.hasNext(); ) {
             NDArray.Entry e = itr.next();
             int row = e.getIndex();
@@ -65,6 +68,8 @@ public class Sparse2dStorage {
             }
          }
          nodes.addAll(temp);
+
+         column++;
       }
    }
 
@@ -131,7 +136,6 @@ public class Sparse2dStorage {
       }
       return 0d;
    }
-
 
    public NDArray.Entry getSparse(int sparseIndex) {
       return nodes.get(sparseIndex);
@@ -274,6 +278,37 @@ public class Sparse2dStorage {
             }
          }
       }
+   }
+
+   public void reshape(int numRows, int numColumns) {
+      Preconditions.checkArgument(numRows * numColumns == nRows * nColums, "Length cannot change");
+      this.nRows = numRows;
+      this.nColums = numColumns;
+      this.rows = new Node[numRows];
+      this.cols = new int[numColumns];
+      Arrays.fill(this.cols, -1);
+
+      Node[] last = new Node[numRows];
+      for (int i = 0; i < nodes.size(); i++) {
+         Node n = nodes.get(i);
+
+         int r = n.row;
+         int c = n.column;
+
+         if (cols[c] == -1) {
+            cols[c] = i;
+         }
+
+         if (rows[r] == null) {
+            rows[r] = n;
+         }
+         if (last[r] != null) {
+            last[r].nextRow = n;
+         }
+
+         last[r] = n;
+      }
+
    }
 
    /**

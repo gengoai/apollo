@@ -112,6 +112,11 @@ public class SparseDoubleNDArray extends NDArray {
       return this;
    }
 
+   @Override
+   public NDArray reshape(int numRows, int numCols) {
+      storage.reshape(numRows, numCols);
+      return this;
+   }
 
    @Override
    public NDArray set(int r, int c, double value) {

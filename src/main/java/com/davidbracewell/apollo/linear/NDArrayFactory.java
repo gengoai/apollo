@@ -1,6 +1,7 @@
 package com.davidbracewell.apollo.linear;
 
 import com.davidbracewell.apollo.linear.dense.DenseDoubleNDArray;
+import com.davidbracewell.apollo.linear.dense.DenseFloatNDArray;
 import com.davidbracewell.apollo.linear.sparse.Sparse2dStorage;
 import com.davidbracewell.apollo.linear.sparse.SparseDoubleNDArray;
 import com.davidbracewell.apollo.ml.optimization.WeightInitializer;
@@ -9,6 +10,7 @@ import com.davidbracewell.guava.common.base.Preconditions;
 import com.davidbracewell.guava.common.collect.Iterables;
 import lombok.NonNull;
 import org.jblas.DoubleMatrix;
+import org.jblas.FloatMatrix;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -106,6 +108,69 @@ public enum NDArrayFactory {
          Preconditions.checkArgument(c > 0, "c must be > 0");
          return new DenseDoubleNDArray(DoubleMatrix.zeros(r, c));
       }
+   },
+   /**
+    * Factory for creating dense double NDArrays
+    */
+   DENSE_FLOAT {
+      @Override
+      public NDArray hstack(@NonNull Collection<NDArray> columns) {
+         if (columns.isEmpty()) {
+            return empty();
+         } else if (columns.size() == 1) {
+            return Iterables.getOnlyElement(columns).copy();
+         }
+         if (columns.size() == 2) {
+            Iterator<NDArray> itr = columns.iterator();
+            return new DenseFloatNDArray(FloatMatrix.concatHorizontally(itr.next().toFloatMatrix(),
+                                                                        itr.next().toFloatMatrix()));
+         }
+         int l = Iterables.getFirst(columns, null).length();
+         float[] a = new float[l * columns.size()];
+         int i = 0;
+         for (NDArray column : columns) {
+            System.arraycopy(column.toFloatArray(), 0, a, i * l, l);
+            i++;
+         }
+         return new DenseFloatNDArray(new FloatMatrix(l, columns.size(), a));
+      }
+
+      @Override
+      public NDArray copy(@NonNull NDArray array) {
+         if (array instanceof DenseFloatNDArray) {
+            return array.copy();
+         }
+         return zeros(array.numRows(), array.numCols())
+                   .addi(array)
+                   .setLabel(array.getLabel())
+                   .setWeight(array.getWeight())
+                   .setPredicted(array.getPredicted());
+      }
+
+      private float[] convert(double[] in){
+         float[] out = new float[in.length];
+         for (int i = 0; i < in.length; i++) {
+            out[i] = (float)in[i];
+         }
+         return out;
+      }
+
+      @Override
+      public NDArray create(int r, int c, double[] data) {
+         return new DenseFloatNDArray(new FloatMatrix(r, c, convert(data)));
+      }
+
+      @Override
+      public NDArray create(double[] data) {
+         return new DenseFloatNDArray(new FloatMatrix(convert(data)));
+      }
+
+      @Override
+      public NDArray zeros(int r, int c) {
+         Preconditions.checkArgument(r > 0, "r must be > 0");
+         Preconditions.checkArgument(c > 0, "c must be > 0");
+         return new DenseFloatNDArray(FloatMatrix.zeros(r, c));
+      }
    };
 
 
@@ -122,7 +187,7 @@ public enum NDArrayFactory {
       if (DEFAULT_INSTANCE == null) {
          synchronized (NDArrayFactory.class) {
             if (DEFAULT_INSTANCE == null) {
-               DEFAULT_INSTANCE = Config.get("ndarray.factory").as(NDArrayFactory.class, DENSE_DOUBLE);
+               DEFAULT_INSTANCE = Config.get("ndarray.factory").as(NDArrayFactory.class, DENSE_FLOAT);
             }
          }
       }

@@ -2,7 +2,7 @@ package com.davidbracewell.apollo.ml.classification.nn;
 
 import com.davidbracewell.apollo.linear.NDArray;
 import com.davidbracewell.apollo.linear.NDArrayFactory;
-import com.davidbracewell.apollo.ml.optimization.WeightInitializer;
+import com.davidbracewell.apollo.linear.NDArrayInitializer;
 import com.davidbracewell.apollo.ml.optimization.WeightUpdate;
 import com.davidbracewell.tuple.Tuple2;
 import lombok.Getter;
@@ -52,7 +52,7 @@ public class Dropout extends Layer {
 
    @Override
    NDArray forward(NDArray input) {
-      val mask = NDArrayFactory.DEFAULT().create(input.numRows(), input.numCols(), WeightInitializer.RAND())
+      val mask = NDArrayFactory.DEFAULT().create(input.numRows(), input.numCols(), NDArrayInitializer.rand())
                                .test(x -> x < rate);
       return input.mul(mask).divi(rate);
    }

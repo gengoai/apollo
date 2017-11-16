@@ -2,7 +2,7 @@ package com.davidbracewell.apollo.ml.classification.nn;
 
 import com.davidbracewell.apollo.linear.Axis;
 import com.davidbracewell.apollo.linear.NDArray;
-import com.davidbracewell.apollo.ml.optimization.WeightInitializer;
+import com.davidbracewell.apollo.linear.NDArrayInitializer;
 import com.davidbracewell.apollo.ml.optimization.WeightUpdate;
 import com.davidbracewell.apollo.ml.optimization.activation.Activation;
 import com.davidbracewell.apollo.ml.optimization.activation.SigmoidActivation;
@@ -14,8 +14,8 @@ import lombok.val;
  * @author David B. Bracewell
  */
 public class OutputLayer extends WeightLayer {
-   public OutputLayer(int inputSize, int outputSize, Activation activation, WeightInitializer weightInitializer, double l1, double l2) {
-      super(inputSize, outputSize, activation, weightInitializer, l1, l2);
+   public OutputLayer(int inputSize, int outputSize, Activation activation, NDArrayInitializer NDArrayInitializer, double l1, double l2) {
+      super(inputSize, outputSize, activation, NDArrayInitializer, l1, l2);
    }
 
    public OutputLayer(WeightLayer layer) {
@@ -74,7 +74,7 @@ public class OutputLayer extends WeightLayer {
 
       @Override
       public Layer build() {
-         return new OutputLayer(getInputSize(), getOutputSize(), getActivation(), getWeightInitializer(), getL1(),
+         return new OutputLayer(getInputSize(), getOutputSize(), getActivation(), this.getInitializer(), getL1(),
                                 getL2());
       }
    }

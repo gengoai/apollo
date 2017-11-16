@@ -4,7 +4,6 @@ import com.davidbracewell.apollo.linear.dense.DenseDoubleNDArray;
 import com.davidbracewell.apollo.linear.dense.DenseFloatNDArray;
 import com.davidbracewell.apollo.linear.sparse.Sparse2dStorage;
 import com.davidbracewell.apollo.linear.sparse.SparseDoubleNDArray;
-import com.davidbracewell.apollo.ml.optimization.WeightInitializer;
 import com.davidbracewell.config.Config;
 import com.davidbracewell.guava.common.base.Preconditions;
 import com.davidbracewell.guava.common.collect.Iterables;
@@ -232,7 +231,7 @@ public enum NDArrayFactory {
     * @param initializer How to initialize the values in the NDArray
     * @return The NDArray
     */
-   public NDArray create(int i, int j, @NonNull WeightInitializer initializer) {
+   public NDArray create(int i, int j, @NonNull NDArrayInitializer initializer) {
       return initializer.initialize(zeros(i, j));
    }
 
@@ -243,7 +242,7 @@ public enum NDArrayFactory {
     * @param initializer How to initialize the values in the NDArray
     * @return The NDArray
     */
-   public NDArray create(int dimension, @NonNull WeightInitializer initializer) {
+   public NDArray create(int dimension, @NonNull NDArrayInitializer initializer) {
       return initializer.initialize(zeros(dimension));
    }
 
@@ -399,9 +398,9 @@ public enum NDArrayFactory {
       if (dimension.length == 0) {
          return empty();
       } else if (dimension.length == 1) {
-         return create(dimension[0], WeightInitializer.RAND());
+         return create(dimension[0], NDArrayInitializer.rand());
       }
-      return create(dimension[0], dimension[1], WeightInitializer.RAND());
+      return create(dimension[0], dimension[1], NDArrayInitializer.rand());
    }
 
    /**
@@ -414,9 +413,9 @@ public enum NDArrayFactory {
       if (dimension.length == 0) {
          return empty();
       } else if (dimension.length == 1) {
-         return create(dimension[0], WeightInitializer.RANDN());
+         return create(dimension[0], NDArrayInitializer.randn());
       }
-      return create(dimension[0], dimension[1], WeightInitializer.RANDN());
+      return create(dimension[0], dimension[1], NDArrayInitializer.randn());
    }
 
    /**

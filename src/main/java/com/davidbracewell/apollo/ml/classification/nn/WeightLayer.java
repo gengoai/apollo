@@ -3,9 +3,9 @@ package com.davidbracewell.apollo.ml.classification.nn;
 import com.davidbracewell.apollo.linear.Axis;
 import com.davidbracewell.apollo.linear.NDArray;
 import com.davidbracewell.apollo.linear.NDArrayFactory;
+import com.davidbracewell.apollo.linear.NDArrayInitializer;
 import com.davidbracewell.apollo.ml.optimization.GradientParameter;
 import com.davidbracewell.apollo.ml.optimization.LinearModelParameters;
-import com.davidbracewell.apollo.ml.optimization.WeightInitializer;
 import com.davidbracewell.apollo.ml.optimization.WeightUpdate;
 import com.davidbracewell.apollo.ml.optimization.activation.Activation;
 import com.davidbracewell.conversion.Cast;
@@ -28,10 +28,10 @@ public abstract class WeightLayer extends Layer implements LinearModelParameters
    protected NDArray bias;
    protected transient NDArray v;
 
-   public WeightLayer(int inputSize, int outputSize, Activation activation, WeightInitializer weightInitializer, double l1, double l2) {
+   public WeightLayer(int inputSize, int outputSize, Activation activation, NDArrayInitializer NDArrayInitializer, double l1, double l2) {
       super(inputSize, outputSize);
       this.activation = activation;
-      this.weights = NDArrayFactory.DEFAULT().create(outputSize, inputSize, weightInitializer);
+      this.weights = NDArrayFactory.DEFAULT().create(outputSize, inputSize, NDArrayInitializer);
       this.bias = NDArrayFactory.DEFAULT().zeros(outputSize);
       this.v = NDArrayFactory.DEFAULT().zeros(outputSize, inputSize);
       this.l1 = l1;
@@ -146,7 +146,7 @@ public abstract class WeightLayer extends Layer implements LinearModelParameters
       @Getter
       private Activation activation = Activation.SIGMOID;
       @Getter
-      private WeightInitializer weightInitializer = WeightInitializer.DEFAULT;
+      private NDArrayInitializer initializer = NDArrayInitializer.glorotAndBengioSigmoid();
       @Getter
       private double l1 = 0;
       @Getter
@@ -167,8 +167,8 @@ public abstract class WeightLayer extends Layer implements LinearModelParameters
          return Cast.as(this);
       }
 
-      public T weightInitializer(@NonNull WeightInitializer weightInitializer) {
-         this.weightInitializer = weightInitializer;
+      public T weightInitializer(@NonNull NDArrayInitializer initializer) {
+         this.initializer = initializer;
          return Cast.as(this);
       }
 

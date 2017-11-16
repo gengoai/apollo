@@ -109,7 +109,7 @@ public enum NDArrayFactory {
       }
    },
    /**
-    * Factory for creating dense double NDArrays
+    * Factory for creating dense float NDArrays
     */
    DENSE_FLOAT {
       @Override

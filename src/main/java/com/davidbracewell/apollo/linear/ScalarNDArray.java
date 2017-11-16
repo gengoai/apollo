@@ -7,11 +7,19 @@ import java.util.Collections;
 import java.util.Iterator;
 
 /**
+ * 1x1 NDArray implementation
+ *
  * @author David B. Bracewell
  */
-public class ScalarNDArray extends NDArray {
+public final class ScalarNDArray extends NDArray {
+   private static final long serialVersionUID = 1L;
    private double value;
 
+   /**
+    * Instantiates a new Scalar NDArray.
+    *
+    * @param value the value
+    */
    public ScalarNDArray(double value) {
       this.value = value;
    }
@@ -26,12 +34,6 @@ public class ScalarNDArray extends NDArray {
       Preconditions.checkPositionIndex(index, 1);
       return value;
    }
-
-   @Override
-   public NDArray reshape(int numRows, int numCols) {
-      throw new IllegalStateException();
-   }
-
 
    @Override
    public double get(int i, int j) {
@@ -67,6 +69,21 @@ public class ScalarNDArray extends NDArray {
    }
 
    @Override
+   public int numCols() {
+      return 1;
+   }
+
+   @Override
+   public int numRows() {
+      return 1;
+   }
+
+   @Override
+   public NDArray reshape(int numRows, int numCols) {
+      throw new IllegalStateException();
+   }
+
+   @Override
    public NDArray set(int index, double value) {
       Preconditions.checkPositionIndex(index, 1);
       this.value = value;
@@ -92,16 +109,6 @@ public class ScalarNDArray extends NDArray {
    }
 
    @Override
-   public int numCols() {
-      return 1;
-   }
-
-   @Override
-   public int numRows() {
-      return 1;
-   }
-
-   @Override
    public double[][] to2DArray() {
       return new double[][]{{value}};
    }
@@ -116,7 +123,10 @@ public class ScalarNDArray extends NDArray {
       return "[" + Double.toString(value) + "]";
    }
 
-   class ScalarEntry implements NDArray.Entry {
+   /**
+    * The type Scalar entry.
+    */
+   private class ScalarEntry implements NDArray.Entry {
 
       @Override
       public int getI() {

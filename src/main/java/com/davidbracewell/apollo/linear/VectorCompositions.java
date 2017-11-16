@@ -99,6 +99,9 @@ public enum VectorCompositions implements VectorComposition {
          return toReturn;
       }
    },
+   /**
+    * Concatenates the vectors together and runs svd over them.
+    */
    SVD {
       @Override
       public NDArray compose(@NonNull Collection<NDArray> vectors) {

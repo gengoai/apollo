@@ -16,7 +16,8 @@ import java.util.function.Consumer;
  *
  * @author David B. Bracewell
  */
-public class Sparse2dStorage {
+public class Sparse2dStorage implements Serializable {
+   private static final long serialVersionUID = 1L;
    private Node[] rows;
    private int[] cols;
    private int nRows;
@@ -428,6 +429,7 @@ public class Sparse2dStorage {
    }
 
    private class Node implements NDArray.Entry, Serializable, Comparable<Node> {
+      private static final long serialVersionUID = 1L;
       private final int index;
       private final int row;
       private final int column;

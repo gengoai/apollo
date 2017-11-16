@@ -5,11 +5,12 @@ import com.davidbracewell.apollo.stat.measure.Measure;
 import com.davidbracewell.apollo.stat.measure.Similarity;
 import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.guava.common.base.Preconditions;
-import com.davidbracewell.io.Commitable;
 import lombok.Getter;
 import lombok.NonNull;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * The interface Vector store builder.
@@ -17,27 +18,15 @@ import java.io.IOException;
  * @param <KEY> the type parameter
  * @author David B. Bracewell
  */
-public abstract class VectorStoreBuilder<KEY> implements Commitable {
+public abstract class VectorStoreBuilder<KEY> {
    /**
-    * The Dimension.
+    * The Vectors.
     */
+   protected final Map<KEY, NDArray> vectors = new HashMap<>();
    @Getter
-   private final int dimension;
-   /**
-    * The Measure.
-    */
+   private int dimension = 100;
    @Getter
    private Measure measure = Similarity.Cosine;
-
-   /**
-    * Instantiates a new Vector store builder.
-    *
-    * @param dimension the dimension
-    */
-   protected VectorStoreBuilder(int dimension) {
-      Preconditions.checkArgument(dimension > 0, "Vector dimension must be > 0");
-      this.dimension = dimension;
-   }
 
    /**
     * Add a vector to the vector store.
@@ -46,7 +35,7 @@ public abstract class VectorStoreBuilder<KEY> implements Commitable {
     * @return this vector store builder
     * @throws NullPointerException if the vector or its key is null
     */
-   public VectorStoreBuilder<KEY> add(@NonNull NDArray vector) {
+   public final VectorStoreBuilder<KEY> add(@NonNull NDArray vector) {
       return add(vector.getLabel(), vector);
    }
 
@@ -58,7 +47,10 @@ public abstract class VectorStoreBuilder<KEY> implements Commitable {
     * @return the vector store builder
     * @throws NullPointerException if the vector or its key is null
     */
-   public abstract VectorStoreBuilder<KEY> add(KEY key, NDArray vector);
+   public final VectorStoreBuilder<KEY> add(@NonNull KEY key, @NonNull NDArray vector) {
+      vectors.put(key, vector.copy().setLabel(key));
+      return this;
+   }
 
    /**
     * Adds all vectors in the given iterable to the vector store
@@ -67,7 +59,7 @@ public abstract class VectorStoreBuilder<KEY> implements Commitable {
     * @return this vector store builder
     * @throws NullPointerException if the vectors or their keys are null
     */
-   public VectorStoreBuilder<KEY> addAll(@NonNull Iterable<NDArray> vectors) {
+   public final VectorStoreBuilder<KEY> addAll(@NonNull Iterable<NDArray> vectors) {
       vectors.forEach(this::add);
       return this;
    }
@@ -79,6 +71,18 @@ public abstract class VectorStoreBuilder<KEY> implements Commitable {
     * @throws IOException Something went wrong finalizing the build
     */
    public abstract VectorStore<KEY> build() throws IOException;
+
+   /**
+    * Sets the dimension of the vectors
+    *
+    * @param dimension the dimension
+    * @return the vector store builder
+    */
+   public final VectorStoreBuilder<KEY> dimension(int dimension) {
+      Preconditions.checkArgument(dimension > 0, "Dimension must be > 0");
+      this.dimension = dimension;
+      return this;
+   }
 
    /**
     * Sets the measure used for doing nearest neighbor queries
@@ -98,7 +102,9 @@ public abstract class VectorStoreBuilder<KEY> implements Commitable {
     * @return the vector associated with the key or null if no vector is assigned to that key
     * @throws NullPointerException if the key is null
     */
-   public abstract NDArray remove(KEY key);
+   public final NDArray remove(@NonNull KEY key) {
+      return vectors.remove(key);
+   }
 
    /**
     * Removes the given vector from the store.
@@ -107,7 +113,7 @@ public abstract class VectorStoreBuilder<KEY> implements Commitable {
     * @return True if the vector was removed, False if not
     * @throws NullPointerException if the vector or its label is null
     */
-   public boolean remove(@NonNull NDArray vector) {
+   public final boolean remove(@NonNull NDArray vector) {
       return remove(Cast.<KEY>as(vector.getLabel())) != null;
    }
 

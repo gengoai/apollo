@@ -44,6 +44,7 @@ public class InMemoryLSHVectorStore<KEY> extends LSHVectorStore<KEY> {
    private final OpenIntObjectHashMap<NDArray> vectorIDMap = new OpenIntObjectHashMap<>();
    private final OpenObjectIntHashMap<KEY> keys = new OpenObjectIntHashMap<>();
 
+
    /**
     * Instantiates a new in-memory LSH vector store
     *

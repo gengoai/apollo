@@ -57,7 +57,11 @@ public class DefaultVectorStore<KEY> implements VectorStore<KEY>, Serializable {
    }
 
    public static <KEY> VectorStoreBuilder<KEY> builder(int dimension) {
-      return new DefaultVectorStoreBuilder<>(dimension);
+      return new Builder<KEY>().dimension(dimension);
+   }
+
+   public static <KEY> VectorStoreBuilder<KEY> builder() {
+      return new Builder<>();
    }
 
    @Override
@@ -151,42 +155,13 @@ public class DefaultVectorStore<KEY> implements VectorStore<KEY>, Serializable {
       return vectorMap.size();
    }
 
-   public static class DefaultVectorStoreBuilder<KEY> extends VectorStoreBuilder<KEY> {
-      final Map<KEY, NDArray> vectors = new HashMap<>();
-
-      /**
-       * Instantiates a new Vector store builder.
-       *
-       * @param dimension the dimension
-       */
-      public DefaultVectorStoreBuilder(int dimension) {
-         super(dimension);
-      }
-
-      @Override
-      public VectorStoreBuilder<KEY> add(@NonNull KEY key, @NonNull NDArray vector) {
-         Preconditions.checkArgument(vector.length() == getDimension(),
-                                     "Vector dimension does not match the vector store's dimension");
-         vectors.put(key, vector);
-         return this;
-      }
-
+   public static class Builder<KEY> extends VectorStoreBuilder<KEY> {
       @Override
       public VectorStore<KEY> build() throws IOException {
          DefaultVectorStore<KEY> vs = new DefaultVectorStore<>(getDimension(), getMeasure());
          vs.vectorMap.putAll(vectors);
          return vs;
       }
-
-      @Override
-      public void commit() {
-
-      }
-
-      @Override
-      public NDArray remove(@NonNull KEY key) {
-         return vectors.remove(key);
-      }
-   }// END OF DefaultVectorStoreBuilder
+   }// END OF Builder
 
 }//END OF DefaultVectorStore

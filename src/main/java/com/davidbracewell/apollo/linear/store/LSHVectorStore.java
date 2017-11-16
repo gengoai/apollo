@@ -25,9 +25,11 @@ import com.davidbracewell.apollo.hash.LSH;
 import com.davidbracewell.apollo.linear.NDArray;
 import com.davidbracewell.apollo.stat.measure.Measure;
 import com.davidbracewell.guava.common.collect.MinMaxPriorityQueue;
+import lombok.Getter;
 import lombok.NonNull;
 import org.apache.mahout.math.set.OpenIntHashSet;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -179,5 +181,26 @@ public abstract class LSHVectorStore<KEY> implements VectorStore<KEY>, Serializa
 
    @Override
    public abstract int size();
+
+   public static class Builder<KEY> extends VectorStoreBuilder<KEY> {
+      private final LSH.Builder lshBuilder;
+      @Getter
+      private int bands = 5;
+      @Getter
+      private int buckets = 20;
+
+      public Builder(LSH.Builder lshBuilder) {
+         this.lshBuilder = lshBuilder;
+      }
+
+
+      @Override
+      public VectorStore<KEY> build() throws IOException {
+         return lshBuilder.bands(bands)
+                          .buckets(buckets)
+                          .dimension(getDimension())
+                          .createVectorStore();
+      }
+   }
 
 }// END OF LSHVectorStore

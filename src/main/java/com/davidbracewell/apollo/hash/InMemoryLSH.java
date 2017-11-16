@@ -19,8 +19,10 @@
  * under the License.
  */
 
-package com.davidbracewell.apollo.linear.store;
+package com.davidbracewell.apollo.hash;
 
+import com.davidbracewell.apollo.linear.store.InMemoryLSHVectorStore;
+import com.davidbracewell.apollo.linear.store.VectorStore;
 import com.davidbracewell.guava.common.base.Preconditions;
 import lombok.NonNull;
 import org.apache.mahout.math.set.OpenIntHashSet;

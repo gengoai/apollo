@@ -21,6 +21,7 @@
 
 package com.davidbracewell.apollo.linear.store;
 
+import com.davidbracewell.apollo.hash.LSH;
 import com.davidbracewell.apollo.linear.NDArray;
 import com.davidbracewell.apollo.stat.measure.Measure;
 import com.davidbracewell.guava.common.collect.MinMaxPriorityQueue;

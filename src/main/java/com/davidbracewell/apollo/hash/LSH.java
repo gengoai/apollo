@@ -19,10 +19,11 @@
  * under the License.
  */
 
-package com.davidbracewell.apollo.linear.store;
+package com.davidbracewell.apollo.hash;
 
 import com.davidbracewell.apollo.Optimum;
 import com.davidbracewell.apollo.linear.NDArray;
+import com.davidbracewell.apollo.linear.store.VectorStore;
 import com.davidbracewell.apollo.stat.measure.Measure;
 import lombok.Getter;
 import lombok.NonNull;

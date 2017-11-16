@@ -23,8 +23,8 @@ package com.davidbracewell.apollo.ml.embedding;
 
 import com.davidbracewell.Math2;
 import com.davidbracewell.apollo.linear.NDArrayFactory;
-import com.davidbracewell.apollo.linear.store.CosineSignature;
-import com.davidbracewell.apollo.linear.store.InMemoryLSH;
+import com.davidbracewell.apollo.hash.CosineSignature;
+import com.davidbracewell.apollo.hash.InMemoryLSH;
 import com.davidbracewell.apollo.linear.store.VectorStore;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.data.Dataset;

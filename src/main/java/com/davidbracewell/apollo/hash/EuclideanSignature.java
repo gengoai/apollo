@@ -19,7 +19,7 @@
  * under the License.
  */
 
-package com.davidbracewell.apollo.linear.store;
+package com.davidbracewell.apollo.hash;
 
 import com.davidbracewell.apollo.linear.NDArray;
 import com.davidbracewell.apollo.linear.NDArrayFactory;

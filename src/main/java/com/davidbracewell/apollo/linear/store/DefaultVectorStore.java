@@ -27,6 +27,7 @@ import com.davidbracewell.guava.common.base.Preconditions;
 import com.davidbracewell.guava.common.collect.Iterators;
 import lombok.NonNull;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -53,6 +54,10 @@ public class DefaultVectorStore<KEY> implements VectorStore<KEY>, Serializable {
       Preconditions.checkArgument(dimension > 0, "Dimension must be > 0");
       this.dimension = dimension;
       this.queryMeasure = queryMeasure;
+   }
+
+   public static <KEY> VectorStoreBuilder<KEY> builder(int dimension) {
+      return new DefaultVectorStoreBuilder<>(dimension);
    }
 
    @Override
@@ -145,5 +150,43 @@ public class DefaultVectorStore<KEY> implements VectorStore<KEY>, Serializable {
    public int size() {
       return vectorMap.size();
    }
+
+   public static class DefaultVectorStoreBuilder<KEY> extends VectorStoreBuilder<KEY> {
+      final Map<KEY, NDArray> vectors = new HashMap<>();
+
+      /**
+       * Instantiates a new Vector store builder.
+       *
+       * @param dimension the dimension
+       */
+      public DefaultVectorStoreBuilder(int dimension) {
+         super(dimension);
+      }
+
+      @Override
+      public VectorStoreBuilder<KEY> add(@NonNull KEY key, @NonNull NDArray vector) {
+         Preconditions.checkArgument(vector.length() == getDimension(),
+                                     "Vector dimension does not match the vector store's dimension");
+         vectors.put(key, vector);
+         return this;
+      }
+
+      @Override
+      public VectorStore<KEY> build() throws IOException {
+         DefaultVectorStore<KEY> vs = new DefaultVectorStore<>(getDimension(), getMeasure());
+         vs.vectorMap.putAll(vectors);
+         return vs;
+      }
+
+      @Override
+      public void commit() {
+
+      }
+
+      @Override
+      public NDArray remove(@NonNull KEY key) {
+         return vectors.remove(key);
+      }
+   }// END OF DefaultVectorStoreBuilder
 
 }//END OF DefaultVectorStore

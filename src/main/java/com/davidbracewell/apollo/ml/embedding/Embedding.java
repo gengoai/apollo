@@ -2,9 +2,9 @@ package com.davidbracewell.apollo.ml.embedding;
 
 import com.davidbracewell.apollo.linear.NDArray;
 import com.davidbracewell.apollo.linear.NDArrayFactory;
-import com.davidbracewell.apollo.linear.store.CosineSignature;
+import com.davidbracewell.apollo.hash.CosineSignature;
 import com.davidbracewell.apollo.linear.store.DefaultVectorStore;
-import com.davidbracewell.apollo.linear.store.InMemoryLSH;
+import com.davidbracewell.apollo.hash.InMemoryLSH;
 import com.davidbracewell.apollo.linear.store.VectorStore;
 import com.davidbracewell.apollo.ml.Model;
 import com.davidbracewell.apollo.ml.encoder.EncoderPair;

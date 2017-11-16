@@ -21,6 +21,7 @@
 
 package com.davidbracewell.apollo.linear.store;
 
+import com.davidbracewell.apollo.hash.InMemoryLSH;
 import com.davidbracewell.apollo.linear.NDArray;
 import lombok.NonNull;
 import org.apache.mahout.math.map.OpenIntObjectHashMap;

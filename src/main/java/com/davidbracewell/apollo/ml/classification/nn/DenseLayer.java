@@ -24,6 +24,11 @@ public class DenseLayer extends WeightLayer {
       return new Builder().activation(Activation.SIGMOID);
    }
 
+   public static Builder linear() {
+      return new Builder().activation(Activation.LINEAR);
+   }
+
+
    @Override
    public Layer copy() {
       return new DenseLayer(this);

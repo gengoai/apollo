@@ -33,6 +33,10 @@ public class FeedForwardNetwork extends Classifier {
       super(preprocessors, encoderPair);
    }
 
+   public Layer getLayer(int i){
+      return layers.get(i);
+   }
+
    @Override
    public Classification classify(NDArray vector) {
       for (Layer layer : layers) {

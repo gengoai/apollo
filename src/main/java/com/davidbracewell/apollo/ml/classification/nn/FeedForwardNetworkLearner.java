@@ -92,23 +92,17 @@ public class FeedForwardNetworkLearner extends ClassifierLearner implements Logg
    @Override
    protected Classifier trainImpl(Dataset<Instance> dataset) {
       FeedForwardNetwork network = new FeedForwardNetwork(this);
-      BatchIterator data = new BatchIterator(dataset);
+
       buildNetwork(network, network.numberOfFeatures(), network.numberOfLabels());
       TerminationCriteria terminationCriteria = TerminationCriteria.create()
                                                                    .maxIterations(maxIterations)
                                                                    .tolerance(tolerance)
                                                                    .historySize(3);
       final int effectiveBatchSize = batchSize <= 0 ? 1 : batchSize;
-//      try {
-//         dataset.close();
-//      } catch (Exception e) {
-//         e.printStackTrace();
-//      }
-
       Backprop bp = new Backprop();
       bp.setBatchSize(batchSize);
       bp.optimize(network,
-                  dataset.vectorStream(true),
+                  dataset.vectorStream(false),
                   new FeedForwardCostFunction(lossFunction),
                   terminationCriteria,
                   weightUpdate,
@@ -116,6 +110,8 @@ public class FeedForwardNetworkLearner extends ClassifierLearner implements Logg
       if (Math.random() > 0) {
          return network;
       }
+
+      BatchIterator data = new BatchIterator(dataset);
       List<List<WeightUpdate>> threadedWeightUpdates = new ArrayList<>();
       for (int j = 0; j < 4; j++) {
          threadedWeightUpdates.add(new ArrayList<>());

@@ -4,6 +4,7 @@ import com.davidbracewell.apollo.linear.dense.DenseDoubleNDArray;
 import com.davidbracewell.apollo.linear.dense.DenseFloatNDArray;
 import com.davidbracewell.apollo.linear.sparse.Sparse2dStorage;
 import com.davidbracewell.apollo.linear.sparse.SparseDoubleNDArray;
+import com.davidbracewell.apollo.linear.sparse.SparseVector;
 import com.davidbracewell.config.Config;
 import com.davidbracewell.guava.common.base.Preconditions;
 import com.davidbracewell.guava.common.collect.Iterables;
@@ -19,6 +20,36 @@ import java.util.Iterator;
  * Factory methods for creating <code>NDArray</code>s.
  */
 public enum NDArrayFactory {
+   SPARSE_VECTOR {
+      @Override
+      public NDArray copy(NDArray array) {
+         if (array instanceof SparseVector) {
+            return array.copy();
+         }
+         return zeros(array.numRows(), array.numCols())
+                   .addi(array)
+                   .setLabel(array.getLabel())
+                   .setWeight(array.getWeight())
+                   .setPredicted(array.getPredicted());
+      }
+
+      @Override
+      public NDArray hstack(Collection<NDArray> columns) {
+         NDArray toReturn = zeros(Iterables.getFirst(columns, null).numRows(), columns.size());
+         int c = 0;
+         for (NDArray column : columns) {
+            final int ci = c;
+            column.sparseIterator().forEachRemaining(e -> toReturn.set(e.getIndex(), ci, e.getValue()));
+            c++;
+         }
+         return toReturn;
+      }
+
+      @Override
+      public NDArray zeros(int r, int c) {
+         return new SparseVector(r, c);
+      }
+   },
    /**
     * Factory for creating sparse double NDArrays
     */
@@ -146,10 +177,10 @@ public enum NDArrayFactory {
                    .setPredicted(array.getPredicted());
       }
 
-      private float[] convert(double[] in){
+      private float[] convert(double[] in) {
          float[] out = new float[in.length];
          for (int i = 0; i < in.length; i++) {
-            out[i] = (float)in[i];
+            out[i] = (float) in[i];
          }
          return out;
       }

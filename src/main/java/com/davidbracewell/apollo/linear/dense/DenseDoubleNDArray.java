@@ -49,6 +49,11 @@ public class DenseDoubleNDArray extends NDArray {
    }
 
    @Override
+   public int size() {
+      return length();
+   }
+
+   @Override
    public NDArray addi(double scalar) {
       storage.addi(scalar);
       return this;

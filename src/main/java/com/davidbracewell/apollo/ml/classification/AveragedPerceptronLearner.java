@@ -94,11 +94,13 @@ public class AveragedPerceptronLearner extends BinaryClassifierLearner {
 
    @Override
    protected Classifier trainForLabel(Dataset<Instance> dataset, double trueLabel) {
-      LinearModel model = new LinearModel(this);
+      LinearModel model = new LinearModel(this, true);
 
       totalWeights = NDArrayFactory.DEFAULT().zeros(model.numberOfFeatures());
       stamps = NDArrayFactory.DEFAULT().zeros(model.numberOfFeatures());
+      model.bias = NDArrayFactory.DEFAULT().scalar(1);
       model.weights = NDArrayFactory.DEFAULT().zeros(model.numberOfFeatures());
+      model.activation = Activation.LINEAR;
 
       double c = 1d;
       double oldError = 0;
@@ -107,7 +109,7 @@ public class AveragedPerceptronLearner extends BinaryClassifierLearner {
          double error = 0;
          double count = 0;
          for (Instance instance : dataset) {
-            NDArray v = instance.toVector(getEncoderPair());
+            NDArray v = instance.toVector(model.getEncoderPair());
             count++;
             double y = convertY(v.getLabel(), trueLabel);
             double yHat = model.classify(v).getEncodedResult();

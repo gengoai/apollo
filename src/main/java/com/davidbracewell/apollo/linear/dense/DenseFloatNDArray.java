@@ -50,6 +50,11 @@ public class DenseFloatNDArray extends NDArray {
    }
 
    @Override
+   public int size() {
+      return length();
+   }
+
+   @Override
    public float[] toFloatArray() {
       return storage.data;
    }

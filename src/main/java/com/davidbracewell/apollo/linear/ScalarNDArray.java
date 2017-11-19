@@ -99,6 +99,11 @@ public final class ScalarNDArray extends NDArray {
    }
 
    @Override
+   public int size() {
+      return 1;
+   }
+
+   @Override
    public Iterator<Entry> sparseColumnIterator(int column) {
       return Iterators.filter(iterator(), e -> e.getValue() != 0);
    }

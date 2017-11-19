@@ -89,6 +89,11 @@ public final class EmptyNDArray extends NDArray {
    }
 
    @Override
+   public int size() {
+      return 0;
+   }
+
+   @Override
    public Iterator<Entry> sparseColumnIterator(int column) {
       return Collections.emptyIterator();
    }

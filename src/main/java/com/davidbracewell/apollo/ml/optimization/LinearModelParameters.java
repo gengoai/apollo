@@ -24,7 +24,7 @@ public interface LinearModelParameters  {
    NDArray getWeights();
 
    default boolean isBinary() {
-      return numberOfLabels() == 2;
+      return numberOfLabels() <= 2;
    }
 
    int numberOfFeatures();

@@ -413,9 +413,11 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
    public double dot(@NonNull NDArray other) {
       checkLengthMatch(length(), other.length());
       double dot = 0d;
-      for (Iterator<Entry> itr = sparseIterator(); itr.hasNext(); ) {
+      NDArray small = size() > other.size() ? other : this;
+      NDArray big = size() > other.size() ? this : other;
+      for (Iterator<Entry> itr = small.sparseIterator(); itr.hasNext(); ) {
          Entry e = itr.next();
-         dot += e.getValue() * other.get(e.getIndex());
+         dot += e.getValue() * big.get(e.getIndex());
       }
       return dot;
    }
@@ -1672,9 +1674,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     *
     * @return the sparse size of the NDArray
     */
-   public int size() {
-      return length();
-   }
+   public abstract int size();
 
    /**
     * Slices vector-based NDArrays using the given range of indexes (inclusive from, exclusive to)

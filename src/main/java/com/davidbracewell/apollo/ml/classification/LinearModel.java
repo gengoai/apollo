@@ -45,7 +45,7 @@ public class LinearModel extends Classifier implements LinearModelParameters {
          }
          return createResult(dist);
       }
-      return createResult(activation.apply(weights.T().mmul(vector).addi(bias)).toArray());
+      return createResult(activation.apply(weights.mmul(vector).addi(bias)).toArray());
    }
 
 //   @Override

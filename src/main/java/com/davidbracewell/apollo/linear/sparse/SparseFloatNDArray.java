@@ -2,29 +2,24 @@ package com.davidbracewell.apollo.linear.sparse;
 
 import com.davidbracewell.apollo.linear.NDArray;
 import com.davidbracewell.apollo.linear.NDArrayFactory;
+import org.apache.mahout.math.function.IntDoubleProcedure;
 import org.apache.mahout.math.list.IntArrayList;
 import org.apache.mahout.math.map.OpenIntFloatHashMap;
-
-import java.util.BitSet;
-import java.util.Iterator;
 
 /**
  * @author David B. Bracewell
  */
-public class SparseFloatNDArray extends NDArray {
+public class SparseFloatNDArray extends SparseNDArray {
+   private static final long serialVersionUID = 1L;
    private final OpenIntFloatHashMap storage = new OpenIntFloatHashMap();
-   private int nRows;
-   private int nCols;
-   private BitSet bits;
 
    public SparseFloatNDArray(int nRows, int nCols) {
-      this.nRows = nRows;
-      bits = new BitSet(nRows * nCols);
-      this.nCols = nCols;
+      super(nRows, nCols);
    }
 
-   private void add(int index) {
-      bits.set(index);
+   @Override
+   protected double adjustOrPutValue(int index, double amount) {
+      return storage.adjustOrPutValue(index, (float) amount, (float) amount);
    }
 
    @Override
@@ -34,26 +29,11 @@ public class SparseFloatNDArray extends NDArray {
    }
 
    @Override
-   protected NDArray copyData() {
-      SparseFloatNDArray sv = new SparseFloatNDArray(nRows, nCols);
-      storage.forEachPair((i, v) -> {
-         sv.storage.put(i, v);
+   protected void forEachPair(IntDoubleProcedure procedure) {
+      storage.forEachPair((index, value) -> {
+         procedure.apply(index, value);
          return true;
       });
-      sv.bits.or(bits);
-      return sv;
-   }
-
-   @Override
-   public NDArray decrement(int index, double amount) {
-      double v = storage.adjustOrPutValue(index, (float) -amount, (float) -amount);
-      if (v == 0) {
-         storage.removeKey(index);
-         remove(index);
-      } else {
-         add(index);
-      }
-      return this;
    }
 
    @Override
@@ -61,10 +41,6 @@ public class SparseFloatNDArray extends NDArray {
       return storage.get(index);
    }
 
-   @Override
-   public double get(int i, int j) {
-      return storage.get(toIndex(i, j));
-   }
 
    @Override
    public NDArrayFactory getFactory() {
@@ -72,90 +48,18 @@ public class SparseFloatNDArray extends NDArray {
    }
 
    @Override
-   public NDArray increment(int index, double amount) {
-      double v = storage.adjustOrPutValue(index, (float) amount, (float) amount);
-      if (v == 0) {
-         storage.removeKey(index);
-         remove(index);
-      } else {
-         add(index);
-      }
-      return this;
+   protected IntArrayList nonZeroIndexes() {
+      return storage.keys();
    }
 
    @Override
-   public boolean isSparse() {
-      return true;
+   protected void removeIndex(int index) {
+      storage.removeKey(index);
    }
 
    @Override
-   public Iterator<Entry> iterator() {
-      return new Iterator<Entry>() {
-         int i = 0;
-
-         @Override
-         public boolean hasNext() {
-            return i < length();
-         }
-
-         @Override
-         public Entry next() {
-            Entry e = new EntryImpl(i);
-            i++;
-            return e;
-         }
-      };
-   }
-
-   @Override
-   public NDArray mmul(NDArray other) {
-      NDArray toReturn = getFactory().zeros(numRows(), other.numCols());
-      storage.forEachPair((index, value) -> {
-         int row = toRow(index);
-         int column = toColumn(index);
-         other.sparseRowIterator(column)
-              .forEachRemaining(e2 -> toReturn.increment(row, e2.getJ(), e2.getValue() * value));
-         return true;
-      });
-      return toReturn;
-   }
-
-   @Override
-   public int numCols() {
-      return nCols;
-   }
-
-   @Override
-   public int numRows() {
-      return nRows;
-   }
-
-   private void remove(int index) {
-      bits.set(index, false);
-   }
-
-   @Override
-   public NDArray reshape(int numRows, int numCols) {
-      this.nCols = numCols;
-      this.nRows = numRows;
-      return this;
-   }
-
-   @Override
-   public NDArray set(int index, double value) {
-      if (value == 0) {
-         storage.removeKey(index);
-         remove(index);
-      } else {
-         storage.put(index, (float) value);
-         add(index);
-      }
-      return this;
-   }
-
-   @Override
-   public NDArray set(int r, int c, double value) {
-      return set(toIndex(r, c), value);
+   protected void setValue(int index, double value) {
+      storage.put(index, (float) value);
    }
 
    @Override
@@ -163,144 +67,5 @@ public class SparseFloatNDArray extends NDArray {
       return storage.size();
    }
 
-   @Override
-   public Iterator<Entry> sparseColumnIterator(int column) {
-      return new Iterator<Entry>() {
-         int i = 0;
 
-         private boolean advance() {
-            while (i < nRows && !bits.get(toIndex(i, nCols))) {
-               i++;
-            }
-            return i < nCols;
-         }
-
-         @Override
-         public boolean hasNext() {
-            return advance();
-         }
-
-         @Override
-         public Entry next() {
-            advance();
-            int r = i;
-            i++;
-            return new EntryImpl(toIndex(r, column));
-         }
-      };
-   }
-
-   @Override
-   public Iterator<Entry> sparseIterator() {
-      return new Iterator<Entry>() {
-         int i = 0;
-         IntArrayList keys = storage.keys();
-
-
-         @Override
-         public boolean hasNext() {
-            return i < keys.size();
-         }
-
-         @Override
-         public Entry next() {
-            Entry e = new EntryImpl(keys.get(i));
-            i++;
-            return e;
-         }
-      };
-   }
-
-   @Override
-   public Iterator<Entry> sparseOrderedIterator() {
-      final IntArrayList keys = storage.keys();
-      keys.sort();
-      return new Iterator<Entry>() {
-         int i = 0;
-
-         @Override
-         public boolean hasNext() {
-            return i < keys.size();
-         }
-
-         @Override
-         public Entry next() {
-            Entry e = new EntryImpl(keys.get(i));
-            i++;
-            return e;
-         }
-      };
-   }
-
-   @Override
-   public Iterator<Entry> sparseRowIterator(int row) {
-      return new Iterator<Entry>() {
-         int i = 0;
-
-         private boolean advance() {
-            while (i < nCols && !bits.get(toIndex(row, i))) {
-               i++;
-            }
-            return i < nCols;
-         }
-
-         @Override
-         public boolean hasNext() {
-            return advance();
-         }
-
-         @Override
-         public Entry next() {
-            advance();
-            int c = i;
-            i++;
-            return new EntryImpl(toIndex(row, c));
-         }
-      };
-   }
-
-   private class EntryImpl implements Entry {
-      final int r;
-      final int c;
-      final int index;
-
-      private EntryImpl(int index) {
-         this.index = index;
-         this.r = toRow(index);
-         this.c = toColumn(index);
-      }
-
-      @Override
-      public int getI() {
-         return r;
-      }
-
-      @Override
-      public int getIndex() {
-         return index;
-      }
-
-      @Override
-      public int getJ() {
-         return c;
-      }
-
-      @Override
-      public double getValue() {
-         return storage.get(index);
-      }
-
-      @Override
-      public void setValue(double value) {
-         set(index, value);
-      }
-
-      @Override
-      public String toString() {
-         return String.format("(%d, %d, %f)", r, c, getValue());
-      }
-
-   }
-
-
-}//END OF SparseVector
+}//END OF SparseFloatNDArray

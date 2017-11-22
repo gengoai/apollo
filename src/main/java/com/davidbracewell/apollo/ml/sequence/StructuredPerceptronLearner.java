@@ -97,8 +97,8 @@ public class StructuredPerceptronLearner extends SequenceLabelerLearner {
       model.weights = new NDArray[nC];
       cWeights = new NDArray[nC];
       for (int i = 0; i < nC; i++) {
-         model.weights[i] = NDArrayFactory.SPARSE_DOUBLE_OLD.zeros(model.numberOfFeatures());
-         cWeights[i] = NDArrayFactory.SPARSE_DOUBLE_OLD.zeros(model.numberOfFeatures());
+         model.weights[i] = NDArrayFactory.SPARSE_FLOAT.zeros(model.numberOfFeatures());
+         cWeights[i] = NDArrayFactory.SPARSE_FLOAT.zeros(model.numberOfFeatures());
       }
 
 

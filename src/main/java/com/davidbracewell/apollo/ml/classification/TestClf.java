@@ -23,14 +23,14 @@ public class TestClf extends ClassifierLearner {
    protected Classifier trainImpl(Dataset<Instance> dataset) {
       LinearModel model = new LinearModel(this);
       val vectors = dataset.asVectors().collect();
-      model.weights = NDArrayFactory.SPARSE_DOUBLE_OLD.zeros(model.numberOfLabels(), model.numberOfFeatures());
-      model.bias = NDArrayFactory.SPARSE_DOUBLE_OLD.zeros(model.numberOfLabels());
+      model.weights = NDArrayFactory.SPARSE_FLOAT.zeros(model.numberOfLabels(), model.numberOfFeatures());
+      model.bias = NDArrayFactory.SPARSE_FLOAT.zeros(model.numberOfLabels());
       model.activation = Activation.SOFTMAX;
       double learningRate = 1;
 
       NDArray[] weights = new NDArray[model.numberOfLabels()];
       for (int i = 0; i < weights.length; i++) {
-         weights[i] = NDArrayFactory.SPARSE_DOUBLE_OLD.zeros(model.numberOfFeatures());
+         weights[i] = NDArrayFactory.SPARSE_FLOAT.zeros(model.numberOfFeatures());
       }
 
       CrossEntropyLoss loss = new CrossEntropyLoss();

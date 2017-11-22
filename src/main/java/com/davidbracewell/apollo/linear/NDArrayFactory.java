@@ -2,10 +2,9 @@ package com.davidbracewell.apollo.linear;
 
 import com.davidbracewell.apollo.linear.dense.DenseDoubleNDArray;
 import com.davidbracewell.apollo.linear.dense.DenseFloatNDArray;
-import com.davidbracewell.apollo.linear.sparse.Sparse2dStorage;
 import com.davidbracewell.apollo.linear.sparse.SparseDoubleNDArray;
-import com.davidbracewell.apollo.linear.sparse.SparseDoubleNDArrayOld;
 import com.davidbracewell.apollo.linear.sparse.SparseFloatNDArray;
+import com.davidbracewell.apollo.linear.sparse.SparseIntNDArray;
 import com.davidbracewell.config.Config;
 import com.davidbracewell.guava.common.base.Preconditions;
 import com.davidbracewell.guava.common.collect.Iterables;
@@ -21,6 +20,9 @@ import java.util.Iterator;
  * Factory methods for creating <code>NDArray</code>s.
  */
 public enum NDArrayFactory {
+   /**
+    * Factory for creating sparse double NDArrays
+    */
    SPARSE_DOUBLE {
       private final Class<?> clazz = SparseDoubleNDArray.class;
 
@@ -34,6 +36,25 @@ public enum NDArrayFactory {
          return new SparseDoubleNDArray(r, c);
       }
    },
+   /**
+    * Factory for creating sparse int NDArrays
+    */
+   SPARSE_INT {
+      private final Class<?> clazz = SparseIntNDArray.class;
+
+      @Override
+      protected Class<?> getImplementationClass() {
+         return clazz;
+      }
+
+      @Override
+      public NDArray zeros(int r, int c) {
+         return new SparseIntNDArray(r, c);
+      }
+   },
+   /**
+    * Factory for creating sparse float NDArrays
+    */
    SPARSE_FLOAT {
       private final Class<?> clazz = SparseDoubleNDArray.class;
 
@@ -46,35 +67,6 @@ public enum NDArrayFactory {
       public NDArray zeros(int r, int c) {
          return new SparseFloatNDArray(r, c);
       }
-   },
-   /**
-    * Factory for creating sparse double NDArrays
-    */
-   SPARSE_DOUBLE_OLD {
-      private final Class<?> clazz = SparseDoubleNDArrayOld.class;
-
-      @Override
-      protected Class<?> getImplementationClass() {
-         return clazz;
-      }
-
-      @Override
-      public NDArray hstack(@NonNull Collection<NDArray> columns) {
-         if (columns.isEmpty()) {
-            return empty();
-         } else if (columns.size() == 1) {
-            return Iterables.getOnlyElement(columns).copy();
-         }
-         return new SparseDoubleNDArrayOld(new Sparse2dStorage(columns));
-      }
-
-      @Override
-      public NDArray zeros(int r, int c) {
-         Preconditions.checkArgument(r > 0, "r must be > 0");
-         Preconditions.checkArgument(c > 0, "c must be > 0");
-         return new SparseDoubleNDArrayOld(r, c);
-      }
-
    },
    /**
     * Factory for creating dense double NDArrays

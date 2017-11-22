@@ -4,7 +4,8 @@ import com.davidbracewell.apollo.linear.dense.DenseDoubleNDArray;
 import com.davidbracewell.apollo.linear.dense.DenseFloatNDArray;
 import com.davidbracewell.apollo.linear.sparse.Sparse2dStorage;
 import com.davidbracewell.apollo.linear.sparse.SparseDoubleNDArray;
-import com.davidbracewell.apollo.linear.sparse.SparseVector;
+import com.davidbracewell.apollo.linear.sparse.SparseDoubleNDArrayOld;
+import com.davidbracewell.apollo.linear.sparse.SparseFloatNDArray;
 import com.davidbracewell.config.Config;
 import com.davidbracewell.guava.common.base.Preconditions;
 import com.davidbracewell.guava.common.collect.Iterables;
@@ -20,40 +21,43 @@ import java.util.Iterator;
  * Factory methods for creating <code>NDArray</code>s.
  */
 public enum NDArrayFactory {
-   SPARSE_VECTOR {
-      @Override
-      public NDArray copy(NDArray array) {
-         if (array instanceof SparseVector) {
-            return array.copy();
-         }
-         return zeros(array.numRows(), array.numCols())
-                   .addi(array)
-                   .setLabel(array.getLabel())
-                   .setWeight(array.getWeight())
-                   .setPredicted(array.getPredicted());
-      }
+   SPARSE_DOUBLE {
+      private final Class<?> clazz = SparseDoubleNDArray.class;
 
       @Override
-      public NDArray hstack(Collection<NDArray> columns) {
-         NDArray toReturn = zeros(Iterables.getFirst(columns, null).numRows(), columns.size());
-         int c = 0;
-         for (NDArray column : columns) {
-            final int ci = c;
-            column.sparseIterator().forEachRemaining(e -> toReturn.set(e.getIndex(), ci, e.getValue()));
-            c++;
-         }
-         return toReturn;
+      protected Class<?> getImplementationClass() {
+         return clazz;
       }
 
       @Override
       public NDArray zeros(int r, int c) {
-         return new SparseVector(r, c);
+         return new SparseDoubleNDArray(r, c);
+      }
+   },
+   SPARSE_FLOAT {
+      private final Class<?> clazz = SparseDoubleNDArray.class;
+
+      @Override
+      protected Class<?> getImplementationClass() {
+         return clazz;
+      }
+
+      @Override
+      public NDArray zeros(int r, int c) {
+         return new SparseFloatNDArray(r, c);
       }
    },
    /**
     * Factory for creating sparse double NDArrays
     */
-   SPARSE_DOUBLE {
+   SPARSE_DOUBLE_OLD {
+      private final Class<?> clazz = SparseDoubleNDArrayOld.class;
+
+      @Override
+      protected Class<?> getImplementationClass() {
+         return clazz;
+      }
+
       @Override
       public NDArray hstack(@NonNull Collection<NDArray> columns) {
          if (columns.isEmpty()) {
@@ -61,26 +65,14 @@ public enum NDArrayFactory {
          } else if (columns.size() == 1) {
             return Iterables.getOnlyElement(columns).copy();
          }
-         return new SparseDoubleNDArray(new Sparse2dStorage(columns));
-      }
-
-      @Override
-      public NDArray copy(@NonNull NDArray array) {
-         if (array instanceof SparseDoubleNDArray) {
-            return array.copy();
-         }
-         return zeros(array.numRows(), array.numCols())
-                   .addi(array)
-                   .setLabel(array.getLabel())
-                   .setWeight(array.getWeight())
-                   .setPredicted(array.getPredicted());
+         return new SparseDoubleNDArrayOld(new Sparse2dStorage(columns));
       }
 
       @Override
       public NDArray zeros(int r, int c) {
          Preconditions.checkArgument(r > 0, "r must be > 0");
          Preconditions.checkArgument(c > 0, "c must be > 0");
-         return new SparseDoubleNDArray(r, c);
+         return new SparseDoubleNDArrayOld(r, c);
       }
 
    },
@@ -88,6 +80,14 @@ public enum NDArrayFactory {
     * Factory for creating dense double NDArrays
     */
    DENSE_DOUBLE {
+      private final Class<?> clazz = DenseDoubleNDArray.class;
+
+      @Override
+      protected Class<?> getImplementationClass() {
+         return clazz;
+      }
+
+
       @Override
       public NDArray hstack(@NonNull Collection<NDArray> columns) {
          if (columns.isEmpty()) {
@@ -111,18 +111,6 @@ public enum NDArrayFactory {
       }
 
       @Override
-      public NDArray copy(@NonNull NDArray array) {
-         if (array instanceof DenseDoubleNDArray) {
-            return array.copy();
-         }
-         return zeros(array.numRows(), array.numCols())
-                   .addi(array)
-                   .setLabel(array.getLabel())
-                   .setWeight(array.getWeight())
-                   .setPredicted(array.getPredicted());
-      }
-
-      @Override
       public NDArray create(int r, int c, double[] data) {
          return new DenseDoubleNDArray(new DoubleMatrix(r, c, data));
       }
@@ -143,6 +131,13 @@ public enum NDArrayFactory {
     * Factory for creating dense float NDArrays
     */
    DENSE_FLOAT {
+      private final Class<?> clazz = DenseFloatNDArray.class;
+
+      @Override
+      protected Class<?> getImplementationClass() {
+         return clazz;
+      }
+
       @Override
       public NDArray hstack(@NonNull Collection<NDArray> columns) {
          if (columns.isEmpty()) {
@@ -163,18 +158,6 @@ public enum NDArrayFactory {
             i++;
          }
          return new DenseFloatNDArray(new FloatMatrix(l, columns.size(), a));
-      }
-
-      @Override
-      public NDArray copy(@NonNull NDArray array) {
-         if (array instanceof DenseFloatNDArray) {
-            return array.copy();
-         }
-         return zeros(array.numRows(), array.numCols())
-                   .addi(array)
-                   .setLabel(array.getLabel())
-                   .setWeight(array.getWeight())
-                   .setPredicted(array.getPredicted());
       }
 
       private float[] convert(double[] in) {
@@ -252,7 +235,16 @@ public enum NDArrayFactory {
     * @param array the array to copy
     * @return the NDArray
     */
-   public abstract NDArray copy(NDArray array);
+   public NDArray copy(@NonNull NDArray array) {
+      if (getImplementationClass().isInstance(array)) {
+         return array.copy();
+      }
+      return zeros(array.numRows(), array.numCols())
+                .addi(array)
+                .setLabel(array.getLabel())
+                .setWeight(array.getWeight())
+                .setPredicted(array.getPredicted());
+   }
 
    /**
     * Creates a new NDArray of given shape and initializes using the given initializer
@@ -362,6 +354,8 @@ public enum NDArrayFactory {
       return toReturn;
    }
 
+   protected abstract Class<?> getImplementationClass();
+
    /**
     * Concatenates a series of column vectors into a single NDArray
     *
@@ -378,7 +372,19 @@ public enum NDArrayFactory {
     * @param columns columns to concatenate
     * @return the NDArray
     */
-   public abstract NDArray hstack(@NonNull Collection<NDArray> columns);
+   public NDArray hstack(@NonNull Collection<NDArray> columns) {
+      if (columns.size() == 1) {
+         return copy(columns.iterator().next());
+      }
+      NDArray toReturn = zeros(columns.iterator().next().numRows(), columns.size());
+      int c = 0;
+      for (NDArray column : columns) {
+         final int ci = c;
+         column.sparseIterator().forEachRemaining(e -> toReturn.set(e.getIndex(), ci, e.getValue()));
+         c++;
+      }
+      return toReturn;
+   }
 
    /**
     * Creates an NDArray with the given dimensions filled with ones.

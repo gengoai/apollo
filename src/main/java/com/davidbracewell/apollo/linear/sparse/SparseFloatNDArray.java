@@ -3,7 +3,7 @@ package com.davidbracewell.apollo.linear.sparse;
 import com.davidbracewell.apollo.linear.NDArray;
 import com.davidbracewell.apollo.linear.NDArrayFactory;
 import org.apache.mahout.math.list.IntArrayList;
-import org.apache.mahout.math.map.OpenIntDoubleHashMap;
+import org.apache.mahout.math.map.OpenIntFloatHashMap;
 
 import java.util.BitSet;
 import java.util.Iterator;
@@ -11,13 +11,13 @@ import java.util.Iterator;
 /**
  * @author David B. Bracewell
  */
-public class SparseVector extends NDArray {
-   private final OpenIntDoubleHashMap storage = new OpenIntDoubleHashMap();
+public class SparseFloatNDArray extends NDArray {
+   private final OpenIntFloatHashMap storage = new OpenIntFloatHashMap();
    private int nRows;
    private int nCols;
    private BitSet bits;
 
-   public SparseVector(int nRows, int nCols) {
+   public SparseFloatNDArray(int nRows, int nCols) {
       this.nRows = nRows;
       bits = new BitSet(nRows * nCols);
       this.nCols = nCols;
@@ -35,7 +35,7 @@ public class SparseVector extends NDArray {
 
    @Override
    protected NDArray copyData() {
-      SparseVector sv = new SparseVector(nRows, nCols);
+      SparseFloatNDArray sv = new SparseFloatNDArray(nRows, nCols);
       storage.forEachPair((i, v) -> {
          sv.storage.put(i, v);
          return true;
@@ -46,7 +46,7 @@ public class SparseVector extends NDArray {
 
    @Override
    public NDArray decrement(int index, double amount) {
-      double v = storage.adjustOrPutValue(index, -amount, -amount);
+      double v = storage.adjustOrPutValue(index, (float) -amount, (float) -amount);
       if (v == 0) {
          storage.removeKey(index);
          remove(index);
@@ -68,12 +68,12 @@ public class SparseVector extends NDArray {
 
    @Override
    public NDArrayFactory getFactory() {
-      return NDArrayFactory.SPARSE_VECTOR;
+      return NDArrayFactory.SPARSE_FLOAT;
    }
 
    @Override
    public NDArray increment(int index, double amount) {
-      double v = storage.adjustOrPutValue(index, amount, amount);
+      double v = storage.adjustOrPutValue(index, (float) amount, (float) amount);
       if (v == 0) {
          storage.removeKey(index);
          remove(index);
@@ -147,7 +147,7 @@ public class SparseVector extends NDArray {
          storage.removeKey(index);
          remove(index);
       } else {
-         storage.put(index, value);
+         storage.put(index, (float) value);
          add(index);
       }
       return this;
@@ -259,7 +259,7 @@ public class SparseVector extends NDArray {
       };
    }
 
-   private class EntryImpl implements NDArray.Entry {
+   private class EntryImpl implements Entry {
       final int r;
       final int c;
       final int index;

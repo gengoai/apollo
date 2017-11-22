@@ -92,11 +92,11 @@ public class GibbsLDA extends Clusterer<LDAModel> {
       if (sampleLag > 0) {
          thetasum = new NDArray[M];
          for (int m = 0; m < M; m++) {
-            thetasum[m] = NDArrayFactory.SPARSE_DOUBLE.zeros(K);
+            thetasum[m] = NDArrayFactory.SPARSE_DOUBLE_OLD.zeros(K);
          }
          phisum = new NDArray[K];
          for (int k = 0; k < K; k++) {
-            phisum[k] = NDArrayFactory.SPARSE_DOUBLE.zeros(V);
+            phisum[k] = NDArrayFactory.SPARSE_DOUBLE_OLD.zeros(V);
          }
       }
 

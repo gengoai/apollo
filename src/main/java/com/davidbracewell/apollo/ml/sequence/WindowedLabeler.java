@@ -34,7 +34,7 @@ public class WindowedLabeler extends SequenceLabeler {
 
    @Override
    public double[] estimate(Iterator<Feature> observation, Iterator<String> transitions) {
-      NDArray vector = NDArrayFactory.SPARSE_VECTOR.zeros(numberOfFeatures());
+      NDArray vector = NDArrayFactory.SPARSE_DOUBLE.zeros(numberOfFeatures());
       observation.forEachRemaining(f -> {
          int index = (int) encodeFeature(f.getFeatureName());
          if (index >= 0) {

@@ -8,5 +8,4 @@ public class SparseDoubleNDArrayTest extends BaseNDArrayTest {
    public SparseDoubleNDArrayTest() {
       super(NDArrayFactory.SPARSE_DOUBLE);
    }
-
-}// END OF SparseDoubleNDArrayTest
+}// END OF SparseVectorTest

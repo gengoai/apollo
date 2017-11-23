@@ -1,14 +1,15 @@
 package com.davidbracewell.apollo.ml.classification.nn;
 
-import com.davidbracewell.apollo.optimization.WeightInitializer;
-import com.davidbracewell.apollo.optimization.activation.Activation;
+
+import com.davidbracewell.apollo.linear.NDArrayInitializer;
+import com.davidbracewell.apollo.ml.optimization.activation.Activation;
 
 /**
  * @author David B. Bracewell
  */
 public class DenseLayer extends WeightLayer {
-   public DenseLayer(int inputSize, int outputSize, Activation activation, WeightInitializer weightInitializer, double l1, double l2) {
-      super(inputSize, outputSize, activation, weightInitializer, l1, l2);
+   public DenseLayer(int inputSize, int outputSize, Activation activation, NDArrayInitializer NDArrayInitializer, double l1, double l2) {
+      super(inputSize, outputSize, activation, NDArrayInitializer, l1, l2);
    }
 
    public DenseLayer(WeightLayer layer) {
@@ -23,18 +24,23 @@ public class DenseLayer extends WeightLayer {
       return new Builder().activation(Activation.SIGMOID);
    }
 
-   public static class Builder extends WeightLayerBuilder<DenseLayer.Builder> {
-
-      @Override
-      public Layer build() {
-         return new DenseLayer(getInputSize(), getOutputSize(), getActivation(), getWeightInitializer(), getL1(),
-                               getL2());
-      }
+   public static Builder linear() {
+      return new Builder().activation(Activation.LINEAR);
    }
+
 
    @Override
    public Layer copy() {
       return new DenseLayer(this);
+   }
+
+   public static class Builder extends WeightLayerBuilder<DenseLayer.Builder> {
+
+      @Override
+      public Layer build() {
+         return new DenseLayer(getInputSize(), getOutputSize(), getActivation(), this.getInitializer(), getL1(),
+                               getL2());
+      }
    }
 
 }// END OF DenseLayer

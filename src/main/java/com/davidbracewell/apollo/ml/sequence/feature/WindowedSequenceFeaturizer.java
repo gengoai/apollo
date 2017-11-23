@@ -22,13 +22,13 @@
 package com.davidbracewell.apollo.ml.sequence.feature;
 
 import com.davidbracewell.apollo.ml.Feature;
-import com.davidbracewell.apollo.ml.PredicateFeaturizer;
+import com.davidbracewell.apollo.ml.featurizer.PredicateFeaturizer;
 import com.davidbracewell.apollo.ml.sequence.Context;
 import com.davidbracewell.apollo.ml.sequence.SequenceFeaturizer;
 import lombok.NonNull;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.davidbracewell.apollo.ml.sequence.Sequence.BOS;
 import static com.davidbracewell.apollo.ml.sequence.Sequence.EOS;
@@ -76,8 +76,8 @@ public class WindowedSequenceFeaturizer<E> implements SequenceFeaturizer<E> {
 
 
    @Override
-   public Set<Feature> apply(Context<E> iterator) {
-      Set<Feature> features = new HashSet<>();
+   public List<Feature> apply(Context<E> iterator) {
+      List<Feature> features = new ArrayList<>();
       final String prefix = featurizer.getPrefix();
 
       features.add(Feature.TRUE(prefix + "[0]", featurizer.extractPredicate(iterator.getCurrent())));

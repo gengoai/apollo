@@ -34,14 +34,14 @@ import java.io.Serializable;
  */
 public class ApacheDistanceMeasure implements DistanceMeasure, Serializable {
    private static final long serialVersionUID = 1L;
-   private final com.davidbracewell.apollo.affinity.DistanceMeasure wrapped;
+   private final com.davidbracewell.apollo.stat.measure.DistanceMeasure wrapped;
 
    /**
     * Instantiates a new Apache distance measure.
     *
     * @param wrapped the wrapped distance measure
     */
-   public ApacheDistanceMeasure(@NonNull com.davidbracewell.apollo.affinity.DistanceMeasure wrapped) {
+   public ApacheDistanceMeasure(@NonNull com.davidbracewell.apollo.stat.measure.DistanceMeasure wrapped) {
       this.wrapped = wrapped;
    }
 
@@ -55,7 +55,7 @@ public class ApacheDistanceMeasure implements DistanceMeasure, Serializable {
     *
     * @return the wrapped distance measure
     */
-   public com.davidbracewell.apollo.affinity.DistanceMeasure getWrapped() {
+   public com.davidbracewell.apollo.stat.measure.DistanceMeasure getWrapped() {
       return wrapped;
    }
 }// END OF ApacheDistanceMeasure

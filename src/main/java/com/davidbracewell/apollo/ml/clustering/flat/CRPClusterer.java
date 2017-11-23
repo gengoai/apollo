@@ -21,10 +21,10 @@
 
 package com.davidbracewell.apollo.ml.clustering.flat;
 
-import com.davidbracewell.apollo.affinity.DistanceMeasure;
-import com.davidbracewell.apollo.linalg.Vector;
+import com.davidbracewell.apollo.linear.NDArray;
 import com.davidbracewell.apollo.ml.clustering.Cluster;
 import com.davidbracewell.apollo.ml.clustering.Clusterer;
+import com.davidbracewell.apollo.stat.measure.DistanceMeasure;
 import com.davidbracewell.collection.counter.Counter;
 import com.davidbracewell.collection.counter.Counters;
 import com.davidbracewell.guava.common.base.Preconditions;
@@ -55,7 +55,7 @@ public class CRPClusterer extends Clusterer<FlatClustering> {
    private double alpha;
    @Getter
    private DistanceMeasure distanceMeasure;
-   private Table<Vector, Vector, Double> distanceMatrix;
+   private Table<NDArray, NDArray, Double> distanceMatrix;
 
    /**
     * Instantiates a new CRP clusterer.
@@ -70,19 +70,19 @@ public class CRPClusterer extends Clusterer<FlatClustering> {
    }
 
    @Override
-   public FlatClustering cluster(@NonNull MStream<Vector> instanceStream) {
-      List<Vector> instances = instanceStream.collect();
+   public FlatClustering cluster(@NonNull MStream<NDArray> instanceStream) {
+      List<NDArray> instances = instanceStream.collect();
       distanceMatrix = HashBasedTable.create();
       List<Cluster> clusters = new ArrayList<>();
       clusters.add(new Cluster());
       clusters.get(0).addPoint(instances.get(0));
-      Map<Vector, Integer> assignments = new HashMap<>();
+      Map<NDArray, Integer> assignments = new HashMap<>();
       assignments.put(instances.get(0), 0);
 
       int report = instances.size() / 10;
 
       for (int i = 1; i < instances.size(); i++) {
-         Vector ii = instances.get(i);
+         NDArray ii = instances.get(i);
          Counter<Integer> distances = Counters.newCounter();
          for (int ci = 0; ci < clusters.size(); ci++) {
             distances.set(ci, distance(ii, clusters.get(ci)));
@@ -113,7 +113,7 @@ public class CRPClusterer extends Clusterer<FlatClustering> {
 
       int numP = instances.size() - 1;
       for (int i = 0; i < 200; i++) {
-         Vector ii = instances.get((int) Math.floor(Math.random() % instances.size()));
+         NDArray ii = instances.get((int) Math.floor(Math.random() % instances.size()));
          Integer cci = assignments.remove(ii);
          clusters.get(cci).getPoints().remove(ii);
          Counter<Integer> distances = Counters.newCounter();
@@ -143,15 +143,15 @@ public class CRPClusterer extends Clusterer<FlatClustering> {
       return clustering;
    }
 
-   private double distance(Vector ii, Cluster cluster) {
+   private double distance(NDArray ii, Cluster cluster) {
       double max = Double.NEGATIVE_INFINITY;
-      for (Vector jj : cluster) {
+      for (NDArray jj : cluster) {
          max = Math.max(max, distance(ii, jj));
       }
       return max;
    }
 
-   private double distance(Vector ii, Vector jj) {
+   private double distance(NDArray ii, NDArray jj) {
       if (distanceMatrix.contains(ii, jj)) {
          return distanceMatrix.get(ii, jj);
       } else if (distanceMatrix.contains(jj, ii)) {

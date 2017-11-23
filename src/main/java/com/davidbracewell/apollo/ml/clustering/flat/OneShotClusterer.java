@@ -22,10 +22,10 @@
 package com.davidbracewell.apollo.ml.clustering.flat;
 
 
-import com.davidbracewell.apollo.affinity.DistanceMeasure;
-import com.davidbracewell.apollo.linalg.Vector;
+import com.davidbracewell.apollo.linear.NDArray;
 import com.davidbracewell.apollo.ml.clustering.Cluster;
 import com.davidbracewell.apollo.ml.clustering.Clusterer;
+import com.davidbracewell.apollo.stat.measure.DistanceMeasure;
 import com.davidbracewell.guava.common.base.Preconditions;
 import com.davidbracewell.stream.MStream;
 import lombok.Getter;
@@ -63,11 +63,11 @@ public class OneShotClusterer extends Clusterer<FlatClustering> {
    }
 
    @Override
-   public FlatClustering cluster(@NonNull MStream<Vector> instanceStream) {
+   public FlatClustering cluster(@NonNull MStream<NDArray> instanceStream) {
       OneShotClustering clustering = new OneShotClustering(this, distanceMeasure);
 
-      List<Vector> instances = instanceStream.collect();
-      for (Vector ii : instances) {
+      List<NDArray> instances = instanceStream.collect();
+      for (NDArray ii : instances) {
          double minD = Double.POSITIVE_INFINITY;
          int minI = 0;
          for (int k = 0; k < clustering.size(); k++) {
@@ -99,9 +99,9 @@ public class OneShotClusterer extends Clusterer<FlatClustering> {
    }
 
 
-   private double distance(Vector ii, Cluster cluster) {
+   private double distance(NDArray ii, Cluster cluster) {
       double d = 0;
-      for (Vector jj : cluster) {
+      for (NDArray jj : cluster) {
          d += distanceMeasure.calculate(ii, jj);
       }
       return d / (double) cluster.size();

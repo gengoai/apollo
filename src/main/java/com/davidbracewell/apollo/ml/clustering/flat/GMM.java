@@ -1,12 +1,12 @@
 package com.davidbracewell.apollo.ml.clustering.flat;
 
-import com.davidbracewell.apollo.affinity.Measure;
-import com.davidbracewell.apollo.linalg.DenseVector;
+import com.davidbracewell.apollo.Optimum;
+import com.davidbracewell.apollo.linear.NDArrayFactory;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.clustering.Cluster;
 import com.davidbracewell.apollo.ml.clustering.Clusterer;
 import com.davidbracewell.apollo.ml.clustering.Clustering;
-import com.davidbracewell.apollo.optimization.Optimum;
+import com.davidbracewell.apollo.stat.measure.Measure;
 import com.davidbracewell.guava.common.base.Preconditions;
 import org.apache.commons.math3.distribution.MultivariateNormalDistribution;
 
@@ -29,7 +29,7 @@ public class GMM extends Clustering {
    public Cluster get(int index) {
       Preconditions.checkElementIndex(index, components.size());
       Cluster c = new Cluster();
-      c.setCentroid(DenseVector.wrap(components.get(index).sample()));
+      c.setCentroid(NDArrayFactory.wrap(components.get(index).sample()));
       return c;
    }
 

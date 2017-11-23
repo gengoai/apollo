@@ -1,7 +1,8 @@
 package com.davidbracewell.apollo.ml.classification.nn;
 
 import com.davidbracewell.Copyable;
-import com.davidbracewell.apollo.linalg.Matrix;
+import com.davidbracewell.apollo.linear.NDArray;
+import com.davidbracewell.apollo.ml.optimization.WeightUpdate;
 import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.tuple.Tuple2;
 import lombok.Getter;
@@ -29,11 +30,11 @@ public abstract class Layer implements Serializable, Copyable<Layer> {
     * @param delta  the delta
     * @return the vector
     */
-   public abstract Matrix backward(Matrix input, Matrix output, Matrix delta, double learningRate, int layerIndex, int iteration);
+   public abstract NDArray backward(NDArray input, NDArray output, NDArray delta, double learningRate, int layerIndex, int iteration);
 
-   public abstract Tuple2<Matrix, Double> backward(WeightUpdate updater, Matrix input, Matrix output, Matrix delta, int iteration, boolean calcuateDelta);
+   public abstract Tuple2<NDArray, Double> backward(WeightUpdate updater, NDArray input, NDArray output, NDArray delta, int iteration, boolean calcuateDelta);
 
-   public abstract BackpropResult backward(Matrix input, Matrix output, Matrix delta, boolean calculateDelta);
+   public abstract BackpropResult backward(NDArray input, NDArray output, NDArray delta, boolean calculateDelta);
 
    /**
     * Forward vector.
@@ -41,13 +42,19 @@ public abstract class Layer implements Serializable, Copyable<Layer> {
     * @param input the input
     * @return the vector
     */
-   abstract Matrix forward(Matrix input);
+   abstract NDArray forward(NDArray input);
+
+   public abstract NDArray getBias();
+
+   public abstract NDArray getWeights();
 
    public boolean trainOnly() {
       return false;
    }
 
-   public abstract double update(WeightUpdate weightUpdate, Matrix wGrad, Matrix bBrad, int iteration);
+   public abstract double update(WeightUpdate weightUpdate, NDArray wGrad, NDArray bBrad, int iteration);
+
+   public abstract void update(NDArray[] weights, NDArray[] bias);
 
    protected static abstract class LayerBuilder<T extends LayerBuilder> implements Serializable {
       private static final long serialVersionUID = 1L;
@@ -69,13 +76,6 @@ public abstract class Layer implements Serializable, Copyable<Layer> {
          return Cast.as(this);
       }
    }
-
-   public abstract Matrix getWeights();
-
-   public abstract Matrix getBias();
-
-
-   public abstract void update(Matrix[] weights, Matrix[] bias);
 
 
 }// END OF Layer

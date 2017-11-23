@@ -1,8 +1,8 @@
 package com.davidbracewell.apollo.ml.clustering.hierarchical;
 
-import com.davidbracewell.apollo.affinity.Measure;
-import com.davidbracewell.apollo.linalg.Vector;
+import com.davidbracewell.apollo.linear.NDArray;
 import com.davidbracewell.apollo.ml.clustering.Cluster;
+import com.davidbracewell.apollo.stat.measure.Measure;
 import lombok.NonNull;
 
 import java.util.ArrayList;
@@ -64,7 +64,7 @@ public enum Linkage {
     */
    public final double calculate(@NonNull Cluster c1, @NonNull Cluster c2, @NonNull Measure distanceMeasure) {
       List<Double> distances = new ArrayList<>();
-      for (Vector t1 : flatten(c1)) {
+      for (NDArray t1 : flatten(c1)) {
          distances.addAll(flatten(c2).stream()
                                      .map(t2 -> distanceMeasure.calculate(t1, t2))
                                      .collect(Collectors.toList()));
@@ -80,7 +80,7 @@ public enum Linkage {
     * @param distanceMeasure the distance measure to use
     * @return the linkage metric
     */
-   public final double calculate(@NonNull Vector v, @NonNull Cluster cluster, @NonNull Measure distanceMeasure) {
+   public final double calculate(@NonNull NDArray v, @NonNull Cluster cluster, @NonNull Measure distanceMeasure) {
       return calculate(cluster.getPoints().stream().mapToDouble(v2 -> distanceMeasure.calculate(v, v2)));
    }
 
@@ -90,14 +90,14 @@ public enum Linkage {
     * @param c the cluster
     * @return the list of vectors
     */
-   protected List<Vector> flatten(Cluster c) {
+   protected List<NDArray> flatten(Cluster c) {
       if (c == null) {
          return Collections.emptyList();
       }
       if (!c.getPoints().isEmpty()) {
          return c.getPoints();
       }
-      List<Vector> list = new ArrayList<>();
+      List<NDArray> list = new ArrayList<>();
       list.addAll(flatten(c.getLeft()));
       list.addAll(flatten(c.getRight()));
       return list;

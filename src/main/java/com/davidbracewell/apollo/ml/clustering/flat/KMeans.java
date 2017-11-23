@@ -22,12 +22,13 @@
 package com.davidbracewell.apollo.ml.clustering.flat;
 
 
-import com.davidbracewell.apollo.affinity.Distance;
-import com.davidbracewell.apollo.affinity.DistanceMeasure;
-import com.davidbracewell.apollo.linalg.SparseVector;
-import com.davidbracewell.apollo.linalg.Vector;
+import com.davidbracewell.apollo.linear.NDArray;
+import com.davidbracewell.apollo.linear.NDArrayFactory;
 import com.davidbracewell.apollo.ml.clustering.Cluster;
 import com.davidbracewell.apollo.ml.clustering.Clusterer;
+import com.davidbracewell.apollo.linear.NDArrayInitializer;
+import com.davidbracewell.apollo.stat.measure.Distance;
+import com.davidbracewell.apollo.stat.measure.DistanceMeasure;
 import com.davidbracewell.guava.common.base.Preconditions;
 import com.davidbracewell.stream.MStream;
 import lombok.Getter;
@@ -87,18 +88,18 @@ public class KMeans extends Clusterer<FlatClustering> {
    }
 
    @Override
-   public FlatCentroidClustering cluster(@NonNull MStream<Vector> instanceStream) {
+   public FlatCentroidClustering cluster(@NonNull MStream<NDArray> instanceStream) {
       FlatCentroidClustering clustering = new FlatCentroidClustering(this, distanceMeasure);
 
-      List<Vector> instances = instanceStream.collect();
-      for (Vector centroid : initCentroids(instances)) {
+      List<NDArray> instances = instanceStream.collect();
+      for (NDArray centroid : initCentroids(instances)) {
          Cluster c = new Cluster();
          c.setId(c.size());
          c.setCentroid(centroid);
          clustering.addCluster(c);
       }
 
-      Map<Vector, Integer> assignment = new ConcurrentHashMap<>();
+      Map<NDArray, Integer> assignment = new ConcurrentHashMap<>();
 
       final AtomicLong numMoved = new AtomicLong(0);
       for (int itr = 0; itr < maxIterations; itr++) {
@@ -131,15 +132,16 @@ public class KMeans extends Clusterer<FlatClustering> {
          for (int i = 0; i < K; i++) {
             clustering.get(i).getPoints().removeIf(Objects::isNull);
             if (clustering.get(i).size() == 0) {
-               clustering.get(i).setCentroid(SparseVector.random(instances.get(0).dimension(), -1, 1));
+               clustering.get(i).setCentroid(
+                  NDArrayFactory.DEFAULT().create(instances.get(0).length(), NDArrayInitializer.rand(-1, 1)));
             } else {
-               Vector c = clustering.get(i).getCentroid().zero();
-               for (Vector ii : clustering.get(i)) {
+               NDArray c = clustering.get(i).getCentroid().zero();
+               for (NDArray ii : clustering.get(i)) {
                   if (ii != null) {
-                     c.addSelf(ii);
+                     c.addi(ii);
                   }
                }
-               c.mapDivideSelf((double) clustering.get(i).size());
+               c.divi((double) clustering.get(i).size());
             }
          }
       }
@@ -165,20 +167,20 @@ public class KMeans extends Clusterer<FlatClustering> {
       return clustering;
    }
 
-   private Vector[] initCentroids(List<Vector> instances) {
-      Vector[] centroids = new Vector[K];
+   private NDArray[] initCentroids(List<NDArray> instances) {
+      NDArray[] centroids = new NDArray[K];
       for (int i = 0; i < K; i++) {
-         centroids[i] = new SparseVector(instances.get(0).dimension());
+         centroids[i] = NDArrayFactory.DEFAULT().zeros(instances.get(0).length());
       }
       double[] cnts = new double[K];
       Random rnd = new Random();
-      for (Vector ii : instances) {
+      for (NDArray ii : instances) {
          int ci = rnd.nextInt(K);
-         centroids[ci].addSelf(ii);
+         centroids[ci].addi(ii);
          cnts[ci]++;
       }
       for (int i = 0; i < K; i++) {
-         centroids[i].mapDivideSelf(cnts[i]);
+         centroids[i].divi(cnts[i]);
       }
       return centroids;
    }

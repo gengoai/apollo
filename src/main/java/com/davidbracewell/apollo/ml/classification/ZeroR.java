@@ -1,6 +1,6 @@
 package com.davidbracewell.apollo.ml.classification;
 
-import com.davidbracewell.apollo.linalg.Vector;
+import com.davidbracewell.apollo.linear.NDArray;
 import com.davidbracewell.collection.counter.HashMapMultiCounter;
 import com.davidbracewell.collection.counter.MultiCounter;
 
@@ -19,7 +19,7 @@ public class ZeroR extends Classifier {
 
 
    @Override
-   public Classification classify(Vector vector) {
+   public Classification classify(NDArray vector) {
       return new Classification(distribution, getLabelEncoder());
    }
 

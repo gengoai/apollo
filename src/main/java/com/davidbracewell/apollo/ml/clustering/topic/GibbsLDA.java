@@ -1,12 +1,11 @@
 package com.davidbracewell.apollo.ml.clustering.topic;
 
-import com.davidbracewell.apollo.affinity.Similarity;
-import com.davidbracewell.apollo.distribution.ConditionalMultinomial;
-import com.davidbracewell.apollo.linalg.Matrices;
-import com.davidbracewell.apollo.linalg.SparseVector;
-import com.davidbracewell.apollo.linalg.Vector;
+import com.davidbracewell.apollo.linear.NDArray;
+import com.davidbracewell.apollo.linear.NDArrayFactory;
 import com.davidbracewell.apollo.ml.clustering.Cluster;
 import com.davidbracewell.apollo.ml.clustering.Clusterer;
+import com.davidbracewell.apollo.stat.distribution.ConditionalMultinomial;
+import com.davidbracewell.apollo.stat.measure.Similarity;
 import com.davidbracewell.collection.Collect;
 import com.davidbracewell.logging.Logger;
 import com.davidbracewell.stream.MStream;
@@ -60,16 +59,16 @@ public class GibbsLDA extends Clusterer<LDAModel> {
    private ConditionalMultinomial nd;
    private int V;
    private int M;
-   private Matrices documentMatrix;
+   private NDArray documentMatrix;
    private int[][] documents;
    private int[][] z;
-   private Vector[] thetasum;
-   private Vector[] phisum;
+   private NDArray[] thetasum;
+   private NDArray[] phisum;
    private int numstats = 0;
 
    @Override
-   public LDAModel cluster(@NonNull MStream<Vector> instanceStream) {
-      List<Vector> instances = instanceStream.collect();
+   public LDAModel cluster(@NonNull MStream<NDArray> instanceStream) {
+      List<NDArray> instances = instanceStream.collect();
       V = getEncoderPair().numberOfFeatures();
       M = instances.size();
 
@@ -91,28 +90,28 @@ public class GibbsLDA extends Clusterer<LDAModel> {
       documents = new int[M][];
 
       if (sampleLag > 0) {
-         thetasum = new Vector[M];
+         thetasum = new NDArray[M];
          for (int m = 0; m < M; m++) {
-            thetasum[m] = new SparseVector(K);
+            thetasum[m] = NDArrayFactory.SPARSE_FLOAT.zeros(K);
          }
-         phisum = new Vector[K];
+         phisum = new NDArray[K];
          for (int k = 0; k < K; k++) {
-            phisum[k] = new SparseVector(V);
+            phisum[k] = NDArrayFactory.SPARSE_FLOAT.zeros(V);
          }
       }
 
 
       for (int m = 0; m < M; m++) {
-         Vector vector = instances.get(m);
+         NDArray vector = instances.get(m);
          int N = vector.size();
          z[m] = new int[N];
          documents[m] = new int[N];
          int index = 0;
-         for (Vector.Entry entry : Collect.asIterable(vector.nonZeroIterator())) {
+         for (NDArray.Entry entry : Collect.asIterable(vector.sparseIterator())) {
             documents[m][index] = entry.getIndex();
             int topic = randomGenerator.nextInt(K);
             z[m][index] = topic;
-            nw.increment(topic, entry.index);
+            nw.increment(topic, entry.getIndex());
             nd.increment(m, topic);
             index++;
          }

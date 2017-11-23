@@ -1,9 +1,9 @@
 package com.davidbracewell.apollo.ml.clustering.flat;
 
-import com.davidbracewell.apollo.affinity.Measure;
 import com.davidbracewell.apollo.ml.clustering.Cluster;
 import com.davidbracewell.apollo.ml.clustering.Clusterer;
 import com.davidbracewell.apollo.ml.clustering.Clustering;
+import com.davidbracewell.apollo.stat.measure.Measure;
 
 import java.util.List;
 

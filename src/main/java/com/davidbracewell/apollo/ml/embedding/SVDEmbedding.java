@@ -22,17 +22,18 @@
 package com.davidbracewell.apollo.ml.embedding;
 
 import com.davidbracewell.Math2;
-import com.davidbracewell.apollo.affinity.AssociationMeasures;
-import com.davidbracewell.apollo.affinity.ContingencyTable;
-import com.davidbracewell.apollo.affinity.ContingencyTableCalculator;
-import com.davidbracewell.apollo.linalg.store.CosineSignature;
-import com.davidbracewell.apollo.linalg.store.InMemoryLSH;
-import com.davidbracewell.apollo.linalg.store.VectorStore;
-import com.davidbracewell.apollo.ml.Encoder;
-import com.davidbracewell.apollo.ml.IndexEncoder;
+import com.davidbracewell.apollo.linear.NDArrayFactory;
+import com.davidbracewell.apollo.hash.CosineSignature;
+import com.davidbracewell.apollo.hash.InMemoryLSH;
+import com.davidbracewell.apollo.linear.store.VectorStore;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.data.Dataset;
+import com.davidbracewell.apollo.ml.encoder.Encoder;
+import com.davidbracewell.apollo.ml.encoder.IndexEncoder;
 import com.davidbracewell.apollo.ml.sequence.Sequence;
+import com.davidbracewell.apollo.stat.measure.Association;
+import com.davidbracewell.apollo.stat.measure.ContingencyTable;
+import com.davidbracewell.apollo.stat.measure.ContingencyTableCalculator;
 import com.davidbracewell.collection.counter.MultiCounter;
 import com.davidbracewell.stream.StreamingContext;
 import com.davidbracewell.stream.accumulator.MMultiCounterAccumulator;
@@ -47,7 +48,7 @@ import org.jblas.DoubleMatrix;
 
 import java.util.Map;
 
-import static com.davidbracewell.apollo.linalg.SparkLinearAlgebra.*;
+import static com.davidbracewell.apollo.linear.SparkLinearAlgebra.*;
 import static com.davidbracewell.tuple.Tuples.$;
 
 /**
@@ -57,7 +58,7 @@ public class SVDEmbedding extends EmbeddingLearner {
    private static final long serialVersionUID = 1L;
    @Getter
    @Setter
-   private ContingencyTableCalculator calculator = AssociationMeasures.PPMI;
+   private ContingencyTableCalculator calculator = Association.PPMI;
    @Getter
    @Setter
    private int windowSize = 5;
@@ -89,14 +90,14 @@ public class SVDEmbedding extends EmbeddingLearner {
              .forEach(sequence -> {
                 for (int i = 0; i < sequence.size(); i++) {
                    if (sequence.get(i).getFeatures().size() > 0) {
-                      int iFeature = (int) featureEncoder.encode(sequence.get(i).getFeatures().get(0).getName());
+                      int iFeature = (int) featureEncoder.encode(sequence.get(i).getFeatures().get(0).getFeatureName());
                       for (int j = Math.min(i - getWindowSize(), 0); j <= Math.max(sequence.size() - 1,
                                                                                    i + getWindowSize()); j++) {
                          if (sequence.get(j).getFeatures().size() > 0) {
                             int jFeature = (int) featureEncoder.encode(sequence.get(j)
                                                                                .getFeatures()
                                                                                .get(0)
-                                                                               .getName());
+                                                                               .getFeatureName());
                             accumulator.increment(Math.min(iFeature, jFeature), Math.max(iFeature, jFeature));
                          }
                       }
@@ -137,10 +138,7 @@ public class SVDEmbedding extends EmbeddingLearner {
       SingularValueDecomposition<RowMatrix, Matrix> svd = sparkSVD(mat, getDimension());
       DoubleMatrix em = toMatrix(svd.U()).mmul(toDiagonalMatrix(svd.s()));
       for (int i = 0; i < em.rows; i++) {
-         vectorStore.add(featureEncoder.decode(i).toString(), new com.davidbracewell.apollo.linalg.DenseVector(
-                                                                                                                 em.getRow(
-                                                                                                                    i)
-                                                                                                                   .toArray()));
+         vectorStore.add(featureEncoder.decode(i).toString(), NDArrayFactory.wrap(em.getRow(i).toArray()));
       }
       return new Embedding(vectorStore);
    }

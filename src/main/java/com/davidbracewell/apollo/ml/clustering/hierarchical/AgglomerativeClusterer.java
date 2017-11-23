@@ -21,11 +21,11 @@
 
 package com.davidbracewell.apollo.ml.clustering.hierarchical;
 
-import com.davidbracewell.apollo.affinity.Distance;
-import com.davidbracewell.apollo.affinity.DistanceMeasure;
-import com.davidbracewell.apollo.linalg.Vector;
+import com.davidbracewell.apollo.linear.NDArray;
 import com.davidbracewell.apollo.ml.clustering.Cluster;
 import com.davidbracewell.apollo.ml.clustering.Clusterer;
+import com.davidbracewell.apollo.stat.measure.Distance;
+import com.davidbracewell.apollo.stat.measure.DistanceMeasure;
 import com.davidbracewell.guava.common.collect.Iterables;
 import com.davidbracewell.stream.MStream;
 import com.davidbracewell.tuple.Tuple3;
@@ -74,8 +74,8 @@ public class AgglomerativeClusterer extends Clusterer<HierarchicalClustering> {
    }
 
    @Override
-   public HierarchicalClustering cluster(@NonNull MStream<Vector> instanceStream) {
-      List<Vector> instances = instanceStream.collect();
+   public HierarchicalClustering cluster(@NonNull MStream<NDArray> instanceStream) {
+      List<NDArray> instances = instanceStream.collect();
       PriorityQueue<Tuple3<Cluster, Cluster, Double>> priorityQueue = new PriorityQueue<>(Comparator.comparingDouble(
          Tuple3::getV3));
 
@@ -123,7 +123,7 @@ public class AgglomerativeClusterer extends Clusterer<HierarchicalClustering> {
          minC.getV1().setParent(cprime);
          minC.getV2().setParent(cprime);
          cprime.setScore(minC.v3);
-         for (Vector point : Iterables.concat(minC.getV1().getPoints(), minC.getV2().getPoints())) {
+         for (NDArray point : Iterables.concat(minC.getV1().getPoints(), minC.getV2().getPoints())) {
             cprime.addPoint(point);
          }
          clusters.remove(minC.getV1());
@@ -138,9 +138,9 @@ public class AgglomerativeClusterer extends Clusterer<HierarchicalClustering> {
 
    }
 
-   private List<Cluster> initDistanceMatrix(List<Vector> instances, PriorityQueue<Tuple3<Cluster, Cluster, Double>> priorityQueue) {
+   private List<Cluster> initDistanceMatrix(List<NDArray> instances, PriorityQueue<Tuple3<Cluster, Cluster, Double>> priorityQueue) {
       List<Cluster> clusters = new ArrayList<>();
-      for (Vector item : instances) {
+      for (NDArray item : instances) {
          Cluster c = new Cluster();
          c.addPoint(item);
          c.setId(idGenerator.getAndIncrement());

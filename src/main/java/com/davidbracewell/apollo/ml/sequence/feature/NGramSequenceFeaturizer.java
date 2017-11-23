@@ -22,7 +22,7 @@
 package com.davidbracewell.apollo.ml.sequence.feature;
 
 import com.davidbracewell.apollo.ml.Feature;
-import com.davidbracewell.apollo.ml.PredicateFeaturizer;
+import com.davidbracewell.apollo.ml.featurizer.PredicateFeaturizer;
 import com.davidbracewell.apollo.ml.sequence.Context;
 import com.davidbracewell.apollo.ml.sequence.SequenceFeaturizer;
 import com.davidbracewell.guava.common.base.Preconditions;
@@ -30,9 +30,7 @@ import com.davidbracewell.string.StringUtils;
 import lombok.NonNull;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import static com.davidbracewell.apollo.ml.sequence.Sequence.BOS;
 import static com.davidbracewell.apollo.ml.sequence.Sequence.EOS;
@@ -67,7 +65,7 @@ public class NGramSequenceFeaturizer<E> implements SequenceFeaturizer<E> {
 
 
    @Override
-   public Set<Feature> apply(Context<E> iterator) {
+   public List<Feature> apply(Context<E> iterator) {
       final String prefix = featurizer.getPrefix();
 
       final String c0 = featurizer.extractPredicate(iterator.getCurrent());
@@ -96,7 +94,7 @@ public class NGramSequenceFeaturizer<E> implements SequenceFeaturizer<E> {
       all.add(c0);
       all.addAll(next);
 
-      Set<Feature> features = new HashSet<>();
+      List<Feature> features = new ArrayList<>();
 
       for (int i = 0; i < all.size(); i++) {
          int start = i < zeroIndex ? -(zeroIndex - i) : i > zeroIndex + 1 ? (i - zeroIndex) : 0;

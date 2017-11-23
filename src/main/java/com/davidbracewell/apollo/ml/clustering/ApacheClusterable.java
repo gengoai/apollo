@@ -22,7 +22,7 @@
 package com.davidbracewell.apollo.ml.clustering;
 
 import com.davidbracewell.Lazy;
-import com.davidbracewell.apollo.linalg.Vector;
+import com.davidbracewell.apollo.linear.NDArray;
 import lombok.NonNull;
 import org.apache.commons.math3.ml.clustering.Clusterable;
 
@@ -35,7 +35,7 @@ import java.io.Serializable;
  */
 public class ApacheClusterable implements Clusterable, Serializable {
    private static final long serialVersionUID = 1L;
-   private final Vector vector;
+   private final NDArray vector;
    private final Lazy<double[]> point;
 
    /**
@@ -43,9 +43,14 @@ public class ApacheClusterable implements Clusterable, Serializable {
     *
     * @param vector the vector to wrap
     */
-   public ApacheClusterable(@NonNull Vector vector) {
+   public ApacheClusterable(@NonNull NDArray vector) {
       this.vector = vector;
       this.point = new Lazy<>(vector::toArray);
+   }
+
+   @Override
+   public double[] getPoint() {
+      return point.get();
    }
 
    /**
@@ -53,13 +58,8 @@ public class ApacheClusterable implements Clusterable, Serializable {
     *
     * @return the vector
     */
-   public Vector getVector() {
+   public NDArray getVector() {
       return vector;
-   }
-
-   @Override
-   public double[] getPoint() {
-      return point.get();
    }
 
    @Override

@@ -22,8 +22,8 @@
 package com.davidbracewell.apollo.ml.clustering.hierarchical;
 
 
-import com.davidbracewell.apollo.affinity.Measure;
-import com.davidbracewell.apollo.linalg.Vector;
+import com.davidbracewell.apollo.linear.NDArray;
+import com.davidbracewell.apollo.stat.measure.Measure;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.clustering.Cluster;
 import com.davidbracewell.apollo.ml.clustering.Clusterer;
@@ -112,7 +112,7 @@ public class HierarchicalClustering extends Clustering {
 
    @Override
    public double[] softCluster(@NonNull Instance instance) {
-      Vector vector = getPreprocessors().apply(instance).toVector(getEncoderPair());
+      NDArray vector = getPreprocessors().apply(instance).toVector(getEncoderPair());
       return new double[]{
          linkage.calculate(vector, root, getMeasure())
       };

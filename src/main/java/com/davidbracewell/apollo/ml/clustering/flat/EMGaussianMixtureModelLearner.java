@@ -1,8 +1,8 @@
 package com.davidbracewell.apollo.ml.clustering.flat;
 
-import com.davidbracewell.apollo.affinity.Distance;
-import com.davidbracewell.apollo.linalg.Vector;
+import com.davidbracewell.apollo.linear.NDArray;
 import com.davidbracewell.apollo.ml.clustering.Clusterer;
+import com.davidbracewell.apollo.stat.measure.Distance;
 import com.davidbracewell.stream.MStream;
 import lombok.Getter;
 import lombok.NonNull;
@@ -23,8 +23,8 @@ public class EMGaussianMixtureModelLearner extends Clusterer<GMM> {
    private int K = 100;
 
    @Override
-   public GMM cluster(@NonNull MStream<Vector> instances) {
-      List<Vector> vectors = instances.collect();
+   public GMM cluster(@NonNull MStream<NDArray> instances) {
+      List<NDArray> vectors = instances.collect();
       int numberOfFeatures = getEncoderPair().getFeatureEncoder().size();
       int numberOfDataPoints = vectors.size();
       double[][] data = new double[numberOfDataPoints][numberOfFeatures];

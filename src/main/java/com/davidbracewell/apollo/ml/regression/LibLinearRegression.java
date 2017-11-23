@@ -1,7 +1,7 @@
 package com.davidbracewell.apollo.ml.regression;
 
-import com.davidbracewell.apollo.linalg.SparseVector;
-import com.davidbracewell.apollo.linalg.Vector;
+import com.davidbracewell.apollo.linear.NDArray;
+import com.davidbracewell.apollo.linear.NDArrayFactory;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.data.Dataset;
 import de.bwaldvogel.liblinear.*;
@@ -30,11 +30,11 @@ public class LibLinearRegression extends RegressionLearner {
    @Setter
    private boolean verbose = false;
 
-   private static Feature[] toFeature(Vector vector, int biasIndex) {
-      List<Vector.Entry> entries = asArrayList(vector.orderedNonZeroIterator());
+   private static Feature[] toFeature(NDArray vector, int biasIndex) {
+      List<NDArray.Entry> entries = asArrayList(vector.sparseOrderedIterator());
       Feature[] feature = new Feature[entries.size() + 1];
       for (int i = 0; i < entries.size(); i++) {
-         feature[i] = new FeatureNode(entries.get(i).index + 1, entries.get(i).value);
+         feature[i] = new FeatureNode(entries.get(i).getIndex() + 1, entries.get(i).getValue());
       }
       feature[entries.size()] = new FeatureNode(biasIndex, 1.0);
       return feature;
@@ -57,7 +57,7 @@ public class LibLinearRegression extends RegressionLearner {
       int biasIndex = dataset.getFeatureEncoder().size() + 1;
 
       for (Iterator<Instance> iitr = dataset.iterator(); iitr.hasNext(); index++) {
-         Vector vector = iitr.next().toVector(dataset.getEncoderPair());
+         NDArray vector = iitr.next().toVector(dataset.getEncoderPair());
          problem.x[index] = toFeature(vector, biasIndex);
          problem.y[index] = vector.getLabel();
       }
@@ -74,7 +74,7 @@ public class LibLinearRegression extends RegressionLearner {
       SimpleRegressionModel srm = new SimpleRegressionModel(this);
 
       double[] modelWeights = model.getFeatureWeights();
-      srm.weights = new SparseVector(srm.numberOfFeatures());
+      srm.weights = NDArrayFactory.DEFAULT().zeros(srm.numberOfFeatures());
       for (int i = 0; i < srm.numberOfFeatures(); i++) {
          srm.weights.set(i, modelWeights[i]);
       }

@@ -1,7 +1,7 @@
 package com.davidbracewell.apollo.ml.embedding;
 
-import com.davidbracewell.apollo.linalg.Vector;
-import com.davidbracewell.apollo.linalg.store.VectorStore;
+import com.davidbracewell.apollo.linear.NDArray;
+import com.davidbracewell.apollo.linear.store.VectorStore;
 import com.davidbracewell.guava.common.collect.HashMultimap;
 import com.davidbracewell.guava.common.collect.Sets;
 import com.davidbracewell.guava.common.primitives.Doubles;
@@ -52,12 +52,12 @@ public class FaruquiRetrofitting implements Retrofitting {
    public Embedding process(@NonNull VectorStore<String> origVectors) {
       Set<String> sourceVocab = new HashSet<>(origVectors.keys());
       Set<String> sharedVocab = Sets.intersection(sourceVocab, lexicon.keySet());
-      Map<String, Vector> unitNormedVectors = new HashMap<>();
-      Map<String, Vector> retrofittedVectors = new HashMap<>();
+      Map<String, NDArray> unitNormedVectors = new HashMap<>();
+      Map<String, NDArray> retrofittedVectors = new HashMap<>();
 
       //Unit Normalize the vectors
       sourceVocab.forEach(w -> {
-         Vector v = origVectors.get(w).toUnitVector();
+         NDArray v = origVectors.get(w).toUnitVector();
          retrofittedVectors.put(w, v);
          unitNormedVectors.put(w, v.copy());
       });
@@ -67,18 +67,18 @@ public class FaruquiRetrofitting implements Retrofitting {
             Set<String> similarTerms = Sets.intersection(lexicon.get(retrofitTerm), sourceVocab);
             if (similarTerms.size() > 0) {
                //Get the original unit normalized vector for the term we are retrofitting
-               Vector newTermVector = unitNormedVectors.get(retrofitTerm)
-                                                       .mapMultiply(similarTerms.size());
+               NDArray newTermVector = unitNormedVectors.get(retrofitTerm)
+                                                        .mul(similarTerms.size());
 
                //Sum the vectors of the similar terms using the retrofitted vectors
                //from last iteration
                similarTerms.forEach(similarTerm -> {
-                  newTermVector.addSelf(retrofittedVectors.get(similarTerm));
+                  newTermVector.addi(retrofittedVectors.get(similarTerm));
                });
 
                //Normalize and update
                double div = 2.0 * similarTerms.size();//v.magnitude() + 1e-6;
-               newTermVector.mapDivideSelf(div);
+               newTermVector.divi(div);
                retrofittedVectors.put(retrofitTerm, newTermVector);
             }
          });

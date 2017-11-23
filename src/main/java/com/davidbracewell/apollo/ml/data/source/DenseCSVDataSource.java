@@ -66,23 +66,11 @@ public class DenseCSVDataSource extends DataSource<Instance> {
       this.csvFormat = format;
    }
 
-   @Override
-   public MStream<Instance> stream() throws IOException {
-      if (getResource().isDirectory()) {
-         MStream<Instance> stream = getStreamingContext().empty();
-         for (MStream<Instance> s : getResource().getChildren(true)
-                                                 .stream()
-                                                 .map(r -> {
-                                                    try {
-                                                       return resourceToStream(r, getStreamingContext());
-                                                    } catch (IOException e) {
-                                                       throw Throwables.propagate(e);
-                                                    }
-                                                 }).collect(Collectors.toList())) {
-            stream = stream.union(s);
-         }
+   private String getName(int index, List<String> list) {
+      while (index >= list.size()) {
+         list.add(Integer.toString(list.size() - 1));
       }
-      return resourceToStream(getResource(), getStreamingContext());
+      return list.get(index);
    }
 
    private MStream<Instance> resourceToStream(Resource resource, @NonNull StreamingContext context) throws IOException {
@@ -110,11 +98,23 @@ public class DenseCSVDataSource extends DataSource<Instance> {
       return stream;
    }
 
-   private String getName(int index, List<String> list) {
-      while (index >= list.size()) {
-         list.add(Integer.toString(list.size() - 1));
+   @Override
+   public MStream<Instance> stream() throws IOException {
+      if (getResource().isDirectory()) {
+         MStream<Instance> stream = getStreamingContext().empty();
+         for (MStream<Instance> s : getResource().getChildren(true)
+                                                 .stream()
+                                                 .map(r -> {
+                                                    try {
+                                                       return resourceToStream(r, getStreamingContext());
+                                                    } catch (IOException e) {
+                                                       throw Throwables.propagate(e);
+                                                    }
+                                                 }).collect(Collectors.toList())) {
+            stream = stream.union(s);
+         }
       }
-      return list.get(index);
+      return resourceToStream(getResource(), getStreamingContext());
    }
 
 }// END OF SparseCSVDataFormat

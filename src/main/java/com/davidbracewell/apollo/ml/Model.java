@@ -1,5 +1,8 @@
 package com.davidbracewell.apollo.ml;
 
+import com.davidbracewell.apollo.ml.encoder.Encoder;
+import com.davidbracewell.apollo.ml.encoder.EncoderPair;
+import com.davidbracewell.apollo.ml.encoder.LabelEncoder;
 import com.davidbracewell.io.resource.Resource;
 import lombok.NonNull;
 

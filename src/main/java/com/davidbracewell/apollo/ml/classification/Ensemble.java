@@ -1,6 +1,6 @@
 package com.davidbracewell.apollo.ml.classification;
 
-import com.davidbracewell.apollo.linalg.Vector;
+import com.davidbracewell.apollo.linear.NDArray;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.collection.counter.Counter;
 import com.davidbracewell.collection.counter.Counters;
@@ -33,7 +33,7 @@ public class Ensemble extends Classifier {
    }
 
    @Override
-   public Classification classify(Vector vector) {
+   public Classification classify(NDArray vector) {
       throw new IllegalAccessError();
    }
 

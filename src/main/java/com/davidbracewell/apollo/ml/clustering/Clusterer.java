@@ -1,10 +1,10 @@
 package com.davidbracewell.apollo.ml.clustering;
 
-import com.davidbracewell.apollo.linalg.Vector;
-import com.davidbracewell.apollo.ml.EncoderPair;
+import com.davidbracewell.apollo.linear.NDArray;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.Learner;
 import com.davidbracewell.apollo.ml.data.Dataset;
+import com.davidbracewell.apollo.ml.encoder.EncoderPair;
 import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.stream.MStream;
 import lombok.Getter;
@@ -30,11 +30,21 @@ public abstract class Clusterer<T extends Clustering> extends Learner<Instance, 
     * @param instances the instances
     * @return the clustering model
     */
-   public abstract T cluster(MStream<Vector> instances);
+   public abstract T cluster(MStream<NDArray> instances);
 
    @Override
    public void resetLearnerParameters() {
       this.encoderPair = null;
+   }
+
+   @Override
+   public Clusterer<T> setParameter(String name, Object value) {
+      return Cast.as(super.setParameter(name, value));
+   }
+
+   @Override
+   public Clusterer<T> setParameters(Map<String, Object> parameters) {
+      return Cast.as(super.setParameters(parameters));
    }
 
    @Override
@@ -45,15 +55,5 @@ public abstract class Clusterer<T extends Clustering> extends Learner<Instance, 
    protected T trainImpl(Dataset<Instance> dataset) {
       this.encoderPair = dataset.getEncoderPair();
       return cluster(dataset.asVectors());
-   }
-
-   @Override
-   public Clusterer<T> setParameters(Map<String, Object> parameters) {
-      return Cast.as(super.setParameters(parameters));
-   }
-
-   @Override
-   public Clusterer<T> setParameter(String name, Object value) {
-      return Cast.as(super.setParameter(name, value));
    }
 }// END OF Clusterer

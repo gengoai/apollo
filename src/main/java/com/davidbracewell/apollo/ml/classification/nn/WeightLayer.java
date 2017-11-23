@@ -1,9 +1,13 @@
 package com.davidbracewell.apollo.ml.classification.nn;
 
-import com.davidbracewell.apollo.linalg.DenseFloatMatrix;
-import com.davidbracewell.apollo.linalg.Matrix;
-import com.davidbracewell.apollo.optimization.WeightInitializer;
-import com.davidbracewell.apollo.optimization.activation.Activation;
+import com.davidbracewell.apollo.linear.Axis;
+import com.davidbracewell.apollo.linear.NDArray;
+import com.davidbracewell.apollo.linear.NDArrayFactory;
+import com.davidbracewell.apollo.linear.NDArrayInitializer;
+import com.davidbracewell.apollo.ml.optimization.GradientParameter;
+import com.davidbracewell.apollo.ml.optimization.LinearModelParameters;
+import com.davidbracewell.apollo.ml.optimization.WeightUpdate;
+import com.davidbracewell.apollo.ml.optimization.activation.Activation;
 import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.tuple.Tuple2;
 import lombok.Getter;
@@ -14,22 +18,22 @@ import org.apache.commons.math3.util.FastMath;
 /**
  * @author David B. Bracewell
  */
-public abstract class WeightLayer extends Layer {
+public abstract class WeightLayer extends Layer implements LinearModelParameters {
    private static final long serialVersionUID = 1L;
    @Getter
    protected final Activation activation;
    protected final double l1;
    protected final double l2;
-   protected Matrix weights;
-   protected Matrix bias;
-   protected transient Matrix v;
+   protected NDArray weights;
+   protected NDArray bias;
+   protected transient NDArray v;
 
-   public WeightLayer(int inputSize, int outputSize, Activation activation, WeightInitializer weightInitializer, double l1, double l2) {
+   public WeightLayer(int inputSize, int outputSize, Activation activation, NDArrayInitializer NDArrayInitializer, double l1, double l2) {
       super(inputSize, outputSize);
       this.activation = activation;
-      this.weights = weightInitializer.initialize(DenseFloatMatrix.zeros(outputSize, inputSize));
-      this.bias = DenseFloatMatrix.zeros(outputSize);
-      this.v = DenseFloatMatrix.zeros(outputSize, inputSize);
+      this.weights = NDArrayFactory.DEFAULT().create(outputSize, inputSize, NDArrayInitializer);
+      this.bias = NDArrayFactory.DEFAULT().zeros(outputSize);
+      this.v = NDArrayFactory.DEFAULT().zeros(outputSize, inputSize);
       this.l1 = l1;
       this.l2 = l2;
    }
@@ -41,36 +45,35 @@ public abstract class WeightLayer extends Layer {
       this.weights = layer.weights.copy();
       this.l1 = layer.l1;
       this.l2 = layer.l2;
-      this.v = DenseFloatMatrix.zeros(layer.getOutputSize(), layer.getInputSize());
+      this.v = NDArrayFactory.DEFAULT().zeros(layer.getOutputSize(), layer.getInputSize());
    }
 
-
    @Override
-   public BackpropResult backward(Matrix input, Matrix output, Matrix delta, boolean calculateDelta) {
+   public BackpropResult backward(NDArray input, NDArray output, NDArray delta, boolean calculateDelta) {
       delta.muli(activation.valueGradient(output));
-      Matrix dzOut = calculateDelta
-                     ? weights.transpose().mmul(delta)
-                     : null;
-      val dw = delta.mmul(input.transpose());
-      val db = delta.rowSums();
+      NDArray dzOut = calculateDelta
+                      ? weights.T().mmul(delta)
+                      : null;
+      val dw = delta.mmul(input.T());
+      val db = delta.sum(Axis.ROW);
       return BackpropResult.from(dzOut, dw, db);
    }
 
    @Override
-   public Tuple2<Matrix, Double> backward(WeightUpdate updater, Matrix input, Matrix output, Matrix delta, int iteration, boolean calcuateDelta) {
-      return updater.update(this.weights, this.bias, input, output, delta.muli(activation.valueGradient(output)),
-                            iteration, calcuateDelta);
+   public Tuple2<NDArray, Double> backward(WeightUpdate updater, NDArray input, NDArray output, NDArray delta, int iteration, boolean calcuateDelta) {
+      return updater.update(this, input, output, delta.muli(activation.valueGradient(output)), iteration,
+                            calcuateDelta);
    }
 
    @Override
-   public Matrix backward(Matrix input, Matrix output, Matrix delta, double learningRate, int layerIndex, int iteration) {
+   public NDArray backward(NDArray input, NDArray output, NDArray delta, double learningRate, int layerIndex, int iteration) {
       delta.muli(activation.valueGradient(output));
-      Matrix dzOut = layerIndex > 0
-                     ? weights.transpose().mmul(delta)
-                     : null;
-      val dw = delta.mmul(input.transpose())
+      NDArray dzOut = layerIndex > 0
+                      ? weights.T().mmul(delta)
+                      : null;
+      val dw = delta.mmul(input.T())
                     .divi(input.numCols());
-      val db = delta.rowSums()
+      val db = delta.sum(Axis.ROW)
                     .divi(input.numCols());
       v.muli(0.9).subi(dw.muli(learningRate));
       weights.addi(v);
@@ -80,17 +83,17 @@ public abstract class WeightLayer extends Layer {
    }
 
    @Override
-   public Matrix forward(Matrix input) {
-      return activation.apply(weights.mmul(input).addiColumnVector(bias));
+   public NDArray forward(NDArray input) {
+      return activation.apply(weights.mmul(input).addi(bias, Axis.COlUMN));
    }
 
    @Override
-   public Matrix getBias() {
+   public NDArray getBias() {
       return bias;
    }
 
    @Override
-   public Matrix getWeights() {
+   public NDArray getWeights() {
       return weights;
    }
 
@@ -109,19 +112,29 @@ public abstract class WeightLayer extends Layer {
    }
 
    @Override
-   public double update(WeightUpdate weightUpdate, Matrix wGrad, Matrix bBrad, int iteration) {
-      return weightUpdate.update(this.weights, this.bias, wGrad, bBrad, iteration);
+   public int numberOfFeatures() {
+      return getInputSize();
    }
 
    @Override
-   public void update(Matrix[] weights, Matrix[] bias) {
-      Matrix wP = this.weights.getFactory().zeros(getOutputSize(),getInputSize());
-      Matrix bP = this.weights.getFactory().zeros(getOutputSize());
+   public int numberOfLabels() {
+      return getOutputSize();
+   }
+
+   @Override
+   public double update(WeightUpdate weightUpdate, NDArray wGrad, NDArray bBrad, int iteration) {
+      return weightUpdate.update(this, GradientParameter.of(wGrad, bBrad), iteration);
+   }
+
+   @Override
+   public void update(NDArray[] weights, NDArray[] bias) {
+      NDArray wP = this.weights.getFactory().zeros(getOutputSize(), getInputSize());
+      NDArray bP = this.weights.getFactory().zeros(getOutputSize());
       for (int i = 0; i < weights.length; i++) {
          wP.addi(weights[i]);
          bP.addi(bias[i]);
       }
-      if( weights.length > 0 ) {
+      if (weights.length > 0) {
          wP.divi(weights.length);
          bP.divi(weights.length);
          this.weights = wP;
@@ -133,7 +146,7 @@ public abstract class WeightLayer extends Layer {
       @Getter
       private Activation activation = Activation.SIGMOID;
       @Getter
-      private WeightInitializer weightInitializer = WeightInitializer.DEFAULT;
+      private NDArrayInitializer initializer = NDArrayInitializer.glorotAndBengioSigmoid();
       @Getter
       private double l1 = 0;
       @Getter
@@ -154,8 +167,8 @@ public abstract class WeightLayer extends Layer {
          return Cast.as(this);
       }
 
-      public T weightInitializer(@NonNull WeightInitializer weightInitializer) {
-         this.weightInitializer = weightInitializer;
+      public T weightInitializer(@NonNull NDArrayInitializer initializer) {
+         this.initializer = initializer;
          return Cast.as(this);
       }
 

@@ -1,6 +1,7 @@
 package com.davidbracewell.apollo.ml.preprocess.filter;
 
-import com.davidbracewell.apollo.affinity.AssociationMeasures;
+
+import com.davidbracewell.apollo.stat.measure.Association;
 
 /**
  * <p>Feature selection using the x2 statistic.</p>
@@ -17,7 +18,7 @@ public class Chi2FeatureSelection extends ContingencyFeatureSelection {
     * @param threshold                the threshold
     */
    public Chi2FeatureSelection(int numberOfFeaturesPerClass, double threshold) {
-      super(AssociationMeasures.CHI_SQUARE, numberOfFeaturesPerClass, threshold);
+      super(Association.CHI_SQUARE, numberOfFeaturesPerClass, threshold);
    }
 
    /**
@@ -26,14 +27,14 @@ public class Chi2FeatureSelection extends ContingencyFeatureSelection {
     * @param numberOfFeaturesPerClass the number of features per class
     */
    public Chi2FeatureSelection(int numberOfFeaturesPerClass) {
-      super(AssociationMeasures.CHI_SQUARE, numberOfFeaturesPerClass, Double.NEGATIVE_INFINITY);
+      super(Association.CHI_SQUARE, numberOfFeaturesPerClass, Double.NEGATIVE_INFINITY);
    }
 
    /**
     * Instantiates a new x2 feature selection.
     */
    protected Chi2FeatureSelection() {
-      super(AssociationMeasures.CHI_SQUARE, Integer.MAX_VALUE, Double.NEGATIVE_INFINITY);
+      super(Association.CHI_SQUARE, Integer.MAX_VALUE, Double.NEGATIVE_INFINITY);
    }
 
    @Override

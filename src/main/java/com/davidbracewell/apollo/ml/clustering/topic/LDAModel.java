@@ -1,13 +1,12 @@
 package com.davidbracewell.apollo.ml.clustering.topic;
 
-import com.davidbracewell.apollo.affinity.Measure;
-import com.davidbracewell.apollo.distribution.ConditionalMultinomial;
-import com.davidbracewell.apollo.linalg.DenseVector;
-import com.davidbracewell.apollo.linalg.SparseVector;
-import com.davidbracewell.apollo.linalg.Vector;
+import com.davidbracewell.apollo.linear.NDArray;
+import com.davidbracewell.apollo.linear.NDArrayFactory;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.clustering.Cluster;
 import com.davidbracewell.apollo.ml.clustering.Clusterer;
+import com.davidbracewell.apollo.stat.distribution.ConditionalMultinomial;
+import com.davidbracewell.apollo.stat.measure.Measure;
 import com.davidbracewell.collection.Collect;
 import com.davidbracewell.collection.counter.Counter;
 import com.davidbracewell.collection.counter.Counters;
@@ -50,8 +49,8 @@ public class LDAModel extends TopicModel {
    }
 
    @Override
-   public Vector getTopicVector(int topic) {
-      return new DenseVector(wordTopic.probabilities(topic));
+   public NDArray getTopicVector(int topic) {
+      return NDArrayFactory.wrap(wordTopic.probabilities(topic));
    }
 
    @Override
@@ -98,21 +97,21 @@ public class LDAModel extends TopicModel {
 
    @Override
    public double[] softCluster(@NonNull Instance instance) {
-      Vector vector = getPreprocessors().apply(instance).toVector(getEncoderPair());
+      NDArray vector = getPreprocessors().apply(instance).toVector(getEncoderPair());
       int[] docTopic = new int[K];
-      SparseVector docWordTopic = new SparseVector(getEncoderPair().numberOfFeatures());
+      NDArray docWordTopic = NDArrayFactory.DEFAULT().zeros(getEncoderPair().numberOfFeatures());
 
-      for (Vector.Entry entry : Collect.asIterable(vector.nonZeroIterator())) {
+      for (NDArray.Entry entry : Collect.asIterable(vector.sparseIterator())) {
          int topic = randomGenerator.nextInt(K);
          docTopic[topic]++;
-         docWordTopic.set(entry.index, topic);
-         wordTopic.increment(topic, entry.index);
+         docWordTopic.set(entry.getIndex(), topic);
+         wordTopic.increment(topic, entry.getIndex());
       }
 
       for (int iteration = 0; iteration < 100; iteration++) {
-         for (Vector.Entry entry : Collect.asIterable(vector.nonZeroIterator())) {
-            int topic = sample(entry.getIndex(), (int) docWordTopic.get(entry.index), docTopic);
-            docWordTopic.set(entry.index, topic);
+         for (NDArray.Entry entry : Collect.asIterable(vector.sparseIterator())) {
+            int topic = sample(entry.getIndex(), (int) docWordTopic.get(entry.getIndex()), docTopic);
+            docWordTopic.set(entry.getIndex(), topic);
          }
       }
 
@@ -121,8 +120,8 @@ public class LDAModel extends TopicModel {
          p[i] = (docTopic[i] + alpha) / (docTopic.length + K * alpha);
       }
 
-      for (Vector.Entry entry : Collect.asIterable(vector.nonZeroIterator())) {
-         wordTopic.decrement((int) docWordTopic.get(entry.index), entry.index);
+      for (NDArray.Entry entry : Collect.asIterable(vector.sparseIterator())) {
+         wordTopic.decrement((int) docWordTopic.get(entry.getIndex()), entry.getIndex());
       }
 
       return p;

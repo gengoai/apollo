@@ -1,6 +1,7 @@
 package com.davidbracewell.apollo.ml.embedding;
 
-import com.davidbracewell.apollo.linalg.store.VectorStore;
+
+import com.davidbracewell.apollo.linear.store.VectorStore;
 
 /**
  * The interface Retrofitting.

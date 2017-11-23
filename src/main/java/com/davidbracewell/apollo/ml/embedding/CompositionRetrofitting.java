@@ -1,7 +1,7 @@
 package com.davidbracewell.apollo.ml.embedding;
 
-import com.davidbracewell.apollo.linalg.Vector;
-import com.davidbracewell.apollo.linalg.store.VectorStore;
+import com.davidbracewell.apollo.linear.NDArray;
+import com.davidbracewell.apollo.linear.store.VectorStore;
 import com.davidbracewell.io.resource.Resource;
 import com.google.common.base.Throwables;
 import lombok.Getter;
@@ -44,13 +44,13 @@ public class CompositionRetrofitting implements Retrofitting {
       embedding
          .keys()
          .forEach(term -> {
-            Vector tv = embedding.get(term).copy();
+            NDArray tv = embedding.get(term).copy();
             if (background.contains(term)) {
-               tv.addSelf(background.get(term));
+               tv.addi(background.get(term));
                if (neighborSize > 0 && neighborWeight > 0) {
                   background
                      .nearest(term, neighborSize, neighborThreshold)
-                     .forEach(n -> tv.addSelf(n.mapMultiply(neighborWeight)));
+                     .forEach(n -> tv.addi(n.mul(neighborWeight)));
                }
             }
             newEmbedding.add(term, tv);

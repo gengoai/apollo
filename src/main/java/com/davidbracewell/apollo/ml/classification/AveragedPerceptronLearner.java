@@ -21,11 +21,11 @@
 
 package com.davidbracewell.apollo.ml.classification;
 
-import com.davidbracewell.apollo.linalg.Vector;
-import com.davidbracewell.apollo.ml.FeatureVector;
+import com.davidbracewell.apollo.linear.NDArray;
+import com.davidbracewell.apollo.linear.NDArrayFactory;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.data.Dataset;
-import com.davidbracewell.apollo.optimization.activation.LinearActivation;
+import com.davidbracewell.apollo.ml.optimization.activation.Activation;
 import com.davidbracewell.collection.Collect;
 import com.davidbracewell.logging.Logger;
 import lombok.Getter;
@@ -44,17 +44,17 @@ public class AveragedPerceptronLearner extends BinaryClassifierLearner {
    private static Logger log = Logger.getLogger(AveragedPerceptronLearner.class);
    @Getter
    @Setter
-   private int maxIterations;
+   private int maxIterations = 100;
    @Getter
    @Setter
-   private double learningRate;
-   private Vector totalWeights;
-   private Vector stamps;
+   private double learningRate = 1.0;
+   private NDArray totalWeights;
+   private NDArray stamps;
    private double totalBias;
    private double biasStamps;
    @Getter
    @Setter
-   private double tolerance;
+   private double tolerance = 1e-9;
    @Getter
    @Setter
    private boolean verbose = false;
@@ -63,7 +63,7 @@ public class AveragedPerceptronLearner extends BinaryClassifierLearner {
     * Instantiates a new Averaged perceptron learner.
     */
    public AveragedPerceptronLearner() {
-      this(100, 1.0, 0.0001);
+
    }
 
    /**
@@ -94,11 +94,13 @@ public class AveragedPerceptronLearner extends BinaryClassifierLearner {
 
    @Override
    protected Classifier trainForLabel(Dataset<Instance> dataset, double trueLabel) {
-      BinaryGLM model = new BinaryGLM(this);
+      LinearModel model = new LinearModel(this, true);
 
-      totalWeights = new FeatureVector(dataset.getEncoderPair());
-      stamps = new FeatureVector(dataset.getEncoderPair());
-      model.weights = new FeatureVector(dataset.getEncoderPair());
+      totalWeights = NDArrayFactory.DEFAULT().zeros(model.numberOfFeatures());
+      stamps = NDArrayFactory.DEFAULT().zeros(model.numberOfFeatures());
+      model.bias = NDArrayFactory.DEFAULT().scalar(1);
+      model.weights = NDArrayFactory.DEFAULT().zeros(model.numberOfFeatures());
+      model.activation = Activation.LINEAR;
 
       double c = 1d;
       double oldError = 0;
@@ -107,7 +109,7 @@ public class AveragedPerceptronLearner extends BinaryClassifierLearner {
          double error = 0;
          double count = 0;
          for (Instance instance : dataset) {
-            Vector v = instance.toVector(getEncoderPair());
+            NDArray v = instance.toVector(model.getEncoderPair());
             count++;
             double y = convertY(v.getLabel(), trueLabel);
             double yHat = model.classify(v).getEncodedResult();
@@ -115,12 +117,12 @@ public class AveragedPerceptronLearner extends BinaryClassifierLearner {
             if (y != yHat) {
                error++;
                double eta = learningRate * (y - yHat);
-               for (Vector.Entry entry : Collect.asIterable(v.nonZeroIterator())) {
+               for (NDArray.Entry entry : Collect.asIterable(v.sparseIterator())) {
                   updateFeature(model, entry.getIndex(), c, eta);
                }
                double timeSpan = c - biasStamps;
-               totalBias += (timeSpan * model.bias);
-               model.bias += eta;
+               totalBias += (timeSpan * model.bias.get(0));
+               model.bias.increment(0, eta);
                biasStamps = c;
             }
             c++;
@@ -144,21 +146,21 @@ public class AveragedPerceptronLearner extends BinaryClassifierLearner {
       }
 
       double time = c;
-      for (Vector.Entry entry : Collect.asIterable(totalWeights.nonZeroIterator())) {
-         double total = totalWeights.get(entry.index);
-         total += (time - stamps.get(entry.index)) * model.weights.get(entry.index);
+      for (NDArray.Entry entry : Collect.asIterable(totalWeights.sparseIterator())) {
+         double total = totalWeights.get(entry.getIndex());
+         total += (time - stamps.get(entry.getIndex())) * model.weights.get(entry.getIndex());
          total = new BigDecimal(total / time).setScale(3, RoundingMode.HALF_UP).doubleValue();
-         model.weights.set(entry.index, total);
+         model.weights.set(entry.getIndex(), total);
       }
       double total = totalBias;
-      total += (time - biasStamps) * model.bias;
+      total += (time - biasStamps) * model.bias.get(0);
       total = new BigDecimal(total / time).setScale(3, RoundingMode.HALF_UP).doubleValue();
-      model.bias = total;
-      model.activation = new LinearActivation();
+      model.bias.set(0, total);
+      model.activation = Activation.LINEAR;
       return model;
    }
 
-   private void updateFeature(BinaryGLM model, int featureId, double time, double value) {
+   private void updateFeature(LinearModel model, int featureId, double time, double value) {
       double timeAtWeight = time - stamps.get(featureId);
       double curWeight = model.weights.get(featureId);
       totalWeights.increment(featureId, timeAtWeight * curWeight);

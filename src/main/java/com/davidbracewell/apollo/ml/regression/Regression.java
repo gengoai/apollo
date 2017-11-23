@@ -1,9 +1,9 @@
 package com.davidbracewell.apollo.ml.regression;
 
-import com.davidbracewell.apollo.linalg.Vector;
-import com.davidbracewell.apollo.ml.EncoderPair;
+import com.davidbracewell.apollo.linear.NDArray;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.Model;
+import com.davidbracewell.apollo.ml.encoder.EncoderPair;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.collection.counter.Counter;
 import lombok.Getter;
@@ -43,7 +43,7 @@ public abstract class Regression implements Model {
     * @param vector the vector
     * @return the estimated value
     */
-   public abstract double estimate(Vector vector);
+   public abstract double estimate(NDArray vector);
 
    @Override
    public EncoderPair getEncoderPair() {

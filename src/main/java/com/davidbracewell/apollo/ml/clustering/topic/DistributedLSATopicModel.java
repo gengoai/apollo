@@ -21,9 +21,11 @@
 
 package com.davidbracewell.apollo.ml.clustering.topic;
 
-import com.davidbracewell.apollo.affinity.Similarity;
+import com.davidbracewell.apollo.linear.NDArray;
+import com.davidbracewell.apollo.linear.NDArrayFactory;
 import com.davidbracewell.apollo.ml.clustering.Cluster;
 import com.davidbracewell.apollo.ml.clustering.Clusterer;
+import com.davidbracewell.apollo.stat.measure.Similarity;
 import com.davidbracewell.stream.MStream;
 import com.davidbracewell.stream.SparkStream;
 import lombok.Getter;
@@ -33,8 +35,8 @@ import org.apache.spark.mllib.linalg.Vector;
 import org.apache.spark.mllib.linalg.distributed.RowMatrix;
 import org.jblas.DoubleMatrix;
 
-import static com.davidbracewell.apollo.linalg.SparkLinearAlgebra.sparkSVD;
-import static com.davidbracewell.apollo.linalg.SparkLinearAlgebra.toMatrix;
+import static com.davidbracewell.apollo.linear.SparkLinearAlgebra.sparkSVD;
+import static com.davidbracewell.apollo.linear.SparkLinearAlgebra.toMatrix;
 
 /**
  * @author David B. Bracewell
@@ -46,7 +48,7 @@ public class DistributedLSATopicModel extends Clusterer<LSAModel> {
    private int K = 100;
 
    @Override
-   public LSAModel cluster(MStream<com.davidbracewell.apollo.linalg.Vector> instances) {
+   public LSAModel cluster(MStream<NDArray> instances) {
       //Create document x word matrix
       SparkStream<Vector> stream = new SparkStream<>(instances.map(i -> (Vector) new DenseVector(i.toArray()))).cache();
       RowMatrix mat = new RowMatrix(stream.getRDD().rdd());
@@ -58,7 +60,7 @@ public class DistributedLSATopicModel extends Clusterer<LSAModel> {
       LSAModel model = new LSAModel(this, Similarity.Cosine.asDistanceMeasure(), K);
       for (int i = 0; i < K; i++) {
          Cluster c = new Cluster();
-         c.addPoint(new com.davidbracewell.apollo.linalg.DenseVector(topics.getRow(i).toArray()));
+         c.addPoint(NDArrayFactory.wrap(topics.getRow(i).toArray()));
          model.addCluster(c);
       }
       return model;

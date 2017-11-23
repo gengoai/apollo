@@ -66,7 +66,7 @@ public class CRFTagger extends SequenceLabeler {
       for (Instance instance : sequence.asInstances()) {
          Item item = new Item();
          for (Feature f : instance) {
-            item.add(new Attribute(f.getName(), f.getValue()));
+            item.add(new Attribute(f.getFeatureName(), f.getValue()));
          }
          seq.add(item);
       }

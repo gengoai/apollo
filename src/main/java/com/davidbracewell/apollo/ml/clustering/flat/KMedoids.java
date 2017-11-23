@@ -21,11 +21,11 @@
 
 package com.davidbracewell.apollo.ml.clustering.flat;
 
-import com.davidbracewell.apollo.affinity.Distance;
-import com.davidbracewell.apollo.affinity.DistanceMeasure;
-import com.davidbracewell.apollo.linalg.Vector;
+import com.davidbracewell.apollo.linear.NDArray;
 import com.davidbracewell.apollo.ml.clustering.Cluster;
 import com.davidbracewell.apollo.ml.clustering.Clusterer;
+import com.davidbracewell.apollo.stat.measure.Distance;
+import com.davidbracewell.apollo.stat.measure.DistanceMeasure;
 import com.davidbracewell.guava.common.util.concurrent.AtomicDouble;
 import com.davidbracewell.stream.MStream;
 import com.davidbracewell.tuple.Tuple2;
@@ -91,8 +91,8 @@ public class KMedoids extends Clusterer<FlatClustering> {
    }
 
    @Override
-   public FlatClustering cluster(@NonNull MStream<Vector> instanceStream) {
-      final List<Vector> instances = instanceStream.collect();
+   public FlatClustering cluster(@NonNull MStream<NDArray> instanceStream) {
+      final List<NDArray> instances = instanceStream.collect();
       Map<Tuple2<Integer, Integer>, Double> distanceCache = new ConcurrentHashMap<>();
 
       List<TempCluster> tempClusters = new ArrayList<>();
@@ -185,7 +185,7 @@ public class KMedoids extends Clusterer<FlatClustering> {
       return new FlatCentroidClustering(this, getDistanceMeasure(), finalClusters);
    }
 
-   private double distance(int i, int j, List<Vector> instances, Map<Tuple2<Integer, Integer>, Double> distances) {
+   private double distance(int i, int j, List<NDArray> instances, Map<Tuple2<Integer, Integer>, Double> distances) {
       return distances.computeIfAbsent($(i, j), t -> distanceMeasure.calculate(instances.get(i), instances.get(j)));
    }
 

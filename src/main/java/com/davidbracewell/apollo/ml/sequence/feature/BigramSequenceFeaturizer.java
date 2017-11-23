@@ -22,16 +22,16 @@
 package com.davidbracewell.apollo.ml.sequence.feature;
 
 import com.davidbracewell.apollo.ml.Feature;
-import com.davidbracewell.apollo.ml.PredicateFeaturizer;
+import com.davidbracewell.apollo.ml.featurizer.PredicateFeaturizer;
 import com.davidbracewell.apollo.ml.sequence.Context;
 import com.davidbracewell.apollo.ml.sequence.SequenceFeaturizer;
+import com.davidbracewell.collection.list.Lists;
 import lombok.NonNull;
 
-import java.util.Set;
+import java.util.List;
 
 import static com.davidbracewell.apollo.ml.sequence.Sequence.BOS;
 import static com.davidbracewell.apollo.ml.sequence.Sequence.EOS;
-import static com.davidbracewell.collection.Sets.set;
 
 /**
  * <p>Constructs Bigram predicate features with positions <code>[-1,0]</code> and <code>[0,+1]</code> using the given
@@ -54,11 +54,11 @@ public class BigramSequenceFeaturizer<E> implements SequenceFeaturizer<E> {
    }
 
    @Override
-   public Set<Feature> apply(Context<E> iterator) {
+   public List<Feature> apply(Context<E> iterator) {
       final String c0 = featurizer.extractPredicate(iterator.getCurrent());
       final String p1 = iterator.getPrevious(1).map(featurizer::extractPredicate).orElse(BOS);
       final String n1 = iterator.getNext(1).map(featurizer::extractPredicate).orElse(EOS);
-      return set(Feature.TRUE(featurizer.getPrefix() + "[-1,0]", p1, c0),
-                 Feature.TRUE(featurizer.getPrefix() + "[0,+1]", c0, n1));
+      return Lists.list(Feature.TRUE(featurizer.getPrefix() + "[-1,0]", p1, c0),
+                        Feature.TRUE(featurizer.getPrefix() + "[0,+1]", c0, n1));
    }
 }//END OF BigramSequenceFeaturizer

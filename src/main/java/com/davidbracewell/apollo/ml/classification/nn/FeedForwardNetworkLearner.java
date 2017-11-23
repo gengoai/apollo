@@ -1,13 +1,13 @@
 package com.davidbracewell.apollo.ml.classification.nn;
 
-import com.davidbracewell.apollo.linalg.Matrix;
+import com.davidbracewell.apollo.linear.NDArray;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.classification.Classifier;
 import com.davidbracewell.apollo.ml.classification.ClassifierLearner;
 import com.davidbracewell.apollo.ml.data.Dataset;
-import com.davidbracewell.apollo.optimization.TerminationCriteria;
-import com.davidbracewell.apollo.optimization.loss.CrossEntropyLoss;
-import com.davidbracewell.apollo.optimization.loss.LossFunction;
+import com.davidbracewell.apollo.ml.optimization.*;
+import com.davidbracewell.apollo.ml.optimization.loss.CrossEntropyLoss;
+import com.davidbracewell.apollo.ml.optimization.loss.LossFunction;
 import com.davidbracewell.collection.list.Lists;
 import com.davidbracewell.guava.common.base.Stopwatch;
 import com.davidbracewell.logging.Loggable;
@@ -57,7 +57,7 @@ public class FeedForwardNetworkLearner extends ClassifierLearner implements Logg
    @Getter
    @Setter
    @Builder.Default
-   private WeightUpdate weightUpdate = SGD.builder().build();
+   private WeightUpdate weightUpdate = SGDUpdater.builder().build();
 
    static float correct(FloatMatrix predicted, FloatMatrix gold) {
       int[] pMax = predicted.columnArgmaxs();
@@ -92,26 +92,33 @@ public class FeedForwardNetworkLearner extends ClassifierLearner implements Logg
    @Override
    protected Classifier trainImpl(Dataset<Instance> dataset) {
       FeedForwardNetwork network = new FeedForwardNetwork(this);
-      MatrixTrainSet data = new MatrixTrainSet(dataset);
+
       buildNetwork(network, network.numberOfFeatures(), network.numberOfLabels());
       TerminationCriteria terminationCriteria = TerminationCriteria.create()
                                                                    .maxIterations(maxIterations)
                                                                    .tolerance(tolerance)
                                                                    .historySize(3);
       final int effectiveBatchSize = batchSize <= 0 ? 1 : batchSize;
-      try {
-         dataset.close();
-      } catch (Exception e) {
-         e.printStackTrace();
+      Backprop bp = new Backprop();
+      bp.setBatchSize(batchSize);
+      bp.optimize(network,
+                  dataset.vectorStream(false),
+                  new FeedForwardCostFunction(lossFunction),
+                  terminationCriteria,
+                  weightUpdate,
+                  reportInterval);
+      if (Math.random() > 0) {
+         return network;
       }
 
+      BatchIterator data = new BatchIterator(dataset);
       List<List<WeightUpdate>> threadedWeightUpdates = new ArrayList<>();
-      for (int j = 0; j <4; j++){
+      for (int j = 0; j < 4; j++) {
          threadedWeightUpdates.add(new ArrayList<>());
       }
 //      List<WeightUpdate> weightUpdates = new ArrayList<>();
       for (int i = 0; i < network.layers.size(); i++) {
-         for( int j = 0; j < 4; j ++){
+         for (int j = 0; j < 4; j++) {
             threadedWeightUpdates.get(j).add(weightUpdate.copy());
          }
 //         weightUpdates.add(weightUpdate.copy());
@@ -124,31 +131,49 @@ public class FeedForwardNetworkLearner extends ClassifierLearner implements Logg
          double correct = 0;
          data.shuffle();
          List<Future<Tuple3<Double, Double, List<Layer>>>> results = new ArrayList<>();
-         List<Tuple2<Matrix, Matrix>> batches = Lists.asArrayList(data.iterator(effectiveBatchSize));
+         List<NDArray> batches = Lists.asArrayList(data.iterator(effectiveBatchSize));
          int thread = 0;
-         for (List<Tuple2<Matrix, Matrix>> tuple2s : com.google.common.collect.Lists.partition(batches, batches.size() / 4)) {
-            results.add(executor.submit(new WThread(tuple2s, network, lossFunction, threadedWeightUpdates.get(thread), iteration)));
-            thread++;
+         int partitionSize = batches.size() / 4;
+         int start = 0;
+         for (int b = 0; b < 3; b++) {
+            results.add(executor.submit(new WThread(batches.subList(start, start + partitionSize),
+                                                    network,
+                                                    lossFunction,
+                                                    threadedWeightUpdates.get(b),
+                                                    iteration)));
+            start += partitionSize;
          }
-//         for (Iterator<Tuple2<Matrix, Matrix>> itr = data.iterator(effectiveBatchSize); itr.hasNext(); ) {
+         results.add(executor.submit(new WThread(batches.subList(start, batches.size()),
+                                                 network,
+                                                 lossFunction,
+                                                 threadedWeightUpdates.get(3),
+                                                 iteration)));
+//         for (List<NDArray> tuple2s : com.davidbracewell.guava.common.collect.Lists.partition(batches,
+//                                                                                              (int) Math.ceil(
+//                                                                                                 batches.size() / 4))) {
+//            results.add(executor.submit(
+//               new WThread(tuple2s, network, lossFunction, threadedWeightUpdates.get(thread), iteration)));
+//            thread++;
+//         }
+//         for (Iterator<Tuple2<NDArray, NDArray>> itr = data.iterator(effectiveBatchSize); itr.hasNext(); ) {
 //            numBatch++;
 //            results.add(executor.submit(new WorkerThread(itr.next(), network, lossFunction, weightUpdates, iteration)));
-////            Tuple2<Matrix, Matrix> tuple = itr.next();
-////            Matrix X = tuple.v1;
-////            Matrix Y = tuple.v2;
+////            Tuple2<NDArray, NDArray> tuple = itr.next();
+////            NDArray X = tuple.v1;
+////            NDArray Y = tuple.v2;
 ////            double bSize = X.numCols();
-////            List<Matrix> ai = new ArrayList<>();
-////            Matrix cai = X;
+////            List<NDArray> ai = new ArrayList<>();
+////            NDArray cai = X;
 ////            for (Layer layer : network.layers) {
 ////               cai = layer.forward(cai);
 ////               ai.add(cai);
 ////            }
 ////            loss += lossFunction.loss(cai, Y) / bSize;
 ////            correct += correct(cai.toFloatMatrix(), Y.toFloatMatrix());
-////            Matrix dz = lossFunction.derivative(cai, Y);
+////            NDArray dz = lossFunction.derivative(cai, Y);
 ////            for (int i = network.layers.size() - 1; i >= 0; i--) {
-////               Matrix input = i == 0 ? X : ai.get(i - 1);
-////               Tuple2<Matrix, Double> gradCost = network.layers.get(i).backward(weightUpdates.get(i), input, ai.get(i),
+////               NDArray input = i == 0 ? X : ai.get(i - 1);
+////               Tuple2<NDArray, Double> gradCost = network.layers.get(i).backward(weightUpdates.get(i), input, ai.get(i),
 ////                                                                                dz, iteration, i > 0);
 ////               dz = gradCost.v1;
 ////               loss += gradCost.v2;
@@ -156,8 +181,8 @@ public class FeedForwardNetworkLearner extends ClassifierLearner implements Logg
 ////            numProcessed += bSize;
 //         }
 
-         Matrix[][] wUpdates = new Matrix[network.layers.size()][results.size()];
-         Matrix[][] bUpdates = new Matrix[network.layers.size()][results.size()];
+         NDArray[][] wUpdates = new NDArray[network.layers.size()][results.size()];
+         NDArray[][] bUpdates = new NDArray[network.layers.size()][results.size()];
          thread = 0;
          for (Future<Tuple3<Double, Double, List<Layer>>> future : results) {
             try {
@@ -179,8 +204,8 @@ public class FeedForwardNetworkLearner extends ClassifierLearner implements Logg
             network.layers.get(i).update(wUpdates[i], bUpdates[i]);
          }
 
-//         Matrix[] wGrad = new Matrix[network.layers.size()];
-//         Matrix[] bGrad = new Matrix[network.layers.size()];
+//         NDArray[] wGrad = new NDArray[network.layers.size()];
+//         NDArray[] bGrad = new NDArray[network.layers.size()];
 //         for (Future<Tuple3<Double, Double, BackpropResult[]>> future : results) {
 //            try {
 //               Tuple3<Double, Double, BackpropResult[]> costAcc = future.get();
@@ -246,10 +271,10 @@ public class FeedForwardNetworkLearner extends ClassifierLearner implements Logg
       public double loss;
       public double correct;
       public List<Layer> layers = new ArrayList<>();
-      public List<Tuple2<Matrix, Matrix>> data = new ArrayList<>();
+      public List<NDArray> data = new ArrayList<>();
       public LossFunction lossFunction;
 
-      public WThread(List<Tuple2<Matrix, Matrix>> data, FeedForwardNetwork network, LossFunction lossFunction, List<WeightUpdate> weightUpdates, int iteration) {
+      public WThread(List<NDArray> data, FeedForwardNetwork network, LossFunction lossFunction, List<WeightUpdate> weightUpdates, int iteration) {
          for (Layer layer : network.layers) {
             layers.add(layer.copy());
          }
@@ -262,31 +287,32 @@ public class FeedForwardNetworkLearner extends ClassifierLearner implements Logg
       @Override
       public Tuple3<Double, Double, List<Layer>> call() {
          double size = 0;
-         for (Tuple2<Matrix, Matrix> datum : data) {
-            Matrix X = datum.v1;
-            Matrix Y = datum.v2;
+         for (NDArray datum : data) {
+            NDArray X = datum;
+            NDArray Y = datum.getLabelAsNDArray();
             double bSize = X.numCols();
             size += bSize;
-            List<Matrix> ai = new ArrayList<>();
-            Matrix cai = X;
+            List<NDArray> ai = new ArrayList<>();
+            NDArray cai = X;
             for (Layer layer : layers) {
                cai = layer.forward(cai);
                ai.add(cai);
             }
             loss += lossFunction.loss(cai, Y);
             correct += correct(cai.toFloatMatrix(), Y.toFloatMatrix());
-            Matrix dz = lossFunction.derivative(cai, Y);
+            NDArray dz = lossFunction.derivative(cai, Y);
             for (int i = layers.size() - 1; i >= 0; i--) {
-               Matrix input = i == 0 ? X : ai.get(i - 1);
-               Tuple2<Matrix, Double> t = layers.get(i).backward(weightUpdates.get(i), input, ai.get(i), dz, iteration,
-                                                                 i > 0);
+               NDArray input = i == 0 ? X : ai.get(i - 1);
+               Tuple2<NDArray, Double> t = layers.get(i).backward(weightUpdates.get(i), input, ai.get(i), dz, iteration,
+                                                                  i > 0);
                dz = t.v1;
                if (i == layers.size() - 1) {
                   loss += t.v2;
                }
             }
          }
-         return $(loss / size, correct, layers);
+         loss = size > 0 ? loss / size : loss;
+         return $(loss, correct, layers);
       }
    }
 
@@ -295,10 +321,10 @@ public class FeedForwardNetworkLearner extends ClassifierLearner implements Logg
       public NetworkBuilder optimizer(String optimizer) {
          switch (optimizer.toLowerCase()) {
             case "sgd":
-               this.weightUpdate(SGD.builder().build());
+               this.weightUpdate(SGDUpdater.builder().build());
                break;
             case "adam":
-               this.weightUpdate(Adam.builder().build());
+               this.weightUpdate(AdamUpdater.builder().build());
                break;
             default:
                throw new IllegalArgumentException("Unknown optimizer " + optimizer);

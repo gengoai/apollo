@@ -21,9 +21,9 @@
 
 package com.davidbracewell.apollo.ml.classification;
 
-import com.davidbracewell.apollo.affinity.ContingencyTable;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.data.Dataset;
+import com.davidbracewell.apollo.stat.measure.ContingencyTable;
 
 import java.util.List;
 

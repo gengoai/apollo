@@ -1,11 +1,11 @@
 package com.davidbracewell.apollo.ml.clustering.topic;
 
-import com.davidbracewell.apollo.affinity.Measure;
-import com.davidbracewell.apollo.linalg.Vector;
+import com.davidbracewell.apollo.Optimum;
+import com.davidbracewell.apollo.linear.NDArray;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.clustering.Clusterer;
 import com.davidbracewell.apollo.ml.clustering.flat.FlatClustering;
-import com.davidbracewell.apollo.optimization.Optimum;
+import com.davidbracewell.apollo.stat.measure.Measure;
 import com.davidbracewell.collection.counter.Counter;
 import lombok.Getter;
 import lombok.NonNull;
@@ -44,7 +44,7 @@ public abstract class TopicModel extends FlatClustering {
     * @param topic the topic
     * @return the topic vector
     */
-   public abstract Vector getTopicVector(int topic);
+   public abstract NDArray getTopicVector(int topic);
 
    /**
     * Gets the words and their probabilities for a given topic

@@ -1,8 +1,8 @@
 package com.davidbracewell.apollo.ml.sequence;
 
 import com.davidbracewell.apollo.ml.Feature;
-import com.davidbracewell.apollo.ml.Featurizer;
 import com.davidbracewell.apollo.ml.Instance;
+import com.davidbracewell.apollo.ml.featurizer.Featurizer;
 import com.davidbracewell.cache.CacheProxy;
 import com.davidbracewell.cache.Cached;
 import com.davidbracewell.conversion.Cast;
@@ -36,22 +36,12 @@ public interface SequenceFeaturizer<INPUT> extends Featurizer<Context<INPUT>> {
 
          @Override
          @Cached
-         public Set<Feature> apply(Context<T> tContext) {
-            Set<Feature> features = new HashSet<>();
+         public List<Feature> apply(Context<T> tContext) {
+            List<Feature> features = new ArrayList<>();
             extractors.forEach(ex -> features.addAll(ex.apply(Cast.as(tContext))));
             return features;
          }
       };
-   }
-
-   /**
-    * Feature set set.
-    *
-    * @param features the features
-    * @return the set
-    */
-   static Set<Feature> featureSet(Feature... features) {
-      return new HashSet<>(Arrays.asList(features));
    }
 
    /**
@@ -67,8 +57,8 @@ public interface SequenceFeaturizer<INPUT> extends Featurizer<Context<INPUT>> {
 
          @Override
          @Cached
-         public Set<Feature> apply(Context<T> tContext) {
-            return new HashSet<>(function.apply(tContext));
+         public List<Feature> apply(Context<T> tContext) {
+            return new ArrayList<>(function.apply(tContext));
          }
       };
    }

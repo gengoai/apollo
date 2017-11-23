@@ -22,11 +22,11 @@
 package com.davidbracewell.apollo.ml.clustering;
 
 import com.davidbracewell.Math2;
-import com.davidbracewell.apollo.affinity.Measure;
-import com.davidbracewell.apollo.linalg.Vector;
+import com.davidbracewell.apollo.linear.NDArray;
 import com.davidbracewell.apollo.ml.Evaluation;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.data.Dataset;
+import com.davidbracewell.apollo.stat.measure.Measure;
 import com.davidbracewell.stream.StreamingContext;
 import com.davidbracewell.string.TableFormatter;
 import lombok.NonNull;
@@ -54,34 +54,6 @@ public class SilhouetteEvaluation implements Evaluation<Instance, Clustering> {
    @Override
    public void evaluate(@NonNull Clustering model, Collection<Instance> dataset) {
       evaluate(model);
-   }
-
-   public double silhouette(Map<Integer, Cluster> clusters, int index, Measure distanceMeasure) {
-      Cluster c1 = clusters.get(index);
-      if (c1.size() <= 1) {
-         return 0;
-      }
-
-      double s = 0;
-      for (Vector point1 : c1) {
-         double ai = 0;
-         for (Vector point2 : c1) {
-            ai += distanceMeasure.calculate(point1, point2);
-         }
-         ai /= c1.size();
-         double bi = clusters.keySet().parallelStream()
-                             .filter(j -> j != index)
-                             .mapToDouble(j -> {
-                                double b = 0;
-                                for (Vector point2 : clusters.get(j)) {
-                                   b += distanceMeasure.calculate(point1, point2);
-                                }
-                                return b;
-                             }).min().orElseThrow(NullPointerException::new);
-         s += (bi - ai) / Math.max(bi, ai);
-      }
-
-      return s / c1.size();
    }
 
    public void evaluate(@NonNull Clustering model) {
@@ -120,9 +92,37 @@ public class SilhouetteEvaluation implements Evaluation<Instance, Clustering> {
       formatter.print(printStream);
    }
 
-   public void reset(){
+   public void reset() {
       this.avgSilhouette = 0;
       this.silhouette.clear();
+   }
+
+   public double silhouette(Map<Integer, Cluster> clusters, int index, Measure distanceMeasure) {
+      Cluster c1 = clusters.get(index);
+      if (c1.size() <= 1) {
+         return 0;
+      }
+
+      double s = 0;
+      for (NDArray point1 : c1) {
+         double ai = 0;
+         for (NDArray point2 : c1) {
+            ai += distanceMeasure.calculate(point1, point2);
+         }
+         ai /= c1.size();
+         double bi = clusters.keySet().parallelStream()
+                             .filter(j -> j != index)
+                             .mapToDouble(j -> {
+                                double b = 0;
+                                for (NDArray point2 : clusters.get(j)) {
+                                   b += distanceMeasure.calculate(point1, point2);
+                                }
+                                return b;
+                             }).min().orElseThrow(NullPointerException::new);
+         s += (bi - ai) / Math.max(bi, ai);
+      }
+
+      return s / c1.size();
    }
 
 }//END OF SilhouetteEvaluation

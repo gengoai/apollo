@@ -21,7 +21,7 @@
 
 package com.davidbracewell.apollo.ml.sequence;
 
-import com.davidbracewell.apollo.linalg.Vector;
+import com.davidbracewell.apollo.linear.NDArray;
 import com.davidbracewell.apollo.ml.Feature;
 import lombok.NonNull;
 
@@ -41,7 +41,7 @@ public class StructuredPerceptron extends SequenceLabeler {
    /**
     * The Weights.
     */
-   Vector[] weights;
+   NDArray[] weights;
 
    /**
     * Instantiates a new Structured perceptron.
@@ -58,7 +58,7 @@ public class StructuredPerceptron extends SequenceLabeler {
       double[] distribution = new double[numberOfClasses];
       while (observation.hasNext()) {
          Feature feature = observation.next();
-         int index = (int) getFeatureEncoder().encode(feature.getName());
+         int index = (int) getFeatureEncoder().encode(feature.getFeatureName());
          if (index != -1) {
             for (int ci = 0; ci < numberOfClasses; ci++) {
                distribution[ci] += weights[ci].get(index);

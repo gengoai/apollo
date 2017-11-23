@@ -1,13 +1,13 @@
 package com.davidbracewell.apollo.ml.clustering.flat;
 
-import com.davidbracewell.apollo.affinity.Distance;
-import com.davidbracewell.apollo.affinity.DistanceMeasure;
-import com.davidbracewell.apollo.linalg.DenseVector;
-import com.davidbracewell.apollo.linalg.Vector;
+import com.davidbracewell.apollo.linear.NDArray;
+import com.davidbracewell.apollo.linear.NDArrayFactory;
 import com.davidbracewell.apollo.ml.clustering.ApacheClusterable;
 import com.davidbracewell.apollo.ml.clustering.ApacheDistanceMeasure;
 import com.davidbracewell.apollo.ml.clustering.Cluster;
 import com.davidbracewell.apollo.ml.clustering.Clusterer;
+import com.davidbracewell.apollo.stat.measure.Distance;
+import com.davidbracewell.apollo.stat.measure.DistanceMeasure;
 import com.davidbracewell.stream.MStream;
 import lombok.Getter;
 import lombok.NonNull;
@@ -75,7 +75,7 @@ public class FuzzyKMeans extends Clusterer<FlatClustering> {
    }
 
    @Override
-   public FlatClustering cluster(MStream<Vector> instances) {
+   public FlatClustering cluster(MStream<NDArray> instances) {
       FuzzyKMeansClusterer<ApacheClusterable> clusterer = new FuzzyKMeansClusterer<>(this.K,
                                                                                      this.fuzziness,
                                                                                      this.maxIterations,
@@ -88,7 +88,7 @@ public class FuzzyKMeans extends Clusterer<FlatClustering> {
                                         .filter(c -> c.getPoints().size() > 0)
                                         .map(c -> {
                                            Cluster cp = new Cluster();
-                                           cp.setCentroid(new DenseVector(c.getCenter().getPoint()));
+                                           cp.setCentroid(NDArrayFactory.wrap(c.getCenter().getPoint()));
                                            c.getPoints().forEach(ap -> cp.addPoint(ap.getVector()));
                                            return cp;
                                         }).collect(Collectors.toList());

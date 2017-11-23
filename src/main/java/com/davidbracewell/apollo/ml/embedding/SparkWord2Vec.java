@@ -1,13 +1,13 @@
 package com.davidbracewell.apollo.ml.embedding;
 
-import com.davidbracewell.apollo.linalg.DenseVector;
-import com.davidbracewell.apollo.linalg.store.CosineSignature;
-import com.davidbracewell.apollo.linalg.store.InMemoryLSH;
-import com.davidbracewell.apollo.linalg.store.VectorStore;
-import com.davidbracewell.apollo.ml.Encoder;
-import com.davidbracewell.apollo.ml.IndexEncoder;
+import com.davidbracewell.apollo.linear.NDArrayFactory;
+import com.davidbracewell.apollo.hash.CosineSignature;
+import com.davidbracewell.apollo.hash.InMemoryLSH;
+import com.davidbracewell.apollo.linear.store.VectorStore;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.data.Dataset;
+import com.davidbracewell.apollo.ml.encoder.Encoder;
+import com.davidbracewell.apollo.ml.encoder.IndexEncoder;
 import com.davidbracewell.apollo.ml.sequence.Sequence;
 import com.davidbracewell.conversion.Convert;
 import com.davidbracewell.stream.SparkStream;
@@ -65,7 +65,7 @@ public class SparkWord2Vec extends EmbeddingLearner {
                                                                             for (Instance instance : sequence) {
                                                                                sentence.add(instance.getFeatures()
                                                                                                     .get(0)
-                                                                                                    .getName());
+                                                                                                    .getFeatureName());
                                                                             }
                                                                             return sentence;
                                                                          }));
@@ -78,7 +78,7 @@ public class SparkWord2Vec extends EmbeddingLearner {
                                                    .createVectorStore();
       for (Map.Entry<String, float[]> vector : JavaConversions.mapAsJavaMap(model.getVectors()).entrySet()) {
          encoder.encode(vector.getKey());
-         vectorStore.add(vector.getKey(), new DenseVector(Convert.convert(vector.getValue(), double[].class)));
+         vectorStore.add(vector.getKey(), NDArrayFactory.wrap(Convert.convert(vector.getValue(), double[].class)));
       }
       return new Embedding(vectorStore);
    }

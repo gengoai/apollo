@@ -56,38 +56,11 @@ public class MinCountFilter extends RestrictedInstancePreprocessor implements Fi
    }
 
    @Override
-   protected void restrictedFitImpl(MStream<List<Feature>> stream) {
-      selectedFeatures = new HashSet<>(Counters.newCounter(stream.flatMap(l -> l.stream().map(Feature::getName))
-                                                   .countByValue())
-                                 .filterByValue(v -> v >= minCount)
-                                 .items());
-   }
-
-   @Override
-   public void reset() {
-      selectedFeatures.clear();
-   }
-
-   @Override
-   protected Stream<Feature> restrictedProcessImpl(Stream<Feature> featureStream, Instance originalExample) {
-      return featureStream.filter(f -> selectedFeatures.contains(f.getName()));
-   }
-
-   @Override
    public String describe() {
       if (applyToAll()) {
          return "MinCountFilter{minCount=" + minCount + "}";
       }
       return "MinCountFilter[" + getRestriction() + "]{minCount=" + minCount + "}";
-   }
-
-   @Override
-   public void toJson(@NonNull JsonWriter writer) throws IOException {
-      if (!applyToAll()) {
-         writer.property("restriction", getRestriction());
-      }
-      writer.property("minCount", minCount);
-      writer.property("selected", selectedFeatures);
    }
 
    @Override
@@ -106,5 +79,32 @@ public class MinCountFilter extends RestrictedInstancePreprocessor implements Fi
                break;
          }
       }
+   }
+
+   @Override
+   public void reset() {
+      selectedFeatures.clear();
+   }
+
+   @Override
+   protected void restrictedFitImpl(MStream<List<Feature>> stream) {
+      selectedFeatures = new HashSet<>(Counters.newCounter(stream.flatMap(l -> l.stream().map(Feature::getFeatureName))
+                                                                 .countByValue())
+                                               .filterByValue(v -> v >= minCount)
+                                               .items());
+   }
+
+   @Override
+   protected Stream<Feature> restrictedProcessImpl(Stream<Feature> featureStream, Instance originalExample) {
+      return featureStream.filter(f -> selectedFeatures.contains(f.getFeatureName()));
+   }
+
+   @Override
+   public void toJson(@NonNull JsonWriter writer) throws IOException {
+      if (!applyToAll()) {
+         writer.property("restriction", getRestriction());
+      }
+      writer.property("minCount", minCount);
+      writer.property("selected", selectedFeatures);
    }
 }// END OF MinCountFilter

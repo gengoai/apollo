@@ -66,7 +66,7 @@ public abstract class RestrictedInstancePreprocessor implements InstancePreproce
    @Override
    public final void fit(Dataset<Instance> dataset) {
       if (requiresFit()) {
-         restrictedFitImpl(dataset.stream().map(i -> shouldFilter(i).collect(Collectors.toList())));
+         restrictedFitImpl(dataset.stream().parallel().map(i -> shouldFilter(i).collect(Collectors.toList())));
       }
    }
 
@@ -112,10 +112,10 @@ public abstract class RestrictedInstancePreprocessor implements InstancePreproce
     * @return the stream of features that match the restriction
     */
    private Stream<Feature> shouldFilter(Instance example) {
-      return example.getFeatures().stream()
-                    .filter(
-                       f -> !f.getName().equals("SPECIAL::BIAS_FEATURE") &&
-                               (applyToAll() || f.getName().startsWith(getRestriction())));
+      return example.getFeatures()
+                    .stream()
+                    .filter(f -> !f.getFeatureName().equals("SPECIAL::BIAS_FEATURE") &&
+                                    (applyToAll() || f.getFeatureName().startsWith(getRestriction())));
    }
 
    /**
@@ -127,8 +127,8 @@ public abstract class RestrictedInstancePreprocessor implements InstancePreproce
    private Stream<Feature> shouldNotFilter(@NonNull Instance example) {
       return example.getFeatures().stream()
                     .filter(
-                       f -> f.getName().equals("SPECIAL::BIAS_FEATURE") || (!applyToAll() && !f.getName().startsWith(
-                          getRestriction())));
+                       f -> f.getFeatureName().equals("SPECIAL::BIAS_FEATURE")
+                               || (!applyToAll() && !f.getFeatureName().startsWith(getRestriction())));
    }
 
    @Override

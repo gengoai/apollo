@@ -1,14 +1,14 @@
 package com.davidbracewell.apollo.ml.embedding;
 
-import com.davidbracewell.apollo.affinity.Similarity;
-import com.davidbracewell.apollo.linalg.DenseVector;
-import com.davidbracewell.apollo.linalg.Vector;
-import com.davidbracewell.apollo.linalg.store.CosineSignature;
-import com.davidbracewell.apollo.linalg.store.DefaultVectorStore;
-import com.davidbracewell.apollo.linalg.store.InMemoryLSH;
-import com.davidbracewell.apollo.linalg.store.VectorStore;
-import com.davidbracewell.apollo.ml.EncoderPair;
+import com.davidbracewell.apollo.linear.NDArray;
+import com.davidbracewell.apollo.linear.NDArrayFactory;
+import com.davidbracewell.apollo.hash.CosineSignature;
+import com.davidbracewell.apollo.linear.store.DefaultVectorStore;
+import com.davidbracewell.apollo.hash.InMemoryLSH;
+import com.davidbracewell.apollo.linear.store.VectorStore;
 import com.davidbracewell.apollo.ml.Model;
+import com.davidbracewell.apollo.ml.encoder.EncoderPair;
+import com.davidbracewell.apollo.stat.measure.Similarity;
 import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.function.SerializableSupplier;
 import com.davidbracewell.function.Unchecked;
@@ -73,7 +73,7 @@ public class Embedding implements Model, VectorStore<String>, Serializable {
            .skip(firstRow)
            .parallel()
            .map(line -> {
-              Vector v = new DenseVector(vectorStore.dimension());
+              NDArray v = NDArrayFactory.DEFAULT().zeros(vectorStore.dimension());
               String[] parts = line.trim().split("\\s+");
               for (int vi = 1; vi < parts.length; vi++) {
                  v.set(vi - 1, Double.parseDouble(parts[vi]));
@@ -112,7 +112,7 @@ public class Embedding implements Model, VectorStore<String>, Serializable {
    }
 
    @Override
-   public void add(Vector vector) {
+   public void add(NDArray vector) {
       vectorStore.add(vector);
    }
 
@@ -136,7 +136,7 @@ public class Embedding implements Model, VectorStore<String>, Serializable {
    }
 
    @Override
-   public Vector get(String s) {
+   public NDArray get(String s) {
       return vectorStore.get(s);
    }
 
@@ -146,7 +146,7 @@ public class Embedding implements Model, VectorStore<String>, Serializable {
    }
 
    @Override
-   public Iterator<Vector> iterator() {
+   public Iterator<NDArray> iterator() {
       return vectorStore.iterator();
    }
 
@@ -156,27 +156,27 @@ public class Embedding implements Model, VectorStore<String>, Serializable {
    }
 
    @Override
-   public List<Vector> nearest(@NonNull Vector v, int K) {
+   public List<NDArray> nearest(@NonNull NDArray v, int K) {
       return nearest(v, K, Double.NEGATIVE_INFINITY);
    }
 
    @Override
-   public List<Vector> nearest(Vector query, double threshold) {
+   public List<NDArray> nearest(NDArray query, double threshold) {
       return vectorStore.nearest(query, threshold);
    }
 
    @Override
-   public List<Vector> nearest(@NonNull Vector v, int K, double threshold) {
+   public List<NDArray> nearest(@NonNull NDArray v, int K, double threshold) {
       return vectorStore.nearest(v, K, threshold);
    }
 
    @Override
-   public List<Vector> nearest(Vector query) {
+   public List<NDArray> nearest(NDArray query) {
       return vectorStore.nearest(query);
    }
 
    @Override
-   public boolean remove(Vector vector) {
+   public boolean remove(NDArray vector) {
       return vectorStore.remove(vector);
    }
 

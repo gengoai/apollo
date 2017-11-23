@@ -21,8 +21,9 @@
 
 package com.davidbracewell.apollo.ml.classification;
 
-import com.davidbracewell.apollo.linalg.DenseVector;
-import com.davidbracewell.apollo.linalg.Vector;
+import com.davidbracewell.apollo.linear.NDArray;
+import com.davidbracewell.apollo.linear.NDArrayFactory;
+import com.davidbracewell.apollo.ml.optimization.activation.Activation;
 
 /**
  * <p>Classifier tha employs a one-vs-rest strategy of combining binary classifiers to produce a multi-class
@@ -47,16 +48,14 @@ public class OneVsRestClassifier extends Classifier {
 
 
    @Override
-   public Classification classify(Vector vector) {
-      DenseVector distribution = new DenseVector(numberOfLabels());
-      for (int ci = 0; ci < distribution.dimension(); ci++) {
+   public Classification classify(NDArray vector) {
+      NDArray distribution = NDArrayFactory.wrap(new double[numberOfLabels()]);
+      for (int ci = 0; ci < distribution.length(); ci++) {
          distribution.set(ci, classifiers[ci].classify(vector).distribution()[1]);
       }
       if (normalize) {
          //Softmax normalization and log normalization
-         distribution.mapSubtractSelf(distribution.max()).mapSelf(Math::exp);
-         distribution.mapDivideSelf(distribution.sum());
-         distribution.mapSelf(Math::log);
+         distribution = Activation.SOFTMAX.apply(distribution).logi();
       }
       return new Classification(distribution.toArray(), getLabelEncoder());
    }

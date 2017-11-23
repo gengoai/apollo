@@ -21,7 +21,7 @@
 
 package com.davidbracewell.apollo.ml.classification;
 
-import com.davidbracewell.apollo.linalg.Vector;
+import com.davidbracewell.apollo.linear.NDArray;
 import com.davidbracewell.collection.counter.HashMapMultiCounter;
 import com.davidbracewell.collection.counter.MultiCounter;
 import de.bwaldvogel.liblinear.Feature;
@@ -53,13 +53,13 @@ public class LibLinearModel extends Classifier {
     * @param biasIndex the index of the bias variable (<0 for no bias)
     * @return the feature node array
     */
-   public static Feature[] toFeature(Vector vector, int biasIndex) {
+   public static Feature[] toFeature(NDArray vector, int biasIndex) {
       int size = vector.size() + (biasIndex > 0 ? 1 : 0);
       final Feature[] feature = new Feature[size];
       int index = 0;
-      for (Iterator<Vector.Entry> itr = vector.orderedNonZeroIterator(); itr.hasNext(); index++) {
-         Vector.Entry entry = itr.next();
-         feature[index] = new FeatureNode(entry.index + 1, entry.value);
+      for (Iterator<NDArray.Entry> itr = vector.sparseOrderedIterator(); itr.hasNext(); index++) {
+         NDArray.Entry entry = itr.next();
+         feature[index] = new FeatureNode(entry.getIndex() + 1, entry.getValue());
       }
       if (biasIndex > 0) {
          feature[size - 1] = new FeatureNode(biasIndex, 1.0);
@@ -68,7 +68,7 @@ public class LibLinearModel extends Classifier {
    }
 
    @Override
-   public Classification classify(Vector vector) {
+   public Classification classify(NDArray vector) {
       double[] p = new double[numberOfLabels()];
       if (model.isProbabilityModel()) {
          Linear.predictProbability(model, toFeature(vector, biasIndex), p);

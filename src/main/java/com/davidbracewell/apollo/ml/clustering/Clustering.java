@@ -21,12 +21,12 @@
 
 package com.davidbracewell.apollo.ml.clustering;
 
-import com.davidbracewell.apollo.affinity.Measure;
-import com.davidbracewell.apollo.linalg.Vector;
-import com.davidbracewell.apollo.ml.EncoderPair;
+import com.davidbracewell.apollo.linear.NDArray;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.Model;
+import com.davidbracewell.apollo.ml.encoder.EncoderPair;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
+import com.davidbracewell.apollo.stat.measure.Measure;
 import com.davidbracewell.collection.Streams;
 import com.davidbracewell.tuple.Tuple2;
 import lombok.Getter;
@@ -89,7 +89,7 @@ public abstract class Clustering implements Model, Iterable<Cluster>, Serializab
     * @return the index of the cluster that the instance belongs to
     */
    public int hardCluster(@NonNull Instance instance) {
-      Vector vector = getPreprocessors().apply(instance).toVector(encoderPair);
+      NDArray vector = getPreprocessors().apply(instance).toVector(encoderPair);
       return getMeasure().getOptimum()
                          .optimum(Streams.asParallelStream(this)
                                          .map(c -> $(c.getId(), getMeasure().calculate(vector, c.getCentroid()))),
@@ -132,7 +132,7 @@ public abstract class Clustering implements Model, Iterable<Cluster>, Serializab
    public double[] softCluster(@NonNull Instance instance) {
       double[] distances = new double[size()];
       Arrays.fill(distances, Double.POSITIVE_INFINITY);
-      Vector vector = getPreprocessors().apply(instance).toVector(encoderPair);
+      NDArray vector = getPreprocessors().apply(instance).toVector(encoderPair);
       int assignment = hardCluster(instance);
       if (assignment >= 0) {
          distances[assignment] = getMeasure().calculate(get(assignment).getCentroid(), vector);

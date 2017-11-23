@@ -1,9 +1,9 @@
 package com.davidbracewell.apollo.ml.clustering.topic;
 
-import com.davidbracewell.apollo.affinity.Measure;
-import com.davidbracewell.apollo.linalg.Vector;
+import com.davidbracewell.apollo.linear.NDArray;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.clustering.Clusterer;
+import com.davidbracewell.apollo.stat.measure.Measure;
 import com.davidbracewell.collection.counter.Counter;
 import com.davidbracewell.collection.counter.Counters;
 
@@ -36,7 +36,7 @@ public class LSAModel extends TopicModel {
    }
 
    @Override
-   public Vector getTopicVector(int topic) {
+   public NDArray getTopicVector(int topic) {
       return get(topic)
                 .getPoints()
                 .get(0);
@@ -44,7 +44,7 @@ public class LSAModel extends TopicModel {
 
    @Override
    public Counter<String> getTopicWords(int topic) {
-      Vector v = getTopicVector(topic);
+      NDArray v = getTopicVector(topic);
       Counter<String> c = Counters.newCounter();
       v.forEachSparse(e -> c.set(decodeFeature(e.getIndex()).toString(), e.getValue()));
       return c;
@@ -53,7 +53,7 @@ public class LSAModel extends TopicModel {
    @Override
    public double[] softCluster(Instance instance) {
       double[] scores = new double[size()];
-      Vector vector = getPreprocessors().apply(instance).toVector(getEncoderPair());
+      NDArray vector = getPreprocessors().apply(instance).toVector(getEncoderPair());
       for (int i = 0; i < size(); i++) {
          double score = vector.dot(getTopicVector(i));
          scores[i] = score;

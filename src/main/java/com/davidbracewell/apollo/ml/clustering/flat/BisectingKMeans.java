@@ -1,11 +1,11 @@
 package com.davidbracewell.apollo.ml.clustering.flat;
 
-import com.davidbracewell.apollo.affinity.Distance;
-import com.davidbracewell.apollo.linalg.SparkLinearAlgebra;
-import com.davidbracewell.apollo.linalg.SparseVector;
-import com.davidbracewell.apollo.linalg.Vector;
+import com.davidbracewell.apollo.linear.NDArray;
+import com.davidbracewell.apollo.linear.NDArrayFactory;
+import com.davidbracewell.apollo.linear.SparkLinearAlgebra;
 import com.davidbracewell.apollo.ml.clustering.Cluster;
 import com.davidbracewell.apollo.ml.clustering.Clusterer;
+import com.davidbracewell.apollo.stat.measure.Distance;
 import com.davidbracewell.stream.MStream;
 import lombok.Getter;
 import lombok.Setter;
@@ -32,7 +32,7 @@ public class BisectingKMeans extends Clusterer<FlatCentroidClustering> {
    private double minDivisibleClusterSize = 1.0;
 
    @Override
-   public FlatCentroidClustering cluster(MStream<Vector> instances) {
+   public FlatCentroidClustering cluster(MStream<NDArray> instances) {
       org.apache.spark.mllib.clustering.BisectingKMeans learner = new org.apache.spark.mllib.clustering.BisectingKMeans();
       learner.setK(K);
       learner.setMaxIterations(maxIterations);
@@ -44,11 +44,11 @@ public class BisectingKMeans extends Clusterer<FlatCentroidClustering> {
       org.apache.spark.mllib.linalg.Vector[] centers = model.clusterCenters();
       for (int i = 0; i < K; i++) {
          clustering.addCluster(new Cluster());
-         clustering.get(i).setCentroid(new com.davidbracewell.apollo.linalg.DenseVector(centers[i].toArray()));
+         clustering.get(i).setCentroid(NDArrayFactory.wrap(centers[i].toArray()));
       }
       Map<org.apache.spark.mllib.linalg.Vector, Integer> assignments = rdd.mapToPair(
          v -> Tuple2.apply(v, model.predict(v))).collectAsMap();
-      assignments.forEach((v, i) -> clustering.get(i).addPoint(new SparseVector(v.toArray())));
+      assignments.forEach((v, i) -> clustering.get(i).addPoint(NDArrayFactory.wrap(v.toArray())));
 
       return clustering;
    }

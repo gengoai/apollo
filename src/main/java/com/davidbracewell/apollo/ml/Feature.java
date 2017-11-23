@@ -30,9 +30,8 @@ import lombok.Value;
 import java.io.Serializable;
 
 /**
- * <p>A feature is made up of a name and double value.</p>
- * <p>Convention for binary predicates is <code>PREFIX=PREDICATE</code> and when position is important
- * <code>PREFIX[POSITION]=PREDICATE</code>.</p>
+ * <p>A feature is made up of a name and double value.</p> <p>Convention for binary predicates is
+ * <code>PREFIX=PREDICATE</code> and when position is important <code>PREFIX[POSITION]=PREDICATE</code>.</p>
  *
  * @author David B. Bracewell
  */
@@ -45,22 +44,6 @@ public class Feature implements Serializable, Comparable<Feature>, Copyable<Feat
    private Feature(String name, double value) {
       this.name = name;
       this.value = value;
-   }
-
-   public static boolean isTrue(double value) {
-      return value == 1;
-   }
-
-   public static boolean isFalse(double value) {
-      return value == 0 || value == -1;
-   }
-
-   public static boolean isTrue(String value) {
-      return value.toLowerCase().equals("true");
-   }
-
-   public static boolean isFalse(String value) {
-      return value.toLowerCase().equals("false");
    }
 
    /**
@@ -85,6 +68,22 @@ public class Feature implements Serializable, Comparable<Feature>, Copyable<Feat
       return new Feature(featurePrefix + "=" + Joiner.on('_').join(featureComponents), 1.0);
    }
 
+   public static boolean isFalse(double value) {
+      return value == 0 || value == -1;
+   }
+
+   public static boolean isFalse(String value) {
+      return value.toLowerCase().equals("false");
+   }
+
+   public static boolean isTrue(String value) {
+      return value.toLowerCase().equals("true");
+   }
+
+   public static boolean isTrue(double value) {
+      return value == 1;
+   }
+
    /**
     * Creates a real valued feature with the given name and value.
     *
@@ -104,6 +103,10 @@ public class Feature implements Serializable, Comparable<Feature>, Copyable<Feat
    @Override
    public Feature copy() {
       return new Feature(name, value);
+   }
+
+   public String getFeatureName() {
+      return name;
    }
 
    /**

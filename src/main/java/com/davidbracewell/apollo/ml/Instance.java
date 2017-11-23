@@ -22,8 +22,10 @@
 package com.davidbracewell.apollo.ml;
 
 import com.davidbracewell.Interner;
-import com.davidbracewell.apollo.linalg.Vector;
-import com.davidbracewell.collection.Streams;
+import com.davidbracewell.apollo.linear.NDArray;
+import com.davidbracewell.apollo.linear.NDArrayFactory;
+import com.davidbracewell.apollo.ml.encoder.EncoderPair;
+import com.davidbracewell.apollo.ml.encoder.HashingEncoder;
 import com.davidbracewell.collection.counter.Counter;
 import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.conversion.Val;
@@ -155,19 +157,19 @@ public class Instance implements Example, Serializable, Iterable<Feature> {
       return new Instance(features, label);
    }
 
-   /**
-    * Convenience method for creating an instance from a vector. Feature names are string representations of the vector
-    * indices.
-    *
-    * @param vector the vector
-    * @return the instance
-    */
-   public static Instance fromVector(@NonNull com.davidbracewell.apollo.linalg.Vector vector) {
-      List<Feature> features = Streams.asStream(vector.nonZeroIterator())
-                                      .map(de -> Feature.real(Integer.toString(de.index), de.value))
-                                      .collect(Collectors.toList());
-      return create(features, vector.getLabel());
-   }
+//   /**
+//    * Convenience method for creating an instance from a vector. Feature names are string representations of the vector
+//    * indices.
+//    *
+//    * @param vector the vector
+//    * @return the instance
+//    */
+//   public static Instance fromVector(@NonNull com.davidbracewell.apollo.linalg.Vector vector) {
+//      List<Feature> features = Streams.asStream(vector.nonZeroIterator())
+//                                      .map(de -> Feature.real(Integer.toString(de.index), de.value))
+//                                      .collect(Collectors.toList());
+//      return create(features, vector.getLabel());
+//   }
 
    @Override
    public List<Instance> asInstances() {
@@ -196,7 +198,7 @@ public class Instance implements Example, Serializable, Iterable<Feature> {
 
    @Override
    public Stream<String> getFeatureSpace() {
-      return features.stream().map(Feature::getName);
+      return features.stream().map(Feature::getFeatureName);
    }
 
    /**
@@ -267,7 +269,11 @@ public class Instance implements Example, Serializable, Iterable<Feature> {
     * @return the value of the given feature or 0 if not in the instance
     */
    public double getValue(@NonNull String feature) {
-      return features.stream().filter(f -> f.getName().equals(feature)).map(Feature::getValue).findFirst().orElse(0d);
+      return features.stream()
+                     .filter(f -> f.getFeatureName().equals(feature))
+                     .map(Feature::getValue)
+                     .findFirst()
+                     .orElse(0d);
    }
 
    /**
@@ -292,7 +298,7 @@ public class Instance implements Example, Serializable, Iterable<Feature> {
    @Override
    public Instance intern(@NonNull Interner<String> interner) {
       return Instance.create(features.stream()
-                                     .map(f -> Feature.real(interner.intern(f.getName()), f.getValue()))
+                                     .map(f -> Feature.real(interner.intern(f.getFeatureName()), f.getValue()))
                                      .collect(Collectors.toList()),
                              label
                             );
@@ -329,7 +335,7 @@ public class Instance implements Example, Serializable, Iterable<Feature> {
       writer.property("weight", weight);
       writer.beginObject("features");
       for (Feature f : features) {
-         writer.property(f.getName(), f.getValue());
+         writer.property(f.getFeatureName(), f.getValue());
       }
       writer.endObject();
       if (inArray) writer.endObject();
@@ -342,11 +348,11 @@ public class Instance implements Example, Serializable, Iterable<Feature> {
     * @param encoderPair the encoder pair
     * @return the vector
     */
-   public Vector toVector(@NonNull EncoderPair encoderPair) {
-      Vector vector = new FeatureVector(encoderPair);
+   public NDArray toVector(@NonNull EncoderPair encoderPair) {
+      NDArray vector = NDArrayFactory.DEFAULT().zeros(encoderPair.numberOfFeatures());
       boolean isHash = encoderPair.getFeatureEncoder() instanceof HashingEncoder;
       features.forEach(f -> {
-         int fi = (int) encoderPair.encodeFeature(f.getName());
+         int fi = (int) encoderPair.encodeFeature(f.getFeatureName());
          if (fi != -1) {
             if (isHash) {
                vector.set(fi, 1.0);

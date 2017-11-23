@@ -22,8 +22,9 @@
 package com.davidbracewell.apollo.ml.data;
 
 import com.davidbracewell.Copyable;
-import com.davidbracewell.apollo.linalg.Vector;
+import com.davidbracewell.apollo.linear.NDArray;
 import com.davidbracewell.apollo.ml.*;
+import com.davidbracewell.apollo.ml.encoder.*;
 import com.davidbracewell.apollo.ml.preprocess.Preprocessor;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.apollo.ml.sequence.Sequence;
@@ -146,23 +147,23 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
    }
 
    /**
-    * Creates a stream of {@link FeatureVector} from the examples in the dataset
+    * Creates a stream of {@link com.davidbracewell.apollo.linear.NDArray} from the examples in the dataset
     *
     * @return the stream of FeatureVectors
     */
-   public MStream<Vector> asVectors() {
+   public MStream<NDArray> asVectors() {
       encode();
       return stream().parallel()
                      .flatMap(ii -> ii.asInstances().stream())
                      .map(ii -> ii.toVector(encoders));
    }
 
-   public MStream<Vector> asVectors(double trueLabel) {
+   public MStream<NDArray> asVectors(double trueLabel) {
       encode();
       return stream().parallel()
                      .flatMap(ii -> ii.asInstances().stream())
                      .map(ii -> {
-                        Vector v = ii.toVector(encoders);
+                        NDArray v = ii.toVector(encoders);
                         if (v.getLabelAsDouble() == trueLabel) {
                            v.setLabel(1d);
                         } else {
@@ -533,15 +534,15 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
       return dataset;
    }
 
-   public SerializableSupplier<MStream<Vector>> vectorStream(boolean cacheData) {
-      final MStream<Vector> mStream;
+   public SerializableSupplier<MStream<NDArray>> vectorStream(boolean cacheData) {
+      final MStream<NDArray> mStream;
       if (cacheData) {
          mStream = asVectors().cache();
       } else {
          mStream = null;
       }
 
-      SerializableSupplier<MStream<Vector>> dataSupplier;
+      SerializableSupplier<MStream<NDArray>> dataSupplier;
       if (mStream != null) {
          dataSupplier = () -> mStream;
       } else {
@@ -550,15 +551,15 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
       return dataSupplier;
    }
 
-   public SerializableSupplier<MStream<Vector>> vectorStream(boolean cacheData, double trueLabel) {
-      final MStream<Vector> mStream;
+   public SerializableSupplier<MStream<NDArray>> vectorStream(boolean cacheData, double trueLabel) {
+      final MStream<NDArray> mStream;
       if (cacheData) {
          mStream = asVectors(trueLabel).cache();
       } else {
          mStream = null;
       }
 
-      SerializableSupplier<MStream<Vector>> dataSupplier;
+      SerializableSupplier<MStream<NDArray>> dataSupplier;
       if (mStream != null) {
          dataSupplier = () -> mStream;
       } else {

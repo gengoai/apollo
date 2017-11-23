@@ -1,12 +1,12 @@
 package com.davidbracewell.apollo.ml.clustering.flat;
 
-import com.davidbracewell.apollo.affinity.Distance;
-import com.davidbracewell.apollo.affinity.DistanceMeasure;
-import com.davidbracewell.apollo.linalg.Vector;
+import com.davidbracewell.apollo.linear.NDArray;
 import com.davidbracewell.apollo.ml.clustering.ApacheClusterable;
 import com.davidbracewell.apollo.ml.clustering.ApacheDistanceMeasure;
 import com.davidbracewell.apollo.ml.clustering.Cluster;
 import com.davidbracewell.apollo.ml.clustering.Clusterer;
+import com.davidbracewell.apollo.stat.measure.Distance;
+import com.davidbracewell.apollo.stat.measure.DistanceMeasure;
 import com.davidbracewell.stream.MStream;
 import lombok.Getter;
 import lombok.NonNull;
@@ -57,7 +57,7 @@ public class DBSCAN extends Clusterer<FlatClustering> {
 
 
    @Override
-   public FlatClustering cluster(MStream<Vector> instances) {
+   public FlatClustering cluster(MStream<NDArray> instances) {
       DBSCANClusterer<ApacheClusterable> clusterer = new DBSCANClusterer<>(eps, minPts,
                                                                            new ApacheDistanceMeasure(distanceMeasure));
       List<Cluster> clusters = clusterer.cluster(instances.map(ApacheClusterable::new).collect())

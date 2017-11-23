@@ -21,8 +21,8 @@
 
 package com.davidbracewell.apollo.ml.classification;
 
-import com.davidbracewell.apollo.linalg.Vector;
-import com.davidbracewell.apollo.optimization.Optimum;
+import com.davidbracewell.apollo.Optimum;
+import com.davidbracewell.apollo.linear.NDArray;
 import lombok.NonNull;
 
 /**
@@ -44,7 +44,7 @@ public class DecisionStump extends Classifier {
 
 
    @Override
-   public Classification classify(@NonNull Vector vector) {
+   public Classification classify(@NonNull NDArray vector) {
       double[] distribution;
       if (vector.get(featureId) > featureValue) {
          distribution = upperDecision;

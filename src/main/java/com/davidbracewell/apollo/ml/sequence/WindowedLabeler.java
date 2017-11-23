@@ -1,7 +1,8 @@
 package com.davidbracewell.apollo.ml.sequence;
 
+import com.davidbracewell.apollo.linear.NDArray;
+import com.davidbracewell.apollo.linear.NDArrayFactory;
 import com.davidbracewell.apollo.ml.Feature;
-import com.davidbracewell.apollo.ml.FeatureVector;
 import com.davidbracewell.apollo.ml.classification.Classifier;
 import lombok.NonNull;
 
@@ -33,9 +34,19 @@ public class WindowedLabeler extends SequenceLabeler {
 
    @Override
    public double[] estimate(Iterator<Feature> observation, Iterator<String> transitions) {
-      FeatureVector vector = new FeatureVector(classifier.getEncoderPair());
-      observation.forEachRemaining(vector::set);
-      transitions.forEachRemaining(t -> vector.set(t, 1.0));
+      NDArray vector = NDArrayFactory.SPARSE_DOUBLE.zeros(numberOfFeatures());
+      observation.forEachRemaining(f -> {
+         int index = (int) encodeFeature(f.getFeatureName());
+         if (index >= 0) {
+            vector.set(index, f.getValue());
+         }
+      });
+      transitions.forEachRemaining(t -> {
+         int index = (int) encodeFeature(t);
+         if (index >= 0) {
+            vector.set(index, 1.0d);
+         }
+      });
       return classifier.classify(vector).distribution();
    }
 

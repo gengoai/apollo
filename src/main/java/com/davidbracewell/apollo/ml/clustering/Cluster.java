@@ -21,7 +21,7 @@
 
 package com.davidbracewell.apollo.ml.clustering;
 
-import com.davidbracewell.apollo.linalg.Vector;
+import com.davidbracewell.apollo.linear.NDArray;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -36,13 +36,13 @@ import java.util.List;
  *
  * @author David B. Bracewell
  */
-public class Cluster implements Serializable, Iterable<Vector> {
+public class Cluster implements Serializable, Iterable<NDArray> {
 
    private static final long serialVersionUID = 1L;
-   private final List<Vector> points = new ArrayList<>();
+   private final List<NDArray> points = new ArrayList<>();
    @Getter
    @Setter
-   private Vector centroid;
+   private NDArray centroid;
    @Getter
    @Setter
    private Cluster parent;
@@ -64,33 +64,10 @@ public class Cluster implements Serializable, Iterable<Vector> {
     *
     * @param point the point
     */
-   public void addPoint(final Vector point) {
+   public void addPoint(final NDArray point) {
       if (point != null) {
          points.add(point);
       }
-   }
-
-   /**
-    * Gets the score of the given vector respective to the cluster
-    *
-    * @param point The point whose score we want
-    */
-   public double getScore(Vector point) {
-      return points.contains(point) ? 1.0 : 0.0;
-   }
-
-   /**
-    * Gets the points in the cluster as a list.
-    *
-    * @return the points as a list
-    */
-   public List<Vector> getPoints() {
-      return points;
-   }
-
-   @Override
-   public Iterator<Vector> iterator() {
-      return points.iterator();
    }
 
    /**
@@ -98,6 +75,29 @@ public class Cluster implements Serializable, Iterable<Vector> {
     */
    public void clear() {
       points.clear();
+   }
+
+   /**
+    * Gets the points in the cluster as a list.
+    *
+    * @return the points as a list
+    */
+   public List<NDArray> getPoints() {
+      return points;
+   }
+
+   /**
+    * Gets the score of the given vector respective to the cluster
+    *
+    * @param point The point whose score we want
+    */
+   public double getScore(NDArray point) {
+      return points.contains(point) ? 1.0 : 0.0;
+   }
+
+   @Override
+   public Iterator<NDArray> iterator() {
+      return points.iterator();
    }
 
    /**

@@ -1,8 +1,8 @@
 package com.davidbracewell.apollo.ml.sequence;
 
-import com.davidbracewell.apollo.ml.EncoderPair;
 import com.davidbracewell.apollo.ml.Feature;
 import com.davidbracewell.apollo.ml.Model;
+import com.davidbracewell.apollo.ml.encoder.EncoderPair;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import lombok.Getter;
 import lombok.NonNull;

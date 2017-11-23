@@ -21,11 +21,11 @@
 
 package com.davidbracewell.apollo.ml.clustering.flat;
 
-import com.davidbracewell.apollo.affinity.Distance;
-import com.davidbracewell.apollo.affinity.DistanceMeasure;
-import com.davidbracewell.apollo.linalg.Vector;
+import com.davidbracewell.apollo.linear.NDArray;
 import com.davidbracewell.apollo.ml.clustering.Cluster;
 import com.davidbracewell.apollo.ml.clustering.Clusterer;
+import com.davidbracewell.apollo.stat.measure.Distance;
+import com.davidbracewell.apollo.stat.measure.DistanceMeasure;
 import com.davidbracewell.logging.Loggable;
 import com.davidbracewell.stream.MStream;
 import com.davidbracewell.stream.StreamingContext;
@@ -67,7 +67,7 @@ public class DivisiveKMeans extends Clusterer<FlatClustering> implements Loggabl
    private int maxClusterSize = Integer.MAX_VALUE;
 
    @Override
-   public FlatClustering cluster(@NonNull MStream<Vector> instances) {
+   public FlatClustering cluster(@NonNull MStream<NDArray> instances) {
       FlatClustering finalClustering = new FlatCentroidClustering(this, distanceMeasure);
       FlatClustering initialCluster = kmeans(instances, initialK);
       initialCluster.forEach(cluster -> doClusterRound(cluster).forEach(finalClustering::addCluster));
@@ -118,7 +118,7 @@ public class DivisiveKMeans extends Clusterer<FlatClustering> implements Loggabl
       return Collections.emptyList();
    }
 
-   private FlatClustering kmeans(MStream<Vector> vectors, int K) {
+   private FlatClustering kmeans(MStream<NDArray> vectors, int K) {
       return new KMeans(K, distanceMeasure, kMeansIterations).cluster(vectors);
    }
 

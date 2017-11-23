@@ -1,7 +1,9 @@
 package com.davidbracewell.apollo.ml.classification.nn;
 
-import com.davidbracewell.apollo.linalg.DenseFloatMatrix;
-import com.davidbracewell.apollo.linalg.Matrix;
+import com.davidbracewell.apollo.linear.NDArray;
+import com.davidbracewell.apollo.linear.NDArrayFactory;
+import com.davidbracewell.apollo.linear.NDArrayInitializer;
+import com.davidbracewell.apollo.ml.optimization.WeightUpdate;
 import com.davidbracewell.tuple.Tuple2;
 import lombok.Getter;
 import lombok.val;
@@ -28,17 +30,18 @@ public class Dropout extends Layer {
    }
 
    @Override
-   public Matrix backward(Matrix input, Matrix output, Matrix delta, double learningRate, int layerIndex, int iteration) {
+   public NDArray backward(NDArray input, NDArray output, NDArray delta, double learningRate, int layerIndex, int iteration) {
       return delta;
    }
 
    @Override
-   public BackpropResult backward(Matrix input, Matrix output, Matrix delta, boolean calculateDelta) {
-      return BackpropResult.from(delta, DenseFloatMatrix.empty(), DenseFloatMatrix.empty());
+   public BackpropResult backward(NDArray input, NDArray output, NDArray delta, boolean calculateDelta) {
+      return BackpropResult.from(delta, NDArrayFactory.DEFAULT().empty(),
+                                 NDArrayFactory.DEFAULT().empty());
    }
 
    @Override
-   public Tuple2<Matrix, Double> backward(WeightUpdate updater, Matrix input, Matrix output, Matrix delta, int iteration, boolean calcuateDelta) {
+   public Tuple2<NDArray, Double> backward(WeightUpdate updater, NDArray input, NDArray output, NDArray delta, int iteration, boolean calcuateDelta) {
       return $(delta, 0d);
    }
 
@@ -48,20 +51,20 @@ public class Dropout extends Layer {
    }
 
    @Override
-   Matrix forward(Matrix input) {
-      val mask = DenseFloatMatrix.rand(input.numRows(), input.numCols())
-                                 .predicate(x -> x < rate);
+   NDArray forward(NDArray input) {
+      val mask = NDArrayFactory.DEFAULT().create(input.numRows(), input.numCols(), NDArrayInitializer.rand())
+                               .test(x -> x < rate);
       return input.mul(mask).divi(rate);
    }
 
    @Override
-   public Matrix getBias() {
-      return DenseFloatMatrix.empty();
+   public NDArray getBias() {
+      return NDArrayFactory.DEFAULT().empty();
    }
 
    @Override
-   public Matrix getWeights() {
-      return DenseFloatMatrix.empty();
+   public NDArray getWeights() {
+      return NDArrayFactory.DEFAULT().empty();
    }
 
    @Override
@@ -70,12 +73,12 @@ public class Dropout extends Layer {
    }
 
    @Override
-   public double update(WeightUpdate weightUpdate, Matrix wGrad, Matrix bBrad, int iteration) {
+   public double update(WeightUpdate weightUpdate, NDArray wGrad, NDArray bBrad, int iteration) {
       return 0;
    }
 
    @Override
-   public void update(Matrix[] weights, Matrix[] bias) {
+   public void update(NDArray[] weights, NDArray[] bias) {
 
    }
 

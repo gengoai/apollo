@@ -1,11 +1,13 @@
 package com.davidbracewell.apollo.ml.classification.nn;
 
-import com.davidbracewell.apollo.linalg.DenseFloatMatrix;
-import com.davidbracewell.apollo.linalg.Matrix;
-import com.davidbracewell.apollo.linalg.Vector;
+import com.davidbracewell.apollo.linear.NDArray;
+import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.classification.Classification;
 import com.davidbracewell.apollo.ml.classification.Classifier;
 import com.davidbracewell.apollo.ml.classification.ClassifierLearner;
+import com.davidbracewell.apollo.ml.encoder.EncoderPair;
+import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
+import lombok.NonNull;
 
 import java.util.ArrayList;
 
@@ -27,13 +29,27 @@ public class FeedForwardNetwork extends Classifier {
       super(learner);
    }
 
+   protected FeedForwardNetwork(@NonNull PreprocessorList<Instance> preprocessors, EncoderPair encoderPair) {
+      super(preprocessors, encoderPair);
+   }
+
+   public Layer getLayer(int i){
+      return layers.get(i);
+   }
+
    @Override
-   public Classification classify(Vector vector) {
-      Matrix m = new DenseFloatMatrix(vector.dimension(), 1, vector.toFloatArray());
+   public Classification classify(NDArray vector) {
       for (Layer layer : layers) {
-         m = layer.forward(m);
+         vector = layer.forward(vector);
       }
-      return createResult(m.toDoubleArray());
+      return createResult(vector.toArray());
+   }
+
+   public FeedForwardNetwork copy() {
+      FeedForwardNetwork ffn = new FeedForwardNetwork(getPreprocessors(), getEncoderPair());
+      ffn.layers = new ArrayList<>();
+      layers.forEach(l -> ffn.layers.add(l.copy()));
+      return ffn;
    }
 
 }// END OF FeedForwardNetwork

@@ -50,41 +50,12 @@ public class RealToBinaryTransform extends RestrictedInstancePreprocessor implem
       this(StringUtils.EMPTY, 0);
    }
 
-
-   @Override
-   public void reset() {
-   }
-
    @Override
    public String describe() {
       if (applyToAll()) {
          return "RealToBinaryTransform{threshold=" + threshold + "}";
       }
       return "RealToBinaryTransform[" + getRestriction() + "]{threshold=" + threshold + "}";
-   }
-
-   @Override
-   protected void restrictedFitImpl(MStream<List<Feature>> stream) {
-
-   }
-
-   @Override
-   public boolean requiresFit() {
-      return false;
-   }
-
-   @Override
-   protected Stream<Feature> restrictedProcessImpl(Stream<Feature> featureStream, Instance originalExample) {
-      return featureStream.filter(f -> f.getValue() >= threshold).map(feature -> Feature.TRUE(feature.getName()));
-   }
-
-
-   @Override
-   public void toJson(@NonNull JsonWriter writer) throws IOException {
-      if (!applyToAll()) {
-         writer.property("restriction", getRestriction());
-      }
-      writer.property("threshold", threshold);
    }
 
    @Override
@@ -100,6 +71,34 @@ public class RealToBinaryTransform extends RestrictedInstancePreprocessor implem
                break;
          }
       }
+   }
+
+   @Override
+   public boolean requiresFit() {
+      return false;
+   }
+
+   @Override
+   public void reset() {
+   }
+
+   @Override
+   protected void restrictedFitImpl(MStream<List<Feature>> stream) {
+
+   }
+
+   @Override
+   protected Stream<Feature> restrictedProcessImpl(Stream<Feature> featureStream, Instance originalExample) {
+      return featureStream.filter(f -> f.getValue() >= threshold).map(
+         feature -> Feature.TRUE(feature.getFeatureName()));
+   }
+
+   @Override
+   public void toJson(@NonNull JsonWriter writer) throws IOException {
+      if (!applyToAll()) {
+         writer.property("restriction", getRestriction());
+      }
+      writer.property("threshold", threshold);
    }
 
 }// END OF RealToBinaryTransform

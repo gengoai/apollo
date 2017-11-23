@@ -45,45 +45,11 @@ public class ZScoreTransform extends RestrictedInstancePreprocessor implements T
    }
 
    @Override
-   protected Stream<Feature> restrictedProcessImpl(Stream<Feature> featureStream, Instance originalExample) {
-      return featureStream.map(feature -> Feature.real(feature.getName(),
-                                                       (feature.getValue() - mean) / standardDeviation));
-   }
-
-
-   @Override
-   protected void restrictedFitImpl(MStream<List<Feature>> stream) {
-      MStatisticsAccumulator stats = stream.getContext().statisticsAccumulator();
-      stream.forEach(instance -> stats.combine(instance.stream()
-                                                       .mapToDouble(Feature::getValue)
-                                                       .collect(EnhancedDoubleStatistics::new,
-                                                                EnhancedDoubleStatistics::accept,
-                                                                EnhancedDoubleStatistics::combine)));
-      this.mean = stats.value().getAverage();
-      this.standardDeviation = stats.value().getSampleStandardDeviation();
-   }
-
-   @Override
-   public void reset() {
-      this.mean = 0;
-      this.standardDeviation = 0;
-   }
-
-   @Override
    public String describe() {
       if (applyToAll()) {
          return "ZScoreTransform{mean=" + mean + ", std=" + standardDeviation + "}";
       }
       return "ZScoreTransform[" + getRestriction() + "]{mean=" + mean + ", std=" + standardDeviation + "}";
-   }
-
-   @Override
-   public void toJson(@NonNull JsonWriter writer) throws IOException {
-      if (!applyToAll()) {
-         writer.property("restriction", getRestriction());
-      }
-      writer.property("mean", mean);
-      writer.property("stddev", standardDeviation);
    }
 
    @Override
@@ -102,6 +68,39 @@ public class ZScoreTransform extends RestrictedInstancePreprocessor implements T
                break;
          }
       }
+   }
+
+   @Override
+   public void reset() {
+      this.mean = 0;
+      this.standardDeviation = 0;
+   }
+
+   @Override
+   protected void restrictedFitImpl(MStream<List<Feature>> stream) {
+      MStatisticsAccumulator stats = stream.getContext().statisticsAccumulator();
+      stream.forEach(instance -> stats.combine(instance.stream()
+                                                       .mapToDouble(Feature::getValue)
+                                                       .collect(EnhancedDoubleStatistics::new,
+                                                                EnhancedDoubleStatistics::accept,
+                                                                EnhancedDoubleStatistics::combine)));
+      this.mean = stats.value().getAverage();
+      this.standardDeviation = stats.value().getSampleStandardDeviation();
+   }
+
+   @Override
+   protected Stream<Feature> restrictedProcessImpl(Stream<Feature> featureStream, Instance originalExample) {
+      return featureStream.map(feature -> Feature.real(feature.getFeatureName(),
+                                                       (feature.getValue() - mean) / standardDeviation));
+   }
+
+   @Override
+   public void toJson(@NonNull JsonWriter writer) throws IOException {
+      if (!applyToAll()) {
+         writer.property("restriction", getRestriction());
+      }
+      writer.property("mean", mean);
+      writer.property("stddev", standardDeviation);
    }
 
 }// END OF ZScoreTransform

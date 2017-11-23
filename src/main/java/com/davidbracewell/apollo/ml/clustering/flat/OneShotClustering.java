@@ -21,11 +21,11 @@
 
 package com.davidbracewell.apollo.ml.clustering.flat;
 
-import com.davidbracewell.apollo.affinity.Measure;
-import com.davidbracewell.apollo.linalg.Vector;
+import com.davidbracewell.apollo.Optimum;
+import com.davidbracewell.apollo.linear.NDArray;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.clustering.Clusterer;
-import com.davidbracewell.apollo.optimization.Optimum;
+import com.davidbracewell.apollo.stat.measure.Measure;
 import com.davidbracewell.stream.StreamingContext;
 import com.davidbracewell.tuple.Tuple2;
 import lombok.NonNull;
@@ -56,13 +56,13 @@ class OneShotClustering extends FlatClustering {
    public double[] softCluster(Instance instance) {
       double[] distances = new double[size()];
       Arrays.fill(distances, Double.POSITIVE_INFINITY);
-      Vector vector = getPreprocessors().apply(instance).toVector(getEncoderPair());
+      NDArray nDArray = getPreprocessors().apply(instance).toVector(getEncoderPair());
       Tuple2<Integer, Double> best = StreamingContext.local().stream(this)
                                                      .parallel()
                                                      .map(cluster -> {
                                                              double d = 0;
-                                                             for (Vector jj : cluster) {
-                                                                d += getMeasure().calculate(vector, jj);
+                                                             for (NDArray jj : cluster) {
+                                                                d += getMeasure().calculate(nDArray, jj);
                                                              }
                                                              return $(cluster.getId(), d);
                                                           }

@@ -21,9 +21,9 @@
 
 package com.davidbracewell.apollo.ml.classification;
 
-import com.davidbracewell.apollo.linalg.DenseVector;
-import com.davidbracewell.apollo.linalg.Vector;
-import com.davidbracewell.apollo.ml.Encoder;
+import com.davidbracewell.apollo.linear.NDArray;
+import com.davidbracewell.apollo.linear.NDArrayFactory;
+import com.davidbracewell.apollo.ml.encoder.Encoder;
 import com.davidbracewell.collection.counter.Counter;
 import com.davidbracewell.collection.counter.Counters;
 import com.davidbracewell.conversion.Cast;
@@ -81,8 +81,8 @@ public class Classification implements Serializable {
       return counter;
    }
 
-   public Vector asVector() {
-      return new DenseVector(distribution);
+   public NDArray asVector() {
+      return NDArrayFactory.wrap(distribution);
    }
 
    /**

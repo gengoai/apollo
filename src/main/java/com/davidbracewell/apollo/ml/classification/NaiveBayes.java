@@ -21,8 +21,8 @@
 
 package com.davidbracewell.apollo.ml.classification;
 
-import com.davidbracewell.apollo.linalg.DenseVector;
-import com.davidbracewell.apollo.linalg.Vector;
+import com.davidbracewell.apollo.linear.NDArray;
+import com.davidbracewell.apollo.linear.NDArrayFactory;
 import com.davidbracewell.collection.counter.HashMapMultiCounter;
 import com.davidbracewell.collection.counter.MultiCounter;
 import lombok.NonNull;
@@ -68,7 +68,7 @@ public class NaiveBayes extends Classifier {
    }
 
    @Override
-   public Classification classify(@NonNull Vector instance) {
+   public Classification classify(@NonNull NDArray instance) {
       return createResult(modelType.distribution(instance, priors, conditionals));
    }
 
@@ -117,8 +117,8 @@ public class NaiveBayes extends Classifier {
          }
 
          @Override
-         double[] distribution(Vector instance, double[] priors, double[][] conditionals) {
-            DenseVector distribution = new DenseVector(priors);
+         double[] distribution(NDArray instance, double[] priors, double[][] conditionals) {
+            NDArray distribution = NDArrayFactory.wrap(priors);
             for (int i = 0; i < priors.length; i++) {
                for (int f = 0; f < conditionals.length; f++) {
                   if (instance.get(f) != 0) {
@@ -128,7 +128,7 @@ public class NaiveBayes extends Classifier {
                   }
                }
             }
-            distribution.mapSelf(Math::exp);
+            distribution.mapi(Math::exp);
             return distribution.toArray();
          }
       },
@@ -157,14 +157,14 @@ public class NaiveBayes extends Classifier {
        * @param conditionals the feature-label conditional probabilities
        * @return the distribution as an array
        */
-      double[] distribution(Vector instance, double[] priors, double[][] conditionals) {
-         DenseVector distribution = new DenseVector(priors);
+      double[] distribution(NDArray instance, double[] priors, double[][] conditionals) {
+         NDArray distribution = NDArrayFactory.wrap(priors);
          instance.forEachSparse(entry -> {
             for (int i = 0; i < priors.length; i++) {
                distribution.decrement(i, entry.getValue() * conditionals[entry.getIndex()][i]);
             }
          });
-         return distribution.mapSelf(Math::exp).toArray();
+         return distribution.mapi(Math::exp).toArray();
       }
 
       /**

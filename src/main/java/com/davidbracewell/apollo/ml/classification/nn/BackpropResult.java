@@ -1,6 +1,6 @@
 package com.davidbracewell.apollo.ml.classification.nn;
 
-import com.davidbracewell.apollo.linalg.Matrix;
+import com.davidbracewell.apollo.linear.NDArray;
 import lombok.Value;
 
 /**
@@ -8,7 +8,7 @@ import lombok.Value;
  */
 @Value(staticConstructor = "from")
 public class BackpropResult {
-   Matrix delta;
-   Matrix weightGradient;
-   Matrix biasGradient;
+   NDArray delta;
+   NDArray weightGradient;
+   NDArray biasGradient;
 }// END OF BackpropResult

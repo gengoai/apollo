@@ -26,9 +26,13 @@ import com.davidbracewell.apollo.linear.NDArray;
 import com.davidbracewell.apollo.stat.measure.Measure;
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -38,22 +42,30 @@ import java.util.Set;
  *
  * @author David B. Bracewell
  */
-public abstract class LSH2 implements Serializable {
+public class LocalitySensitiveHash implements Serializable {
+   public static final String SIGNATURE_SIZE = "SIGNATURE_SIZE";
+
+
    private static final long LARGE_PRIME = 433494437;
    private static final long serialVersionUID = 1L;
    @Getter
-   private final int bands = 5;
+   private final int bands;
    @Getter
-   private final int buckets = 20;
+   private final int buckets;
    @Getter
-   private final int dimension = 100;
+   private final int dimension;
    @Getter
-   private final SignatureFunction signatureFunction = null;
-   private final LSHStorage storage = new InMemoryLSHStorage();
+   private final SignatureFunction signatureFunction;
+   @Getter
+   private final LSHStorage storage;
 
-   public static void main(String[] args) {
+   protected LocalitySensitiveHash(int bands, int buckets, int dimension, SignatureFunction signatureFunction, LSHStorage storage) {
+      this.bands = bands;
+      this.buckets = buckets;
+      this.dimension = dimension;
+      this.signatureFunction = signatureFunction;
+      this.storage = storage;
    }
-
 
    /**
     * Adds the given NDArray with the given NDArray id to the LSH table
@@ -147,6 +159,67 @@ public abstract class LSH2 implements Serializable {
          });
       }
       return toReturn;
+   }
+
+   @Accessors(fluent = true)
+   public static class Builder {
+      @Getter
+      @Setter
+      private int bands = 5;
+      @Getter
+      @Setter
+      private int buckets = 20;
+      @Getter
+      @Setter
+      private int dimension = 100;
+      @Getter
+      @Setter
+      private double threshold = 0.5;
+      @Getter
+      @Setter
+      private String signature = "COSINE";
+
+      private Map<String, Number> parameters = new HashMap<>();
+
+      public LocalitySensitiveHash create(@NonNull LSHStorage storage) {
+         if (!parameters.containsKey(SIGNATURE_SIZE)) {
+            int r = (int) (Math.ceil(Math.log(1.0 / bands) / Math.log(threshold)) + 1);
+            parameters.put(SIGNATURE_SIZE, r * bands);
+         }
+         SignatureFunction signatureFunction;
+         switch (signature.toUpperCase()) {
+            case "COSINE":
+               signatureFunction = new CosineSignature(parameters.get(SIGNATURE_SIZE).intValue(), dimension);
+               break;
+            case "COSINE_DISTANCE":
+               signatureFunction = new CosineDistanceSignature(parameters.get(SIGNATURE_SIZE).intValue(), dimension);
+               break;
+            case "EUCLIDEAN":
+               signatureFunction = new EuclideanSignature(parameters.get(SIGNATURE_SIZE).intValue(),
+                                                          dimension,
+                                                          parameters.getOrDefault("MAXW", 100).intValue());
+               break;
+            case "JACCARD":
+            case "MIN_HASH":
+               signatureFunction = new MinHashDistanceSignature(1d - threshold, dimension);
+               break;
+            default:
+               throw new IllegalStateException(signature + " is not one of [COSINE, COSINE_DISTANCE, EUCLIDEAN, JACCARD, MIN_HASH[");
+         }
+
+         return new LocalitySensitiveHash(bands, buckets, dimension, signatureFunction, storage);
+      }
+
+      public LocalitySensitiveHash inMemory() {
+         return create(new InMemoryLSHStorage());
+      }
+
+      public Builder param(String name, Number value) {
+         parameters.put(name.toUpperCase(), value);
+         return this;
+      }
+
+
    }
 
 

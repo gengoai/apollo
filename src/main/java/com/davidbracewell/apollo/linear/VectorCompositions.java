@@ -108,8 +108,8 @@ public enum VectorCompositions implements VectorComposition {
          if (vectors.size() == 0) {
             return NDArrayFactory.DEFAULT().empty();
          }
-         return com.davidbracewell.apollo.linear.SVD.truncatedSVD(NDArrayFactory.DENSE_DOUBLE.vstack(vectors),
-                                                                  1)[2].getVector(0, Axis.ROW);
+         return com.davidbracewell.apollo.linear.decompose.SVD.truncatedSVD(NDArrayFactory.DENSE_DOUBLE.vstack(vectors),
+                                                                            1)[2].getVector(0, Axis.ROW);
       }
    }
 

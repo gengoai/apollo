@@ -1,5 +1,6 @@
-package com.davidbracewell.apollo.linear;
+package com.davidbracewell.apollo.linear.decompose;
 
+import com.davidbracewell.apollo.linear.NDArray;
 import com.davidbracewell.apollo.linear.dense.DenseDoubleNDArray;
 import com.davidbracewell.guava.common.base.Preconditions;
 import lombok.NonNull;

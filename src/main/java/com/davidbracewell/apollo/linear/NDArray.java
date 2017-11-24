@@ -1304,6 +1304,33 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
    public abstract int numRows();
 
    /**
+    * Calculates the pivot elements for this square matrix
+    *
+    * @return A NDArray of 1's and 0's representing pivot elements.
+    */
+   public NDArray pivot() {
+      Preconditions.checkArgument(isSquare(), "Only square matrices are supported");
+      NDArray p = getFactory().eye(numRows());
+      for (int i = 0; i < numRows(); i++) {
+         double max = get(i, i);
+         int row = i;
+         for (int j = i; j < numRows(); j++) {
+            if (get(j, i) > max) {
+               max = get(j, i);
+               row = j;
+            }
+         }
+
+         if (i != row) {
+            NDArray v = p.getVector(i, Axis.ROW);
+            p.setVector(i, p.getVector(row, Axis.ROW), Axis.ROW);
+            p.setVector(row, v, Axis.ROW);
+         }
+      }
+      return p;
+   }
+
+   /**
     * Raises the value of each element in the NDArray by the given power.
     *
     * @param pow the power to raise values to

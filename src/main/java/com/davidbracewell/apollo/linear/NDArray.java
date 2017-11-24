@@ -217,6 +217,17 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
    protected abstract NDArray copyData();
 
    /**
+    * Calculates the variance-covariance matrix of this NDArray
+    *
+    * @return The variance-covariance matrix
+    */
+   public NDArray cov() {
+      NDArray ones = getFactory().ones(numRows(), 1);
+      NDArray c = sub(ones.mmul(ones.T()).mmul(this).mul(1d / numRows()));
+      return c.T().mmul(c).divi(numRows());
+   }
+
+   /**
     * Decrements the value at the given index by 1
     *
     * @param index the index to decrement
@@ -654,14 +665,6 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
    }
 
    /**
-    *
-    * @param numRows
-    * @param numCols
-    * @return
-    */
-   public abstract NDArray reshape(int numRows, int numCols);
-
-   /**
     * Gets weight.
     *
     * @return the weight
@@ -1093,7 +1096,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     */
    public NDArray max(@NonNull Axis axis) {
       NDArray toReturn = NDArrayFactory.DENSE_DOUBLE
-                            .zeros(axis.T(),dimension(axis))
+                            .zeros(axis.T(), dimension(axis))
                             .fill(Double.NEGATIVE_INFINITY);
       forEachSparse(entry -> {
          if (toReturn.get(entry.get(axis)) < entry.getValue()) {
@@ -1413,6 +1416,14 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
    public NDArray rdivi(@NonNull NDArray other, @NonNull Axis axis) {
       return rmapi(other, axis, Math2::divide);
    }
+
+   /**
+    *
+    * @param numRows
+    * @param numCols
+    * @return
+    */
+   public abstract NDArray reshape(int numRows, int numCols);
 
    /**
     * Applies an operation to the elements in this NDArray and given other NDArray using the given operator creating a

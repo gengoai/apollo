@@ -19,41 +19,32 @@
  * under the License.
  */
 
-package com.davidbracewell.apollo.hash;
+package com.davidbracewell.apollo.hash.signature;
 
 import com.davidbracewell.apollo.stat.measure.Measure;
 import com.davidbracewell.apollo.stat.measure.Similarity;
 
 /**
- * <p>Signature function for Jaccard distance / similarity. Uses the Jaccard distance as its measure.</p>
+ * <p>Signature function for Cosine distance / similarity. Uses the Cosine distance as its measure.</p>
  *
  * @author David B. Bracewell
  */
-public class MinHashDistanceSignature extends MinHashSignature {
+public class CosineDistanceSignature extends CosineSignature {
    private static final long serialVersionUID = 1L;
 
    /**
-    * Instantiates a new Min hash distance signature.
-    *
-    * @param error     the error
-    * @param dimension the dimension
-    */
-   public MinHashDistanceSignature(double error, int dimension) {
-      super(error, dimension);
-   }
-
-   /**
-    * Instantiates a new Min hash signature.
+    * Instantiates a new Cosine signature.
     *
     * @param signatureSize the signature size controlling the number of random projections
     * @param dimension     the dimension of the vector
     */
-   public MinHashDistanceSignature(int signatureSize, int dimension) {
+   public CosineDistanceSignature(int signatureSize, int dimension) {
       super(signatureSize, dimension);
    }
 
    @Override
    public Measure getMeasure() {
-      return Similarity.Jaccard.asDistanceMeasure();
+      return Similarity.Cosine.asDistanceMeasure();
    }
-}// END OF MinHashDistanceSignature
+
+}// END OF CosineDistanceSignature

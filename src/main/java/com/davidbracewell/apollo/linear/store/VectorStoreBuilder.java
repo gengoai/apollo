@@ -7,6 +7,7 @@ import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.guava.common.base.Preconditions;
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.experimental.Accessors;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -18,6 +19,7 @@ import java.util.Map;
  * @param <KEY> the type parameter
  * @author David B. Bracewell
  */
+@Accessors(fluent = true)
 public abstract class VectorStoreBuilder<KEY> {
    /**
     * The Vectors.

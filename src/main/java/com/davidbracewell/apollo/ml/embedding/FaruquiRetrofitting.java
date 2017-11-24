@@ -2,6 +2,8 @@ package com.davidbracewell.apollo.ml.embedding;
 
 import com.davidbracewell.apollo.linear.NDArray;
 import com.davidbracewell.apollo.linear.store.VectorStore;
+import com.davidbracewell.apollo.linear.store.VectorStoreBuilder;
+import com.davidbracewell.guava.common.base.Throwables;
 import com.davidbracewell.guava.common.collect.HashMultimap;
 import com.davidbracewell.guava.common.collect.Sets;
 import com.davidbracewell.guava.common.primitives.Doubles;
@@ -84,9 +86,13 @@ public class FaruquiRetrofitting implements Retrofitting {
          });
       }
 
-      VectorStore<String> newVectors = origVectors.createNew();
+      VectorStoreBuilder<String> newVectors = origVectors.toBuilder();
       retrofittedVectors.forEach(newVectors::add);
-      return new Embedding(newVectors);
+      try {
+         return new Embedding(newVectors.build());
+      } catch (IOException e) {
+         throw Throwables.propagate(e);
+      }
    }
 
    public void setLexicon(@NonNull Resource resource) throws IOException {

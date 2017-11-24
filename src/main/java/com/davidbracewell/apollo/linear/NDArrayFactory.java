@@ -222,6 +222,16 @@ public enum NDArrayFactory {
    }
 
    /**
+    * Creates a new {@link DenseDoubleNDArray} that wraps the given set of values
+    *
+    * @param values the values
+    * @return the NDArray
+    */
+   public static NDArray wrap(@NonNull float[] values) {
+      return new DenseFloatNDArray(new FloatMatrix(values));
+   }
+
+   /**
     * Creates a copy of the given NDArray
     *
     * @param array the array to copy

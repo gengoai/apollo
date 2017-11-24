@@ -22,6 +22,7 @@
 package com.davidbracewell.apollo.linear.store;
 
 import com.davidbracewell.apollo.linear.NDArray;
+import com.davidbracewell.apollo.linear.NDArrayFactory;
 import com.davidbracewell.apollo.stat.measure.Measure;
 import com.davidbracewell.guava.common.base.Preconditions;
 import com.davidbracewell.guava.common.collect.Iterators;
@@ -65,20 +66,8 @@ public class DefaultVectorStore<KEY> implements VectorStore<KEY>, Serializable {
    }
 
    @Override
-   public void add(@NonNull NDArray vector) {
-      Preconditions.checkArgument(vector.length() == dimension,
-                                  "Dimension mismatch, vector store can only store vectors with k of " + dimension);
-      vectorMap.put(vector.getLabel(), vector);
-   }
-
-   @Override
    public boolean containsKey(@NonNull KEY key) {
       return vectorMap.containsKey(key);
-   }
-
-   @Override
-   public VectorStore<KEY> createNew() {
-      return new DefaultVectorStore<>(dimension, queryMeasure);
    }
 
    @Override
@@ -88,7 +77,7 @@ public class DefaultVectorStore<KEY> implements VectorStore<KEY>, Serializable {
 
    @Override
    public NDArray get(@NonNull KEY key) {
-      return vectorMap.get(key);
+      return vectorMap.getOrDefault(key, NDArrayFactory.SPARSE_FLOAT.zeros(dimension));
    }
 
    @Override
@@ -146,19 +135,19 @@ public class DefaultVectorStore<KEY> implements VectorStore<KEY>, Serializable {
    }
 
    @Override
-   public boolean remove(@NonNull NDArray vector) {
-      return vector.getLabel() != null && vectorMap.remove(vector.getLabel()) != null;
+   public int size() {
+      return vectorMap.size();
    }
 
    @Override
-   public int size() {
-      return vectorMap.size();
+   public VectorStoreBuilder<KEY> toBuilder() {
+      return builder(dimension);
    }
 
    public static class Builder<KEY> extends VectorStoreBuilder<KEY> {
       @Override
       public VectorStore<KEY> build() throws IOException {
-         DefaultVectorStore<KEY> vs = new DefaultVectorStore<>(getDimension(), getMeasure());
+         DefaultVectorStore<KEY> vs = new DefaultVectorStore<>(dimension(), measure());
          vs.vectorMap.putAll(vectors);
          return vs;
       }

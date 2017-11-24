@@ -21,18 +21,18 @@
 
 package com.davidbracewell.apollo.linear.store;
 
-import com.davidbracewell.apollo.hash.LSH;
+import com.davidbracewell.apollo.Optimum;
+import com.davidbracewell.apollo.hash.LocalitySensitiveHash;
 import com.davidbracewell.apollo.linear.NDArray;
+import com.davidbracewell.apollo.linear.NDArrayFactory;
 import com.davidbracewell.apollo.stat.measure.Measure;
+import com.davidbracewell.guava.common.collect.Iterators;
 import com.davidbracewell.guava.common.collect.MinMaxPriorityQueue;
-import lombok.Getter;
 import lombok.NonNull;
-import org.apache.mahout.math.set.OpenIntHashSet;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -41,12 +41,10 @@ import java.util.stream.Collectors;
  * @param <KEY> the type of key associated with vectors
  * @author David B. Bracewell
  */
-public abstract class LSHVectorStore<KEY> implements VectorStore<KEY>, Serializable {
+public class LSHVectorStore<KEY> implements VectorStore<KEY>, Serializable {
    private static final long serialVersionUID = 1L;
-   /**
-    * The LSH function to use
-    */
-   protected final LSH lsh;
+   private final LocalitySensitiveHash lsh;
+   private final Map<KEY, NDArray> keyVectorMap;
 
 
    /**
@@ -54,24 +52,18 @@ public abstract class LSHVectorStore<KEY> implements VectorStore<KEY>, Serializa
     *
     * @param lsh the lsh to use
     */
-   protected LSHVectorStore(@NonNull LSH lsh) {
+   protected LSHVectorStore(LocalitySensitiveHash lsh, Map<KEY, NDArray> keyVectorMap) {
       this.lsh = lsh;
+      this.keyVectorMap = keyVectorMap;
+   }
+
+   public static <KEY> Builder<KEY> builder() {
+      return new Builder<>();
    }
 
    @Override
-   public final void add(@NonNull NDArray NDArray) {
-      int id;
-      if (NDArray.getLabel() == null) {
-         return;
-      }
-      if (containsKey(NDArray.getLabel())) {
-         id = getID(NDArray.getLabel());
-         remove(NDArray);
-      } else {
-         id = nextUniqueID();
-      }
-      registerVector(NDArray, id);
-      lsh.add(NDArray, id);
+   public boolean containsKey(KEY key) {
+      return keyVectorMap.containsKey(key);
    }
 
    @Override
@@ -81,36 +73,27 @@ public abstract class LSHVectorStore<KEY> implements VectorStore<KEY>, Serializa
 
    @Override
    public final NDArray get(KEY key) {
-      if (containsKey(key)) {
-         return getVectorByID(getID(key));
-      }
-      return null;
+      return keyVectorMap.getOrDefault(key, NDArrayFactory.SPARSE_FLOAT.zeros(lsh.getDimension()));
    }
 
-   /**
-    * Gets the id of a NDArray by key.
-    *
-    * @param key the key
-    * @return the id
-    */
-   protected abstract int getID(KEY key);
+   @Override
+   public Iterator<NDArray> iterator() {
+      return Iterators.unmodifiableIterator(keyVectorMap.values().iterator());
+   }
 
-   /**
-    * Gets the NDArray by its id.
-    *
-    * @param id the id
-    * @return the NDArray by id
-    */
-   protected abstract NDArray getVectorByID(int id);
+   @Override
+   public Collection<KEY> keys() {
+      return Collections.unmodifiableCollection(keyVectorMap.keySet());
+   }
 
    @Override
    public final List<NDArray> nearest(@NonNull NDArray query, double threshold) {
       final Measure measure = lsh.getMeasure();
-      return query(query).stream()
-                         .map(v -> v.copy().setWeight(measure.calculate(v, query)))
-                         .filter(
-                            v -> lsh.getSignatureFunction().getMeasure().getOptimum().test(v.getWeight(), threshold))
-                         .collect(Collectors.toList());
+      final Optimum optimum = measure.getOptimum();
+      return lsh.query(query).stream()
+                .map(v -> v.copy().setWeight(measure.calculate(v, query)))
+                .filter(v -> optimum.test(v.getWeight(), threshold))
+                .collect(Collectors.toList());
    }
 
    @Override
@@ -138,68 +121,60 @@ public abstract class LSHVectorStore<KEY> implements VectorStore<KEY>, Serializa
       return nearest(query, K, lsh.getOptimum().startingValue());
    }
 
-   /**
-    * Gets the next unique id for assigning to vectors
-    *
-    * @return the int
-    */
-   protected abstract int nextUniqueID();
-
-   private List<NDArray> query(@NonNull NDArray NDArray) {
-      OpenIntHashSet ids = lsh.query(NDArray);
-      List<NDArray> vectors = new ArrayList<>();
-      ids.forEachKey(id -> vectors.add(getVectorByID(id)));
-      return vectors;
+   @Override
+   public int size() {
+      return keyVectorMap.size();
    }
 
-   /**
-    * Register NDArray implementation.
-    *
-    * @param NDArray the NDArray
-    * @param id      the id
-    */
-   protected abstract void registerVector(NDArray NDArray, int id);
-
    @Override
-   public final boolean remove(NDArray NDArray) {
-      if (containsKey(NDArray.getLabel())) {
-         int id = getID(NDArray.getLabel());
-         lsh.remove(getVectorByID(id), id);
-         removeVector(NDArray, id);
-         return true;
-      }
-      return false;
+   public VectorStoreBuilder<KEY> toBuilder() {
+      return new LSHVectorStore.Builder<>(lsh.toBuilder());
    }
-
-   /**
-    * Remove NDArray implementation.
-    *
-    * @param NDArray the NDArray
-    * @param id      the id
-    */
-   protected abstract void removeVector(NDArray NDArray, int id);
-
-   @Override
-   public abstract int size();
 
    public static class Builder<KEY> extends VectorStoreBuilder<KEY> {
-      private final LSH.Builder lshBuilder;
-      @Getter
-      private int bands = 5;
-      @Getter
-      private int buckets = 20;
+      private final LocalitySensitiveHash.Builder lshBuilder;
 
-      public Builder(LSH.Builder lshBuilder) {
-         this.lshBuilder = lshBuilder;
+      public Builder() {
+         this.lshBuilder = LocalitySensitiveHash.builder();
       }
 
+      public Builder(LocalitySensitiveHash.Builder lsh) {
+         this.lshBuilder = lsh;
+      }
+
+      public Builder<KEY> bands(int bands) {
+         lshBuilder.bands(bands);
+         return this;
+      }
+
+      public Builder<KEY> buckets(int buckets) {
+         lshBuilder.buckets(buckets);
+         return this;
+      }
 
       @Override
       public VectorStore<KEY> build() throws IOException {
-         return lshBuilder.bands(bands)
-                          .buckets(buckets)
-                          .dimension(getDimension())
-                          .createVectorStore();
+         LocalitySensitiveHash lsh = lshBuilder.dimension(dimension()).inMemory();
+         Map<KEY, NDArray> keyVector = new HashMap<>();
+         vectors.forEach((key, vector) -> {
+            lsh.add(vector);
+         });
+         return new LSHVectorStore<>(lsh, keyVector);
+      }
+
+      public Builder<KEY> param(String key, Number value) {
+         lshBuilder.param(key, value);
+         return this;
+      }
+
+      public Builder<KEY> signature(String signature) {
+         lshBuilder.signature(signature);
+         return this;
+      }
+
+      public Builder<KEY> threshold(double threshold) {
+         lshBuilder.threshold(threshold);
+         return this;
       }
    }
 

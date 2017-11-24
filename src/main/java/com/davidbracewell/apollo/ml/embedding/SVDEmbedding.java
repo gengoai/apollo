@@ -23,9 +23,9 @@ package com.davidbracewell.apollo.ml.embedding;
 
 import com.davidbracewell.Math2;
 import com.davidbracewell.apollo.linear.NDArrayFactory;
-import com.davidbracewell.apollo.hash.CosineSignature;
-import com.davidbracewell.apollo.hash.InMemoryLSH;
-import com.davidbracewell.apollo.linear.store.VectorStore;
+import com.davidbracewell.apollo.linear.store.DefaultVectorStore;
+import com.davidbracewell.apollo.linear.store.LSHVectorStore;
+import com.davidbracewell.apollo.linear.store.VectorStoreBuilder;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.ml.encoder.Encoder;
@@ -34,7 +34,9 @@ import com.davidbracewell.apollo.ml.sequence.Sequence;
 import com.davidbracewell.apollo.stat.measure.Association;
 import com.davidbracewell.apollo.stat.measure.ContingencyTable;
 import com.davidbracewell.apollo.stat.measure.ContingencyTableCalculator;
+import com.davidbracewell.apollo.stat.measure.Similarity;
 import com.davidbracewell.collection.counter.MultiCounter;
+import com.davidbracewell.guava.common.base.Throwables;
 import com.davidbracewell.stream.StreamingContext;
 import com.davidbracewell.stream.accumulator.MMultiCounterAccumulator;
 import lombok.Getter;
@@ -46,6 +48,7 @@ import org.apache.spark.mllib.linalg.Vector;
 import org.apache.spark.mllib.linalg.distributed.RowMatrix;
 import org.jblas.DoubleMatrix;
 
+import java.io.IOException;
 import java.util.Map;
 
 import static com.davidbracewell.apollo.linear.SparkLinearAlgebra.*;
@@ -62,6 +65,9 @@ public class SVDEmbedding extends EmbeddingLearner {
    @Getter
    @Setter
    private int windowSize = 5;
+   @Getter
+   @Setter
+   private boolean fastKNN = false;
 
    @Override
    public void resetLearnerParameters() {
@@ -129,18 +135,26 @@ public class SVDEmbedding extends EmbeddingLearner {
                                                     .cache()
                                                     .rdd());
 
-      VectorStore<String> vectorStore = InMemoryLSH
-                                           .builder()
-                                           .dimension(getDimension())
-                                           .signatureSupplier(CosineSignature::new)
-                                           .createVectorStore();
+
+      VectorStoreBuilder<String> builder;
+      if (fastKNN) {
+         builder = LSHVectorStore.<String>builder().signature("COSINE");
+      } else {
+         builder = DefaultVectorStore.builder();
+      }
+      builder.dimension(getDimension());
+      builder.measure(Similarity.Cosine);
 
       SingularValueDecomposition<RowMatrix, Matrix> svd = sparkSVD(mat, getDimension());
       DoubleMatrix em = toMatrix(svd.U()).mmul(toDiagonalMatrix(svd.s()));
       for (int i = 0; i < em.rows; i++) {
-         vectorStore.add(featureEncoder.decode(i).toString(), NDArrayFactory.wrap(em.getRow(i).toArray()));
+         builder.add(featureEncoder.decode(i).toString(), NDArrayFactory.wrap(em.getRow(i).toArray()));
       }
-      return new Embedding(vectorStore);
+      try {
+         return new Embedding(builder.build());
+      } catch (IOException e) {
+         throw Throwables.propagate(e);
+      }
    }
 
 }//END OF SparkLSA

@@ -1,15 +1,17 @@
 package com.davidbracewell.apollo.ml.embedding;
 
 import com.davidbracewell.apollo.linear.NDArrayFactory;
-import com.davidbracewell.apollo.hash.CosineSignature;
-import com.davidbracewell.apollo.hash.InMemoryLSH;
-import com.davidbracewell.apollo.linear.store.VectorStore;
+import com.davidbracewell.apollo.linear.store.DefaultVectorStore;
+import com.davidbracewell.apollo.linear.store.LSHVectorStore;
+import com.davidbracewell.apollo.linear.store.VectorStoreBuilder;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.ml.encoder.Encoder;
 import com.davidbracewell.apollo.ml.encoder.IndexEncoder;
 import com.davidbracewell.apollo.ml.sequence.Sequence;
+import com.davidbracewell.apollo.stat.measure.Similarity;
 import com.davidbracewell.conversion.Convert;
+import com.davidbracewell.guava.common.base.Throwables;
 import com.davidbracewell.stream.SparkStream;
 import lombok.Getter;
 import lombok.Setter;
@@ -17,6 +19,7 @@ import org.apache.spark.mllib.feature.Word2Vec;
 import org.apache.spark.mllib.feature.Word2VecModel;
 import scala.collection.JavaConversions;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -44,6 +47,9 @@ public class SparkWord2Vec extends EmbeddingLearner {
    @Getter
    @Setter
    private int windowSize = 5;
+   @Getter
+   @Setter
+   private boolean fastKNN = false;
 
    @Override
    public void resetLearnerParameters() {
@@ -70,17 +76,24 @@ public class SparkWord2Vec extends EmbeddingLearner {
                                                                             return sentence;
                                                                          }));
       Word2VecModel model = w2v.fit(sentences.getRDD());
-
       Encoder encoder = new IndexEncoder();
-      VectorStore<String> vectorStore = InMemoryLSH.builder()
-                                                   .dimension(getDimension())
-                                                   .signatureSupplier(CosineSignature::new)
-                                                   .createVectorStore();
+      VectorStoreBuilder<String> builder;
+      if (fastKNN) {
+         builder = LSHVectorStore.<String>builder().signature("COSINE");
+      } else {
+         builder = DefaultVectorStore.builder();
+      }
+      builder.dimension(getDimension());
+      builder.measure(Similarity.Cosine);
       for (Map.Entry<String, float[]> vector : JavaConversions.mapAsJavaMap(model.getVectors()).entrySet()) {
          encoder.encode(vector.getKey());
-         vectorStore.add(vector.getKey(), NDArrayFactory.wrap(Convert.convert(vector.getValue(), double[].class)));
+         builder.add(vector.getKey(), NDArrayFactory.wrap(Convert.convert(vector.getValue(), double[].class)));
       }
-      return new Embedding(vectorStore);
+      try {
+         return new Embedding(builder.build());
+      } catch (IOException e) {
+         throw Throwables.propagate(e);
+      }
    }
 
 

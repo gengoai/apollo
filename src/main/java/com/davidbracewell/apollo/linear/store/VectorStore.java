@@ -45,23 +45,6 @@ import static com.davidbracewell.tuple.Tuples.$;
  */
 public interface VectorStore<KEY> extends Iterable<NDArray>, AutoCloseable, Closeable, Commitable {
 
-   /**
-    * Adds a vector to the store
-    *
-    * @param vector the vector to add
-    */
-   void add(NDArray vector);
-
-   /**
-    * Adds a vector to the store associating it with the given key
-    *
-    * @param key    The key to associate the vector with
-    * @param vector The vector
-    */
-   default void add(@NonNull KEY key, @NonNull NDArray vector) {
-      add(vector.setLabel(key));
-   }
-
    @Override
    default void close() throws IOException {
 
@@ -106,7 +89,7 @@ public interface VectorStore<KEY> extends Iterable<NDArray>, AutoCloseable, Clos
     *
     * @return the vector store
     */
-   VectorStore<KEY> createNew();
+   VectorStoreBuilder<KEY> toBuilder();
 
    /**
     * The dimension of the vectors in the store
@@ -241,15 +224,6 @@ public interface VectorStore<KEY> extends Iterable<NDArray>, AutoCloseable, Clos
    default List<NDArray> nearest(@NonNull Tuple words, int K) {
       return nearest(words, $(), K, Double.NEGATIVE_INFINITY);
    }
-
-
-   /**
-    * Removes the given vector
-    *
-    * @param vector the vector to remove
-    * @return True if removed, False otherwise
-    */
-   boolean remove(NDArray vector);
 
    /**
     * The number of vectors stored

@@ -22,6 +22,7 @@
 package com.davidbracewell.apollo.hash;
 
 import com.davidbracewell.apollo.Optimum;
+import com.davidbracewell.apollo.hash.signature.*;
 import com.davidbracewell.apollo.linear.NDArray;
 import com.davidbracewell.apollo.stat.measure.Measure;
 import lombok.Getter;
@@ -43,6 +44,9 @@ import java.util.Set;
  * @author David B. Bracewell
  */
 public class LocalitySensitiveHash implements Serializable {
+   /**
+    * The constant SIGNATURE_SIZE.
+    */
    public static final String SIGNATURE_SIZE = "SIGNATURE_SIZE";
 
 
@@ -58,13 +62,34 @@ public class LocalitySensitiveHash implements Serializable {
    private final SignatureFunction signatureFunction;
    @Getter
    private final LSHStorage storage;
+   @Getter
+   private final double threshold;
+   @Getter
+   private final String signature;
+   private final Map<String, Number> parameters = new HashMap<>();
 
-   protected LocalitySensitiveHash(int bands, int buckets, int dimension, SignatureFunction signatureFunction, LSHStorage storage) {
+   /**
+    * Instantiates a new Locality sensitive hash.
+    *
+    * @param bands             the bands
+    * @param buckets           the buckets
+    * @param dimension         the dimension
+    * @param signatureFunction the signature function
+    * @param storage           the storage
+    */
+   protected LocalitySensitiveHash(int bands, int buckets, int dimension, SignatureFunction signatureFunction, LSHStorage storage, double threshold, String signature, Map<String, Number> parameters) {
       this.bands = bands;
       this.buckets = buckets;
       this.dimension = dimension;
       this.signatureFunction = signatureFunction;
       this.storage = storage;
+      this.threshold = threshold;
+      this.signature = signature;
+      this.parameters.putAll(parameters);
+   }
+
+   public static Builder builder() {
+      return new Builder();
    }
 
    /**
@@ -146,7 +171,13 @@ public class LocalitySensitiveHash implements Serializable {
       return hash;
    }
 
-   public Set<NDArray> query(NDArray input) {
+   /**
+    * Finds the approximate nearest neighbors to the given input vector
+    *
+    * @param input the input vector
+    * @return the set of nearest neighbors
+    */
+   public Set<NDArray> query(@NonNull NDArray input) {
       int[] hash = hash(input);
       Set<NDArray> toReturn = new HashSet<>();
       Set<Object> keys = new HashSet<>();
@@ -161,6 +192,19 @@ public class LocalitySensitiveHash implements Serializable {
       return toReturn;
    }
 
+   public Builder toBuilder() {
+      return builder()
+                .dimension(dimension)
+                .bands(bands)
+                .buckets(buckets)
+                .signature(signature)
+                .threshold(threshold)
+                .parameters(parameters);
+   }
+
+   /**
+    * The type Builder.
+    */
    @Accessors(fluent = true)
    public static class Builder {
       @Getter
@@ -181,6 +225,12 @@ public class LocalitySensitiveHash implements Serializable {
 
       private Map<String, Number> parameters = new HashMap<>();
 
+      /**
+       * Create locality sensitive hash.
+       *
+       * @param storage the storage
+       * @return the locality sensitive hash
+       */
       public LocalitySensitiveHash create(@NonNull LSHStorage storage) {
          if (!parameters.containsKey(SIGNATURE_SIZE)) {
             int r = (int) (Math.ceil(Math.log(1.0 / bands) / Math.log(threshold)) + 1);
@@ -207,15 +257,33 @@ public class LocalitySensitiveHash implements Serializable {
                throw new IllegalStateException(signature + " is not one of [COSINE, COSINE_DISTANCE, EUCLIDEAN, JACCARD, MIN_HASH[");
          }
 
-         return new LocalitySensitiveHash(bands, buckets, dimension, signatureFunction, storage);
+         return new LocalitySensitiveHash(bands, buckets, dimension, signatureFunction, storage, threshold, signature,
+                                          parameters);
       }
 
+      /**
+       * In memory locality sensitive hash.
+       *
+       * @return the locality sensitive hash
+       */
       public LocalitySensitiveHash inMemory() {
          return create(new InMemoryLSHStorage());
       }
 
+      /**
+       * Param builder.
+       *
+       * @param name  the name
+       * @param value the value
+       * @return the builder
+       */
       public Builder param(String name, Number value) {
          parameters.put(name.toUpperCase(), value);
+         return this;
+      }
+
+      public Builder parameters(@NonNull Map<String, Number> parameters) {
+         this.parameters.putAll(parameters);
          return this;
       }
 

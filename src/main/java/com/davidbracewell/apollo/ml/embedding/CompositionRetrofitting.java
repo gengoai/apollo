@@ -2,11 +2,14 @@ package com.davidbracewell.apollo.ml.embedding;
 
 import com.davidbracewell.apollo.linear.NDArray;
 import com.davidbracewell.apollo.linear.store.VectorStore;
+import com.davidbracewell.apollo.linear.store.VectorStoreBuilder;
 import com.davidbracewell.io.resource.Resource;
 import com.google.common.base.Throwables;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
+
+import java.io.IOException;
 
 /**
  * The type Composition retrofitting.
@@ -40,7 +43,7 @@ public class CompositionRetrofitting implements Retrofitting {
 
    @Override
    public Embedding process(@NonNull VectorStore<String> embedding) {
-      VectorStore<String> newEmbedding = embedding.createNew();
+      VectorStoreBuilder<String> newEmbedding = embedding.toBuilder();
       embedding
          .keys()
          .forEach(term -> {
@@ -56,6 +59,10 @@ public class CompositionRetrofitting implements Retrofitting {
             newEmbedding.add(term, tv);
          });
 
-      return new Embedding(newEmbedding);
+      try {
+         return new Embedding(newEmbedding.build());
+      } catch (IOException e) {
+         throw Throwables.propagate(e);
+      }
    }
 }// END OF CompositionRetrofitting

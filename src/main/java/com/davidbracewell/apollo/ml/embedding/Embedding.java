@@ -2,10 +2,10 @@ package com.davidbracewell.apollo.ml.embedding;
 
 import com.davidbracewell.apollo.linear.NDArray;
 import com.davidbracewell.apollo.linear.NDArrayFactory;
-import com.davidbracewell.apollo.hash.CosineSignature;
 import com.davidbracewell.apollo.linear.store.DefaultVectorStore;
-import com.davidbracewell.apollo.hash.InMemoryLSH;
+import com.davidbracewell.apollo.linear.store.LSHVectorStore;
 import com.davidbracewell.apollo.linear.store.VectorStore;
+import com.davidbracewell.apollo.linear.store.VectorStoreBuilder;
 import com.davidbracewell.apollo.ml.Model;
 import com.davidbracewell.apollo.ml.encoder.EncoderPair;
 import com.davidbracewell.apollo.stat.measure.Similarity;
@@ -59,21 +59,20 @@ public class Embedding implements Model, VectorStore<String>, Serializable {
          firstRow = 0;
          dimension = lines.get(0).trim().split("\\s+").length - 1;
       }
-      VectorStore<String> vectorStore;
+      VectorStoreBuilder<String> builder;
       if (fastNearestNeighbors) {
-         vectorStore = InMemoryLSH.builder()
-                                  .dimension(dimension)
-                                  .signatureSupplier(CosineSignature::new)
-                                  .createVectorStore();
+         builder = LSHVectorStore.<String>builder().signature("COSINE");
       } else {
-         vectorStore = new DefaultVectorStore<>(dimension, Similarity.Cosine);
+         builder = DefaultVectorStore.builder();
       }
+      builder.dimension(dimension);
+      builder.measure(Similarity.Cosine);
 
       lines.stream()
            .skip(firstRow)
            .parallel()
            .map(line -> {
-              NDArray v = NDArrayFactory.DEFAULT().zeros(vectorStore.dimension());
+              NDArray v = NDArrayFactory.DEFAULT().zeros(builder.dimension());
               String[] parts = line.trim().split("\\s+");
               for (int vi = 1; vi < parts.length; vi++) {
                  v.set(vi - 1, Double.parseDouble(parts[vi]));
@@ -82,8 +81,8 @@ public class Embedding implements Model, VectorStore<String>, Serializable {
               return v;
            })
            .collect(Collectors.toList())
-           .forEach(vectorStore::add);
-      return new Embedding(vectorStore);
+           .forEach(builder::add);
+      return new Embedding(builder.build());
    }
 
 
@@ -111,10 +110,6 @@ public class Embedding implements Model, VectorStore<String>, Serializable {
       return Unchecked.supplier(() -> Embedding.read(resource));
    }
 
-   @Override
-   public void add(NDArray vector) {
-      vectorStore.add(vector);
-   }
 
    public boolean contains(String word) {
       return vectorStore.containsKey(word);
@@ -126,8 +121,8 @@ public class Embedding implements Model, VectorStore<String>, Serializable {
    }
 
    @Override
-   public VectorStore<String> createNew() {
-      return vectorStore.createNew();
+   public VectorStoreBuilder<String> toBuilder() {
+      return vectorStore.toBuilder();
    }
 
    @Override
@@ -173,11 +168,6 @@ public class Embedding implements Model, VectorStore<String>, Serializable {
    @Override
    public List<NDArray> nearest(NDArray query) {
       return vectorStore.nearest(query);
-   }
-
-   @Override
-   public boolean remove(NDArray vector) {
-      return vectorStore.remove(vector);
    }
 
    @Override

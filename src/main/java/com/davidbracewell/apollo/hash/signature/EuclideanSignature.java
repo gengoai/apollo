@@ -19,7 +19,7 @@
  * under the License.
  */
 
-package com.davidbracewell.apollo.hash;
+package com.davidbracewell.apollo.hash.signature;
 
 import com.davidbracewell.apollo.linear.NDArray;
 import com.davidbracewell.apollo.linear.NDArrayFactory;

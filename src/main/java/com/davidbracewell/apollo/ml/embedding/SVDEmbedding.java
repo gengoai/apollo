@@ -22,6 +22,8 @@
 package com.davidbracewell.apollo.ml.embedding;
 
 import com.davidbracewell.Math2;
+import com.davidbracewell.apollo.linear.Axis;
+import com.davidbracewell.apollo.linear.NDArray;
 import com.davidbracewell.apollo.linear.NDArrayFactory;
 import com.davidbracewell.apollo.linear.store.DefaultVectorStore;
 import com.davidbracewell.apollo.linear.store.LSHVectorStore;
@@ -46,7 +48,6 @@ import org.apache.spark.mllib.linalg.Matrix;
 import org.apache.spark.mllib.linalg.SingularValueDecomposition;
 import org.apache.spark.mllib.linalg.Vector;
 import org.apache.spark.mllib.linalg.distributed.RowMatrix;
-import org.jblas.DoubleMatrix;
 
 import java.io.IOException;
 import java.util.Map;
@@ -146,9 +147,9 @@ public class SVDEmbedding extends EmbeddingLearner {
       builder.measure(Similarity.Cosine);
 
       SingularValueDecomposition<RowMatrix, Matrix> svd = sparkSVD(mat, getDimension());
-      DoubleMatrix em = toMatrix(svd.U()).mmul(toDiagonalMatrix(svd.s()));
-      for (int i = 0; i < em.rows; i++) {
-         builder.add(featureEncoder.decode(i).toString(), NDArrayFactory.wrap(em.getRow(i).toArray()));
+      NDArray em = toMatrix(svd.U()).mmul(toDiagonalMatrix(svd.s()));
+      for (int i = 0; i < em.numRows(); i++) {
+         builder.add(featureEncoder.decode(i).toString(), NDArrayFactory.wrap(em.getVector(i, Axis.ROW).toArray()));
       }
       try {
          return new Embedding(builder.build());

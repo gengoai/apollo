@@ -1,5 +1,6 @@
 package com.davidbracewell.apollo.linear;
 
+import com.davidbracewell.apollo.linear.decompose.SingularValueDecomposition;
 import lombok.NonNull;
 
 import java.util.Collection;
@@ -103,13 +104,14 @@ public enum VectorCompositions implements VectorComposition {
     * Concatenates the vectors together and runs svd over them.
     */
    SVD {
+      private final SingularValueDecomposition svd = new SingularValueDecomposition(1);
+
       @Override
       public NDArray compose(@NonNull Collection<NDArray> vectors) {
          if (vectors.size() == 0) {
             return NDArrayFactory.DEFAULT().empty();
          }
-         return com.davidbracewell.apollo.linear.decompose.SVD.truncatedSVD(NDArrayFactory.DENSE_DOUBLE.vstack(vectors),
-                                                                            1)[2].getVector(0, Axis.ROW);
+         return svd.decompose(NDArrayFactory.DENSE_DOUBLE.vstack(vectors))[2].getVector(0, Axis.ROW);
       }
    }
 

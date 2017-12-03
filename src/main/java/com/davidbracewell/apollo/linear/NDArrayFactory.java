@@ -212,12 +212,34 @@ public enum NDArrayFactory {
    }
 
    /**
+    * Creates a new {@link DenseFloatNDArray} that wraps the given set of values
+    *
+    * @param rows   the number of rows
+    * @param cols   the number of columns
+    * @param values the values
+    * @return the NDArray
+    */
+   public static NDArray wrap(int rows, int cols, @NonNull float[] values) {
+      return new DenseFloatNDArray(new FloatMatrix(rows, cols, values));
+   }
+
+   /**
     * Creates a new {@link DenseDoubleNDArray} that wraps the given set of values
     *
     * @param values the values
     * @return the NDArray
     */
    public static NDArray wrap(@NonNull double[] values) {
+      return new DenseDoubleNDArray(new DoubleMatrix(values));
+   }
+
+   /**
+    * Creates a new {@link DenseDoubleNDArray} that wraps the given set of values
+    *
+    * @param values the values
+    * @return the NDArray
+    */
+   public static NDArray wrap(@NonNull double[][] values) {
       return new DenseDoubleNDArray(new DoubleMatrix(values));
    }
 
@@ -308,10 +330,10 @@ public enum NDArrayFactory {
     * @return the NDArray
     */
    public NDArray create(double[][] data) {
-      NDArray z = zeros(data[0].length, data.length);
-      for (int j = 0; j < data.length; j++) {
-         for (int i = 0; i < data[0].length; i++) {
-            z.set(i, j, data[i][j]);
+      NDArray z = zeros(data.length, data[0].length);
+      for (int j = 0; j < z.numRows(); j++) {
+         for (int i = 0; i < z.numCols(); i++) {
+            z.set(j, i, data[j][i]);
          }
       }
       return z;

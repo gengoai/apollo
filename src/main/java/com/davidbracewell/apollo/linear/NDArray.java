@@ -222,8 +222,9 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return The variance-covariance matrix
     */
    public NDArray cov() {
-      NDArray ones = getFactory().ones(numRows(), 1);
-      NDArray c = sub(ones.mmul(ones.T()).mmul(this).mul(1d / numRows()));
+      NDArray c = sub(getFactory().ones(numRows(), numRows())
+                                  .mmul(this)
+                                  .muli(1d / numRows()));
       return c.T().mmul(c).divi(numRows());
    }
 

@@ -1,10 +1,7 @@
-package com.davidbracewell.apollo.ml.classification.nn;
+package com.davidbracewell.apollo.ml.classification;
 
 import com.davidbracewell.apollo.linear.NDArrayFactory;
 import com.davidbracewell.apollo.ml.Instance;
-import com.davidbracewell.apollo.ml.classification.Classifier;
-import com.davidbracewell.apollo.ml.classification.ClassifierLearner;
-import com.davidbracewell.apollo.ml.classification.LinearModel;
 import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.ml.optimization.*;
 import com.davidbracewell.apollo.ml.optimization.activation.Activation;
@@ -42,7 +39,7 @@ public class SoftmaxLearner extends ClassifierLearner {
 
    @Override
    protected Classifier trainImpl(Dataset<Instance> dataset) {
-      LinearModel model = new LinearModel(this);
+      LinearModel model = new LinearModel(this,false);
       GradientDescentOptimizer optimizer = GradientDescentOptimizer.builder().batchSize(batchSize).build();
       model.weights = NDArrayFactory.DEFAULT().rand(model.numberOfLabels(), model.numberOfFeatures());
       model.bias = NDArrayFactory.DEFAULT().zeros(model.numberOfLabels());

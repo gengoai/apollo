@@ -1,7 +1,7 @@
 package com.davidbracewell.apollo.ml.data;
 
-import com.davidbracewell.apollo.ml.encoder.Encoder;
 import com.davidbracewell.apollo.ml.Example;
+import com.davidbracewell.apollo.ml.encoder.Encoder;
 import com.davidbracewell.apollo.ml.encoder.LabelEncoder;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
 import com.davidbracewell.conversion.Cast;
@@ -34,7 +34,7 @@ public class OffHeapDataset<T extends Example> extends Dataset<T> {
    private final AtomicLong id = new AtomicLong();
    private Resource outputResource = Resources.temporaryDirectory();
    private Class<T> clazz;
-   private int size = 0;
+   private int size = -1;
 
    /**
     * Instantiates a new Off heap dataset.
@@ -96,7 +96,7 @@ public class OffHeapDataset<T extends Example> extends Dataset<T> {
             throw Throwables.propagate(e);
          }
       }
-      copy.size = this.size;
+      copy.size = -1;
       copy.id.set(this.id.longValue());
       copy.clazz = this.clazz;
       return copy;
@@ -134,6 +134,13 @@ public class OffHeapDataset<T extends Example> extends Dataset<T> {
 
    @Override
    public int size() {
+      if( size < 0 ){
+         synchronized (this){
+            if( size < 0 ){
+               size = (int)stream().count();
+            }
+         }
+      }
       return size;
    }
 
@@ -153,7 +160,7 @@ public class OffHeapDataset<T extends Example> extends Dataset<T> {
             clazz = Cast.as(ii.getClass());
             if (ii.getFeatureSpace().count() > 0) {
                writer.write(ii.toJson().trim() + "\n");
-               size++;
+//               size++;
             }
          }));
       } catch (IOException e) {

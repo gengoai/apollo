@@ -22,6 +22,7 @@
 package com.davidbracewell.apollo.ml.classification;
 
 import com.davidbracewell.apollo.linear.NDArray;
+import com.davidbracewell.apollo.linear.NDArrayFactory;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.data.Dataset;
 import de.bwaldvogel.liblinear.*;
@@ -81,7 +82,7 @@ public class LibLinearLearner extends ClassifierLearner {
 
       int index = 0;
       for (Iterator<Instance> iitr = dataset.iterator(); iitr.hasNext(); index++) {
-         NDArray vector = iitr.next().toVector(dataset.getEncoderPair());
+         NDArray vector = iitr.next().toVector(dataset.getEncoderPair(), NDArrayFactory.SPARSE_DOUBLE);
          problem.x[index] = LibLinearModel.toFeature(vector, biasIndex);
          problem.y[index] = vector.getLabel();
       }

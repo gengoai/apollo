@@ -346,10 +346,11 @@ public class Instance implements Example, Serializable, Iterable<Feature> {
     * values
     *
     * @param encoderPair the encoder pair
+    * @param factory     The factory to use to create vectors
     * @return the vector
     */
-   public NDArray toVector(@NonNull EncoderPair encoderPair) {
-      NDArray vector = NDArrayFactory.DEFAULT().zeros(encoderPair.numberOfFeatures());
+   public NDArray toVector(@NonNull EncoderPair encoderPair, @NonNull NDArrayFactory factory) {
+      NDArray vector = factory.zeros(encoderPair.numberOfFeatures());
       boolean isHash = encoderPair.getFeatureEncoder() instanceof HashingEncoder;
       features.forEach(f -> {
          int fi = (int) encoderPair.encodeFeature(f.getFeatureName());
@@ -364,6 +365,17 @@ public class Instance implements Example, Serializable, Iterable<Feature> {
       vector.setLabel(encoderPair.encodeLabel(label));
       vector.setWeight(weight);
       return vector;
+   }
+
+   /**
+    * Converts the instance into a feature vector using the given encoder pair to map feature names and labels to double
+    * values
+    *
+    * @param encoderPair the encoder pair
+    * @return the vector
+    */
+   public NDArray toVector(@NonNull EncoderPair encoderPair) {
+      return toVector(encoderPair, NDArrayFactory.SPARSE_DOUBLE);
    }
 
 }//END OF Instance

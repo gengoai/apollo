@@ -37,16 +37,33 @@ public class SoftmaxLearner extends ClassifierLearner {
 
    }
 
+   public boolean isVerbose() {
+      return reportInterval > 0;
+   }
+
+
+   public void setVerbose(boolean verbose) {
+      if (verbose) {
+         this.reportInterval = 10;
+      } else {
+         this.reportInterval = 0;
+      }
+   }
+
    @Override
    protected Classifier trainImpl(Dataset<Instance> dataset) {
-      LinearModel model = new LinearModel(this,false);
+      int numL = dataset.getLabelEncoder().size();
+      if (numL <= 2) {
+         numL = 1;
+      }
+      LinearModel model = new LinearModel(this);
       GradientDescentOptimizer optimizer = GradientDescentOptimizer.builder().batchSize(batchSize).build();
-      model.weights = NDArrayFactory.DEFAULT().rand(model.numberOfLabels(), model.numberOfFeatures());
-      model.bias = NDArrayFactory.DEFAULT().zeros(model.numberOfLabels());
+      model.weights = NDArrayFactory.DEFAULT().rand(numL, model.numberOfFeatures());
+      model.bias = NDArrayFactory.DEFAULT().zeros(numL);
       model.activation = Activation.SOFTMAX;
       optimizer.optimize(model,
-                         dataset.vectorStream(false),
-                         new GradientDescentCostFunction(new CrossEntropyLoss()),
+                         dataset.vectorStream(cacheData),
+                         new GradientDescentCostFunction(new CrossEntropyLoss(), numL > 1 ? -1 : 1),
                          TerminationCriteria.create()
                                             .maxIterations(maxIterations)
                                             .historySize(3)

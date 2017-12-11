@@ -37,7 +37,7 @@ public class SGDUpdater implements WeightUpdate, Serializable {
       return toBuilder().build();
    }
 
-   protected double l1Update(NDArray weights, double learningRate, int iteration) {
+   public static double l1Update(NDArray weights, double learningRate, double l1, int iteration) {
       if (l1 > 0) {
          AtomicDouble cost = new AtomicDouble(0);
          double shrinkage = l1 * (learningRate / iteration);
@@ -54,7 +54,7 @@ public class SGDUpdater implements WeightUpdate, Serializable {
       return 0;
    }
 
-   protected double l2Update(NDArray gradient) {
+   public static double l2Update(NDArray gradient, double l2) {
       if (l2 > 0) {
          AtomicDouble addedCost = new AtomicDouble(0d);
          gradient.mapi(x -> {
@@ -95,7 +95,7 @@ public class SGDUpdater implements WeightUpdate, Serializable {
       val db = delta.sum(Axis.ROW)
                     .divi(input.numCols());
 
-      addedCost += l2Update(dw);
+      addedCost += l2Update(dw, l2);
 
       if (momentum > 0) {
          v = v.muli(momentum).subi(dw.muli(lr));
@@ -106,7 +106,7 @@ public class SGDUpdater implements WeightUpdate, Serializable {
 
       weights.getBias().subi(db.muli(lr));
 
-      addedCost += l1Update(weights.getWeights(), lr, iteration);
+      addedCost += l1Update(weights.getWeights(), lr, l1, iteration);
 
       return $(dzOut, addedCost);
    }
@@ -119,7 +119,7 @@ public class SGDUpdater implements WeightUpdate, Serializable {
       }
       double lr = learningRate / (1.0 + decayRate * iteration);
       double addedCost = 0;
-      addedCost += l2Update(gradient.getWeightGradient());
+      addedCost += l2Update(gradient.getWeightGradient(), l2);
 
       if (momentum > 0) {
          v = v.muli(momentum).subi(gradient.getWeightGradient().muli(lr));
@@ -130,7 +130,31 @@ public class SGDUpdater implements WeightUpdate, Serializable {
 
       weights.getBias().subi(gradient.getBiasGradient().sum(Axis.ROW).muli(lr));
 
-      addedCost += l1Update(weights.getWeights(), lr, iteration);
+      addedCost += l1Update(weights.getWeights(), lr, l1, iteration);
       return addedCost;
    }
+
+   public static class SGDUpdaterBuilder {
+
+      public double getLearningRate() {
+         return learningRate;
+      }
+
+      public double getDecayRate() {
+         return decayRate;
+      }
+
+      public double getMomentum() {
+         return momentum;
+      }
+
+      public double getL1() {
+         return l1;
+      }
+
+      public double getL2() {
+         return l2;
+      }
+   }
+
 }// END OF SGDUpdater

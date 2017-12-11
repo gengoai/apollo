@@ -6,6 +6,7 @@ import com.davidbracewell.stream.MStream;
 import com.davidbracewell.stream.accumulator.MAccumulator;
 import lombok.NonNull;
 
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.Set;
 
@@ -16,6 +17,15 @@ import java.util.Set;
  */
 public class LabelIndexEncoder extends IndexEncoder implements LabelEncoder {
    private static final long serialVersionUID = 1L;
+
+   public LabelIndexEncoder() {
+
+   }
+
+   public LabelIndexEncoder(String... labels) {
+      this.index.addAll(Arrays.asList(labels));
+   }
+
 
    @Override
    public LabelEncoder createNew() {

@@ -16,7 +16,7 @@ public class LinearModel extends Classifier implements LinearModelParameters {
 
    public LinearModel(ClassifierLearner learner) {
       super(learner);
-      this.isBinary = isBinary();
+      this.isBinary = learner.getEncoderPair().getLabelEncoder().size() <= 2;
    }
 
    public LinearModel(ClassifierLearner learner, boolean isBinary) {
@@ -35,7 +35,7 @@ public class LinearModel extends Classifier implements LinearModelParameters {
    @Override
    public Classification classify(NDArray vector) {
       //vector is numFeatures x 1
-      if (isBinary) {
+      if (isBinary()) {
          double[] dist = new double[2];
          dist[1] = activation.apply(weights.dot(vector) + bias.scalarValue());
          if (activation.isProbabilistic()) {
@@ -48,10 +48,10 @@ public class LinearModel extends Classifier implements LinearModelParameters {
       return createResult(activation.apply(weights.mmul(vector).addi(bias)).toArray());
    }
 
-//   @Override
-//   public LinearModelParameters copy() {
-//      return new LinearModel(this);
-//   }
+   @Override
+   public boolean isBinary() {
+      return isBinary;
+   }
 
    @Override
    public Activation getActivation() {

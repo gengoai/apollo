@@ -72,7 +72,7 @@ public class AdamUpdater implements WeightUpdate, Serializable {
       }
 
       weights.getWeights().subi(m.mul(lr_t).div(v.map(x -> Math.sqrt(x) + eps)));
-      weights.getBias().subi(gradient.getBiasGradient().muli(lr_t));
+      weights.getBias().subi(gradient.getBiasGradient().sum(Axis.ROW).muli(lr_t));
       return addedCost;
    }
 

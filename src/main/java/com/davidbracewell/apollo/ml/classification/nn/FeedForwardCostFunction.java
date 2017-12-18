@@ -1,5 +1,6 @@
 package com.davidbracewell.apollo.ml.classification.nn;
 
+import com.davidbracewell.apollo.linear.Axis;
 import com.davidbracewell.apollo.linear.NDArray;
 import com.davidbracewell.apollo.ml.optimization.CostFunction;
 import com.davidbracewell.apollo.ml.optimization.CostGradientTuple;
@@ -24,6 +25,9 @@ public class FeedForwardCostFunction implements CostFunction<FeedForwardNetwork>
       for (int i = 0; i < network.layers.size(); i++) {
          cai = network.layers.get(i).forward(cai);
          ai[i] = cai;
+      }
+      if( cai.numRows() == 1){ //If Binary, only take the first row of the Y
+         Y = Y.getVector(1, Axis.ROW);
       }
       double loss = lossFunction.loss(cai, Y) / input.numCols();
       NDArray dz = lossFunction.derivative(cai, Y);

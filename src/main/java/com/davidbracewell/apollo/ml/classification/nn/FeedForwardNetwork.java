@@ -1,12 +1,15 @@
 package com.davidbracewell.apollo.ml.classification.nn;
 
 import com.davidbracewell.apollo.linear.NDArray;
+import com.davidbracewell.apollo.linear.NDArrayFactory;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.classification.Classification;
 import com.davidbracewell.apollo.ml.classification.Classifier;
 import com.davidbracewell.apollo.ml.classification.ClassifierLearner;
 import com.davidbracewell.apollo.ml.encoder.EncoderPair;
+import com.davidbracewell.apollo.ml.optimization.activation.Activation;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
+import com.davidbracewell.conversion.Cast;
 import lombok.NonNull;
 
 import java.util.ArrayList;
@@ -33,7 +36,7 @@ public class FeedForwardNetwork extends Classifier {
       super(preprocessors, encoderPair);
    }
 
-   public Layer getLayer(int i){
+   public Layer getLayer(int i) {
       return layers.get(i);
    }
 
@@ -41,6 +44,11 @@ public class FeedForwardNetwork extends Classifier {
    public Classification classify(NDArray vector) {
       for (Layer layer : layers) {
          vector = layer.forward(vector);
+      }
+      if (vector.length() == 1) {
+         Activation activation = Cast.<WeightLayer>as(layers.get(layers.size() - 1)).activation;
+         double shift = activation.isProbabilistic() ? 1d : 0d;
+         vector = NDArrayFactory.wrap(new double[]{shift - vector.scalarValue(), vector.scalarValue()});
       }
       return createResult(vector.toArray());
    }

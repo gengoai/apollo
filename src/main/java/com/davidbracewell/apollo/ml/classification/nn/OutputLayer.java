@@ -42,8 +42,8 @@ public class OutputLayer extends WeightLayer {
    @Override
    public BackpropResult backward(NDArray input, NDArray output, NDArray delta, boolean calculateDelta) {
       NDArray dzOut = calculateDelta
-                     ? weights.T().mmul(delta)
-                     : null;
+                      ? weights.T().mmul(delta)
+                      : null;
       val dw = delta.mmul(input.T());
       val db = delta.sum(Axis.ROW);
       return BackpropResult.from(dzOut, dw, db);
@@ -52,8 +52,8 @@ public class OutputLayer extends WeightLayer {
    @Override
    public NDArray backward(NDArray input, NDArray output, NDArray delta, double learningRate, int layerIndex, int iteration) {
       NDArray dzOut = layerIndex > 0
-                     ? weights.T().mmul(delta)
-                     : null;
+                      ? weights.T().mmul(delta)
+                      : null;
       val dw = delta.mmul(input.T())
                     .divi(input.numCols());
       val db = delta.sum(Axis.ROW)
@@ -74,7 +74,9 @@ public class OutputLayer extends WeightLayer {
 
       @Override
       public Layer build() {
-         return new OutputLayer(getInputSize(), getOutputSize(), getActivation(), this.getInitializer(), getL1(),
+         boolean isBinary = getOutputSize() <= 2;
+         return new OutputLayer(getInputSize(), isBinary ? 1 : getOutputSize(), getActivation(), this.getInitializer(),
+                                getL1(),
                                 getL2());
       }
    }

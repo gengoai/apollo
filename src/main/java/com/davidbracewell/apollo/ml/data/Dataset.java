@@ -259,17 +259,20 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
       for (int i = 0; i < numberOfFolds; i++) {
          Dataset<T> train = create(getStreamingContext().empty());
          Dataset<T> test = create(getStreamingContext().empty());
-         if (i == 0) {
-            test.addAll(stream(0, foldSize));
-            train.addAll(stream(foldSize, size()));
-         } else if (i == numberOfFolds - 1) {
-            test.addAll(stream(size() - foldSize, size()));
-            train.addAll(stream(0, size() - foldSize));
-         } else {
-            test.addAll(stream(0, foldSize * i));
-            test.addAll(stream(foldSize * i + foldSize, size()));
-            train.addAll(stream(foldSize * i, foldSize * i + foldSize));
+
+         int testStart = i * foldSize;
+         int testEnd = testStart + foldSize;
+
+         test.addAll(stream(testStart,testEnd));
+
+         if( testStart > 0 ){
+            train.addAll(stream(0, testStart));
          }
+
+         if( testEnd < size() ){
+            train.addAll(stream(testEnd, size()));
+         }
+
          folds.add(TrainTestSplit.of(train, test));
       }
       return folds;

@@ -349,7 +349,7 @@ public class Instance implements Example, Serializable, Iterable<Feature> {
     * @param factory     The factory to use to create vectors
     * @return the vector
     */
-   public NDArray toVector(@NonNull EncoderPair encoderPair, @NonNull NDArrayFactory factory) {
+   public <T> NDArray toVector(@NonNull EncoderPair encoderPair, @NonNull NDArrayFactory factory) {
       NDArray vector = factory.zeros(encoderPair.numberOfFeatures());
       boolean isHash = encoderPair.getFeatureEncoder() instanceof HashingEncoder;
       features.forEach(f -> {
@@ -362,7 +362,15 @@ public class Instance implements Example, Serializable, Iterable<Feature> {
             }
          }
       });
-      vector.setLabel(encoderPair.encodeLabel(label));
+      if (label instanceof Iterable) {
+         NDArray lblVector = factory.zeros(encoderPair.getLabelEncoder().size());
+         for (Object lbl : Cast.<Iterable<Object>>as(label)) {
+            lblVector.set((int) encoderPair.encodeLabel(lbl), 1.0);
+         }
+         vector.setLabel(lblVector);
+      } else {
+         vector.setLabel(encoderPair.encodeLabel(label));
+      }
       vector.setWeight(weight);
       return vector;
    }

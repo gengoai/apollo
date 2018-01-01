@@ -41,9 +41,9 @@ public abstract class BaseClassificationTest {
    public void test() {
       Classifier clf = learner.train(getDataset());
       ClassifierEvaluation evaluation = ClassifierEvaluation.evaluateModel(clf, getDataset());
-      System.out.printf("ClassificationTest [%s] accuracy=%f, acceptable_accuracy=%f [+/- %f]\n",
+      System.out.printf("ClassificationTest [%s] accuracy=%f, acceptable_accuracy=%f [- %f]\n",
                         learner.getClass().getSimpleName(), evaluation.accuracy(), expectedAccuracy, delta);
-      assertTrue(expectedAccuracy < (evaluation.accuracy() + delta));
+      assertTrue(evaluation.accuracy() >= (expectedAccuracy - delta));
    }
 
 

@@ -13,7 +13,7 @@ import static org.junit.Assert.*;
 /**
  * @author David B. Bracewell
  */
-public class BaseClassificationTest {
+public abstract class BaseClassificationTest {
 
    final ClassifierLearner learner;
    final double expectedAccuracy;

@@ -23,7 +23,10 @@ package com.davidbracewell.apollo.ml.data;
 
 import com.davidbracewell.Copyable;
 import com.davidbracewell.apollo.linear.NDArray;
-import com.davidbracewell.apollo.ml.*;
+import com.davidbracewell.apollo.ml.Example;
+import com.davidbracewell.apollo.ml.Instance;
+import com.davidbracewell.apollo.ml.TrainTestSet;
+import com.davidbracewell.apollo.ml.TrainTestSplit;
 import com.davidbracewell.apollo.ml.encoder.*;
 import com.davidbracewell.apollo.ml.preprocess.Preprocessor;
 import com.davidbracewell.apollo.ml.preprocess.PreprocessorList;
@@ -158,6 +161,13 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
                      .map(ii -> ii.toVector(encoders));
    }
 
+   /**
+    * Creates a stream of {@link NDArray} from the examples in the dataset with the label set to <code>true (1.0)</code>
+    * when the actual label matches the given <code>trueLabel</code>
+    *
+    * @param trueLabel The label to match for a binary true
+    * @return The stream of vectors
+    */
    public MStream<NDArray> asVectors(double trueLabel) {
       encode();
       return stream().parallel()
@@ -168,7 +178,6 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
                            v.setLabel(1d);
                         } else {
                            v.setLabel(0d);
-
                         }
                         return v;
                      });
@@ -263,13 +272,13 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
          int testStart = i * foldSize;
          int testEnd = testStart + foldSize;
 
-         test.addAll(stream(testStart,testEnd));
+         test.addAll(stream(testStart, testEnd));
 
-         if( testStart > 0 ){
+         if (testStart > 0) {
             train.addAll(stream(0, testStart));
          }
 
-         if( testEnd < size() ){
+         if (testEnd < size()) {
             train.addAll(stream(testEnd, size()));
          }
 

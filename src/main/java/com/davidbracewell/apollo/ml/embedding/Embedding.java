@@ -8,6 +8,7 @@ import com.davidbracewell.apollo.linear.store.VectorStore;
 import com.davidbracewell.apollo.linear.store.VectorStoreBuilder;
 import com.davidbracewell.apollo.ml.Model;
 import com.davidbracewell.apollo.ml.encoder.EncoderPair;
+import com.davidbracewell.apollo.stat.measure.Measure;
 import com.davidbracewell.apollo.stat.measure.Similarity;
 import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.function.SerializableSupplier;
@@ -158,6 +159,11 @@ public class Embedding implements Model, VectorStore<String>, Serializable {
    @Override
    public List<NDArray> nearest(NDArray query, double threshold) {
       return vectorStore.nearest(query, threshold);
+   }
+
+   @Override
+   public Measure getQueryMeasure() {
+      return vectorStore.getQueryMeasure();
    }
 
    @Override

@@ -31,7 +31,6 @@ import lombok.NonNull;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * The type Default vector store.
@@ -91,47 +90,8 @@ public class DefaultVectorStore<KEY> implements VectorStore<KEY>, Serializable {
    }
 
    @Override
-   public List<NDArray> nearest(NDArray query, double threshold) {
-      Preconditions.checkArgument(query.length() == dimension,
-                                  "Dimension mismatch, vector store can only store vectors with k of " + dimension);
-      return vectorMap.values().parallelStream()
-                      .map(v -> v.copy().setWeight(queryMeasure.calculate(v, query)))
-                      .filter(s -> queryMeasure.getOptimum().test(s.getWeight(), threshold))
-                      .collect(Collectors.toList());
-   }
-
-   @Override
-   public List<NDArray> nearest(@NonNull NDArray query, int K, double threshold) {
-      Preconditions.checkArgument(query.length() == dimension,
-                                  "Dimension mismatch, vector store can only store vectors with k of " + dimension);
-      List<NDArray> vectors = vectorMap.values().parallelStream()
-                                       .map(v -> v.copy().setWeight(queryMeasure.calculate(v, query)))
-                                       .filter(s -> queryMeasure.getOptimum().test(s.getWeight(), threshold))
-                                       .sorted((s1, s2) -> queryMeasure.getOptimum()
-                                                                       .compare(s1.getWeight(), s2.getWeight()))
-                                       .collect(Collectors.toList());
-      return vectors.subList(0, Math.min(K, vectors.size()));
-   }
-
-   @Override
-   public List<NDArray> nearest(@NonNull NDArray query) {
-      Preconditions.checkArgument(query.length() == dimension,
-                                  "Dimension mismatch, vector store can only store vectors with k of " + dimension);
-      return vectorMap.values().parallelStream()
-                      .map(v -> v.copy().setWeight(queryMeasure.calculate(v, query)))
-                      .collect(Collectors.toList());
-   }
-
-   @Override
-   public List<NDArray> nearest(@NonNull NDArray query, int K) {
-      Preconditions.checkArgument(query.length() == dimension,
-                                  "Dimension mismatch, vector store can only store vectors with k of " + dimension);
-      List<NDArray> vectors = vectorMap.values().parallelStream()
-                                       .map(v -> v.copy().setWeight(queryMeasure.calculate(v, query)))
-                                       .sorted((s1, s2) -> queryMeasure.getOptimum()
-                                                                       .compare(s1.getWeight(), s2.getWeight()))
-                                       .collect(Collectors.toList());
-      return vectors.subList(0, Math.min(K, vectors.size()));
+   public Measure getQueryMeasure() {
+      return queryMeasure;
    }
 
    @Override

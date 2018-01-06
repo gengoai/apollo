@@ -178,4 +178,8 @@ public class LSHVectorStore<KEY> implements VectorStore<KEY>, Serializable {
       }
    }
 
+   @Override
+   public Measure getQueryMeasure() {
+      return lsh.getMeasure();
+   }
 }// END OF LSHVectorStore

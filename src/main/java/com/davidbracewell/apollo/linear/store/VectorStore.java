@@ -24,7 +24,10 @@ package com.davidbracewell.apollo.linear.store;
 import com.davidbracewell.apollo.linear.NDArray;
 import com.davidbracewell.apollo.linear.NDArrayFactory;
 import com.davidbracewell.apollo.linear.VectorComposition;
+import com.davidbracewell.apollo.stat.measure.Measure;
+import com.davidbracewell.collection.Streams;
 import com.davidbracewell.conversion.Cast;
+import com.davidbracewell.guava.common.base.Preconditions;
 import com.davidbracewell.io.Commitable;
 import com.davidbracewell.tuple.Tuple;
 import lombok.NonNull;
@@ -122,7 +125,19 @@ public interface VectorStore<KEY> extends Iterable<NDArray>, AutoCloseable, Clos
     * @param threshold the threshold to filter vectors
     * @return the list of vectors with their labels and scored by the stores measure with respect to the query vector.
     */
-   List<NDArray> nearest(NDArray query, double threshold);
+   default List<NDArray> nearest(NDArray query, double threshold) {
+      Preconditions.checkArgument(query.length() == dimension(),
+                                  "Dimension mismatch, vector store can only store vectors with k of " + dimension());
+      return Streams.asParallelStream(iterator())
+                    .map(v -> v.copy().setWeight(getQueryMeasure().calculate(v, query)))
+                    .filter(s -> getQueryMeasure().getOptimum().test(s.getWeight(), threshold))
+                    .collect(Collectors.toList());
+   }
+
+   /**
+    * @return The query measured for nearest neighbor calls
+    */
+   Measure getQueryMeasure();
 
    /**
     * Queries the vector store for the nearest vectors to the given <code>query</code> vector returning only the top
@@ -134,7 +149,17 @@ public interface VectorStore<KEY> extends Iterable<NDArray>, AutoCloseable, Clos
     * @param threshold the threshold to filter vectors
     * @return the list of vectors with their labels and scored by the stores measure with respect to the query vector.
     */
-   List<NDArray> nearest(@NonNull NDArray query, int K, double threshold);
+   default List<NDArray> nearest(@NonNull NDArray query, int K, double threshold) {
+      Preconditions.checkArgument(query.length() == dimension(),
+                                  "Dimension mismatch, vector store can only store vectors with k of " + dimension());
+      List<NDArray> vectors = Streams.asParallelStream(iterator())
+                                     .map(v -> v.copy().setWeight(getQueryMeasure().calculate(v, query)))
+                                     .filter(s -> getQueryMeasure().getOptimum().test(s.getWeight(), threshold))
+                                     .sorted((s1, s2) -> getQueryMeasure().getOptimum()
+                                                                          .compare(s1.getWeight(), s2.getWeight()))
+                                     .collect(Collectors.toList());
+      return vectors.subList(0, Math.min(K, vectors.size()));
+   }
 
    /**
     * Queries the vector store for the nearest vectors to the given <code>query</code> vector.
@@ -142,7 +167,13 @@ public interface VectorStore<KEY> extends Iterable<NDArray>, AutoCloseable, Clos
     * @param query the query vector
     * @return the list of vectors with their labels and scored by the stores measure with respect to the query vector.
     */
-   List<NDArray> nearest(NDArray query);
+   default List<NDArray> nearest(NDArray query) {
+      Preconditions.checkArgument(query.length() == dimension(),
+                                  "Dimension mismatch, vector store can only store vectors with k of " + dimension());
+      return Streams.asParallelStream(iterator())
+                    .map(v -> v.copy().setWeight(getQueryMeasure().calculate(v, query)))
+                    .collect(Collectors.toList());
+   }
 
    /**
     * Queries the vector store for the nearest vectors to the given <code>query</code> vector returning only the top
@@ -152,7 +183,16 @@ public interface VectorStore<KEY> extends Iterable<NDArray>, AutoCloseable, Clos
     * @param K     the maximum number of results to return
     * @return the list of vectors with their labels and scored by the stores measure with respect to the query vector.
     */
-   List<NDArray> nearest(@NonNull NDArray query, int K);
+   default List<NDArray> nearest(@NonNull NDArray query, int K) {
+      Preconditions.checkArgument(query.length() == dimension(),
+                                  "Dimension mismatch, vector store can only store vectors with k of " + dimension());
+      List<NDArray> vectors = Streams.asParallelStream(iterator())
+                                     .map(v -> v.copy().setWeight(getQueryMeasure().calculate(v, query)))
+                                     .sorted((s1, s2) -> getQueryMeasure().getOptimum()
+                                                                          .compare(s1.getWeight(), s2.getWeight()))
+                                     .collect(Collectors.toList());
+      return vectors.subList(0, Math.min(K, vectors.size()));
+   }
 
    /**
     * Finds the closest K vectors to the given word/feature in the embedding

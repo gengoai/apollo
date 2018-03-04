@@ -3,6 +3,7 @@ package com.davidbracewell.apollo.ml.preprocess.filter;
 import com.davidbracewell.apollo.ml.Feature;
 import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.preprocess.RestrictedInstancePreprocessor;
+import com.davidbracewell.collection.counter.Counter;
 import com.davidbracewell.collection.counter.Counters;
 import com.davidbracewell.json.JsonReader;
 import com.davidbracewell.json.JsonTokenType;
@@ -88,10 +89,11 @@ public class MinCountFilter extends RestrictedInstancePreprocessor implements Fi
 
    @Override
    protected void restrictedFitImpl(MStream<List<Feature>> stream) {
-      selectedFeatures = new HashSet<>(Counters.newCounter(stream.flatMap(l -> l.stream().map(Feature::getFeatureName))
-                                                                 .countByValue())
-                                               .filterByValue(v -> v >= minCount)
-                                               .items());
+      Counter<String> featureCounts = Counters.newCounter(stream.flatMap(l -> l.stream().map(Feature::getFeatureName))
+                                                                .countByValue());
+      selectedFeatures = new HashSet<>(featureCounts
+                                          .filterByValue(v -> v >= minCount)
+                                          .items());
    }
 
    @Override

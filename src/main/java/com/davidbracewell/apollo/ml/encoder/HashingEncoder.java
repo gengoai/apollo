@@ -4,6 +4,7 @@ import com.davidbracewell.apollo.ml.Example;
 import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.guava.common.base.Preconditions;
 import com.davidbracewell.stream.MStream;
+import lombok.Getter;
 import lombok.NonNull;
 
 import java.io.Serializable;
@@ -18,7 +19,10 @@ import java.util.List;
  */
 public class HashingEncoder implements Encoder, Serializable {
    private static final long serialVersionUID = 1L;
-   private int numberOfFeatures = Integer.MAX_VALUE;
+   @Getter
+   private final int numberOfFeatures;
+   @Getter
+   private final boolean binary;
 
    /**
     * Instantiates a new Hashing encoder with a default of 3000 features.
@@ -33,13 +37,18 @@ public class HashingEncoder implements Encoder, Serializable {
     * @param numberOfFeatures the number of features
     */
    public HashingEncoder(int numberOfFeatures) {
+      this(numberOfFeatures, false);
+   }
+
+   public HashingEncoder(int numberOfFeatures, boolean binary) {
       Preconditions.checkArgument(numberOfFeatures > 0, "Must allow at least one feature.");
       this.numberOfFeatures = numberOfFeatures;
+      this.binary = binary;
    }
 
    @Override
    public Encoder createNew() {
-      return new HashingEncoder(numberOfFeatures);
+      return new HashingEncoder(numberOfFeatures, binary);
    }
 
    @Override

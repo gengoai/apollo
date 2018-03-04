@@ -5,13 +5,18 @@ import com.davidbracewell.EnhancedDoubleStatistics;
 import com.davidbracewell.Math2;
 import com.davidbracewell.apollo.Optimum;
 import com.davidbracewell.collection.Streams;
+import com.davidbracewell.collection.list.PrimitiveArrayIterator;
 import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.guava.common.base.Preconditions;
+import com.davidbracewell.io.CSV;
+import com.davidbracewell.io.CSVWriter;
+import com.davidbracewell.io.resource.Resource;
 import lombok.NonNull;
 import org.apache.commons.math3.util.FastMath;
 import org.jblas.DoubleMatrix;
 import org.jblas.FloatMatrix;
 
+import java.io.IOException;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.Serializable;
@@ -22,6 +27,7 @@ import java.util.function.Consumer;
 import java.util.function.DoubleBinaryOperator;
 import java.util.function.DoublePredicate;
 import java.util.function.DoubleUnaryOperator;
+import java.util.stream.IntStream;
 
 /**
  * An n-dimension array of double values used for vectors and matrices.
@@ -37,7 +43,8 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
 
    public static void checkCanMultiply(NDArray a, NDArray b) {
       if (a.numCols() == b.numRows()) {
-         throw new IllegalArgumentException("Cannot multiple number of columns: " + a.numCols() + " !=  number of rows" + b.numRows());
+         throw new IllegalArgumentException(
+            "Cannot multiple number of columns: " + a.numCols() + " !=  number of rows" + b.numRows());
       }
    }
 
@@ -2175,5 +2182,14 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
 
    }//END OF Entry
 
+
+   public void writeCSV(Resource csvFile) throws IOException {
+      try (CSVWriter writer = CSV.csv().writer(csvFile)) {
+         writer.write(IntStream.range(0, numCols()).iterator());
+         for (int i = 0; i < numRows(); i++) {
+            writer.write(PrimitiveArrayIterator.doubleArrayIterator(getVector(i, Axis.ROW).toArray()));
+         }
+      }
+   }
 
 }//END OF NDArray

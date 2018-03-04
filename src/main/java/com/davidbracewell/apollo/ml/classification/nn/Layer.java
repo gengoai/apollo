@@ -2,6 +2,8 @@ package com.davidbracewell.apollo.ml.classification.nn;
 
 import com.davidbracewell.Copyable;
 import com.davidbracewell.apollo.linear.NDArray;
+import com.davidbracewell.apollo.ml.Instance;
+import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.ml.optimization.WeightUpdate;
 import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.tuple.Tuple2;
@@ -21,6 +23,10 @@ public abstract class Layer implements Serializable, Copyable<Layer> {
    protected Layer(int inputSize, int outputSize) {
       this.inputSize = inputSize;
       this.outputSize = outputSize;
+   }
+
+   public void preTrain(Dataset<Instance> dataset) {
+
    }
 
    /**

@@ -256,10 +256,7 @@ public class Instance implements Example, Serializable, Iterable<Feature> {
 
    @Override
    public Stream<Object> getLabelSpace() {
-      if (label == null) {
-         return Stream.empty();
-      }
-      return Stream.of(label);
+      return getLabelSet().stream();
    }
 
    /**
@@ -351,14 +348,15 @@ public class Instance implements Example, Serializable, Iterable<Feature> {
     */
    public <T> NDArray toVector(@NonNull EncoderPair encoderPair, @NonNull NDArrayFactory factory) {
       NDArray vector = factory.zeros(encoderPair.numberOfFeatures());
-      boolean isHash = encoderPair.getFeatureEncoder() instanceof HashingEncoder;
+      boolean isBinary = encoderPair.getFeatureEncoder() instanceof HashingEncoder && Cast.<HashingEncoder>as(
+         encoderPair.getFeatureEncoder()).isBinary();
       features.forEach(f -> {
          int fi = (int) encoderPair.encodeFeature(f.getFeatureName());
          if (fi != -1) {
-            if (isHash) {
-               vector.set(fi, 1.0);
+            if (isBinary) {
+               vector.increment(fi, 1.0);
             } else {
-               vector.set(fi, f.getValue());
+               vector.increment(fi, f.getValue());
             }
          }
       });

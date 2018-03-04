@@ -58,6 +58,7 @@ public class Backprop implements Optimizer<FeedForwardNetwork> {
                         int reportInterval
                        ) {
 
+
       BatchIterator data = new BatchIterator(stream.get().collect(),
                                              startingTheta.numberOfLabels(),
                                              startingTheta.numberOfFeatures());

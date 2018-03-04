@@ -29,8 +29,9 @@ public class BatchIterator implements Serializable {
       for (int i1 = 0; i1 < data.size(); i1++) {
          NDArray vv = data.get(i1);
          indices[i1] = i1;
-         val y = NDArrayFactory.DEFAULT().zeros(numLabels, 1);
-         y.set((int) vv.getLabelAsDouble(), 0, 1.0);
+         val y = vv.getLabelAsNDArray(numLabels);
+//         val y = NDArrayFactory.DEFAULT().zeros(numLabels, 1);
+//         y.set((int) vv.getLabelAsDouble(), 0, 1.0);
          Y.add(y);
          X.add(vv);
       }

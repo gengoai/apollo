@@ -6,7 +6,6 @@ import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.ml.encoder.LabelEncoder;
 import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.string.TableFormatter;
-import org.apache.commons.math3.stat.inference.MannWhitneyUTest;
 import org.apache.mahout.math.list.DoubleArrayList;
 
 import java.io.PrintStream;
@@ -111,59 +110,56 @@ public class BinaryEvaluation implements ClassifierEvaluation {
    }
 
    public double auc() {
-      MannWhitneyUTest mwu = new MannWhitneyUTest();
-      return mwu.mannWhitneyU(prob[0].elements(), prob[1].elements());
+      prob[0].sort();
+      prob[1].sort();
 
-//      prob[0].sort();
-//      prob[1].sort();
-//
-//      int n0 = prob[0].size();
-//      int n1 = prob[1].size();
-//
-//      int i0 = 0, i1 = 0;
-//      int rank = 1;
-//      double sum = 0d;
-//
-//      while (i0 < n0 && i1 < n1) {
-//         double v0 = prob[0].get(i0);
-//         double v1 = prob[1].get(i1);
-//
-//         if (v0 < v1) {
-//            i0++;
-//            rank++;
-//         } else if (v1 < v0) {
-//            i1++;
-//            sum += rank;
-//            rank++;
-//         } else {
-//            double tie = v0;
-//
-//            int k0 = 0;
-//            while (i0 < n0 && prob[0].get(i0) == tie) {
-//               k0++;
-//               i0++;
-//            }
-//
-//
-//            int k1 = 0;
-//            while (i1 < n1 && prob[1].get(i1) == tie) {
-//               k1++;
-//               i1++;
-//            }
-//
-//
-//            sum += (rank + (k0 + k1 - 1) / 2.0) * k1;
-//            rank += k0 + k1;
-//         }
-//      }
-//
-//      if (i1 < n1) {
-//         sum += (rank + (n1 - i1 - 1) / 2.0) * (n1 - i1);
-//         rank += (n1 - i1);
-//      }
-//
-//
-//      return (sum / n1 - (n1 + 1.0) / 2.0) / n0;
+      int n0 = prob[0].size();
+      int n1 = prob[1].size();
+
+      int i0 = 0, i1 = 0;
+      int rank = 1;
+      double sum = 0d;
+
+      while (i0 < n0 && i1 < n1) {
+         double v0 = prob[0].get(i0);
+         double v1 = prob[1].get(i1);
+
+         if (v0 < v1) {
+            i0++;
+            rank++;
+         } else if (v1 < v0) {
+            i1++;
+            sum += rank;
+            rank++;
+         } else {
+            double tie = v0;
+
+            int k0 = 0;
+            while (i0 < n0 && prob[0].get(i0) == tie) {
+               k0++;
+               i0++;
+            }
+
+
+            int k1 = 0;
+            while (i1 < n1 && prob[1].get(i1) == tie) {
+               k1++;
+               i1++;
+            }
+
+
+            sum += (rank + (k0 + k1 - 1) / 2.0) * k1;
+            rank += k0 + k1;
+         }
+      }
+
+      if (i1 < n1) {
+         sum += (rank + (n1 - i1 - 1) / 2.0) * (n1 - i1);
+         rank += (n1 - i1);
+      }
+
+
+      return (sum / n1 - (n1 + 1.0) / 2.0) / n0;
    }
 
    @Override
@@ -171,7 +167,7 @@ public class BinaryEvaluation implements ClassifierEvaluation {
       TableFormatter tableFormatter = new TableFormatter();
       tableFormatter.header(Arrays.asList("Predicted / Gold", "TRUE", "FALSE", "TOTAL"));
       tableFormatter.content(
-         Arrays.asList("TRUE", truePositives(), falsePositives(), (truePositives() + falsePositives()));
+         Arrays.asList("TRUE", truePositives(), falsePositives(), (truePositives() + falsePositives())));
       tableFormatter.content(Arrays.asList("FALSE", falseNegatives(), trueNegatives(), (falseNegatives() +
                                                                                            trueNegatives())));
       tableFormatter.footer(

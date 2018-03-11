@@ -163,43 +163,16 @@ public class BinaryEvaluation implements ClassifierEvaluation {
 
 
       return (sum / n1 - (n1 + 1.0) / 2.0) / n0;
-//      double[] x = new double[results.size()];
-//      double[] y = new double[results.size()];
-//      for (int i = 0; i < results.size(); i++) {
-//         y[i] = results.get(i).v1 ? 1.0 : 0.0;
-//         x[i] = results.get(i).v2;
-//      }
-//      double auc = mwu.mannWhitneyU(x, y);
-//      results.sort(Comparator.comparing(Tuple2::getV2));
-//      double[] rank = new double[results.size()];
-//      for (int i = 0; i < results.size(); i++) {
-//         double conf = results.get(i).v2;
-//
-//         if (i + 1 == results.size() || conf != results.get(i + 1).v2) {
-//            rank[i] = i + 1;
-//         } else {
-//            int j = i + 1;
-//            for (; j < results.size() && conf == results.get(j).v2; j++) ;
-//            double r = (i + 1 + j) / 2.0;
-//            for (int k = i; k < j; k++) rank[k] = r;
-//            i = j - 1;
-//         }
-//      }
-//
-//      double auc = 0;
-//      for (int i = 0; i < results.size(); i++) {
-//         if (results.get(i).v1) {
-//            auc += rank[i];
-//         }
-//      }
-//
-//      auc = (auc - (positive * (positive + 1) / 2.0)) / (positive * negative);
-//      return auc;
    }
 
    @Override
    public void output(PrintStream printStream) {
       TableFormatter tableFormatter = new TableFormatter();
+      tableFormatter.header(Arrays.asList("Predicted / Gold", "TRUE", "FALSE"));
+      tableFormatter.content(Arrays.asList("TRUE", truePositives(), falsePositives()));
+      tableFormatter.content(Arrays.asList("FALSE", falseNegatives(), trueNegatives()));
+      tableFormatter.print(printStream);
+      tableFormatter.clear();
       tableFormatter.header(Arrays.asList("Metric", "Score"));
       tableFormatter.content(Arrays.asList("AUC", auc()));
       tableFormatter.content(Arrays.asList("Accuracy", accuracy()));

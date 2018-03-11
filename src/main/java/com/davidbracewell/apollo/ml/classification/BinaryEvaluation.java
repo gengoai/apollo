@@ -176,7 +176,7 @@ public class BinaryEvaluation implements ClassifierEvaluation {
                        positive + negative));
       tableFormatter.print(printStream);
 
-      tableFormatter.clear();
+      tableFormatter = new TableFormatter();
       tableFormatter.header(Arrays.asList("Metric", "Score"));
       tableFormatter.content(Arrays.asList("AUC", auc()));
       tableFormatter.content(Arrays.asList("Accuracy", accuracy()));

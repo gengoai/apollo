@@ -11,7 +11,6 @@ import org.apache.mahout.math.list.DoubleArrayList;
 import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 
 /**
  * @author David B. Bracewell
@@ -184,7 +183,6 @@ public class BinaryEvaluation implements ClassifierEvaluation {
       tableFormatter.content(Arrays.asList("FP Rate", falsePositiveRate()));
       tableFormatter.content(Arrays.asList("TN Rate", trueNegativeRate()));
       tableFormatter.content(Arrays.asList("FN Rate", falseNegativeRate()));
-      tableFormatter.footer(Collections.emptyList());
       tableFormatter.print(printStream);
    }
 

@@ -112,7 +112,7 @@ public class BinaryEvaluation implements ClassifierEvaluation {
 
    public double auc() {
       MannWhitneyUTest mwu = new MannWhitneyUTest();
-      return mwu.mannWhitneyU(prob[0].elements(), prob[1].elements());
+      return mwu.mannWhitneyUTest(prob[0].elements(), prob[1].elements());
 //      double[] x = new double[results.size()];
 //      double[] y = new double[results.size()];
 //      for (int i = 0; i < results.size(); i++) {

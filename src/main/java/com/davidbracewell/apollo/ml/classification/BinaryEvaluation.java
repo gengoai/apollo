@@ -5,14 +5,12 @@ import com.davidbracewell.apollo.ml.Instance;
 import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.ml.encoder.LabelEncoder;
 import com.davidbracewell.conversion.Cast;
+import com.davidbracewell.string.TableFormatter;
 import com.davidbracewell.tuple.Tuple2;
 import org.apache.commons.math3.stat.inference.MannWhitneyUTest;
 
 import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 import static com.davidbracewell.tuple.Tuples.$;
 
@@ -142,7 +140,15 @@ public class BinaryEvaluation implements ClassifierEvaluation {
 
    @Override
    public void output(PrintStream printStream) {
-      printStream.println("AUC: " + auc() + ", acc: " + accuracy());
+      TableFormatter tableFormatter = new TableFormatter();
+      tableFormatter.header(Arrays.asList("Metric", "Score"));
+      tableFormatter.content(Arrays.asList("AUC", auc()));
+      tableFormatter.content(Arrays.asList("Accuracy", accuracy()));
+      tableFormatter.content(Arrays.asList("TP Rate", truePositiveRate()));
+      tableFormatter.content(Arrays.asList("FP Rate", falsePositiveRate()));
+      tableFormatter.content(Arrays.asList("TN Rate", trueNegativeRate()));
+      tableFormatter.content(Arrays.asList("FN Rate", falseNegativeRate()));
+      tableFormatter.print(printStream);
    }
 
 

@@ -123,7 +123,7 @@ public class BinaryEvaluation implements ClassifierEvaluation {
          y[i] = results.get(i).v1 ? 1.0 : 0.0;
          x[i] = results.get(i).v2;
       }
-      double auc = mwu.mannWhitneyUTest(x, y);
+      double auc = mwu.mannWhitneyU(x, y);
 //      results.sort(Comparator.comparing(Tuple2::getV2));
 //      double[] rank = new double[results.size()];
 //      for (int i = 0; i < results.size(); i++) {

@@ -6,9 +6,9 @@ import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.apollo.ml.encoder.LabelEncoder;
 import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.tuple.Tuple2;
+import org.apache.commons.math3.stat.inference.MannWhitneyUTest;
 
 import java.io.PrintStream;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -19,15 +19,45 @@ import static com.davidbracewell.tuple.Tuples.$;
 /**
  * @author David B. Bracewell
  */
-public class BinaryClassifierEvaluation implements Evaluation<Instance, Classifier>, Serializable {
+public class BinaryEvaluation implements ClassifierEvaluation {
+   private static final long serialVersionUID = 1L;
 
    private final List<Tuple2<Boolean, Double>> results = new ArrayList<>();
    private double positive = 0d;
    private double negative = 0d;
+   private double tp = 0;
+   private double tn = 0;
+   private double fp = 0;
+   private double fn = 0;
    private final String positiveLabel;
 
-   public BinaryClassifierEvaluation(LabelEncoder labelEncoder) {
+   public BinaryEvaluation(LabelEncoder labelEncoder) {
       this.positiveLabel = labelEncoder.decode(1.0).toString();
+   }
+
+   @Override
+   public double accuracy() {
+      return (tp + tn) / (positive + negative);
+   }
+
+   @Override
+   public double falseNegatives() {
+      return fn;
+   }
+
+   @Override
+   public double falsePositives() {
+      return fp;
+   }
+
+   @Override
+   public double truePositives() {
+      return tp;
+   }
+
+   @Override
+   public double trueNegatives() {
+      return tn;
    }
 
 
@@ -35,9 +65,21 @@ public class BinaryClassifierEvaluation implements Evaluation<Instance, Classifi
       results.add($(gold.equals(positiveLabel), distribution[1]));
       if (gold.equals(positiveLabel)) {
          positive++;
+         if (distribution[1] > distribution[0]) {
+            tp++;
+         } else {
+            fn++;
+         }
       } else {
          negative++;
+         if (distribution[0] > distribution[1]) {
+            tn++;
+         } else {
+            fp++;
+         }
+
       }
+
    }
 
 
@@ -61,8 +103,8 @@ public class BinaryClassifierEvaluation implements Evaluation<Instance, Classifi
 
    @Override
    public void merge(Evaluation<Instance, Classifier> evaluation) {
-      if (evaluation instanceof BinaryClassifierEvaluation) {
-         BinaryClassifierEvaluation bce = Cast.as(evaluation);
+      if (evaluation instanceof BinaryEvaluation) {
+         BinaryEvaluation bce = Cast.as(evaluation);
          this.results.addAll(bce.results);
       } else {
          throw new IllegalArgumentException();
@@ -70,6 +112,7 @@ public class BinaryClassifierEvaluation implements Evaluation<Instance, Classifi
    }
 
    public double auc() {
+      MannWhitneyUTest mwu = new MannWhitneyUTest();
       results.sort(Comparator.comparing(Tuple2::getV2));
       double[] rank = new double[results.size()];
       for (int i = 0; i < results.size(); i++) {
@@ -99,7 +142,7 @@ public class BinaryClassifierEvaluation implements Evaluation<Instance, Classifi
 
    @Override
    public void output(PrintStream printStream) {
-
+      printStream.println("AUC: " + auc() + ", acc: " + accuracy());
    }
 
 

@@ -1,7 +1,7 @@
 package com.davidbracewell.apollo.ml.sequence;
 
 import com.davidbracewell.apollo.ml.Evaluation;
-import com.davidbracewell.apollo.ml.classification.ClassifierEvaluation;
+import com.davidbracewell.apollo.ml.classification.MultiClassEvaluation;
 import com.davidbracewell.apollo.ml.data.Dataset;
 import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.guava.common.base.Preconditions;
@@ -12,7 +12,7 @@ import java.util.Collection;
 
 /**
  * Sequence evaluation that calculates metrics using each element of the sequence wrapping a {@link
- * ClassifierEvaluation}
+ * MultiClassEvaluation}
  *
  * @author David B. Bracewell
  */
@@ -20,7 +20,7 @@ public class PerInstanceEvaluation implements Evaluation<Sequence, SequenceLabel
    /**
     * The wrapped classifier evaluation
     */
-   public final ClassifierEvaluation eval = new ClassifierEvaluation();
+   public final MultiClassEvaluation eval = new MultiClassEvaluation();
 
    @Override
    public void evaluate(@NonNull SequenceLabeler model, @NonNull Dataset<Sequence> dataset) {

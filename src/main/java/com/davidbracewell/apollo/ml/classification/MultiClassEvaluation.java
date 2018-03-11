@@ -30,6 +30,7 @@ import com.davidbracewell.collection.counter.HashMapMultiCounter;
 import com.davidbracewell.collection.counter.MultiCounter;
 import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.guava.common.base.Preconditions;
+import com.davidbracewell.logging.Logger;
 import com.davidbracewell.string.StringUtils;
 import com.davidbracewell.string.TableFormatter;
 import com.davidbracewell.tuple.Tuple2;
@@ -37,6 +38,8 @@ import lombok.NonNull;
 
 import java.io.PrintStream;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -46,10 +49,46 @@ import java.util.stream.Stream;
  * @author David B. Bracewell
  */
 public class MultiClassEvaluation implements ClassifierEvaluation {
+   private static final Logger log = Logger.getLogger(MultiClassEvaluation.class);
    private static final long serialVersionUID = 1L;
    private final MultiCounter<String, String> matrix = new HashMapMultiCounter<>();
    private double total = 0;
 
+   /**
+    * Cross validation classifier evaluation.
+    *
+    * @param dataset         the dataset
+    * @param learnerSupplier the learner supplier
+    * @param nFolds          the n folds
+    * @return the classifier evaluation
+    */
+   public static MultiClassEvaluation crossValidation(@NonNull Dataset<Instance> dataset, @NonNull Supplier<ClassifierLearner> learnerSupplier, int nFolds) {
+      MultiClassEvaluation evaluation = new MultiClassEvaluation();
+      AtomicInteger foldId = new AtomicInteger(0);
+      dataset.fold(nFolds).forEach((train, test) -> {
+         log.info("Running fold {0}", foldId.incrementAndGet());
+         Classifier model = learnerSupplier.get().train(train);
+         evaluation.evaluate(model, test);
+         log.info("Fold {0}: Cumulative Metrics(microP={1}, microR={2}, microF1={3})", foldId.get(),
+                  evaluation.microPrecision(),
+                  evaluation.microRecall(),
+                  evaluation.microF1());
+      });
+      return evaluation;
+   }
+
+   /**
+    * Evaluate model classifier evaluation.
+    *
+    * @param classifier the classifier
+    * @param testSet    the test set
+    * @return the classifier evaluation
+    */
+   public static MultiClassEvaluation evaluateModel(@NonNull Classifier classifier, @NonNull Dataset<Instance> testSet) {
+      MultiClassEvaluation evaluation = new MultiClassEvaluation();
+      evaluation.evaluate(classifier, testSet);
+      return evaluation;
+   }
 
    @Override
    public double accuracy() {

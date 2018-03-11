@@ -118,7 +118,7 @@ public class BinaryEvaluation implements ClassifierEvaluation {
          x[i] = results.get(i).v1 ? 1.0 : 0.0;
          y[i] = results.get(i).v2;
       }
-      return mwu.mannWhitneyU(x,y);
+      return mwu.mannWhitneyUTest(x,y);
 //      results.sort(Comparator.comparing(Tuple2::getV2));
 //      double[] rank = new double[results.size()];
 //      for (int i = 0; i < results.size(); i++) {

@@ -7,13 +7,9 @@ import com.davidbracewell.apollo.ml.encoder.LabelEncoder;
 import com.davidbracewell.conversion.Cast;
 import com.davidbracewell.string.TableFormatter;
 import com.davidbracewell.tuple.Tuple2;
-import org.apache.commons.math3.stat.inference.MannWhitneyUTest;
 
 import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 import static com.davidbracewell.tuple.Tuples.$;
 
@@ -116,38 +112,38 @@ public class BinaryEvaluation implements ClassifierEvaluation {
    }
 
    public double auc() {
-      MannWhitneyUTest mwu = new MannWhitneyUTest();
-      double[] x = new double[results.size()];
-      double[] y = new double[results.size()];
+//      MannWhitneyUTest mwu = new MannWhitneyUTest();
+//      double[] x = new double[results.size()];
+//      double[] y = new double[results.size()];
+//      for (int i = 0; i < results.size(); i++) {
+//         y[i] = results.get(i).v1 ? 1.0 : 0.0;
+//         x[i] = results.get(i).v2;
+//      }
+//      double auc = mwu.mannWhitneyU(x, y);
+      results.sort(Comparator.comparing(Tuple2::getV2));
+      double[] rank = new double[results.size()];
       for (int i = 0; i < results.size(); i++) {
-         y[i] = results.get(i).v1 ? 1.0 : 0.0;
-         x[i] = results.get(i).v2;
+         double conf = results.get(i).v2;
+
+         if (i + 1 == results.size() || conf != results.get(i + 1).v2) {
+            rank[i] = i + 1;
+         } else {
+            int j = i + 1;
+            for (; j < results.size() && conf == results.get(j).v2; j++) ;
+            double r = (i + 1 + j) / 2.0;
+            for (int k = i; k < j; k++) rank[k] = r;
+            i = j - 1;
+         }
       }
-      double auc = mwu.mannWhitneyU(x, y);
-//      results.sort(Comparator.comparing(Tuple2::getV2));
-//      double[] rank = new double[results.size()];
-//      for (int i = 0; i < results.size(); i++) {
-//         double conf = results.get(i).v2;
-//
-//         if (i + 1 == results.size() || conf != results.get(i + 1).v2) {
-//            rank[i] = i + 1;
-//         } else {
-//            int j = i + 1;
-//            for (; j < results.size() && conf == results.get(j).v2; j++) ;
-//            double r = (i + 1 + j) / 2.0;
-//            for (int k = i; k < j; k++) rank[k] = r;
-//            i = j - 1;
-//         }
-//      }
-//
-//      double auc = 0;
-//      for (int i = 0; i < results.size(); i++) {
-//         if (results.get(i).v1) {
-//            auc += rank[i];
-//         }
-//      }
-//
-//      auc = (auc - (positive * (positive + 1) / 2.0)) / (positive * negative);
+
+      double auc = 0;
+      for (int i = 0; i < results.size(); i++) {
+         if (results.get(i).v1) {
+            auc += rank[i];
+         }
+      }
+
+      auc = (auc - (positive * (positive + 1) / 2.0)) / (positive * negative);
       return auc;
    }
 

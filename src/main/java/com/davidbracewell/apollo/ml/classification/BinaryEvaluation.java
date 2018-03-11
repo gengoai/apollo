@@ -162,7 +162,7 @@ public class BinaryEvaluation implements ClassifierEvaluation {
       }
 
 
-      return (sum / n1 - (n1 + 1) / 2) / n0;
+      return (sum / n1 - (n1 + 1.0) / 2.0) / n0;
 //      double[] x = new double[results.size()];
 //      double[] y = new double[results.size()];
 //      for (int i = 0; i < results.size(); i++) {

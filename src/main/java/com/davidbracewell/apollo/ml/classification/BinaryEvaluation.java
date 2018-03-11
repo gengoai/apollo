@@ -61,7 +61,7 @@ public class BinaryEvaluation implements ClassifierEvaluation {
       int predictedClass = distribution[1] >= 0.5 ? 1 : 0;
       int goldClass = gold.equals(positiveLabel) ? 1 : 0;
 
-      prob[predictedClass].add(distribution[1]);
+      prob[goldClass].add(distribution[1]);
       if (goldClass == 1) {
          positive++;
          if (predictedClass == 1) {

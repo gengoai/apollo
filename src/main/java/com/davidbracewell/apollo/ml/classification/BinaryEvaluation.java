@@ -169,9 +169,13 @@ public class BinaryEvaluation implements ClassifierEvaluation {
    @Override
    public void output(PrintStream printStream) {
       TableFormatter tableFormatter = new TableFormatter();
-      tableFormatter.header(Arrays.asList("Predicted / Gold", "TRUE", "FALSE"));
-      tableFormatter.content(Arrays.asList("TRUE", truePositives(), falsePositives()));
-      tableFormatter.content(Arrays.asList("FALSE", falseNegatives(), trueNegatives()));
+      tableFormatter.header(Arrays.asList("Predicted / Gold", "TRUE", "FALSE", "TOTAL"));
+      tableFormatter.content(
+         Arrays.asList("TRUE", truePositives(), falsePositives(), (truePositives() + falsePositives()));
+      tableFormatter.content(Arrays.asList("FALSE", falseNegatives(), trueNegatives(), (falseNegatives() +
+                                                                                           trueNegatives())));
+      tableFormatter.footer(
+         Arrays.asList("", (truePositives() + falseNegatives()), (falsePositives() + trueNegatives())));
       tableFormatter.print(printStream);
       tableFormatter.clear();
       tableFormatter.header(Arrays.asList("Metric", "Score"));

@@ -10,7 +10,10 @@ import com.davidbracewell.tuple.Tuple2;
 import org.apache.commons.math3.stat.inference.MannWhitneyUTest;
 
 import java.io.PrintStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 
 import static com.davidbracewell.tuple.Tuples.$;
 
@@ -60,9 +63,11 @@ public class BinaryEvaluation implements ClassifierEvaluation {
 
 
    public void entry(String gold, double[] distribution) {
-      results.add($(gold.equals(positiveLabel), distribution[1]));
+      boolean isTrue = gold.equals(positiveLabel);
 
-      if (gold.equals(positiveLabel)) {
+      results.add($(isTrue, distribution[isTrue ? 1 : 0]));
+
+      if (isTrue) {
          positive++;
          if (distribution[1] > distribution[0]) {
             tp++;
@@ -118,7 +123,7 @@ public class BinaryEvaluation implements ClassifierEvaluation {
          y[i] = results.get(i).v1 ? 1.0 : 0.0;
          x[i] = results.get(i).v2;
       }
-      double auc =  mwu.mannWhitneyU(x,y);
+      double auc = mwu.mannWhitneyUTest(x, y);
 //      results.sort(Comparator.comparing(Tuple2::getV2));
 //      double[] rank = new double[results.size()];
 //      for (int i = 0; i < results.size(); i++) {

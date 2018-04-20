@@ -7,9 +7,9 @@ import com.gengoai.apollo.ml.encoder.IndexEncoder;
 import com.gengoai.apollo.ml.encoder.LabelEncoder;
 import com.gengoai.apollo.ml.preprocess.PreprocessorList;
 import com.gengoai.guava.common.base.Throwables;
-import com.gengoai.mango.io.resource.Resource;
-import com.gengoai.mango.stream.MStream;
-import com.gengoai.mango.stream.StreamingContext;
+import com.gengoai.io.resource.Resource;
+import com.gengoai.stream.MStream;
+import com.gengoai.stream.StreamingContext;
 import com.gengoai.apollo.ml.Example;
 import lombok.NonNull;
 

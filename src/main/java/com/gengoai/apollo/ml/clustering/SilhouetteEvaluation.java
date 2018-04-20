@@ -21,14 +21,14 @@
 
 package com.gengoai.apollo.ml.clustering;
 
-import com.gengoai.mango.Math2;
+import com.gengoai.Math2;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.ml.Evaluation;
 import com.gengoai.apollo.ml.Instance;
 import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.apollo.stat.measure.Measure;
-import com.gengoai.mango.stream.StreamingContext;
-import com.gengoai.mango.string.TableFormatter;
+import com.gengoai.stream.StreamingContext;
+import com.gengoai.string.TableFormatter;
 import com.gengoai.apollo.ml.Evaluation;
 import com.gengoai.apollo.ml.Instance;
 import com.gengoai.apollo.ml.data.Dataset;
@@ -40,7 +40,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.gengoai.mango.tuple.Tuples.$;
+import static com.gengoai.tuple.Tuples.$;
 
 /**
  * @author David B. Bracewell

@@ -22,7 +22,7 @@
 package com.gengoai.apollo.ml.featurizer;
 
 import com.gengoai.apollo.ml.Feature;
-import com.gengoai.mango.conversion.Cast;
+import com.gengoai.conversion.Cast;
 import lombok.NonNull;
 
 import java.util.Arrays;

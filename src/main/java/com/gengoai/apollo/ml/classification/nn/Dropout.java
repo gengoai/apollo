@@ -4,12 +4,12 @@ import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.linear.NDArrayInitializer;
 import com.gengoai.apollo.ml.optimization.WeightUpdate;
-import com.gengoai.mango.tuple.Tuple2;
+import com.gengoai.tuple.Tuple2;
 import com.gengoai.apollo.ml.optimization.WeightUpdate;
 import lombok.Getter;
 import lombok.val;
 
-import static com.gengoai.mango.tuple.Tuples.$;
+import static com.gengoai.tuple.Tuples.$;
 
 /**
  * @author David B. Bracewell

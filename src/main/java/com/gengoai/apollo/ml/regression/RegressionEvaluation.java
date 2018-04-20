@@ -1,12 +1,12 @@
 package com.gengoai.apollo.ml.regression;
 
-import com.gengoai.mango.Math2;
+import com.gengoai.Math2;
 import com.gengoai.apollo.ml.Evaluation;
 import com.gengoai.apollo.ml.Instance;
 import com.gengoai.apollo.ml.data.Dataset;
-import com.gengoai.mango.conversion.Cast;
+import com.gengoai.conversion.Cast;
 import com.gengoai.guava.common.base.Preconditions;
-import com.gengoai.mango.string.TableFormatter;
+import com.gengoai.string.TableFormatter;
 import com.gengoai.apollo.ml.Evaluation;
 import com.gengoai.apollo.ml.Instance;
 import com.gengoai.apollo.ml.data.Dataset;

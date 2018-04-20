@@ -3,7 +3,7 @@ package com.gengoai.apollo.ml.sequence;
 import com.gengoai.apollo.ml.Instance;
 import com.gengoai.apollo.ml.classification.ClassifierLearner;
 import com.gengoai.apollo.ml.data.Dataset;
-import com.gengoai.mango.io.QuietIO;
+import com.gengoai.io.QuietIO;
 import com.gengoai.apollo.ml.Instance;
 import com.gengoai.apollo.ml.data.Dataset;
 import lombok.NonNull;

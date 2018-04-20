@@ -4,9 +4,9 @@ import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.ml.Instance;
 import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.apollo.ml.optimization.WeightUpdate;
-import com.gengoai.mango.Copyable;
-import com.gengoai.mango.conversion.Cast;
-import com.gengoai.mango.tuple.Tuple2;
+import com.gengoai.Copyable;
+import com.gengoai.conversion.Cast;
+import com.gengoai.tuple.Tuple2;
 import lombok.Getter;
 
 import java.io.Serializable;

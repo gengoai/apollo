@@ -1,7 +1,7 @@
 package com.gengoai.apollo.linear.sparse;
 
 import com.gengoai.apollo.linear.NDArray;
-import com.gengoai.mango.conversion.Cast;
+import com.gengoai.conversion.Cast;
 import org.apache.mahout.math.function.IntDoubleProcedure;
 import org.apache.mahout.math.list.IntArrayList;
 

@@ -21,7 +21,7 @@
 
 package com.gengoai.apollo.ml.clustering;
 
-import com.gengoai.mango.Lazy;
+import com.gengoai.Lazy;
 import com.gengoai.apollo.linear.NDArray;
 import lombok.NonNull;
 import org.apache.commons.math3.ml.clustering.Clusterable;

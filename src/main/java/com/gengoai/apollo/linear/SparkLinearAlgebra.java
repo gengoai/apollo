@@ -1,9 +1,9 @@
 package com.gengoai.apollo.linear;
 
 import com.gengoai.apollo.linear.dense.DenseDoubleNDArray;
-import com.gengoai.mango.stream.MStream;
-import com.gengoai.mango.stream.SparkStream;
-import com.gengoai.mango.stream.StreamingContext;
+import com.gengoai.stream.MStream;
+import com.gengoai.stream.SparkStream;
+import com.gengoai.stream.StreamingContext;
 import com.google.common.base.Preconditions;
 import lombok.NonNull;
 import org.apache.spark.api.java.JavaRDD;

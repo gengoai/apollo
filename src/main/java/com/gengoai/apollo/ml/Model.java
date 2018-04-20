@@ -3,7 +3,7 @@ package com.gengoai.apollo.ml;
 import com.gengoai.apollo.ml.encoder.Encoder;
 import com.gengoai.apollo.ml.encoder.EncoderPair;
 import com.gengoai.apollo.ml.encoder.LabelEncoder;
-import com.gengoai.mango.io.resource.Resource;
+import com.gengoai.io.resource.Resource;
 import lombok.NonNull;
 
 import java.io.Serializable;

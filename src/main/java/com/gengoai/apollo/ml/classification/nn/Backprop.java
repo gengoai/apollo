@@ -3,11 +3,11 @@ package com.gengoai.apollo.ml.classification.nn;
 import com.gengoai.apollo.linear.Axis;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.ml.optimization.*;
-import com.gengoai.mango.function.SerializableSupplier;
+import com.gengoai.function.SerializableSupplier;
 import com.gengoai.guava.common.base.Stopwatch;
-import com.gengoai.mango.stream.MStream;
-import com.gengoai.mango.tuple.Tuple2;
-import com.gengoai.mango.tuple.Tuple3;
+import com.gengoai.stream.MStream;
+import com.gengoai.tuple.Tuple2;
+import com.gengoai.tuple.Tuple3;
 import com.gengoai.apollo.ml.optimization.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -19,7 +19,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.Callable;
 
-import static com.gengoai.mango.tuple.Tuples.$;
+import static com.gengoai.tuple.Tuples.$;
 
 /**
  * @author David B. Bracewell

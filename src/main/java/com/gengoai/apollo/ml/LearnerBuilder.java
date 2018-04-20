@@ -2,8 +2,8 @@ package com.gengoai.apollo.ml;
 
 import com.gengoai.guava.common.base.Preconditions;
 import com.gengoai.guava.common.base.Throwables;
-import com.gengoai.mango.reflection.Reflect;
-import com.gengoai.mango.reflection.ReflectionException;
+import com.gengoai.reflection.Reflect;
+import com.gengoai.reflection.ReflectionException;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
 

@@ -5,7 +5,7 @@ import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.apollo.ml.data.source.DenseCSVDataSource;
 import com.gengoai.apollo.ml.preprocess.PreprocessorList;
 import com.gengoai.apollo.ml.preprocess.transform.RescaleTransform;
-import com.gengoai.mango.io.Resources;
+import com.gengoai.io.Resources;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -29,7 +29,7 @@ public abstract class BaseClassificationTest {
 
    public Dataset<Instance> getDataset() {
       DenseCSVDataSource dataSource = new DenseCSVDataSource(
-         Resources.fromClasspath("com/davidbracewell/apollo/ml/iris.csv"),
+         Resources.fromClasspath("com/gengoai/apollo/ml/iris.csv"),
          true);
       dataSource.setLabelName("class");
       return Dataset.classification().source(dataSource)

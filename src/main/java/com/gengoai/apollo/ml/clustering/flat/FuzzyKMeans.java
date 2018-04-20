@@ -8,7 +8,7 @@ import com.gengoai.apollo.ml.clustering.Cluster;
 import com.gengoai.apollo.ml.clustering.Clusterer;
 import com.gengoai.apollo.stat.measure.Distance;
 import com.gengoai.apollo.stat.measure.DistanceMeasure;
-import com.gengoai.mango.stream.MStream;
+import com.gengoai.stream.MStream;
 import com.gengoai.apollo.ml.clustering.ApacheClusterable;
 import com.gengoai.apollo.ml.clustering.ApacheDistanceMeasure;
 import com.gengoai.apollo.ml.clustering.Cluster;

@@ -3,11 +3,11 @@ package com.gengoai.apollo.ml.preprocess.filter;
 import com.gengoai.apollo.ml.Feature;
 import com.gengoai.apollo.ml.Instance;
 import com.gengoai.apollo.ml.preprocess.RestrictedInstancePreprocessor;
-import com.gengoai.mango.collection.counter.Counters;
-import com.gengoai.mango.json.JsonReader;
-import com.gengoai.mango.json.JsonTokenType;
-import com.gengoai.mango.json.JsonWriter;
-import com.gengoai.mango.stream.MStream;
+import com.gengoai.collection.counter.Counters;
+import com.gengoai.json.JsonReader;
+import com.gengoai.json.JsonTokenType;
+import com.gengoai.json.JsonWriter;
+import com.gengoai.stream.MStream;
 import lombok.NonNull;
 
 import java.io.IOException;

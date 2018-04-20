@@ -2,7 +2,7 @@ package com.gengoai.apollo.ml.preprocess;
 
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.data.Dataset;
-import com.gengoai.mango.json.JsonSerializable;
+import com.gengoai.json.JsonSerializable;
 
 import java.io.Serializable;
 

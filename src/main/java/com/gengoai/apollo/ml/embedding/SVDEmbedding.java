@@ -21,7 +21,7 @@
 
 package com.gengoai.apollo.ml.embedding;
 
-import com.gengoai.mango.Math2;
+import com.gengoai.Math2;
 import com.gengoai.apollo.linear.Axis;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
@@ -37,10 +37,10 @@ import com.gengoai.apollo.stat.measure.Association;
 import com.gengoai.apollo.stat.measure.ContingencyTable;
 import com.gengoai.apollo.stat.measure.ContingencyTableCalculator;
 import com.gengoai.apollo.stat.measure.Similarity;
-import com.gengoai.mango.collection.counter.MultiCounter;
+import com.gengoai.collection.counter.MultiCounter;
 import com.gengoai.guava.common.base.Throwables;
-import com.gengoai.mango.stream.StreamingContext;
-import com.gengoai.mango.stream.accumulator.MMultiCounterAccumulator;
+import com.gengoai.stream.StreamingContext;
+import com.gengoai.stream.accumulator.MMultiCounterAccumulator;
 import com.gengoai.apollo.ml.Instance;
 import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.apollo.ml.encoder.Encoder;
@@ -57,7 +57,7 @@ import java.io.IOException;
 import java.util.Map;
 
 import static com.gengoai.apollo.linear.SparkLinearAlgebra.*;
-import static com.gengoai.mango.tuple.Tuples.$;
+import static com.gengoai.tuple.Tuples.$;
 
 /**
  * @author David B. Bracewell

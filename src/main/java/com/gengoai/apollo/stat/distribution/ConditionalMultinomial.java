@@ -1,6 +1,6 @@
 package com.gengoai.apollo.stat.distribution;
 
-import com.gengoai.mango.Copyable;
+import com.gengoai.Copyable;
 
 import java.util.Arrays;
 

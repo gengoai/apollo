@@ -23,8 +23,8 @@ package com.gengoai.apollo.ml.sequence;
 
 import com.gengoai.apollo.ml.Feature;
 import com.gengoai.apollo.ml.Instance;
-import com.gengoai.mango.io.Resources;
-import com.gengoai.mango.io.resource.Resource;
+import com.gengoai.io.Resources;
+import com.gengoai.io.resource.Resource;
 import com.gengoai.apollo.ml.Feature;
 import com.gengoai.apollo.ml.Instance;
 import com.github.jcrfsuite.CrfTagger;

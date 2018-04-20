@@ -2,9 +2,9 @@ package com.gengoai.apollo.ml.encoder;
 
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.data.Dataset;
-import com.gengoai.mango.conversion.Cast;
+import com.gengoai.conversion.Cast;
 import com.gengoai.guava.common.base.Preconditions;
-import com.gengoai.mango.stream.MStream;
+import com.gengoai.stream.MStream;
 import com.gengoai.apollo.ml.data.Dataset;
 import lombok.NonNull;
 

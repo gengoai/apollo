@@ -2,12 +2,12 @@ package com.gengoai.apollo.hash;
 
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.guava.common.collect.HashMultimap;
-import com.gengoai.mango.tuple.Tuple2;
+import com.gengoai.tuple.Tuple2;
 
 import java.io.Serializable;
 import java.util.Set;
 
-import static com.gengoai.mango.tuple.Tuples.$;
+import static com.gengoai.tuple.Tuples.$;
 
 /**
  * @author David B. Bracewell

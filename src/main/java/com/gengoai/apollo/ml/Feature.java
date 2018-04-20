@@ -21,9 +21,9 @@
 
 package com.gengoai.apollo.ml;
 
-import com.gengoai.mango.Copyable;
+import com.gengoai.Copyable;
 import com.gengoai.guava.common.base.Joiner;
-import com.gengoai.mango.string.StringUtils;
+import com.gengoai.string.StringUtils;
 import lombok.NonNull;
 import lombok.Value;
 

@@ -1,12 +1,12 @@
 package com.gengoai.apollo.ml.sequence;
 
-import com.gengoai.mango.Interner;
+import com.gengoai.Interner;
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.Feature;
 import com.gengoai.apollo.ml.Instance;
-import com.gengoai.mango.json.JsonReader;
-import com.gengoai.mango.json.JsonWriter;
-import com.gengoai.mango.tuple.Tuple;
+import com.gengoai.json.JsonReader;
+import com.gengoai.json.JsonWriter;
+import com.gengoai.tuple.Tuple;
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.Feature;
 import com.gengoai.apollo.ml.Instance;

@@ -26,8 +26,8 @@ import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.ml.Instance;
 import com.gengoai.apollo.ml.clustering.Clusterer;
 import com.gengoai.apollo.stat.measure.Measure;
-import com.gengoai.mango.stream.StreamingContext;
-import com.gengoai.mango.tuple.Tuple2;
+import com.gengoai.stream.StreamingContext;
+import com.gengoai.tuple.Tuple2;
 import com.gengoai.apollo.Optimum;
 import com.gengoai.apollo.ml.Instance;
 import com.gengoai.apollo.ml.clustering.Clusterer;
@@ -35,7 +35,7 @@ import lombok.NonNull;
 
 import java.util.Arrays;
 
-import static com.gengoai.mango.tuple.Tuples.$;
+import static com.gengoai.tuple.Tuples.$;
 
 /**
  * Clustering produced by the {@link CRPClusterer}

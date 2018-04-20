@@ -4,7 +4,7 @@ import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.linear.NDArrayInitializer;
 import com.gengoai.apollo.ml.optimization.activation.Activation;
-import com.gengoai.mango.collection.list.Lists;
+import com.gengoai.collection.list.Lists;
 
 import java.util.List;
 

@@ -1,6 +1,6 @@
 package com.gengoai.apollo.stat.distribution;
 
-import com.gengoai.mango.Math2;
+import com.gengoai.Math2;
 import com.gengoai.guava.common.base.Preconditions;
 
 import java.io.Serializable;

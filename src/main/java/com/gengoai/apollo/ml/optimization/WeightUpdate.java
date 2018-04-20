@@ -1,8 +1,8 @@
 package com.gengoai.apollo.ml.optimization;
 
-import com.gengoai.mango.Copyable;
+import com.gengoai.Copyable;
 import com.gengoai.apollo.linear.NDArray;
-import com.gengoai.mango.tuple.Tuple2;
+import com.gengoai.tuple.Tuple2;
 
 /**
  * @author David B. Bracewell

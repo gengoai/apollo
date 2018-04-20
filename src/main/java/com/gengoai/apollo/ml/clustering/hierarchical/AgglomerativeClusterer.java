@@ -27,8 +27,8 @@ import com.gengoai.apollo.ml.clustering.Clusterer;
 import com.gengoai.apollo.stat.measure.Distance;
 import com.gengoai.apollo.stat.measure.DistanceMeasure;
 import com.gengoai.guava.common.collect.Iterables;
-import com.gengoai.mango.stream.MStream;
-import com.gengoai.mango.tuple.Tuple3;
+import com.gengoai.stream.MStream;
+import com.gengoai.tuple.Tuple3;
 import com.gengoai.apollo.ml.clustering.Cluster;
 import com.gengoai.apollo.ml.clustering.Clusterer;
 import lombok.Getter;
@@ -41,7 +41,7 @@ import java.util.PriorityQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-import static com.gengoai.mango.tuple.Tuples.$;
+import static com.gengoai.tuple.Tuples.$;
 
 /**
  * <p>Implementation of Hierarchical Agglomerative Clustering with options for Single, Complete, and Average link

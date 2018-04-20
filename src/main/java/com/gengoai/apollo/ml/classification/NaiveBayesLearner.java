@@ -3,7 +3,7 @@ package com.gengoai.apollo.ml.classification;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.ml.Instance;
 import com.gengoai.apollo.ml.data.Dataset;
-import com.gengoai.mango.collection.Collect;
+import com.gengoai.collection.Collect;
 import com.gengoai.apollo.ml.Instance;
 import com.gengoai.apollo.ml.data.Dataset;
 import lombok.Getter;

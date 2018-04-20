@@ -30,7 +30,7 @@ import com.gengoai.apollo.linear.NDArrayInitializer;
 import com.gengoai.apollo.stat.measure.Distance;
 import com.gengoai.apollo.stat.measure.DistanceMeasure;
 import com.gengoai.guava.common.base.Preconditions;
-import com.gengoai.mango.stream.MStream;
+import com.gengoai.stream.MStream;
 import com.gengoai.apollo.ml.clustering.Cluster;
 import com.gengoai.apollo.ml.clustering.Clusterer;
 import lombok.Getter;

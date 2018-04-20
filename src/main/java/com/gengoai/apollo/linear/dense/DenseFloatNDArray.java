@@ -3,7 +3,7 @@ package com.gengoai.apollo.linear.dense;
 import com.gengoai.apollo.linear.Axis;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
-import com.gengoai.mango.conversion.Cast;
+import com.gengoai.conversion.Cast;
 import com.gengoai.guava.common.base.Preconditions;
 import com.gengoai.apollo.linear.Axis;
 import com.gengoai.apollo.linear.NDArray;

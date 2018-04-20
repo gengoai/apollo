@@ -21,7 +21,7 @@
 
 package com.gengoai.apollo.stat.measure;
 
-import com.gengoai.mango.Lazy;
+import com.gengoai.Lazy;
 import com.gengoai.guava.common.base.Preconditions;
 import lombok.NonNull;
 import lombok.val;

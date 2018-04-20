@@ -4,16 +4,16 @@ import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.encoder.Encoder;
 import com.gengoai.apollo.ml.encoder.LabelEncoder;
 import com.gengoai.apollo.ml.preprocess.PreprocessorList;
-import com.gengoai.mango.conversion.Cast;
-import com.gengoai.mango.function.SerializableFunction;
-import com.gengoai.mango.function.Unchecked;
+import com.gengoai.conversion.Cast;
+import com.gengoai.function.SerializableFunction;
+import com.gengoai.function.Unchecked;
 import com.gengoai.guava.common.base.Throwables;
-import com.gengoai.mango.io.Resources;
-import com.gengoai.mango.io.resource.Resource;
-import com.gengoai.mango.stream.MStream;
-import com.gengoai.mango.stream.StreamingContext;
-import com.gengoai.mango.string.StringUtils;
-import com.gengoai.mango.tuple.Tuples;
+import com.gengoai.io.Resources;
+import com.gengoai.io.resource.Resource;
+import com.gengoai.stream.MStream;
+import com.gengoai.stream.StreamingContext;
+import com.gengoai.string.StringUtils;
+import com.gengoai.tuple.Tuples;
 import com.gengoai.apollo.ml.Example;
 import lombok.NonNull;
 
@@ -22,7 +22,7 @@ import java.io.IOException;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static com.gengoai.mango.function.Unchecked.function;
+import static com.gengoai.function.Unchecked.function;
 
 /**
  * <p>Creates a dataset that streams examples off disk to save memory.</p>

@@ -3,7 +3,7 @@ package com.gengoai.apollo.ml.sequence;
 import com.gengoai.apollo.ml.Evaluation;
 import com.gengoai.apollo.ml.classification.MultiClassEvaluation;
 import com.gengoai.apollo.ml.data.Dataset;
-import com.gengoai.mango.conversion.Cast;
+import com.gengoai.conversion.Cast;
 import com.gengoai.guava.common.base.Preconditions;
 import com.gengoai.apollo.ml.Evaluation;
 import com.gengoai.apollo.ml.data.Dataset;

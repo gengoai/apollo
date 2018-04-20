@@ -1,16 +1,16 @@
 package com.gengoai.apollo.linear;
 
-import com.gengoai.mango.Copyable;
-import com.gengoai.mango.EnhancedDoubleStatistics;
-import com.gengoai.mango.Math2;
+import com.gengoai.Copyable;
+import com.gengoai.EnhancedDoubleStatistics;
+import com.gengoai.Math2;
 import com.gengoai.apollo.Optimum;
-import com.gengoai.mango.collection.Streams;
-import com.gengoai.mango.collection.list.PrimitiveArrayIterator;
-import com.gengoai.mango.conversion.Cast;
+import com.gengoai.collection.Streams;
+import com.gengoai.collection.list.PrimitiveArrayIterator;
+import com.gengoai.conversion.Cast;
 import com.gengoai.guava.common.base.Preconditions;
-import com.gengoai.mango.io.CSV;
-import com.gengoai.mango.io.CSVWriter;
-import com.gengoai.mango.io.resource.Resource;
+import com.gengoai.io.CSV;
+import com.gengoai.io.CSVWriter;
+import com.gengoai.io.resource.Resource;
 import com.gengoai.apollo.Optimum;
 import lombok.NonNull;
 import org.apache.commons.math3.util.FastMath;

@@ -1,8 +1,8 @@
 package com.gengoai.apollo.ml.regression;
 
 import com.gengoai.apollo.linear.NDArray;
-import com.gengoai.mango.collection.counter.Counter;
-import com.gengoai.mango.collection.counter.Counters;
+import com.gengoai.collection.counter.Counter;
+import com.gengoai.collection.counter.Counters;
 import lombok.NonNull;
 
 /**

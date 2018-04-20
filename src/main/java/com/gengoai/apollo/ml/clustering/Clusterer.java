@@ -5,8 +5,8 @@ import com.gengoai.apollo.ml.Instance;
 import com.gengoai.apollo.ml.Learner;
 import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.apollo.ml.encoder.EncoderPair;
-import com.gengoai.mango.conversion.Cast;
-import com.gengoai.mango.stream.MStream;
+import com.gengoai.conversion.Cast;
+import com.gengoai.stream.MStream;
 import lombok.Getter;
 import lombok.Setter;
 

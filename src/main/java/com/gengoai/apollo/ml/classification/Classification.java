@@ -24,9 +24,9 @@ package com.gengoai.apollo.ml.classification;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.ml.encoder.Encoder;
-import com.gengoai.mango.collection.counter.Counter;
-import com.gengoai.mango.collection.counter.Counters;
-import com.gengoai.mango.conversion.Cast;
+import com.gengoai.collection.counter.Counter;
+import com.gengoai.collection.counter.Counters;
+import com.gengoai.conversion.Cast;
 import lombok.EqualsAndHashCode;
 import lombok.NonNull;
 

@@ -7,7 +7,7 @@ import com.gengoai.apollo.ml.optimization.WeightUpdate;
 import com.gengoai.apollo.ml.optimization.activation.Activation;
 import com.gengoai.apollo.ml.optimization.activation.SigmoidActivation;
 import com.gengoai.apollo.ml.optimization.activation.SoftmaxActivation;
-import com.gengoai.mango.tuple.Tuple2;
+import com.gengoai.tuple.Tuple2;
 import com.gengoai.apollo.ml.optimization.WeightUpdate;
 import com.gengoai.apollo.ml.optimization.activation.Activation;
 import com.gengoai.apollo.ml.optimization.activation.SigmoidActivation;

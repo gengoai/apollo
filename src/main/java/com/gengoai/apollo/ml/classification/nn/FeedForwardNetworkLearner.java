@@ -11,9 +11,9 @@ import com.gengoai.apollo.ml.optimization.TerminationCriteria;
 import com.gengoai.apollo.ml.optimization.WeightUpdate;
 import com.gengoai.apollo.ml.optimization.loss.CrossEntropyLoss;
 import com.gengoai.apollo.ml.optimization.loss.LossFunction;
-import com.gengoai.mango.logging.Loggable;
-import com.gengoai.mango.tuple.Tuple2;
-import com.gengoai.mango.tuple.Tuple3;
+import com.gengoai.logging.Loggable;
+import com.gengoai.tuple.Tuple2;
+import com.gengoai.tuple.Tuple3;
 import com.gengoai.apollo.ml.classification.Classifier;
 import com.gengoai.apollo.ml.classification.ClassifierLearner;
 import com.gengoai.apollo.ml.data.Dataset;
@@ -33,7 +33,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 
-import static com.gengoai.mango.tuple.Tuples.$;
+import static com.gengoai.tuple.Tuples.$;
 
 /**
  * @author David B. Bracewell

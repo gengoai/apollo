@@ -1,6 +1,6 @@
 package com.gengoai.apollo.stat.distribution;
 
-import com.gengoai.mango.Copyable;
+import com.gengoai.Copyable;
 import lombok.NonNull;
 import org.apache.commons.math3.distribution.BinomialDistribution;
 import org.apache.commons.math3.random.RandomGenerator;

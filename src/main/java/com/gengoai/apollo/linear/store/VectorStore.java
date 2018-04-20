@@ -26,10 +26,10 @@ import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.linear.VectorComposition;
 import com.gengoai.apollo.stat.measure.Measure;
 import com.gengoai.guava.common.base.Preconditions;
-import com.gengoai.mango.collection.Streams;
-import com.gengoai.mango.conversion.Cast;
-import com.gengoai.mango.io.Commitable;
-import com.gengoai.mango.tuple.Tuple;
+import com.gengoai.collection.Streams;
+import com.gengoai.conversion.Cast;
+import com.gengoai.io.Commitable;
+import com.gengoai.tuple.Tuple;
 import lombok.NonNull;
 
 import java.io.Closeable;
@@ -37,7 +37,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.gengoai.mango.tuple.Tuples.$;
+import static com.gengoai.tuple.Tuples.$;
 
 /**
  * <p>A vector store provides access and lookup of vectors by labels and to find vectors in the store closest to query

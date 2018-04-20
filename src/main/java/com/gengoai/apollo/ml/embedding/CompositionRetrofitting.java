@@ -3,7 +3,7 @@ package com.gengoai.apollo.ml.embedding;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.store.VectorStore;
 import com.gengoai.apollo.linear.store.VectorStoreBuilder;
-import com.gengoai.mango.io.resource.Resource;
+import com.gengoai.io.resource.Resource;
 import com.google.common.base.Throwables;
 import lombok.Getter;
 import lombok.NonNull;

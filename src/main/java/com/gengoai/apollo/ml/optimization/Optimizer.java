@@ -1,9 +1,9 @@
 package com.gengoai.apollo.ml.optimization;
 
 import com.gengoai.apollo.linear.NDArray;
-import com.gengoai.mango.function.SerializableSupplier;
-import com.gengoai.mango.logging.Loggable;
-import com.gengoai.mango.stream.MStream;
+import com.gengoai.function.SerializableSupplier;
+import com.gengoai.logging.Loggable;
+import com.gengoai.stream.MStream;
 
 /**
  * @author David B. Bracewell

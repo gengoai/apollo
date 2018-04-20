@@ -4,9 +4,9 @@ import com.gengoai.apollo.ml.classification.Classifier;
 import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.apollo.ml.encoder.EncoderPair;
 import com.gengoai.apollo.ml.preprocess.PreprocessorList;
-import com.gengoai.mango.conversion.Cast;
-import com.gengoai.mango.reflection.BeanMap;
-import com.gengoai.mango.reflection.Ignore;
+import com.gengoai.conversion.Cast;
+import com.gengoai.reflection.BeanMap;
+import com.gengoai.reflection.Ignore;
 import lombok.Getter;
 import lombok.NonNull;
 

@@ -21,19 +21,19 @@
 
 package com.gengoai.apollo.ml;
 
-import com.gengoai.mango.Interner;
+import com.gengoai.Interner;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.ml.encoder.EncoderPair;
 import com.gengoai.apollo.ml.encoder.HashingEncoder;
-import com.gengoai.mango.collection.counter.Counter;
-import com.gengoai.mango.conversion.Cast;
-import com.gengoai.mango.conversion.Val;
+import com.gengoai.collection.counter.Counter;
+import com.gengoai.conversion.Cast;
+import com.gengoai.conversion.Val;
 import com.gengoai.guava.common.collect.Sets;
-import com.gengoai.mango.json.JsonReader;
-import com.gengoai.mango.json.JsonTokenType;
-import com.gengoai.mango.json.JsonWriter;
-import com.gengoai.mango.tuple.Tuple2;
+import com.gengoai.json.JsonReader;
+import com.gengoai.json.JsonTokenType;
+import com.gengoai.json.JsonWriter;
+import com.gengoai.tuple.Tuple2;
 import lombok.*;
 
 import java.io.IOException;

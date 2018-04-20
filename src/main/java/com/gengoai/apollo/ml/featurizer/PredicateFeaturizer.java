@@ -22,7 +22,7 @@
 package com.gengoai.apollo.ml.featurizer;
 
 import com.gengoai.apollo.ml.Feature;
-import com.gengoai.mango.string.StringUtils;
+import com.gengoai.string.StringUtils;
 import com.gengoai.apollo.ml.Feature;
 import lombok.Getter;
 import lombok.NonNull;

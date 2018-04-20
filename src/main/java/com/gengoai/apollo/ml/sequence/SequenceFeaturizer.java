@@ -3,11 +3,11 @@ package com.gengoai.apollo.ml.sequence;
 import com.gengoai.apollo.ml.Feature;
 import com.gengoai.apollo.ml.Instance;
 import com.gengoai.apollo.ml.featurizer.Featurizer;
-import com.gengoai.mango.cache.CacheProxy;
-import com.gengoai.mango.cache.Cached;
-import com.gengoai.mango.conversion.Cast;
-import com.gengoai.mango.function.SerializableFunction;
-import com.gengoai.mango.stream.MStream;
+import com.gengoai.cache.CacheProxy;
+import com.gengoai.cache.Cached;
+import com.gengoai.conversion.Cast;
+import com.gengoai.function.SerializableFunction;
+import com.gengoai.stream.MStream;
 import lombok.NonNull;
 
 import java.util.*;

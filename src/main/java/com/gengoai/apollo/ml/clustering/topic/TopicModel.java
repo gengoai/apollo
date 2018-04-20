@@ -6,7 +6,7 @@ import com.gengoai.apollo.ml.Instance;
 import com.gengoai.apollo.ml.clustering.Clusterer;
 import com.gengoai.apollo.ml.clustering.flat.FlatClustering;
 import com.gengoai.apollo.stat.measure.Measure;
-import com.gengoai.mango.collection.counter.Counter;
+import com.gengoai.collection.counter.Counter;
 import com.gengoai.apollo.Optimum;
 import com.gengoai.apollo.ml.Instance;
 import com.gengoai.apollo.ml.clustering.Clusterer;

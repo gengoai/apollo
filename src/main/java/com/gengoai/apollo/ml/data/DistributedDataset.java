@@ -4,9 +4,9 @@ import com.gengoai.apollo.ml.encoder.Encoder;
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.encoder.LabelEncoder;
 import com.gengoai.apollo.ml.preprocess.PreprocessorList;
-import com.gengoai.mango.function.SerializableFunction;
-import com.gengoai.mango.stream.MStream;
-import com.gengoai.mango.stream.SparkStream;
+import com.gengoai.function.SerializableFunction;
+import com.gengoai.stream.MStream;
+import com.gengoai.stream.SparkStream;
 import com.gengoai.apollo.ml.Example;
 import lombok.NonNull;
 

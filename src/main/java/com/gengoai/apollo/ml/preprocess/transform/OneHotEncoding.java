@@ -4,7 +4,7 @@ import com.gengoai.apollo.ml.Feature;
 import com.gengoai.apollo.ml.Instance;
 import com.gengoai.apollo.ml.encoder.IndexEncoder;
 import com.gengoai.apollo.ml.preprocess.RestrictedInstancePreprocessor;
-import com.gengoai.mango.stream.MStream;
+import com.gengoai.stream.MStream;
 
 import java.util.ArrayList;
 import java.util.Collection;

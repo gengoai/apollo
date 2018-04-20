@@ -1,8 +1,8 @@
 package com.gengoai.apollo.ml.classification;
 
 import com.gengoai.apollo.linear.NDArray;
-import com.gengoai.mango.collection.counter.HashMapMultiCounter;
-import com.gengoai.mango.collection.counter.MultiCounter;
+import com.gengoai.collection.counter.HashMapMultiCounter;
+import com.gengoai.collection.counter.MultiCounter;
 
 /**
  * Baseline classifier that always predicts the majority class

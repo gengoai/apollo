@@ -23,8 +23,8 @@ package com.gengoai.apollo.ml.classification;
 
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
-import com.gengoai.mango.collection.counter.HashMapMultiCounter;
-import com.gengoai.mango.collection.counter.MultiCounter;
+import com.gengoai.collection.counter.HashMapMultiCounter;
+import com.gengoai.collection.counter.MultiCounter;
 import lombok.NonNull;
 
 /**

@@ -2,9 +2,9 @@ package com.gengoai.apollo.ml.data.source;
 
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.sequence.Sequence;
-import com.gengoai.mango.function.Unchecked;
-import com.gengoai.mango.io.resource.Resource;
-import com.gengoai.mango.stream.MStream;
+import com.gengoai.function.Unchecked;
+import com.gengoai.io.resource.Resource;
+import com.gengoai.stream.MStream;
 import com.gengoai.apollo.ml.Example;
 import lombok.NonNull;
 

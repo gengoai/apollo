@@ -3,7 +3,7 @@ package com.gengoai.apollo.ml.optimization;
 import com.gengoai.apollo.linear.Axis;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.guava.common.util.concurrent.AtomicDouble;
-import com.gengoai.mango.tuple.Tuple2;
+import com.gengoai.tuple.Tuple2;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.val;
@@ -11,7 +11,7 @@ import org.apache.commons.math3.util.FastMath;
 
 import java.io.Serializable;
 
-import static com.gengoai.mango.tuple.Tuples.$;
+import static com.gengoai.tuple.Tuples.$;
 
 /**
  * @author David B. Bracewell

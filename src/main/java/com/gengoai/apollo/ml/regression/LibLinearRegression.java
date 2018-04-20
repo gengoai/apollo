@@ -13,7 +13,7 @@ import lombok.Setter;
 import java.util.Iterator;
 import java.util.List;
 
-import static com.gengoai.mango.collection.list.Lists.asArrayList;
+import static com.gengoai.collection.list.Lists.asArrayList;
 
 /**
  * <p>Trains a regression model using LibLinear (L2R_L2LOSS_SVR)</p>

@@ -2,11 +2,11 @@ package com.gengoai.apollo.ml.encoder;
 
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.data.Dataset;
-import com.gengoai.mango.collection.index.HashMapIndex;
-import com.gengoai.mango.collection.index.Index;
-import com.gengoai.mango.conversion.Cast;
-import com.gengoai.mango.stream.MStream;
-import com.gengoai.mango.stream.accumulator.MAccumulator;
+import com.gengoai.collection.index.HashMapIndex;
+import com.gengoai.collection.index.Index;
+import com.gengoai.conversion.Cast;
+import com.gengoai.stream.MStream;
+import com.gengoai.stream.accumulator.MAccumulator;
 import lombok.NonNull;
 
 import java.io.Serializable;

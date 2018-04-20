@@ -1,9 +1,9 @@
 package com.gengoai.apollo.ml.optimization;
 
 import com.gengoai.apollo.linear.NDArray;
-import com.gengoai.mango.function.SerializableSupplier;
+import com.gengoai.function.SerializableSupplier;
 import com.gengoai.guava.common.base.Stopwatch;
-import com.gengoai.mango.stream.MStream;
+import com.gengoai.stream.MStream;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;

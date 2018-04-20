@@ -27,8 +27,8 @@ import com.gengoai.apollo.ml.clustering.Clusterer;
 import com.gengoai.apollo.stat.measure.Distance;
 import com.gengoai.apollo.stat.measure.DistanceMeasure;
 import com.gengoai.guava.common.util.concurrent.AtomicDouble;
-import com.gengoai.mango.stream.MStream;
-import com.gengoai.mango.tuple.Tuple2;
+import com.gengoai.stream.MStream;
+import com.gengoai.tuple.Tuple2;
 import com.gengoai.apollo.ml.clustering.Cluster;
 import com.gengoai.apollo.ml.clustering.Clusterer;
 import lombok.Data;
@@ -47,7 +47,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.IntStream;
 
-import static com.gengoai.mango.tuple.Tuples.$;
+import static com.gengoai.tuple.Tuples.$;
 
 /**
  * The type K medoids.

@@ -23,7 +23,7 @@ package com.gengoai.apollo.ml.classification;
 
 import com.gengoai.apollo.ml.Instance;
 import com.gengoai.apollo.ml.Learner;
-import com.gengoai.mango.conversion.Cast;
+import com.gengoai.conversion.Cast;
 
 import java.util.Map;
 

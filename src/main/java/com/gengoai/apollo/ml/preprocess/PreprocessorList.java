@@ -1,8 +1,8 @@
 package com.gengoai.apollo.ml.preprocess;
 
 import com.gengoai.apollo.ml.Example;
-import com.gengoai.mango.conversion.Cast;
-import com.gengoai.mango.json.*;
+import com.gengoai.conversion.Cast;
+import com.gengoai.json.*;
 import lombok.NonNull;
 
 import java.io.IOException;

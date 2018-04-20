@@ -9,7 +9,7 @@ import com.gengoai.apollo.ml.optimization.activation.SignActivation;
 import com.gengoai.apollo.ml.optimization.loss.HingeLoss;
 import com.gengoai.apollo.ml.optimization.loss.LogLoss;
 import com.gengoai.apollo.ml.optimization.loss.LossFunction;
-import com.gengoai.mango.logging.Loggable;
+import com.gengoai.logging.Loggable;
 import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.apollo.ml.optimization.*;
 import com.gengoai.apollo.ml.optimization.activation.Activation;

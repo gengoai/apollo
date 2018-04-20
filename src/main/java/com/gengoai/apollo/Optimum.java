@@ -21,9 +21,9 @@
 
 package com.gengoai.apollo;
 
-import com.gengoai.mango.function.SerializableToDoubleFunction;
-import com.gengoai.mango.stream.MStream;
-import com.gengoai.mango.tuple.Tuple2;
+import com.gengoai.function.SerializableToDoubleFunction;
+import com.gengoai.stream.MStream;
+import com.gengoai.tuple.Tuple2;
 import lombok.NonNull;
 
 import java.util.Comparator;

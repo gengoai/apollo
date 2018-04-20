@@ -2,8 +2,8 @@ package com.gengoai.apollo.ml.encoder;
 
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.data.Dataset;
-import com.gengoai.mango.stream.MStream;
-import com.gengoai.mango.stream.accumulator.MAccumulator;
+import com.gengoai.stream.MStream;
+import com.gengoai.stream.accumulator.MAccumulator;
 import com.gengoai.apollo.ml.data.Dataset;
 import lombok.NonNull;
 

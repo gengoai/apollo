@@ -22,8 +22,8 @@
 package com.gengoai.apollo.ml.featurizer;
 
 import com.gengoai.apollo.ml.Feature;
-import com.gengoai.mango.cache.Cached;
-import com.gengoai.mango.collection.counter.Counter;
+import com.gengoai.cache.Cached;
+import com.gengoai.collection.counter.Counter;
 
 import java.util.Collections;
 import java.util.List;

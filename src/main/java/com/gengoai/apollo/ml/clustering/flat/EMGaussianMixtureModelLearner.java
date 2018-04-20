@@ -3,7 +3,7 @@ package com.gengoai.apollo.ml.clustering.flat;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.ml.clustering.Clusterer;
 import com.gengoai.apollo.stat.measure.Distance;
-import com.gengoai.mango.stream.MStream;
+import com.gengoai.stream.MStream;
 import com.gengoai.apollo.ml.clustering.Clusterer;
 import lombok.Getter;
 import lombok.NonNull;

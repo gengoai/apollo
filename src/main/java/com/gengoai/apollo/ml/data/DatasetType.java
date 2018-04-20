@@ -1,6 +1,6 @@
 package com.gengoai.apollo.ml.data;
 
-import com.gengoai.mango.stream.StreamingContext;
+import com.gengoai.stream.StreamingContext;
 
 /**
  * Defines how the dataset is stored/processed.

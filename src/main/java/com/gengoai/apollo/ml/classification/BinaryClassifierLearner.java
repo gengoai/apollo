@@ -23,10 +23,10 @@ package com.gengoai.apollo.ml.classification;
 
 import com.gengoai.apollo.ml.Instance;
 import com.gengoai.apollo.ml.data.Dataset;
-import com.gengoai.mango.conversion.Cast;
+import com.gengoai.conversion.Cast;
 import com.gengoai.guava.common.base.Throwables;
-import com.gengoai.mango.reflection.Reflect;
-import com.gengoai.mango.reflection.ReflectionException;
+import com.gengoai.reflection.Reflect;
+import com.gengoai.reflection.ReflectionException;
 import com.gengoai.apollo.ml.Instance;
 import com.gengoai.apollo.ml.data.Dataset;
 

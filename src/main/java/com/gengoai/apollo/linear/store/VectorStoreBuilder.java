@@ -4,7 +4,7 @@ import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.stat.measure.Measure;
 import com.gengoai.apollo.stat.measure.Similarity;
 import com.gengoai.guava.common.base.Preconditions;
-import com.gengoai.mango.conversion.Cast;
+import com.gengoai.conversion.Cast;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;

@@ -2,8 +2,8 @@ package com.gengoai.apollo.ml.data.source;
 
 import com.gengoai.apollo.ml.Feature;
 import com.gengoai.apollo.ml.Instance;
-import com.gengoai.mango.io.resource.Resource;
-import com.gengoai.mango.stream.MStream;
+import com.gengoai.io.resource.Resource;
+import com.gengoai.stream.MStream;
 import com.gengoai.apollo.ml.Feature;
 import com.gengoai.apollo.ml.Instance;
 import lombok.Getter;

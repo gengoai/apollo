@@ -5,8 +5,8 @@ import com.gengoai.apollo.ml.Instance;
 import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.guava.common.collect.Iterators;
 import com.gengoai.guava.common.collect.Lists;
-import com.gengoai.mango.function.SerializableFunction;
-import com.gengoai.mango.string.StringUtils;
+import com.gengoai.function.SerializableFunction;
+import com.gengoai.string.StringUtils;
 import lombok.NonNull;
 
 import java.io.Serializable;

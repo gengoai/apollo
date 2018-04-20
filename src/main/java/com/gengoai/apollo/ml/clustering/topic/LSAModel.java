@@ -4,8 +4,8 @@ import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.ml.Instance;
 import com.gengoai.apollo.ml.clustering.Clusterer;
 import com.gengoai.apollo.stat.measure.Measure;
-import com.gengoai.mango.collection.counter.Counter;
-import com.gengoai.mango.collection.counter.Counters;
+import com.gengoai.collection.counter.Counter;
+import com.gengoai.collection.counter.Counters;
 import com.gengoai.apollo.ml.Instance;
 import com.gengoai.apollo.ml.clustering.Clusterer;
 

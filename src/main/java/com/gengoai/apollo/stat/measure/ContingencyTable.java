@@ -22,7 +22,7 @@
 package com.gengoai.apollo.stat.measure;
 
 
-import com.gengoai.mango.tuple.Tuple2;
+import com.gengoai.tuple.Tuple2;
 
 /**
  * <p>Matrix for storing frequency distribution of variables and used for calculating various affinities and performing

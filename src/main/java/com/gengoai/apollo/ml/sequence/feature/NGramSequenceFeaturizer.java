@@ -26,7 +26,7 @@ import com.gengoai.apollo.ml.featurizer.PredicateFeaturizer;
 import com.gengoai.apollo.ml.sequence.Context;
 import com.gengoai.apollo.ml.sequence.SequenceFeaturizer;
 import com.gengoai.guava.common.base.Preconditions;
-import com.gengoai.mango.string.StringUtils;
+import com.gengoai.string.StringUtils;
 import com.gengoai.apollo.ml.Feature;
 import com.gengoai.apollo.ml.sequence.Context;
 import com.gengoai.apollo.ml.sequence.SequenceFeaturizer;

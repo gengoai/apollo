@@ -1,9 +1,9 @@
 package com.gengoai.apollo.ml.data.source;
 
 import com.gengoai.apollo.ml.Example;
-import com.gengoai.mango.io.resource.Resource;
-import com.gengoai.mango.stream.MStream;
-import com.gengoai.mango.stream.StreamingContext;
+import com.gengoai.io.resource.Resource;
+import com.gengoai.stream.MStream;
+import com.gengoai.stream.StreamingContext;
 import lombok.Getter;
 import lombok.NonNull;
 

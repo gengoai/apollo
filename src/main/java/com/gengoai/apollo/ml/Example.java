@@ -1,13 +1,13 @@
 package com.gengoai.apollo.ml;
 
-import com.gengoai.mango.Copyable;
-import com.gengoai.mango.Interner;
+import com.gengoai.Copyable;
+import com.gengoai.Interner;
 import com.gengoai.guava.common.base.Preconditions;
-import com.gengoai.mango.io.Resources;
-import com.gengoai.mango.io.resource.Resource;
-import com.gengoai.mango.json.JsonReader;
-import com.gengoai.mango.json.JsonSerializable;
-import com.gengoai.mango.string.StringUtils;
+import com.gengoai.io.Resources;
+import com.gengoai.io.resource.Resource;
+import com.gengoai.json.JsonReader;
+import com.gengoai.json.JsonSerializable;
+import com.gengoai.string.StringUtils;
 import lombok.NonNull;
 
 import java.io.IOException;

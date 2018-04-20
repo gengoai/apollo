@@ -22,7 +22,7 @@
 package com.gengoai.apollo.ml.featurizer;
 
 import com.gengoai.apollo.ml.Feature;
-import com.gengoai.mango.cache.Cached;
+import com.gengoai.cache.Cached;
 
 import java.util.Collections;
 import java.util.List;

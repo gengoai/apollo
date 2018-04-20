@@ -1,14 +1,14 @@
 package com.gengoai.apollo.ml.preprocess.transform;
 
-import com.gengoai.mango.Math2;
+import com.gengoai.Math2;
 import com.gengoai.apollo.ml.Feature;
 import com.gengoai.apollo.ml.Instance;
 import com.gengoai.apollo.ml.preprocess.RestrictedInstancePreprocessor;
 import com.gengoai.guava.common.base.Preconditions;
-import com.gengoai.mango.json.JsonReader;
-import com.gengoai.mango.json.JsonTokenType;
-import com.gengoai.mango.json.JsonWriter;
-import com.gengoai.mango.stream.MStream;
+import com.gengoai.json.JsonReader;
+import com.gengoai.json.JsonTokenType;
+import com.gengoai.json.JsonWriter;
+import com.gengoai.stream.MStream;
 import com.gengoai.apollo.ml.Feature;
 import com.gengoai.apollo.ml.Instance;
 import com.gengoai.apollo.ml.preprocess.RestrictedInstancePreprocessor;

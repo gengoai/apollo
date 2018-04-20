@@ -5,7 +5,7 @@ import com.gengoai.apollo.linear.dense.DenseFloatNDArray;
 import com.gengoai.apollo.linear.sparse.SparseDoubleNDArray;
 import com.gengoai.apollo.linear.sparse.SparseFloatNDArray;
 import com.gengoai.apollo.linear.sparse.SparseIntNDArray;
-import com.gengoai.mango.config.Config;
+import com.gengoai.config.Config;
 import com.gengoai.guava.common.base.Preconditions;
 import com.gengoai.guava.common.collect.Iterables;
 import lombok.NonNull;

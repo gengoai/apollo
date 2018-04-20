@@ -10,6 +10,6 @@ public class SoftmaxTest extends BaseClassificationTest {
                              .parameter("verbose", false)
                              .build(),
             0.94,
-            0.05);
+            0.01);
    }
 }//END OF SGDTest

@@ -7,14 +7,12 @@ import com.gengoai.apollo.ml.preprocess.PreprocessorList;
 import com.gengoai.conversion.Cast;
 import com.gengoai.function.SerializableFunction;
 import com.gengoai.function.Unchecked;
-import com.gengoai.guava.common.base.Throwables;
 import com.gengoai.io.Resources;
 import com.gengoai.io.resource.Resource;
 import com.gengoai.stream.MStream;
 import com.gengoai.stream.StreamingContext;
 import com.gengoai.string.StringUtils;
 import com.gengoai.tuple.Tuples;
-import com.gengoai.apollo.ml.Example;
 import lombok.NonNull;
 
 import java.io.BufferedWriter;
@@ -94,7 +92,7 @@ public class OffHeapDataset<T extends Example> extends Dataset<T> {
             copy.outputResource.getChild(child.baseName())
                                .write(child.readToString());
          } catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw new RuntimeException(e);
          }
       }
       copy.size = -1;
@@ -165,7 +163,7 @@ public class OffHeapDataset<T extends Example> extends Dataset<T> {
             }
          }));
       } catch (IOException e) {
-         throw Throwables.propagate(e);
+         throw new RuntimeException(e);
       }
    }
 

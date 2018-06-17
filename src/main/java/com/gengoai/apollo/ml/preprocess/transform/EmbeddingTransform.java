@@ -4,9 +4,6 @@ import com.gengoai.apollo.ml.Feature;
 import com.gengoai.apollo.ml.Instance;
 import com.gengoai.apollo.ml.preprocess.RestrictedInstancePreprocessor;
 import com.gengoai.stream.MStream;
-import com.gengoai.apollo.ml.Feature;
-import com.gengoai.apollo.ml.Instance;
-import com.gengoai.apollo.ml.preprocess.RestrictedInstancePreprocessor;
 
 import java.util.List;
 import java.util.stream.Stream;

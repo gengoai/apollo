@@ -6,10 +6,6 @@ import com.gengoai.apollo.ml.Model;
 import com.gengoai.apollo.ml.encoder.EncoderPair;
 import com.gengoai.apollo.ml.preprocess.PreprocessorList;
 import com.gengoai.collection.counter.Counter;
-import com.gengoai.apollo.ml.Instance;
-import com.gengoai.apollo.ml.Model;
-import com.gengoai.apollo.ml.encoder.EncoderPair;
-import com.gengoai.apollo.ml.preprocess.PreprocessorList;
 import lombok.Getter;
 import lombok.NonNull;
 

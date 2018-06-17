@@ -22,6 +22,7 @@
 package com.gengoai.apollo.ml.data;
 
 import com.gengoai.Copyable;
+import com.gengoai.Validation;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.Instance;
@@ -36,7 +37,6 @@ import com.gengoai.conversion.Cast;
 import com.gengoai.function.SerializableFunction;
 import com.gengoai.function.SerializablePredicate;
 import com.gengoai.function.SerializableSupplier;
-import com.gengoai.guava.common.base.Preconditions;
 import com.gengoai.io.resource.Resource;
 import com.gengoai.json.JsonReader;
 import com.gengoai.json.JsonTokenType;
@@ -45,10 +45,6 @@ import com.gengoai.logging.Logger;
 import com.gengoai.stream.MStream;
 import com.gengoai.stream.StreamingContext;
 import com.gengoai.stream.accumulator.MCounterAccumulator;
-import com.gengoai.apollo.ml.Example;
-import com.gengoai.apollo.ml.Instance;
-import com.gengoai.apollo.ml.TrainTestSet;
-import com.gengoai.apollo.ml.TrainTestSplit;
 import lombok.NonNull;
 
 import java.io.IOException;
@@ -265,8 +261,8 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
     * @return the TrainTestSet made of the number of folds
     */
    public TrainTestSet<T> fold(int numberOfFolds) {
-      Preconditions.checkArgument(numberOfFolds > 0, "Number of folds must be >= 0");
-      Preconditions.checkArgument(size() >= numberOfFolds, "Number of folds must be <= number of examples");
+      Validation.checkArgument(numberOfFolds > 0, "Number of folds must be >= 0");
+      Validation.checkArgument(size() >= numberOfFolds, "Number of folds must be <= number of examples");
       TrainTestSet<T> folds = new TrainTestSet<>();
       int foldSize = size() / numberOfFolds;
       for (int i = 0; i < numberOfFolds; i++) {
@@ -448,7 +444,7 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
     * @return the dataset
     */
    public Dataset<T> sample(boolean withReplacement, int sampleSize) {
-      Preconditions.checkArgument(sampleSize > 0, "Sample size must be > 0");
+      Validation.checkArgument(sampleSize > 0, "Sample size must be > 0");
       return create(stream().sample(withReplacement, sampleSize).map(e -> Cast.as(e.copy())));
    }
 
@@ -495,7 +491,7 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
     * @return A TestTrainSet of one TestTrain item
     */
    public TrainTestSet<T> split(double pctTrain) {
-      Preconditions.checkArgument(pctTrain > 0 && pctTrain < 1, "Percentage should be between 0 and 1");
+      Validation.checkArgument(pctTrain > 0 && pctTrain < 1, "Percentage should be between 0 and 1");
       int split = (int) Math.floor(pctTrain * size());
       TrainTestSet<T> set = new TrainTestSet<>();
       set.add(TrainTestSplit.of(slice(0, split), slice(split, size())));

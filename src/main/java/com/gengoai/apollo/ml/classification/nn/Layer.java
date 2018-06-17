@@ -1,10 +1,10 @@
 package com.gengoai.apollo.ml.classification.nn;
 
+import com.gengoai.Copyable;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.ml.Instance;
 import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.apollo.ml.optimization.WeightUpdate;
-import com.gengoai.Copyable;
 import com.gengoai.conversion.Cast;
 import com.gengoai.tuple.Tuple2;
 import lombok.Getter;

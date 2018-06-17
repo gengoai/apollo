@@ -1,7 +1,8 @@
 package com.gengoai.apollo.linear;
 
-import com.gengoai.guava.common.base.Preconditions;
-import com.gengoai.guava.common.collect.Iterators;
+
+import com.gengoai.Validation;
+import com.google.common.collect.Iterators;
 
 import java.util.Collections;
 import java.util.Iterator;
@@ -31,14 +32,14 @@ public final class ScalarNDArray extends NDArray {
 
    @Override
    public double get(int index) {
-      Preconditions.checkPositionIndex(index, 1);
+      Validation.checkElementIndex(index, 1);
       return value;
    }
 
    @Override
    public double get(int i, int j) {
-      Preconditions.checkPositionIndex(i, 0, "Invalid row");
-      Preconditions.checkPositionIndex(j, 1, "Invalid column");
+      Validation.checkElementIndex(i, 0, "Invalid row");
+      Validation.checkElementIndex(j, 1, "Invalid column");
       return value;
    }
 
@@ -85,15 +86,15 @@ public final class ScalarNDArray extends NDArray {
 
    @Override
    public NDArray set(int index, double value) {
-      Preconditions.checkPositionIndex(index, 1);
+      Validation.checkElementIndex(index, 1);
       this.value = value;
       return this;
    }
 
    @Override
    public NDArray set(int r, int c, double value) {
-      Preconditions.checkPositionIndex(r, 0, "Invalid row");
-      Preconditions.checkPositionIndex(c, 1, "Invalid column");
+      Validation.checkElementIndex(r, 0, "Invalid row");
+      Validation.checkElementIndex(c, 1, "Invalid column");
       this.value = value;
       return this;
    }

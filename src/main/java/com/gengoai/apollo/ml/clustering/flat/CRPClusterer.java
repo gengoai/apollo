@@ -21,19 +21,17 @@
 
 package com.gengoai.apollo.ml.clustering.flat;
 
+import com.gengoai.Validation;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.ml.clustering.Cluster;
 import com.gengoai.apollo.ml.clustering.Clusterer;
 import com.gengoai.apollo.stat.measure.DistanceMeasure;
+import com.gengoai.collection.HashBasedTable;
+import com.gengoai.collection.Table;
 import com.gengoai.collection.counter.Counter;
 import com.gengoai.collection.counter.Counters;
-import com.gengoai.guava.common.base.Preconditions;
-import com.gengoai.guava.common.collect.HashBasedTable;
-import com.gengoai.guava.common.collect.Table;
 import com.gengoai.logging.Logger;
 import com.gengoai.stream.MStream;
-import com.gengoai.apollo.ml.clustering.Cluster;
-import com.gengoai.apollo.ml.clustering.Clusterer;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
@@ -66,15 +64,15 @@ public class CRPClusterer extends Clusterer<FlatClustering> {
     * @param alpha           the alpha smoothing parameter
     */
    public CRPClusterer(DistanceMeasure distanceMeasure, double alpha) {
-      Preconditions.checkArgument(alpha > 0);
-      this.distanceMeasure = Preconditions.checkNotNull(distanceMeasure);
+      Validation.checkArgument(alpha > 0);
+      this.distanceMeasure = Validation.notNull(distanceMeasure);
       this.alpha = alpha;
    }
 
    @Override
    public FlatClustering cluster(@NonNull MStream<NDArray> instanceStream) {
       List<NDArray> instances = instanceStream.collect();
-      distanceMatrix = HashBasedTable.create();
+      distanceMatrix = new HashBasedTable<>();
       List<Cluster> clusters = new ArrayList<>();
       clusters.add(new Cluster());
       clusters.get(0).addPoint(instances.get(0));

@@ -23,7 +23,6 @@ package com.gengoai.apollo.ml.classification;
 
 import com.gengoai.apollo.Optimum;
 import com.gengoai.apollo.linear.NDArray;
-import com.gengoai.apollo.Optimum;
 import lombok.NonNull;
 
 /**

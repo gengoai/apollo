@@ -13,9 +13,6 @@ import com.gengoai.json.JsonTokenType;
 import com.gengoai.json.JsonWriter;
 import com.gengoai.stream.accumulator.MCounterAccumulator;
 import com.gengoai.stream.accumulator.MMultiCounterAccumulator;
-import com.gengoai.apollo.ml.Instance;
-import com.gengoai.apollo.ml.data.Dataset;
-import com.gengoai.apollo.ml.preprocess.InstancePreprocessor;
 import lombok.Getter;
 import lombok.NonNull;
 

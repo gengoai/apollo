@@ -1,13 +1,13 @@
 package com.gengoai.apollo.linear;
 
+import com.gengoai.Validation;
 import com.gengoai.apollo.linear.dense.DenseDoubleNDArray;
 import com.gengoai.apollo.linear.dense.DenseFloatNDArray;
 import com.gengoai.apollo.linear.sparse.SparseDoubleNDArray;
 import com.gengoai.apollo.linear.sparse.SparseFloatNDArray;
 import com.gengoai.apollo.linear.sparse.SparseIntNDArray;
+import com.gengoai.collection.Iterables;
 import com.gengoai.config.Config;
-import com.gengoai.guava.common.base.Preconditions;
-import com.gengoai.guava.common.collect.Iterables;
 import lombok.NonNull;
 import org.jblas.DoubleMatrix;
 import org.jblas.FloatMatrix;
@@ -85,7 +85,7 @@ public enum NDArrayFactory {
          if (columns.isEmpty()) {
             return empty();
          } else if (columns.size() == 1) {
-            return Iterables.getOnlyElement(columns).copy();
+            return Iterables.getFirst(columns, null).copy();
          }
          if (columns.size() == 2) {
             Iterator<NDArray> itr = columns.iterator();
@@ -114,8 +114,8 @@ public enum NDArrayFactory {
 
       @Override
       public NDArray zeros(int r, int c) {
-         Preconditions.checkArgument(r > 0, "r must be > 0");
-         Preconditions.checkArgument(c > 0, "c must be > 0");
+         Validation.checkArgument(r > 0, "r must be > 0");
+         Validation.checkArgument(c > 0, "c must be > 0");
          return new DenseDoubleNDArray(DoubleMatrix.zeros(r, c));
       }
    },
@@ -135,7 +135,7 @@ public enum NDArrayFactory {
          if (columns.isEmpty()) {
             return empty();
          } else if (columns.size() == 1) {
-            return Iterables.getOnlyElement(columns).copy();
+            return Iterables.getFirst(columns, null).copy();
          }
          if (columns.size() == 2) {
             Iterator<NDArray> itr = columns.iterator();
@@ -172,8 +172,8 @@ public enum NDArrayFactory {
 
       @Override
       public NDArray zeros(int r, int c) {
-         Preconditions.checkArgument(r > 0, "r must be > 0");
-         Preconditions.checkArgument(c > 0, "c must be > 0");
+         Validation.checkArgument(r > 0, "r must be > 0");
+         Validation.checkArgument(c > 0, "c must be > 0");
          return new DenseFloatNDArray(FloatMatrix.zeros(r, c));
       }
    };
@@ -346,7 +346,7 @@ public enum NDArrayFactory {
     * @return the NDArray
     */
    public NDArray diag(@NonNull NDArray vector) {
-      Preconditions.checkArgument(vector.isVector());
+      Validation.checkArgument(vector.isVector());
       int dim = Math.max(vector.numRows(), vector.numCols());
       NDArray toReturn = zeros(dim, dim);
       for (int i = 0; i < dim; i++) {
@@ -431,7 +431,7 @@ public enum NDArrayFactory {
     * @throws IllegalArgumentException if the two axis are the same
     */
    public NDArray ones(@NonNull Axis a1, int dim1, @NonNull Axis a2, int dim2) {
-      Preconditions.checkArgument(a1 != a2, "Axis one and Axis 2 must not be the same");
+      Validation.checkArgument(a1 != a2, "Axis one and Axis 2 must not be the same");
       int[] dimensions = {-1, -1};
       dimensions[a1.index] = dim1;
       dimensions[a2.index] = dim2;
@@ -499,7 +499,7 @@ public enum NDArrayFactory {
       if (rows.isEmpty()) {
          return EmptyNDArray.INSTANCE;
       } else if (rows.size() == 1) {
-         return Iterables.getOnlyElement(rows);
+         return Iterables.getFirst(rows, null);
       }
       int rowdim = Iterables.getFirst(rows, null).numCols();
       NDArray toReturn = zeros(rows.size(), rowdim);
@@ -571,7 +571,7 @@ public enum NDArrayFactory {
     * @throws IllegalArgumentException if the two axis are the same
     */
    public NDArray zeros(@NonNull Axis a1, int dim1, @NonNull Axis a2, int dim2) {
-      Preconditions.checkArgument(a1 != a2, "Axis one and Axis 2 must not be the same");
+      Validation.checkArgument(a1 != a2, "Axis one and Axis 2 must not be the same");
       int[] dimensions = {-1, -1};
       dimensions[a1.index] = dim1;
       dimensions[a2.index] = dim2;

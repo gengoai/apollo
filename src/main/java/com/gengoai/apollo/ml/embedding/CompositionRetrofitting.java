@@ -4,7 +4,6 @@ import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.store.VectorStore;
 import com.gengoai.apollo.linear.store.VectorStoreBuilder;
 import com.gengoai.io.resource.Resource;
-import com.google.common.base.Throwables;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
@@ -37,7 +36,7 @@ public class CompositionRetrofitting implements Retrofitting {
       try {
          this.background = Embedding.read(background);
       } catch (Exception e) {
-         throw Throwables.propagate(e);
+         throw new RuntimeException(e);
       }
    }
 
@@ -62,7 +61,7 @@ public class CompositionRetrofitting implements Retrofitting {
       try {
          return new Embedding(newEmbedding.build());
       } catch (IOException e) {
-         throw Throwables.propagate(e);
+         throw new RuntimeException(e);
       }
    }
 }// END OF CompositionRetrofitting

@@ -1,9 +1,9 @@
 package com.gengoai.apollo.ml.preprocess.transform;
 
+import com.gengoai.EnhancedDoubleStatistics;
 import com.gengoai.apollo.ml.Feature;
 import com.gengoai.apollo.ml.Instance;
 import com.gengoai.apollo.ml.preprocess.RestrictedInstancePreprocessor;
-import com.gengoai.EnhancedDoubleStatistics;
 import com.gengoai.json.JsonReader;
 import com.gengoai.json.JsonTokenType;
 import com.gengoai.json.JsonWriter;

@@ -4,7 +4,6 @@ import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.ml.Instance;
 import com.gengoai.apollo.ml.data.Dataset;
-import com.gengoai.apollo.ml.data.Dataset;
 import lombok.Getter;
 import lombok.val;
 

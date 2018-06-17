@@ -21,7 +21,7 @@
 
 package com.gengoai.apollo.stat.distribution;
 
-import com.gengoai.guava.common.base.Preconditions;
+import com.gengoai.Validation;
 import lombok.NonNull;
 import org.apache.commons.math3.distribution.EnumeratedIntegerDistribution;
 import org.apache.commons.math3.random.RandomGenerator;
@@ -53,9 +53,9 @@ public class Multinomial implements UnivariateDiscreteDistribution<Multinomial>,
     * @param random the random number generator to use for sampling
     */
    public Multinomial(int k, double alpha, @NonNull RandomGenerator random) {
-      Preconditions.checkArgument(k > 0, "Size must be > 0");
-      Preconditions.checkArgument(Double.isFinite(alpha), "Alpha must be finite");
-      Preconditions.checkArgument(alpha > 0, "Alpha must be > 0");
+      Validation.checkArgument(k > 0, "Size must be > 0");
+      Validation.checkArgument(Double.isFinite(alpha), "Alpha must be finite");
+      Validation.checkArgument(alpha > 0, "Alpha must be > 0");
       this.values = new int[k];
       this.alpha = alpha;
       this.alphaTimesV = alpha * k;

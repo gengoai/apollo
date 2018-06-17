@@ -22,17 +22,15 @@
 package com.gengoai.apollo.ml.clustering.flat;
 
 
+import com.gengoai.Validation;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
+import com.gengoai.apollo.linear.NDArrayInitializer;
 import com.gengoai.apollo.ml.clustering.Cluster;
 import com.gengoai.apollo.ml.clustering.Clusterer;
-import com.gengoai.apollo.linear.NDArrayInitializer;
 import com.gengoai.apollo.stat.measure.Distance;
 import com.gengoai.apollo.stat.measure.DistanceMeasure;
-import com.gengoai.guava.common.base.Preconditions;
 import com.gengoai.stream.MStream;
-import com.gengoai.apollo.ml.clustering.Cluster;
-import com.gengoai.apollo.ml.clustering.Clusterer;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
@@ -82,11 +80,11 @@ public class KMeans extends Clusterer<FlatClustering> {
     * @param maxIterations   the maximum number of iterations to run the algorithm (default 20)
     */
    public KMeans(int k, DistanceMeasure distanceMeasure, int maxIterations) {
-      Preconditions.checkArgument(k > 0);
-      Preconditions.checkArgument(maxIterations > 0);
+      Validation.checkArgument(k > 0);
+      Validation.checkArgument(maxIterations > 0);
       this.K = k;
       this.maxIterations = maxIterations;
-      this.distanceMeasure = Preconditions.checkNotNull(distanceMeasure);
+      this.distanceMeasure = Validation.notNull(distanceMeasure);
    }
 
    @Override

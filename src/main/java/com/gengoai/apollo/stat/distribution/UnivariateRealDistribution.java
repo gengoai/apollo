@@ -1,6 +1,6 @@
 package com.gengoai.apollo.stat.distribution;
 
-import com.gengoai.guava.common.base.Preconditions;
+import com.gengoai.Validation;
 
 /**
  * The interface Real distribution.
@@ -25,7 +25,7 @@ public interface UnivariateRealDistribution<T extends UnivariateRealDistribution
     * @return An array of <code>sampleSize</code> randomly drawn values
     */
    default double[] sample(int sampleSize) {
-      Preconditions.checkArgument(sampleSize > 0, "Size must be > 0");
+      Validation.checkArgument(sampleSize > 0, "Size must be > 0");
       double[] samples = new double[sampleSize];
       for (int i = 0; i < sampleSize; i++) {
          samples[i] = sample();

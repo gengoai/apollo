@@ -29,9 +29,6 @@ import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.apollo.stat.measure.Measure;
 import com.gengoai.stream.StreamingContext;
 import com.gengoai.string.TableFormatter;
-import com.gengoai.apollo.ml.Evaluation;
-import com.gengoai.apollo.ml.Instance;
-import com.gengoai.apollo.ml.data.Dataset;
 import lombok.NonNull;
 
 import java.io.PrintStream;

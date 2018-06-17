@@ -23,7 +23,6 @@ package com.gengoai.apollo.ml.sequence;
 
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.ml.Feature;
-import com.gengoai.apollo.ml.Feature;
 import lombok.NonNull;
 
 import java.util.Iterator;

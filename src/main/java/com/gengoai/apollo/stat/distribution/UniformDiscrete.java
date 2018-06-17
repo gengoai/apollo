@@ -21,7 +21,7 @@
 
 package com.gengoai.apollo.stat.distribution;
 
-import com.gengoai.guava.common.base.Preconditions;
+import com.gengoai.Validation;
 import lombok.NonNull;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.commons.math3.random.Well19937c;
@@ -77,7 +77,7 @@ public class UniformDiscrete implements UnivariateDiscreteDistribution<UniformDi
     * @param random the random number generator for sampling
     */
    public UniformDiscrete(int min, int max, @NonNull RandomGenerator random) {
-      Preconditions.checkArgument(min <= max, "Max must be >= min");
+      Validation.checkArgument(min <= max, "Max must be >= min");
       this.min = min;
       this.max = max;
       this.random = random;
@@ -108,7 +108,7 @@ public class UniformDiscrete implements UnivariateDiscreteDistribution<UniformDi
     * @param max the max
     */
    public void setMax(int max) {
-      Preconditions.checkArgument(min <= max, "Max must be >= min");
+      Validation.checkArgument(min <= max, "Max must be >= min");
       this.max = max;
    }
 
@@ -132,7 +132,7 @@ public class UniformDiscrete implements UnivariateDiscreteDistribution<UniformDi
     * @param min the min
     */
    public void setMin(int min) {
-      Preconditions.checkArgument(min <= max, "Max must be >= min");
+      Validation.checkArgument(min <= max, "Max must be >= min");
       this.min = min;
    }
 
@@ -153,7 +153,7 @@ public class UniformDiscrete implements UnivariateDiscreteDistribution<UniformDi
 
    @Override
    public double inverseCumulativeProbability(double p) {
-      Preconditions.checkArgument(p >= 0 && p <= 1, "Invalid probability");
+      Validation.checkArgument(p >= 0 && p <= 1, "Invalid probability");
       if (p <= 0) {
          return min;
       } else if (p >= 1) {

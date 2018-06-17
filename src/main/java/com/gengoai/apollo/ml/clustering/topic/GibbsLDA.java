@@ -6,11 +6,9 @@ import com.gengoai.apollo.ml.clustering.Cluster;
 import com.gengoai.apollo.ml.clustering.Clusterer;
 import com.gengoai.apollo.stat.distribution.ConditionalMultinomial;
 import com.gengoai.apollo.stat.measure.Similarity;
-import com.gengoai.collection.Collect;
+import com.gengoai.collection.Iterables;
 import com.gengoai.logging.Logger;
 import com.gengoai.stream.MStream;
-import com.gengoai.apollo.ml.clustering.Cluster;
-import com.gengoai.apollo.ml.clustering.Clusterer;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
@@ -109,7 +107,7 @@ public class GibbsLDA extends Clusterer<LDAModel> {
          z[m] = new int[N];
          documents[m] = new int[N];
          int index = 0;
-         for (NDArray.Entry entry : Collect.asIterable(vector.sparseIterator())) {
+         for (NDArray.Entry entry : Iterables.asIterable(vector.sparseIterator())) {
             documents[m][index] = entry.getIndex();
             int topic = randomGenerator.nextInt(K);
             z[m][index] = topic;

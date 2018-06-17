@@ -29,11 +29,11 @@ import com.gengoai.apollo.ml.encoder.HashingEncoder;
 import com.gengoai.collection.counter.Counter;
 import com.gengoai.conversion.Cast;
 import com.gengoai.conversion.Val;
-import com.gengoai.guava.common.collect.Sets;
 import com.gengoai.json.JsonReader;
 import com.gengoai.json.JsonTokenType;
 import com.gengoai.json.JsonWriter;
 import com.gengoai.tuple.Tuple2;
+import com.google.common.collect.Sets;
 import lombok.*;
 
 import java.io.IOException;

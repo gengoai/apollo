@@ -1,7 +1,7 @@
 package com.gengoai.apollo.stat.distribution;
 
 import com.gengoai.Math2;
-import com.gengoai.guava.common.base.Preconditions;
+import com.gengoai.Validation;
 
 import java.io.Serializable;
 
@@ -30,7 +30,7 @@ public interface UnivariateDistribution extends Serializable {
     * @return the cumulative probability
     */
    default double cumulativeProbability(double lowerBound, double higherBound) {
-      Preconditions.checkArgument(lowerBound <= higherBound, "Higher bound must be >= lower Bound");
+      Validation.checkArgument(lowerBound <= higherBound, "Higher bound must be >= lower Bound");
       return cumulativeProbability(higherBound) - cumulativeProbability(lowerBound);
    }
 

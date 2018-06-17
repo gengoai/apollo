@@ -3,9 +3,6 @@ package com.gengoai.apollo.ml.preprocess.filter;
 import com.gengoai.apollo.ml.Instance;
 import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.apollo.ml.preprocess.InstancePreprocessor;
-import com.gengoai.apollo.ml.Instance;
-import com.gengoai.apollo.ml.data.Dataset;
-import com.gengoai.apollo.ml.preprocess.InstancePreprocessor;
 
 import java.util.stream.Collectors;
 

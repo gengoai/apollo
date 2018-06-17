@@ -2,12 +2,10 @@ package com.gengoai.apollo.ml.optimization;
 
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.function.SerializableSupplier;
-import com.gengoai.guava.common.base.Stopwatch;
 import com.gengoai.stream.MStream;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.val;
 
 import java.util.Iterator;
 
@@ -42,15 +40,15 @@ public class GradientDescentOptimizer implements Optimizer<LinearModelParameters
       for (int iteration = 0; iteration < terminationCriteria.maxIterations(); iteration++) {
          cost = 0;
          iterator.shuffle();
-         val timer = Stopwatch.createStarted();
+//         val timer = Stopwatch.createStarted();
          for (Iterator<NDArray> batch = iterator.iterator(batchSize); batch.hasNext(); ) {
             NDArray input = batch.next();
             CostGradientTuple cgt = costFunction.evaluate(input, startingTheta);
             cost += cgt.getCost() + weightUpdater.update(startingTheta, cgt.getGradient(), iteration);
          }
          cost /= iterator.size();
-         timer.stop();
-         if (report(reportInterval, iteration, terminationCriteria, cost, timer.toString())) {
+//         timer.stop();
+         if (report(reportInterval, iteration, terminationCriteria, cost, "timer.toString()")) {
             break;
          }
       }

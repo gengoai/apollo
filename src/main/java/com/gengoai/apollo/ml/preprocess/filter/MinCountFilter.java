@@ -9,9 +9,6 @@ import com.gengoai.json.JsonReader;
 import com.gengoai.json.JsonTokenType;
 import com.gengoai.json.JsonWriter;
 import com.gengoai.stream.MStream;
-import com.gengoai.apollo.ml.Feature;
-import com.gengoai.apollo.ml.Instance;
-import com.gengoai.apollo.ml.preprocess.RestrictedInstancePreprocessor;
 import lombok.NonNull;
 
 import java.io.IOException;

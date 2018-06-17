@@ -13,9 +13,6 @@ import com.gengoai.stream.MStream;
 import com.gengoai.stream.accumulator.MDoubleAccumulator;
 import com.gengoai.string.StringUtils;
 import com.gengoai.tuple.Tuple2;
-import com.gengoai.apollo.ml.Feature;
-import com.gengoai.apollo.ml.Instance;
-import com.gengoai.apollo.ml.preprocess.RestrictedInstancePreprocessor;
 import lombok.NonNull;
 
 import java.io.IOException;

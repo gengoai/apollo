@@ -7,12 +7,9 @@ import com.gengoai.apollo.ml.clustering.Cluster;
 import com.gengoai.apollo.ml.clustering.Clusterer;
 import com.gengoai.apollo.stat.distribution.ConditionalMultinomial;
 import com.gengoai.apollo.stat.measure.Measure;
-import com.gengoai.collection.Collect;
+import com.gengoai.collection.Iterables;
 import com.gengoai.collection.counter.Counter;
 import com.gengoai.collection.counter.Counters;
-import com.gengoai.apollo.ml.Instance;
-import com.gengoai.apollo.ml.clustering.Cluster;
-import com.gengoai.apollo.ml.clustering.Clusterer;
 import lombok.NonNull;
 import org.apache.commons.math3.random.RandomGenerator;
 
@@ -104,7 +101,7 @@ public class LDAModel extends TopicModel {
       int[] docTopic = new int[K];
       NDArray docWordTopic = NDArrayFactory.DEFAULT().zeros(getEncoderPair().numberOfFeatures());
 
-      for (NDArray.Entry entry : Collect.asIterable(vector.sparseIterator())) {
+      for (NDArray.Entry entry : Iterables.asIterable(vector.sparseIterator())) {
          int topic = randomGenerator.nextInt(K);
          docTopic[topic]++;
          docWordTopic.set(entry.getIndex(), topic);
@@ -112,7 +109,7 @@ public class LDAModel extends TopicModel {
       }
 
       for (int iteration = 0; iteration < 100; iteration++) {
-         for (NDArray.Entry entry : Collect.asIterable(vector.sparseIterator())) {
+         for (NDArray.Entry entry : Iterables.asIterable(vector.sparseIterator())) {
             int topic = sample(entry.getIndex(), (int) docWordTopic.get(entry.getIndex()), docTopic);
             docWordTopic.set(entry.getIndex(), topic);
          }
@@ -123,7 +120,7 @@ public class LDAModel extends TopicModel {
          p[i] = (docTopic[i] + alpha) / (docTopic.length + K * alpha);
       }
 
-      for (NDArray.Entry entry : Collect.asIterable(vector.sparseIterator())) {
+      for (NDArray.Entry entry : Iterables.asIterable(vector.sparseIterator())) {
          wordTopic.decrement((int) docWordTopic.get(entry.getIndex()), entry.getIndex());
       }
 

@@ -26,11 +26,9 @@ import com.gengoai.apollo.ml.clustering.Cluster;
 import com.gengoai.apollo.ml.clustering.Clusterer;
 import com.gengoai.apollo.stat.measure.Distance;
 import com.gengoai.apollo.stat.measure.DistanceMeasure;
-import com.gengoai.guava.common.collect.Iterables;
 import com.gengoai.stream.MStream;
 import com.gengoai.tuple.Tuple3;
-import com.gengoai.apollo.ml.clustering.Cluster;
-import com.gengoai.apollo.ml.clustering.Clusterer;
+import com.google.common.collect.Iterables;
 import lombok.Getter;
 import lombok.NonNull;
 

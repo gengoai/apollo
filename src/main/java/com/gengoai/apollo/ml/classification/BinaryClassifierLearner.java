@@ -24,11 +24,8 @@ package com.gengoai.apollo.ml.classification;
 import com.gengoai.apollo.ml.Instance;
 import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.conversion.Cast;
-import com.gengoai.guava.common.base.Throwables;
 import com.gengoai.reflection.Reflect;
 import com.gengoai.reflection.ReflectionException;
-import com.gengoai.apollo.ml.Instance;
-import com.gengoai.apollo.ml.data.Dataset;
 
 import java.util.Map;
 
@@ -55,7 +52,7 @@ public abstract class BinaryClassifierLearner extends ClassifierLearner {
             learner.setParameters(parameters);
             return learner;
          } catch (ReflectionException e) {
-            throw Throwables.propagate(e);
+            throw new RuntimeException(e);
          }
       }
       );

@@ -22,7 +22,6 @@
 package com.gengoai.apollo.ml;
 
 import com.gengoai.Copyable;
-import com.gengoai.guava.common.base.Joiner;
 import com.gengoai.string.StringUtils;
 import lombok.NonNull;
 import lombok.Value;
@@ -65,7 +64,7 @@ public class Feature implements Serializable, Comparable<Feature>, Copyable<Feat
     * @return the feature
     */
    public static Feature TRUE(@NonNull String featurePrefix, @NonNull String... featureComponents) {
-      return new Feature(featurePrefix + "=" + Joiner.on('_').join(featureComponents), 1.0);
+      return new Feature(featurePrefix + "=" + StringUtils.join(featureComponents,"_"),1.0);
    }
 
    public static boolean isFalse(double value) {

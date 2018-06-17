@@ -22,8 +22,8 @@
 package com.gengoai.apollo.stat.measure;
 
 import com.gengoai.Math2;
+import com.gengoai.Validation;
 import com.gengoai.apollo.linear.NDArray;
-import com.gengoai.guava.common.base.Preconditions;
 import lombok.NonNull;
 
 /**
@@ -57,8 +57,8 @@ public enum Similarity implements SimilarityMeasure {
 
       @Override
       public double calculate(@NonNull ContingencyTable table) {
-         Preconditions.checkArgument(table.rowCount() == table.columnCount() && table.rowCount() == 2,
-                                     "Only supports 2x2 contingency tables.");
+         Validation.checkArgument(table.rowCount() == table.columnCount() && table.rowCount() == 2,
+                                  "Only supports 2x2 contingency tables.");
          return 2 * table.get(0, 0) / (table.columnSum(0) + table.rowSum(0));
       }
    },
@@ -74,7 +74,7 @@ public enum Similarity implements SimilarityMeasure {
 
       @Override
       public double calculate(@NonNull ContingencyTable table) {
-         Preconditions.checkArgument(table.rowCount() == table.columnCount() && table.rowCount() == 2,
+         Validation.checkArgument(table.rowCount() == table.columnCount() && table.rowCount() == 2,
                                      "Only supports 2x2 contingency tables.");
          return 2 * table.get(0, 0) / (table.columnSum(0) + table.rowSum(0));
       }
@@ -90,7 +90,7 @@ public enum Similarity implements SimilarityMeasure {
 
       @Override
       public double calculate(@NonNull ContingencyTable table) {
-         Preconditions.checkArgument(table.rowCount() == table.columnCount() && table.rowCount() == 2,
+         Validation.checkArgument(table.rowCount() == table.columnCount() && table.rowCount() == 2,
                                      "Only supports 2x2 contingency tables.");
          double c = Math.sqrt(Math.pow(table.get(0, 0), 2) + Math.pow(table.get(0, 1), 2));
          double r = Math.sqrt(Math.pow(table.get(0, 0), 2) + Math.pow(table.get(1, 0), 2));
@@ -109,7 +109,7 @@ public enum Similarity implements SimilarityMeasure {
 
       @Override
       public double calculate(@NonNull ContingencyTable table) {
-         Preconditions.checkArgument(table.rowCount() == table.columnCount() && table.rowCount() == 2,
+         Validation.checkArgument(table.rowCount() == table.columnCount() && table.rowCount() == 2,
                                      "Only supports 2x2 contingency tables.");
          return table.get(0, 0) / (table.get(0, 0) + table.get(0, 1) + table.get(1, 0));
       }
@@ -126,8 +126,8 @@ public enum Similarity implements SimilarityMeasure {
 
       @Override
       public double calculate(@NonNull ContingencyTable table) {
-         Preconditions.checkNotNull(table);
-         Preconditions.checkArgument(table.rowCount() == table.columnCount() && table.rowCount() == 2,
+         Validation.notNull(table);
+         Validation.checkArgument(table.rowCount() == table.columnCount() && table.rowCount() == 2,
                                      "Only supports 2x2 contingency tables.");
          return table.get(0, 0) / Math.min(table.columnSum(0), table.rowSum(0));
       }

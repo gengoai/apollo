@@ -1,7 +1,6 @@
 package com.gengoai.apollo.linear.sparse;
 
 import com.gengoai.apollo.linear.NDArrayFactory;
-import com.gengoai.apollo.linear.NDArrayFactory;
 import org.apache.mahout.math.function.IntDoubleProcedure;
 import org.apache.mahout.math.list.IntArrayList;
 import org.apache.mahout.math.map.OpenIntDoubleHashMap;

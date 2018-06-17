@@ -1,10 +1,9 @@
 package com.gengoai.apollo.ml.encoder;
 
+import com.gengoai.Validation;
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.data.Dataset;
-import com.gengoai.guava.common.base.Preconditions;
 import com.gengoai.stream.MStream;
-import com.gengoai.apollo.ml.data.Dataset;
 import lombok.Getter;
 import lombok.NonNull;
 
@@ -42,7 +41,7 @@ public class HashingEncoder implements Encoder, Serializable {
    }
 
    public HashingEncoder(int numberOfFeatures, boolean binary) {
-      Preconditions.checkArgument(numberOfFeatures > 0, "Must allow at least one feature.");
+      Validation.checkArgument(numberOfFeatures > 0, "Must allow at least one feature.");
       this.numberOfFeatures = numberOfFeatures;
       this.binary = binary;
    }

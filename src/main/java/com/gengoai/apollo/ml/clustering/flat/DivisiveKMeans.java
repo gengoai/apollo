@@ -29,8 +29,6 @@ import com.gengoai.apollo.stat.measure.DistanceMeasure;
 import com.gengoai.logging.Loggable;
 import com.gengoai.stream.MStream;
 import com.gengoai.stream.StreamingContext;
-import com.gengoai.apollo.ml.clustering.Cluster;
-import com.gengoai.apollo.ml.clustering.Clusterer;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;

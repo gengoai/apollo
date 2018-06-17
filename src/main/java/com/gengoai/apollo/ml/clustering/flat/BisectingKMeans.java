@@ -7,8 +7,6 @@ import com.gengoai.apollo.ml.clustering.Cluster;
 import com.gengoai.apollo.ml.clustering.Clusterer;
 import com.gengoai.apollo.stat.measure.Distance;
 import com.gengoai.stream.MStream;
-import com.gengoai.apollo.ml.clustering.Cluster;
-import com.gengoai.apollo.ml.clustering.Clusterer;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.spark.api.java.JavaRDD;

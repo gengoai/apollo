@@ -21,15 +21,12 @@
 
 package com.gengoai.apollo.ml.sequence.feature;
 
+import com.gengoai.Validation;
 import com.gengoai.apollo.ml.Feature;
 import com.gengoai.apollo.ml.featurizer.PredicateFeaturizer;
 import com.gengoai.apollo.ml.sequence.Context;
 import com.gengoai.apollo.ml.sequence.SequenceFeaturizer;
-import com.gengoai.guava.common.base.Preconditions;
 import com.gengoai.string.StringUtils;
-import com.gengoai.apollo.ml.Feature;
-import com.gengoai.apollo.ml.sequence.Context;
-import com.gengoai.apollo.ml.sequence.SequenceFeaturizer;
 import lombok.NonNull;
 
 import java.util.ArrayList;
@@ -60,7 +57,7 @@ public class NGramSequenceFeaturizer<E> implements SequenceFeaturizer<E> {
     * @param featurizer     the featurizer
     */
    public NGramSequenceFeaturizer(int previousWindow, int nextWindow, @NonNull PredicateFeaturizer<? super E> featurizer) {
-      Preconditions.checkState(previousWindow > 0 || nextWindow > 0, "Either previousWindow or nextWindow must be > 0");
+      Validation.checkState(previousWindow > 0 || nextWindow > 0, "Either previousWindow or nextWindow must be > 0");
       this.previousWindow = Math.abs(previousWindow);
       this.nextWindow = Math.abs(nextWindow);
       this.featurizer = featurizer;

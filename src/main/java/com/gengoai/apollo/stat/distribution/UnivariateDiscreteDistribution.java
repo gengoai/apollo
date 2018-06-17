@@ -21,7 +21,7 @@
 
 package com.gengoai.apollo.stat.distribution;
 
-import com.gengoai.guava.common.base.Preconditions;
+import com.gengoai.Validation;
 
 /**
  * A distribution backed whose density is a probability mass function of discrete a random variable <code>X</code>.
@@ -85,7 +85,7 @@ public interface UnivariateDiscreteDistribution<T extends UnivariateDiscreteDist
     * @return An array of <code>sampleSize</code> randomly drawn discrete random variables
     */
    default int[] sample(int sampleSize) {
-      Preconditions.checkArgument(sampleSize > 0, "Size must be > 0");
+      Validation.checkArgument(sampleSize > 0, "Size must be > 0");
       int[] samples = new int[sampleSize];
       for (int i = 0; i < sampleSize; i++) {
          samples[i] = sample();

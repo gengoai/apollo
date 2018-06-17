@@ -26,13 +26,9 @@ import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.ml.Feature;
 import com.gengoai.apollo.ml.Instance;
 import com.gengoai.apollo.ml.data.Dataset;
-import com.gengoai.collection.Collect;
-import com.gengoai.guava.common.base.Stopwatch;
-import com.gengoai.guava.common.collect.Lists;
+import com.gengoai.collection.Iterables;
+import com.gengoai.collection.Lists;
 import com.gengoai.logging.Logger;
-import com.gengoai.apollo.ml.Feature;
-import com.gengoai.apollo.ml.Instance;
-import com.gengoai.apollo.ml.data.Dataset;
 
 import java.text.DecimalFormat;
 import java.util.List;
@@ -109,10 +105,10 @@ public class StructuredPerceptronLearner extends SequenceLabelerLearner {
       double oldError = 0;
       final DecimalFormat formatter = new DecimalFormat("###.00%");
 
-      List<Sequence> sequenceList = Lists.newLinkedList(Collect.asIterable(dataset.iterator()));
+      List<Sequence> sequenceList = Lists.asLinkedList(Iterables.asIterable(dataset.iterator()));
       int c = 1;
       for (int itr = 0; itr < maxIterations; itr++) {
-         Stopwatch sw = Stopwatch.createStarted();
+//         Stopwatch sw = Stopwatch.createStarted();
 
          double count = 0;
          double correct = 0;
@@ -145,13 +141,13 @@ public class StructuredPerceptronLearner extends SequenceLabelerLearner {
                         cWeights[yHat].decrement(fid);
                         cWeights[y].increment(fid);
                      }
-                     for (String feature : Collect.asIterable(
+                     for (String feature : Iterables.asIterable(
                         transitionFeatures.extract(lblResult.iterator(sequence, iterator.getIndex())))) {
                         int fid = (int) model.getFeatureEncoder().encode(feature);
                         model.weights[yHat].decrement(fid);
                         cWeights[yHat].decrement(fid);
                      }
-                     for (String feature : Collect.asIterable(transitionFeatures.extract(iterator))) {
+                     for (String feature : Iterables.asIterable(transitionFeatures.extract(iterator))) {
                         int fid = (int) model.getFeatureEncoder().encode(feature);
                         model.weights[y].increment(fid);
                         cWeights[y].increment(fid);
@@ -164,9 +160,9 @@ public class StructuredPerceptronLearner extends SequenceLabelerLearner {
 
          }
 
-         sw.stop();
+//         sw.stop();
          log.info("iteration={0} accuracy={1} ({2}/{3}) [completed in {4}]", itr + 1, formatter.format(correct / count),
-                  correct, count, sw);
+                  correct, count, "sw");
 
          if (count - correct == 0) {
             break;

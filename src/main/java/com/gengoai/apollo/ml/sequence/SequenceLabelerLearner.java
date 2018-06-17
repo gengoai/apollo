@@ -2,8 +2,6 @@ package com.gengoai.apollo.ml.sequence;
 
 import com.gengoai.apollo.ml.Learner;
 import com.gengoai.apollo.ml.data.Dataset;
-import com.gengoai.apollo.ml.Learner;
-import com.gengoai.apollo.ml.data.Dataset;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;

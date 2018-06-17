@@ -24,7 +24,6 @@ package com.gengoai.apollo.ml.classification;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.ml.optimization.activation.Activation;
-import com.gengoai.apollo.ml.optimization.activation.Activation;
 
 /**
  * <p>Classifier tha employs a one-vs-rest strategy of combining binary classifiers to produce a multi-class

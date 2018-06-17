@@ -1,16 +1,14 @@
 package com.gengoai.apollo.ml.data;
 
-import com.gengoai.apollo.ml.*;
+import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.data.source.DataSource;
 import com.gengoai.apollo.ml.encoder.Encoder;
 import com.gengoai.apollo.ml.encoder.IndexEncoder;
 import com.gengoai.apollo.ml.encoder.LabelEncoder;
 import com.gengoai.apollo.ml.preprocess.PreprocessorList;
-import com.gengoai.guava.common.base.Throwables;
 import com.gengoai.io.resource.Resource;
 import com.gengoai.stream.MStream;
 import com.gengoai.stream.StreamingContext;
-import com.gengoai.apollo.ml.Example;
 import lombok.NonNull;
 
 import java.io.IOException;
@@ -74,7 +72,7 @@ public class DatasetBuilder<T extends Example> {
       try {
          return createDataset().read(datasetFile, exampleType);
       } catch (IOException e) {
-         throw Throwables.propagate(e);
+         throw new RuntimeException(e);
       }
    }
 
@@ -114,7 +112,7 @@ public class DatasetBuilder<T extends Example> {
       try {
          dataset.addAll(dataSource.stream());
       } catch (IOException e) {
-         throw Throwables.propagate(e);
+         throw new RuntimeException(e);
       }
       return dataset;
    }

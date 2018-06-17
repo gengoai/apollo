@@ -2,7 +2,7 @@ package com.gengoai.apollo.ml.optimization;
 
 import com.gengoai.apollo.linear.Axis;
 import com.gengoai.apollo.linear.NDArray;
-import com.gengoai.guava.common.util.concurrent.AtomicDouble;
+import com.gengoai.concurrent.AtomicDouble;
 import com.gengoai.tuple.Tuple2;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

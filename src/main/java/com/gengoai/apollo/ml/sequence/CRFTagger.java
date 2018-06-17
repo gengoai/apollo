@@ -25,8 +25,6 @@ import com.gengoai.apollo.ml.Feature;
 import com.gengoai.apollo.ml.Instance;
 import com.gengoai.io.Resources;
 import com.gengoai.io.resource.Resource;
-import com.gengoai.apollo.ml.Feature;
-import com.gengoai.apollo.ml.Instance;
 import com.github.jcrfsuite.CrfTagger;
 import com.github.jcrfsuite.util.Pair;
 import lombok.NonNull;

@@ -1,12 +1,10 @@
 package com.gengoai.apollo.ml.sequence;
 
+import com.gengoai.Validation;
 import com.gengoai.apollo.ml.Evaluation;
 import com.gengoai.apollo.ml.classification.MultiClassEvaluation;
 import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.conversion.Cast;
-import com.gengoai.guava.common.base.Preconditions;
-import com.gengoai.apollo.ml.Evaluation;
-import com.gengoai.apollo.ml.data.Dataset;
 import lombok.NonNull;
 
 import java.io.PrintStream;
@@ -46,7 +44,7 @@ public class PerInstanceEvaluation implements Evaluation<Sequence, SequenceLabel
 
    @Override
    public void merge(@NonNull Evaluation<Sequence, SequenceLabeler> evaluation) {
-      Preconditions.checkArgument(evaluation instanceof PerInstanceEvaluation);
+      Validation.checkArgument(evaluation instanceof PerInstanceEvaluation);
       eval.merge(Cast.<PerInstanceEvaluation>as(evaluation).eval);
    }
 

@@ -1,7 +1,6 @@
 package com.gengoai.apollo.ml.sequence;
 
 import com.gengoai.apollo.ml.Instance;
-import com.gengoai.apollo.ml.Instance;
 
 import java.io.Serializable;
 

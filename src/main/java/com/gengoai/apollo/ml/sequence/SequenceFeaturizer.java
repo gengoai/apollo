@@ -3,8 +3,6 @@ package com.gengoai.apollo.ml.sequence;
 import com.gengoai.apollo.ml.Feature;
 import com.gengoai.apollo.ml.Instance;
 import com.gengoai.apollo.ml.featurizer.Featurizer;
-import com.gengoai.cache.CacheProxy;
-import com.gengoai.cache.Cached;
 import com.gengoai.conversion.Cast;
 import com.gengoai.function.SerializableFunction;
 import com.gengoai.stream.MStream;
@@ -35,7 +33,6 @@ public interface SequenceFeaturizer<INPUT> extends Featurizer<Context<INPUT>> {
          final Set<SequenceFeaturizer<? super T>> extractors = new LinkedHashSet<>(Arrays.asList(featurizers));
 
          @Override
-         @Cached
          public List<Feature> apply(Context<T> tContext) {
             List<Feature> features = new ArrayList<>();
             extractors.forEach(ex -> features.addAll(ex.apply(Cast.as(tContext))));
@@ -56,7 +53,6 @@ public interface SequenceFeaturizer<INPUT> extends Featurizer<Context<INPUT>> {
          private static final long serialVersionUID = 1L;
 
          @Override
-         @Cached
          public List<Feature> apply(Context<T> tContext) {
             return new ArrayList<>(function.apply(tContext));
          }
@@ -68,15 +64,6 @@ public interface SequenceFeaturizer<INPUT> extends Featurizer<Context<INPUT>> {
       return Cast.as(this);
    }
 
-   @Override
-   default SequenceFeaturizer<INPUT> cache() {
-      return CacheProxy.cache(this);
-   }
-
-   @Override
-   default SequenceFeaturizer<INPUT> cache(String cacheName) {
-      return CacheProxy.cache(this, cacheName);
-   }
 
    /**
     * Extract sequence sequence.

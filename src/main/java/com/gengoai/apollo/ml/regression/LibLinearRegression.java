@@ -4,8 +4,6 @@ import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.ml.Instance;
 import com.gengoai.apollo.ml.data.Dataset;
-import com.gengoai.apollo.ml.Instance;
-import com.gengoai.apollo.ml.data.Dataset;
 import de.bwaldvogel.liblinear.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -13,7 +11,8 @@ import lombok.Setter;
 import java.util.Iterator;
 import java.util.List;
 
-import static com.gengoai.collection.list.Lists.asArrayList;
+import static com.gengoai.collection.Lists.asArrayList;
+
 
 /**
  * <p>Trains a regression model using LibLinear (L2R_L2LOSS_SVR)</p>

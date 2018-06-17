@@ -21,10 +21,9 @@
 
 package com.gengoai.apollo.stat.measure;
 
+import com.gengoai.Math2;
+import com.gengoai.Validation;
 import com.gengoai.apollo.stat.distribution.NormalDistribution;
-import com.gengoai.guava.common.base.Preconditions;
-import com.gengoai.guava.common.math.DoubleMath;
-import com.gengoai.guava.common.primitives.Doubles;
 import lombok.NonNull;
 import org.apache.commons.math3.distribution.ChiSquaredDistribution;
 import org.apache.commons.math3.distribution.TDistribution;
@@ -42,8 +41,8 @@ public enum Association implements ContingencyTableCalculator {
    Mikolov {
       @Override
       public double calculate(ContingencyTable table) {
-         Preconditions.checkArgument(table.rowCount() == table.columnCount() && table.rowCount() == 2,
-                                     "Only supports 2x2 contingency tables.");
+         Validation.checkArgument(table.rowCount() == table.columnCount() && table.rowCount() == 2,
+                                  "Only supports 2x2 contingency tables.");
          double cooc = table.get(0, 0);
          double w1Count = table.get(0, 1);
          double w2Count = table.get(1, 0);
@@ -64,11 +63,11 @@ public enum Association implements ContingencyTableCalculator {
          double sum = 0d;
          for (int row = 0; row < table.rowCount(); row++) {
             for (int col = 0; col < table.columnCount(); col++) {
-               sum += table.get(row, col) / table.getSum() * DoubleMath.log2(
+               sum += table.get(row, col) / table.getSum() * Math2.log2(
                   table.get(row, col) / table.getExpected(row, col));
             }
          }
-         return Doubles.isFinite(sum) ? sum : 0d;
+         return Double.isFinite(sum) ? sum : 0d;
       }
    },
    /**
@@ -77,9 +76,9 @@ public enum Association implements ContingencyTableCalculator {
    PMI {
       @Override
       public double calculate(@NonNull ContingencyTable table) {
-         Preconditions.checkArgument(table.rowCount() == table.columnCount() && table.rowCount() == 2,
+         Validation.checkArgument(table.rowCount() == table.columnCount() && table.rowCount() == 2,
                                      "Only supports 2x2 contingency tables.");
-         return DoubleMath.log2(table.get(0, 0)) - DoubleMath.log2(table.getExpected(0, 0));
+         return Math2.log2(table.get(0, 0)) - Math2.log2(table.getExpected(0, 0));
       }
    },
    /**
@@ -97,7 +96,7 @@ public enum Association implements ContingencyTableCalculator {
    ODDS_RATIO {
       @Override
       public double calculate(@NonNull ContingencyTable table) {
-         Preconditions.checkArgument(table.rowCount() == table.columnCount() && table.rowCount() == 2,
+         Validation.checkArgument(table.rowCount() == table.columnCount() && table.rowCount() == 2,
                                      "Only supports 2x2 contingency tables.");
          double v1 = table.get(0, 0) / table.get(0, 1);
          double v2 = table.get(1, 0) / table.get(1, 1);
@@ -117,7 +116,7 @@ public enum Association implements ContingencyTableCalculator {
    T_SCORE {
       @Override
       public double calculate(@NonNull ContingencyTable table) {
-         Preconditions.checkArgument(table.rowCount() == table.columnCount() && table.rowCount() == 2,
+         Validation.checkArgument(table.rowCount() == table.columnCount() && table.rowCount() == 2,
                                      "Only supports 2x2 contingency tables.");
          return (table.get(0, 0) - table.getExpected(0, 0)) / Math.sqrt(table.get(0, 0));
       }
@@ -136,13 +135,13 @@ public enum Association implements ContingencyTableCalculator {
    NPMI {
       @Override
       public double calculate(@NonNull ContingencyTable table) {
-         Preconditions.checkArgument(table.rowCount() == table.columnCount() && table.rowCount() == 2,
+         Validation.checkArgument(table.rowCount() == table.columnCount() && table.rowCount() == 2,
                                      "Only supports 2x2 contingency tables.");
          if (table.get(0, 0) == 0) {
             return -1;
          }
-         return DoubleMath.log2(table.get(0, 0) / table.getExpected(0, 0)) /
-                   -DoubleMath.log2(table.get(0, 0) / table.getSum());
+         return Math2.log2(table.get(0, 0) / table.getExpected(0, 0)) /
+                   -Math2.log2(table.get(0, 0) / table.getSum());
       }
    },
    /**
@@ -151,7 +150,7 @@ public enum Association implements ContingencyTableCalculator {
    POISSON_STIRLING {
       @Override
       public double calculate(@NonNull ContingencyTable table) {
-         Preconditions.checkArgument(table.rowCount() == table.columnCount() && table.rowCount() == 2,
+         Validation.checkArgument(table.rowCount() == table.columnCount() && table.rowCount() == 2,
                                      "Only supports 2x2 contingency tables.");
          return table.get(0, 0) * (Math.log(table.get(0, 0) / table.getExpected(0, 0)) - 1);
       }
@@ -169,7 +168,7 @@ public enum Association implements ContingencyTableCalculator {
                sumSq += FastMath.pow(table.get(row, col) - expected, 2) / expected;
             }
          }
-         return Doubles.isFinite(sumSq) ? sumSq : 0d;
+         return Double.isFinite(sumSq) ? sumSq : 0d;
       }
 
       @Override
@@ -190,7 +189,7 @@ public enum Association implements ContingencyTableCalculator {
                sum += table.get(row, col) * Math.log(table.get(row, col) / table.getExpected(row, col));
             }
          }
-         return Doubles.isFinite(sum) ? 2 * sum : 0d;
+         return Double.isFinite(sum) ? 2 * sum : 0d;
       }
 
       @Override
@@ -205,7 +204,7 @@ public enum Association implements ContingencyTableCalculator {
    RELATIVE_RISK {
       @Override
       public double calculate(@NonNull ContingencyTable table) {
-         Preconditions.checkArgument(table.rowCount() == table.columnCount() && table.rowCount() == 2,
+         Validation.checkArgument(table.rowCount() == table.columnCount() && table.rowCount() == 2,
                                      "Only supports 2x2 contingency tables.");
          double v1 = table.get(0, 0) / table.rowSum(0);
          double v2 = table.get(1, 0) / table.rowSum(1);

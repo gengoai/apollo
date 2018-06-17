@@ -6,8 +6,6 @@ import com.gengoai.apollo.ml.clustering.Clusterer;
 import com.gengoai.apollo.stat.measure.Measure;
 import com.gengoai.collection.counter.Counter;
 import com.gengoai.collection.counter.Counters;
-import com.gengoai.apollo.ml.Instance;
-import com.gengoai.apollo.ml.clustering.Clusterer;
 
 /**
  * The type Lsa model.

@@ -1,21 +1,18 @@
 package com.gengoai.apollo.ml.preprocess.transform;
 
 import com.gengoai.EnhancedDoubleStatistics;
+import com.gengoai.Validation;
 import com.gengoai.apollo.ml.Feature;
 import com.gengoai.apollo.ml.Instance;
 import com.gengoai.apollo.ml.preprocess.RestrictedInstancePreprocessor;
-import com.gengoai.collection.list.PrimitiveArrayList;
+import com.gengoai.collection.PrimitiveArrayList;
 import com.gengoai.conversion.Val;
-import com.gengoai.guava.common.base.Preconditions;
 import com.gengoai.json.JsonReader;
 import com.gengoai.json.JsonTokenType;
 import com.gengoai.json.JsonWriter;
 import com.gengoai.stream.MStream;
 import com.gengoai.stream.accumulator.MStatisticsAccumulator;
 import com.gengoai.string.StringUtils;
-import com.gengoai.apollo.ml.Feature;
-import com.gengoai.apollo.ml.Instance;
-import com.gengoai.apollo.ml.preprocess.RestrictedInstancePreprocessor;
 import lombok.NonNull;
 
 import java.io.IOException;
@@ -41,7 +38,7 @@ public class BinTransform extends RestrictedInstancePreprocessor implements Tran
     * @param numberOfBins the number of bins to convert the feature into
     */
    public BinTransform(int numberOfBins) {
-      Preconditions.checkArgument(numberOfBins > 0, "Number of bins must be > 0.");
+      Validation.checkArgument(numberOfBins > 0, "Number of bins must be > 0.");
       this.bins = new double[numberOfBins];
    }
 
@@ -53,7 +50,7 @@ public class BinTransform extends RestrictedInstancePreprocessor implements Tran
     */
    public BinTransform(@NonNull String featureNamePrefix, int numberOfBins) {
       super(featureNamePrefix);
-      Preconditions.checkArgument(numberOfBins > 0, "Number of bins must be > 0.");
+      Validation.checkArgument(numberOfBins > 0, "Number of bins must be > 0.");
       this.bins = new double[numberOfBins];
    }
 

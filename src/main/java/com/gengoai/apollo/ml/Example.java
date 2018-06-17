@@ -2,7 +2,7 @@ package com.gengoai.apollo.ml;
 
 import com.gengoai.Copyable;
 import com.gengoai.Interner;
-import com.gengoai.guava.common.base.Preconditions;
+import com.gengoai.Validation;
 import com.gengoai.io.Resources;
 import com.gengoai.io.resource.Resource;
 import com.gengoai.json.JsonReader;
@@ -30,8 +30,8 @@ public interface Example extends Copyable<Example>, JsonSerializable {
     * @throws IOException Something went wrong converting the string into an example
     */
    static <T extends Example> T fromJson(String input, @NonNull Class<T> example) throws IOException {
-      Preconditions.checkArgument(!StringUtils.isNullOrBlank(input),
-                                  "Cannot create example from null or empty string.");
+      Validation.checkArgument(!StringUtils.isNullOrBlank(input),
+                               "Cannot create example from null or empty string.");
       Resource r = Resources.fromString(input);
       T rval;
       try (JsonReader reader = new JsonReader(r)) {

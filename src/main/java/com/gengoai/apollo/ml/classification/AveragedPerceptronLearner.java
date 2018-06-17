@@ -26,11 +26,8 @@ import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.ml.Instance;
 import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.apollo.ml.optimization.activation.Activation;
-import com.gengoai.collection.Collect;
+import com.gengoai.collection.Iterables;
 import com.gengoai.logging.Logger;
-import com.gengoai.apollo.ml.Instance;
-import com.gengoai.apollo.ml.data.Dataset;
-import com.gengoai.apollo.ml.optimization.activation.Activation;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -120,7 +117,7 @@ public class AveragedPerceptronLearner extends BinaryClassifierLearner {
             if (y != yHat) {
                error++;
                double eta = learningRate * (y - yHat);
-               for (NDArray.Entry entry : Collect.asIterable(v.sparseIterator())) {
+               for (NDArray.Entry entry : Iterables.asIterable(v.sparseIterator())) {
                   updateFeature(model, entry.getIndex(), c, eta);
                }
                double timeSpan = c - biasStamps;
@@ -149,7 +146,7 @@ public class AveragedPerceptronLearner extends BinaryClassifierLearner {
       }
 
       double time = c;
-      for (NDArray.Entry entry : Collect.asIterable(totalWeights.sparseIterator())) {
+      for (NDArray.Entry entry : Iterables.asIterable(totalWeights.sparseIterator())) {
          double total = totalWeights.get(entry.getIndex());
          total += (time - stamps.get(entry.getIndex())) * model.weights.get(entry.getIndex());
          total = new BigDecimal(total / time).setScale(3, RoundingMode.HALF_UP).doubleValue();

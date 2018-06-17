@@ -13,10 +13,7 @@ import com.gengoai.apollo.stat.measure.Similarity;
 import com.gengoai.conversion.Cast;
 import com.gengoai.function.SerializableSupplier;
 import com.gengoai.function.Unchecked;
-import com.gengoai.guava.common.primitives.Ints;
 import com.gengoai.io.resource.Resource;
-import com.gengoai.apollo.ml.Model;
-import com.gengoai.apollo.ml.encoder.EncoderPair;
 import lombok.NonNull;
 
 import java.io.IOException;
@@ -57,7 +54,12 @@ public class Embedding implements Model, VectorStore<String>, Serializable {
    public static Embedding fromWord2VecTextFile(@NonNull Resource in, boolean fastNearestNeighbors) throws IOException {
       List<String> lines = in.readLines();
       int firstRow = 1;
-      Integer dimension = Ints.tryParse(lines.get(0).split("\\s+")[1]);
+      Integer dimension;
+      try {
+         dimension = Integer.parseInt(lines.get(0).split("\\s+")[1]);
+      } catch (Throwable t) {
+         dimension = null;
+      }
       if (dimension == null) {
          firstRow = 0;
          dimension = lines.get(0).trim().split("\\s+").length - 1;

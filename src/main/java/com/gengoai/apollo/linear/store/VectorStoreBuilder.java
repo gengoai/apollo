@@ -1,9 +1,9 @@
 package com.gengoai.apollo.linear.store;
 
+import com.gengoai.Validation;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.stat.measure.Measure;
 import com.gengoai.apollo.stat.measure.Similarity;
-import com.gengoai.guava.common.base.Preconditions;
 import com.gengoai.conversion.Cast;
 import lombok.Getter;
 import lombok.NonNull;
@@ -81,7 +81,7 @@ public abstract class VectorStoreBuilder<KEY> {
     * @return the vector store builder
     */
    public final VectorStoreBuilder<KEY> dimension(int dimension) {
-      Preconditions.checkArgument(dimension > 0, "Dimension must be > 0");
+      Validation.checkArgument(dimension > 0, "Dimension must be > 0");
       this.dimension = dimension;
       return this;
    }

@@ -1,7 +1,6 @@
 package com.gengoai.apollo.ml.preprocess;
 
 import com.gengoai.apollo.ml.Instance;
-import com.gengoai.apollo.ml.Instance;
 
 /**
  * Preprocessor for instance based examples

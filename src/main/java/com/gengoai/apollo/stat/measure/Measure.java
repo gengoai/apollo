@@ -24,7 +24,6 @@ package com.gengoai.apollo.stat.measure;
 import com.gengoai.apollo.Optimum;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
-import com.gengoai.apollo.Optimum;
 import lombok.NonNull;
 
 import java.io.Serializable;

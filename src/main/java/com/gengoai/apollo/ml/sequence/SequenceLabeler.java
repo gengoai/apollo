@@ -4,8 +4,6 @@ import com.gengoai.apollo.ml.Feature;
 import com.gengoai.apollo.ml.Model;
 import com.gengoai.apollo.ml.encoder.EncoderPair;
 import com.gengoai.apollo.ml.preprocess.PreprocessorList;
-import com.gengoai.apollo.ml.Feature;
-import com.gengoai.apollo.ml.Model;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;

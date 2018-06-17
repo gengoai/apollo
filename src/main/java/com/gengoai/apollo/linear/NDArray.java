@@ -3,15 +3,14 @@ package com.gengoai.apollo.linear;
 import com.gengoai.Copyable;
 import com.gengoai.EnhancedDoubleStatistics;
 import com.gengoai.Math2;
+import com.gengoai.Validation;
 import com.gengoai.apollo.Optimum;
+import com.gengoai.collection.Lists;
 import com.gengoai.collection.Streams;
-import com.gengoai.collection.list.PrimitiveArrayIterator;
 import com.gengoai.conversion.Cast;
-import com.gengoai.guava.common.base.Preconditions;
 import com.gengoai.io.CSV;
 import com.gengoai.io.CSVWriter;
 import com.gengoai.io.resource.Resource;
-import com.gengoai.apollo.Optimum;
 import lombok.NonNull;
 import org.apache.commons.math3.util.FastMath;
 import org.jblas.DoubleMatrix;
@@ -664,8 +663,8 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return An vector NDArray
     */
    public NDArray getVector(int index, @NonNull Axis axis) {
-      Preconditions.checkElementIndex(index, dimension(axis),
-                                      "Invalid index " + index + " [0, " + dimension(axis) + ")");
+      Validation.checkElementIndex(index, dimension(axis),
+                                   "Invalid index " + index + " [0, " + dimension(axis) + ")");
       NDArray toReturn = getFactory().zeros(axis.T(), dimension(axis.T()));
       for (int i = 0; i < dimension(axis.T()); i++) {
          toReturn.set(i, get(axis, index, axis.T(), i));
@@ -1318,7 +1317,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return A NDArray of 1's and 0's representing pivot elements.
     */
    public NDArray pivot() {
-      Preconditions.checkArgument(isSquare(), "Only square matrices are supported");
+      Validation.checkArgument(isSquare(), "Only square matrices are supported");
       NDArray p = getFactory().eye(numRows());
       for (int i = 0; i < numRows(); i++) {
          double max = get(i, i);
@@ -1706,7 +1705,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return this NDArray
     */
    public NDArray setVector(int index, @NonNull NDArray vector, @NonNull Axis axis) {
-      Preconditions.checkArgument(index >= 0 && index < dimension(axis), "Invalid index");
+      Validation.checkArgument(index >= 0 && index < dimension(axis), "Invalid index");
       checkLengthMatch(dimension(axis.T()), vector.length());
       for (int i = 0; i < vector.length(); i++) {
          set(axis.select(index, i), //IF given axis row THEN index ELSE i
@@ -2116,7 +2115,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return the nd array
     */
    public NDArray toUnitVector() {
-      Preconditions.checkArgument(isVector(), "NDArray must be a vector");
+      Validation.checkArgument(isVector(), "NDArray must be a vector");
       double mag = norm2();
       return div(mag);
    }
@@ -2188,7 +2187,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
       try (CSVWriter writer = CSV.csv().writer(csvFile)) {
          writer.write(IntStream.range(0, numCols()).iterator());
          for (int i = 0; i < numRows(); i++) {
-            writer.write(PrimitiveArrayIterator.doubleArrayIterator(getVector(i, Axis.ROW).toArray()));
+            writer.write(Lists.ofPrimitive(getVector(i, Axis.ROW).toArray(), Double.class));
          }
       }
    }

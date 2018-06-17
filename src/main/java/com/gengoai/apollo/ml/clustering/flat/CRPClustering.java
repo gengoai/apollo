@@ -28,9 +28,6 @@ import com.gengoai.apollo.ml.clustering.Clusterer;
 import com.gengoai.apollo.stat.measure.Measure;
 import com.gengoai.stream.StreamingContext;
 import com.gengoai.tuple.Tuple2;
-import com.gengoai.apollo.Optimum;
-import com.gengoai.apollo.ml.Instance;
-import com.gengoai.apollo.ml.clustering.Clusterer;
 import lombok.NonNull;
 
 import java.util.Arrays;

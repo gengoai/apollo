@@ -23,17 +23,12 @@ package com.gengoai.apollo.ml.clustering.hierarchical;
 
 
 import com.gengoai.apollo.linear.NDArray;
+import com.gengoai.apollo.ml.Instance;
+import com.gengoai.apollo.ml.clustering.Cluster;
+import com.gengoai.apollo.ml.clustering.Clusterer;
+import com.gengoai.apollo.ml.clustering.Clustering;
+import com.gengoai.apollo.ml.clustering.flat.FlatCentroidClustering;
 import com.gengoai.apollo.stat.measure.Measure;
-import com.gengoai.apollo.ml.Instance;
-import com.gengoai.apollo.ml.clustering.Cluster;
-import com.gengoai.apollo.ml.clustering.Clusterer;
-import com.gengoai.apollo.ml.clustering.Clustering;
-import com.gengoai.apollo.ml.clustering.flat.FlatCentroidClustering;
-import com.gengoai.apollo.ml.Instance;
-import com.gengoai.apollo.ml.clustering.Cluster;
-import com.gengoai.apollo.ml.clustering.Clusterer;
-import com.gengoai.apollo.ml.clustering.Clustering;
-import com.gengoai.apollo.ml.clustering.flat.FlatCentroidClustering;
 import lombok.NonNull;
 
 import java.util.ArrayList;

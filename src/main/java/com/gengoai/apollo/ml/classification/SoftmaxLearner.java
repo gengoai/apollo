@@ -6,10 +6,6 @@ import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.apollo.ml.optimization.*;
 import com.gengoai.apollo.ml.optimization.activation.Activation;
 import com.gengoai.apollo.ml.optimization.loss.CrossEntropyLoss;
-import com.gengoai.apollo.ml.data.Dataset;
-import com.gengoai.apollo.ml.optimization.*;
-import com.gengoai.apollo.ml.optimization.activation.Activation;
-import com.gengoai.apollo.ml.optimization.loss.CrossEntropyLoss;
 import lombok.Getter;
 import lombok.Setter;
 

@@ -7,9 +7,6 @@ import com.gengoai.apollo.ml.Instance;
 import com.gengoai.json.JsonReader;
 import com.gengoai.json.JsonWriter;
 import com.gengoai.tuple.Tuple;
-import com.gengoai.apollo.ml.Example;
-import com.gengoai.apollo.ml.Feature;
-import com.gengoai.apollo.ml.Instance;
 import lombok.NonNull;
 
 import java.io.IOException;

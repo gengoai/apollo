@@ -22,7 +22,7 @@
 package com.gengoai.apollo.stat.measure;
 
 import com.gengoai.Lazy;
-import com.gengoai.guava.common.base.Preconditions;
+import com.gengoai.Validation;
 import lombok.NonNull;
 import lombok.val;
 import org.apache.commons.math3.stat.correlation.KendallsCorrelation;
@@ -42,8 +42,8 @@ public enum Correlation implements CorrelationMeasure {
    Pearson {
       @Override
       public double calculate(@NonNull double[] x, @NonNull double[] y) {
-         Preconditions.checkArgument(x.length == y.length,
-                                     "Dimension mismatch dim(x)=" + x.length + " != dim(y)=" + y.length);
+         Validation.checkArgument(x.length == y.length,
+                                  "Dimension mismatch dim(x)=" + x.length + " != dim(y)=" + y.length);
          double x2 = 0d;
          double y2 = 0d;
          double sumX = 0d;
@@ -71,9 +71,9 @@ public enum Correlation implements CorrelationMeasure {
 
       @Override
       public double calculate(@NonNull double[] v1, @NonNull double[] v2) {
-         Preconditions.checkArgument(v1.length == v2.length,
+         Validation.checkArgument(v1.length == v2.length,
                                      "Vector dimension mismatch " + v1.length + " != " + v2.length);
-         Preconditions.checkArgument(v1.length >= 2, "Need at least two elements");
+         Validation.checkArgument(v1.length >= 2, "Need at least two elements");
          return spearmansCorrelation.get().correlation(v1, v2);
       }
    },

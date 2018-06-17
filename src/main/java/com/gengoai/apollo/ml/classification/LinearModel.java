@@ -3,8 +3,6 @@ package com.gengoai.apollo.ml.classification;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.ml.optimization.LinearModelParameters;
 import com.gengoai.apollo.ml.optimization.activation.Activation;
-import com.gengoai.apollo.ml.optimization.LinearModelParameters;
-import com.gengoai.apollo.ml.optimization.activation.Activation;
 
 /**
  * @author David B. Bracewell

@@ -24,8 +24,6 @@ package com.gengoai.apollo.ml.sequence;
 import com.gengoai.apollo.ml.Instance;
 import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.io.Resources;
-import com.gengoai.apollo.ml.Instance;
-import com.gengoai.apollo.ml.data.Dataset;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;

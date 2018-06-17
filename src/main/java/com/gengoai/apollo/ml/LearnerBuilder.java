@@ -1,7 +1,6 @@
 package com.gengoai.apollo.ml;
 
-import com.gengoai.guava.common.base.Preconditions;
-import com.gengoai.guava.common.base.Throwables;
+import com.gengoai.Validation;
 import com.gengoai.reflection.Reflect;
 import com.gengoai.reflection.ReflectionException;
 import lombok.NonNull;
@@ -32,13 +31,13 @@ public class LearnerBuilder<T extends Example, M extends Model> implements Seria
     * @return the learner
     */
    public <R extends Learner<T, M>> R build() {
-      Preconditions.checkNotNull(learnerClass, "Learner was not set");
+      Validation.notNull(learnerClass, "Learner was not set");
       try {
          R learner = Reflect.onClass(learnerClass).create().get();
          learner.setParameters(parameters);
          return learner;
       } catch (ReflectionException e) {
-         throw Throwables.propagate(e);
+         throw new RuntimeException(e);
       }
    }
 

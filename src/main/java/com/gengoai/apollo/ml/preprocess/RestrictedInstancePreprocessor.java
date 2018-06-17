@@ -5,9 +5,6 @@ import com.gengoai.apollo.ml.Instance;
 import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.stream.MStream;
 import com.gengoai.string.StringUtils;
-import com.gengoai.apollo.ml.Feature;
-import com.gengoai.apollo.ml.Instance;
-import com.gengoai.apollo.ml.data.Dataset;
 import lombok.NonNull;
 
 import java.io.Serializable;

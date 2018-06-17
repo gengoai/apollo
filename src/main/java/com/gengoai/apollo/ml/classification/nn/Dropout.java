@@ -5,7 +5,6 @@ import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.linear.NDArrayInitializer;
 import com.gengoai.apollo.ml.optimization.WeightUpdate;
 import com.gengoai.tuple.Tuple2;
-import com.gengoai.apollo.ml.optimization.WeightUpdate;
 import lombok.Getter;
 import lombok.val;
 

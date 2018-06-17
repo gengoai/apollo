@@ -21,8 +21,8 @@
 
 package com.gengoai.apollo.stat.measure;
 
+import com.gengoai.Validation;
 import com.gengoai.apollo.linear.NDArray;
-import com.gengoai.guava.common.base.Preconditions;
 import lombok.NonNull;
 import org.apache.commons.math3.distribution.TDistribution;
 import org.apache.commons.math3.util.FastMath;
@@ -36,7 +36,7 @@ public interface CorrelationMeasure extends SimilarityMeasure {
 
    @Override
    default double calculate(@NonNull NDArray v1, @NonNull NDArray v2) {
-      Preconditions.checkArgument(v1.isVector() && v2.isVector(), "v1 and v2 must be bectors");
+      Validation.checkArgument(v1.isVector() && v2.isVector(), "v1 and v2 must be bectors");
       return calculate(v1.toArray(), v2.toArray());
    }
 
@@ -57,7 +57,7 @@ public interface CorrelationMeasure extends SimilarityMeasure {
     * @return the non-directional p-value
     */
    default double pValue(double r, int N) {
-      Preconditions.checkArgument(N >= 6, "N must be >= 6.");
+      Validation.checkArgument(N >= 6, "N must be >= 6.");
       double t = (r * FastMath.sqrt(N - 2.0)) / FastMath.sqrt(1.0 - r * r);
       return 1.0 - new TDistribution(N - 2, 1)
                       .cumulativeProbability(t);

@@ -38,13 +38,8 @@ import com.gengoai.apollo.stat.measure.ContingencyTable;
 import com.gengoai.apollo.stat.measure.ContingencyTableCalculator;
 import com.gengoai.apollo.stat.measure.Similarity;
 import com.gengoai.collection.counter.MultiCounter;
-import com.gengoai.guava.common.base.Throwables;
 import com.gengoai.stream.StreamingContext;
 import com.gengoai.stream.accumulator.MMultiCounterAccumulator;
-import com.gengoai.apollo.ml.Instance;
-import com.gengoai.apollo.ml.data.Dataset;
-import com.gengoai.apollo.ml.encoder.Encoder;
-import com.gengoai.apollo.ml.encoder.IndexEncoder;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.spark.mllib.linalg.DenseVector;
@@ -158,7 +153,7 @@ public class SVDEmbedding extends EmbeddingLearner {
       try {
          return new Embedding(builder.build());
       } catch (IOException e) {
-         throw Throwables.propagate(e);
+         throw new RuntimeException(e);
       }
    }
 

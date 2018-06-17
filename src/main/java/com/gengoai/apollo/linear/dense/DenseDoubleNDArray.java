@@ -1,13 +1,10 @@
 package com.gengoai.apollo.linear.dense;
 
+import com.gengoai.Validation;
 import com.gengoai.apollo.linear.Axis;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.conversion.Cast;
-import com.gengoai.guava.common.base.Preconditions;
-import com.gengoai.apollo.linear.Axis;
-import com.gengoai.apollo.linear.NDArray;
-import com.gengoai.apollo.linear.NDArrayFactory;
 import lombok.NonNull;
 import org.jblas.DoubleMatrix;
 import org.jblas.FloatMatrix;
@@ -555,7 +552,7 @@ public class DenseDoubleNDArray extends NDArray {
 
       @Override
       public Entry next() {
-         Preconditions.checkElementIndex(index, storage.length);
+         Validation.checkElementIndex(index, storage.length);
          return new DoubleEntry(index++);
       }
    }

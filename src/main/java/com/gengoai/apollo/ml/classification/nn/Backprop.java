@@ -4,14 +4,11 @@ import com.gengoai.apollo.linear.Axis;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.ml.optimization.*;
 import com.gengoai.function.SerializableSupplier;
-import com.gengoai.guava.common.base.Stopwatch;
 import com.gengoai.stream.MStream;
 import com.gengoai.tuple.Tuple2;
 import com.gengoai.tuple.Tuple3;
-import com.gengoai.apollo.ml.optimization.*;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.val;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -103,7 +100,6 @@ public class Backprop implements Optimizer<FeedForwardNetwork> {
 //         });
 
          List<Layer> layers = startingTheta.layers;
-         val timer = Stopwatch.createStarted();
          for (Iterator<NDArray> itr = data.iterator(batchSize); itr.hasNext(); ) {
             NDArray X = itr.next();
             CostGradientTuple cgt = costFunction.evaluate(X, startingTheta);
@@ -120,8 +116,7 @@ public class Backprop implements Optimizer<FeedForwardNetwork> {
                }
             }
          }
-         timer.stop();
-         if (report(reportInterval, iteration, terminationCriteria, loss, timer.toString())) {
+         if (report(reportInterval, iteration, terminationCriteria, loss, "")) {
             break;
          }
       }

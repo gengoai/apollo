@@ -21,11 +21,11 @@
 
 package com.gengoai.apollo.linear.store;
 
+import com.gengoai.Validation;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.linear.VectorComposition;
 import com.gengoai.apollo.stat.measure.Measure;
-import com.gengoai.guava.common.base.Preconditions;
 import com.gengoai.collection.Streams;
 import com.gengoai.conversion.Cast;
 import com.gengoai.io.Commitable;
@@ -126,8 +126,8 @@ public interface VectorStore<KEY> extends Iterable<NDArray>, AutoCloseable, Clos
     * @return the list of vectors with their labels and scored by the stores measure with respect to the query vector.
     */
    default List<NDArray> nearest(NDArray query, double threshold) {
-      Preconditions.checkArgument(query.length() == dimension(),
-                                  "Dimension mismatch, vector store can only store vectors with k of " + dimension());
+      Validation.checkArgument(query.length() == dimension(),
+                               "Dimension mismatch, vector store can only store vectors with k of " + dimension());
       return Streams.asParallelStream(iterator())
                     .map(v -> v.copy().setWeight(getQueryMeasure().calculate(v, query)))
                     .filter(s -> getQueryMeasure().getOptimum().test(s.getWeight(), threshold))
@@ -150,7 +150,7 @@ public interface VectorStore<KEY> extends Iterable<NDArray>, AutoCloseable, Clos
     * @return the list of vectors with their labels and scored by the stores measure with respect to the query vector.
     */
    default List<NDArray> nearest(@NonNull NDArray query, int K, double threshold) {
-      Preconditions.checkArgument(query.length() == dimension(),
+      Validation.checkArgument(query.length() == dimension(),
                                   "Dimension mismatch, vector store can only store vectors with k of " + dimension());
       List<NDArray> vectors = Streams.asParallelStream(iterator())
                                      .map(v -> v.copy().setWeight(getQueryMeasure().calculate(v, query)))
@@ -168,7 +168,7 @@ public interface VectorStore<KEY> extends Iterable<NDArray>, AutoCloseable, Clos
     * @return the list of vectors with their labels and scored by the stores measure with respect to the query vector.
     */
    default List<NDArray> nearest(NDArray query) {
-      Preconditions.checkArgument(query.length() == dimension(),
+      Validation.checkArgument(query.length() == dimension(),
                                   "Dimension mismatch, vector store can only store vectors with k of " + dimension());
       return Streams.asParallelStream(iterator())
                     .map(v -> v.copy().setWeight(getQueryMeasure().calculate(v, query)))
@@ -184,7 +184,7 @@ public interface VectorStore<KEY> extends Iterable<NDArray>, AutoCloseable, Clos
     * @return the list of vectors with their labels and scored by the stores measure with respect to the query vector.
     */
    default List<NDArray> nearest(@NonNull NDArray query, int K) {
-      Preconditions.checkArgument(query.length() == dimension(),
+      Validation.checkArgument(query.length() == dimension(),
                                   "Dimension mismatch, vector store can only store vectors with k of " + dimension());
       List<NDArray> vectors = Streams.asParallelStream(iterator())
                                      .map(v -> v.copy().setWeight(getQueryMeasure().calculate(v, query)))

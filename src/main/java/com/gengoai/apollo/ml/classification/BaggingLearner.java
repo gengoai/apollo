@@ -3,7 +3,6 @@ package com.gengoai.apollo.ml.classification;
 import com.gengoai.apollo.ml.Instance;
 import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.function.SerializableSupplier;
-import com.gengoai.apollo.ml.data.Dataset;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;

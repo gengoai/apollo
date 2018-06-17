@@ -1,13 +1,12 @@
 package com.gengoai.apollo.ml.data;
 
-import com.gengoai.apollo.ml.encoder.Encoder;
 import com.gengoai.apollo.ml.Example;
+import com.gengoai.apollo.ml.encoder.Encoder;
 import com.gengoai.apollo.ml.encoder.LabelEncoder;
 import com.gengoai.apollo.ml.preprocess.PreprocessorList;
 import com.gengoai.function.SerializableFunction;
 import com.gengoai.stream.MStream;
 import com.gengoai.stream.SparkStream;
-import com.gengoai.apollo.ml.Example;
 import lombok.NonNull;
 
 import java.util.Random;

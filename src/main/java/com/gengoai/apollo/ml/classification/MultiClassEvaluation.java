@@ -21,10 +21,10 @@
 
 package com.gengoai.apollo.ml.classification;
 
+import com.gengoai.Validation;
 import com.gengoai.apollo.ml.Evaluation;
 import com.gengoai.apollo.ml.Instance;
 import com.gengoai.apollo.ml.data.Dataset;
-import com.gengoai.guava.common.base.Preconditions;
 import com.gengoai.collection.counter.Counter;
 import com.gengoai.collection.counter.Counters;
 import com.gengoai.collection.counter.HashMapMultiCounter;
@@ -288,8 +288,8 @@ public class MultiClassEvaluation implements ClassifierEvaluation {
    @Override
    public void merge(Evaluation<Instance, Classifier> evaluation) {
       if (evaluation != null) {
-         Preconditions.checkArgument(evaluation instanceof MultiClassEvaluation,
-                                     "Can only merge with other ClassifierEvaluation.");
+         Validation.checkArgument(evaluation instanceof MultiClassEvaluation,
+                                  "Can only merge with other ClassifierEvaluation.");
          matrix.merge(Cast.<MultiClassEvaluation>as(evaluation).matrix);
          this.total += Cast.<MultiClassEvaluation>as(evaluation).total;
       }

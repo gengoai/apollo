@@ -3,7 +3,6 @@ package com.gengoai.apollo.ml.clustering.hierarchical;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.ml.clustering.Cluster;
 import com.gengoai.apollo.stat.measure.Measure;
-import com.gengoai.apollo.ml.clustering.Cluster;
 import lombok.NonNull;
 
 import java.util.ArrayList;

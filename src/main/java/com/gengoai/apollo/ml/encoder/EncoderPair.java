@@ -1,7 +1,6 @@
 package com.gengoai.apollo.ml.encoder;
 
 import com.gengoai.apollo.ml.Example;
-import com.gengoai.apollo.ml.Example;
 import lombok.EqualsAndHashCode;
 import lombok.NonNull;
 

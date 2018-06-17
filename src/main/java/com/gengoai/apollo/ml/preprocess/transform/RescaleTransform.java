@@ -1,17 +1,14 @@
 package com.gengoai.apollo.ml.preprocess.transform;
 
 import com.gengoai.Math2;
+import com.gengoai.Validation;
 import com.gengoai.apollo.ml.Feature;
 import com.gengoai.apollo.ml.Instance;
 import com.gengoai.apollo.ml.preprocess.RestrictedInstancePreprocessor;
-import com.gengoai.guava.common.base.Preconditions;
 import com.gengoai.json.JsonReader;
 import com.gengoai.json.JsonTokenType;
 import com.gengoai.json.JsonWriter;
 import com.gengoai.stream.MStream;
-import com.gengoai.apollo.ml.Feature;
-import com.gengoai.apollo.ml.Instance;
-import com.gengoai.apollo.ml.preprocess.RestrictedInstancePreprocessor;
 import lombok.NonNull;
 import org.apache.commons.math3.util.FastMath;
 
@@ -37,7 +34,7 @@ public class RescaleTransform extends RestrictedInstancePreprocessor implements 
    }
 
    public RescaleTransform(double newMin, double newMax, boolean perFeature) {
-      Preconditions.checkArgument(newMax > newMin, "max must be > min");
+      Validation.checkArgument(newMax > newMin, "max must be > min");
       this.perFeature = perFeature;
       this.newMin = newMin;
       this.newMax = newMax;

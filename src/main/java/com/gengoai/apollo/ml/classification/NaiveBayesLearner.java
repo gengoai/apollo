@@ -3,9 +3,7 @@ package com.gengoai.apollo.ml.classification;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.ml.Instance;
 import com.gengoai.apollo.ml.data.Dataset;
-import com.gengoai.collection.Collect;
-import com.gengoai.apollo.ml.Instance;
-import com.gengoai.apollo.ml.data.Dataset;
+import com.gengoai.collection.Iterables;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
@@ -58,7 +56,7 @@ public class NaiveBayesLearner extends ClassifierLearner {
             int ci = (int) model.encodeLabel(instance.getLabel());
             model.priors[ci] += instance.getWeight();
             NDArray vector = instance.toVector(dataset.getEncoderPair());
-            for (NDArray.Entry entry : Collect.asIterable(vector.sparseIterator())) {
+            for (NDArray.Entry entry : Iterables.asIterable(vector.sparseIterator())) {
                labelCounts[ci] += entry.getValue();
                model.conditionals[entry.getIndex()][ci] += instance.getWeight() * modelType.convertValue(
                   entry.getValue());

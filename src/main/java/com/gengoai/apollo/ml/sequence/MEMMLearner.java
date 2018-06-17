@@ -26,8 +26,6 @@ import com.gengoai.apollo.ml.classification.LibLinearLearner;
 import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.conversion.Cast;
 import com.gengoai.io.QuietIO;
-import com.gengoai.apollo.ml.Instance;
-import com.gengoai.apollo.ml.data.Dataset;
 
 import java.util.Map;
 

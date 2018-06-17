@@ -1,10 +1,9 @@
 package com.gengoai.apollo.ml.data.source;
 
+import com.gengoai.Validation;
 import com.gengoai.apollo.ml.Feature;
 import com.gengoai.apollo.ml.Instance;
-import com.gengoai.guava.common.base.Preconditions;
-import com.gengoai.guava.common.base.Throwables;
-import com.gengoai.guava.common.collect.Iterators;
+import com.gengoai.collection.Iterators;
 import com.gengoai.io.CSV;
 import com.gengoai.io.CSVReader;
 import com.gengoai.io.QuietIO;
@@ -12,8 +11,6 @@ import com.gengoai.io.resource.Resource;
 import com.gengoai.stream.MStream;
 import com.gengoai.stream.StreamingContext;
 import com.gengoai.string.StringUtils;
-import com.gengoai.apollo.ml.Feature;
-import com.gengoai.apollo.ml.Instance;
 import lombok.Getter;
 import lombok.NonNull;
 
@@ -53,7 +50,7 @@ public class SparseCSVDataSource extends DataSource<Instance> {
     */
    public SparseCSVDataSource(@NonNull Resource resource, String labelName, @NonNull CSV format) {
       super(resource);
-      Preconditions.checkArgument(StringUtils.isNotNullOrBlank(labelName), "Must specify a label name.");
+      Validation.checkArgument(StringUtils.isNotNullOrBlank(labelName), "Must specify a label name.");
       this.csvFormat = format;
       this.labelName = labelName;
    }
@@ -94,7 +91,7 @@ public class SparseCSVDataSource extends DataSource<Instance> {
                                                     try {
                                                        return resourceToStream(r, getStreamingContext());
                                                     } catch (IOException e) {
-                                                       throw Throwables.propagate(e);
+                                                       throw new RuntimeException(e);
                                                     }
                                                  }).collect(Collectors.toList())) {
             stream = stream.union(s);

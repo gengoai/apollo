@@ -5,7 +5,6 @@ import com.gengoai.apollo.ml.sequence.Sequence;
 import com.gengoai.function.Unchecked;
 import com.gengoai.io.resource.Resource;
 import com.gengoai.stream.MStream;
-import com.gengoai.apollo.ml.Example;
 import lombok.NonNull;
 
 import java.io.IOException;

@@ -22,7 +22,6 @@
 package com.gengoai.apollo.ml.featurizer;
 
 import com.gengoai.apollo.ml.Feature;
-import com.gengoai.cache.Cached;
 
 import java.util.Collections;
 import java.util.List;
@@ -38,7 +37,6 @@ public abstract class BinaryFeaturizer<T> implements Featurizer<T> {
    private static final long serialVersionUID = 1L;
 
    @Override
-   @Cached
    public final List<Feature> apply(T t) {
       if (t == null) {
          return Collections.emptyList();

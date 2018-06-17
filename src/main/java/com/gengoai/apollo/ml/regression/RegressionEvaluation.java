@@ -1,15 +1,12 @@
 package com.gengoai.apollo.ml.regression;
 
 import com.gengoai.Math2;
+import com.gengoai.Validation;
 import com.gengoai.apollo.ml.Evaluation;
 import com.gengoai.apollo.ml.Instance;
 import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.conversion.Cast;
-import com.gengoai.guava.common.base.Preconditions;
 import com.gengoai.string.TableFormatter;
-import com.gengoai.apollo.ml.Evaluation;
-import com.gengoai.apollo.ml.Instance;
-import com.gengoai.apollo.ml.data.Dataset;
 import lombok.NonNull;
 import org.apache.mahout.math.list.DoubleArrayList;
 
@@ -77,7 +74,7 @@ public class RegressionEvaluation implements Evaluation<Instance, Regression> {
 
    @Override
    public void merge(@NonNull Evaluation<Instance, Regression> evaluation) {
-      Preconditions.checkArgument(evaluation instanceof RegressionEvaluation);
+      Validation.checkArgument(evaluation instanceof RegressionEvaluation);
       RegressionEvaluation re = Cast.as(evaluation);
       gold.addAllOf(re.gold);
       predicted.addAllOf(re.predicted);

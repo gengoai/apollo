@@ -2,7 +2,6 @@ package com.gengoai.apollo.ml.sequence;
 
 import com.gengoai.apollo.ml.Instance;
 import com.gengoai.apollo.ml.classification.Classification;
-import com.gengoai.apollo.ml.Instance;
 
 import java.io.Serializable;
 import java.util.Optional;

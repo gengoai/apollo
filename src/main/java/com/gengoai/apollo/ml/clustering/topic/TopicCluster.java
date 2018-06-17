@@ -2,7 +2,6 @@ package com.gengoai.apollo.ml.clustering.topic;
 
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.ml.clustering.Cluster;
-import com.gengoai.apollo.ml.clustering.Cluster;
 
 import java.util.HashMap;
 import java.util.Map;

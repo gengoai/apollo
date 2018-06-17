@@ -1,10 +1,10 @@
 package com.gengoai.apollo.linear;
 
+import com.gengoai.Validation;
 import com.gengoai.apollo.linear.dense.DenseDoubleNDArray;
 import com.gengoai.stream.MStream;
 import com.gengoai.stream.SparkStream;
 import com.gengoai.stream.StreamingContext;
-import com.google.common.base.Preconditions;
 import lombok.NonNull;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.mllib.linalg.Vector;
@@ -33,7 +33,7 @@ public final class SparkLinearAlgebra {
     * @param numPrincipalComponents the number of principal components
     */
    public static NDArray pca(@NonNull RowMatrix mat, int numPrincipalComponents) {
-      Preconditions.checkArgument(numPrincipalComponents > 0, "Number of principal components must be > 0");
+      Validation.checkArgument(numPrincipalComponents > 0, "Number of principal components must be > 0");
       return toMatrix(mat.multiply(mat.computePrincipalComponents(numPrincipalComponents)));
    }
 
@@ -44,7 +44,7 @@ public final class SparkLinearAlgebra {
     * @param numPrincipalComponents the number of principal components
     */
    public static NDArray pca(@NonNull NDArray mat, int numPrincipalComponents) {
-      Preconditions.checkArgument(numPrincipalComponents > 0, "Number of principal components must be > 0");
+      Validation.checkArgument(numPrincipalComponents > 0, "Number of principal components must be > 0");
       return toMatrix(toRowMatrix(mat).computePrincipalComponents(numPrincipalComponents));
    }
 
@@ -56,7 +56,7 @@ public final class SparkLinearAlgebra {
     * @param numPrincipalComponents the number of principal components
     */
    public static RowMatrix sparkPCA(@NonNull RowMatrix mat, int numPrincipalComponents) {
-      Preconditions.checkArgument(numPrincipalComponents > 0, "Number of principal components must be > 0");
+      Validation.checkArgument(numPrincipalComponents > 0, "Number of principal components must be > 0");
       return mat.multiply(mat.computePrincipalComponents(numPrincipalComponents));
    }
 
@@ -68,7 +68,7 @@ public final class SparkLinearAlgebra {
     * @return Thee resulting decomposition
     */
    public static org.apache.spark.mllib.linalg.SingularValueDecomposition<RowMatrix, org.apache.spark.mllib.linalg.Matrix> sparkSVD(@NonNull RowMatrix mat, int k) {
-      Preconditions.checkArgument(k > 0, "K must be > 0");
+      Validation.checkArgument(k > 0, "K must be > 0");
       return mat.computeSVD(k, true, 1.0E-9);
    }
 

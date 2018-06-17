@@ -22,14 +22,12 @@
 package com.gengoai.apollo.ml.clustering.flat;
 
 
+import com.gengoai.Validation;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.ml.clustering.Cluster;
 import com.gengoai.apollo.ml.clustering.Clusterer;
 import com.gengoai.apollo.stat.measure.DistanceMeasure;
-import com.gengoai.guava.common.base.Preconditions;
 import com.gengoai.stream.MStream;
-import com.gengoai.apollo.ml.clustering.Cluster;
-import com.gengoai.apollo.ml.clustering.Clusterer;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
@@ -61,7 +59,7 @@ public class OneShotClusterer extends Clusterer<FlatClustering> {
     */
    public OneShotClusterer(double threshold, DistanceMeasure measure) {
       this.threshold = threshold;
-      this.distanceMeasure = Preconditions.checkNotNull(measure);
+      this.distanceMeasure = Validation.notNull(measure);
    }
 
    @Override

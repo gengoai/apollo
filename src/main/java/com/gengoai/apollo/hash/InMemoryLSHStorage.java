@@ -1,7 +1,8 @@
 package com.gengoai.apollo.hash;
 
 import com.gengoai.apollo.linear.NDArray;
-import com.gengoai.guava.common.collect.HashMultimap;
+import com.gengoai.collection.multimap.SetMultimap;
+import com.gengoai.collection.multimap.HashSetMultimap;
 import com.gengoai.tuple.Tuple2;
 
 import java.io.Serializable;
@@ -14,7 +15,7 @@ import static com.gengoai.tuple.Tuples.$;
  */
 public class InMemoryLSHStorage implements LSHStorage, Serializable {
    private static final long serialVersionUID = 1L;
-   private final HashMultimap<Tuple2<Integer, Integer>, NDArray> store = HashMultimap.create();
+   private final SetMultimap<Tuple2<Integer, Integer>, NDArray> store = new HashSetMultimap<>();
 
    @Override
    public void add(NDArray vector, int band, int bucket) {

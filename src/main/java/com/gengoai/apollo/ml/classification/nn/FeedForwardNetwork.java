@@ -10,12 +10,6 @@ import com.gengoai.apollo.ml.encoder.EncoderPair;
 import com.gengoai.apollo.ml.optimization.activation.Activation;
 import com.gengoai.apollo.ml.preprocess.PreprocessorList;
 import com.gengoai.conversion.Cast;
-import com.gengoai.apollo.ml.classification.Classification;
-import com.gengoai.apollo.ml.classification.Classifier;
-import com.gengoai.apollo.ml.classification.ClassifierLearner;
-import com.gengoai.apollo.ml.encoder.EncoderPair;
-import com.gengoai.apollo.ml.optimization.activation.Activation;
-import com.gengoai.apollo.ml.preprocess.PreprocessorList;
 import lombok.NonNull;
 
 import java.util.ArrayList;

@@ -29,9 +29,6 @@ import com.gengoai.apollo.ml.preprocess.PreprocessorList;
 import com.gengoai.apollo.stat.measure.Measure;
 import com.gengoai.collection.Streams;
 import com.gengoai.tuple.Tuple2;
-import com.gengoai.apollo.ml.Instance;
-import com.gengoai.apollo.ml.Model;
-import com.gengoai.apollo.ml.encoder.EncoderPair;
 import lombok.Getter;
 import lombok.NonNull;
 

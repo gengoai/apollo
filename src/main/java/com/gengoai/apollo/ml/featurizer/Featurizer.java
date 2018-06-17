@@ -4,13 +4,7 @@ import com.gengoai.apollo.ml.Feature;
 import com.gengoai.apollo.ml.Instance;
 import com.gengoai.apollo.ml.LabeledDatum;
 import com.gengoai.apollo.ml.sequence.SequenceFeaturizer;
-import com.gengoai.cache.CacheProxy;
-import com.gengoai.cache.Cached;
 import com.gengoai.conversion.Cast;
-import com.gengoai.apollo.ml.Feature;
-import com.gengoai.apollo.ml.Instance;
-import com.gengoai.apollo.ml.LabeledDatum;
-import com.gengoai.apollo.ml.sequence.SequenceFeaturizer;
 import lombok.NonNull;
 
 import java.io.Serializable;
@@ -58,27 +52,8 @@ public interface Featurizer<INPUT> extends Serializable {
     * @param input the input to featurize
     * @return the set of features
     */
-   @Cached
    List<Feature> apply(INPUT input);
 
-   /**
-    * Cache featurizer.
-    *
-    * @param cacheName the cache name
-    * @return the featurizer
-    */
-   default Featurizer<INPUT> cache(String cacheName) {
-      return CacheProxy.cache(this, cacheName);
-   }
-
-   /**
-    * Caches the call to featurizer.
-    *
-    * @return the featurizer
-    */
-   default Featurizer<INPUT> cache() {
-      return CacheProxy.cache(this);
-   }
 
    /**
     * Converts the given input into features and creates an <code>Instance</code> from the features.

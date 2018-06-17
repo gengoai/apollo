@@ -21,17 +21,16 @@
 
 package com.gengoai.apollo.ml.sequence;
 
+import com.gengoai.Validation;
 import com.gengoai.apollo.ml.Instance;
-import com.gengoai.guava.common.base.Preconditions;
-import com.gengoai.guava.common.collect.MinMaxPriorityQueue;
-import com.gengoai.guava.common.collect.Ordering;
-import com.gengoai.apollo.ml.Instance;
+import com.gengoai.collection.Sorting;
 import lombok.Getter;
 import lombok.NonNull;
 
 import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.PriorityQueue;
 
 /**
  * <p>Implementation of a Beam search decoder.</p>
@@ -56,7 +55,7 @@ public class BeamDecoder implements Decoder, Serializable {
     * @param beamSize the beam size
     */
    public BeamDecoder(int beamSize) {
-      Preconditions.checkArgument(beamSize > 0, "Beam size must be > 0.");
+      Validation.checkArgument(beamSize > 0, "Beam size must be > 0.");
       this.beamSize = beamSize;
    }
 
@@ -65,10 +64,8 @@ public class BeamDecoder implements Decoder, Serializable {
       if (sequence.size() == 0) {
          return new Labeling(0);
       }
-      MinMaxPriorityQueue<DecoderState> queue = MinMaxPriorityQueue
-                                                   .orderedBy(Ordering.natural().reverse())
-                                                   .maximumSize(beamSize)
-                                                   .create();
+
+      PriorityQueue<DecoderState> queue = new PriorityQueue<>(beamSize, Sorting.natural().reversed());
       queue.add(new DecoderState(0, null));
       List<DecoderState> newStates = new LinkedList<>();
       Context<Instance> iterator = sequence.iterator();
@@ -112,7 +109,7 @@ public class BeamDecoder implements Decoder, Serializable {
     * @param beamSize the beam size
     */
    public void setBeamSize(int beamSize) {
-      Preconditions.checkArgument(beamSize > 0, "Beam size must be > 0.");
+      Validation.checkArgument(beamSize > 0, "Beam size must be > 0.");
       this.beamSize = beamSize;
    }
 

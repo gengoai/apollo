@@ -21,14 +21,11 @@
 
 package com.gengoai.apollo.linear.store;
 
+import com.gengoai.Validation;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.stat.measure.Measure;
-import com.gengoai.guava.common.base.Preconditions;
-import com.gengoai.guava.common.collect.Iterators;
-import com.gengoai.apollo.linear.NDArray;
-import com.gengoai.apollo.linear.NDArrayFactory;
-import com.gengoai.apollo.stat.measure.Measure;
+import com.gengoai.collection.Iterators;
 import lombok.NonNull;
 
 import java.io.IOException;
@@ -54,7 +51,7 @@ public class DefaultVectorStore<KEY> implements VectorStore<KEY>, Serializable {
     * @param queryMeasure the query measure
     */
    public DefaultVectorStore(int dimension, @NonNull Measure queryMeasure) {
-      Preconditions.checkArgument(dimension > 0, "Dimension must be > 0");
+      Validation.checkArgument(dimension > 0, "Dimension must be > 0");
       this.dimension = dimension;
       this.queryMeasure = queryMeasure;
    }

@@ -3,15 +3,10 @@ package com.gengoai.apollo.linear.store;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.stat.measure.Measure;
-import com.gengoai.guava.common.base.Throwables;
-import com.gengoai.guava.common.cache.CacheBuilder;
-import com.gengoai.guava.common.cache.CacheLoader;
-import com.gengoai.guava.common.cache.LoadingCache;
+import com.gengoai.cache.AutoCalculatingLRUCache;
+import com.gengoai.cache.Cache;
 import com.gengoai.io.Resources;
 import com.gengoai.string.StringUtils;
-import com.gengoai.apollo.linear.NDArray;
-import com.gengoai.apollo.linear.NDArrayFactory;
-import com.gengoai.apollo.stat.measure.Measure;
 import lombok.NonNull;
 import org.apache.mahout.math.map.OpenObjectLongHashMap;
 
@@ -20,7 +15,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
 
 /**
  * @author David B. Bracewell
@@ -31,7 +25,7 @@ public class IndexedFileStore implements VectorStore<String>, Serializable {
    private final File vectorFile;
    private int dimension;
    private Measure queryMeasure;
-   private transient final LoadingCache<String, NDArray> vectorCache;
+   private transient final Cache<String, NDArray> vectorCache;
 
 
    public IndexedFileStore(File vectorFile,
@@ -42,30 +36,25 @@ public class IndexedFileStore implements VectorStore<String>, Serializable {
       this.queryMeasure = queryMeasure;
       this.keyOffsets = new OpenObjectLongHashMap<>();
       indexFile();
-      vectorCache = CacheBuilder.newBuilder()
-                                .maximumSize(cacheSize)
-                                .build(new CacheLoader<String, NDArray>() {
-                                   @Override
-                                   public NDArray load(String s) throws Exception {
-                                      if (keyOffsets.containsKey(s)) {
-                                         try (RandomAccessFile raf = new RandomAccessFile(vectorFile, "r")) {
-                                            long offset = keyOffsets.get(s);
-                                            NDArray vector = NDArrayFactory.DENSE_FLOAT.zeros(dimension);
-                                            raf.seek(offset);
-                                            String line = raf.readLine();
-                                            String[] parts = line.split("\\p{Z}+");
-                                            for (int i = 1; i < parts.length; i++) {
-                                               vector.set(i - 1, Double.parseDouble(parts[i]));
-                                            }
-                                            vector.setLabel(parts[0]);
-                                            return vector;
-                                         } catch (Exception e) {
-                                            e.printStackTrace();
-                                         }
-                                      }
-                                      return NDArrayFactory.DENSE_FLOAT.zeros(dimension);
-                                   }
-                                });
+      vectorCache = new AutoCalculatingLRUCache<>(cacheSize, s -> {
+         if (keyOffsets.containsKey(s)) {
+            try (RandomAccessFile raf = new RandomAccessFile(vectorFile, "r")) {
+               long offset = keyOffsets.get(s);
+               NDArray vector = NDArrayFactory.DENSE_FLOAT.zeros(dimension);
+               raf.seek(offset);
+               String line = raf.readLine();
+               String[] parts = line.split("\\p{Z}+");
+               for (int i = 1; i < parts.length; i++) {
+                  vector.set(i - 1, Double.parseDouble(parts[i]));
+               }
+               vector.setLabel(parts[0]);
+               return vector;
+            } catch (Exception e) {
+               e.printStackTrace();
+            }
+         }
+         return NDArrayFactory.DENSE_FLOAT.zeros(dimension);
+      });
    }
 
 
@@ -104,11 +93,7 @@ public class IndexedFileStore implements VectorStore<String>, Serializable {
 
          @Override
          public NDArray next() {
-            try {
-               return vectorCache.get(itr.next());
-            } catch (ExecutionException e) {
-               throw Throwables.propagate(e);
-            }
+            return vectorCache.get(itr.next());
          }
       };
    }
@@ -125,11 +110,7 @@ public class IndexedFileStore implements VectorStore<String>, Serializable {
 
    @Override
    public NDArray get(String s) {
-      try {
-         return vectorCache.get(s);
-      } catch (ExecutionException e) {
-         throw Throwables.propagate(e);
-      }
+      return vectorCache.get(s);
    }
 
    @Override

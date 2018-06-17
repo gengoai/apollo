@@ -6,10 +6,6 @@ import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.apollo.ml.encoder.LabelEncoder;
 import com.gengoai.conversion.Cast;
 import com.gengoai.string.TableFormatter;
-import com.gengoai.apollo.ml.Evaluation;
-import com.gengoai.apollo.ml.Instance;
-import com.gengoai.apollo.ml.data.Dataset;
-import com.gengoai.apollo.ml.encoder.LabelEncoder;
 import org.apache.mahout.math.list.DoubleArrayList;
 
 import java.io.PrintStream;

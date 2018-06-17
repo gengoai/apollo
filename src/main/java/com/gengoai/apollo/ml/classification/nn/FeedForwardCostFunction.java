@@ -6,10 +6,6 @@ import com.gengoai.apollo.ml.optimization.CostFunction;
 import com.gengoai.apollo.ml.optimization.CostGradientTuple;
 import com.gengoai.apollo.ml.optimization.GradientParameter;
 import com.gengoai.apollo.ml.optimization.loss.LossFunction;
-import com.gengoai.apollo.ml.optimization.CostFunction;
-import com.gengoai.apollo.ml.optimization.CostGradientTuple;
-import com.gengoai.apollo.ml.optimization.GradientParameter;
-import com.gengoai.apollo.ml.optimization.loss.LossFunction;
 
 /**
  * @author David B. Bracewell

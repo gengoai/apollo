@@ -1,12 +1,12 @@
 package com.gengoai.apollo.ml.embedding;
 
+import com.gengoai.Math2;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.store.VectorStore;
 import com.gengoai.apollo.linear.store.VectorStoreBuilder;
-import com.gengoai.guava.common.base.Throwables;
-import com.gengoai.guava.common.collect.HashMultimap;
-import com.gengoai.guava.common.collect.Sets;
-import com.gengoai.guava.common.primitives.Doubles;
+import com.gengoai.collection.Sets;
+import com.gengoai.collection.multimap.HashSetMultimap;
+import com.gengoai.collection.multimap.Multimap;
 import com.gengoai.io.resource.Resource;
 import com.gengoai.string.StringUtils;
 import lombok.Getter;
@@ -25,13 +25,13 @@ import java.util.Set;
  * @author David B. Bracewell
  */
 public class FaruquiRetrofitting implements Retrofitting {
-   private final HashMultimap<String, String> lexicon = HashMultimap.create();
+   private final Multimap<String, String> lexicon = new HashSetMultimap<>();
    @Getter
    @Setter
    private int iterations = 25;
 
 
-   private void loadLexicon(Resource resource, HashMultimap<String, String> lexicon) throws IOException {
+   private void loadLexicon(Resource resource, Multimap<String, String> lexicon) throws IOException {
       resource.forEach(line -> {
          String[] parts = line.toLowerCase().trim().split("\\s+");
          String word = norm(parts[0]);
@@ -42,7 +42,7 @@ public class FaruquiRetrofitting implements Retrofitting {
    }
 
    private String norm(String string) {
-      if (Doubles.tryParse(string) != null) {
+      if (Math2.tryParseDouble(string) != null) {
          return "---num---";
       } else if (StringUtils.isPunctuation(string)) {
          return "---punc---";
@@ -91,7 +91,7 @@ public class FaruquiRetrofitting implements Retrofitting {
       try {
          return new Embedding(newVectors.build());
       } catch (IOException e) {
-         throw Throwables.propagate(e);
+         throw new RuntimeException(e);
       }
    }
 

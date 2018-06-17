@@ -22,7 +22,6 @@
 package com.gengoai.apollo.ml.featurizer;
 
 import com.gengoai.apollo.ml.Feature;
-import com.gengoai.cache.Cached;
 import com.gengoai.collection.counter.Counter;
 
 import java.util.Collections;
@@ -39,7 +38,6 @@ public abstract class RealFeaturizer<T> implements Featurizer<T> {
    private static final long serialVersionUID = 1L;
 
    @Override
-   @Cached
    public final List<Feature> apply(T input) {
       if (input == null) {
          return Collections.emptyList();

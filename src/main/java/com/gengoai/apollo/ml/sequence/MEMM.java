@@ -24,9 +24,7 @@ package com.gengoai.apollo.ml.sequence;
 import com.gengoai.apollo.ml.Feature;
 import com.gengoai.apollo.ml.Instance;
 import com.gengoai.apollo.ml.classification.LibLinearModel;
-import com.gengoai.guava.common.collect.Lists;
-import com.gengoai.apollo.ml.Feature;
-import com.gengoai.apollo.ml.Instance;
+import com.gengoai.collection.Lists;
 import lombok.NonNull;
 
 import java.util.Iterator;
@@ -56,7 +54,7 @@ public class MEMM extends SequenceLabeler {
 
    @Override
    public double[] estimate(Iterator<Feature> observation, Iterator<String> transitions) {
-      List<Feature> features = Lists.newArrayList(observation);
+      List<Feature> features = Lists.asArrayList(observation);
       while (transitions.hasNext()) {
          features.add(Feature.TRUE(transitions.next()));
       }

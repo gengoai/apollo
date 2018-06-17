@@ -5,8 +5,6 @@ import com.gengoai.apollo.linear.NDArrayInitializer;
 import com.gengoai.apollo.ml.Instance;
 import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.apollo.ml.optimization.activation.Activation;
-import com.gengoai.apollo.ml.data.Dataset;
-import com.gengoai.apollo.ml.optimization.activation.Activation;
 
 /**
  * @author David B. Bracewell

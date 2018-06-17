@@ -3,8 +3,8 @@ package com.gengoai.apollo.ml.sequence;
 import com.gengoai.apollo.ml.Feature;
 import com.gengoai.apollo.ml.Instance;
 import com.gengoai.apollo.ml.data.Dataset;
-import com.gengoai.guava.common.collect.Iterators;
-import com.gengoai.guava.common.collect.Lists;
+import com.gengoai.collection.Iterators;
+import com.gengoai.collection.Lists;
 import com.gengoai.function.SerializableFunction;
 import com.gengoai.string.StringUtils;
 import lombok.NonNull;
@@ -206,7 +206,7 @@ public interface TransitionFeature extends Serializable {
       List<Instance> instances = new ArrayList<>();
       while (itr.hasNext()) {
          Instance instance = itr.next();
-         List<Feature> features = Lists.newArrayList(instance);
+         List<Feature> features = Lists.asArrayList(instance);
          Iterator<String> transitions = extract(itr);
          while (transitions.hasNext()) {
             features.add(Feature.TRUE(transitions.next()));

@@ -4,7 +4,6 @@ import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.ml.Instance;
 import com.gengoai.collection.counter.Counter;
 import com.gengoai.collection.counter.Counters;
-import com.gengoai.apollo.ml.Instance;
 import lombok.NonNull;
 
 import java.util.List;

@@ -25,10 +25,7 @@ import com.gengoai.apollo.ml.Feature;
 import com.gengoai.apollo.ml.featurizer.PredicateFeaturizer;
 import com.gengoai.apollo.ml.sequence.Context;
 import com.gengoai.apollo.ml.sequence.SequenceFeaturizer;
-import com.gengoai.collection.list.Lists;
-import com.gengoai.apollo.ml.Feature;
-import com.gengoai.apollo.ml.sequence.Context;
-import com.gengoai.apollo.ml.sequence.SequenceFeaturizer;
+import com.gengoai.collection.Lists;
 import lombok.NonNull;
 
 import java.util.List;

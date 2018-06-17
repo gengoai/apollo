@@ -4,7 +4,6 @@ import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.stream.MStream;
 import com.gengoai.stream.accumulator.MAccumulator;
-import com.gengoai.apollo.ml.data.Dataset;
 import lombok.NonNull;
 
 import java.util.Arrays;

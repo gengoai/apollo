@@ -1,6 +1,6 @@
 package com.gengoai.apollo.linear.decompose;
 
-import com.gengoai.guava.common.base.Preconditions;
+import com.gengoai.Validation;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.dense.DenseDoubleNDArray;
 import com.gengoai.apollo.linear.dense.DenseFloatNDArray;
@@ -18,7 +18,7 @@ public class LUDecomposition implements Decomposition, Serializable {
    private static final long serialVersionUID = 1L;
 
    public NDArray[] decompose(@NonNull NDArray m) {
-      Preconditions.checkArgument(m.isSquare(), "Only square matrices are supported");
+      Validation.checkArgument(m.isSquare(), "Only square matrices are supported");
       if (m instanceof DenseDoubleNDArray) {
          Decompose.LUDecomposition<DoubleMatrix> r = Decompose.lu(m.toDoubleMatrix());
          return new NDArray[]{new DenseDoubleNDArray(r.l),

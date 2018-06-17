@@ -1,5 +1,6 @@
 package com.gengoai.apollo.ml.clustering.flat;
 
+import com.gengoai.Validation;
 import com.gengoai.apollo.Optimum;
 import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.ml.Instance;
@@ -7,12 +8,6 @@ import com.gengoai.apollo.ml.clustering.Cluster;
 import com.gengoai.apollo.ml.clustering.Clusterer;
 import com.gengoai.apollo.ml.clustering.Clustering;
 import com.gengoai.apollo.stat.measure.Measure;
-import com.gengoai.guava.common.base.Preconditions;
-import com.gengoai.apollo.Optimum;
-import com.gengoai.apollo.ml.Instance;
-import com.gengoai.apollo.ml.clustering.Cluster;
-import com.gengoai.apollo.ml.clustering.Clusterer;
-import com.gengoai.apollo.ml.clustering.Clustering;
 import org.apache.commons.math3.distribution.MultivariateNormalDistribution;
 
 import java.util.Iterator;
@@ -32,7 +27,7 @@ public class GMM extends Clustering {
 
    @Override
    public Cluster get(int index) {
-      Preconditions.checkElementIndex(index, components.size());
+      Validation.checkElementIndex(index, components.size());
       Cluster c = new Cluster();
       c.setCentroid(NDArrayFactory.wrap(components.get(index).sample()));
       return c;

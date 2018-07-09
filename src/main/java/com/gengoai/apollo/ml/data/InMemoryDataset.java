@@ -5,7 +5,6 @@ import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.encoder.Encoder;
 import com.gengoai.apollo.ml.encoder.LabelEncoder;
 import com.gengoai.apollo.ml.preprocess.PreprocessorList;
-import com.gengoai.collection.Iterables;
 import com.gengoai.conversion.Cast;
 import com.gengoai.function.SerializableFunction;
 import com.gengoai.stream.MStream;
@@ -56,10 +55,10 @@ public class InMemoryDataset<T extends Example> extends Dataset<T> {
 
    @Override
    protected void addAll(@NonNull MStream<T> stream) {
-      for (T instance : Iterables.asIterable(stream.iterator())) {
+      stream.forEach(instance -> {
          getLabelEncoder().encode(instance.getLabelSpace());
          instances.add(Cast.as(instance.intern(interner)));
-      }
+      });
    }
 
    @Override

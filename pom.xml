@@ -26,22 +26,22 @@
     <packaging>jar</packaging>
     <name>${project.groupId}:${project.artifactId}</name>
     <description>A machine learning library for Java.</description>
-    <url>https://github.com/dbracewell/davidbracewell-common</url>
+    <url>https://www.gengoai.com/apollo.html</url>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
     <scm>
-        <connection>scm:git:git@github.com:dbracewell/apollo.git</connection>
-        <developerConnection>scm:git:git@github.com:dbracewell/apollo.git</developerConnection>
-        <url>git@github.com:dbracewell/apollo.git</url>
+        <connection>scm:git:git@github.com:gengoai/apollo.git</connection>
+        <developerConnection>scm:git:git@github.com:gengoai/apollo.git</developerConnection>
+        <url>git@github.com:gengoai/apollo.git</url>
         <tag>HEAD</tag>
     </scm>
     <developers>
         <developer>
             <name>David B. Bracewell</name>
-            <email>david@davidbracewell.com</email>
+            <email>david@gengoai.com</email>
             <organization>David Bracewell</organization>
-            <organizationUrl>http://www.davidbracewell.com</organizationUrl>
+            <organizationUrl>https://www.gengoai.com</organizationUrl>
         </developer>
     </developers>
     <licenses>

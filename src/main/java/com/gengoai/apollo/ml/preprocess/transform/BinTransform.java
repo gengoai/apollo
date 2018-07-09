@@ -5,7 +5,7 @@ import com.gengoai.Validation;
 import com.gengoai.apollo.ml.Feature;
 import com.gengoai.apollo.ml.Instance;
 import com.gengoai.apollo.ml.preprocess.RestrictedInstancePreprocessor;
-import com.gengoai.collection.PrimitiveArrayList;
+import com.gengoai.collection.list.PrimitiveArrayList;
 import com.gengoai.conversion.Val;
 import com.gengoai.json.JsonReader;
 import com.gengoai.json.JsonTokenType;

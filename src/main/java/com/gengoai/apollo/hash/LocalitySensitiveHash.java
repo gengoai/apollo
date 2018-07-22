@@ -21,14 +21,11 @@
 
 package com.gengoai.apollo.hash;
 
-import com.gengoai.apollo.Optimum;
 import com.gengoai.apollo.hash.signature.*;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.stat.measure.Measure;
-import lombok.Getter;
+import com.gengoai.math.Optimum;
 import lombok.NonNull;
-import lombok.Setter;
-import lombok.experimental.Accessors;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -52,19 +49,12 @@ public class LocalitySensitiveHash implements Serializable {
 
    private static final long LARGE_PRIME = 433494437;
    private static final long serialVersionUID = 1L;
-   @Getter
    private final int bands;
-   @Getter
    private final int buckets;
-   @Getter
    private final int dimension;
-   @Getter
    private final SignatureFunction signatureFunction;
-   @Getter
    private final LSHStorage storage;
-   @Getter
    private final double threshold;
-   @Getter
    private final String signature;
    private final Map<String, Number> parameters = new HashMap<>();
 
@@ -77,7 +67,7 @@ public class LocalitySensitiveHash implements Serializable {
     * @param signatureFunction the signature function
     * @param storage           the storage
     */
-   protected LocalitySensitiveHash(int bands, int buckets, int dimension, SignatureFunction signatureFunction, LSHStorage storage, double threshold, String signature, Map<String, Number> parameters) {
+   private LocalitySensitiveHash(int bands, int buckets, int dimension, SignatureFunction signatureFunction, LSHStorage storage, double threshold, String signature, Map<String, Number> parameters) {
       this.bands = bands;
       this.buckets = buckets;
       this.dimension = dimension;
@@ -88,6 +78,11 @@ public class LocalitySensitiveHash implements Serializable {
       this.parameters.putAll(parameters);
    }
 
+   /**
+    * Builder builder.
+    *
+    * @return the builder
+    */
    public static Builder builder() {
       return new Builder();
    }
@@ -134,6 +129,33 @@ public class LocalitySensitiveHash implements Serializable {
    }
 
    /**
+    * Gets bands.
+    *
+    * @return the bands
+    */
+   public int getBands() {
+      return this.bands;
+   }
+
+   /**
+    * Gets buckets.
+    *
+    * @return the buckets
+    */
+   public int getBuckets() {
+      return this.buckets;
+   }
+
+   /**
+    * Gets dimension.
+    *
+    * @return the dimension
+    */
+   public int getDimension() {
+      return this.dimension;
+   }
+
+   /**
     * Gets the measure use to calculate the affinity between query vectors and the vectors in the table
     *
     * @return the measure
@@ -149,6 +171,42 @@ public class LocalitySensitiveHash implements Serializable {
     */
    public Optimum getOptimum() {
       return signatureFunction.getMeasure().getOptimum();
+   }
+
+   /**
+    * Gets signature.
+    *
+    * @return the signature
+    */
+   public String getSignature() {
+      return this.signature;
+   }
+
+   /**
+    * Gets signature function.
+    *
+    * @return the signature function
+    */
+   public SignatureFunction getSignatureFunction() {
+      return this.signatureFunction;
+   }
+
+   /**
+    * Gets storage.
+    *
+    * @return the storage
+    */
+   public LSHStorage getStorage() {
+      return this.storage;
+   }
+
+   /**
+    * Gets threshold.
+    *
+    * @return the threshold
+    */
+   public double getThreshold() {
+      return this.threshold;
    }
 
    private int[] hash(NDArray NDArray) {
@@ -192,6 +250,11 @@ public class LocalitySensitiveHash implements Serializable {
       return toReturn;
    }
 
+   /**
+    * To builder builder.
+    *
+    * @return the builder
+    */
    public Builder toBuilder() {
       return builder()
                 .dimension(dimension)
@@ -205,25 +268,115 @@ public class LocalitySensitiveHash implements Serializable {
    /**
     * The type Builder.
     */
-   @Accessors(fluent = true)
    public static class Builder {
-      @Getter
-      @Setter
       private int bands = 5;
-      @Getter
-      @Setter
       private int buckets = 20;
-      @Getter
-      @Setter
       private int dimension = 100;
-      @Getter
-      @Setter
       private double threshold = 0.5;
-      @Getter
-      @Setter
       private String signature = "COSINE";
 
       private Map<String, Number> parameters = new HashMap<>();
+
+      /**
+       * Bands builder.
+       *
+       * @param bands the bands
+       * @return the builder
+       */
+      public Builder bands(int bands) {
+         this.bands = bands;
+         return this;
+      }
+
+      /**
+       * Buckets builder.
+       *
+       * @param buckets the buckets
+       * @return the builder
+       */
+      public Builder buckets(int buckets) {
+         this.buckets = buckets;
+         return this;
+      }
+
+      /**
+       * Dimension builder.
+       *
+       * @param dimension the dimension
+       * @return the builder
+       */
+      public Builder dimension(int dimension) {
+         this.dimension = dimension;
+         return this;
+      }
+
+      /**
+       * Gets bands.
+       *
+       * @return the bands
+       */
+      public int getBands() {
+         return this.bands;
+      }
+
+      /**
+       * Gets buckets.
+       *
+       * @return the buckets
+       */
+      public int getBuckets() {
+         return this.buckets;
+      }
+
+      /**
+       * Gets dimension.
+       *
+       * @return the dimension
+       */
+      public int getDimension() {
+         return this.dimension;
+      }
+
+      /**
+       * Gets signature.
+       *
+       * @return the signature
+       */
+      public String getSignature() {
+         return this.signature;
+      }
+
+      /**
+       * Gets threshold.
+       *
+       * @return the threshold
+       */
+      public double getThreshold() {
+         return this.threshold;
+      }
+
+      /**
+       * Threshold builder.
+       *
+       * @param threshold the threshold
+       * @return the builder
+       */
+      public Builder threshold(double threshold) {
+         this.threshold = threshold;
+         return this;
+      }
+
+      /**
+       * Signature builder.
+       *
+       * @param signature the signature
+       * @return the builder
+       */
+      public Builder signature(String signature) {
+         this.signature = signature;
+         return this;
+      }
+
 
       /**
        * Create locality sensitive hash.
@@ -231,7 +384,7 @@ public class LocalitySensitiveHash implements Serializable {
        * @param storage the storage
        * @return the locality sensitive hash
        */
-      public LocalitySensitiveHash create(@NonNull LSHStorage storage) {
+      public LocalitySensitiveHash create(LSHStorage storage) {
          if (!parameters.containsKey(SIGNATURE_SIZE)) {
             int r = (int) (Math.ceil(Math.log(1.0 / bands) / Math.log(threshold)) + 1);
             parameters.put(SIGNATURE_SIZE, r * bands);
@@ -254,7 +407,8 @@ public class LocalitySensitiveHash implements Serializable {
                signatureFunction = new MinHashDistanceSignature(1d - threshold, dimension);
                break;
             default:
-               throw new IllegalStateException(signature + " is not one of [COSINE, COSINE_DISTANCE, EUCLIDEAN, JACCARD, MIN_HASH[");
+               throw new IllegalStateException(
+                  signature + " is not one of [COSINE, COSINE_DISTANCE, EUCLIDEAN, JACCARD, MIN_HASH[");
          }
 
          return new LocalitySensitiveHash(bands, buckets, dimension, signatureFunction, storage, threshold, signature,
@@ -282,6 +436,12 @@ public class LocalitySensitiveHash implements Serializable {
          return this;
       }
 
+      /**
+       * Parameters builder.
+       *
+       * @param parameters the parameters
+       * @return the builder
+       */
       public Builder parameters(@NonNull Map<String, Number> parameters) {
          this.parameters.putAll(parameters);
          return this;

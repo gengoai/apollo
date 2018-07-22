@@ -2,9 +2,10 @@ package com.gengoai.apollo.linear;
 
 import com.gengoai.Copyable;
 import com.gengoai.EnhancedDoubleStatistics;
-import com.gengoai.Math2;
+import com.gengoai.math.Math2;
 import com.gengoai.Validation;
-import com.gengoai.apollo.Optimum;
+import com.gengoai.math.Operator;
+import com.gengoai.math.Optimum;
 import com.gengoai.collection.Lists;
 import com.gengoai.collection.Streams;
 import com.gengoai.conversion.Cast;
@@ -104,7 +105,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @throws IllegalArgumentException If the shape of this NDArray does not match that of the other NDArray
     */
    public NDArray add(@NonNull NDArray other) {
-      return map(other, Math2::add);
+      return map(other, Operator::add);
    }
 
    /**
@@ -117,7 +118,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @throws IllegalArgumentException If the row/column shape of this NDArray does not match that of the other NDArray
     */
    public NDArray add(@NonNull NDArray other, @NonNull Axis axis) {
-      return map(other, axis, Math2::add);
+      return map(other, axis, Operator::add);
    }
 
    /**
@@ -156,7 +157,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @throws IllegalArgumentException If the row/column shape of this NDArray does not match that of the other NDArray
     */
    public NDArray addi(@NonNull NDArray other, @NonNull Axis axis) {
-      return mapi(other, axis, Math2::add);
+      return mapi(other, axis, Operator::add);
    }
 
    /**
@@ -340,7 +341,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @throws IllegalArgumentException If the shape of this NDArray does not match that of the other NDArray
     */
    public NDArray div(@NonNull NDArray other) {
-      return mapSparse(other, Math2::divide);
+      return mapSparse(other, Operator::divide);
    }
 
    /**
@@ -353,7 +354,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @throws IllegalArgumentException If the row/column shape of this NDArray does not match that of the other NDArray
     */
    public NDArray div(@NonNull NDArray other, @NonNull Axis axis) {
-      return mapSparse(other, axis, Math2::divide);
+      return mapSparse(other, axis, Operator::divide);
    }
 
    /**
@@ -374,7 +375,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @throws IllegalArgumentException If the shape of this NDArray does not match that of the other NDArray
     */
    public NDArray divi(@NonNull NDArray other) {
-      return mapiSparse(other, Math2::divide);
+      return mapiSparse(other, Operator::divide);
    }
 
    /**
@@ -387,7 +388,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @throws IllegalArgumentException If the row/column shape of this NDArray does not match that of the other NDArray
     */
    public NDArray divi(@NonNull NDArray other, @NonNull Axis axis) {
-      return mapiSparse(other, axis, Math2::divide);
+      return mapiSparse(other, axis, Operator::divide);
    }
 
    /**
@@ -1188,7 +1189,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @throws IllegalArgumentException If the shape of this NDArray does not match that of the other NDArray
     */
    public NDArray mul(@NonNull NDArray other) {
-      return mapSparse(other, Math2::multiply);
+      return mapSparse(other, Operator::multiply);
    }
 
    /**
@@ -1201,7 +1202,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @throws IllegalArgumentException If the row/column shape of this NDArray does not match that of the other NDArray
     */
    public NDArray mul(@NonNull NDArray other, @NonNull Axis axis) {
-      return mapSparse(other, axis, Math2::multiply);
+      return mapSparse(other, axis, Operator::multiply);
    }
 
    /**
@@ -1225,7 +1226,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @throws IllegalArgumentException If the shape of this NDArray does not match that of the other NDArray
     */
    public NDArray muli(@NonNull NDArray other) {
-      return mapiSparse(other, Math2::multiply);
+      return mapiSparse(other, Operator::multiply);
    }
 
    /**
@@ -1238,7 +1239,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @throws IllegalArgumentException If the row/column shape of this NDArray does not match that of the other NDArray
     */
    public NDArray muli(@NonNull NDArray other, @NonNull Axis axis) {
-      return mapiSparse(other, axis, Math2::multiply);
+      return mapiSparse(other, axis, Operator::multiply);
    }
 
    /**
@@ -1402,7 +1403,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @throws IllegalArgumentException If the shape of this NDArray does not match that of the other NDArray
     */
    public NDArray rdiv(@NonNull NDArray other) {
-      return rmap(other, Math2::divide);
+      return rmap(other, Operator::divide);
    }
 
    /**
@@ -1415,7 +1416,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @throws IllegalArgumentException If the row/column shape of this NDArray does not match that of the other NDArray
     */
    public NDArray rdiv(@NonNull NDArray other, @NonNull Axis axis) {
-      return rmap(other, axis, Math2::divide);
+      return rmap(other, axis, Operator::divide);
    }
 
    /**
@@ -1436,7 +1437,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @throws IllegalArgumentException If the shape of this NDArray does not match that of the other NDArray
     */
    public NDArray rdivi(@NonNull NDArray other) {
-      return rmapi(other, Math2::divide);
+      return rmapi(other, Operator::divide);
    }
 
    /**
@@ -1449,7 +1450,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @throws IllegalArgumentException If the row/column shape of this NDArray does not match that of the other NDArray
     */
    public NDArray rdivi(@NonNull NDArray other, @NonNull Axis axis) {
-      return rmapi(other, axis, Math2::divide);
+      return rmapi(other, axis, Operator::divide);
    }
 
    /**
@@ -1552,7 +1553,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @throws IllegalArgumentException If the shape of this NDArray does not match that of the other NDArray
     */
    public NDArray rsub(@NonNull NDArray other) {
-      return other.map(this, Math2::subtract);
+      return other.map(this, Operator::subtract);
    }
 
    /**
@@ -1565,7 +1566,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @throws IllegalArgumentException If the row/column shape of this NDArray does not match that of the other NDArray
     */
    public NDArray rsub(@NonNull NDArray other, @NonNull Axis axis) {
-      return rmap(other, axis, Math2::subtract);
+      return rmap(other, axis, Operator::subtract);
    }
 
    /**
@@ -1586,7 +1587,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @throws IllegalArgumentException If the shape of this NDArray does not match that of the other NDArray
     */
    public NDArray rsubi(@NonNull NDArray other) {
-      return rmapi(other, Math2::subtract);
+      return rmapi(other, Operator::subtract);
    }
 
    /**
@@ -1599,7 +1600,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @throws IllegalArgumentException If the row/column shape of this NDArray does not match that of the other NDArray
     */
    public NDArray rsubi(@NonNull NDArray other, @NonNull Axis axis) {
-      return rmapi(other, axis, Math2::subtract);
+      return rmapi(other, axis, Operator::subtract);
    }
 
    /**
@@ -1869,7 +1870,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @throws IllegalArgumentException If the row/column shape of this NDArray does not match that of the other NDArray
     */
    public NDArray sub(@NonNull NDArray other, @NonNull Axis axis) {
-      return map(other, axis, Math2::subtract);
+      return map(other, axis, Operator::subtract);
    }
 
    /**
@@ -1908,7 +1909,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @throws IllegalArgumentException If the row/column shape of this NDArray does not match that of the other NDArray
     */
    public NDArray subi(@NonNull NDArray other, @NonNull Axis axis) {
-      return mapi(other, axis, Math2::subtract);
+      return mapi(other, axis, Operator::subtract);
    }
 
    /**

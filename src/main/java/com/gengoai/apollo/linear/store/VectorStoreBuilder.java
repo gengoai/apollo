@@ -5,9 +5,7 @@ import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.stat.measure.Measure;
 import com.gengoai.apollo.stat.measure.Similarity;
 import com.gengoai.conversion.Cast;
-import lombok.Getter;
 import lombok.NonNull;
-import lombok.experimental.Accessors;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -19,16 +17,14 @@ import java.util.Map;
  * @param <KEY> the type parameter
  * @author David B. Bracewell
  */
-@Accessors(fluent = true)
 public abstract class VectorStoreBuilder<KEY> {
    /**
     * The Vectors.
     */
    protected final Map<KEY, NDArray> vectors = new HashMap<>();
-   @Getter
    private int dimension = 100;
-   @Getter
    private Measure measure = Similarity.Cosine;
+
 
    /**
     * Add a vector to the vector store.
@@ -86,6 +82,10 @@ public abstract class VectorStoreBuilder<KEY> {
       return this;
    }
 
+   public int dimension() {
+      return this.dimension;
+   }
+
    /**
     * Sets the measure used for doing nearest neighbor queries
     *
@@ -95,6 +95,10 @@ public abstract class VectorStoreBuilder<KEY> {
    public final VectorStoreBuilder<KEY> measure(@NonNull Measure measure) {
       this.measure = measure;
       return this;
+   }
+
+   public Measure measure() {
+      return this.measure;
    }
 
    /**

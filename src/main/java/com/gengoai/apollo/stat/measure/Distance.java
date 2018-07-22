@@ -1,7 +1,7 @@
 package com.gengoai.apollo.stat.measure;
 
 
-import com.gengoai.Math2;
+import com.gengoai.math.Math2;
 import com.gengoai.apollo.linear.NDArray;
 import lombok.NonNull;
 

@@ -24,9 +24,9 @@ package com.gengoai.apollo.ml;
 import com.gengoai.Copyable;
 import com.gengoai.string.StringUtils;
 import lombok.NonNull;
-import lombok.Value;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * <p>A feature is made up of a name and double value.</p> <p>Convention for binary predicates is
@@ -34,7 +34,6 @@ import java.io.Serializable;
  *
  * @author David B. Bracewell
  */
-@Value
 public class Feature implements Serializable, Comparable<Feature>, Copyable<Feature> {
    private static final long serialVersionUID = 1L;
    private String name;
@@ -64,21 +63,45 @@ public class Feature implements Serializable, Comparable<Feature>, Copyable<Feat
     * @return the feature
     */
    public static Feature TRUE(@NonNull String featurePrefix, @NonNull String... featureComponents) {
-      return new Feature(featurePrefix + "=" + StringUtils.join(featureComponents,"_"),1.0);
+      return new Feature(featurePrefix + "=" + StringUtils.join(featureComponents, "_"), 1.0);
    }
 
+   /**
+    * Is false boolean.
+    *
+    * @param value the value
+    * @return the boolean
+    */
    public static boolean isFalse(double value) {
       return value == 0 || value == -1;
    }
 
+   /**
+    * Is false boolean.
+    *
+    * @param value the value
+    * @return the boolean
+    */
    public static boolean isFalse(String value) {
       return value.toLowerCase().equals("false");
    }
 
+   /**
+    * Is true boolean.
+    *
+    * @param value the value
+    * @return the boolean
+    */
    public static boolean isTrue(String value) {
       return value.toLowerCase().equals("true");
    }
 
+   /**
+    * Is true boolean.
+    *
+    * @param value the value
+    * @return the boolean
+    */
    public static boolean isTrue(double value) {
       return value == 1;
    }
@@ -104,8 +127,22 @@ public class Feature implements Serializable, Comparable<Feature>, Copyable<Feat
       return new Feature(name, value);
    }
 
+   /**
+    * Gets feature name.
+    *
+    * @return the feature name
+    */
    public String getFeatureName() {
       return name;
+   }
+
+   /**
+    * Gets name.
+    *
+    * @return the name
+    */
+   public String getName() {
+      return this.name;
    }
 
    /**
@@ -141,8 +178,37 @@ public class Feature implements Serializable, Comparable<Feature>, Copyable<Feat
       }
    }
 
+   /**
+    * Gets value.
+    *
+    * @return the value
+    */
+   public double getValue() {
+      return this.value;
+   }
+
+
+   @Override
+   public boolean equals(Object o) {
+      if (this == o) return true;
+      if (!(o instanceof Feature)) return false;
+      Feature feature = (Feature) o;
+      return Double.compare(feature.value, value) == 0 &&
+                Objects.equals(name, feature.name);
+   }
+
+   @Override
+   public int hashCode() {
+
+      return Objects.hash(name, value);
+   }
+
    private String removePosition(String n) {
       return n.replaceAll("\\[[^\\]]+?\\]$", "");
    }
 
+   @Override
+   public String toString() {
+      return "Feature(name=" + this.getName() + ", value=" + this.getValue() + ")";
+   }
 }//END OF Feature

@@ -22,20 +22,24 @@
 package com.gengoai.apollo.ml;
 
 import lombok.NonNull;
-import lombok.Value;
 
 import java.io.Serializable;
 
 /**
  * Simple container for an object and its associated label
  *
+ * @param <T> the type parameter
  * @author David B. Bracewell
  */
-@Value
 public class LabeledDatum<T> implements Serializable {
    private static final long serialVersionUID = 1L;
    private Object label;
    private T data;
+
+   private LabeledDatum(Object label, T data) {
+      this.label = label;
+      this.data = data;
+   }
 
    /**
     * Convenience method for creating a labeled data point
@@ -49,4 +53,50 @@ public class LabeledDatum<T> implements Serializable {
       return new LabeledDatum<>(label, data);
    }
 
+   public boolean equals(Object o) {
+      if (o == this) return true;
+      if (!(o instanceof LabeledDatum)) return false;
+      final LabeledDatum other = (LabeledDatum) o;
+      final Object this$label = this.getLabel();
+      final Object other$label = other.getLabel();
+      if (this$label == null ? other$label != null : !this$label.equals(other$label)) return false;
+      final Object this$data = this.getData();
+      final Object other$data = other.getData();
+      if (this$data == null ? other$data != null : !this$data.equals(other$data)) return false;
+      return true;
+   }
+
+   /**
+    * Gets data.
+    *
+    * @return the data
+    */
+   public T getData() {
+      return this.data;
+   }
+
+   /**
+    * Gets label.
+    *
+    * @return the label
+    */
+   public Object getLabel() {
+      return this.label;
+   }
+
+   @Override
+   public int hashCode() {
+      final int PRIME = 59;
+      int result = 1;
+      final Object $label = this.getLabel();
+      result = result * PRIME + ($label == null ? 43 : $label.hashCode());
+      final Object $data = this.getData();
+      result = result * PRIME + ($data == null ? 43 : $data.hashCode());
+      return result;
+   }
+
+   @Override
+   public String toString() {
+      return "LabeledDatum(label=" + this.getLabel() + ", data=" + this.getData() + ")";
+   }
 }//END OF LabeledDatum

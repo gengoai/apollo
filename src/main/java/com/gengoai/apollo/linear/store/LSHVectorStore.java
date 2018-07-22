@@ -21,12 +21,12 @@
 
 package com.gengoai.apollo.linear.store;
 
-import com.gengoai.apollo.Optimum;
 import com.gengoai.apollo.hash.LocalitySensitiveHash;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.stat.measure.Measure;
 import com.gengoai.collection.Iterators;
+import com.gengoai.math.Optimum;
 import com.google.common.collect.MinMaxPriorityQueue;
 import lombok.NonNull;
 

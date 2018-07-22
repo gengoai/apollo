@@ -88,13 +88,6 @@ public interface VectorStore<KEY> extends Iterable<NDArray>, AutoCloseable, Clos
    boolean containsKey(KEY key);
 
    /**
-    * Create new vector store.
-    *
-    * @return the vector store
-    */
-   VectorStoreBuilder<KEY> toBuilder();
-
-   /**
     * The dimension of the vectors in the store
     *
     * @return the dimension of the vectors
@@ -108,6 +101,11 @@ public interface VectorStore<KEY> extends Iterable<NDArray>, AutoCloseable, Clos
     * @return the labeled vector or null if key is not in store
     */
    NDArray get(KEY key);
+
+   /**
+    * @return The query measured for nearest neighbor calls
+    */
+   Measure getQueryMeasure();
 
    /**
     * The label keys in the store
@@ -133,11 +131,6 @@ public interface VectorStore<KEY> extends Iterable<NDArray>, AutoCloseable, Clos
                     .filter(s -> getQueryMeasure().getOptimum().test(s.getWeight(), threshold))
                     .collect(Collectors.toList());
    }
-
-   /**
-    * @return The query measured for nearest neighbor calls
-    */
-   Measure getQueryMeasure();
 
    /**
     * Queries the vector store for the nearest vectors to the given <code>query</code> vector returning only the top
@@ -271,5 +264,12 @@ public interface VectorStore<KEY> extends Iterable<NDArray>, AutoCloseable, Clos
     * @return the number of vectors
     */
    int size();
+
+   /**
+    * Create new vector store.
+    *
+    * @return the vector store
+    */
+   VectorStoreBuilder<KEY> toBuilder();
 
 }// END OF VectorStore

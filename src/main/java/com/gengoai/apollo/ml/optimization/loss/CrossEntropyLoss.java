@@ -1,6 +1,6 @@
 package com.gengoai.apollo.ml.optimization.loss;
 
-import com.gengoai.Math2;
+import com.gengoai.math.Math2;
 import com.gengoai.apollo.linear.NDArray;
 
 import java.io.Serializable;

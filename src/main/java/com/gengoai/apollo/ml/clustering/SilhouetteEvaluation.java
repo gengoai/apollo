@@ -21,7 +21,7 @@
 
 package com.gengoai.apollo.ml.clustering;
 
-import com.gengoai.Math2;
+import com.gengoai.math.Math2;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.ml.Evaluation;
 import com.gengoai.apollo.ml.Instance;

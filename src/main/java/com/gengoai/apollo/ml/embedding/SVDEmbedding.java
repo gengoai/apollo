@@ -21,7 +21,6 @@
 
 package com.gengoai.apollo.ml.embedding;
 
-import com.gengoai.Math2;
 import com.gengoai.apollo.linear.Axis;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
@@ -38,6 +37,7 @@ import com.gengoai.apollo.stat.measure.ContingencyTable;
 import com.gengoai.apollo.stat.measure.ContingencyTableCalculator;
 import com.gengoai.apollo.stat.measure.Similarity;
 import com.gengoai.collection.counter.MultiCounter;
+import com.gengoai.math.Operator;
 import com.gengoai.stream.StreamingContext;
 import com.gengoai.stream.accumulator.MMultiCounterAccumulator;
 import lombok.Getter;
@@ -85,7 +85,7 @@ public class SVDEmbedding extends EmbeddingLearner {
                                                                       .flatMap(Instance::getFeatureSpace)
                                                       )
                                               .mapToPair(s -> $(s, 1.0))
-                                              .reduceByKey(Math2::add)
+                                              .reduceByKey(Operator::add)
                                               .collectAsMap();
 
       final Encoder featureEncoder = new IndexEncoder();

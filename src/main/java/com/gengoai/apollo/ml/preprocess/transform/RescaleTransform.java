@@ -1,6 +1,6 @@
 package com.gengoai.apollo.ml.preprocess.transform;
 
-import com.gengoai.Math2;
+import com.gengoai.math.Math2;
 import com.gengoai.Validation;
 import com.gengoai.apollo.ml.Feature;
 import com.gengoai.apollo.ml.Instance;

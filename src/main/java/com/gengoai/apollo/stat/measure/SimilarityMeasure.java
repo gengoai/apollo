@@ -22,7 +22,7 @@
 package com.gengoai.apollo.stat.measure;
 
 
-import com.gengoai.apollo.Optimum;
+import com.gengoai.math.Optimum;
 
 /**
  * <p>A measure that determines how close together two items are.</p>

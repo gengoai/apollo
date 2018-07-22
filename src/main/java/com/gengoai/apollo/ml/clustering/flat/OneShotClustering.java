@@ -21,7 +21,7 @@
 
 package com.gengoai.apollo.ml.clustering.flat;
 
-import com.gengoai.apollo.Optimum;
+import com.gengoai.math.Optimum;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.ml.Instance;
 import com.gengoai.apollo.ml.clustering.Clusterer;

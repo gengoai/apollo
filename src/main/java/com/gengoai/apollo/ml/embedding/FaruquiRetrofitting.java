@@ -1,6 +1,6 @@
 package com.gengoai.apollo.ml.embedding;
 
-import com.gengoai.Math2;
+import com.gengoai.math.Math2;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.store.VectorStore;
 import com.gengoai.apollo.linear.store.VectorStoreBuilder;

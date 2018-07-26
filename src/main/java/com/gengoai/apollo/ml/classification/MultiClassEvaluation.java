@@ -56,13 +56,15 @@ public class MultiClassEvaluation implements ClassifierEvaluation {
 
    /**
     * Cross validation classifier evaluation.
-    *
+    * @TODO Add in option for preprocessing
     * @param dataset         the dataset
     * @param learnerSupplier the learner supplier
     * @param nFolds          the n folds
     * @return the classifier evaluation
     */
-   public static MultiClassEvaluation crossValidation(@NonNull Dataset<Instance> dataset, @NonNull Supplier<ClassifierLearner> learnerSupplier, int nFolds) {
+   public static MultiClassEvaluation crossValidation(@NonNull Dataset<Instance> dataset,
+                                                      @NonNull Supplier<ClassifierLearner> learnerSupplier,
+                                                      int nFolds) {
       MultiClassEvaluation evaluation = new MultiClassEvaluation();
       AtomicInteger foldId = new AtomicInteger(0);
       dataset.fold(nFolds).forEach((train, test) -> {

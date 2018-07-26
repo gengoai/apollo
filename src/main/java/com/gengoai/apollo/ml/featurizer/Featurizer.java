@@ -83,7 +83,7 @@ public interface Featurizer<INPUT> extends Serializable {
     * @return the instance
     */
    default Instance extractInstance(@NonNull LabeledDatum<? extends INPUT> labeledDatum) {
-      return Instance.create(apply(labeledDatum.getData()), labeledDatum.getLabel());
+      return Instance.create(apply(labeledDatum.data), labeledDatum.label);
    }
 
 

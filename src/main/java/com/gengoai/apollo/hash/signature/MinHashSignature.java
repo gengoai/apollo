@@ -37,7 +37,7 @@ public class MinHashSignature implements SignatureFunction {
    private static final long serialVersionUID = 1L;
    private final int signatureSize;
    private final int dimension;
-   private final long[][] coefficents;
+   private final long[][] coefficients;
 
    /**
     * Instantiates a new Min hash signature.
@@ -59,10 +59,10 @@ public class MinHashSignature implements SignatureFunction {
       this.signatureSize = signatureSize;
       this.dimension = dimension;
       Random rnd = new Random();
-      this.coefficents = new long[signatureSize][2];
+      this.coefficients = new long[signatureSize][2];
       for (int i = 0; i < signatureSize; i++) {
-         this.coefficents[i][0] = rnd.nextInt(dimension);
-         this.coefficents[i][1] = rnd.nextInt(dimension);
+         this.coefficients[i][0] = rnd.nextInt(dimension);
+         this.coefficients[i][1] = rnd.nextInt(dimension);
       }
    }
 
@@ -82,7 +82,7 @@ public class MinHashSignature implements SignatureFunction {
    }
 
    private int h(int i, long x) {
-      return (int) (coefficents[i][0] * x + coefficents[i][1]) % dimension;
+      return (int) (coefficients[i][0] * x + coefficients[i][1]) % dimension;
    }
 
    @Override

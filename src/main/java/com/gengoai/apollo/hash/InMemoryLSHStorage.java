@@ -1,8 +1,8 @@
 package com.gengoai.apollo.hash;
 
 import com.gengoai.apollo.linear.NDArray;
-import com.gengoai.collection.multimap.SetMultimap;
 import com.gengoai.collection.multimap.HashSetMultimap;
+import com.gengoai.collection.multimap.SetMultimap;
 import com.gengoai.tuple.Tuple2;
 
 import java.io.Serializable;

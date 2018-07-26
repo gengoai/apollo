@@ -1,7 +1,6 @@
 package com.gengoai.apollo.linear.decompose;
 
 import com.gengoai.apollo.linear.NDArray;
-import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.linear.SparkLinearAlgebra;
 import com.gengoai.apollo.linear.dense.DenseDoubleNDArray;
 import com.gengoai.apollo.linear.dense.DenseFloatNDArray;
@@ -38,17 +37,6 @@ public class SingularValueDecomposition implements Decomposition, Serializable {
       this.distributed = distributed;
       this.sparse = sparse;
       this.K = K;
-   }
-
-   public static void main(String[] args) {
-      NDArray a = NDArrayFactory.DENSE_DOUBLE.rand(4, 5);
-      SingularValueDecomposition svd = new SingularValueDecomposition(false, true);
-      NDArray[] usv = svd.decompose(a);
-
-      usv[0].pprint(System.out);
-      usv[1].pprint(System.out);
-      usv[2].pprint(System.out);
-
    }
 
    @Override

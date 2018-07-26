@@ -144,7 +144,7 @@ public interface VectorStore<KEY> extends Iterable<NDArray>, AutoCloseable, Clos
     */
    default List<NDArray> nearest(@NonNull NDArray query, int K, double threshold) {
       Validation.checkArgument(query.length() == dimension(),
-                                  "Dimension mismatch, vector store can only store vectors with k of " + dimension());
+                               "Dimension mismatch, vector store can only store vectors with k of " + dimension());
       List<NDArray> vectors = Streams.asParallelStream(iterator())
                                      .map(v -> v.copy().setWeight(getQueryMeasure().calculate(v, query)))
                                      .filter(s -> getQueryMeasure().getOptimum().test(s.getWeight(), threshold))
@@ -162,7 +162,7 @@ public interface VectorStore<KEY> extends Iterable<NDArray>, AutoCloseable, Clos
     */
    default List<NDArray> nearest(NDArray query) {
       Validation.checkArgument(query.length() == dimension(),
-                                  "Dimension mismatch, vector store can only store vectors with k of " + dimension());
+                               "Dimension mismatch, vector store can only store vectors with k of " + dimension());
       return Streams.asParallelStream(iterator())
                     .map(v -> v.copy().setWeight(getQueryMeasure().calculate(v, query)))
                     .collect(Collectors.toList());
@@ -178,7 +178,7 @@ public interface VectorStore<KEY> extends Iterable<NDArray>, AutoCloseable, Clos
     */
    default List<NDArray> nearest(@NonNull NDArray query, int K) {
       Validation.checkArgument(query.length() == dimension(),
-                                  "Dimension mismatch, vector store can only store vectors with k of " + dimension());
+                               "Dimension mismatch, vector store can only store vectors with k of " + dimension());
       List<NDArray> vectors = Streams.asParallelStream(iterator())
                                      .map(v -> v.copy().setWeight(getQueryMeasure().calculate(v, query)))
                                      .sorted((s1, s2) -> getQueryMeasure().getOptimum()

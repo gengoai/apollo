@@ -12,26 +12,25 @@ import java.util.Set;
 public interface LSHStorage {
 
    /**
-    * Adds the given NDArray id to the LSH table.
+    * Adds the given NDArray to the LSH table at the given band and bucket.
     *
     * @param vector the vector
     * @param band   the band
     * @param bucket the bucket
-    * @return the int
     */
    void add(NDArray vector, int band, int bucket);
 
    /**
-    * Clear.
+    * Clears the storage.
     */
    void clear();
 
    /**
-    * Get int [ ].
+    * Gets the set of NDArrays at the given band and bucket
     *
     * @param band   the band
     * @param bucket the bucket
-    * @return the int [ ]
+    * @return the set of NDArray associated with the given band and bucket
     */
    Set<NDArray> get(int band, int bucket);
 

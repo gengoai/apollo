@@ -300,6 +300,43 @@ public class LocalitySensitiveHash implements Serializable {
       }
 
       /**
+       * Create locality sensitive hash.
+       *
+       * @param storage the storage
+       * @return the locality sensitive hash
+       */
+      public LocalitySensitiveHash create(LSHStorage storage) {
+         if (!parameters.containsKey(SIGNATURE_SIZE)) {
+            int r = (int) (Math.ceil(Math.log(1.0 / bands) / Math.log(threshold)) + 1);
+            parameters.put(SIGNATURE_SIZE, r * bands);
+         }
+         SignatureFunction signatureFunction;
+         switch (signature.toUpperCase()) {
+            case "COSINE":
+               signatureFunction = new CosineSignature(parameters.get(SIGNATURE_SIZE).intValue(), dimension);
+               break;
+            case "COSINE_DISTANCE":
+               signatureFunction = new CosineDistanceSignature(parameters.get(SIGNATURE_SIZE).intValue(), dimension);
+               break;
+            case "EUCLIDEAN":
+               signatureFunction = new EuclideanSignature(parameters.get(SIGNATURE_SIZE).intValue(),
+                                                          dimension,
+                                                          parameters.getOrDefault("MAXW", 100).intValue());
+               break;
+            case "JACCARD":
+            case "MIN_HASH":
+               signatureFunction = new MinHashDistanceSignature(1d - threshold, dimension);
+               break;
+            default:
+               throw new IllegalStateException(
+                  signature + " is not one of [COSINE, COSINE_DISTANCE, EUCLIDEAN, JACCARD, MIN_HASH[");
+         }
+
+         return new LocalitySensitiveHash(bands, buckets, dimension, signatureFunction, storage, threshold, signature,
+                                          parameters);
+      }
+
+      /**
        * Dimension builder.
        *
        * @param dimension the dimension
@@ -356,66 +393,6 @@ public class LocalitySensitiveHash implements Serializable {
       }
 
       /**
-       * Threshold builder.
-       *
-       * @param threshold the threshold
-       * @return the builder
-       */
-      public Builder threshold(double threshold) {
-         this.threshold = threshold;
-         return this;
-      }
-
-      /**
-       * Signature builder.
-       *
-       * @param signature the signature
-       * @return the builder
-       */
-      public Builder signature(String signature) {
-         this.signature = signature;
-         return this;
-      }
-
-
-      /**
-       * Create locality sensitive hash.
-       *
-       * @param storage the storage
-       * @return the locality sensitive hash
-       */
-      public LocalitySensitiveHash create(LSHStorage storage) {
-         if (!parameters.containsKey(SIGNATURE_SIZE)) {
-            int r = (int) (Math.ceil(Math.log(1.0 / bands) / Math.log(threshold)) + 1);
-            parameters.put(SIGNATURE_SIZE, r * bands);
-         }
-         SignatureFunction signatureFunction;
-         switch (signature.toUpperCase()) {
-            case "COSINE":
-               signatureFunction = new CosineSignature(parameters.get(SIGNATURE_SIZE).intValue(), dimension);
-               break;
-            case "COSINE_DISTANCE":
-               signatureFunction = new CosineDistanceSignature(parameters.get(SIGNATURE_SIZE).intValue(), dimension);
-               break;
-            case "EUCLIDEAN":
-               signatureFunction = new EuclideanSignature(parameters.get(SIGNATURE_SIZE).intValue(),
-                                                          dimension,
-                                                          parameters.getOrDefault("MAXW", 100).intValue());
-               break;
-            case "JACCARD":
-            case "MIN_HASH":
-               signatureFunction = new MinHashDistanceSignature(1d - threshold, dimension);
-               break;
-            default:
-               throw new IllegalStateException(
-                  signature + " is not one of [COSINE, COSINE_DISTANCE, EUCLIDEAN, JACCARD, MIN_HASH[");
-         }
-
-         return new LocalitySensitiveHash(bands, buckets, dimension, signatureFunction, storage, threshold, signature,
-                                          parameters);
-      }
-
-      /**
        * In memory locality sensitive hash.
        *
        * @return the locality sensitive hash
@@ -444,6 +421,28 @@ public class LocalitySensitiveHash implements Serializable {
        */
       public Builder parameters(@NonNull Map<String, Number> parameters) {
          this.parameters.putAll(parameters);
+         return this;
+      }
+
+      /**
+       * Signature builder.
+       *
+       * @param signature the signature
+       * @return the builder
+       */
+      public Builder signature(String signature) {
+         this.signature = signature;
+         return this;
+      }
+
+      /**
+       * Threshold builder.
+       *
+       * @param threshold the threshold
+       * @return the builder
+       */
+      public Builder threshold(double threshold) {
+         this.threshold = threshold;
          return this;
       }
 

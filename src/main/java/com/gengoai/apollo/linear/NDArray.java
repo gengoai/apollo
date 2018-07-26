@@ -2,16 +2,16 @@ package com.gengoai.apollo.linear;
 
 import com.gengoai.Copyable;
 import com.gengoai.EnhancedDoubleStatistics;
-import com.gengoai.math.Math2;
 import com.gengoai.Validation;
-import com.gengoai.math.Operator;
-import com.gengoai.math.Optimum;
 import com.gengoai.collection.Lists;
 import com.gengoai.collection.Streams;
 import com.gengoai.conversion.Cast;
 import com.gengoai.io.CSV;
 import com.gengoai.io.CSVWriter;
 import com.gengoai.io.resource.Resource;
+import com.gengoai.math.Math2;
+import com.gengoai.math.Operator;
+import com.gengoai.math.Optimum;
 import lombok.NonNull;
 import org.apache.commons.math3.util.FastMath;
 import org.jblas.DoubleMatrix;
@@ -452,7 +452,8 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
    }
 
    /**
-    * Convenience method for calculating <code>e^x</code> where <code>x</code> is the element value of the NDArray, i.e.
+    * Convenience method for calculating <code>e^x</code> where <code>x</code> is the element value of the NDArray,
+    * i.e.
     * <code>Math.exp(x)</code>.
     *
     * @return the new NDArray

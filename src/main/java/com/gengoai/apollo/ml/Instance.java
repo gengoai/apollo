@@ -157,20 +157,6 @@ public class Instance implements Example, Serializable, Iterable<Feature> {
       return new Instance(features, label);
    }
 
-//   /**
-//    * Convenience method for creating an instance from a vector. Feature names are string representations of the vector
-//    * indices.
-//    *
-//    * @param vector the vector
-//    * @return the instance
-//    */
-//   public static Instance fromVector(@NonNull com.gengoai.apollo.linalg.Vector vector) {
-//      List<Feature> features = Streams.asStream(vector.nonZeroIterator())
-//                                      .map(de -> Feature.real(Integer.toString(de.index), de.value))
-//                                      .collect(Collectors.toList());
-//      return create(features, vector.getLabel());
-//   }
-
    @Override
    public List<Instance> asInstances() {
       return Collections.singletonList(this);

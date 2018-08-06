@@ -1,5 +1,6 @@
 package com.gengoai.apollo.ml.classification.nn;
 
+import com.gengoai.Stopwatch;
 import com.gengoai.apollo.linear.Axis;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.ml.optimization.*;
@@ -99,6 +100,7 @@ public class Backprop implements Optimizer<FeedForwardNetwork> {
 //            }
 //         });
 
+         Stopwatch timer = Stopwatch.createStarted();
          List<Layer> layers = startingTheta.layers;
          for (Iterator<NDArray> itr = data.iterator(batchSize); itr.hasNext(); ) {
             NDArray X = itr.next();
@@ -116,7 +118,7 @@ public class Backprop implements Optimizer<FeedForwardNetwork> {
                }
             }
          }
-         if (report(reportInterval, iteration, terminationCriteria, loss, "")) {
+         if (report(reportInterval, iteration, terminationCriteria, loss, timer.toString())) {
             break;
          }
       }

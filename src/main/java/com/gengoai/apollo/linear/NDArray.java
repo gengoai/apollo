@@ -1,7 +1,7 @@
 package com.gengoai.apollo.linear;
 
 import com.gengoai.Copyable;
-import com.gengoai.EnhancedDoubleStatistics;
+import com.gengoai.math.EnhancedDoubleStatistics;
 import com.gengoai.Validation;
 import com.gengoai.collection.Lists;
 import com.gengoai.collection.Streams;

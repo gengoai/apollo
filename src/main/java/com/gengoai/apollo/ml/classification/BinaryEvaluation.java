@@ -31,6 +31,11 @@ public class BinaryEvaluation implements ClassifierEvaluation {
       this.positiveLabel = labelEncoder.decode(1.0).toString();
    }
 
+
+   public double baseline() {
+      return Math.max(positive, negative) / (positive + negative);
+   }
+
    @Override
    public double accuracy() {
       return (tp + tn) / (positive + negative);
@@ -179,6 +184,7 @@ public class BinaryEvaluation implements ClassifierEvaluation {
       tableFormatter.header(Arrays.asList("Metric", "Score"));
       tableFormatter.content(Arrays.asList("AUC", auc()));
       tableFormatter.content(Arrays.asList("Accuracy", accuracy()));
+      tableFormatter.content(Arrays.asList("Baseline", baseline()));
       tableFormatter.content(Arrays.asList("TP Rate", truePositiveRate()));
       tableFormatter.content(Arrays.asList("FP Rate", falsePositiveRate()));
       tableFormatter.content(Arrays.asList("TN Rate", trueNegativeRate()));

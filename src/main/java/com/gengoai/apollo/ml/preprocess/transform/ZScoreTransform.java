@@ -1,6 +1,6 @@
 package com.gengoai.apollo.ml.preprocess.transform;
 
-import com.gengoai.EnhancedDoubleStatistics;
+import com.gengoai.math.EnhancedDoubleStatistics;
 import com.gengoai.apollo.ml.Feature;
 import com.gengoai.apollo.ml.Instance;
 import com.gengoai.apollo.ml.preprocess.RestrictedInstancePreprocessor;

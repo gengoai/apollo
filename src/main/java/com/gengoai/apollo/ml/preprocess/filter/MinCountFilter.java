@@ -5,13 +5,9 @@ import com.gengoai.apollo.ml.Instance;
 import com.gengoai.apollo.ml.preprocess.RestrictedInstancePreprocessor;
 import com.gengoai.collection.counter.Counter;
 import com.gengoai.collection.counter.Counters;
-import com.gengoai.json.JsonReader;
-import com.gengoai.json.JsonTokenType;
-import com.gengoai.json.JsonWriter;
+import com.gengoai.json.JsonEntry;
 import com.gengoai.stream.MStream;
-import lombok.NonNull;
 
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashSet;
@@ -35,7 +31,7 @@ public class MinCountFilter extends RestrictedInstancePreprocessor implements Fi
     * @param featurePrefix the feature prefix to restrict the filter to
     * @param minCount      the minimum number of instances a feature must be present in to be kept
     */
-   public MinCountFilter(@NonNull String featurePrefix, long minCount) {
+   public MinCountFilter(String featurePrefix, long minCount) {
       super(featurePrefix);
       this.minCount = minCount;
    }
@@ -64,22 +60,11 @@ public class MinCountFilter extends RestrictedInstancePreprocessor implements Fi
       return "MinCountFilter[" + getRestriction() + "]{minCount=" + minCount + "}";
    }
 
-   @Override
-   public void fromJson(@NonNull JsonReader reader) throws IOException {
-      reset();
-      while (reader.peek() != JsonTokenType.END_OBJECT) {
-         switch (reader.peekName()) {
-            case "restriction":
-               setRestriction(reader.nextKeyValue().v2.asString());
-               break;
-            case "minCount":
-               this.minCount = reader.nextKeyValue().v2.asIntegerValue();
-               break;
-            case "selected":
-               reader.nextCollection(HashSet::new).forEach(val -> selectedFeatures.add(val.asString()));
-               break;
-         }
-      }
+   public static MinCountFilter fromJson(JsonEntry entry) {
+      MinCountFilter filter = new MinCountFilter(entry.getStringProperty("restriction", null),
+                                                 entry.getLongProperty("minCount"));
+      filter.selectedFeatures.addAll(entry.getProperty("selected").asArray(String.class));
+      return filter;
    }
 
    @Override
@@ -102,11 +87,13 @@ public class MinCountFilter extends RestrictedInstancePreprocessor implements Fi
    }
 
    @Override
-   public void toJson(@NonNull JsonWriter writer) throws IOException {
+   public JsonEntry toJson() {
+      JsonEntry object = JsonEntry.object();
       if (!applyToAll()) {
-         writer.property("restriction", getRestriction());
+         object.addProperty("restriction", getRestriction());
       }
-      writer.property("minCount", minCount);
-      writer.property("selected", selectedFeatures);
+      object.addProperty("minCount", minCount);
+      object.addProperty("selected", selectedFeatures);
+      return object;
    }
 }// END OF MinCountFilter

@@ -42,6 +42,12 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
    private double weight;
    private Object predicted;
 
+   /**
+    * Check can multiply.
+    *
+    * @param a the a
+    * @param b the b
+    */
    public static void checkCanMultiply(NDArray a, NDArray b) {
       if (a.numCols() == b.numRows()) {
          throw new IllegalArgumentException(
@@ -49,26 +55,63 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
       }
    }
 
+   /**
+    * Check dimension match.
+    *
+    * @param dim1 the dim 1
+    * @param dim2 the dim 2
+    */
    public static void checkDimensionMatch(int dim1, int dim2) {
       if (dim1 != dim2) {
          throw new IllegalArgumentException("Dimension mismatch: " + dim1 + " != " + dim2);
       }
    }
 
+   /**
+    * Check length match.
+    *
+    * @param l1 the l 1
+    * @param l2 the l 2
+    */
    public static void checkLengthMatch(int l1, int l2) {
       if (l1 != l2) {
          throw new IllegalArgumentException("Length mismatch: " + l1 + " != " + l2);
       }
    }
 
+   /**
+    * Column major index int.
+    *
+    * @param i       the
+    * @param j       the j
+    * @param numRows the num rows
+    * @param numCols the num cols
+    * @return the int
+    */
    public static int columnMajorIndex(int i, int j, int numRows, int numCols) {
       return i + (numRows * j);
    }
 
+   /**
+    * To column int.
+    *
+    * @param index   the index
+    * @param numRows the num rows
+    * @param numCols the num cols
+    * @return the int
+    */
    public static int toColumn(int index, int numRows, int numCols) {
       return index / numRows;
    }
 
+   /**
+    * To row int.
+    *
+    * @param index   the index
+    * @param numRows the num rows
+    * @param numCols the num cols
+    * @return the int
+    */
    public static int toRow(int index, int numRows, int numCols) {
       return index % numRows;
    }
@@ -319,6 +362,12 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
       throw new IllegalStateException("Rectangular matrices are not supported.");
    }
 
+   /**
+    * Dimension int.
+    *
+    * @param axis the axis
+    * @return the int
+    */
    public int dimension(@NonNull Axis axis) {
       return axis == Axis.ROW ? numRows() : numCols();
    }
@@ -1455,10 +1504,11 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
    }
 
    /**
+    * Reshape nd array.
     *
-    * @param numRows
-    * @param numCols
-    * @return
+    * @param numRows the num rows
+    * @param numCols the num cols
+    * @return nd array
     */
    public abstract NDArray reshape(int numRows, int numCols);
 
@@ -2185,6 +2235,12 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
    }//END OF Entry
 
 
+   /**
+    * Write csv.
+    *
+    * @param csvFile the csv file
+    * @throws IOException the io exception
+    */
    public void writeCSV(Resource csvFile) throws IOException {
       try (CSVWriter writer = CSV.csv().writer(csvFile)) {
          writer.write(IntStream.range(0, numCols()).iterator());

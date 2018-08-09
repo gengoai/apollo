@@ -28,15 +28,11 @@ import com.gengoai.apollo.ml.encoder.EncoderPair;
 import com.gengoai.apollo.ml.encoder.HashingEncoder;
 import com.gengoai.collection.counter.Counter;
 import com.gengoai.conversion.Cast;
-import com.gengoai.conversion.Val;
-import com.gengoai.json.JsonReader;
-import com.gengoai.json.JsonTokenType;
-import com.gengoai.json.JsonWriter;
-import com.gengoai.tuple.Tuple2;
+import com.gengoai.json.JsonEntry;
+import com.gengoai.json.JsonSerializable;
 import com.google.common.collect.Sets;
 import lombok.*;
 
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -49,7 +45,7 @@ import java.util.stream.Stream;
  */
 @EqualsAndHashCode
 @ToString
-public class Instance implements Example, Serializable, Iterable<Feature> {
+public class Instance implements Example, Serializable, Iterable<Feature>, JsonSerializable {
    private static final long serialVersionUID = 1L;
    private final ArrayList<Feature> features;
    private Object label;
@@ -167,20 +163,15 @@ public class Instance implements Example, Serializable, Iterable<Feature> {
       return new Instance(features.stream().map(Feature::copy).collect(Collectors.toList()), label);
    }
 
-   @Override
-   public void fromJson(JsonReader reader) throws IOException {
-      this.label = null;
-      this.features.clear();
-      this.label = reader.nextKeyValue("label").cast();
-      this.weight = reader.nextKeyValue("weight").asDoubleValue(1.0);
-      reader.beginObject();
-      while (reader.peek() != JsonTokenType.END_OBJECT) {
-         Tuple2<String, Val> fv = reader.nextKeyValue();
-         this.features.add(Feature.real(fv.getKey(), fv.getValue().asDoubleValue()));
-      }
-      reader.endObject();
-      this.features.trimToSize();
+   public static Instance fromJson(JsonEntry element) {
+      Instance instance = new Instance();
+      instance.setLabel(element.getValProperty("label").cast());
+      instance.weight = element.getValProperty("weight").asDoubleValue(1.0);
+      element.getProperty("features").forEachElement(e -> instance.features.add(e.getValue(Feature.class)));
+      instance.features.trimToSize();
+      return instance;
    }
+
 
    @Override
    public Stream<String> getFeatureSpace() {
@@ -293,7 +284,7 @@ public class Instance implements Example, Serializable, Iterable<Feature> {
     * @return True if the instances has multiple labels, false if not
     */
    public boolean isMultiLabeled() {
-      return this.label != null && (this.label instanceof Collection);
+      return (this.label instanceof Collection);
    }
 
    @Override
@@ -310,18 +301,11 @@ public class Instance implements Example, Serializable, Iterable<Feature> {
       return features.stream();
    }
 
-   @Override
-   public void toJson(@NonNull JsonWriter writer) throws IOException {
-      boolean inArray = writer.inArray();
-      if (inArray) writer.beginObject();
-      writer.property("label", label);
-      writer.property("weight", weight);
-      writer.beginObject("features");
-      for (Feature f : features) {
-         writer.property(f.getFeatureName(), f.getValue());
-      }
-      writer.endObject();
-      if (inArray) writer.endObject();
+   public JsonEntry toJson() {
+      return JsonEntry.object()
+                      .addProperty("label", label)
+                      .addProperty("weight", weight)
+                      .addProperty("features", features);
    }
 
    /**

@@ -8,15 +8,12 @@ import com.gengoai.apollo.stat.measure.ContingencyTable;
 import com.gengoai.apollo.stat.measure.ContingencyTableCalculator;
 import com.gengoai.collection.counter.HashMapMultiCounter;
 import com.gengoai.collection.counter.MultiCounter;
-import com.gengoai.json.JsonReader;
-import com.gengoai.json.JsonTokenType;
-import com.gengoai.json.JsonWriter;
+import com.gengoai.json.JsonEntry;
 import com.gengoai.stream.accumulator.MCounterAccumulator;
 import com.gengoai.stream.accumulator.MMultiCounterAccumulator;
 import lombok.Getter;
 import lombok.NonNull;
 
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -115,23 +112,14 @@ public class ContingencyFeatureSelection implements FilterProcessor<Instance>, I
       }
    }
 
-   @Override
-   public void fromJson(@NonNull JsonReader reader) throws IOException {
-      reset();
-      while (reader.peek() != JsonTokenType.END_OBJECT) {
-         switch (reader.peekName()) {
-            case "calculator":
-               this.calculator = Association.valueOf(reader.nextKeyValue().v2.asString());
-               break;
-            case "threshold":
-               this.threshold = reader.nextKeyValue().v2.asDoubleValue();
-               break;
-            case "numFeaturesPerClass":
-               this.numFeaturesPerClass = reader.nextKeyValue().v2.asIntegerValue();
-               break;
-         }
-      }
+   public static ContingencyFeatureSelection fromJson(JsonEntry element) {
+      return new ContingencyFeatureSelection(
+         Association.valueOf(element.getStringProperty("calculator")),
+         element.getIntProperty("numFeaturesPerClass"),
+         element.getDoubleProperty("threshold")
+      );
    }
+
 
    @Override
    public void reset() {
@@ -139,10 +127,11 @@ public class ContingencyFeatureSelection implements FilterProcessor<Instance>, I
    }
 
    @Override
-   public void toJson(@NonNull JsonWriter writer) throws IOException {
-      writer.property("calculator", calculator.toString());
-      writer.property("numFeaturesPerClass", numFeaturesPerClass);
-      writer.property("threshold", threshold);
+   public JsonEntry toJson() {
+      return JsonEntry.object()
+                      .addProperty("calculator", calculator.toString())
+                      .addProperty("numFeaturesPerClass", numFeaturesPerClass)
+                      .addProperty("threshold", threshold);
    }
 
    @Override

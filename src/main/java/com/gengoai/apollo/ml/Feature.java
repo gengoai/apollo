@@ -22,6 +22,8 @@
 package com.gengoai.apollo.ml;
 
 import com.gengoai.Copyable;
+import com.gengoai.json.JsonEntry;
+import com.gengoai.json.JsonSerializable;
 import com.gengoai.string.StringUtils;
 import lombok.NonNull;
 
@@ -34,7 +36,7 @@ import java.util.Objects;
  *
  * @author David B. Bracewell
  */
-public class Feature implements Serializable, Comparable<Feature>, Copyable<Feature> {
+public class Feature implements Serializable, Comparable<Feature>, Copyable<Feature>, JsonSerializable {
    private static final long serialVersionUID = 1L;
    private String name;
    private double value;
@@ -201,6 +203,18 @@ public class Feature implements Serializable, Comparable<Feature>, Copyable<Feat
    public int hashCode() {
 
       return Objects.hash(name, value);
+   }
+
+   @Override
+   public JsonEntry toJson() {
+      return JsonEntry.object()
+                      .addProperty("name", name)
+                      .addProperty("value", value);
+   }
+
+   public static Feature fromJson(JsonEntry element) {
+      return Feature.real(element.getStringProperty("name"),
+                          element.getDoubleProperty("value"));
    }
 
    private String removePosition(String n) {

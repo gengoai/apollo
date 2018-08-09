@@ -1,22 +1,25 @@
 package com.gengoai.apollo.ml.preprocess;
 
 import com.gengoai.apollo.ml.Example;
+import com.gengoai.collection.Maps;
 import com.gengoai.conversion.Cast;
-import com.gengoai.json.*;
+import com.gengoai.json.JsonEntry;
+import com.gengoai.json.JsonSerializable;
 import lombok.NonNull;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.stream.Collectors;
+
+import static com.gengoai.tuple.Tuples.$;
 
 /**
  * <p>Specialized list of {@link Preprocessor}s with added methods for reading, writing, and applying.</p>
  *
  * @param <T> the  example type parameter
  */
-public final class PreprocessorList<T extends Example> extends ArrayList<Preprocessor<T>> implements JsonSerializable, JsonArraySerializable {
+public final class PreprocessorList<T extends Example> extends ArrayList<Preprocessor<T>> implements JsonSerializable {
    private static final long serialVersionUID = 1L;
 
 
@@ -97,26 +100,24 @@ public final class PreprocessorList<T extends Example> extends ArrayList<Preproc
       forEach(Preprocessor::reset);
    }
 
-   @Override
-   public void fromJson(JsonReader reader) throws IOException {
-      clear();
-      while (reader.peek() != JsonTokenType.END_ARRAY) {
-         reader.beginObject();
-         Class<? extends Preprocessor<T>> clazz = Cast.as(reader.nextKeyValue("class").asClass());
-         Preprocessor<T> preprocessor = reader.nextKeyValue(clazz).getV2();
-         add(preprocessor);
-         reader.endObject();
-      }
+   public static <T extends Example> PreprocessorList<T> fromJson(JsonEntry entry) {
+      PreprocessorList<T> list = new PreprocessorList<>();
+      entry.forEachElement(e -> {
+         Class<?> clazz = e.getValProperty("class").asClass();
+         list.add(Cast.as(e.getProperty("data", clazz)));
+      });
+      return list;
    }
 
    @Override
-   public void toJson(JsonWriter writer) throws IOException {
+   public JsonEntry toJson() {
+      JsonEntry array = JsonEntry.array();
       for (Preprocessor<?> p : this) {
-         writer.beginObject();
-         writer.property("class", p.getClass().getName());
-         writer.property("data", p);
-         writer.endObject();
+         array.addValue(Maps.hashMapOf($("class", p.getClass().getName()),
+                                       $("data", p)
+                                      ));
       }
+      return array;
    }
 
 }// END OF PreprocessorList

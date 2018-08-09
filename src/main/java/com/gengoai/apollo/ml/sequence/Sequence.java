@@ -4,12 +4,10 @@ import com.gengoai.Interner;
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.Feature;
 import com.gengoai.apollo.ml.Instance;
-import com.gengoai.json.JsonReader;
-import com.gengoai.json.JsonWriter;
+import com.gengoai.json.JsonEntry;
 import com.gengoai.tuple.Tuple;
 import lombok.NonNull;
 
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -127,11 +125,11 @@ public class Sequence implements Example, Serializable, Iterable<Instance> {
       return new Sequence(sequence.stream().map(Instance::copy).collect(Collectors.toList()));
    }
 
-   @Override
-   public void fromJson(JsonReader reader) throws IOException {
-      sequence.clear();
-      sequence.addAll(reader.nextCollection(ArrayList::new, "sequence", Instance.class));
-      sequence.trimToSize();
+   public static Sequence fromJson(JsonEntry entry) {
+      Sequence sequence = new Sequence();
+      sequence.sequence.addAll(entry.getProperty("sequence").asArray(Instance.class));
+      sequence.sequence.trimToSize();
+      return sequence;
    }
 
    /**
@@ -175,8 +173,9 @@ public class Sequence implements Example, Serializable, Iterable<Instance> {
    }
 
    @Override
-   public void toJson(JsonWriter writer) throws IOException {
-      writer.property("sequence", sequence);
+   public JsonEntry toJson() {
+      return JsonEntry.object()
+                      .addProperty("sequence", sequence);
    }
 
    @Override

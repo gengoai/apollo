@@ -3,14 +3,10 @@ package com.gengoai.apollo.ml.preprocess.transform;
 import com.gengoai.apollo.ml.Feature;
 import com.gengoai.apollo.ml.Instance;
 import com.gengoai.apollo.ml.preprocess.RestrictedInstancePreprocessor;
-import com.gengoai.json.JsonReader;
-import com.gengoai.json.JsonTokenType;
-import com.gengoai.json.JsonWriter;
+import com.gengoai.json.JsonEntry;
 import com.gengoai.stream.MStream;
 import com.gengoai.string.StringUtils;
-import lombok.NonNull;
 
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.List;
 import java.util.stream.Stream;
@@ -41,7 +37,7 @@ public class RealToBinaryTransform extends RestrictedInstancePreprocessor implem
     * @param threshold         the threshold with which a feature value must be <codE>>=</codE> to become a binary
     *                          "true"
     */
-   public RealToBinaryTransform(@NonNull String featureNamePrefix, double threshold) {
+   public RealToBinaryTransform(String featureNamePrefix, double threshold) {
       super(featureNamePrefix);
       this.threshold = threshold;
    }
@@ -58,19 +54,21 @@ public class RealToBinaryTransform extends RestrictedInstancePreprocessor implem
       return "RealToBinaryTransform[" + getRestriction() + "]{threshold=" + threshold + "}";
    }
 
+   public static RealToBinaryTransform fromJson(JsonEntry entry) {
+      return new RealToBinaryTransform(
+         entry.getStringProperty("restriction", null),
+         entry.getDoubleProperty("threshold")
+      );
+   }
+
    @Override
-   public void fromJson(@NonNull JsonReader reader) throws IOException {
-      reset();
-      while (reader.peek() != JsonTokenType.END_OBJECT) {
-         switch (reader.peekName()) {
-            case "restriction":
-               setRestriction(reader.nextKeyValue().v2.asString());
-               break;
-            case "threshold":
-               this.threshold = reader.nextKeyValue().v2.asDoubleValue();
-               break;
-         }
+   public JsonEntry toJson() {
+      JsonEntry object = JsonEntry.object();
+      if (!applyToAll()) {
+         object.addProperty("restriction", getRestriction());
       }
+      object.addProperty("threshold", threshold);
+      return object;
    }
 
    @Override
@@ -93,12 +91,5 @@ public class RealToBinaryTransform extends RestrictedInstancePreprocessor implem
          feature -> Feature.TRUE(feature.getFeatureName()));
    }
 
-   @Override
-   public void toJson(@NonNull JsonWriter writer) throws IOException {
-      if (!applyToAll()) {
-         writer.property("restriction", getRestriction());
-      }
-      writer.property("threshold", threshold);
-   }
 
 }// END OF RealToBinaryTransform

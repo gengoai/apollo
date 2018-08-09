@@ -39,12 +39,12 @@ import com.gengoai.function.SerializablePredicate;
 import com.gengoai.function.SerializableSupplier;
 import com.gengoai.io.resource.Resource;
 import com.gengoai.json.JsonReader;
-import com.gengoai.json.JsonTokenType;
 import com.gengoai.json.JsonWriter;
 import com.gengoai.logging.Logger;
 import com.gengoai.stream.MStream;
 import com.gengoai.stream.StreamingContext;
 import com.gengoai.stream.accumulator.MCounterAccumulator;
+import com.google.gson.stream.JsonToken;
 import lombok.NonNull;
 
 import java.io.IOException;
@@ -415,14 +415,15 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
     * @return this dataset
     * @throws IOException Something went wrong reading.
     */
+   @SuppressWarnings("unchecked")
    Dataset<T> read(@NonNull Resource resource, Class<T> exampleType) throws IOException {
       try (JsonReader reader = new JsonReader(resource)) {
          reader.beginDocument();
          List<T> batch = new LinkedList<>();
          preprocessors.clear();
-         preprocessors.addAll(Cast.as(reader.nextKeyValue(PreprocessorList.class).v2));
+         preprocessors.addAll(reader.nextProperty(PreprocessorList.class).v2);
          reader.beginArray("data");
-         while (reader.peek() != JsonTokenType.END_ARRAY) {
+         while (reader.peek() != JsonToken.END_ARRAY) {
             batch.add(reader.nextValue(exampleType));
             if (batch.size() > 1000) {
                addAll(batch);

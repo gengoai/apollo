@@ -1,18 +1,14 @@
 package com.gengoai.apollo.ml.preprocess.transform;
 
-import com.gengoai.math.Math2;
 import com.gengoai.Validation;
 import com.gengoai.apollo.ml.Feature;
 import com.gengoai.apollo.ml.Instance;
 import com.gengoai.apollo.ml.preprocess.RestrictedInstancePreprocessor;
-import com.gengoai.json.JsonReader;
-import com.gengoai.json.JsonTokenType;
-import com.gengoai.json.JsonWriter;
+import com.gengoai.json.JsonEntry;
+import com.gengoai.math.Math2;
 import com.gengoai.stream.MStream;
-import lombok.NonNull;
 import org.apache.commons.math3.util.FastMath;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -49,32 +45,32 @@ public class RescaleTransform extends RestrictedInstancePreprocessor implements 
       return name + "{newMin=" + newMin + ", newMax=" + newMax + ", perFeature=" + perFeature + "}";
    }
 
-   @Override
-   public void fromJson(@NonNull JsonReader reader) throws IOException {
-      reset();
-      while (reader.peek() != JsonTokenType.END_OBJECT) {
-         switch (reader.peekName()) {
-            case "restriction":
-               setRestriction(reader.nextKeyValue().v2.asString());
-               break;
-            case "newMin":
-               this.newMin = reader.nextKeyValue().v2.asDoubleValue();
-               break;
-            case "newMax":
-               this.newMax = reader.nextKeyValue().v2.asDoubleValue();
-               break;
-            case "perFeature":
-               this.perFeature = reader.nextKeyValue().v2.asBooleanValue();
-               break;
-            case "mins":
-               this.mins = reader.nextKeyValue().v2.asMap(String.class, Double.class);
-               break;
-            case "maxs":
-               this.maxs = reader.nextKeyValue().v2.asMap(String.class, Double.class);
-               break;
-         }
-      }
+   public static RescaleTransform fromJson(JsonEntry entry) {
+      RescaleTransform transform = new RescaleTransform(
+         entry.getDoubleProperty("newMin"),
+         entry.getDoubleProperty("newMax"),
+         entry.getBooleanProperty("perFeature", false)
+      );
+      transform.setRestriction(entry.getStringProperty("restriction", null));
+      transform.mins = entry.getProperty("mins").asMap(Double.class);
+      transform.maxs = entry.getProperty("maxs").asMap(Double.class);
+      return transform;
    }
+
+   @Override
+   public JsonEntry toJson() {
+      JsonEntry object = JsonEntry.object();
+      if (!applyToAll()) {
+         object.addProperty("restriction", getRestriction());
+      }
+      object.addProperty("newMin", newMin);
+      object.addProperty("newMax", newMax);
+      object.addProperty("perFeature", perFeature);
+      object.addProperty("mins", mins);
+      object.addProperty("maxs", maxs);
+      return object;
+   }
+
 
    @Override
    public void reset() {
@@ -118,15 +114,5 @@ public class RescaleTransform extends RestrictedInstancePreprocessor implements 
       });
    }
 
-   @Override
-   public void toJson(@NonNull JsonWriter writer) throws IOException {
-      if (!applyToAll()) {
-         writer.property("restriction", getRestriction());
-      }
-      writer.property("newMin", newMin);
-      writer.property("newMax", newMax);
-      writer.property("perFeature", perFeature);
-      writer.property("mins", mins);
-      writer.property("maxs", maxs);
-   }
+
 }// END OF RescaleTransform

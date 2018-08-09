@@ -35,9 +35,7 @@ public interface Example extends Copyable<Example>, JsonSerializable {
       Resource r = Resources.fromString(input);
       T rval;
       try (JsonReader reader = new JsonReader(r)) {
-         reader.beginDocument();
          rval = reader.nextValue(example);
-         reader.endDocument();
       }
       return rval;
    }

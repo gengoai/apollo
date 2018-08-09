@@ -1,18 +1,14 @@
 package com.gengoai.apollo.ml.preprocess.transform;
 
-import com.gengoai.math.EnhancedDoubleStatistics;
 import com.gengoai.apollo.ml.Feature;
 import com.gengoai.apollo.ml.Instance;
 import com.gengoai.apollo.ml.preprocess.RestrictedInstancePreprocessor;
-import com.gengoai.json.JsonReader;
-import com.gengoai.json.JsonTokenType;
-import com.gengoai.json.JsonWriter;
+import com.gengoai.json.JsonEntry;
+import com.gengoai.math.EnhancedDoubleStatistics;
 import com.gengoai.stream.MStream;
 import com.gengoai.stream.accumulator.MStatisticsAccumulator;
 import com.gengoai.string.StringUtils;
-import lombok.NonNull;
 
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.List;
 import java.util.stream.Stream;
@@ -53,22 +49,24 @@ public class ZScoreTransform extends RestrictedInstancePreprocessor implements T
       return "ZScoreTransform[" + getRestriction() + "]{mean=" + mean + ", std=" + standardDeviation + "}";
    }
 
+   public static ZScoreTransform fromJson(JsonEntry entry) {
+      ZScoreTransform transform = new ZScoreTransform(
+         entry.getStringProperty("restriction", null)
+      );
+      transform.mean = entry.getDoubleProperty("mean");
+      transform.standardDeviation = entry.getDoubleProperty("stddev");
+      return transform;
+   }
+
    @Override
-   public void fromJson(@NonNull JsonReader reader) throws IOException {
-      reset();
-      while (reader.peek() != JsonTokenType.END_OBJECT) {
-         switch (reader.peekName()) {
-            case "restriction":
-               setRestriction(reader.nextKeyValue().v2.asString());
-               break;
-            case "mean":
-               this.mean = reader.nextKeyValue().v2.asDoubleValue();
-               break;
-            case "stddev":
-               this.standardDeviation = reader.nextKeyValue().v2.asDoubleValue();
-               break;
-         }
+   public JsonEntry toJson() {
+      JsonEntry object = JsonEntry.object();
+      if (!applyToAll()) {
+         object.addProperty("restriction", getRestriction());
       }
+      object.addProperty("mean", mean);
+      object.addProperty("stddev", standardDeviation);
+      return object;
    }
 
    @Override
@@ -95,13 +93,5 @@ public class ZScoreTransform extends RestrictedInstancePreprocessor implements T
                                                        (feature.getValue() - mean) / standardDeviation));
    }
 
-   @Override
-   public void toJson(@NonNull JsonWriter writer) throws IOException {
-      if (!applyToAll()) {
-         writer.property("restriction", getRestriction());
-      }
-      writer.property("mean", mean);
-      writer.property("stddev", standardDeviation);
-   }
 
 }// END OF ZScoreTransform

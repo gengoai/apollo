@@ -1,21 +1,16 @@
 package com.gengoai.apollo.ml.preprocess.transform;
 
-import com.gengoai.math.EnhancedDoubleStatistics;
+import com.gengoai.Primitives;
 import com.gengoai.Validation;
 import com.gengoai.apollo.ml.Feature;
 import com.gengoai.apollo.ml.Instance;
 import com.gengoai.apollo.ml.preprocess.RestrictedInstancePreprocessor;
-import com.gengoai.collection.list.PrimitiveArrayList;
-import com.gengoai.conversion.Val;
-import com.gengoai.json.JsonReader;
-import com.gengoai.json.JsonTokenType;
-import com.gengoai.json.JsonWriter;
+import com.gengoai.json.JsonEntry;
+import com.gengoai.math.EnhancedDoubleStatistics;
 import com.gengoai.stream.MStream;
 import com.gengoai.stream.accumulator.MStatisticsAccumulator;
 import com.gengoai.string.StringUtils;
-import lombok.NonNull;
 
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
@@ -48,7 +43,7 @@ public class BinTransform extends RestrictedInstancePreprocessor implements Tran
     * @param featureNamePrefix the feature name prefix to restrict to
     * @param numberOfBins      the number of bins to convert the feature into
     */
-   public BinTransform(@NonNull String featureNamePrefix, int numberOfBins) {
+   public BinTransform(String featureNamePrefix, int numberOfBins) {
       super(featureNamePrefix);
       Validation.checkArgument(numberOfBins > 0, "Number of bins must be > 0.");
       this.bins = new double[numberOfBins];
@@ -109,26 +104,20 @@ public class BinTransform extends RestrictedInstancePreprocessor implements Tran
    }
 
    @Override
-   public void toJson(@NonNull JsonWriter writer) throws IOException {
+   public JsonEntry toJson() {
+      JsonEntry object = JsonEntry.object();
       if (!applyToAll()) {
-         writer.property("restriction", getRestriction());
+         object.addProperty("restriction", getRestriction());
       }
-      writer.property("bins", new PrimitiveArrayList<>(bins, Double.class));
+      object.addProperty("bins", bins);
+      return object;
    }
 
-   @Override
-   public void fromJson(@NonNull JsonReader reader) throws IOException {
-      reset();
-      while (reader.peek() != JsonTokenType.END_OBJECT) {
-         switch (reader.peekName()) {
-            case "restriction":
-               setRestriction(reader.nextKeyValue().v2.asString());
-               break;
-            case "bins":
-               this.bins = Stream.of(reader.nextArray()).mapToDouble(Val::asDoubleValue).toArray();
-               break;
-         }
-      }
+   public static BinTransform fromJson(JsonEntry entry) {
+      BinTransform filter = new BinTransform();
+      filter.setRestriction(entry.getStringProperty("restriction", null));
+      filter.bins = Primitives.toDoubleArray(entry.getProperty("bins").asArray(Double.class));
+      return filter;
    }
 
 

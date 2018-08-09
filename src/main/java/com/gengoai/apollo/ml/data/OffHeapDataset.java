@@ -158,7 +158,7 @@ public class OffHeapDataset<T extends Example> extends Dataset<T> {
          instances.forEach(Unchecked.consumer(ii -> {
             clazz = Cast.as(ii.getClass());
             if (ii.getFeatureSpace().count() > 0) {
-               writer.write(ii.toJson().trim() + "\n");
+               writer.write(ii.toJson() + "\n");
 //               size++;
             }
          }));

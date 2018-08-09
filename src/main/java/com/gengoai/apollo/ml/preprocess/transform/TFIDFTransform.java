@@ -5,20 +5,13 @@ import com.gengoai.apollo.ml.Instance;
 import com.gengoai.apollo.ml.preprocess.RestrictedInstancePreprocessor;
 import com.gengoai.collection.counter.Counter;
 import com.gengoai.collection.counter.Counters;
-import com.gengoai.conversion.Val;
-import com.gengoai.json.JsonReader;
-import com.gengoai.json.JsonTokenType;
-import com.gengoai.json.JsonWriter;
+import com.gengoai.json.JsonEntry;
 import com.gengoai.stream.MStream;
 import com.gengoai.stream.accumulator.MDoubleAccumulator;
 import com.gengoai.string.StringUtils;
-import com.gengoai.tuple.Tuple2;
-import lombok.NonNull;
 
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Stream;
 
@@ -58,27 +51,24 @@ public class TFIDFTransform extends RestrictedInstancePreprocessor implements Tr
                                                                                                           .size() + "}";
    }
 
+   public static TFIDFTransform fromJson(JsonEntry entry) {
+      TFIDFTransform transform = new TFIDFTransform(
+         entry.getStringProperty("restriction", null)
+      );
+      transform.documentFrequencies = Counters.newCounter(entry.getProperty("documentCounts").asMap(Double.class));
+      transform.totalDocs = entry.getDoubleProperty("totalDocuments");
+      return transform;
+   }
+
    @Override
-   public void fromJson(@NonNull JsonReader reader) throws IOException {
-      reset();
-      while (reader.peek() != JsonTokenType.END_OBJECT) {
-         switch (reader.peekName()) {
-            case "restriction":
-               setRestriction(reader.nextKeyValue().v2.asString());
-               break;
-            case "totalDocuments":
-               this.totalDocs = reader.nextKeyValue().v2.asDoubleValue();
-               break;
-            case "documentCounts":
-               reader.beginObject();
-               while (reader.peek() != JsonTokenType.END_OBJECT) {
-                  Tuple2<String, Val> kv = reader.nextKeyValue();
-                  documentFrequencies.set(kv.getKey(), kv.getValue().asDoubleValue());
-               }
-               reader.endObject();
-               break;
-         }
+   public JsonEntry toJson() {
+      JsonEntry object = JsonEntry.object();
+      if (!applyToAll()) {
+         object.addProperty("restriction", getRestriction());
       }
+      object.addProperty("documentCounts", documentFrequencies.asMap());
+      object.addProperty("totalDocuments", totalDocs);
+      return object;
    }
 
    @Override
@@ -113,16 +103,5 @@ public class TFIDFTransform extends RestrictedInstancePreprocessor implements Tr
                           .filter(Objects::nonNull);
    }
 
-   @Override
-   public void toJson(@NonNull JsonWriter writer) throws IOException {
-      if (!applyToAll()) {
-         writer.property("restriction", getRestriction());
-      }
-      writer.property("totalDocuments", totalDocs);
-      writer.beginObject("documentCounts");
-      for (Map.Entry<String, Double> entry : documentFrequencies.entries()) {
-         writer.property(entry.getKey(), entry.getValue());
-      }
-      writer.endObject();
-   }
+
 }// END OF TFIDFTransform

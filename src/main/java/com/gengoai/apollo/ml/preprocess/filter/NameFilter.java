@@ -24,25 +24,23 @@ package com.gengoai.apollo.ml.preprocess.filter;
 import com.gengoai.apollo.ml.Instance;
 import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.apollo.ml.preprocess.InstancePreprocessor;
-import com.gengoai.json.JsonArraySerializable;
-import com.gengoai.json.JsonReader;
-import com.gengoai.json.JsonTokenType;
-import com.gengoai.json.JsonWriter;
-import com.gengoai.string.StringUtils;
+import com.gengoai.collection.Maps;
+import com.gengoai.json.JsonEntry;
 import lombok.NonNull;
 
-import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import static com.gengoai.tuple.Tuples.$;
 
 /**
  * <p>Removes all features whose name match any of the given regular expressions.</p>
  *
  * @author David B. Bracewell
  */
-public class NameFilter implements FilterProcessor<Instance>, InstancePreprocessor, JsonArraySerializable {
+public class NameFilter implements FilterProcessor<Instance>, InstancePreprocessor {
    private static final long serialVersionUID = 1L;
    private final Set<Pattern> patterns = new HashSet<>();
 
@@ -87,26 +85,13 @@ public class NameFilter implements FilterProcessor<Instance>, InstancePreprocess
    public void fit(Dataset<Instance> dataset) {
    }
 
-   @Override
-   public void fromJson(JsonReader reader) throws IOException {
-      reset();
-      while (reader.peek() != JsonTokenType.END_ARRAY) {
-         reader.beginObject();
-         int flags = -1;
-         String pattern = StringUtils.EMPTY;
-         while (reader.peek() != JsonTokenType.END_OBJECT) {
-            switch (reader.peekName()) {
-               case "pattern":
-                  pattern = reader.nextKeyValue().v2.asString();
-                  break;
-               case "flags":
-                  flags = reader.nextKeyValue().v2.asIntegerValue();
-                  break;
-            }
-         }
-         patterns.add(Pattern.compile(pattern, flags));
-         reader.endObject();
-      }
+
+   public static NameFilter fromJson(JsonEntry entry) {
+      NameFilter filter = new NameFilter();
+      entry.elementIterator()
+           .forEachRemaining(e -> filter.patterns.add(Pattern.compile(e.getStringProperty("pattern"),
+                                                                      e.getIntProperty("flags"))));
+      return filter;
    }
 
    @Override
@@ -119,13 +104,14 @@ public class NameFilter implements FilterProcessor<Instance>, InstancePreprocess
    }
 
    @Override
-   public void toJson(JsonWriter writer) throws IOException {
+   public JsonEntry toJson() {
+      JsonEntry array = JsonEntry.array();
       for (Pattern pattern : patterns) {
-         writer.beginObject();
-         writer.property("pattern", pattern.toString());
-         writer.property("flags", pattern.flags());
-         writer.endObject();
+         array.addValue(Maps.hashMapOf($("pattern", pattern.toString()),
+                                       $("flags", pattern.flags())
+                                      ));
       }
+      return array;
    }
 
    @Override

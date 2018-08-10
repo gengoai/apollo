@@ -52,8 +52,8 @@ public class RescaleTransform extends RestrictedInstancePreprocessor implements 
          entry.getBooleanProperty("perFeature", false)
       );
       transform.setRestriction(entry.getStringProperty("restriction", null));
-      transform.mins = entry.getProperty("mins").asMap(Double.class);
-      transform.maxs = entry.getProperty("maxs").asMap(Double.class);
+      transform.mins = entry.getProperty("mins").getAsMap(Double.class);
+      transform.maxs = entry.getProperty("maxs").getAsMap(Double.class);
       return transform;
    }
 

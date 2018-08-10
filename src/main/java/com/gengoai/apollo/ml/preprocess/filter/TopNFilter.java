@@ -64,7 +64,7 @@ public class TopNFilter extends RestrictedInstancePreprocessor implements Filter
    public static TopNFilter fromJson(JsonEntry entry) {
       TopNFilter filter = new TopNFilter(entry.getStringProperty("restriction", null),
                                          entry.getIntProperty("topN"));
-      filter.selectedFeatures.addAll(entry.getProperty("selected").asArray(String.class));
+      filter.selectedFeatures.addAll(entry.getProperty("selected").getAsArray(String.class));
       return filter;
    }
 

@@ -116,7 +116,7 @@ public class BinTransform extends RestrictedInstancePreprocessor implements Tran
    public static BinTransform fromJson(JsonEntry entry) {
       BinTransform filter = new BinTransform();
       filter.setRestriction(entry.getStringProperty("restriction", null));
-      filter.bins = Primitives.toDoubleArray(entry.getProperty("bins").asArray(Double.class));
+      filter.bins = Primitives.toDoubleArray(entry.getProperty("bins").getAsArray(Double.class));
       return filter;
    }
 

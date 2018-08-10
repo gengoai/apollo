@@ -55,7 +55,7 @@ public class TFIDFTransform extends RestrictedInstancePreprocessor implements Tr
       TFIDFTransform transform = new TFIDFTransform(
          entry.getStringProperty("restriction", null)
       );
-      transform.documentFrequencies = Counters.newCounter(entry.getProperty("documentCounts").asMap(Double.class));
+      transform.documentFrequencies = Counters.newCounter(entry.getProperty("documentCounts").getAsMap(Double.class));
       transform.totalDocs = entry.getDoubleProperty("totalDocuments");
       return transform;
    }

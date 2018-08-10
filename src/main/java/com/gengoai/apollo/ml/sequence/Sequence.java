@@ -127,7 +127,7 @@ public class Sequence implements Example, Serializable, Iterable<Instance> {
 
    public static Sequence fromJson(JsonEntry entry) {
       Sequence sequence = new Sequence();
-      sequence.sequence.addAll(entry.getProperty("sequence").asArray(Instance.class));
+      sequence.sequence.addAll(entry.getProperty("sequence").getAsArray(Instance.class));
       sequence.sequence.trimToSize();
       return sequence;
    }

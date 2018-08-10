@@ -63,7 +63,7 @@ public class MinCountFilter extends RestrictedInstancePreprocessor implements Fi
    public static MinCountFilter fromJson(JsonEntry entry) {
       MinCountFilter filter = new MinCountFilter(entry.getStringProperty("restriction", null),
                                                  entry.getLongProperty("minCount"));
-      filter.selectedFeatures.addAll(entry.getProperty("selected").asArray(String.class));
+      entry.getProperty("selected").forEachElement(e -> filter.selectedFeatures.add(e.getAsString()));
       return filter;
    }
 

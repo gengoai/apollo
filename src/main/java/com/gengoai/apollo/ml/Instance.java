@@ -167,7 +167,7 @@ public class Instance implements Example, Serializable, Iterable<Feature>, JsonS
       Instance instance = new Instance();
       instance.setLabel(element.getValProperty("label").cast());
       instance.weight = element.getValProperty("weight").asDoubleValue(1.0);
-      element.getProperty("features").forEachElement(e -> instance.features.add(e.getValue(Feature.class)));
+      element.getProperty("features").forEachElement(e -> instance.features.add(e.getAs(Feature.class)));
       instance.features.trimToSize();
       return instance;
    }

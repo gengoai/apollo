@@ -22,6 +22,11 @@ public class DenseFloatNDArray extends NDArray {
    private static final long serialVersionUID = 1L;
    private FloatMatrix storage;
 
+   public static void main(String[] args) throws Exception {
+      DenseFloatNDArray a = new DenseFloatNDArray(FloatMatrix.rand(10, 10));
+      a.iterator().forEachRemaining(System.out::println);
+   }
+
    public DenseFloatNDArray(FloatMatrix matrix) {
       this.storage = matrix;
    }
@@ -555,6 +560,11 @@ public class DenseFloatNDArray extends NDArray {
       private int i;
       private int j;
       private int index;
+
+      @Override
+      public String toString() {
+         return "DoubleEntry[" + i + "," + j + "]=" + getValue();
+      }
 
       public DoubleEntry(int index) {
          this.index = index;

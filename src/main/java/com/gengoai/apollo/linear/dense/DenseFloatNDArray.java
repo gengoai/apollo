@@ -22,11 +22,6 @@ public class DenseFloatNDArray extends NDArray {
    private static final long serialVersionUID = 1L;
    private FloatMatrix storage;
 
-   public static void main(String[] args) throws Exception {
-      DenseFloatNDArray a = new DenseFloatNDArray(FloatMatrix.rand(10, 10));
-      a.iterator().forEachRemaining(System.out::println);
-   }
-
    public DenseFloatNDArray(FloatMatrix matrix) {
       this.storage = matrix;
    }

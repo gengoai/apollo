@@ -1,7 +1,7 @@
 package com.gengoai.apollo.linear;
 
 import com.gengoai.Copyable;
-import com.gengoai.math.EnhancedDoubleStatistics;
+import com.gengoai.Stopwatch;
 import com.gengoai.Validation;
 import com.gengoai.collection.Lists;
 import com.gengoai.collection.Streams;
@@ -9,6 +9,7 @@ import com.gengoai.conversion.Cast;
 import com.gengoai.io.CSV;
 import com.gengoai.io.CSVWriter;
 import com.gengoai.io.resource.Resource;
+import com.gengoai.math.EnhancedDoubleStatistics;
 import com.gengoai.math.Math2;
 import com.gengoai.math.Operator;
 import com.gengoai.math.Optimum;
@@ -41,6 +42,16 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
    private Object label;
    private double weight;
    private Object predicted;
+
+   public static void main(String[] args) throws Exception {
+      NDArray x = NDArrayFactory.DENSE_FLOAT.rand(20000, 20);
+      NDArray y = NDArrayFactory.DENSE_FLOAT.rand(20, 100);
+
+      Stopwatch sw = Stopwatch.createStarted();
+      x.mmul(y);
+      System.out.println(sw);
+
+   }
 
    /**
     * Check can multiply.

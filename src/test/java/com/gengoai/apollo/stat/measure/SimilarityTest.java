@@ -1,8 +1,8 @@
 package com.gengoai.apollo.stat.measure;
 
-import com.gengoai.math.Optimum;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
+import com.gengoai.math.Optimum;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -29,7 +29,7 @@ public class SimilarityTest {
    public void cosine() {
       assertEquals(0.8674502431089217, Similarity.Cosine.calculate(v1, v2), 0.0001);
       assertEquals(1d - 0.8674502431089217, Similarity.Cosine.asDistanceMeasure().calculate(v1, v2), 0.0001);
-      assertEquals(0.8674502431089217, Similarity.Cosine.calculate(v1.toArray(), v2.toArray()), 0.0001);
+      assertEquals(0.8674502431089217, Similarity.Cosine.calculate(v1.toDoubleArray(), v2.toDoubleArray()), 0.0001);
       assertEquals(0.3108496602871197, Similarity.Cosine.calculate(table), 0.0001);
       Assert.assertEquals(Optimum.MAXIMUM, Similarity.Cosine.getOptimum());
    }

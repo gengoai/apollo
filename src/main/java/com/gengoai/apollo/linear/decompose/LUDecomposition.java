@@ -1,12 +1,10 @@
 package com.gengoai.apollo.linear.decompose;
 
 import com.gengoai.Validation;
+import com.gengoai.apollo.linear.DenseNDArray;
 import com.gengoai.apollo.linear.NDArray;
-import com.gengoai.apollo.linear.dense.DenseDoubleNDArray;
-import com.gengoai.apollo.linear.dense.DenseFloatNDArray;
 import lombok.NonNull;
 import org.jblas.Decompose;
-import org.jblas.DoubleMatrix;
 import org.jblas.FloatMatrix;
 
 import java.io.Serializable;
@@ -19,16 +17,18 @@ public class LUDecomposition implements Decomposition, Serializable {
 
    public NDArray[] decompose(@NonNull NDArray m) {
       Validation.checkArgument(m.isSquare(), "Only square matrices are supported");
-      if (m instanceof DenseDoubleNDArray) {
-         Decompose.LUDecomposition<DoubleMatrix> r = Decompose.lu(m.toDoubleMatrix());
-         return new NDArray[]{new DenseDoubleNDArray(r.l),
-            new DenseDoubleNDArray(r.u),
-            new DenseDoubleNDArray(r.p)};
-      } else if (m instanceof DenseFloatNDArray) {
+//      if (m instanceof DenseDoubleNDArray) {
+//         Decompose.LUDecomposition<DoubleMatrix> r = Decompose.lu(m.toDoubleMatrix());
+//         return new NDArray[]{new DenseDoubleNDArray(r.l),
+//            new DenseDoubleNDArray(r.u),
+//            new DenseDoubleNDArray(r.p)};
+//      } else
+
+      if (m instanceof DenseNDArray) {
          Decompose.LUDecomposition<FloatMatrix> r = Decompose.lu(m.toFloatMatrix());
-         return new NDArray[]{new DenseFloatNDArray(r.l),
-            new DenseFloatNDArray(r.u),
-            new DenseFloatNDArray(r.p)};
+         return new NDArray[]{new DenseNDArray(r.l),
+            new DenseNDArray(r.u),
+            new DenseNDArray(r.p)};
       }
 
       int nr = m.numRows();
@@ -44,7 +44,7 @@ public class LUDecomposition implements Decomposition, Serializable {
             for (int k = 0; k < i; k++) {
                s1 += U.get(k, j) * L.get(i, k);
             }
-            U.set(i, j, A2.get(i, j) - s1);
+            U.set(i, j, (A2.get(i, j) - s1));
          }
          for (int i = j; i < nr; i++) {
             double s2 = 0d;

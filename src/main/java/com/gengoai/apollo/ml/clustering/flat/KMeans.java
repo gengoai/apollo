@@ -133,7 +133,7 @@ public class KMeans extends Clusterer<FlatClustering> {
             clustering.get(i).getPoints().removeIf(Objects::isNull);
             if (clustering.get(i).size() == 0) {
                clustering.get(i).setCentroid(
-                  NDArrayFactory.DEFAULT().create(instances.get(0).length(), NDArrayInitializer.rand(-1, 1)));
+                  NDArrayFactory.DEFAULT().create(NDArrayInitializer.rand(-1, 1), (int) instances.get(0).length()));
             } else {
                NDArray c = clustering.get(i).getCentroid().zero();
                for (NDArray ii : clustering.get(i)) {
@@ -141,7 +141,7 @@ public class KMeans extends Clusterer<FlatClustering> {
                      c.addi(ii);
                   }
                }
-               c.divi((double) clustering.get(i).size());
+               c.divi((float) clustering.get(i).size());
             }
          }
       }
@@ -170,7 +170,7 @@ public class KMeans extends Clusterer<FlatClustering> {
    private NDArray[] initCentroids(List<NDArray> instances) {
       NDArray[] centroids = new NDArray[K];
       for (int i = 0; i < K; i++) {
-         centroids[i] = NDArrayFactory.DEFAULT().zeros(instances.get(0).length());
+         centroids[i] = NDArrayFactory.DEFAULT().zeros((int) instances.get(0).length());
       }
       double[] cnts = new double[K];
       Random rnd = new Random();
@@ -180,7 +180,7 @@ public class KMeans extends Clusterer<FlatClustering> {
          cnts[ci]++;
       }
       for (int i = 0; i < K; i++) {
-         centroids[i].divi(cnts[i]);
+         centroids[i].divi((float) cnts[i]);
       }
       return centroids;
    }

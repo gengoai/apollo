@@ -111,7 +111,7 @@ public enum VectorCompositions implements VectorComposition {
          if (vectors.size() == 0) {
             return NDArrayFactory.DEFAULT().empty();
          }
-         return svd.decompose(NDArrayFactory.DENSE_DOUBLE.vstack(vectors))[2].getVector(0, Axis.ROW);
+         return svd.decompose(NDArrayFactory.DENSE.vstack(vectors))[2].getVector(0, Axis.ROW);
       }
    }
 

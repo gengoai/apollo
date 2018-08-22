@@ -1,80 +1,66 @@
 package com.gengoai.apollo.linear;
 
 /**
- * Defines the axes that an NDArray can have
- *
  * @author David B. Bracewell
  */
 public enum Axis {
-   /**
-    * Row axis.
-    */
-   ROW(0) {
-      @Override
-      public Axis T() {
-         return COlUMN;
-      }
+   ROW(0),
+   COLUMN(1),
+   KERNEL(2),
+   CHANNEL(3);
 
-      @Override
-      public int select(int i, int j) {
-         return i;
-      }
-   },
-   /**
-    * Column axis.
-    */
-   COlUMN(1) {
-      @Override
-      public Axis T() {
-         return ROW;
-      }
+   public final int ordinal;
 
-      @Override
-      public int select(int i, int j) {
-         return j;
-      }
-   };
-
-   /**
-    * Ordinal index (0 for row, 1 for Column).
-    */
-   final int index;
-
-   Axis(int index) {
-      this.index = index;
+   Axis(int ordinal) {
+      this.ordinal = ordinal;
    }
 
-   /**
-    * Gets an axis object from its index (0 for row, 1 for column)
-    *
-    * @param index the ordinal value
-    * @return the axis
-    */
-   public static Axis from(int index) {
-      switch (index) {
+   public int select(int... indices) {
+      switch (this) {
+         case ROW:
+            return indices[0];
+         case COLUMN:
+            return indices[1];
+         case KERNEL:
+            return indices.length == 2 ? indices[0] : indices[2];
+         default:
+            return indices.length == 2 ? indices[1] : indices[3];
+      }
+   }
+
+   public Axis T() {
+      switch (this) {
+         case ROW:
+            return COLUMN;
+         case COLUMN:
+            return ROW;
+         case KERNEL:
+            return CHANNEL;
+         default:
+            return KERNEL;
+      }
+   }
+
+   public boolean isRowOrColumn() {
+      return this == ROW || this == COLUMN;
+   }
+
+   public boolean isKernelOrChannel() {
+      return this == KERNEL || this == CHANNEL;
+   }
+
+   public static Axis valueOf(int ordinal) {
+      switch (ordinal) {
          case 0:
             return ROW;
          case 1:
-            return COlUMN;
+            return COLUMN;
+         case 2:
+            return KERNEL;
+         case 3:
+            return CHANNEL;
       }
-      throw new IllegalArgumentException("Dimension index (" + index + ") does not map to a known axis.");
+      throw new IllegalArgumentException("Axis (" + ordinal + ") is undefined.");
    }
 
-   /**
-    * Gets this axis's opposite, or transposed, axis
-    *
-    * @return the axis
-    */
-   public abstract Axis T();
-
-   /**
-    * Selects dimension value associated with this axis
-    *
-    * @param i dimension one
-    * @param j dimension two
-    * @return the dimension associated with this axis
-    */
-   public abstract int select(int i, int j);
-
-
-}// END OF Axis
+}//END OF Axis

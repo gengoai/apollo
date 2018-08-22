@@ -24,9 +24,9 @@ public class SoftmaxActivation implements Activation {
          val sum = x.sum();
          return x.divi(sum);
       }
-      val max = x.max(Axis.COlUMN);
+      val max = x.max(Axis.COLUMN);
       x.mapi(max, Axis.ROW, (d1, m) -> FastMath.exp(d1 - m));
-      val sum = x.sum(Axis.COlUMN);
+      val sum = x.sum(Axis.COLUMN);
       return x.divi(sum, Axis.ROW);
    }
 

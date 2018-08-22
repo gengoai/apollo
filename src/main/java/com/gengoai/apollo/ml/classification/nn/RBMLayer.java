@@ -13,7 +13,7 @@ public class RBMLayer extends WeightLayer {
 
    public RBMLayer(int inputSize, int outputSize) {
       super(inputSize, outputSize, Activation.SIGMOID,
-            NDArrayInitializer.glorotAndBengioSigmoid(), 0, 0);
+            NDArrayInitializer.glorotAndBengioSigmoid, 0, 0);
    }
 
    @Override

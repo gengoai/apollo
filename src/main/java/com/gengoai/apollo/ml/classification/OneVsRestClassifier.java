@@ -57,7 +57,7 @@ public class OneVsRestClassifier extends Classifier {
          //Softmax normalization and log normalization
          distribution = Activation.SOFTMAX.apply(distribution).logi();
       }
-      return new Classification(distribution.toArray(), getLabelEncoder());
+      return new Classification(distribution.toDoubleArray(), getLabelEncoder());
    }
 
 }//END OF OneVsRestClassifier

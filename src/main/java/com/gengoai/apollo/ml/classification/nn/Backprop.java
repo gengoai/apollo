@@ -32,8 +32,8 @@ public class Backprop implements Optimizer<FeedForwardNetwork> {
    private int threads = 4;
 
    static float correct(NDArray predicted, NDArray gold) {
-      int[] pMax = predicted.argMax(Axis.COlUMN);
-      int[] gMax = gold.argMax(Axis.COlUMN);
+      int[] pMax = predicted.argMax(Axis.COLUMN)[0];
+      int[] gMax = gold.argMax(Axis.COLUMN)[0];
       float correct = 0;
       for (int i = 0; i < pMax.length; i++) {
          if (pMax[i] == gMax[i]) {

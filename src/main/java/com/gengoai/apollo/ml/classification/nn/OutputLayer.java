@@ -58,9 +58,9 @@ public class OutputLayer extends WeightLayer {
                     .divi(input.numCols());
       val db = delta.sum(Axis.ROW)
                     .divi(input.numCols());
-      v.muli(0.9).subi(dw.muli(learningRate));
+      v.muli(0.9f).subi(dw.muli((float) learningRate));
       weights.addi(v);
-      bias.subi(db.muli(learningRate));
+      bias.subi(db.muli((float) learningRate));
       l1Update(learningRate, iteration);
       return dzOut;
    }

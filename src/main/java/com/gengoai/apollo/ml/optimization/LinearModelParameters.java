@@ -10,7 +10,7 @@ import com.gengoai.apollo.ml.optimization.activation.Activation;
 public interface LinearModelParameters {
 
    default NDArray activate(NDArray input) {
-      return getActivation().apply(getWeights().mmul(input).addi(getBias(), Axis.COlUMN));
+      return getActivation().apply(getWeights().mmul(input).addi(getBias(), Axis.COLUMN));
    }
 
    Activation getActivation();

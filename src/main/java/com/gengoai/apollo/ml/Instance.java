@@ -209,7 +209,7 @@ public class Instance implements Example, Serializable, Iterable<Feature>, JsonS
       } else if (label instanceof Iterable) {
          this.label = Sets.newHashSet(Cast.<Iterable>as(label));
       } else if (label instanceof Iterator) {
-         this.label = Sets.newHashSet(Cast.<Iterator>as(label));
+         this.label = Sets.newHashSet(Cast.<Iterator<?>>as(label));
       } else if (label.getClass().isArray()) {
          this.label = new HashSet<>(Arrays.asList(Cast.<Object[]>as(label)));
       } else {
@@ -324,22 +324,22 @@ public class Instance implements Example, Serializable, Iterable<Feature>, JsonS
          int fi = (int) encoderPair.encodeFeature(f.getFeatureName());
          if (fi != -1) {
             if (isBinary) {
-               vector.increment(fi, 1.0);
+               vector.increment(fi, 1.0f);
             } else {
-               vector.increment(fi, f.getValue());
+               vector.increment(fi, (float) f.getValue());
             }
          }
       });
       if (label instanceof Iterable) {
          NDArray lblVector = factory.zeros(encoderPair.getLabelEncoder().size());
          for (Object lbl : Cast.<Iterable<Object>>as(label)) {
-            lblVector.set((int) encoderPair.encodeLabel(lbl), 1.0);
+            lblVector.set((int) encoderPair.encodeLabel(lbl), 1.0f);
          }
          vector.setLabel(lblVector);
       } else {
          vector.setLabel(encoderPair.encodeLabel(label));
       }
-      vector.setWeight(weight);
+      vector.setWeight((float) weight);
       return vector;
    }
 
@@ -351,7 +351,7 @@ public class Instance implements Example, Serializable, Iterable<Feature>, JsonS
     * @return the vector
     */
    public NDArray toVector(@NonNull EncoderPair encoderPair) {
-      return toVector(encoderPair, NDArrayFactory.SPARSE_DOUBLE);
+      return toVector(encoderPair, NDArrayFactory.SPARSE);
    }
 
 }//END OF Instance

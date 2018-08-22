@@ -96,8 +96,8 @@ public class StructuredPerceptronLearner extends SequenceLabelerLearner {
       model.weights = new NDArray[nC];
       cWeights = new NDArray[nC];
       for (int i = 0; i < nC; i++) {
-         model.weights[i] = NDArrayFactory.SPARSE_FLOAT.zeros(model.numberOfFeatures());
-         cWeights[i] = NDArrayFactory.SPARSE_FLOAT.zeros(model.numberOfFeatures());
+         model.weights[i] = NDArrayFactory.SPARSE.zeros(model.numberOfFeatures());
+         cWeights[i] = NDArrayFactory.SPARSE.zeros(model.numberOfFeatures());
       }
 
 
@@ -136,21 +136,21 @@ public class StructuredPerceptronLearner extends SequenceLabelerLearner {
                   if (y != yHat) {
                      for (Feature feature : instance) {
                         int fid = (int) model.getFeatureEncoder().encode(feature.getFeatureName());
-                        model.weights[yHat].decrement(fid);
-                        model.weights[y].increment(fid);
-                        cWeights[yHat].decrement(fid);
-                        cWeights[y].increment(fid);
+                        model.weights[yHat].decrement(fid, 1.0);
+                        model.weights[y].increment(fid, 1.0);
+                        cWeights[yHat].decrement(fid, 1.0);
+                        cWeights[y].increment(fid, 1.0);
                      }
                      for (String feature : Iterables.asIterable(
                         transitionFeatures.extract(lblResult.iterator(sequence, iterator.getIndex())))) {
                         int fid = (int) model.getFeatureEncoder().encode(feature);
-                        model.weights[yHat].decrement(fid);
-                        cWeights[yHat].decrement(fid);
+                        model.weights[yHat].decrement(fid, 1.0);
+                        cWeights[yHat].decrement(fid, 1.0);
                      }
                      for (String feature : Iterables.asIterable(transitionFeatures.extract(iterator))) {
                         int fid = (int) model.getFeatureEncoder().encode(feature);
-                        model.weights[y].increment(fid);
-                        cWeights[y].increment(fid);
+                        model.weights[y].increment(fid, 1.0);
+                        cWeights[y].increment(fid, 1.0);
                      }
                   }
                }
@@ -180,7 +180,7 @@ public class StructuredPerceptronLearner extends SequenceLabelerLearner {
       final double C = c;
       for (int ci = 0; ci < nC; ci++) {
          NDArray v = model.weights[ci];
-         cWeights[ci].forEachSparse(entry -> v.decrement(entry.getIndex(), entry.getValue() / C));
+         cWeights[ci].forEachSparse(entry -> v.decrement(entry.matrixIndex(), entry.getValue() / C));
       }
 
       return model;

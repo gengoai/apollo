@@ -31,7 +31,7 @@ public abstract class WeightLayer extends Layer implements LinearModelParameters
    public WeightLayer(int inputSize, int outputSize, Activation activation, NDArrayInitializer NDArrayInitializer, double l1, double l2) {
       super(inputSize, outputSize);
       this.activation = activation;
-      this.weights = NDArrayFactory.DEFAULT().create(outputSize, inputSize, NDArrayInitializer);
+      this.weights = NDArrayFactory.DEFAULT().create(NDArrayInitializer, outputSize, inputSize);
       this.bias = NDArrayFactory.DEFAULT().zeros(outputSize);
       this.v = NDArrayFactory.DEFAULT().zeros(outputSize, inputSize);
       this.l1 = l1;
@@ -75,16 +75,16 @@ public abstract class WeightLayer extends Layer implements LinearModelParameters
                     .divi(input.numCols());
       val db = delta.sum(Axis.ROW)
                     .divi(input.numCols());
-      v.muli(0.9).subi(dw.muli(learningRate));
+      v.muli(0.9f).subi(dw.muli((float)learningRate));
       weights.addi(v);
-      bias.subi(db.muli(learningRate));
+      bias.subi(db.muli((float)learningRate));
       l1Update(learningRate, iteration);
       return dzOut;
    }
 
    @Override
    public NDArray forward(NDArray input) {
-      return activation.apply(weights.mmul(input).addi(bias, Axis.COlUMN));
+      return activation.apply(weights.mmul(input).addi(bias, Axis.COLUMN));
    }
 
    @Override
@@ -146,7 +146,7 @@ public abstract class WeightLayer extends Layer implements LinearModelParameters
       @Getter
       private Activation activation = Activation.SIGMOID;
       @Getter
-      private NDArrayInitializer initializer = NDArrayInitializer.glorotAndBengioSigmoid();
+      private NDArrayInitializer initializer = NDArrayInitializer.glorotAndBengioSigmoid;
       @Getter
       private double l1 = 0;
       @Getter

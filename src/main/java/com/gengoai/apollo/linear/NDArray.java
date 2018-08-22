@@ -1,141 +1,264 @@
 package com.gengoai.apollo.linear;
 
 import com.gengoai.Copyable;
-import com.gengoai.Stopwatch;
 import com.gengoai.Validation;
-import com.gengoai.collection.Lists;
+import com.gengoai.collection.Iterators;
 import com.gengoai.collection.Streams;
 import com.gengoai.conversion.Cast;
-import com.gengoai.io.CSV;
-import com.gengoai.io.CSVWriter;
-import com.gengoai.io.resource.Resource;
-import com.gengoai.math.EnhancedDoubleStatistics;
+import com.gengoai.json.JsonEntry;
+import com.gengoai.json.JsonSerializable;
 import com.gengoai.math.Math2;
 import com.gengoai.math.Operator;
 import com.gengoai.math.Optimum;
+import com.gengoai.tuple.Tuple2;
 import lombok.NonNull;
 import org.apache.commons.math3.util.FastMath;
 import org.jblas.DoubleMatrix;
 import org.jblas.FloatMatrix;
 
-import java.io.IOException;
-import java.io.PrintStream;
-import java.io.PrintWriter;
 import java.io.Serializable;
-import java.text.DecimalFormat;
 import java.util.Arrays;
 import java.util.Iterator;
-import java.util.function.Consumer;
-import java.util.function.DoubleBinaryOperator;
-import java.util.function.DoublePredicate;
-import java.util.function.DoubleUnaryOperator;
+import java.util.Objects;
+import java.util.function.*;
+import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
+
+import static com.gengoai.Validation.checkArgument;
+import static com.gengoai.Validation.checkElementIndex;
+import static com.gengoai.apollo.linear.NDArrayFactory.DENSE;
+import static com.gengoai.collection.Iterators.zipWithIndex;
+import static com.gengoai.tuple.Tuples.$;
 
 /**
- * An n-dimension array of double values used for vectors and matrices.
+ * The type Nd array.
  *
  * @author David B. Bracewell
  */
-public abstract class NDArray implements Serializable, Copyable<NDArray> {
+public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSerializable, Iterable<NDArray.Entry> {
    private static final long serialVersionUID = 1L;
-
+   /**
+    * The Shape.
+    */
+   protected final int[] shape;
+   private final long length;
+   private final int matrixLength;
+   private final int numSlices;
+   private int order;
    private Object label;
-   private double weight;
    private Object predicted;
+   private float weight;
 
-   public static void main(String[] args) throws Exception {
-      NDArray x = NDArrayFactory.DENSE_FLOAT.rand(20000, 20);
-      NDArray y = NDArrayFactory.DENSE_FLOAT.rand(20, 100);
 
-      Stopwatch sw = Stopwatch.createStarted();
-      x.mmul(y);
-      System.out.println(sw);
-
+   public boolean shapeEquals(NDArray other) {
+      return Arrays.equals(shape, other.shape);
    }
 
-   /**
-    * Check can multiply.
-    *
-    * @param a the a
-    * @param b the b
-    */
-   public static void checkCanMultiply(NDArray a, NDArray b) {
-      if (a.numCols() == b.numRows()) {
-         throw new IllegalArgumentException(
-            "Cannot multiple number of columns: " + a.numCols() + " !=  number of rows" + b.numRows());
+   @Override
+   public int hashCode() {
+      return Objects.hash(label, predicted, weight, toFloatArray());
+   }
+
+   @Override
+   public boolean equals(Object o) {
+      if (o instanceof NDArray) {
+         NDArray oa = Cast.as(o);
+         if (Objects.equals(label, oa.label) &&
+                Objects.equals(predicted, oa.predicted) &&
+                Objects.equals(weight, oa.weight) &&
+                shapeEquals(oa)) {
+            for (int i = 0; i < slices(); i++) {
+               if (!Arrays.equals(tensorSlice(i).toFloatArray(), oa.tensorSlice(i).toFloatArray())) {
+                  return false;
+               }
+            }
+            return true;
+         }
+         return false;
       }
+      return false;
    }
 
+
    /**
-    * Check dimension match.
+    * Zero nd array.
     *
-    * @param dim1 the dim 1
-    * @param dim2 the dim 2
+    * @return the nd array
     */
-   public static void checkDimensionMatch(int dim1, int dim2) {
-      if (dim1 != dim2) {
-         throw new IllegalArgumentException("Dimension mismatch: " + dim1 + " != " + dim2);
-      }
+   public NDArray zero() {
+      return fill(0f);
    }
 
    /**
-    * Check length match.
+    * Default Constructor
     *
-    * @param l1 the l 1
-    * @param l2 the l 2
+    * @param shape The shape of the new NDArray
+    * @throws IllegalArgumentException if the length of the shape array is greater than four.
     */
-   public static void checkLengthMatch(int l1, int l2) {
-      if (l1 != l2) {
-         throw new IllegalArgumentException("Length mismatch: " + l1 + " != " + l2);
-      }
+   protected NDArray(int[] shape) {
+      checkArgument(shape.length <= 4, "Invalid shape of length (" + shape.length + ").");
+      this.shape = new int[]{1, 1, 1, 1};
+      System.arraycopy(shape, 0, this.shape, 0, shape.length);
+      this.order = Arrays.stream(shape).map(i -> i > 1 ? 1 : 0).sum();
+      this.matrixLength = this.shape[0] * this.shape[1];
+      this.numSlices = this.shape[2] * this.shape[3];
+      this.length = this.matrixLength * this.numSlices;
    }
 
    /**
-    * Column major index int.
+    * Ensure correct indices int [ ].
     *
-    * @param i       the
-    * @param j       the j
-    * @param numRows the num rows
-    * @param numCols the num cols
+    * @param dimensions the dimensions
+    * @return the int [ ]
+    */
+   public static int[] ensureCorrectIndices(int... dimensions) {
+      int[] shape = new int[]{1, 1, 1, 1};
+      System.arraycopy(dimensions, 0, shape, 0, dimensions.length);
+      return shape;
+   }
+
+   /**
+    * From index int [ ].
+    *
+    * @param index  the index
+    * @param dimAx1 the dim ax 1
+    * @param dimAx2 the dim ax 2
+    * @return the int [ ]
+    */
+   public static int[] fromIndex(long index, int dimAx1, int dimAx2) {
+      return new int[]{
+         (int) index % dimAx1,
+         (int) index / dimAx1
+      };
+   }
+
+   /**
+    * From index int [ ].
+    *
+    * @param index the index
+    * @param shape the shape
+    * @return the int [ ]
+    */
+   public static int[] fromIndex(long index, int[] shape) {
+      shape = ensureCorrectIndices(shape);
+      int matrixLength = shape[0] * shape[1];
+      int sliceLength = shape[2] * shape[3];
+      int[] imd = fromIndex(index, matrixLength, sliceLength);
+      int[] matrix = fromIndex(imd[0], shape[0], shape[1]);
+      int[] slice = fromIndex(imd[1], shape[2], shape[3]);
+      return new int[]{
+         matrix[0],
+         matrix[1],
+         slice[0],
+         slice[1]
+      };
+   }
+
+   /**
+    * Method for constructing an NDArray from JsonEntry for use in serializing / deserializing to/from json.
+    *
+    * @param entry The <code>JsonEntry</code> to parse the NDArray from
+    * @return The NDArray from the JsonEntry
+    */
+   public static NDArray fromJson(JsonEntry entry) {
+      if (entry.getBooleanProperty("dense")) {
+         return DenseNDArray.fromJson(entry);
+      }
+      NDArray ndArray = DENSE.zeros(entry.getValProperty("shape")
+                                         .asIntegerValueArray());
+      JsonEntry array = entry.getProperty("data");
+      zipWithIndex(array.elementIterator()).forEachRemaining(e -> {
+         NDArray matrix = ndArray.tensorSlice(e.getValue());
+         zipWithIndex(e.getKey().elementIterator())
+            .forEachRemaining(v -> matrix.set(v.getValue(), v.getKey().getAsFloat()));
+      });
+      return ndArray;
+   }
+
+   /**
+    * To index int.
+    *
+    * @param ax1    the ax 1
+    * @param dimAx1 the dim ax 1
+    * @param ax2    the ax 2
+    * @param dimAx2 the dim ax 2
     * @return the int
     */
-   public static int columnMajorIndex(int i, int j, int numRows, int numCols) {
-      return i + (numRows * j);
+   public static int toIndex(int ax1, int dimAx1, int ax2, int dimAx2) {
+      return ax1 + (dimAx1 * ax2);
+   }
+
+   protected int toSliceIndex(int kernel, int channel) {
+      return toIndex(kernel, shape[Axis.KERNEL.ordinal],
+                     channel, shape[Axis.CHANNEL.ordinal]);
+   }
+
+   protected int toMatrixIndex(int row, int column) {
+      return toIndex(row, shape[Axis.ROW.ordinal],
+                     column, shape[Axis.COLUMN.ordinal]);
    }
 
    /**
-    * To column int.
+    * To long index long.
     *
-    * @param index   the index
-    * @param numRows the num rows
-    * @param numCols the num cols
-    * @return the int
+    * @param indices the indices
+    * @param shape   the shape
+    * @return the long
     */
-   public static int toColumn(int index, int numRows, int numCols) {
-      return index / numRows;
+   public static long toLongIndex(int[] indices, int[] shape) {
+      checkArgument(indices.length <= 4,
+                    "Invalid number of indices (" + indices.length + ")");
+      switch (indices.length) {
+         case 0:
+            return 0;
+         case 1:
+            return indices[0];
+         case 2:
+            return toIndex(indices[0], shape[0], indices[1], shape[1]);
+         case 3:
+            return toIndex(toIndex(indices[0], shape[0], indices[1], shape[1]),
+                           shape[0] * shape[1],
+                           indices[2],
+                           shape[2]);
+         case 4:
+            return toIndex(toIndex(indices[0], shape[0], indices[1], shape[1]),
+                           shape[0] * shape[1],
+                           toIndex(indices[2], shape[2], indices[3], shape[3]),
+                           shape[2] * shape[3]);
+      }
+      throw new IllegalArgumentException("Invalid number of indices (" + indices.length + ")");
    }
 
    /**
-    * To row int.
-    *
-    * @param index   the index
-    * @param numRows the num rows
-    * @param numCols the num cols
-    * @return the int
-    */
-   public static int toRow(int index, int numRows, int numCols) {
-      return index % numRows;
-   }
-
-   /**
-    * Flips the matrix on its diagonal switching the rows and columns
+    * Flips the matrix on its diagonal switching the rows and columns. (This is done per slice)
     *
     * @return the transposed array
     */
    public NDArray T() {
-      NDArray t = getFactory().zeros(numCols(), numRows());
-      forEachSparse(entry -> t.set(entry.getJ(), entry.getI(), entry.getValue()));
-      return t;
+      return sliceUnaryOperation(v -> {
+         NDArray out = getFactory().zeros(v.numCols(), v.numRows());
+         v.forEach(e -> out.set(e.getColumn(), e.getRow(), e.getValue()));
+         return out;
+      });
+   }
+
+   /**
+    * Takes the absolute value of the values in the NDArray
+    *
+    * @return the new NDArray with absolute values
+    */
+   public NDArray abs() {
+      return map(Math::abs);
+   }
+
+   /**
+    * Takes the absolute value of the values in the NDArray in-place
+    *
+    * @return this NDArray
+    */
+   public NDArray absi() {
+      return mapi(Math::abs);
    }
 
    /**
@@ -145,21 +268,22 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return the new NDArray with the scalar value added
     */
    public NDArray add(double scalar) {
-      if (scalar == 0) {
-         return copy();
-      }
-      return map(d -> d + scalar);
+      return mapScalar(newZeroArray(),
+                       scalar,
+                       Operator::add);
    }
 
    /**
-    * Adds the values in the other NDArray to this one.
+    * Adds the values in the other NDArray to this one. Basic broadcasting will occur for scalar, vector, and matrix
+    * NDArrays.
     *
     * @param other the other NDArray whose values will be added
     * @return the new NDArray with the result of this + other
-    * @throws IllegalArgumentException If the shape of this NDArray does not match that of the other NDArray
     */
-   public NDArray add(@NonNull NDArray other) {
-      return map(other, Operator::add);
+   public NDArray add(NDArray other) {
+      return map(newZeroArray(),
+                 other,
+                 Operator::add);
    }
 
    /**
@@ -169,10 +293,12 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @param other the other NDArray whose values will be added
     * @param axis  the axis
     * @return the new NDArray with the result of this + other
-    * @throws IllegalArgumentException If the row/column shape of this NDArray does not match that of the other NDArray
     */
-   public NDArray add(@NonNull NDArray other, @NonNull Axis axis) {
-      return map(other, axis, Operator::add);
+   public NDArray add(NDArray other, Axis axis) {
+      return mapVector(newZeroArray(),
+                       other,
+                       axis,
+                       Operator::add);
    }
 
    /**
@@ -182,23 +308,22 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return this NDArray with the scalar value added
     */
    public NDArray addi(double scalar) {
-      if (scalar == 0) {
-         return this;
-      }
-      return mapi(d -> d + scalar);
+      return mapScalar(this,
+                       scalar,
+                       Operator::add);
    }
 
    /**
-    * Adds the values in the other NDArray to this one in-place.
+    * Adds the values in the other NDArray to this one in-place.  Basic broadcasting will occur for scalar, vector, and
+    * matrix NDArrays.
     *
     * @param other the other NDArray whose values will be added
     * @return this NDArray with the result of this + other
-    * @throws IllegalArgumentException If the shape of this NDArray does not match that of the other NDArray
     */
-   public NDArray addi(@NonNull NDArray other) {
-      checkLengthMatch(length(), other.length());
-      other.forEachSparse(e -> increment(e.getIndex(), e.getValue()));
-      return this;
+   public NDArray addi(NDArray other) {
+      return map(this,
+                 other,
+                 Operator::add);
    }
 
    /**
@@ -208,54 +333,70 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @param other the other NDArray whose values will be added
     * @param axis  the axis
     * @return this NDArray with the result of this + other
-    * @throws IllegalArgumentException If the row/column shape of this NDArray does not match that of the other NDArray
     */
-   public NDArray addi(@NonNull NDArray other, @NonNull Axis axis) {
-      return mapi(other, axis, Operator::add);
+   public NDArray addi(NDArray other, Axis axis) {
+      return mapVector(this,
+                       other,
+                       axis,
+                       Operator::add);
    }
 
    /**
     * Calculates the index of the maximum along each row or column based on the given axis.
     *
     * @param axis the axis (row/column) to calculate the max for
-    * @return int array of row/column indexes relating to max values
+    * @return array of int array of row/column indexes relating to max values per slice
     */
-   public int[] argMax(@NonNull Axis axis) {
-      NDArray aMax = NDArrayFactory.DENSE_DOUBLE.zeros(dimension(axis));
-      NDArray vMax = NDArrayFactory.DENSE_DOUBLE.zeros(dimension(axis));
-      vMax.mapi(d -> Double.NEGATIVE_INFINITY);
-      forEach(entry -> {
-         int index = entry.get(axis);
-         if (entry.getValue() > vMax.get(index)) {
-            vMax.set(index, entry.getValue());
-            aMax.set(index, entry.get(axis.T()));
-         }
-      });
-      return aMax.toIntArray();
+   public int[][] argMax(Axis axis) {
+      return argOptimum(axis, Optimum.MAXIMUM);
    }
 
    /**
     * Calculates the index of the minimum along each row or column based on the given axis.
     *
-    * @param axis the axis (row/column) to calculate the min for
-    * @return int array of row/column indexes relating to min values
+    * @param axis the axis (row/column) to calculate the minimum for
+    * @return array of int array of row/column indexes relating to minimum values per slice
     */
-   public int[] argMin(@NonNull Axis axis) {
-      NDArray aMin = NDArrayFactory.DENSE_DOUBLE.zeros(dimension(axis));
-      NDArray vMin = NDArrayFactory.DENSE_DOUBLE.zeros(dimension(axis));
-      vMin.mapi(d -> Double.POSITIVE_INFINITY);
-      forEach(entry -> {
-         int index = entry.get(axis);
-         if (entry.getValue() < vMin.get(index)) {
-            vMin.set(index, entry.getValue());
-            aMin.set(index, entry.get(axis.T()));
+   public int[][] argMin(Axis axis) {
+      return argOptimum(axis, Optimum.MINIMUM);
+   }
+
+   private int[][] argOptimum(Axis axis, Optimum optimum) {
+      checkArgument(axis.isRowOrColumn(), "Axis (" + axis + ") not supported");
+      int[][] out = new int[numSlices][dimension(axis)];
+      double[][] optimums = new double[numSlices][dimension(axis)];
+      for (int slice = 0; slice < numSlices; slice++) {
+         Arrays.fill(optimums[slice], optimum.startingValue());
+      }
+      forEach(e -> {
+         if (optimum.test(e.getValue(), optimums[e.sliceIndex()][e.getIndex(axis)])) {
+            optimums[e.sliceIndex()][e.getIndex(axis)] = e.getValue();
+            out[e.sliceIndex()][e.getIndex(axis)] = e.getIndex(axis.T());
          }
       });
-      return aMin.toIntArray();
+      return out;
    }
 
    /**
-    * Compresses the underneath storage if possible
+    * Number of Channels in the NDArray
+    *
+    * @return the number of channels
+    */
+   public int numChannels() {
+      return dimension(Axis.CHANNEL);
+   }
+
+   /**
+    * Number of columns in the NDArray
+    *
+    * @return the number of columns
+    */
+   public int numCols() {
+      return dimension(Axis.COLUMN);
+   }
+
+   /**
+    * Compresses the memory used by the NDArray. (Only useful for sparse implementations)
     *
     * @return this NDArray
     */
@@ -263,145 +404,145 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
       return this;
    }
 
-   @Override
-   public final NDArray copy() {
-      return copyData()
-                .setLabel(label)
-                .setPredicted(predicted)
-                .setWeight(weight);
-   }
-
    /**
-    * Copy data nd array.
+    * Calculates the variance-covariance matrix of this NDArray. Each slice is operated on independently.
     *
-    * @return the nd array
-    */
-   protected abstract NDArray copyData();
-
-   /**
-    * Calculates the variance-covariance matrix of this NDArray
-    *
-    * @return The variance-covariance matrix
+    * @return The variance-covariance NDArray
     */
    public NDArray cov() {
-      NDArray c = sub(getFactory().ones(numRows(), numRows())
-                                  .mmul(this)
-                                  .muli(1d / numRows()));
-      return c.T().mmul(c).divi(numRows());
+      return sliceUnaryOperation(v -> {
+         NDArray c = v.sub(getFactory().ones(v.numRows(), v.numRows())
+                                       .mmul(v)
+                                       .muli(1f / v.numRows()));
+         return c.T().mmul(c).divi(v.numRows());
+      });
    }
 
    /**
-    * Decrements the value at the given index by 1
+    * Decrements the value of the NDArray at the given indices.
     *
-    * @param index the index to decrement
+    * @param indices the indices of the value to decrement
+    * @param value   the value to decrement by
     * @return this NDArray
     */
-   public NDArray decrement(int index) {
-      return decrement(index, 1d);
+   public NDArray decrement(int[] indices, double value) {
+      return set(indices, get(indices) - value);
    }
 
    /**
-    * Decrements the value at the given index by a given amount
+    * Decrements the value of the NDArray at the given indices.
     *
-    * @param index  the index to decrement
-    * @param amount the amount to decrement
-    * @return this NDArray
+    * @param row     the row
+    * @param column  the column
+    * @param kernel  the kernel
+    * @param channel the channel
+    * @param value   the value to decrement by
+    * @return This NDArray
     */
-   public NDArray decrement(int index, double amount) {
-      set(index, get(index) - amount);
-      return this;
+   public NDArray decrement(int row, int column, int kernel, int channel, double value) {
+      return set(row, column, kernel, channel, get(row, column, kernel, channel) - value);
    }
 
    /**
-    * Decrements the value at the given subscript by 1
+    * Decrements the value of the NDArray at the given indices.
     *
-    * @param i the index of the first dimension
-    * @param j the index of the second dimension
-    * @return this NDArray
+    * @param row    the row
+    * @param column the column
+    * @param kernel the kernel
+    * @param value  the value to decrement by
+    * @return This NDArray
     */
-   public NDArray decrement(int i, int j) {
-      return decrement(i, j, 1d);
+   public NDArray decrement(int row, int column, int kernel, double value) {
+      return set(row, column, kernel, get(row, column, kernel) - value);
    }
 
    /**
-    * Decrements the value at the given subscript by a given amount
+    * Decrements the value of the NDArray at the given indices.
     *
-    * @param i      the index of the first dimension
-    * @param j      the index of the second dimension
-    * @param amount the amount to decrement
-    * @return this NDArray
+    * @param row    the row
+    * @param column the column
+    * @param value  the value to decrement by
+    * @return This NDArray
     */
-   public NDArray decrement(int i, int j, double amount) {
-      set(i, j, get(i, j) - amount);
-      return this;
+   public NDArray decrement(int row, int column, double value) {
+      return set(row, column, get(row, column) - value);
    }
 
    /**
-    * Diag nd array.
+    * Decrements the value of the NDArray at the given indices.
     *
-    * @return the nd array
+    * @param row   the row
+    * @param value the value to decrement by
+    * @return This NDArray
+    */
+   public NDArray decrement(int row, double value) {
+      return set(row, get(row) - value);
+   }
+
+   /**
+    * Generates a diagonal matrix per slice.
+    *
+    * @return The NDArray with diagonal slices.
     */
    public NDArray diag() {
-      if (isEmpty()) {
-         return NDArrayFactory.DEFAULT().empty();
-      } else if (isScalar()) {
-         return copy();
-      }
-
-      if (isColumnVector()) {
-         NDArray toReturn = getFactory().zeros(numRows(), numRows());
-         for (int i = 0; i < numRows(); i++) {
-            toReturn.set(i, i, get(i, 0));
+      return sliceUnaryOperation(v -> {
+         if (v.isScalar()) {
+            return v.copy();
          }
-         return toReturn;
-      } else if (isRowVector()) {
-         NDArray toReturn = getFactory().zeros(numCols(), numCols());
-         for (int j = 0; j < numCols(); j++) {
-            toReturn.set(j, j, get(0, j));
-         }
-         return toReturn;
-      } else if (isSquare()) {
-         NDArray toReturn = getFactory().zeros(numRows(), numCols());
-         for (int i = 0; i < numRows(); i++) {
-            if (i < numCols()) {
-               toReturn.set(i, i, get(i, i));
+         if (v.isVector()) {
+            Axis axis = v.isColumnVector() ? Axis.ROW : Axis.COLUMN;
+            NDArray out = getFactory().zeros(v.dimension(axis), v.dimension(axis));
+            for (int i = 0; i < v.dimension(axis); i++) {
+               out.set(i, i, v.get(i));
             }
+            return out;
          }
-         return toReturn;
-      }
-
-      throw new IllegalStateException("Rectangular matrices are not supported.");
+         if (v.isSquare()) {
+            NDArray out = getFactory().zeros(v.numRows(), v.numCols());
+            for (int i = 0; i < v.numRows(); i++) {
+               if (i < v.numCols()) {
+                  out.set(i, i, v.get(i, i));
+               }
+            }
+            return out;
+         }
+         throw new IllegalStateException("Rectangular slices are not supported");
+      });
    }
 
    /**
-    * Dimension int.
+    * Gets the dimension of the the given axis
     *
     * @param axis the axis
-    * @return the int
+    * @return the dimension of the given axis
     */
-   public int dimension(@NonNull Axis axis) {
-      return axis == Axis.ROW ? numRows() : numCols();
+   public int dimension(Axis axis) {
+      return shape[axis.ordinal];
+   }
+
+   /**
+    * Divides the values in the other NDArray to this one element by element. Basic broadcasting will occur for scalar,
+    * vector, and matrix NDArrays.
+    *
+    * @param other the other NDArray whose values will be divided
+    * @return the new NDArray with the result of this / other
+    */
+   public NDArray div(NDArray other) {
+      return mapSparse(newZeroArray(),
+                       other,
+                       Operator::divide);
    }
 
    /**
     * Divides a scalar value to each element in the NDArray
     *
-    * @param scalar the value to divided
+    * @param value the value to divide
     * @return the new NDArray with the scalar value divided
     */
-   public NDArray div(double scalar) {
-      return mapSparse(d -> d / scalar);
-   }
-
-   /**
-    * Divides the values in the other NDArray to this one element by element.
-    *
-    * @param other the other NDArray whose values will be divided
-    * @return the new NDArray with the result of this / other
-    * @throws IllegalArgumentException If the shape of this NDArray does not match that of the other NDArray
-    */
-   public NDArray div(@NonNull NDArray other) {
-      return mapSparse(other, Operator::divide);
+   public NDArray div(double value) {
+      return mapSparseScalar(newZeroArray(),
+                             value,
+                             Operator::divide);
    }
 
    /**
@@ -411,31 +552,38 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @param other the other NDArray whose values will be divided
     * @param axis  the axis
     * @return the new NDArray with the result of this / other
-    * @throws IllegalArgumentException If the row/column shape of this NDArray does not match that of the other NDArray
     */
-   public NDArray div(@NonNull NDArray other, @NonNull Axis axis) {
-      return mapSparse(other, axis, Operator::divide);
+   public NDArray div(NDArray other, Axis axis) {
+      return mapSparseVector(newZeroArray(),
+                             other,
+                             axis,
+                             Operator::divide);
    }
 
    /**
     * Divides a scalar value to each element in the NDArray in-place.
     *
-    * @param scalar the value to divided
+    * @param value the value to divide
     * @return this NDArray with the scalar value divided
     */
-   public NDArray divi(double scalar) {
-      return mapiSparse(d -> d / scalar);
+   public NDArray divi(double value) {
+      return mapSparseScalar(this,
+                             value,
+                             Operator::divide);
    }
 
    /**
-    * Divides the values in the other NDArray to this one element by element in-place.
+    * Divides the values in the other NDArray to this one element by element in-place. Basic broadcasting will occur for
+    * scalar, vector, and matrix NDArrays.
     *
     * @param other the other NDArray whose values will be divided
     * @return this NDArray with the result of this / other
     * @throws IllegalArgumentException If the shape of this NDArray does not match that of the other NDArray
     */
-   public NDArray divi(@NonNull NDArray other) {
-      return mapiSparse(other, Operator::divide);
+   public NDArray divi(NDArray other) {
+      return mapSparse(this,
+                       other,
+                       Operator::divide);
    }
 
    /**
@@ -445,165 +593,126 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @param other the other NDArray whose values will be divided
     * @param axis  the axis
     * @return this NDArray with the result of this / other
-    * @throws IllegalArgumentException If the row/column shape of this NDArray does not match that of the other NDArray
     */
-   public NDArray divi(@NonNull NDArray other, @NonNull Axis axis) {
-      return mapiSparse(other, axis, Operator::divide);
+   public NDArray divi(NDArray other, Axis axis) {
+      return mapSparseVector(this,
+                             other,
+                             axis,
+                             Operator::divide);
    }
 
    /**
-    * Dot nd array.
+    * Calculates the dot product of vectors along the given axis between this NDArray and the given NDArray. Operation
+    * will be repeated across slices.
     *
-    * @param other the other
-    * @param axis  the axis
-    * @return the nd array
+    * @param other the other NDArray to calculate the dot product with
+    * @param axis  the axis to calculate the dot product along
+    * @return The NDArray containing the dot product
     */
-   public NDArray dot(@NonNull NDArray other, @NonNull Axis axis) {
-      NDArray dot = getFactory().zeros(axis, 1, axis.T(), dimension(axis));
-      if (axis == Axis.ROW) {
-         for (int i = 0; i < numRows(); i++) {
-            double sum = 0d;
-            for (Iterator<Entry> itr = sparseRowIterator(i); itr.hasNext(); ) {
-               Entry e = itr.next();
-               sum += e.getValue() * other.get(axis.T(), e.get(axis), axis, e.get(axis.T()));
-            }
-            dot.set(i, 0, sum);
-         }
-      } else {
-         for (int i = 0; i < numCols(); i++) {
-            double sum = 0d;
-            for (Iterator<Entry> itr = sparseRowIterator(i); itr.hasNext(); ) {
-               Entry e = itr.next();
-               sum += e.getValue() * other.get(axis.T(), e.get(axis), axis, e.get(axis.T()));
-            }
-            dot.set(0, i, sum);
-         }
-      }
-
-      return dot;
+   public NDArray dot(NDArray other, Axis axis) {
+      checkArgument(axis.isRowOrColumn(), "Axis (" + axis + ") is not supported.");
+      checkArgument(dimension(axis.T()) == other.dimension(axis.T()),
+                    "Dimension (" + axis.T() + ") mismatch (" + dimension(axis.T()) + ")  != (" + other.dimension(
+                       axis.T()) + ")");
+      int[] newShape = shape();
+      newShape[axis.T().ordinal] = 1;
+      NDArray out = getFactory().zeros(newShape);
+      sliceStream().forEach(t -> {
+         NDArray otherSlice = other.tensorSlice(t.v1);
+         NDArray outSlice = out.tensorSlice(t.v1);
+         t.v2.forEachSparse(e -> outSlice.increment(e.getIndex(axis),
+                                                    otherSlice.get(e.row, e.column) * e.getValue()
+                                                   ));
+      });
+      return out;
    }
 
    /**
-    * Calculates the dot product between this  NDArray and a given other
+    * Calculates the dot product of vectors between this NDArray and the given NDArray. The dot product is summed across
+    * the slices.
     *
-    * @param other The other NDArray
-    * @return The dot product
-    * @throws IllegalArgumentException If the shapes do not match
+    * @param other the other NDArray to calculate the dot product with
+    * @return The sum of the dot products across the slices.
     */
-   public double dot(@NonNull NDArray other) {
-      checkLengthMatch(length(), other.length());
-      double dot = 0d;
-      NDArray small = size() > other.size() ? other : this;
-      NDArray big = size() > other.size() ? this : other;
-      for (Iterator<Entry> itr = small.sparseIterator(); itr.hasNext(); ) {
-         Entry e = itr.next();
-         dot += e.getValue() * big.get(e.getIndex());
-      }
-      return dot;
-   }
-
-   @Override
-   public boolean equals(Object o) {
-      if (o == null || !(o instanceof NDArray)) {
-         return false;
-      }
-      NDArray on = Cast.as(o);
-      return on.numRows() == numRows() && on.numCols() == numCols() && Arrays.equals(on.toArray(), toArray());
+   public float dot(NDArray other) {
+      checkArgument(matrixLength == other.matrixLength,
+                    "Length mismatch (" + matrixLength + ")  != (" + other.matrixLength);
+      return (float) sliceStream().mapToDouble(t -> {
+         NDArray os = other.tensorSlice(t.v1);
+         return Streams.asStream(t.v2.sparseIterator()).mapToDouble(e -> e.getValue() * os.get(e.matrixIndex())).sum();
+      }).sum();
    }
 
    /**
-    * Convenience method for calculating <code>e^x</code> where <code>x</code> is the element value of the NDArray,
-    * i.e.
-    * <code>Math.exp(x)</code>.
+    * Calculates <code>exp(v)</code> for each value <code>v</code> in the NDArray
     *
-    * @return the new NDArray
+    * @return NDArray with exp values
     */
    public NDArray exp() {
-      NDArray toReturn = getFactory().ones(numRows(), numCols());
-      forEachSparse(e -> toReturn.set(e.getIndex(), FastMath.exp(e.getValue())));
-      return toReturn;
+      return map(FastMath::exp);
    }
 
    /**
-    * Convenience method for calculating <code>e^x</code> where <code>x</code> is the element value of the NDArray
-    * in-place, i.e. <code>Math.exp(x)</code>.
+    * Calculates <code>exp(v)</code> for each value <code>v</code> in the NDArray updating itself
     *
-    * @return this NDArray
+    * @return This NDArray with exp values
     */
    public NDArray expi() {
       return mapi(FastMath::exp);
    }
 
    /**
-    * Sets the values of elements in the NDArray to given value (in-place).
+    * Fills the NDArray with the given value
     *
-    * @param value the value to assign to all elements.
-    * @return this NDArray
+    * @param value the value to set all cells in the NDArray
+    * @return This NDArray
     */
    public NDArray fill(double value) {
-      mapi(d -> value);
+      forEachSlice(ndarray -> ndarray.forEach(e -> e.setValue(value)));
       return this;
    }
 
    /**
-    * Performs the given action for each element in the NDArray.
+    * Fills the NDArray with values generated from the given double supplier
     *
-    * @param consumer the consumer to use for processing the NDArray entries
+    * @param supplier the supplier to use to set all cells in the NDArray
+    * @return This NDArray
     */
-   public void forEach(@NonNull Consumer<Entry> consumer) {
-      iterator().forEachRemaining(consumer);
+   public NDArray fill(DoubleSupplier supplier) {
+      forEachSlice(ndarray -> ndarray.forEach(e -> e.setValue((float) supplier.getAsDouble())));
+      return this;
    }
 
    /**
-    * Processes each sparse entry in this NDArray using the given consumer
+    * Processes each slice of the NDArray using the given NDArray consumer
     *
-    * @param consumer Entry consumer
+    * @param sliceConsumer the slice consumer
     */
-   public void forEachSparse(@NonNull Consumer<Entry> consumer) {
+   public void forEachSlice(Consumer<NDArray> sliceConsumer) {
+      sliceStream().forEach(t -> sliceConsumer.accept(t.v2));
+   }
+
+   /**
+    * Processes the non-zero entries in this NDArray using the given entry consumer
+    *
+    * @param consumer the consumer to use to process non-zero entries
+    */
+   public void forEachSparse(Consumer<Entry> consumer) {
       sparseIterator().forEachRemaining(consumer);
    }
 
    /**
-    * Gets the value of the NDArray at the given index. This method is useful for vectors and accessing storage
-    * directly.
+    * Gets the value of entry at the given indices
     *
-    * @param index the index into the storage
-    * @return the value at the given index
-    * @throws IndexOutOfBoundsException if the index is invalid
+    * @param indices the indices of the value to get
+    * @return the value at the given indices
     */
-   public abstract double get(int index);
+   public abstract float get(int... indices);
 
    /**
-    * Gets the value of the NDArray at the given subscript <code>(r, c)</code>.
+    * Gets the factory used to create NDArrays of this type
     *
-    * @param i the r subscript
-    * @param j the c subscript.
-    * @return The value at <code>(r, c)</code>
-    * @throws IndexOutOfBoundsException if the dimensions are invalid
-    */
-   public abstract double get(int i, int j);
-
-   /**
-    * Gets the value of the NDArray at the given subscript .
-    *
-    * @param a1   the axis of the first subscript
-    * @param dim1 the index of the first axis's dimension
-    * @param a2   the axis of the second subscript
-    * @param dim2 the index of the second axis's dimension
-    * @return the element value
-    * @throws IndexOutOfBoundsException if the dimensions are invalid
-    */
-   public double get(@NonNull Axis a1, int dim1, @NonNull Axis a2, int dim2) {
-      int[] dims = {-1, -1};
-      dims[a1.index] = dim1;
-      dims[a2.index] = dim2;
-      return get(dims[0], dims[1]);
-   }
-
-   /**
-    * Gets the factory object for creating new instances of this type of NDArray.
-    *
-    * @return the factory
+    * @return the NDArrayFactory
     */
    public abstract NDArrayFactory getFactory();
 
@@ -633,6 +742,22 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     *
     * @return the label as double
     */
+   public float getLabelAsFloat() {
+      if (label == null) {
+         return Float.NaN;
+      }
+      return Cast.<Number>as(label).floatValue();
+   }
+
+   public long size() {
+      return length;
+   }
+
+   /**
+    * Gets label as double.
+    *
+    * @return the label as double
+    */
    public double getLabelAsDouble() {
       if (label == null) {
          return Double.NaN;
@@ -647,9 +772,9 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     */
    public NDArray getLabelAsNDArray() {
       if (label == null) {
-         return NDArrayFactory.DEFAULT().empty();
+         return getFactory().empty();
       } else if (label instanceof Number) {
-         return new ScalarNDArray(Cast.<Number>as(label).doubleValue());
+         return getFactory().constant(Cast.<Number>as(label).floatValue(), 1);
       }
       return Cast.as(label);
    }
@@ -662,10 +787,10 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     */
    public NDArray getLabelAsNDArray(int dimension) {
       if (label == null) {
-         return NDArrayFactory.DEFAULT().empty();
+         return getFactory().empty();
       } else if (label instanceof Number) {
          return getFactory().zeros(dimension)
-                            .set(Cast.<Number>as(label).intValue(), 1d);
+                            .set(Cast.<Number>as(label).intValue(), 1f);
       }
       return Cast.as(label);
    }
@@ -710,28 +835,52 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     */
    public NDArray getPredictedAsNDArray() {
       if (predicted == null) {
-         return NDArrayFactory.DEFAULT().empty();
+         return getFactory().empty();
       } else if (predicted instanceof Number) {
-         return new ScalarNDArray(Cast.<Number>as(predicted).doubleValue());
+         return getFactory().constant(Cast.<Number>as(predicted).floatValue(), 1);
       }
       return Cast.as(predicted);
    }
 
    /**
-    * Gets a vector along the given axis at the given index
+    * Gets label as nd array.
     *
-    * @param index the index of the vector to return
-    * @param axis  the axis the index belongs
-    * @return An vector NDArray
+    * @param dimension the dimension
+    * @return the label as nd array
     */
-   public NDArray getVector(int index, @NonNull Axis axis) {
-      Validation.checkElementIndex(index, dimension(axis),
-                                   "Invalid index " + index + " [0, " + dimension(axis) + ")");
-      NDArray toReturn = getFactory().zeros(axis.T(), dimension(axis.T()));
-      for (int i = 0; i < dimension(axis.T()); i++) {
-         toReturn.set(i, get(axis, index, axis.T(), i));
+   public NDArray getPredictedAsNDArray(int dimension) {
+      if (predicted == null) {
+         return getFactory().empty();
+      } else if (predicted instanceof Number) {
+         return getFactory().zeros(dimension)
+                            .set(Cast.<Number>as(predicted).intValue(), 1f);
       }
-      return toReturn;
+      return Cast.as(predicted);
+   }
+
+   /**
+    * Gets the vector(s) at the given index along the given axis. This works across slices.
+    *
+    * @param index the index of the vector to retrieve
+    * @param axis  the axis of the vector
+    * @return the NDArray of vectors
+    */
+   public NDArray getVector(int index, Axis axis) {
+      checkArgument(axis.isRowOrColumn(), "Axis (" + axis + ") is invalid.");
+      int[] newShape = shape();
+      newShape[axis.ordinal] = 1;
+      NDArray out = getFactory().zeros(newShape);
+      sliceStream().forEach(t -> {
+         NDArray slice = out.tensorSlice(t.v1);
+         for (int i = 0; i < dimension(axis.T()); i++) {
+            if (axis == Axis.ROW) {
+               slice.set(i, t.v2.get(index, i));
+            } else {
+               slice.set(i, t.v2.get(i, index));
+            }
+         }
+      });
+      return out;
    }
 
    /**
@@ -739,7 +888,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     *
     * @return the weight
     */
-   public double getWeight() {
+   public float getWeight() {
       return weight;
    }
 
@@ -750,507 +899,587 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return the weight
     */
    public NDArray setWeight(double weight) {
-      this.weight = weight;
+      this.weight = (float) weight;
       return this;
    }
 
    /**
-    * Has label boolean.
+    * Increments the value of the NDArray at the given indices.
     *
-    * @return the boolean
+    * @param indices the indices of the value to decrement
+    * @param value   the value to increment by
+    * @return This NDArray
     */
-   public boolean hasLabel() {
-      return label != null;
+   public NDArray increment(int[] indices, double value) {
+      return set(indices, get(indices) + value);
    }
 
    /**
-    * Has predicted label boolean.
+    * Increments the value of the NDArray at the given indices.
     *
-    * @return the boolean
+    * @param row     the row
+    * @param column  the column
+    * @param kernel  the kernel
+    * @param channel the channel
+    * @param value   the value to increment by
+    * @return This NDArray
     */
-   public boolean hasPredictedLabel() {
-      return predicted != null;
+   public NDArray increment(int row, int column, int kernel, int channel, double value) {
+      return set(row, column, kernel, channel, get(row, column, kernel, channel) + value);
    }
 
    /**
-    * Increments the value of the element at the given index by 1
+    * Increments the value of the NDArray at the given indices.
     *
-    * @param index the index whose value will be incremented
-    * @return this NDArray
+    * @param row    the row
+    * @param column the column
+    * @param kernel the kernel
+    * @param value  the value to increment by
+    * @return This NDArray
     */
-   public NDArray increment(int index) {
-      return increment(index, 1d);
+   public NDArray increment(int row, int column, int kernel, double value) {
+      return set(row, column, kernel, get(row, column, kernel) + value);
    }
 
    /**
-    * Increments the value of the element at the given index by the given amount
+    * Increments the value of the NDArray at the given indices.
     *
-    * @param index  the index whose value will be incremented
-    * @param amount the amount to increment by
-    * @return this NDArray
+    * @param row    the row
+    * @param column the column
+    * @param value  the value to increment by
+    * @return This NDArray
     */
-   public NDArray increment(int index, double amount) {
-      set(index, get(index) + amount);
-      return this;
+   public NDArray increment(int row, int column, double value) {
+      return set(row, column, get(row, column) + value);
    }
 
    /**
-    * Increments the value of the element at the given subscript by 1
+    * Increments the value of the NDArray at the given indices.
     *
-    * @param i the index of the first dimension
-    * @param j the index of the second dimension
-    * @return this NDArray
+    * @param row   the row
+    * @param value the value to increment by
+    * @return This NDArray
     */
-   public NDArray increment(int i, int j) {
-      return increment(i, j, 1d);
+   public NDArray increment(int row, double value) {
+      return set(row, get(row) + value);
    }
 
    /**
-    * Increments the value of the element at the given index by the given amount
+    * Checks if the NDArray is a column vector, i.e. a shape of <code>(?,1,1,1)</code>
     *
-    * @param i      the index of the first dimension
-    * @param j      the index of the second dimension
-    * @param amount the amount to increment by
-    * @return this NDArray
-    */
-   public NDArray increment(int i, int j, double amount) {
-      set(i, j, get(i, j) + amount);
-      return this;
-   }
-
-   /**
-    * Checks if this NDArray is a column vector, i.e. has 1 column and multiple rows
-    *
-    * @return true if column vector, false otherwise
+    * @return True if the NDArray is a column vector
     */
    public boolean isColumnVector() {
-      return numCols() == 1;
+      return isMatrix() && dimension(Axis.ROW) > 1 && dimension(Axis.COLUMN) == 1;
    }
 
    /**
-    * Checks if the NDArray empty
+    * Checks if the NDArray is a dense representation
     *
-    * @return True if empty (shape of (0,0)), False if not
+    * @return True if the NDArray is dense
     */
-   public boolean isEmpty() {
-      return numCols() == 0 && numRows() == 0;
+   public boolean isDense() {
+      return false;
    }
 
    /**
-    * Checks if this NDArray is a row vector, i.e. has 1 row and multiple colums
+    * Checks if the NDArray is a matrix, i.e. a shape of <code>(?,?,1,1)</code>
     *
-    * @return true if row vector, false otherwise
+    * @return True if the NDArray is a matrix
+    */
+   public boolean isMatrix() {
+      return dimension(Axis.KERNEL) == 1 && dimension(Axis.CHANNEL) == 1;
+   }
+
+   /**
+    * Checks if the NDArray is a row vector, i.e. a shape of <code>(1,?,1,1)</code>
+    *
+    * @return True if the NDArray is a row vector
     */
    public boolean isRowVector() {
-      return numRows() == 1;
+      return isMatrix() && dimension(Axis.ROW) == 1 && dimension(Axis.COLUMN) > 1;
    }
 
    /**
-    * Checks if this NDArray is a scalar, i.e. 1 row and 1 column
+    * Checks if the NDArray is a scalar, i.e. a shape of <code>(1,1,1,1)</code>
     *
-    * @return true if scalar, false otherwise
+    * @return True if the NDArray is a scalar
     */
    public boolean isScalar() {
-      return numCols() == 1 && numRows() == 1;
+      return dimension(Axis.ROW) == 1 && dimension(Axis.COLUMN) == 1 &&
+                dimension(Axis.KERNEL) == 1 && dimension(Axis.CHANNEL) == 1;
    }
 
    /**
-    * Is sparse boolean.
+    * Checks if the NDArray is a sparse representation
     *
-    * @return the boolean
+    * @return True if the NDArray is sparse
     */
-   public abstract boolean isSparse();
+   public boolean isSparse() {
+      return false;
+   }
 
    /**
-    * Checks if this NDArray is square, i.e. the number of rows equals  the number of columns
+    * Checks if the NDArray is square, i.e. a shape of <code>(N,N,1,1)</code>
     *
-    * @return true if square, false otherwise
+    * @return True if the NDArray is square
     */
    public boolean isSquare() {
-      return numRows() == numCols();
+      return isMatrix() && numRows() == numCols();
    }
 
    /**
-    * Checks if the NDArray is a vector (dimension of one shape is 1)
+    * Checks if the NDArray is a vector (row or column)
     *
-    * @return True if vector, False otherwise
+    * @return True if the NDArray is a vector
     */
    public boolean isVector() {
-      return numCols() == 1 || numRows() == 1;
+      return isRowVector() || isColumnVector();
+   }
+
+   @Override
+   public Iterator<Entry> iterator() {
+      return Iterators.transform(new IndicesIterator(), Entry::new);
    }
 
    /**
-    * Checks if the NDArray is a vector along the given axis
+    * Number of kernels in the NDArray
     *
-    * @param axis The axis to check
-    * @return True if vector along given axis
+    * @return the number of kernels
     */
-   public boolean isVector(@NonNull Axis axis) {
-      return axis == Axis.ROW ? isRowVector() : isColumnVector();
+   public int numKernels() {
+      return dimension(Axis.KERNEL);
    }
 
    /**
-    * Iterator over the entries (subscripts, index, and value) of the NDArray
+    * The total length (rows * columns * kernels * channels) of the NDArray
     *
-    * @return the iterator
+    * @return the total length of the NDArray
     */
-   public abstract Iterator<Entry> iterator();
-
-   /**
-    * The single dimension length of the data, i.e. <code>numberOfRows * numberOfColumns</code>
-    *
-    * @return the length
-    */
-   public int length() {
-      return numRows() * numCols();
+   public long length() {
+      return length;
    }
 
    /**
-    * Applies the log function to each value in the NDArray
+    * Calculates <code>log(v)</code> for each value <code>v</code> in the NDArray
     *
-    * @return new NDArray with logged values
+    * @return NDArray with exp values
     */
    public NDArray log() {
       return map(Math2::safeLog);
    }
 
    /**
-    * Applies the log function to each value in the NDArray in-place
+    * Calculates <code>log(v)</code> for each value <code>v</code> in the NDArray updating itself
     *
-    * @return this NDArray
+    * @return This NDArray with exp values
     */
    public NDArray logi() {
       return mapi(Math2::safeLog);
    }
 
    /**
-    * Applies the given operator to each element in this NDArray creating a new NDArray in the process.
+    * Performs the given operator on each entry in the NDArray storing the result in a new NDArray
+    *
+    * @param operator the operation to perform
+    * @return The new  NDArray with the operator applied to this NDArray's values
+    */
+   public NDArray map(DoubleUnaryOperator operator) {
+      return mapOperator(newZeroArray(), operator);
+   }
+
+   /**
+    * Performs the given operator on each sparse entry in the NDArray storing the result in a new NDArray
+    *
+    * @param operator the operation to perform
+    * @return The new  NDArray with the operator applied to this NDArray's values
+    */
+   public NDArray mapSparse(DoubleUnaryOperator operator) {
+      return mapSparseOperator(newZeroArray(), operator);
+   }
+
+   /**
+    * Performs the given operator on each sparse entry in the NDArray storing the result in a new NDArray
+    *
+    * @param operator the operation to perform
+    * @return The new  NDArray with the operator applied to this NDArray's values
+    */
+   public NDArray mapSparse(NDArray other, DoubleBinaryOperator operator) {
+      return mapSparse(newZeroArray(), other, operator);
+   }
+
+   /**
+    * Applies an operation to the non-zero elements in this NDArray and given other NDArray using the given operator
+    * in-place.
     *
     * @param operator the operator to apply
-    * @return the new NDArray with values calculated using the given operator
+    * @return this NDArray
     */
-   public NDArray map(@NonNull DoubleUnaryOperator operator) {
-      NDArray toReturn = getFactory().zeros(numRows(), numCols());
-      for (int i = 0; i < length(); i++) {
-         toReturn.set(i, operator.applyAsDouble(get(i)));
+   public NDArray mapiSparse(DoubleUnaryOperator operator) {
+      return mapSparseOperator(this, operator);
+   }
+
+
+   /**
+    * Performs the given operator on each sparse entry in the NDArray storing the result in a new NDArray
+    *
+    * @param operator the operation to perform
+    * @return The new  NDArray with the operator applied to this NDArray's values
+    */
+   public NDArray mapiSparse(NDArray other, DoubleBinaryOperator operator) {
+      return mapSparse(newZeroArray(), other, operator);
+   }
+
+   private NDArray mapSparseOperator(NDArray out, DoubleUnaryOperator operator) {
+      forEachSparse(e -> out.set(e.getIndicies(), (float) operator.applyAsDouble(e.getValue())));
+      return out;
+   }
+
+   private NDArray map(NDArray out, NDArray other, DoubleBinaryOperator operator) {
+      if (other.isScalar()) {
+         return mapScalar(out, other.get(0), operator);
       }
-      return toReturn;
+      if (other.isVector() && !isVector()) {
+         return mapVector(out,
+                          other,
+                          other.isRowVector() ? Axis.COLUMN : Axis.ROW,
+                          operator);
+      }
+      if (other.isMatrix()) {
+         return mapMatrix(out, other, operator);
+      }
+      return mapTensor(out, other, operator);
+   }
+
+   private NDArray mapSparse(NDArray out, NDArray other, DoubleBinaryOperator operator) {
+      if (other.isScalar()) {
+         return mapSparseScalar(out, other.get(0), operator);
+      }
+      if (other.isVector() && !isVector()) {
+         return mapSparseVector(out,
+                                other,
+                                other.isRowVector() ? Axis.COLUMN : Axis.ROW,
+                                operator);
+      }
+      if (other.isMatrix()) {
+         return mapSparseMatrix(out, other, operator);
+      }
+      return mapSparseTensor(out, other, operator);
+   }
+
+   /**
+    * Applies an operation to the elements in this NDArray and given other NDArray using the given operator producing a
+    * new NDArray as its outcome. Basic broadcasting will occur for scalar, vector, and matrix NDArrays.
+    *
+    * @param other    the other NDArray to perform operation over
+    * @param operator the operator to apply
+    * @return the new NDArray
+    */
+   public NDArray map(NDArray other, DoubleBinaryOperator operator) {
+      return map(newZeroArray(), other, operator);
    }
 
    /**
     * Applies the given operator to each element in this NDArray and the given vector along the given axis creating a
     * new NDArray in the process.
     *
-    * @param vector   the vector of values to combine with this NDArray
+    * @param other    the vector of values to combine with this NDArray
     * @param axis     the axis to apply the operator to
     * @param operator the operator to apply to the elements in this NDArray and the given vector
     * @return the new NDArray
     */
-   public NDArray map(@NonNull NDArray vector, @NonNull Axis axis, @NonNull DoubleBinaryOperator operator) {
-      checkLengthMatch(dimension(axis.T()), vector.length());
-      NDArray toReturn = getFactory().zeros(numRows(), numCols());
-      for (int c = 0; c < numCols(); c++) {
-         for (int r = 0; r < numRows(); r++) {
-            toReturn.set(r, c, operator.applyAsDouble(get(r, c), vector.get(axis.T().select(r, c))));
-         }
-      }
-      return toReturn;
+   public NDArray map(NDArray other, Axis axis, DoubleBinaryOperator operator) {
+      return mapVector(newZeroArray(),
+                       other,
+                       axis,
+                       operator);
+   }
+
+   private NDArray mapMatrix(NDArray out, NDArray matrix, DoubleBinaryOperator operator) {
+      sliceStream().forEach(t -> {
+         NDArray s2 = out.tensorSlice(t.v1);
+         t.v2.forEach(
+            e -> s2.set(e.matrixIndex(), (float) operator.applyAsDouble(e.getValue(), matrix.get(e.matrixIndex()))));
+      });
+      return out;
+   }
+
+   private NDArray mapSparseMatrix(NDArray out, NDArray matrix, DoubleBinaryOperator operator) {
+      sliceStream().forEach(t -> {
+         NDArray s2 = out.tensorSlice(t.v1);
+         t.v2.forEachSparse(
+            e -> s2.set(e.matrixIndex(), (float) operator.applyAsDouble(e.getValue(), matrix.get(e.matrixIndex()))));
+      });
+      return out;
+   }
+
+   private NDArray mapOperator(NDArray out, DoubleUnaryOperator operator) {
+      sliceStream().forEach(t -> {
+         NDArray slice = out.tensorSlice(t.v1);
+         t.v2.forEach(e -> slice.set(e.matrixIndex(), (float) operator.applyAsDouble(e.getValue())));
+      });
+      return out;
+   }
+
+   private NDArray mapScalar(NDArray out, double scalar, DoubleBinaryOperator operator) {
+      sliceStream().forEach(t -> {
+         NDArray s2 = out.tensorSlice(t.v1);
+         t.v2.forEach(e -> s2.set(e.matrixIndex(), (float) operator.applyAsDouble(e.getValue(), scalar)));
+      });
+      return out;
+   }
+
+   private NDArray mapSparseScalar(NDArray out, double scalar, DoubleBinaryOperator operator) {
+      sliceStream().forEach(t -> {
+         NDArray s2 = out.tensorSlice(t.v1);
+         t.v2.forEachSparse(e -> s2.set(e.matrixIndex(), (float) operator.applyAsDouble(e.getValue(), scalar)));
+      });
+      return out;
+   }
+
+   private NDArray mapTensor(NDArray out, NDArray tensor, DoubleBinaryOperator operator) {
+      checkArgument(tensor.sliceLength() == sliceLength(),
+                    "Length of each slice is not the same. (" + sliceLength() + ") != (" + tensor.sliceLength() + ")");
+      checkArgument(slices() == tensor.slices(),
+                    "Number of slices does not match. (" + slices() + ") != (" + tensor.slices() + ")");
+      sliceStream().forEach(t -> {
+         NDArray s2 = tensor.tensorSlice(t.v1);
+         NDArray sOut = out.tensorSlice(t.v1);
+         t.v2.forEach(
+            e -> sOut.set(e.matrixIndex(), (float) operator.applyAsDouble(e.getValue(), s2.get(e.matrixIndex()))));
+      });
+      return out;
+   }
+
+   private NDArray mapSparseTensor(NDArray out, NDArray tensor, DoubleBinaryOperator operator) {
+      checkArgument(tensor.sliceLength() == sliceLength(),
+                    "Length of each slice is not the same. (" + sliceLength() + ") != (" + tensor.sliceLength() + ")");
+      checkArgument(slices() == tensor.slices(),
+                    "Number of slices does not match. (" + slices() + ") != (" + tensor.slices() + ")");
+      sliceStream().forEach(t -> {
+         NDArray s2 = tensor.tensorSlice(t.v1);
+         NDArray sOut = out.tensorSlice(t.v1);
+         t.v2.forEachSparse(
+            e -> sOut.set(e.matrixIndex(), (float) operator.applyAsDouble(e.getValue(), s2.get(e.matrixIndex()))));
+      });
+      return out;
+   }
+
+   private NDArray mapVector(NDArray out, NDArray rowVector,
+                             Axis axis, DoubleBinaryOperator operator
+                            ) {
+      sliceStream().forEach(t -> {
+         NDArray s2 = out.tensorSlice(t.v1);
+         t.v2.forEach(e -> s2.set(e.matrixIndex(), (float) operator.applyAsDouble(e.getValue(), rowVector.get(
+            axis.T().select(e.row, e.column)))));
+      });
+      return out;
+   }
+
+   private NDArray mapSparseVector(NDArray out, NDArray rowVector,
+                                   Axis axis, DoubleBinaryOperator operator
+                                  ) {
+      sliceStream().forEach(t -> {
+         NDArray s2 = out.tensorSlice(t.v1);
+         t.v2.forEachSparse(e -> s2.set(e.matrixIndex(), (float) operator.applyAsDouble(e.getValue(), rowVector.get(
+            axis.T().select(e.row, e.column)))));
+      });
+      return out;
    }
 
    /**
-    * Applies an operation to the elements in this NDArray and given other NDArray using the given operator producing a
-    * new NDArray as its outcome.
+    * Applies an operation to the elements in this NDArray and given other NDArray using the given operator updating
+    * itself as its outcome. Basic broadcasting will occur for scalar, vector, and matrix NDArrays.
     *
     * @param other    the other NDArray to perform operation over
     * @param operator the operator to apply
-    * @return the new NDArray
+    * @return this NDArray
     */
-   public NDArray map(@NonNull NDArray other, @NonNull DoubleBinaryOperator operator) {
-      checkLengthMatch(length(), other.length());
-      NDArray toReturn = getFactory().zeros(numRows(), numCols());
-      for (int i = 0; i < length(); i++) {
-         toReturn.set(i, operator.applyAsDouble(get(i), other.get(i)));
-      }
-      return toReturn;
-   }
-
-   /**
-    * Applies the given operator to elements in the NDArray if the their values test positive using given the
-    * predicate.
-    *
-    * @param predicate the predicate to use to test values.
-    * @param operator  the operator to apply
-    * @return the new NDArray
-    */
-   public NDArray mapIf(@NonNull DoublePredicate predicate, @NonNull DoubleUnaryOperator operator) {
-      final NDArray toReturn = getFactory().zeros(numRows(), numCols());
-      for (int i = 0; i < length(); i++) {
-         if (predicate.test(get(i))) {
-            toReturn.set(i, operator.applyAsDouble(get(i)));
-         } else {
-            toReturn.set(i, get(i));
-         }
-      }
-      return toReturn;
-   }
-
-   /**
-    * Applies the given operator to each sparse element in this NDArray and the given vector along the given axis
-    * creating a new NDArray in the process.
-    *
-    * @param vector   the vector of values to combine with this NDArray
-    * @param axis     the axis to apply the operator to
-    * @param operator the operator to apply to the elements in this NDArray and the given vector
-    * @return the new NDArray
-    */
-   public NDArray mapSparse(@NonNull NDArray vector, @NonNull Axis axis, @NonNull DoubleBinaryOperator operator) {
-      checkLengthMatch(dimension(axis.T()), vector.length());
-      NDArray toReturn = getFactory().zeros(numRows(), numCols());
-      forEachSparse(e -> toReturn.set(e.getIndex(),
-                                      operator.applyAsDouble(e.getValue(),
-                                                             vector.get(axis.T().select(e.getI(), e.getJ())))));
-      return toReturn;
-   }
-
-   /**
-    * Applies an operation to the sparse elements in this NDArray and given other NDArray using the given operator
-    * producing a new NDArray as its outcome.
-    *
-    * @param other    the other NDArray to perform operation over
-    * @param operator the operator to apply
-    * @return the new NDArray
-    */
-   public NDArray mapSparse(@NonNull NDArray other, @NonNull DoubleBinaryOperator operator) {
-      checkLengthMatch(length(), other.length());
-      NDArray toReturn = getFactory().zeros(numRows(), numCols());
-      forEachSparse(entry -> toReturn.set(entry.getI(), entry.getJ(),
-                                          operator.applyAsDouble(entry.getValue(),
-                                                                 other.get(entry.getI(), entry.getJ()))));
-      return toReturn;
-   }
-
-   /**
-    * Applies the given operator to each sparse element in this NDArray creating a new NDArray in the process.
-    *
-    * @param operator the operator to apply
-    * @return the new NDArray with values calculated using the given operator
-    */
-   public NDArray mapSparse(@NonNull DoubleUnaryOperator operator) {
-      NDArray toReturn = getFactory().zeros(numRows(), numCols());
-      forEachSparse(e -> toReturn.set(e.getIndex(), operator.applyAsDouble(e.getValue())));
-      return toReturn;
+   public NDArray mapi(NDArray other, DoubleBinaryOperator operator) {
+      return map(this, other, operator);
    }
 
    /**
     * Applies an operation to the elements in this NDArray and given other NDArray using the given operator in-place.
     *
-    * @param other    the other NDArray to perform operation over
     * @param operator the operator to apply
     * @return this NDArray
     */
-   public NDArray mapi(@NonNull NDArray other, @NonNull DoubleBinaryOperator operator) {
-      checkLengthMatch(length(), other.length());
-      for (int i = 0; i < length(); i++) {
-         set(i, operator.applyAsDouble(get(i), other.get(i)));
-      }
-      return this;
+   public NDArray mapi(DoubleUnaryOperator operator) {
+      return mapOperator(this, operator);
    }
 
    /**
-    * Applies the given operator to each element in this NDArray in-place.
+    * Applies the given operator to each element in this NDArray and the given vector along the given axis updating
+    * itself.
     *
-    * @param operator the operator to apply
-    * @return this NDArray with values calculated using the given operator
-    */
-   public NDArray mapi(@NonNull DoubleUnaryOperator operator) {
-      for (int i = 0; i < length(); i++) {
-         set(i, operator.applyAsDouble(get(i)));
-      }
-      return this;
-   }
-
-   /**
-    * Applies the given operator to each element in this NDArray and the given vector along the given axis in-place.
-    *
-    * @param vector   the vector of values to combine with this NDArray
+    * @param other    the vector of values to combine with this NDArray
     * @param axis     the axis to apply the operator to
     * @param operator the operator to apply to the elements in this NDArray and the given vector
-    * @return this NDArray with operator applied
-    */
-   public NDArray mapi(@NonNull NDArray vector, @NonNull Axis axis, @NonNull DoubleBinaryOperator operator) {
-      checkLengthMatch(dimension(axis.T()), vector.length());
-      for (int c = 0; c < numCols(); c++) {
-         for (int r = 0; r < numRows(); r++) {
-            set(r, c, operator.applyAsDouble(get(r, c), vector.get(axis.T().select(r, c))));
-         }
-      }
-      return this;
-   }
-
-   /**
-    * Applies the given operator to elements in the NDArray if the their values test positive using given the predicate
-    * in-place.
-    *
-    * @param predicate the predicate to use to test values.
-    * @param operator  the operator to apply
     * @return this NDArray
     */
-   public NDArray mapiIf(@NonNull DoublePredicate predicate, @NonNull DoubleUnaryOperator operator) {
-      for (int i = 0; i < length(); i++) {
-         if (predicate.test(get(i))) {
-            set(i, operator.applyAsDouble(get(i)));
-         }
-      }
-      return this;
+   public NDArray mapi(NDArray other, Axis axis, DoubleBinaryOperator operator) {
+      return mapVector(this,
+                       other,
+                       axis,
+                       operator);
    }
 
    /**
-    * Applies the given operator to each sparse element in this NDArray and the given vector along the given axis
-    * creating a new NDArray in the process.
+    * Finds the max value in the NDArray
     *
-    * @param vector   the vector of values to combine with this NDArray
-    * @param axis     the axis to apply the operator to
-    * @param operator the operator to apply to the elements in this NDArray and the given vector
-    * @return the new NDArray
+    * @return the max value
     */
-   public NDArray mapiSparse(@NonNull NDArray vector, @NonNull Axis axis, @NonNull DoubleBinaryOperator operator) {
-      checkLengthMatch(dimension(axis.T()), vector.length());
-      forEachSparse(e ->
-                       e.setValue(operator.applyAsDouble(e.getValue(), vector.get(axis.T().select(e.getI(), e.getJ()))))
-                   );
-      return this;
+   public float max() {
+      return optimum(Optimum.MAXIMUM);
    }
 
    /**
-    * Applies an operation to the sparse elements in this NDArray and given other NDArray using the given operator
-    * in-place.
+    * Creates a new NDArray with max values across the given access. Works on a per slice basis
     *
-    * @param other    the other NDArray to perform operation over
-    * @param operator the operator to apply
-    * @return this NDArray
+    * @param axis the axis we want max values for
+    * @return NDArray of maxes
     */
-   public NDArray mapiSparse(@NonNull NDArray other, @NonNull DoubleBinaryOperator operator) {
-      checkLengthMatch(length(), other.length());
-      forEachSparse(
-         entry -> entry.setValue(operator.applyAsDouble(entry.getValue(), other.get(entry.getI(), entry.getJ()))));
-      return this;
+   public NDArray max(Axis axis) {
+      return optimum(axis, Optimum.MAXIMUM);
    }
 
    /**
-    * Applies the given operator to each sparse element in this NDArray in-place.
+    * Finds the mean of the values in the NDArray
     *
-    * @param operator the operator to apply
-    * @return this NDArray with values calculated using the given operator
+    * @return the mean value
     */
-   public NDArray mapiSparse(@NonNull DoubleUnaryOperator operator) {
-      forEachSparse(entry -> entry.setValue(operator.applyAsDouble(entry.getValue())));
-      return this;
+   public float mean() {
+      return sum() / length;
    }
 
    /**
-    * Calculates the maximum value in the NDArray
+    * Creates a new NDArray with mean values across the given access. Works on a per slice basis
     *
-    * @return the maximum value in the NDArray
+    * @param axis the axis we want mean values for
+    * @return NDArray of mean
     */
-   public double max() {
-      return Streams.asStream(sparseIterator())
-                    .mapToDouble(Entry::getValue)
-                    .max().orElse(0d);
-   }
-
-   /**
-    * Calculates the maximum values along each axis
-    *
-    * @param axis The axis to calculate the max for
-    * @return An NDArray of the max values
-    */
-   public NDArray max(@NonNull Axis axis) {
-      NDArray toReturn = NDArrayFactory.DENSE_DOUBLE
-                            .zeros(axis.T(), dimension(axis))
-                            .fill(Double.NEGATIVE_INFINITY);
-      forEachSparse(entry -> {
-         if (toReturn.get(entry.get(axis)) < entry.getValue()) {
-            toReturn.set(entry.get(axis), entry.getValue());
-         }
-      });
-      return toReturn.mapiIf(Double::isInfinite, d -> 0d);
-   }
-
-   /**
-    * Calculates the mean across all values in the NDArray
-    *
-    * @return the mean
-    */
-   public double mean() {
-      return sum() / length();
-   }
-
-   /**
-    * Calculates the mean along each axis
-    *
-    * @param axis The axis to calculate the mean for
-    * @return An NDArray of the mean
-    */
-   public NDArray mean(@NonNull Axis axis) {
+   public NDArray mean(Axis axis) {
       return sum(axis).divi(dimension(axis.T()));
    }
 
    /**
-    * Calculates the minimum value in the NDArray
+    * Finds the min value in the NDArray
     *
-    * @return the minimum value in the NDArray
+    * @return the min value
     */
-   public double min() {
-      return Optimum.MINIMUM.optimum(toArray()).v2;
+   public float min() {
+      return optimum(Optimum.MINIMUM);
    }
 
    /**
-    * Calculates the minimum values along each axis
+    * Creates a new NDArray with min values across the given access. Works on a per slice basis
     *
-    * @param axis The axis to calculate the min for
-    * @return An NDArray of the min values
+    * @param axis the axis we want min values for
+    * @return NDArray of min
     */
-   public NDArray min(@NonNull Axis axis) {
-      NDArray toReturn = NDArrayFactory.DENSE_DOUBLE.zeros(axis, dimension(axis.T()));
-      toReturn.mapi(d -> Double.POSITIVE_INFINITY);
-      forEach(entry -> {
-         if (toReturn.get(entry.get(axis)) > entry.getValue()) {
-            toReturn.set(entry.get(axis), entry.getValue());
+   public NDArray min(Axis axis) {
+      return optimum(axis, Optimum.MINIMUM);
+   }
+
+   public Iterator<Entry> sparseRowIterator(final int row) {
+      checkArgument(order <= 2, "Order (" + order + ") is not supported.");
+      return Iterators.filter(rowIterator(row), e -> e.getValue() != 0);
+   }
+
+   public Iterator<Entry> rowIterator(final int row) {
+      checkArgument(order <= 2, "Order (" + order + ") is not supported.");
+      return new Iterator<Entry>() {
+         int column = 0;
+
+         @Override
+         public boolean hasNext() {
+            return column < numCols();
          }
-      });
-      return toReturn;
+
+         @Override
+         public Entry next() {
+            checkElementIndex(column, numCols());
+            Entry e = new Entry(row, column, 0, 0);
+            column++;
+            return e;
+         }
+      };
+   }
+
+   public Iterator<Entry> sparseColumnIterator(final int column) {
+      checkArgument(order <= 2, "Order (" + order + ") is not supported.");
+      return Iterators.filter(columnIterator(column), e -> e.getValue() != 0);
+   }
+
+   public Iterator<Entry> columnIterator(final int column) {
+      checkArgument(order <= 2, "Order (" + order + ") is not supported.");
+      return new Iterator<Entry>() {
+         int row = 0;
+
+         @Override
+         public boolean hasNext() {
+            return row < numRows();
+         }
+
+         @Override
+         public Entry next() {
+            checkElementIndex(row, numRows());
+            Entry e = new Entry(row, column, 0, 0);
+            row++;
+            return e;
+         }
+      };
    }
 
    /**
-    * Calculates the product of this and the given NDArray (i.e. matrix multiplication).
+    * Calculates the product of this and the given NDArray (i.e. matrix multiplication). Works on a per slice basis
     *
     * @param other The other NDArray to multiple
     * @return a new NDArray that is the result of this X other
     */
-   public abstract NDArray mmul(NDArray other);
+   public NDArray mmul(NDArray other) {
+      if (order <= 2 && other.order <= 2) {
+         NDArray toReturn = getFactory().zeros(numRows(), other.numCols());
+         return mmul(toReturn, other);
+      }
+      NDArray out = getFactory().zeros(numRows(),
+                                       other.numCols(),
+                                       Math.max(numKernels(), other.numKernels()),
+                                       Math.max(numChannels(), other.numChannels()));
+      if (other.order <= 2) {
+         sliceStream().forEach(t -> mmul(out.tensorSlice(t.v1), other));
+      } else {
+         sliceStream().forEach(t -> mmul(out.tensorSlice(t.v1), other.tensorSlice(t.v1)));
+      }
+      return out;
+   }
+
+   private NDArray mmul(NDArray out, NDArray other) {
+      forEach(e -> other.sparseRowIterator(e.column)
+                        .forEachRemaining(e2 -> out.increment(e.row, e2.column, e2.getValue() * e.getValue())));
+      return out;
+   }
+
+   /**
+    * Multiplies the values in the other NDArray to this one element by element. Basic broadcasting will occur for
+    * scalar, vector, and matrix NDArrays.
+    *
+    * @param other the other NDArray whose values will be multiplied
+    * @return the new NDArray with the result of this * other
+    */
+   public NDArray mul(NDArray other) {
+      return mapSparse(newZeroArray(), other, Operator::multiply);
+   }
 
    /**
     * Multiplies a scalar value to each element in the NDArray
     *
-    * @param scalar the value to multiplied
+    * @param value the value to multiplied
     * @return the new NDArray with the scalar value multiplied
     */
-   public NDArray mul(double scalar) {
-      if (scalar == 0) {
-         return getFactory().zeros(numRows(), numCols());
-      }
-      return mapSparse(d -> d * scalar);
-   }
-
-   /**
-    * Multiplies the values in the other NDArray to this one element by element.
-    *
-    * @param other the other NDArray whose values will be multiplied
-    * @return the new NDArray with the result of this * other
-    * @throws IllegalArgumentException If the shape of this NDArray does not match that of the other NDArray
-    */
-   public NDArray mul(@NonNull NDArray other) {
-      return mapSparse(other, Operator::multiply);
+   public NDArray mul(double value) {
+      return mapSparseScalar(newZeroArray(), value, Operator::multiply);
    }
 
    /**
@@ -1260,34 +1489,35 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @param other the other NDArray whose values will be multiplied
     * @param axis  the axis
     * @return the new NDArray with the result of this * other
-    * @throws IllegalArgumentException If the row/column shape of this NDArray does not match that of the other NDArray
     */
-   public NDArray mul(@NonNull NDArray other, @NonNull Axis axis) {
-      return mapSparse(other, axis, Operator::multiply);
+   public NDArray mul(NDArray other, Axis axis) {
+      return mapSparseVector(newZeroArray(),
+                             other,
+                             axis,
+                             Operator::multiply);
    }
 
    /**
-    * Multiplies a scalar value to each element in the NDArray in-place
+    * Multiplies a scalar value to each element in the NDArray in-place.
     *
-    * @param scalar the value to multiplied
+    * @param value the value to multiplied
     * @return this NDArray with the scalar value multiplied
     */
-   public NDArray muli(double scalar) {
-      if (scalar == 0d) {
-         return zero();
-      }
-      return mapiSparse(d -> d * scalar);
+   public NDArray muli(double value) {
+      return mapSparseScalar(this, value, Operator::multiply);
    }
 
    /**
-    * Multiplies the values in the other NDArray to this one element by element in-place.
+    * Multiplies the values in the other NDArray to this one element by element in-place. Basic broadcasting will occur
+    * for scalar, vector, and matrix NDArrays.
     *
     * @param other the other NDArray whose values will be multiplied
     * @return this NDArray with the result of this * other
-    * @throws IllegalArgumentException If the shape of this NDArray does not match that of the other NDArray
     */
-   public NDArray muli(@NonNull NDArray other) {
-      return mapiSparse(other, Operator::multiply);
+   public NDArray muli(NDArray other) {
+      return mapSparse(this,
+                       other,
+                       Operator::multiply);
    }
 
    /**
@@ -1297,28 +1527,12 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @param other the other NDArray whose values will be multiplied
     * @param axis  the axis
     * @return this NDArray with the result of this * other
-    * @throws IllegalArgumentException If the row/column shape of this NDArray does not match that of the other NDArray
     */
-   public NDArray muli(@NonNull NDArray other, @NonNull Axis axis) {
-      return mapiSparse(other, axis, Operator::multiply);
-   }
-
-   /**
-    * Muli vector nd array.
-    *
-    * @param index  the index
-    * @param vector the vector
-    * @param axis   the axis
-    * @return the nd array
-    */
-   public NDArray muliVector(int index, @NonNull NDArray vector, @NonNull Axis axis) {
-      checkLengthMatch(dimension(axis.T()), vector.length());
-      if (axis == Axis.ROW) {
-         vector.forEachSparse(e -> set(index, e.getIndex(), get(index, e.getIndex()) * e.getValue()));
-      } else {
-         vector.forEachSparse(e -> set(e.getIndex(), index, get(e.getIndex(), index) * e.getValue()));
-      }
-      return this;
+   public NDArray muli(NDArray other, Axis axis) {
+      return mapSparseVector(this,
+                             other,
+                             axis,
+                             Operator::multiply);
    }
 
    /**
@@ -1327,7 +1541,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return the new NDArray with negated values
     */
    public NDArray neg() {
-      return mapSparse(d -> -d);
+      return map(v -> -v);
    }
 
    /**
@@ -1336,135 +1550,160 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return this NDArray
     */
    public NDArray negi() {
-      return mapiSparse(d -> -d);
+      return mapi(v -> -v);
+   }
+
+   private NDArray newZeroArray() {
+      return getFactory().zeros(shape)
+                         .setWeight(weight)
+                         .setLabel(label)
+                         .setPredicted(predicted);
    }
 
    /**
-    * Calculates the L1-norm of the NDArray
+    * Calculates the L1-norm of the NDArray across all slices. See {@link #sliceNorm1()} to calculate per slice.
     *
     * @return the L1-norm
     */
-   public double norm1() {
-      return Streams.asStream(sparseIterator())
-                    .mapToDouble(e -> Math.abs(e.getValue()))
-                    .sum();
+   public float norm1() {
+      return (float) sliceStream().mapToDouble(t ->
+                                                  Streams.asStream(t.v2)
+                                                         .mapToDouble(e -> Math.abs(e.getValue()))
+                                                         .sum()
+                                              ).sum();
    }
 
    /**
-    * Calculates the L2-norm (magnitude) of the NDArray
+    * Calculates the L2-norm (magnitude) of the NDArray across all slices. See {@link #sliceNorm2()} to calculate per
+    * slice.
     *
-    * @return the L2-norm
+    * @return the L1-norm
     */
-   public double norm2() {
-      return Math.sqrt(sumOfSquares());
+   public float norm2() {
+      return (float) Math.sqrt(sumOfSquares());
+   }
+
+   private NDArray optimum(Axis axis, Optimum optimum) {
+      Validation.checkArgument(axis == Axis.ROW || axis == Axis.COLUMN,
+                               "Only ROW and Axis.COLUMN supported");
+      int[] newShape = shape();
+      newShape[axis.T().ordinal] = 1;
+      NDArray out = getFactory().constant((float) optimum.startingValue(), newShape);
+      sliceStream().forEach(t -> {
+         NDArray outSlice = out.tensorSlice(t.v1);
+         t.v2.iterator().forEachRemaining(e -> {
+            int i = axis.select(e.row, e.column);
+            if (optimum.test(e.getValue(), outSlice.get(i))) {
+               outSlice.set(i, e.getValue());
+            }
+         });
+      });
+
+      return out;
+   }
+
+   private float optimum(Optimum optimum) {
+      DoubleStream values = sliceStream().mapToDouble(t -> {
+         double opt = optimum.startingValue();
+         for (Entry aV2 : t.v2) {
+            float v = aV2.getValue();
+            if (optimum.test(v, opt)) {
+               opt = v;
+            }
+         }
+         return opt;
+      });
+
+      if (optimum == Optimum.MAXIMUM) {
+         return (float) values.max().orElse(Double.NaN);
+      }
+
+      return (float) values.min().orElse(Double.NaN);
    }
 
    /**
-    * Num cols int.
+    * Calculates the order (number of dimensions) of the NDArray
     *
-    * @return the int
+    * @return the order of the NDArray
     */
-   public abstract int numCols();
+   public int order() {
+      return order;
+   }
 
    /**
-    * Num rows int.
-    *
-    * @return the int
-    */
-   public abstract int numRows();
-
-   /**
-    * Calculates the pivot elements for this square matrix
+    * Calculates the pivot elements for this square matrix. Will calculate per slice.
     *
     * @return A NDArray of 1's and 0's representing pivot elements.
     */
    public NDArray pivot() {
-      Validation.checkArgument(isSquare(), "Only square matrices are supported");
-      NDArray p = getFactory().eye(numRows());
-      for (int i = 0; i < numRows(); i++) {
-         double max = get(i, i);
-         int row = i;
-         for (int j = i; j < numRows(); j++) {
-            if (get(j, i) > max) {
-               max = get(j, i);
-               row = j;
-            }
-         }
+      return sliceUnaryOperation(ndArray -> {
+         if (ndArray.isSquare()) {
+            NDArray p = getFactory().eye(ndArray.numRows());
+            for (int i = 0; i < ndArray.numRows(); i++) {
+               double max = ndArray.get(i, i);
+               int row = i;
+               for (int j = i; j < ndArray.numRows(); j++) {
+                  if (ndArray.get(j, i) > max) {
+                     max = ndArray.get(j, i);
+                     row = j;
+                  }
+               }
 
-         if (i != row) {
-            NDArray v = p.getVector(i, Axis.ROW);
-            p.setVector(i, p.getVector(row, Axis.ROW), Axis.ROW);
-            p.setVector(row, v, Axis.ROW);
+               if (i != row) {
+                  NDArray v = p.getVector(i, Axis.ROW);
+                  p.setVector(i, Axis.ROW, p.getVector(row, Axis.ROW));
+                  p.setVector(row, Axis.ROW, v);
+               }
+            }
+            return p;
          }
-      }
-      return p;
+         throw new IllegalArgumentException("Only square slices supported");
+      });
    }
 
    /**
     * Raises the value of each element in the NDArray by the given power.
     *
-    * @param pow the power to raise values to
+    * @param power the power to raise values to
     * @return the new NDArray
     */
-   public NDArray pow(double pow) {
-      return map(d -> FastMath.pow(d, pow));
+   public NDArray pow(double power) {
+      return map(v -> FastMath.pow(v, power));
    }
 
    /**
     * Raises the value of each element in the NDArray by the given power in-place.
     *
-    * @param pow the power to raise values to
+    * @param power the power to raise values to
     * @return this NDArray
     */
-   public NDArray powi(double pow) {
-      return mapi(d -> FastMath.pow(d, pow));
+   public NDArray powi(double power) {
+      return mapi(v -> FastMath.pow(v, power));
    }
 
    /**
-    * Pretty prints the NDArray
+    * Divides the values in the this NDArray from the other NDArray. Basic broadcasting will occur for scalar, vector,
+    * and matrix NDArrays.
     *
-    * @param stream the stream to print the NDArray to
+    * @param other the other NDArray whose values will be divided from
+    * @return the new NDArray with the result of other / this
     */
-   public void pprint(PrintStream stream) {
-      final DecimalFormat df = new DecimalFormat("0.000");
-      PrintWriter writer = new PrintWriter(stream);
-      writer.print('[');
-      for (int i = 0; i < numRows(); i++) {
-         if (i > 0) {
-            writer.println("],");
-            writer.print(" [");
-         } else {
-            writer.print('[');
-         }
-         writer.print(df.format(get(i, 0)));
-         for (int j = 1; j < numCols(); j++) {
-            writer.print(", ");
-            writer.print(df.format(get(i, j)));
-         }
-      }
-      writer.println("]]");
-      writer.flush();
+   public NDArray rdiv(NDArray other) {
+      return map(newZeroArray(),
+                 other,
+                 (v1, v2) -> v2 / v1);
    }
 
    /**
     * Divides each element's value from the given scalar (e.g. scalar - element)
     *
-    * @param scalar the value to divide
+    * @param value the value to divide
     * @return the new NDArray with the scalar value divided
     */
-   public NDArray rdiv(double scalar) {
-      return map(d -> scalar / d);
-   }
-
-   /**
-    * Divides the values in the this NDArray from the other NDArray.
-    *
-    * @param other the other NDArray whose values will be divided from
-    * @return the new NDArray with the result of other / this
-    * @throws IllegalArgumentException If the shape of this NDArray does not match that of the other NDArray
-    */
-   public NDArray rdiv(@NonNull NDArray other) {
-      return rmap(other, Operator::divide);
+   public NDArray rdiv(double value) {
+      return mapScalar(newZeroArray(),
+                       value,
+                       (v1, v2) -> v2 / v1);
    }
 
    /**
@@ -1474,31 +1713,37 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @param other the other NDArray whose values will be divided
     * @param axis  the axis
     * @return the new NDArray with the result of this / other
-    * @throws IllegalArgumentException If the row/column shape of this NDArray does not match that of the other NDArray
     */
-   public NDArray rdiv(@NonNull NDArray other, @NonNull Axis axis) {
-      return rmap(other, axis, Operator::divide);
+   public NDArray rdiv(NDArray other, Axis axis) {
+      return mapVector(newZeroArray(),
+                       other,
+                       axis,
+                       (v1, v2) -> v2 / v1);
+   }
+
+   /**
+    * Divides the values in the this NDArray from the other NDArray in-place. Basic broadcasting will occur for scalar,
+    * vector, and matrix NDArrays.
+    *
+    * @param other the other NDArray whose values will be divided from
+    * @return this NDArray with the result of other / this
+    */
+   public NDArray rdivi(NDArray other) {
+      return map(this,
+                 other,
+                 (v1, v2) -> v2 / v1);
    }
 
    /**
     * Divides each element's value from the given scalar (e.g. scalar - element) in place
     *
-    * @param scalar the value to divide
+    * @param value the value to divide
     * @return thisNDArray with the scalar value divided
     */
-   public NDArray rdivi(double scalar) {
-      return mapi(d -> scalar / d);
-   }
-
-   /**
-    * Divides the values in the this NDArray from the other NDArray in-place.
-    *
-    * @param other the other NDArray whose values will be divided from
-    * @return this NDArray with the result of other / this
-    * @throws IllegalArgumentException If the shape of this NDArray does not match that of the other NDArray
-    */
-   public NDArray rdivi(@NonNull NDArray other) {
-      return rmapi(other, Operator::divide);
+   public NDArray rdivi(double value) {
+      return mapScalar(this,
+                       value,
+                       (v1, v2) -> v2 / v1);
    }
 
    /**
@@ -1508,114 +1753,42 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @param other the other NDArray whose values will be divided
     * @param axis  the axis
     * @return this NDArray with the result of this / other
-    * @throws IllegalArgumentException If the row/column shape of this NDArray does not match that of the other NDArray
     */
-   public NDArray rdivi(@NonNull NDArray other, @NonNull Axis axis) {
-      return rmapi(other, axis, Operator::divide);
+   public NDArray rdivi(NDArray other, Axis axis) {
+      return mapVector(this,
+                       other,
+                       axis,
+                       (v1, v2) -> v2 / v1);
    }
 
    /**
-    * Reshape nd array.
+    * Gets the number of rows in the NDArray
     *
-    * @param numRows the num rows
-    * @param numCols the num cols
-    * @return nd array
+    * @return the number of rows in the NDArray
     */
-   public abstract NDArray reshape(int numRows, int numCols);
-
-   /**
-    * Applies an operation to the elements in this NDArray and given other NDArray using the given operator creating a
-    * new NDArray along the given axis. Is applied with the other NDArray element's value being the first parameter in
-    * the operator call.
-    *
-    * @param vector   the other NDArray to perform operation over
-    * @param axis     the axis to apply the operator over
-    * @param operator the operator to apply
-    * @return this NDArray
-    */
-   public NDArray rmap(@NonNull NDArray vector, @NonNull Axis axis, @NonNull DoubleBinaryOperator operator) {
-      checkLengthMatch(dimension(axis.T()), vector.length());
-      NDArray toReturn = getFactory().zeros(numRows(), numCols());
-      for (int c = 0; c < numCols(); c++) {
-         for (int r = 0; r < numRows(); r++) {
-            toReturn.set(r, c, operator.applyAsDouble(vector.get(axis.T().select(r, c)), get(r, c)));
-         }
-      }
-      return toReturn;
+   public int numRows() {
+      return dimension(Axis.ROW);
    }
 
    /**
-    * Applies an operation to the elements in this NDArray and given other NDArray using the given operator creating a
-    * new NDArray. Is applied with the other NDArray element's value being the first parameter in the operator call.
+    * Subtracts the values in the this NDArray from the other NDArray. Basic broadcasting will occur for scalar, vector,
+    * and matrix NDArrays.
     *
-    * @param other    the other NDArray to perform operation over
-    * @param operator the operator to apply
-    * @return the new NDArray
+    * @param other the other NDArray whose values will be subtracted from
+    * @return the new NDArray with the result of other - this
     */
-   public NDArray rmap(@NonNull NDArray other, @NonNull DoubleBinaryOperator operator) {
-      checkLengthMatch(length(), other.length());
-      NDArray toReturn = getFactory().zeros(numRows(), numCols());
-      for (int i = 0; i < length(); i++) {
-         toReturn.set(i, operator.applyAsDouble(other.get(i), get(i)));
-      }
-      return toReturn;
-   }
-
-   /**
-    * Applies an operation to the elements in this NDArray and given other NDArray using the given operator in-place. Is
-    * applied with the other NDArray element's value being the first parameter in the operator call.
-    *
-    * @param other    the other NDArray to perform operation over
-    * @param operator the operator to apply
-    * @return this NDArray
-    */
-   public NDArray rmapi(@NonNull NDArray other, @NonNull DoubleBinaryOperator operator) {
-      checkLengthMatch(length(), other.length());
-      for (int i = 0; i < length(); i++) {
-         set(i, operator.applyAsDouble(other.get(i), get(i)));
-      }
-      return this;
-   }
-
-   /**
-    * Applies an operation to the elements in this NDArray and given other NDArray using the given operator in-place
-    * along the given axis. Is applied with the other NDArray element's value being the first parameter in the operator
-    * call.
-    *
-    * @param vector   the other NDArray to perform operation over
-    * @param axis     the axis to apply the operator over
-    * @param operator the operator to apply
-    * @return this NDArray
-    */
-   public NDArray rmapi(@NonNull NDArray vector, @NonNull Axis axis, @NonNull DoubleBinaryOperator operator) {
-      checkLengthMatch(dimension(axis.T()), vector.length());
-      for (int c = 0; c < numCols(); c++) {
-         for (int r = 0; r < numRows(); r++) {
-            set(r, c, operator.applyAsDouble(vector.get(axis.T().select(r, c)), get(r, c)));
-         }
-      }
-      return this;
+   public NDArray rsub(NDArray other) {
+      return map(newZeroArray(), other, (v1, v2) -> v2 - v1);
    }
 
    /**
     * Subtracts each element's value from the given scalar (e.g. scalar - element)
     *
-    * @param scalar the value to subtract
+    * @param value the value to subtract
     * @return the new NDArray with the scalar value subtracted
     */
-   public NDArray rsub(double scalar) {
-      return map(d -> scalar - d);
-   }
-
-   /**
-    * Subtracts the values in the this NDArray from the other NDArray.
-    *
-    * @param other the other NDArray whose values will be subtracted from
-    * @return the new NDArray with the result of other - this
-    * @throws IllegalArgumentException If the shape of this NDArray does not match that of the other NDArray
-    */
-   public NDArray rsub(@NonNull NDArray other) {
-      return other.map(this, Operator::subtract);
+   public NDArray rsub(double value) {
+      return mapScalar(newZeroArray(), value, (v1, v2) -> v2 - v1);
    }
 
    /**
@@ -1625,31 +1798,30 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @param other the other NDArray whose values will be subtracted
     * @param axis  the axis
     * @return the new NDArray with the result of this - other
-    * @throws IllegalArgumentException If the row/column shape of this NDArray does not match that of the other NDArray
     */
-   public NDArray rsub(@NonNull NDArray other, @NonNull Axis axis) {
-      return rmap(other, axis, Operator::subtract);
+   public NDArray rsub(NDArray other, Axis axis) {
+      return mapVector(newZeroArray(), other, axis, (v1, v2) -> v2 - v1);
    }
 
    /**
     * Subtracts each element's value from the given scalar (e.g. scalar - element)  in-place.
     *
-    * @param scalar the value to subtract
+    * @param value the value to subtract
     * @return the new NDArray with the scalar value subtracted
     */
-   public NDArray rsubi(double scalar) {
-      return mapi(d -> scalar - d);
+   public NDArray rsubi(double value) {
+      return mapScalar(this, value, (v1, v2) -> v2 - v1);
    }
 
    /**
-    * Subtracts the values in the this NDArray from the other NDArray in-place.
+    * Subtracts the values in the this NDArray from the other NDArray in-place. Basic broadcasting will occur for
+    * scalar, vector, and matrix NDArrays.
     *
     * @param other the other NDArray whose values will be subtracted from
     * @return the new NDArray with the result of other - this
-    * @throws IllegalArgumentException If the shape of this NDArray does not match that of the other NDArray
     */
-   public NDArray rsubi(@NonNull NDArray other) {
-      return rmapi(other, Operator::subtract);
+   public NDArray rsubi(NDArray other) {
+      return map(this, other, (v1, v2) -> v2 - v1);
    }
 
    /**
@@ -1659,10 +1831,9 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @param other the other NDArray whose values will be subtracted
     * @param axis  the axis
     * @return the new NDArray with the result of this - other
-    * @throws IllegalArgumentException If the row/column shape of this NDArray does not match that of the other NDArray
     */
-   public NDArray rsubi(@NonNull NDArray other, @NonNull Axis axis) {
-      return rmapi(other, axis, Operator::subtract);
+   public NDArray rsubi(NDArray other, Axis axis) {
+      return mapVector(this, other, axis, (v1, v2) -> v2 - v1);
    }
 
    /**
@@ -1675,251 +1846,365 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
    }
 
    /**
-    * Selects all values matching the given predicate
+    * Selects all values matching the given predicate.
     *
     * @param predicate the predicate to test
     * @return new NDArray with values passing the given predicate and zeros elsewhere
     */
-   public NDArray select(@NonNull DoublePredicate predicate) {
-      final NDArray toReturn = getFactory().zeros(numRows(), numCols());
-      forEach(entry -> {
-         if (predicate.test(entry.getValue())) {
-            toReturn.set(entry.getI(), entry.getJ(), entry.getValue());
-         }
-      });
-      return toReturn;
+   public NDArray select(DoublePredicate predicate) {
+      return mapOperator(newZeroArray(),
+                         v -> predicate.test(v) ? v : 0f);
    }
 
    /**
-    * Selects all values in this NDArray whose corresponding element in the given predicate NDArray is not zero.
+    * Selects all values in this NDArray whose corresponding element in the given predicate NDArray is not zero. Basic
+    * broadcasting will occur for scalar, vector, and matrix NDArrays.
     *
     * @param predicate the predicate NDArray test
     * @return new NDArray with values passing the given predicate and zeros elsewhere
     */
-   public NDArray select(@NonNull NDArray predicate) {
-      checkLengthMatch(length(), predicate.length());
-      NDArray toReturn = getFactory().zeros(numRows(), numCols());
-      predicate.forEachSparse(entry -> {
-         if (entry.getValue() != 0) {
-            toReturn.set(entry.getIndex(), entry.getValue());
-         }
-      });
-      return toReturn;
+   public NDArray select(NDArray predicate) {
+      return map(newZeroArray(),
+                 predicate,
+                 (v1, v2) -> v2 != 0 ? v1 : 0f);
    }
 
    /**
-    * Selects all values matching the given predicate in-place
+    * Selects all values matching the given predicate in-place.
     *
     * @param predicate the predicate to test
     * @return this NDArray with values passing the given predicate and zeros elsewhere
     */
-   public NDArray selecti(@NonNull DoublePredicate predicate) {
-      for (int i = 0; i < length(); i++) {
-         if (get(i) == 0) {
-            set(i, 0d);
-         }
-      }
-      return this;
+   public NDArray selecti(DoublePredicate predicate) {
+      return mapOperator(this, v -> predicate.test(v) ? v : 0f);
    }
 
    /**
     * Selects all values in this NDArray whose corresponding element in the given predicate NDArray is not zero
-    * in-place.
+    * in-place. Basic broadcasting will occur for scalar, vector, and matrix NDArrays.
     *
     * @param predicate the predicate NDArray test
     * @return this NDArray with values passing the given predicate and zeros elsewhere
     */
-   public NDArray selecti(@NonNull NDArray predicate) {
-      checkLengthMatch(length(), predicate.length());
-      for (int i = 0; i < length(); i++) {
-         if (predicate.get(i) == 0) {
-            set(i, 0d);
-         }
-      }
-      return this;
+   public NDArray selecti(NDArray predicate) {
+      return map(this,
+                 predicate,
+                 (v1, v2) -> v2 != 0 ? v1 : 0f);
    }
 
    /**
-    * Sets the value at the given index (useful for vectors and direct storage access)
+    * Sets the value at the given indices
     *
-    * @param index the index to set
-    * @param value the new value to set
-    * @return this NDArray
+    * @param indices the indices
+    * @param value   the value
+    * @return This NDArray
     */
-   public abstract NDArray set(int index, double value);
-
-   /**
-    * Sets the value at the given subscript.
-    *
-    * @param r     the subscript of the first dimension
-    * @param c     the subscript of the second dimension
-    * @param value the value to set
-    * @return this NDArray
-    */
-   public abstract NDArray set(int r, int c, double value);
-
-
-   /**
-    * Sets the values along the given axis at the given index to those in the given vector in-place.
-    *
-    * @param index  the index of the row/column
-    * @param vector the vector whose values are to replace those in this NDArray
-    * @param axis   the axis (row/column) being set
-    * @return this NDArray
-    */
-   public NDArray setVector(int index, @NonNull NDArray vector, @NonNull Axis axis) {
-      Validation.checkArgument(index >= 0 && index < dimension(axis), "Invalid index");
-      checkLengthMatch(dimension(axis.T()), vector.length());
-      for (int i = 0; i < vector.length(); i++) {
-         set(axis.select(index, i), //IF given axis row THEN index ELSE i
-             axis.T().select(index, i), //IF given axis == row THEN index ELSE i
-             vector.get(i));
-      }
-      return this;
+   public NDArray set(int[] indices, double value) {
+      int[] dims = ensureCorrectIndices(indices);
+      return set(dims[0], dims[1], dims[2], dims[3], value);
    }
 
    /**
-    * The sparse size of the NDArray
+    * Sets the value at the given indices
     *
-    * @return the sparse size of the NDArray
+    * @param row     the row
+    * @param column  the column
+    * @param kernel  the kernel
+    * @param channel the channel
+    * @param value   the value
+    * @return This NDArray
     */
-   public abstract int size();
+   public abstract NDArray set(int row, int column, int kernel, int channel, double value);
 
    /**
-    * Slices vector-based NDArrays using the given range of indexes (inclusive from, exclusive to)
+    * Sets the value at the given indices.
     *
-    * @param from the index to start slicing at
-    * @param to   the index to slice up to, but not including
-    * @return the new sliced NDArray
-    * @throws IllegalArgumentException if the NDArrays is not a vector
-    */
-   public NDArray slice(int from, int to) {
-      if (isRowVector()) {
-         NDArray toReturn = getFactory().zeros(Axis.ROW, to - from);
-         for (int i = from; i < to; i++) {
-            toReturn.set(i, get(i));
-         }
-         return toReturn;
-      } else if (isColumnVector()) {
-         NDArray toReturn = getFactory().zeros(Axis.COlUMN, to - from);
-         for (int i = from; i < to; i++) {
-            toReturn.set(i, get(i));
-         }
-         return toReturn;
-      }
-      throw new IllegalArgumentException();
-   }
-
-   /**
-    * Slices the NDArray using the given subscript ranges (inclusive from, exclusive to)
-    *
-    * @param iFrom the index of the first dimension to start slicing at
-    * @param iTo   the index of the first dimension  to slice up to, but not including
-    * @param jFrom the index of the second dimension to start slicing at
-    * @param jTo   the index of the second dimension  to slice up to, but not including
-    * @return the new sliced NDArray
-    */
-   public NDArray slice(int iFrom, int iTo, int jFrom, int jTo) {
-      NDArray toReturn = getFactory().zeros(iTo - iFrom, jTo - jFrom);
-      for (int i = iFrom; i < iTo; i++) {
-         for (int j = jFrom; j < jTo; j++) {
-            toReturn.set(i, j, get(i, j));
-         }
-      }
-      return toReturn;
-   }
-
-   /**
-    * Slices the NDArray by taking all elements along the given axis for the given indexes
-    *
-    * @param axis    the axis to slice
-    * @param indexes the indexes of the axis to slice
-    * @return the sliced NDArray
-    */
-   public NDArray slice(@NonNull Axis axis, @NonNull int... indexes) {
-      NDArray toReturn;
-      if (axis == Axis.ROW) {
-         toReturn = getFactory().zeros(indexes.length, numCols());
-      } else {
-         toReturn = getFactory().zeros(numRows(), indexes.length);
-      }
-      for (int r = 0; r < indexes.length; r++) {
-         toReturn.setVector(r, this.getVector(r, axis), axis);
-      }
-      return toReturn;
-   }
-
-   /**
-    * Sparse column iterator iterator.
-    *
+    * @param row    the row
     * @param column the column
-    * @return the iterator
+    * @param kernel the kernel
+    * @param value  the value
+    * @return This NDArray
     */
-   public abstract Iterator<NDArray.Entry> sparseColumnIterator(int column);
+   public NDArray set(int row, int column, int kernel, double value) {
+      return set(row, column, kernel, 0, value);
+   }
 
    /**
-    * Sparse iterator over the entries in the NDArray (will act like <code>iterator</code> for dense implementations)
+    * Sets the value at the given indices.
     *
-    * @return the iterator
+    * @param row    the row
+    * @param column the column
+    * @param value  the value
+    * @return This NDArray
+    */
+   public NDArray set(int row, int column, double value) {
+      return set(row, column, 0, 0, value);
+   }
+
+   /**
+    * Sets the value at the given indices.
+    *
+    * @param row   the row
+    * @param value the value
+    * @return This NDArray
+    */
+   public NDArray set(int row, double value) {
+      return set(row, 0, 0, 0, value);
+   }
+
+   /**
+    * Replaces the slice at the given index.
+    *
+    * @param slice    the slice
+    * @param newSlice the new slice to use at the given slice index
+    */
+   protected abstract void setSlice(int slice, NDArray newSlice);
+
+   /**
+    * Sets the vector at the given index along the given axis. Basic broadcasting will be preformed.
+    *
+    * @param index the index of the row / column to set
+    * @param axis  the axis (row or column)
+    * @param other the vector(s) to use to set.
+    * @return this NDArray
+    */
+   public NDArray setVector(int index, Axis axis, NDArray other) {
+      IntStream.range(0, numSlices).forEach(i -> {
+         if (other.order == 1) {
+            setVector(i, index, axis, other);
+         } else {
+            setVector(i, index, axis, other.tensorSlice(i));
+         }
+      });
+      return this;
+   }
+
+   /**
+    * Sets the vector at the given index along the given axis at the given slice index.
+    *
+    * @param sliceIndex the index of the slice whose vector will be set
+    * @param index      the index of the row / column to set
+    * @param axis       the axis (row or column)
+    * @param vector     the vector to use to set.
+    * @return this NDArray
+    */
+   public NDArray setVector(int sliceIndex, int index, Axis axis, NDArray vector) {
+      checkArgument(axis.isRowOrColumn(), "Axis (" + axis + ") not supported.");
+      checkArgument(vector.order < 2, "Order (" + vector.order + ") not supported as vector");
+      NDArray slice = tensorSlice(sliceIndex);
+      for (int i = 0; i < dimension(axis.T()); i++) {
+         if (axis == Axis.ROW) {
+            slice.set(index, i, vector.get(i));
+         } else {
+            slice.set(i, index, vector.get(i));
+         }
+      }
+      return this;
+   }
+
+   /**
+    * Returns the shape of the NDArray as an int array.
+    *
+    * @return the shape of the NDArray
+    */
+   public int[] shape() {
+      return Arrays.copyOf(shape, shape.length);
+   }
+
+   /**
+    * Gets the slice at the given kernel and channel. All changes made to the slice will be reflected in the NDArray.
+    *
+    * @param kernel  the kernel
+    * @param channel the channel
+    * @return The slice NDArray
+    */
+   public NDArray tensorSlice(int kernel, int channel) {
+      return tensorSlice(toSliceIndex(kernel, channel));
+   }
+
+   /**
+    * Gets the slice at the given index. All changes made to the slice will be reflected in the NDArray.
+    *
+    * @param index the index
+    * @return The slice NDArray
+    */
+   public abstract NDArray tensorSlice(int index);
+
+   /**
+    * Applies the given binary function to the slices of this NDArray and the given other NDArray. If the given other
+    * NDArray is of order <=2, it is applied to each slice, otherwise it should have the same number of slices. Whether
+    * this NDArray is modified (via reuse of the * slices) or a new one created is dependent on the given function.
+    *
+    * @param other    the other NDArray
+    * @param function the function to apply
+    * @return the resulting NDArray
+    */
+   public NDArray sliceBinaryOperation(NDArray other, BiFunction<NDArray, NDArray, NDArray> function) {
+      NDArray[] out = new NDArray[numSlices];
+      if (other.order > 2) {
+         checkArgument(other.sliceLength() == sliceLength(),
+                       "Slice length mismatch (" + sliceLength() + ") != (" + other.sliceLength() + ")");
+         sliceStream().forEach(t -> out[t.v1] = function.apply(t.v2, other.tensorSlice(t.v1)));
+      } else {
+         sliceStream().forEach(t -> out[t.v1] = function.apply(t.v2, other));
+      }
+      return getFactory().fromLayers(numKernels(), numChannels(), out);
+   }
+
+   /**
+    * Calculates the dot product of vectors between this NDArray and the given NDArray on a per slice basis.
+    *
+    * @param other the other NDArray to calculate the dot product with
+    * @return The sum of the dot products across the slices.
+    */
+   public NDArray sliceDot(NDArray other) {
+      checkArgument(matrixLength == other.matrixLength,
+                    "Length mismatch (" + matrixLength + ")  != (" + other.matrixLength);
+      return sliceBinaryOperation(other, (a1, a2) -> getFactory().constant(a1.dot(a2), 1));
+   }
+
+   /**
+    * Returns the length of a slice in this NDArray
+    *
+    * @return the length of a slice in this NDArray
+    */
+   public int sliceLength() {
+      return matrixLength;
+   }
+
+   /**
+    * Calculates the max value per slice
+    *
+    * @return NDArray of max value per slice
+    */
+   public NDArray sliceMax() {
+      return sliceUnaryOperation(v -> getFactory().zeros(1)
+                                                  .set(0, v.max()));
+   }
+
+   /**
+    * Calculates the mean value per slice
+    *
+    * @return NDArray of mean value per slice
+    */
+   public NDArray sliceMean() {
+      return sliceUnaryOperation(v -> getFactory().zeros(1)
+                                                  .set(0, v.mean()));
+   }
+
+   /**
+    * Calculates the min value per slice
+    *
+    * @return NDArray of min value per slice
+    */
+   public NDArray sliceMin() {
+      return sliceUnaryOperation(v -> getFactory().zeros(1)
+                                                  .set(0, v.min()));
+   }
+
+   /**
+    * Calculates the norm1 per slice
+    *
+    * @return NDArray of norm1 per slice
+    */
+   public NDArray sliceNorm1() {
+      return sliceUnaryOperation(v -> getFactory().zeros(1)
+                                                  .set(0, v.norm1()));
+   }
+
+   /**
+    * Calculates the norm2 per slice
+    *
+    * @return NDArray of norm2 per slice
+    */
+   public NDArray sliceNorm2() {
+      return sliceUnaryOperation(v -> getFactory().zeros(1)
+                                                  .set(0, v.norm2()));
+   }
+
+   /**
+    * Generates a stream containing tuples of slice index and slice.
+    *
+    * @return the stream slice index and slice
+    */
+   public Stream<Tuple2<Integer, NDArray>> sliceStream() {
+      return IntStream.range(0, slices()).mapToObj(i -> $(i, tensorSlice(i))).parallel();
+   }
+
+   /**
+    * Calculates the sum per slice
+    *
+    * @return NDArray of sum per slice
+    */
+   public NDArray sliceSum() {
+      return sliceUnaryOperation(v -> getFactory().zeros(1)
+                                                  .set(0, v.sum()));
+   }
+
+   /**
+    * Calculates the sum of squares per slice
+    *
+    * @return NDArray of sum of squares per slice
+    */
+   public NDArray sliceSumOfSquares() {
+      return sliceUnaryOperation(v -> getFactory().zeros(1)
+                                                  .set(0, v.sumOfSquares()));
+   }
+
+   /**
+    * Applies the given unary function to the slices of this NDArray. Whether this NDArray is modified (via reuse of the
+    * slices) or a new one created is dependent on the given function.
+    *
+    * @param function the function to apply
+    * @return the resulting NDArray
+    */
+   public NDArray sliceUnaryOperation(Function<NDArray, NDArray> function) {
+      NDArray[] out = new NDArray[numSlices];
+      sliceStream().forEach(t -> out[t.v1] = function.apply(t.v2));
+      return getFactory().fromLayers(numKernels(), numChannels(), out);
+   }
+
+   /**
+    * Gets the number of slices in the NDArray
+    *
+    * @return the number of slices
+    */
+   public int slices() {
+      return numSlices;
+   }
+
+   /**
+    * Iterator over the non-zero entries in the NDArray
+    *
+    * @return the non-zero entry iterator
     */
    public Iterator<Entry> sparseIterator() {
-      return iterator();
+      return Iterators.filter(iterator(), e -> e.getValue() != 0f);
    }
 
-   /**
-    * Sparse iterator over the entries in the NDArray (will act like <code>iterator</code> for dense implementations)
-    * ordered by subscript.
-    *
-    * @return the iterator
-    */
    public Iterator<Entry> sparseOrderedIterator() {
-      return iterator();
+      return sparseIterator();
    }
 
-   /**
-    * Sparse row iterator iterator.
-    *
-    * @param row the row
-    * @return the iterator
-    */
-   public abstract Iterator<Entry> sparseRowIterator(int row);
 
-   /**
-    * Statistics enhanced double statistics.
-    *
-    * @return the enhanced double statistics
-    */
-   public EnhancedDoubleStatistics statistics() {
-      EnhancedDoubleStatistics toReturn = new EnhancedDoubleStatistics();
-      forEach(e -> toReturn.accept(e.getValue()));
-      return toReturn;
+   public NDArray toUnitVector() {
+      checkArgument(isVector(), "NDArray must be a vector");
+      float mag = norm2();
+      return div(mag);
    }
 
-   /**
-    * Subtracts a scalar value to each element in the NDArray
-    *
-    * @param scalar the value to subtract
-    * @return the new NDArray with the scalar value subtracted
-    */
-   public NDArray sub(double scalar) {
-      if (scalar == 0) {
-         return copy();
-      }
-      return map(d -> d - scalar);
-   }
 
    /**
-    * Subtracts the values in the other NDArray to this one.
+    * Subtracts the values in the other NDArray to this one. Basic broadcasting will occur for scalar, vector, and
+    * matrix NDArrays.
     *
     * @param other the other NDArray whose values will be subtracted
     * @return the new NDArray with the result of this - other
-    * @throws IllegalArgumentException If the shape of this NDArray does not match that of the other NDArray
     */
-   public NDArray sub(@NonNull NDArray other) {
-      checkLengthMatch(length(), other.length());
-      NDArray toReturn = getFactory().zeros(numRows(), numCols());
-      forEach(e -> toReturn.set(e.getIndex(), e.getValue() - other.get(e.getIndex())));
-      return toReturn;
+   public NDArray sub(NDArray other) {
+      return map(newZeroArray(),
+                 other,
+                 Operator::subtract);
    }
 
    /**
@@ -1929,36 +2214,49 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @param other the other NDArray whose values will be subtracted
     * @param axis  the axis
     * @return the new NDArray with the result of this - other
-    * @throws IllegalArgumentException If the row/column shape of this NDArray does not match that of the other NDArray
     */
-   public NDArray sub(@NonNull NDArray other, @NonNull Axis axis) {
-      return map(other, axis, Operator::subtract);
+   public NDArray sub(NDArray other, Axis axis) {
+      return mapVector(newZeroArray(),
+                       other,
+                       axis,
+                       Operator::subtract);
+   }
+
+   /**
+    * Subtracts a scalar value to each element in the NDArray
+    *
+    * @param value the value to subtract
+    * @return the new NDArray with the scalar value subtracted
+    */
+   public NDArray sub(double value) {
+      return mapScalar(newZeroArray(),
+                       value,
+                       Operator::subtract);
    }
 
    /**
     * Subtracts a scalar value to each element in the NDArray in-place
     *
-    * @param scalar the value to subtract
+    * @param value the value to subtract
     * @return the new NDArray with the scalar value subtracted
     */
-   public NDArray subi(double scalar) {
-      if (scalar == 0) {
-         return this;
-      }
-      return mapi(d -> d - scalar);
+   public NDArray subi(double value) {
+      return mapScalar(this,
+                       value,
+                       Operator::subtract);
    }
 
    /**
-    * Subtracts the values in the other NDArray to this one  in-place.
+    * Subtracts the values in the other NDArray to this one  in-place. Basic broadcasting will occur for scalar, vector,
+    * and matrix NDArrays.
     *
     * @param other the other NDArray whose values will be subtracted
     * @return the new NDArray with the result of this - other
-    * @throws IllegalArgumentException If the shape of this NDArray does not match that of the other NDArray
     */
-   public NDArray subi(@NonNull NDArray other) {
-      checkLengthMatch(length(), other.length());
-      other.forEachSparse(e -> decrement(e.getIndex(), e.getValue()));
-      return this;
+   public NDArray subi(NDArray other) {
+      return map(this,
+                 other,
+                 Operator::subtract);
    }
 
    /**
@@ -1968,44 +2266,12 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @param other the other NDArray whose values will be subtracted
     * @param axis  the axis
     * @return the new NDArray with the result of this - other
-    * @throws IllegalArgumentException If the row/column shape of this NDArray does not match that of the other NDArray
     */
-   public NDArray subi(@NonNull NDArray other, @NonNull Axis axis) {
-      return mapi(other, axis, Operator::subtract);
-   }
-
-   /**
-    * Subi vector nd array.
-    *
-    * @param index  the index
-    * @param vector the vector
-    * @param axis   the axis
-    * @return the nd array
-    */
-   public NDArray subiVector(int index, @NonNull NDArray vector, @NonNull Axis axis) {
-      checkLengthMatch(dimension(axis.T()), vector.length());
-      if (axis == Axis.ROW) {
-         vector.forEachSparse(entry -> {
-            decrement(index, entry.getJ(), entry.getValue());
-         });
-      } else {
-         vector.forEachSparse(entry -> {
-            decrement(entry.getI(), index, entry.getValue());
-         });
-      }
-      return this;
-   }
-
-   /**
-    * Calculates the sum along each axis
-    *
-    * @param axis The axis to calculate the sum for
-    * @return An NDArray of the sum
-    */
-   public NDArray sum(@NonNull Axis axis) {
-      NDArray toReturn = getFactory().zeros(axis, dimension(axis));
-      forEachSparse(entry -> toReturn.set(entry.get(axis), toReturn.get(entry.get(axis)) + entry.getValue()));
-      return toReturn;
+   public NDArray subi(NDArray other, Axis axis) {
+      return mapVector(this,
+                       other,
+                       axis,
+                       Operator::subtract);
    }
 
    /**
@@ -2013,21 +2279,52 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     *
     * @return the sum all values
     */
-   public double sum() {
-      return Streams.asStream(sparseIterator())
-                    .mapToDouble(Entry::getValue)
-                    .sum();
+   public float sum() {
+      return (float) sliceStream().mapToDouble(t -> {
+         double sum = 0;
+         Iterator<Entry> iterator = t.v2.sparseIterator();
+         while (iterator.hasNext()) {
+            sum += iterator.next().getValue();
+         }
+         return sum;
+      }).sum();
    }
 
    /**
-    * Sum of squares double.
+    * Calculates the sum along each axis and per slice
     *
-    * @return the double
+    * @param axis The axis to calculate the sum for
+    * @return An NDArray of the sum
     */
-   public double sumOfSquares() {
-      return Streams.asStream(sparseIterator())
-                    .mapToDouble(e -> FastMath.pow(e.getValue(), 2))
-                    .sum();
+   public NDArray sum(Axis axis) {
+      Validation.checkArgument(axis.isRowOrColumn(),
+                               "Axis (" + axis + ") is not supported");
+      int[] newShape = shape();
+      newShape[axis.T().ordinal] = 1;
+      NDArray out = getFactory().zeros(newShape);
+
+      sliceStream().forEach(t -> {
+         NDArray outSlice = out.tensorSlice(t.v1);
+         t.v2.iterator().forEachRemaining(e -> {
+            int i = axis.select(e.row, e.column);
+            outSlice.set(i, outSlice.get(i) + e.getValue());
+         });
+      });
+
+      return out;
+   }
+
+   /**
+    * Calculates the sum of squares of all values in the NDArray
+    *
+    * @return the sum of squares
+    */
+   public float sumOfSquares() {
+      return (float) sliceStream().mapToDouble(t ->
+                                                  Streams.asStream(t.v2)
+                                                         .mapToDouble(e -> Math.pow(e.getValue(), 2))
+                                                         .sum()
+                                              ).sum();
    }
 
    /**
@@ -2036,14 +2333,8 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @param predicate the predicate to test
     * @return new NDArray with test results
     */
-   public NDArray test(@NonNull DoublePredicate predicate) {
-      NDArray toReturn = getFactory().zeros(numRows(), numCols());
-      forEach(entry -> {
-         if (predicate.test(entry.getValue())) {
-            toReturn.set(entry.getI(), entry.getJ(), 1d);
-         }
-      });
-      return toReturn;
+   public NDArray test(DoublePredicate predicate) {
+      return mapOperator(newZeroArray(), v -> predicate.test(v) ? 1 : 0f);
    }
 
    /**
@@ -2052,58 +2343,8 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @param predicate the predicate to test
     * @return this with test results
     */
-   public NDArray testi(@NonNull DoublePredicate predicate) {
-      forEach(entry -> {
-         if (predicate.test(entry.getValue())) {
-            entry.setValue(1d);
-         } else {
-            entry.setValue(0d);
-         }
-      });
-      return this;
-   }
-
-   /**
-    * Gets a 2D array view of the NDArray
-    *
-    * @return 2D array view of the data
-    */
-   public double[][] to2DArray() {
-      final double[][] array = new double[numRows()][numCols()];
-      forEachSparse(e -> array[e.getI()][e.getJ()] = e.getValue());
-      return array;
-   }
-
-   /**
-    * The data in the NDArray as a 1d array
-    *
-    * @return 1d array view of thedata
-    */
-   public double[] toArray() {
-      double[] toReturn = new double[length()];
-      forEachSparse(e -> toReturn[e.getIndex()] = e.getValue());
-      return toReturn;
-   }
-
-   /**
-    * Generates a boolean view of the NDArray
-    *
-    * @return 1d array of boolean values
-    */
-   public boolean[] toBooleanArray() {
-      boolean[] toReturn = new boolean[length()];
-      forEachSparse(e -> toReturn[e.getIndex()] = e.getValue() == 1);
-      return toReturn;
-   }
-
-   /**
-    * To column int.
-    *
-    * @param index the index
-    * @return the int
-    */
-   public final int toColumn(int index) {
-      return toColumn(index, numRows(), numCols());
+   public NDArray testi(DoublePredicate predicate) {
+      return mapOperator(this, v -> predicate.test(v) ? 1 : 0f);
    }
 
    /**
@@ -2111,9 +2352,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     *
     * @return the double matrix
     */
-   public DoubleMatrix toDoubleMatrix() {
-      return new DoubleMatrix(numRows(), numCols(), toArray());
-   }
+   public abstract DoubleMatrix toDoubleMatrix();
 
    /**
     * Generates a float view of the NDArray
@@ -2121,9 +2360,15 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return 1d array of float values
     */
    public float[] toFloatArray() {
-      float[] toReturn = new float[length()];
-      forEachSparse(e -> toReturn[e.getIndex()] = (float) e.getValue());
-      return toReturn;
+      float[] out = new float[(int) length()];
+      sparseIterator().forEachRemaining(e -> out[(int) e.getIndex()] = e.getValue());
+      return out;
+   }
+
+   public double[] toDoubleArray() {
+      double[] out = new double[(int) length()];
+      sparseIterator().forEachRemaining(e -> out[(int) e.getIndex()] = e.getValue());
+      return out;
    }
 
    /**
@@ -2131,134 +2376,304 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     *
     * @return the float matrix
     */
-   public FloatMatrix toFloatMatrix() {
-      return new FloatMatrix(numRows(), numCols(), toFloatArray());
+   public abstract FloatMatrix toFloatMatrix();
+
+   /**
+    * To index long.
+    *
+    * @param indices the indices
+    * @return the long
+    */
+   protected long toIndex(int[] indices) {
+      return toLongIndex(indices, shape);
+   }
+
+   @Override
+   public JsonEntry toJson() {
+      JsonEntry ndarray = JsonEntry.object()
+                                   .addProperty("shape", shape())
+                                   .addProperty("dense", isDense());
+      JsonEntry array = JsonEntry.array();
+      for (int i = 0; i < slices(); i++) {
+         array.addValue(tensorSlice(i).toFloatArray());
+      }
+      ndarray.addProperty("data", array);
+      return ndarray;
+   }
+
+   private class IndicesIterator implements Iterator<int[]> {
+      private int[] indices = new int[4];
+
+      @Override
+      public boolean hasNext() {
+         return indices[0] < shape[0]
+                   && indices[1] < shape[1]
+                   && indices[2] < shape[2]
+                   && indices[3] < shape[3];
+      }
+
+      private void incrementChannel() {
+         indices[3]++;
+         if (indices[3] >= shape[3]) {
+            indices[3] = 0;
+            incrementKernel();
+         }
+      }
+
+      private void incrementColumn() {
+         indices[1]++;
+         if (indices[1] >= shape[1]) {
+            indices[1] = 0;
+            incrementRow();
+         }
+      }
+
+      private void incrementKernel() {
+         indices[2]++;
+      }
+
+      private void incrementRow() {
+         indices[0]++;
+         if (indices[0] >= shape[0]) {
+            indices[0] = 0;
+            incrementChannel();
+         }
+      }
+
+      @Override
+      public int[] next() {
+         checkArgument(hasNext(), "No next index");
+         int[] next = new int[]{indices[0], indices[1], indices[2], indices[3]};
+         incrementColumn();
+         return next;
+      }
+
    }
 
    /**
-    * To index int.
-    *
-    * @param i the
-    * @param j the j
-    * @return the int
+    * Defines an entry, or cell, in the NDArray with corresponding indices and value
     */
-   public final int toIndex(int i, int j) {
-      return columnMajorIndex(i, j, numRows(), numCols());
+   public class Entry {
+      /**
+       * The Row.
+       */
+      final int row, /**
+       * The Column.
+       */
+      column, /**
+       * The Kernel.
+       */
+      kernel, /**
+       * The Channel.
+       */
+      channel;
+
+      /**
+       * Instantiates a new Entry.
+       *
+       * @param indices the indices
+       */
+      protected Entry(int[] indices) {
+         this(indices[0], indices[1], indices[2], indices[3]);
+      }
+
+      /**
+       * Instantiates a new Entry.
+       *
+       * @param row     the row
+       * @param column  the column
+       * @param kernel  the kernel
+       * @param channel the channel
+       */
+      protected Entry(int row, int column, int kernel, int channel) {
+         this.row = row;
+         this.column = column;
+         this.kernel = kernel;
+         this.channel = channel;
+      }
+
+      @Override
+      public boolean equals(Object obj) {
+         if (this == obj) {return true;}
+         if (obj == null || getClass() != obj.getClass()) {return false;}
+         final Entry other = (Entry) obj;
+         return Objects.equals(this.row, other.row)
+                   && Objects.equals(this.column, other.column)
+                   && Objects.equals(this.kernel, other.kernel)
+                   && Objects.equals(this.channel, other.channel);
+      }
+
+      /**
+       * Gets channel.
+       *
+       * @return the channel
+       */
+      public int getChannel() {
+         return channel;
+      }
+
+      /**
+       * Gets column.
+       *
+       * @return the column
+       */
+      public int getColumn() {
+         return column;
+      }
+
+      /**
+       * Gets index.
+       *
+       * @return the index
+       */
+      public long getIndex() {
+         return toIndex(new int[]{row, column, kernel, channel});
+      }
+
+      /**
+       * Gets index.
+       *
+       * @param axis the axis
+       * @return the index
+       */
+      public int getIndex(Axis axis) {
+         switch (axis) {
+            case ROW:
+               return getRow();
+            case COLUMN:
+               return getColumn();
+            case KERNEL:
+               return getKernel();
+            case CHANNEL:
+               return getChannel();
+            default:
+               throw new IllegalArgumentException(axis + " is an unkown axis");
+         }
+      }
+
+      /**
+       * Get indicies int [ ].
+       *
+       * @return the int [ ]
+       */
+      public int[] getIndicies() {
+         return new int[]{
+            getRow(),
+            getColumn(),
+            getKernel(),
+            getChannel()
+         };
+      }
+
+      /**
+       * Gets kernel.
+       *
+       * @return the kernel
+       */
+      public int getKernel() {
+         return kernel;
+      }
+
+      /**
+       * Gets row.
+       *
+       * @return the row
+       */
+      public int getRow() {
+         return row;
+      }
+
+      /**
+       * Gets value.
+       *
+       * @return the value
+       */
+      public float getValue() {
+         return get(row, column, kernel, channel);
+      }
+
+      /**
+       * Sets value.
+       *
+       * @param value the value
+       */
+      public void setValue(double value) {
+         set(row, column, kernel, channel, value);
+      }
+
+      @Override
+      public int hashCode() {
+         return Objects.hash(row, column, kernel, channel);
+      }
+
+      /**
+       * Matrix index int.
+       *
+       * @return the int
+       */
+      public int matrixIndex() {
+         return toIndex(row, shape[0], column, shape[1]);
+      }
+
+      /**
+       * Slice index int.
+       *
+       * @return the int
+       */
+      public int sliceIndex() {
+         return toIndex(kernel, shape[2], channel, shape[3]);
+      }
+
+      @Override
+      public String toString() {
+         return "Entry[" +
+                   "row=" + row +
+                   ", column=" + column +
+                   ", kernel=" + kernel +
+                   ", channel=" + channel +
+                   "]=" + getValue();
+      }
+
    }
 
-   /**
-    * Generates an int view of the NDArray
-    *
-    * @return 1d array of int values
-    */
-   public int[] toIntArray() {
-      int[] toReturn = new int[length()];
-      forEachSparse(e -> toReturn[e.getIndex()] = (int) e.getValue());
-      return toReturn;
-   }
 
-   /**
-    * To row int.
-    *
-    * @param index the index
-    * @return the int
-    */
-   public final int toRow(int index) {
-      return toRow(index, numRows(), numCols());
+   private String toString(FloatMatrix matrix) {
+      return matrix.toString("%f", "[", "]", ", ", "],\n  [");
    }
 
    @Override
    public String toString() {
-      return Arrays.toString(toArray());
-   }
-
-   /**
-    * To unit vector nd array.
-    *
-    * @return the nd array
-    */
-   public NDArray toUnitVector() {
-      Validation.checkArgument(isVector(), "NDArray must be a vector");
-      double mag = norm2();
-      return div(mag);
-   }
-
-   /**
-    * Sets all element values to zero
-    *
-    * @return this NDArray
-    */
-   public NDArray zero() {
-      return fill(0d);
-   }
-
-   /**
-    * Defines an entry in the NDArray, which is the dimensions (i and j), the index (vector, direct storage), and
-    * value.
-    */
-   public interface Entry extends Serializable {
-
-      /**
-       * Gets the subscript index for the given axis
-       *
-       * @param axis the axis whose subscript index is wanted
-       * @return the subscript index
-       */
-      default int get(@NonNull Axis axis) {
-         return axis == Axis.ROW ? getI() : getJ();
+      StringBuilder builder = new StringBuilder("[[")
+                                 .append(toString(tensorSlice(0).toFloatMatrix()));
+      for (int i = 1; i < Math.min(slices(), 10); i++) {
+         builder.append("]").append(System.lineSeparator())
+                .append(" [")
+                .append(toString(tensorSlice(i).toFloatMatrix()));
       }
 
-      /**
-       * Gets the subscript index of the first dimension.
-       *
-       * @return the subscript index of the first dimension
-       */
-      int getI();
-
-      /**
-       * Gets the index of the element in the NDArray (useful for vectors)
-       *
-       * @return the index
-       */
-      int getIndex();
-
-      /**
-       * Gets the subscript index of the second dimension.
-       *
-       * @return the subscript index of the second dimension
-       */
-      int getJ();
-
-      /**
-       * Gets the value at the current subscript/index
-       *
-       * @return the value
-       */
-      double getValue();
-
-      /**
-       * Sets the value at the current subscript/index
-       *
-       * @param value the new value
-       */
-      void setValue(double value);
-
-   }//END OF Entry
-
-
-   /**
-    * Write csv.
-    *
-    * @param csvFile the csv file
-    * @throws IOException the io exception
-    */
-   public void writeCSV(Resource csvFile) throws IOException {
-      try (CSVWriter writer = CSV.csv().writer(csvFile)) {
-         writer.write(IntStream.range(0, numCols()).iterator());
-         for (int i = 0; i < numRows(); i++) {
-            writer.write(Lists.ofPrimitive(getVector(i, Axis.ROW).toArray(), Double.class));
+      if (slices() > 10) {
+         if (slices() > 11) {
+            builder.append("]")
+                   .append(System.lineSeparator())
+                   .append("  ...")
+                   .append(System.lineSeparator());
+         }
+         builder.append(" [").append(toString(tensorSlice(10).toFloatMatrix()));
+         for (int i = Math.max(11, slices() - 10);
+              i < Math.max(Math.min(20, slices()), slices());
+              i++) {
+            builder.append("]").append(System.lineSeparator())
+                   .append(" [")
+                   .append(toString(tensorSlice(i).toFloatMatrix()));
          }
       }
+
+      return builder.append("]]").toString();
    }
 
+   public abstract NDArray slice(int from, int to);
+
+   public abstract NDArray slice(int iFrom, int iTo, int jFrom, int jTo);
+
+   public abstract NDArray slice(@NonNull Axis axis, int... indexes);
 }//END OF NDArray

@@ -1,13 +1,13 @@
 package com.gengoai.apollo.ml.clustering.flat;
 
 import com.gengoai.Validation;
-import com.gengoai.math.Optimum;
 import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.ml.Instance;
 import com.gengoai.apollo.ml.clustering.Cluster;
 import com.gengoai.apollo.ml.clustering.Clusterer;
 import com.gengoai.apollo.ml.clustering.Clustering;
 import com.gengoai.apollo.stat.measure.Measure;
+import com.gengoai.math.Optimum;
 import org.apache.commons.math3.distribution.MultivariateNormalDistribution;
 
 import java.util.Iterator;
@@ -53,7 +53,7 @@ public class GMM extends Clustering {
    @Override
    public double[] softCluster(Instance instance) {
       double[] d = new double[components.size()];
-      double[] in = getPreprocessors().apply(instance).toVector(getEncoderPair()).toArray();
+      double[] in = getPreprocessors().apply(instance).toVector(getEncoderPair()).toDoubleArray();
       for (int i = 0; i < components.size(); i++) {
          d[i] = components.get(i).density(in);
       }

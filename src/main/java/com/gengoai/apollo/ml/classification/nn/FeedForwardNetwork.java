@@ -50,7 +50,7 @@ public class FeedForwardNetwork extends Classifier {
          double shift = activation.isProbabilistic() ? 1d : 0d;
          vector = NDArrayFactory.wrap(new double[]{shift - vector.scalarValue(), vector.scalarValue()});
       }
-      return createResult(vector.toArray());
+      return createResult(vector.toDoubleArray());
    }
 
    public FeedForwardNetwork copy() {

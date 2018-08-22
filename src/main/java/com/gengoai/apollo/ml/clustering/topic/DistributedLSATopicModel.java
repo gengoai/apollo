@@ -50,7 +50,7 @@ public class DistributedLSATopicModel extends Clusterer<LSAModel> {
    @Override
    public LSAModel cluster(MStream<NDArray> instances) {
       //Create document x word matrix
-      SparkStream<Vector> stream = new SparkStream<>(instances.map(i -> (Vector) new DenseVector(i.toArray()))).cache();
+      SparkStream<Vector> stream = new SparkStream<>(instances.map(i -> (Vector) new DenseVector(i.toDoubleArray()))).cache();
       RowMatrix mat = new RowMatrix(stream.getRDD().rdd());
 
       //since we have document x word, V is the word x component matrix
@@ -60,7 +60,7 @@ public class DistributedLSATopicModel extends Clusterer<LSAModel> {
       LSAModel model = new LSAModel(this, Similarity.Cosine.asDistanceMeasure(), K);
       for (int i = 0; i < K; i++) {
          Cluster c = new Cluster();
-         c.addPoint(NDArrayFactory.wrap(topics.getVector(i, Axis.ROW).toArray()));
+         c.addPoint(NDArrayFactory.wrap(topics.getVector(i, Axis.ROW).toDoubleArray()));
          model.addCluster(c);
       }
       return model;

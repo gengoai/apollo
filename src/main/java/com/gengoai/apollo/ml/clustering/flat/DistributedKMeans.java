@@ -58,7 +58,7 @@ public class DistributedKMeans extends Clusterer<FlatClustering> {
    @Override
    public FlatClustering cluster(MStream<NDArray> instanceStream) {
       SparkStream<NDArray> sparkStream = new SparkStream<>(instanceStream);
-      JavaRDD<Vector> rdd = sparkStream.getRDD().map(v -> (Vector) new DenseVector(v.toArray())).cache();
+      JavaRDD<Vector> rdd = sparkStream.getRDD().map(v -> (Vector) new DenseVector(v.toDoubleArray())).cache();
       JavaRDD<String> labels = sparkStream.getRDD()
                                           .map(o -> {
                                              if (o.getLabel() instanceof Number) {

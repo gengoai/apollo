@@ -1,42 +1,32 @@
 package com.gengoai.apollo.linear;
 
-
+import com.gengoai.function.SerializableConsumer;
 import lombok.NonNull;
 
-import java.io.Serializable;
 import java.util.Random;
 
 /**
- * The interface Weight initializer.
- *
  * @author David B. Bracewell
  */
-@FunctionalInterface
-public interface NDArrayInitializer extends Serializable {
+public interface NDArrayInitializer extends SerializableConsumer<NDArray> {
 
    /**
     * Glorot and Bengio (2010) for sigmoid units
     */
-   static NDArrayInitializer glorotAndBengioSigmoid() {
-      return (m) -> {
-         double max = 4 * Math.sqrt(6.0) / Math.sqrt(m.numRows() + m.numCols());
-         double min = -max;
-         m.mapi(x -> min + (max - min) * Math.random());
-         return m;
-      };
-   }
+   NDArrayInitializer glorotAndBengioSigmoid = (m) -> {
+      double max = 4 * Math.sqrt(6.0) / Math.sqrt(m.numRows() + m.numCols());
+      double min = -max;
+      m.mapi(x -> min + (max - min) * Math.random());
+   };
 
    /**
     * Glorot and Bengio (2010) for hyperbolic tangent units
     */
-   static NDArrayInitializer glorotAndBengioTanH() {
-      return (m) -> {
-         double max = Math.sqrt(6.0) / Math.sqrt(m.numRows() + m.numCols());
-         double min = -max;
-         m.mapi(x -> min + (max - min) * Math.random());
-         return m;
-      };
-   }
+   NDArrayInitializer glorotAndBengioTanH = (m) -> {
+      double max = Math.sqrt(6.0) / Math.sqrt(m.numRows() + m.numCols());
+      double min = -max;
+      m.mapi(x -> min + (max - min) * Math.random());
+   };
 
    /**
     * Rand nd array initializer.
@@ -45,17 +35,13 @@ public interface NDArrayInitializer extends Serializable {
     * @return the nd array initializer
     */
    static NDArrayInitializer rand(@NonNull Random rnd) {
-      return (m) -> m.map(d -> rnd.nextDouble());
+      return (m) -> m.mapi(d -> rnd.nextDouble());
    }
 
    /**
     * Rand nd array initializer.
-    *
-    * @return the nd array initializer
     */
-   static NDArrayInitializer rand() {
-      return (m) -> m.map(d -> Math.random());
-   }
+   NDArrayInitializer rand = (m) -> m.mapi(d -> Math.random());
 
    /**
     * Rand nd array initializer.
@@ -66,7 +52,7 @@ public interface NDArrayInitializer extends Serializable {
     * @return the nd array initializer
     */
    static NDArrayInitializer rand(@NonNull Random rnd, int min, int max) {
-      return (m) -> m.map(d -> min + rnd.nextDouble() * max);
+      return (m) -> m.mapi(d -> min + rnd.nextDouble() * max);
    }
 
    /**
@@ -86,33 +72,24 @@ public interface NDArrayInitializer extends Serializable {
     * @param rnd the rnd
     * @return the nd array initializer
     */
-   static NDArrayInitializer randn(@NonNull Random rnd) {
-      return (m) -> m.map(d -> rnd.nextGaussian());
+   static NDArrayInitializer randn(Random rnd) {
+      return (m) -> m.mapi(d -> rnd.nextGaussian());
    }
 
    /**
     * Randn nd array initializer.
-    *
-    * @return the nd array initializer
     */
-   static NDArrayInitializer randn() {
-      return randn(new Random());
-   }
+   NDArrayInitializer randn = randn(new Random());
 
    /**
     * The constant ZEROES.
     */
-   static NDArrayInitializer zeroes() {
-      return (m) -> m.mapi(x -> 0d);
-   }
+   NDArrayInitializer zeroes = (m) -> m.mapi(x -> 0d);
 
    /**
-    * Initialize.
-    *
-    * @param weights the weights
-    * @return the nd array
+    * The constant Ones.
     */
-   NDArray initialize(NDArray weights);
+   NDArrayInitializer ones = (m) -> m.mapi(x -> 1d);
 
 
-}// END OF WeightInitializer
+}//END OF NDArrayInitializer

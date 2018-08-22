@@ -19,14 +19,14 @@ public class DenoisingAutoencoder {
 
 
    public DenoisingAutoencoder(int nHidden, int nVisible) {
-      weights = NDArrayFactory.DEFAULT().create(nHidden, nVisible, NDArrayInitializer.glorotAndBengioSigmoid());
+      weights = NDArrayFactory.DEFAULT().create(NDArrayInitializer.glorotAndBengioSigmoid, nHidden, nVisible);
       hbias = NDArrayFactory.DEFAULT().zeros(nHidden);
       vbias = NDArrayFactory.DEFAULT().zeros(nVisible);
    }
 
 
    public void train(List<NDArray> X, int batchSize, double learningRate, double corruptionLevel) {
-      for( int i = 0; i < 100; i++) {
+      for (int i = 0; i < 100; i++) {
          for (NDArray x : X) {
             NDArray corruptedInput = x.select(d -> Math.random() >= corruptionLevel);
             NDArray z = weights.mmul(corruptedInput)
@@ -40,9 +40,9 @@ public class DenoisingAutoencoder {
             NDArray hgrad = weights.mmul(x.sub(y)).muli(z.mul(z.rsub(1)));
             NDArray wgrad = hgrad.mmul(corruptedInput.T()).addi(z.mmul(vgrad.T()));
 
-            hbias.addi(hgrad.muli(learningRate));
-            vbias.addi(vgrad.muli(learningRate));
-            weights.addi(wgrad.muli(learningRate));
+            hbias.addi(hgrad.muli((float) learningRate));
+            vbias.addi(vgrad.muli((float) learningRate));
+            weights.addi(wgrad.muli((float) learningRate));
          }
       }
       for (NDArray x : X) {

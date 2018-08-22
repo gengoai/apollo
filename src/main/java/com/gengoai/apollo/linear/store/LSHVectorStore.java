@@ -73,7 +73,7 @@ public class LSHVectorStore<KEY> implements VectorStore<KEY>, Serializable {
 
    @Override
    public final NDArray get(KEY key) {
-      return keyVectorMap.getOrDefault(key, NDArrayFactory.SPARSE_FLOAT.zeros(lsh.getDimension()));
+      return keyVectorMap.getOrDefault(key, NDArrayFactory.SPARSE.zeros(lsh.getDimension()));
    }
 
    @Override

@@ -54,12 +54,12 @@ public class LibLinearModel extends Classifier {
     * @return the feature node array
     */
    public static Feature[] toFeature(NDArray vector, int biasIndex) {
-      int size = vector.size() + (biasIndex > 0 ? 1 : 0);
+      int size = (int) vector.size() + (biasIndex > 0 ? 1 : 0);
       final Feature[] feature = new Feature[size];
       int index = 0;
       for (Iterator<NDArray.Entry> itr = vector.sparseOrderedIterator(); itr.hasNext(); index++) {
          NDArray.Entry entry = itr.next();
-         feature[index] = new FeatureNode(entry.getIndex() + 1, entry.getValue());
+         feature[index] = new FeatureNode(entry.matrixIndex() + 1, entry.getValue());
       }
       if (biasIndex > 0) {
          feature[size - 1] = new FeatureNode(biasIndex, 1.0);

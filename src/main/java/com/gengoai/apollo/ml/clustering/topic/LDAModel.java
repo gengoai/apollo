@@ -104,14 +104,14 @@ public class LDAModel extends TopicModel {
       for (NDArray.Entry entry : Iterables.asIterable(vector.sparseIterator())) {
          int topic = randomGenerator.nextInt(K);
          docTopic[topic]++;
-         docWordTopic.set(entry.getIndex(), topic);
-         wordTopic.increment(topic, entry.getIndex());
+         docWordTopic.set(entry.matrixIndex(), topic);
+         wordTopic.increment(topic, entry.matrixIndex());
       }
 
       for (int iteration = 0; iteration < 100; iteration++) {
          for (NDArray.Entry entry : Iterables.asIterable(vector.sparseIterator())) {
-            int topic = sample(entry.getIndex(), (int) docWordTopic.get(entry.getIndex()), docTopic);
-            docWordTopic.set(entry.getIndex(), topic);
+            int topic = sample(entry.matrixIndex(), (int) docWordTopic.get(entry.matrixIndex()), docTopic);
+            docWordTopic.set(entry.matrixIndex(), topic);
          }
       }
 
@@ -121,7 +121,7 @@ public class LDAModel extends TopicModel {
       }
 
       for (NDArray.Entry entry : Iterables.asIterable(vector.sparseIterator())) {
-         wordTopic.decrement((int) docWordTopic.get(entry.getIndex()), entry.getIndex());
+         wordTopic.decrement((int) docWordTopic.get(entry.matrixIndex()), entry.matrixIndex());
       }
 
       return p;

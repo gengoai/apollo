@@ -45,7 +45,7 @@ public class ApacheClusterable implements Clusterable, Serializable {
     */
    public ApacheClusterable(@NonNull NDArray vector) {
       this.vector = vector;
-      this.point = new Lazy<>(vector::toArray);
+      this.point = new Lazy<>(vector::toDoubleArray);
    }
 
    @Override

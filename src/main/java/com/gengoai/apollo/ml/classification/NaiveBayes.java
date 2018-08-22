@@ -129,7 +129,7 @@ public class NaiveBayes extends Classifier {
                }
             }
             distribution.mapi(Math::exp);
-            return distribution.toArray();
+            return distribution.toDoubleArray();
          }
       },
       /**
@@ -161,10 +161,10 @@ public class NaiveBayes extends Classifier {
          NDArray distribution = NDArrayFactory.wrap(priors);
          instance.forEachSparse(entry -> {
             for (int i = 0; i < priors.length; i++) {
-               distribution.decrement(i, entry.getValue() * conditionals[entry.getIndex()][i]);
+               distribution.decrement(i, entry.getValue() * conditionals[(int) entry.getIndex()][i]);
             }
          });
-         return distribution.mapi(Math::exp).toArray();
+         return distribution.mapi(Math::exp).toDoubleArray();
       }
 
       /**

@@ -52,7 +52,7 @@ public class CompositionRetrofitting implements Retrofitting {
                if (neighborSize > 0 && neighborWeight > 0) {
                   background
                      .nearest(term, neighborSize, neighborThreshold)
-                     .forEach(n -> tv.addi(n.mul(neighborWeight)));
+                     .forEach(n -> tv.addi(n.mul((float) neighborWeight)));
                }
             }
             newEmbedding.add(term, tv);

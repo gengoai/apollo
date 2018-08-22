@@ -76,7 +76,7 @@ public class DefaultVectorStore<KEY> implements VectorStore<KEY>, Serializable {
 
    @Override
    public NDArray get(@NonNull KEY key) {
-      return vectorMap.getOrDefault(key, NDArrayFactory.SPARSE_FLOAT.zeros(dimension));
+      return vectorMap.getOrDefault(key, NDArrayFactory.SPARSE.zeros(dimension));
    }
 
    @Override

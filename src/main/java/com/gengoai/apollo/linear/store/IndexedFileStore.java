@@ -40,7 +40,7 @@ public class IndexedFileStore implements VectorStore<String>, Serializable {
          if (keyOffsets.containsKey(s)) {
             try (RandomAccessFile raf = new RandomAccessFile(vectorFile, "r")) {
                long offset = keyOffsets.get(s);
-               NDArray vector = NDArrayFactory.DENSE_FLOAT.zeros(dimension);
+               NDArray vector = NDArrayFactory.DENSE.zeros(dimension);
                raf.seek(offset);
                String line = raf.readLine();
                String[] parts = line.split("\\p{Z}+");
@@ -53,7 +53,7 @@ public class IndexedFileStore implements VectorStore<String>, Serializable {
                e.printStackTrace();
             }
          }
-         return NDArrayFactory.DENSE_FLOAT.zeros(dimension);
+         return NDArrayFactory.DENSE.zeros(dimension);
       });
    }
 

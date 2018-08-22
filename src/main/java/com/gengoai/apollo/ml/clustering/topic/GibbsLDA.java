@@ -92,26 +92,26 @@ public class GibbsLDA extends Clusterer<LDAModel> {
       if (sampleLag > 0) {
          thetasum = new NDArray[M];
          for (int m = 0; m < M; m++) {
-            thetasum[m] = NDArrayFactory.SPARSE_FLOAT.zeros(K);
+            thetasum[m] = NDArrayFactory.SPARSE.zeros(K);
          }
          phisum = new NDArray[K];
          for (int k = 0; k < K; k++) {
-            phisum[k] = NDArrayFactory.SPARSE_FLOAT.zeros(V);
+            phisum[k] = NDArrayFactory.SPARSE.zeros(V);
          }
       }
 
 
       for (int m = 0; m < M; m++) {
          NDArray vector = instances.get(m);
-         int N = vector.size();
+         int N = (int)vector.size();
          z[m] = new int[N];
          documents[m] = new int[N];
          int index = 0;
          for (NDArray.Entry entry : Iterables.asIterable(vector.sparseIterator())) {
-            documents[m][index] = entry.getIndex();
+            documents[m][index] = entry.matrixIndex();
             int topic = randomGenerator.nextInt(K);
             z[m][index] = topic;
-            nw.increment(topic, entry.getIndex());
+            nw.increment(topic, entry.matrixIndex());
             nd.increment(m, topic);
             index++;
          }

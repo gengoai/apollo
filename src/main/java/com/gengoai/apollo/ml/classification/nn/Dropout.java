@@ -52,9 +52,9 @@ public class Dropout extends Layer {
 
    @Override
    NDArray forward(NDArray input) {
-      val mask = NDArrayFactory.DEFAULT().create(input.numRows(), input.numCols(), NDArrayInitializer.rand())
+      val mask = NDArrayFactory.DEFAULT().create(NDArrayInitializer.rand, input.numRows(), input.numCols())
                                .test(x -> x < rate);
-      return input.mul(mask).divi(rate);
+      return input.mul(mask).divi((float) rate);
    }
 
    @Override

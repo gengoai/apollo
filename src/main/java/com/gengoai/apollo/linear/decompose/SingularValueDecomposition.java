@@ -1,9 +1,8 @@
 package com.gengoai.apollo.linear.decompose;
 
+import com.gengoai.apollo.linear.DenseNDArray;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.SparkLinearAlgebra;
-import com.gengoai.apollo.linear.dense.DenseDoubleNDArray;
-import com.gengoai.apollo.linear.dense.DenseFloatNDArray;
 import lombok.NonNull;
 import org.jblas.DoubleMatrix;
 import org.jblas.FloatMatrix;
@@ -46,7 +45,7 @@ public class SingularValueDecomposition implements Decomposition, Serializable {
       }
 
       NDArray[] result;
-      if (input instanceof DenseFloatNDArray) {
+      if (input instanceof DenseNDArray) {
          FloatMatrix[] r;
          if (sparse) {
             r = Singular.sparseSVD(input.toFloatMatrix());
@@ -54,9 +53,9 @@ public class SingularValueDecomposition implements Decomposition, Serializable {
             r = Singular.fullSVD(input.toFloatMatrix());
          }
          result = new NDArray[]{
-            new DenseFloatNDArray(r[0]),
-            new DenseFloatNDArray(FloatMatrix.diag(r[1])),
-            new DenseFloatNDArray(r[2]),
+            new DenseNDArray(r[0]),
+            new DenseNDArray(FloatMatrix.diag(r[1])),
+            new DenseNDArray(r[2]),
          };
       } else {
          DoubleMatrix[] r;
@@ -66,9 +65,9 @@ public class SingularValueDecomposition implements Decomposition, Serializable {
             r = Singular.fullSVD(input.toDoubleMatrix());
          }
          result = new NDArray[]{
-            new DenseDoubleNDArray(r[0]),
-            new DenseDoubleNDArray(DoubleMatrix.diag(r[1])),
-            new DenseDoubleNDArray(r[2]),
+            new DenseNDArray(r[0]),
+            new DenseNDArray(DoubleMatrix.diag(r[1])),
+            new DenseNDArray(r[2]),
          };
       }
 

@@ -1,4 +1,4 @@
-package com.gengoai.apollo.linear.v2;
+package com.gengoai.apollo.linear;
 
 /**
  * @author David B. Bracewell

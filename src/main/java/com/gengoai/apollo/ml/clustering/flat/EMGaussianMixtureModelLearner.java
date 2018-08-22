@@ -29,7 +29,7 @@ public class EMGaussianMixtureModelLearner extends Clusterer<GMM> {
       int numberOfDataPoints = vectors.size();
       double[][] data = new double[numberOfDataPoints][numberOfFeatures];
       for (int i = 0; i < numberOfDataPoints; i++) {
-         data[i] = vectors.get(i).toArray();
+         data[i] = vectors.get(i).toDoubleArray();
       }
       GMM gmm = new GMM(this, Distance.Euclidean);
       gmm.components = new ArrayList<>(MultivariateNormalMixtureExpectationMaximization.estimate(data, K)

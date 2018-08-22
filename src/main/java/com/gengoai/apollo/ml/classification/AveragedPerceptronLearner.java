@@ -118,7 +118,7 @@ public class AveragedPerceptronLearner extends BinaryClassifierLearner {
                error++;
                double eta = learningRate * (y - yHat);
                for (NDArray.Entry entry : Iterables.asIterable(v.sparseIterator())) {
-                  updateFeature(model, entry.getIndex(), c, eta);
+                  updateFeature(model, entry.matrixIndex(), c, eta);
                }
                double timeSpan = c - biasStamps;
                totalBias += (timeSpan * model.bias.get(0));
@@ -147,10 +147,10 @@ public class AveragedPerceptronLearner extends BinaryClassifierLearner {
 
       double time = c;
       for (NDArray.Entry entry : Iterables.asIterable(totalWeights.sparseIterator())) {
-         double total = totalWeights.get(entry.getIndex());
-         total += (time - stamps.get(entry.getIndex())) * model.weights.get(entry.getIndex());
+         double total = totalWeights.get(entry.matrixIndex());
+         total += (time - stamps.get(entry.matrixIndex())) * model.weights.get(entry.matrixIndex());
          total = new BigDecimal(total / time).setScale(3, RoundingMode.HALF_UP).doubleValue();
-         model.weights.set(entry.getIndex(), total);
+         model.weights.set(entry.matrixIndex(), total);
       }
       double total = totalBias;
       total += (time - biasStamps) * model.bias.get(0);

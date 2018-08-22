@@ -35,7 +35,7 @@ public class LibLinearRegression extends RegressionLearner {
       List<NDArray.Entry> entries = asArrayList(vector.sparseOrderedIterator());
       Feature[] feature = new Feature[entries.size() + 1];
       for (int i = 0; i < entries.size(); i++) {
-         feature[i] = new FeatureNode(entries.get(i).getIndex() + 1, entries.get(i).getValue());
+         feature[i] = new FeatureNode(entries.get(i).matrixIndex() + 1, entries.get(i).getValue());
       }
       feature[entries.size()] = new FeatureNode(biasIndex, 1.0);
       return feature;

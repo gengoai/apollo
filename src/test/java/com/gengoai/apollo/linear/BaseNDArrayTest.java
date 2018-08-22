@@ -1,5 +1,8 @@
 package com.gengoai.apollo.linear;
 
+import com.gengoai.apollo.linear.Axis;
+import com.gengoai.apollo.linear.NDArray;
+import com.gengoai.apollo.linear.NDArrayFactory;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -43,10 +46,10 @@ public abstract class BaseNDArrayTest {
          m1.copy().addi(v1, Axis.ROW));
       assertEquals(
          factory.create(3, 4, new double[]{2.0, 4.0, 7.0, 5.0, 7.0, 10.0, 8.0, 10.0, 13.0, 11.0, 13.0, 16.0}),
-         m1.add(v3, Axis.COlUMN));
+         m1.add(v3, Axis.COLUMN));
       assertEquals(
          factory.create(3, 4, new double[]{2.0, 4.0, 7.0, 5.0, 7.0, 10.0, 8.0, 10.0, 13.0, 11.0, 13.0, 16.0}),
-         m1.copy().addi(v3, Axis.COlUMN));
+         m1.copy().addi(v3, Axis.COLUMN));
 
    }
 
@@ -92,14 +95,14 @@ public abstract class BaseNDArrayTest {
          m1.div(v1, Axis.ROW));
       assertEquals(
          factory.create(3, 4, new double[]{1.0, 1.0, 0.75, 4.0, 2.5, 1.5, 7.0, 4.0, 2.25, 10.0, 5.5, 3.0}),
-         m1.div(v3, Axis.COlUMN));
+         m1.div(v3, Axis.COLUMN));
       assertEquals(
          factory.create(3, 4,
                         new double[]{Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY, 4.0, 5.0, 6.0, 1.75, 2.0, 2.25, 3.3333333333333335, 3.6666666666666665, 4.0}),
          m1.copy().divi(v1, Axis.ROW));
       assertEquals(
          factory.create(3, 4, new double[]{1.0, 1.0, 0.75, 4.0, 2.5, 1.5, 7.0, 4.0, 2.25, 10.0, 5.5, 3.0}),
-         m1.copy().divi(v3, Axis.COlUMN));
+         m1.copy().divi(v3, Axis.COLUMN));
    }
 
    @Test
@@ -120,13 +123,13 @@ public abstract class BaseNDArrayTest {
    public void getAndSetVector() throws Exception {
       NDArray v = v1.getVector(0, Axis.ROW);
       assertEquals(v1, v);
-      v.setVector(0, factory.create(1, 4, new double[]{1, 2, 0, 4}), Axis.ROW);
+      v.setVector(0, Axis.ROW, factory.create(1, 4, new double[]{1, 2, 0, 4}));
       assertEquals(v2, v);
 
-      v = m1.getVector(1, Axis.COlUMN);
+      v = m1.getVector(1, Axis.COLUMN);
       assertEquals(factory.create(3, 1, new double[]{4.0, 5.0, 6.0}), v);
       NDArray m3 = m1.copy();
-      m3.setVector(2, factory.create(3, 1, new double[]{4.0, 5.0, 6.0}), Axis.COlUMN);
+      m3.setVector(2, Axis.COLUMN, factory.create(3, 1, new double[]{4.0, 5.0, 6.0}));
       assertEquals(factory.create(3, 4, new double[]{1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 4.0, 5.0, 6.0, 10.0, 11.0, 12.0}),
                    m3);
    }
@@ -134,37 +137,35 @@ public abstract class BaseNDArrayTest {
    @Test
    public void increment() throws Exception {
       v1.increment(0, 0);
-      v1.increment(0, 0, 20d);
-      v1.increment(0, 20d);
-      v1.increment(0);
-      assertEquals(42d, v1.get(0), 0d);
+      v1.increment(0, 0, 20f);
+      v1.increment(0, 20f);
+      assertEquals(40d, v1.get(0), 0d);
       v1.decrement(0, 0);
-      v1.decrement(0, 0, 20d);
-      v1.decrement(0, 20d);
-      v1.decrement(0);
+      v1.decrement(0, 0, 20f);
+      v1.decrement(0, 20f);
       assertEquals(0d, v1.get(0), 0d);
    }
 
    @Test
    public void minMax() throws Exception {
       double max = v1.max();
-      int[] index = v1.argMax(Axis.ROW);
+      int[][] index = v1.argMax(Axis.ROW);
       assertEquals(4d, max, 0d);
-      assertArrayEquals(new int[]{2}, index);
+      assertArrayEquals(new int[]{2}, index[0]);
       double min = v1.min();
       index = v1.argMin(Axis.ROW);
       assertEquals(0d, min, 0d);
-      assertArrayEquals(new int[]{0}, index);
+      assertArrayEquals(new int[]{0}, index[0]);
 
       max = m1.max();
-      index = m1.argMax(Axis.COlUMN);
+      index = m1.argMax(Axis.COLUMN);
       assertEquals(12d, max, 0d);
-      assertArrayEquals(new int[]{2, 2, 2, 2}, index);
+      assertArrayEquals(new int[]{2, 2, 2, 2}, index[0]);
 
       min = m1.min();
-      index = m1.argMin(Axis.COlUMN);
+      index = m1.argMin(Axis.COLUMN);
       assertEquals(1, min, 0d);
-      assertArrayEquals(new int[]{0, 0, 0, 0}, index);
+      assertArrayEquals(new int[]{0, 0, 0, 0}, index[0]);
 
    }
 
@@ -188,13 +189,13 @@ public abstract class BaseNDArrayTest {
          m1.mul(v1, Axis.ROW));
       assertEquals(
          factory.create(3, 4, new double[]{1.0, 4.0, 12.0, 4.0, 10.0, 24.0, 7.0, 16.0, 36.0, 10.0, 22.0, 48.0}),
-         m1.mul(v3, Axis.COlUMN));
+         m1.mul(v3, Axis.COLUMN));
       assertEquals(
          factory.create(3, 4, new double[]{0.0, 0.0, 0.0, 4.0, 5.0, 6.0, 28.0, 32.0, 36.0, 30.0, 33.0, 36.0}),
          m1.copy().muli(v1, Axis.ROW));
       assertEquals(
          factory.create(3, 4, new double[]{1.0, 4.0, 12.0, 4.0, 10.0, 24.0, 7.0, 16.0, 36.0, 10.0, 22.0, 48.0}),
-         m1.copy().muli(v3, Axis.COlUMN));
+         m1.copy().muli(v3, Axis.COLUMN));
    }
 
    @Test
@@ -226,7 +227,7 @@ public abstract class BaseNDArrayTest {
       assertEquals(
          factory.create(3, 4,
                         new double[]{1.0, 1.0, 1.3333333333333333, 0.25, 0.4, 0.6666666666666666, 0.14285714285714285, 0.25, 0.4444444444444444, 0.1, 0.18181818181818182, 0.3333333333333333}),
-         m1.rdiv(v3, Axis.COlUMN));
+         m1.rdiv(v3, Axis.COLUMN));
       assertEquals(
          factory.create(3, 4,
                         new double[]{0.0, 0.0, 0.0, 0.25, 0.2, 0.16666666666666666, 0.5714285714285714, 0.5, 0.4444444444444444, 0.3, 0.2727272727272727, 0.25}),
@@ -234,14 +235,13 @@ public abstract class BaseNDArrayTest {
       assertEquals(
          factory.create(3, 4,
                         new double[]{1.0, 1.0, 1.3333333333333333, 0.25, 0.4, 0.6666666666666666, 0.14285714285714285, 0.25, 0.4444444444444444, 0.1, 0.18181818181818182, 0.3333333333333333}),
-         m1.copy().rdivi(v3, Axis.COlUMN));
+         m1.copy().rdivi(v3, Axis.COLUMN));
    }
 
    @Test
    public void rsub() throws Exception {
       assertEquals(factory.create(1, 4, new double[]{1.0, 0.0, -3.0, -2.0}), v1.rsub(1));
       assertEquals(factory.create(1, 4, new double[]{1.0, 0.0, -3.0, -2.0}), v1.copy().rsubi(1));
-      assertEquals(factory.create(1, 4, new double[]{-1.0, -1.0, 4.0, -1.0}), v2.rsub(v1));
       assertEquals(factory.create(1, 4, new double[]{-1.0, -1.0, 4.0, -1.0}), v2.copy().rsubi(v1));
       assertEquals(
          factory.create(3, 4, new double[]{0.0, -3.0, -6.0, 2.0, -1.0, -4.0, 4.0, 1.0, -2.0, 6.0, 3.0, 0.0}),
@@ -251,13 +251,13 @@ public abstract class BaseNDArrayTest {
          m1.rsub(v1, Axis.ROW));
       assertEquals(
          factory.create(3, 4, new double[]{0.0, 0.0, 1.0, -3.0, -3.0, -2.0, -6.0, -6.0, -5.0, -9.0, -9.0, -8.0}),
-         m1.rsub(v3, Axis.COlUMN));
+         m1.rsub(v3, Axis.COLUMN));
       assertEquals(
          factory.create(3, 4, new double[]{-1.0, -2.0, -3.0, -3.0, -4.0, -5.0, -3.0, -4.0, -5.0, -7.0, -8.0, -9.0}),
          m1.copy().rsubi(v1, Axis.ROW));
       assertEquals(
          factory.create(3, 4, new double[]{0.0, 0.0, 1.0, -3.0, -3.0, -2.0, -6.0, -6.0, -5.0, -9.0, -9.0, -8.0}),
-         m1.copy().rsubi(v3, Axis.COlUMN));
+         m1.copy().rsubi(v3, Axis.COLUMN));
    }
 
    @Test
@@ -266,37 +266,37 @@ public abstract class BaseNDArrayTest {
       assertEquals(0, value, 0d);
       v1.set(0, 20);
       assertEquals(20, v1.get(0), 0d);
-      v1.set(0, 0d);
-      assertEquals(0, v1.get(Axis.ROW, 0, Axis.COlUMN, 0), 0d);
+      v1.set(0, 0f);
+//      assertEquals(0, v1.get(Axis.ROW, 0, Axis.COLUMN, 0), 0d);
 
 
-      v1.set(0, 0, 10d);
-      v1.set(0, 0, 0d);
+      v1.set(0, 0, 10f);
+      v1.set(0, 0, 0f);
 
       value = m1.get(0, 0);
       assertEquals(1, value, 0d);
       m1.set(0, 0, 20);
       assertEquals(20, m1.get(0, 0), 0d);
-      m1.set(0, 0, 1d);
-      assertEquals(1, m1.get(Axis.ROW, 0, Axis.COlUMN, 0), 0d);
+      m1.set(0, 0, 1f);
+//      assertEquals(1, m1.get(Axis.ROW, 0, Axis.COLUMN, 0), 0d);
 
-      m1.set(0, 0, 100d);
+      m1.set(0, 0, 100f);
       m1.set(0, 0, 1);
    }
 
 
    @Test
    public void slice() throws Exception {
-      assertEquals(factory.scalar(0), v1.slice(0, 1));
-      assertEquals(factory.create(1, 4, new double[]{1.0, 4.0, 7.0, 10.0}), m1.slice(0, 1, 0, 4));
-      assertEquals(factory.create(1, 4, new double[]{1.0, 4.0, 7.0, 10.0}), m1.slice(Axis.ROW, 0));
+      assertEquals(factory.scalar(0).scalarValue(), v1.tensorSlice(0).scalarValue(), 0d);
+//      assertEquals(factory.create(1, 4, new double[]{1.0, 4.0, 7.0, 10.0}), m1.slice(0, 1, 0, 4));
+//      assertEquals(factory.create(1, 4, new double[]{1.0, 4.0, 7.0, 10.0}), m1.slice(Axis.ROW, 0));
    }
 
    @Test
    public void stats() throws Exception {
       assertEquals(8, v1.sum(), 0d);
       assertEquals(factory.scalar(8), v1.sum(Axis.ROW));
-      assertEquals(factory.create(1, 4, new double[]{6, 15, 24, 33}), m1.sum(Axis.COlUMN));
+      assertEquals(factory.create(1, 4, new double[]{6, 15, 24, 33}), m1.sum(Axis.COLUMN));
    }
 
    @Test
@@ -313,13 +313,13 @@ public abstract class BaseNDArrayTest {
          m1.sub(v1, Axis.ROW));
       assertEquals(
          factory.create(3, 4, new double[]{0.0, 0.0, -1.0, 3.0, 3.0, 2.0, 6.0, 6.0, 5.0, 9.0, 9.0, 8.0}),
-         m1.sub(v3, Axis.COlUMN));
+         m1.sub(v3, Axis.COLUMN));
       assertEquals(
          factory.create(3, 4, new double[]{1.0, 2.0, 3.0, 3.0, 4.0, 5.0, 3.0, 4.0, 5.0, 7.0, 8.0, 9.0}),
          m1.copy().subi(v1, Axis.ROW));
       assertEquals(
          factory.create(3, 4, new double[]{0.0, 0.0, -1.0, 3.0, 3.0, 2.0, 6.0, 6.0, 5.0, 9.0, 9.0, 8.0}),
-         m1.copy().subi(v3, Axis.COlUMN));
+         m1.copy().subi(v3, Axis.COLUMN));
    }
 
    @Test

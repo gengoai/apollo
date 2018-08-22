@@ -1,10 +1,11 @@
-package com.gengoai.apollo.linear.v2;
+package com.gengoai.apollo.linear;
 
 import org.apache.mahout.math.map.OpenIntFloatHashMap;
 import org.jblas.DoubleMatrix;
 import org.jblas.FloatMatrix;
 import org.jblas.MatrixFunctions;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -29,7 +30,7 @@ public class SparseNDArray extends NDArray {
       this(copy.shape());
       copy.sliceStream().forEach(t -> {
          int index = t.v1;
-         NDArray slice = t.v2.slice(index);
+         NDArray slice = t.v2.tensorSlice(index);
          slice.forEachSparse(e -> this.data[index].put(e.matrixIndex(), e.getValue()));
       });
    }
@@ -56,8 +57,12 @@ public class SparseNDArray extends NDArray {
    }
 
    @Override
-   public boolean isSparse() {
-      return true;
+   public boolean equals(Object obj) {
+      if (this == obj) {return true;}
+      if (obj == null || getClass() != obj.getClass()) {return false;}
+      if (!super.equals(obj)) {return false;}
+      final SparseNDArray other = (SparseNDArray) obj;
+      return Objects.deepEquals(this.data, other.data);
    }
 
    public float get(int index) {
@@ -95,13 +100,18 @@ public class SparseNDArray extends NDArray {
    }
 
    @Override
-   public NDArray set(int row, int column, int kernel, int channel, float value) {
+   public boolean isSparse() {
+      return true;
+   }
+
+   @Override
+   public NDArray set(int row, int column, int kernel, int channel, double value) {
       int si = toSliceIndex(kernel, channel);
       int mi = toMatrixIndex(row, column);
       if (value == 0) {
          data[si].removeKey(mi);
       } else {
-         data[si].put(mi, value);
+         data[si].put(mi, (float) value);
       }
       return this;
    }
@@ -113,9 +123,10 @@ public class SparseNDArray extends NDArray {
    }
 
    @Override
-   public NDArray slice(int index) {
+   public NDArray tensorSlice(int index) {
       return new SparseNDArray(numRows(), numCols(), data[index]);
    }
+
 
    @Override
    public DoubleMatrix toDoubleMatrix() {
@@ -131,13 +142,23 @@ public class SparseNDArray extends NDArray {
       return new FloatMatrix(toFloatArray());
    }
 
+   @Override
+   public NDArray slice(int from, int to) {
+      return null;
+   }
 
    @Override
-   public boolean equals(Object obj) {
-      if (this == obj) {return true;}
-      if (obj == null || getClass() != obj.getClass()) {return false;}
-      if (!super.equals(obj)) {return false;}
-      final SparseNDArray other = (SparseNDArray) obj;
-      return Objects.deepEquals(this.data, other.data);
+   public long size() {
+      return Arrays.stream(data).mapToLong(OpenIntFloatHashMap::size).sum();
+   }
+
+   @Override
+   public NDArray slice(int iFrom, int iTo, int jFrom, int jTo) {
+      return null;
+   }
+
+   @Override
+   public NDArray slice(Axis axis, int... indexes) {
+      return null;
    }
 }//END OF SparseNDArray

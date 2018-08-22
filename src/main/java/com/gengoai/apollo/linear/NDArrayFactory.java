@@ -1,375 +1,121 @@
 package com.gengoai.apollo.linear;
 
-import com.gengoai.Validation;
-import com.gengoai.apollo.linear.dense.DenseDoubleNDArray;
-import com.gengoai.apollo.linear.dense.DenseFloatNDArray;
-import com.gengoai.apollo.linear.sparse.SparseDoubleNDArray;
-import com.gengoai.apollo.linear.sparse.SparseFloatNDArray;
-import com.gengoai.apollo.linear.sparse.SparseIntNDArray;
-import com.gengoai.collection.Iterables;
 import com.gengoai.config.Config;
-import lombok.NonNull;
+import com.gengoai.conversion.Cast;
 import org.jblas.DoubleMatrix;
 import org.jblas.FloatMatrix;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Iterator;
+import java.util.List;
+
+import static com.gengoai.Validation.checkArgument;
 
 /**
- * Factory methods for creating <code>NDArray</code>s.
+ * @author David B. Bracewell
  */
 public enum NDArrayFactory {
-   /**
-    * Factory for creating sparse double NDArrays
-    */
-   SPARSE_DOUBLE {
-      private final Class<?> clazz = SparseDoubleNDArray.class;
-
+   DENSE {
       @Override
-      protected Class<?> getImplementationClass() {
-         return clazz;
-      }
-
-      @Override
-      public NDArray zeros(int r, int c) {
-         return new SparseDoubleNDArray(r, c);
-      }
-   },
-   /**
-    * Factory for creating sparse int NDArrays
-    */
-   SPARSE_INT {
-      private final Class<?> clazz = SparseIntNDArray.class;
-
-      @Override
-      protected Class<?> getImplementationClass() {
-         return clazz;
-      }
-
-      @Override
-      public NDArray zeros(int r, int c) {
-         return new SparseIntNDArray(r, c);
-      }
-   },
-   /**
-    * Factory for creating sparse float NDArrays
-    */
-   SPARSE_FLOAT {
-      private final Class<?> clazz = SparseDoubleNDArray.class;
-
-      @Override
-      protected Class<?> getImplementationClass() {
-         return clazz;
-      }
-
-      @Override
-      public NDArray zeros(int r, int c) {
-         return new SparseFloatNDArray(r, c);
-      }
-   },
-   /**
-    * Factory for creating dense double NDArrays
-    */
-   DENSE_DOUBLE {
-      private final Class<?> clazz = DenseDoubleNDArray.class;
-
-      @Override
-      protected Class<?> getImplementationClass() {
-         return clazz;
-      }
-
-
-      @Override
-      public NDArray hstack(@NonNull Collection<NDArray> columns) {
-         if (columns.isEmpty()) {
-            return empty();
-         } else if (columns.size() == 1) {
-            return Iterables.getFirst(columns, null).copy();
+      public NDArray zeros(int... dimensions) {
+         dimensions = NDArray.ensureCorrectIndices(dimensions);
+         FloatMatrix[] matrices = new FloatMatrix[dimensions[2] * dimensions[3]];
+         for (int i = 0; i < matrices.length; i++) {
+            matrices[i] = FloatMatrix.zeros(dimensions[0], dimensions[1]);
          }
-         if (columns.size() == 2) {
-            Iterator<NDArray> itr = columns.iterator();
-            return new DenseDoubleNDArray(DoubleMatrix.concatHorizontally(itr.next().toDoubleMatrix(),
-                                                                          itr.next().toDoubleMatrix()));
+         return new DenseNDArray(matrices, dimensions);
+      }
+
+      @Override
+      public NDArray fromLayers(int kernels, int channels, NDArray... slices) {
+         checkArgument(kernels > 0, "Number of kernels must be > 0");
+         checkArgument(channels > 0, "Number of channels must be > 0");
+         checkArgument(kernels * channels == slices.length,
+                       "Number of slices is more than number of kernels * channels");
+         checkArgument(slices[0].isDense(), "Only Dense Layers supported");
+         int[] shape = new int[]{slices[0].numRows(), slices[0].numCols(), kernels, channels};
+         FloatMatrix[] matrices = Arrays.stream(slices).map(NDArray::toFloatMatrix).toArray(FloatMatrix[]::new);
+         return new DenseNDArray(matrices, shape);
+      }
+   }, SPARSE {
+      @Override
+      public NDArray zeros(int... dimensions) {
+         return new SparseNDArray(dimensions);
+      }
+
+      @Override
+      public NDArray fromLayers(int kernels, int channels, NDArray... slices) {
+         checkArgument(kernels > 0, "Number of kernels must be > 0");
+         checkArgument(channels > 0, "Number of channels must be > 0");
+         checkArgument(kernels * channels == slices.length,
+                       "Number of slices is more than number of kernels * channels");
+         checkArgument(slices[0].isSparse(), "Only Sparse Layers supported");
+         int[] shape = new int[]{slices[0].numRows(), slices[0].numCols(), kernels, channels};
+         List<SparseNDArray> sliceList = new ArrayList<>();
+         for (NDArray slice : slices) {
+            sliceList.add(Cast.as(slice));
          }
-         int l = Iterables.getFirst(columns, null).length();
-         double[] a = new double[l * columns.size()];
-         int i = 0;
-         for (NDArray column : columns) {
-            System.arraycopy(column.toArray(), 0, a, i * l, l);
-            i++;
-         }
-         return new DenseDoubleNDArray(new DoubleMatrix(l, columns.size(), a));
-      }
-
-      @Override
-      public NDArray create(int r, int c, double[] data) {
-         return new DenseDoubleNDArray(new DoubleMatrix(r, c, data));
-      }
-
-      @Override
-      public NDArray create(double[] data) {
-         return new DenseDoubleNDArray(new DoubleMatrix(data));
-      }
-
-      @Override
-      public NDArray zeros(int r, int c) {
-         Validation.checkArgument(r > 0, "r must be > 0");
-         Validation.checkArgument(c > 0, "c must be > 0");
-         return new DenseDoubleNDArray(DoubleMatrix.zeros(r, c));
-      }
-   },
-   /**
-    * Factory for creating dense float NDArrays
-    */
-   DENSE_FLOAT {
-      private final Class<?> clazz = DenseFloatNDArray.class;
-
-      @Override
-      protected Class<?> getImplementationClass() {
-         return clazz;
-      }
-
-      @Override
-      public NDArray hstack(@NonNull Collection<NDArray> columns) {
-         if (columns.isEmpty()) {
-            return empty();
-         } else if (columns.size() == 1) {
-            return Iterables.getFirst(columns, null).copy();
-         }
-         if (columns.size() == 2) {
-            Iterator<NDArray> itr = columns.iterator();
-            return new DenseFloatNDArray(FloatMatrix.concatHorizontally(itr.next().toFloatMatrix(),
-                                                                        itr.next().toFloatMatrix()));
-         }
-         int l = Iterables.getFirst(columns, null).length();
-         float[] a = new float[l * columns.size()];
-         int i = 0;
-         for (NDArray column : columns) {
-            System.arraycopy(column.toFloatArray(), 0, a, i * l, l);
-            i++;
-         }
-         return new DenseFloatNDArray(new FloatMatrix(l, columns.size(), a));
-      }
-
-      private float[] convert(double[] in) {
-         float[] out = new float[in.length];
-         for (int i = 0; i < in.length; i++) {
-            out[i] = (float) in[i];
-         }
-         return out;
-      }
-
-      @Override
-      public NDArray create(int r, int c, double[] data) {
-         return new DenseFloatNDArray(new FloatMatrix(r, c, convert(data)));
-      }
-
-      @Override
-      public NDArray create(double[] data) {
-         return new DenseFloatNDArray(new FloatMatrix(convert(data)));
-      }
-
-      @Override
-      public NDArray zeros(int r, int c) {
-         Validation.checkArgument(r > 0, "r must be > 0");
-         Validation.checkArgument(c > 0, "c must be > 0");
-         return new DenseFloatNDArray(FloatMatrix.zeros(r, c));
+         return new SparseNDArray(shape, sliceList);
       }
    };
 
 
-   private static volatile NDArrayFactory DEFAULT_INSTANCE;
+   public static NDArray wrap(double[][] matrix) {
+      return new DenseNDArray(new DoubleMatrix(matrix));
+   }
+
+   public static NDArray wrap(float[] vector) {
+      return new DenseNDArray(new FloatMatrix(vector));
+   }
+
+   public static NDArray wrap(double[] vector) {
+      return new DenseNDArray(new DoubleMatrix(vector));
+   }
+
+   public static NDArray wrap(float[][] matrix) {
+      return new DenseNDArray(new FloatMatrix(matrix));
+   }
 
 
-   /**
-    * Gets the default factory defined either in the config setting <code>ndarray.factory</code> or defaults to
-    * <code>DENSE_DOUBLE</code>
-    *
-    * @return The NDArray Factory
-    */
    public static NDArrayFactory DEFAULT() {
-      if (DEFAULT_INSTANCE == null) {
-         synchronized (NDArrayFactory.class) {
-            if (DEFAULT_INSTANCE == null) {
-               DEFAULT_INSTANCE = Config.get("ndarray.factory").as(NDArrayFactory.class, DENSE_FLOAT);
-            }
-         }
-      }
-      return DEFAULT_INSTANCE;
+      return Config.get("ndarray.factory ").as(NDArrayFactory.class, DENSE);
    }
 
-   /**
-    * Creates a new {@link DenseDoubleNDArray} that wraps the given set of values
-    *
-    * @param rows   the number of rows
-    * @param cols   the number of columns
-    * @param values the values
-    * @return the NDArray
-    */
-   public static NDArray wrap(int rows, int cols, @NonNull double[] values) {
-      return new DenseDoubleNDArray(new DoubleMatrix(rows, cols, values));
-   }
-
-   /**
-    * Creates a new {@link DenseFloatNDArray} that wraps the given set of values
-    *
-    * @param rows   the number of rows
-    * @param cols   the number of columns
-    * @param values the values
-    * @return the NDArray
-    */
-   public static NDArray wrap(int rows, int cols, @NonNull float[] values) {
-      return new DenseFloatNDArray(new FloatMatrix(rows, cols, values));
-   }
-
-   /**
-    * Creates a new {@link DenseDoubleNDArray} that wraps the given set of values
-    *
-    * @param values the values
-    * @return the NDArray
-    */
-   public static NDArray wrap(@NonNull double[] values) {
-      return new DenseDoubleNDArray(new DoubleMatrix(values));
-   }
-
-   /**
-    * Creates a new {@link DenseDoubleNDArray} that wraps the given set of values
-    *
-    * @param values the values
-    * @return the NDArray
-    */
-   public static NDArray wrap(@NonNull double[][] values) {
-      return new DenseDoubleNDArray(new DoubleMatrix(values));
-   }
-
-   /**
-    * Creates a new {@link DenseDoubleNDArray} that wraps the given set of values
-    *
-    * @param values the values
-    * @return the NDArray
-    */
-   public static NDArray wrap(@NonNull float[] values) {
-      return new DenseFloatNDArray(new FloatMatrix(values));
-   }
-
-   /**
-    * Creates a copy of the given NDArray
-    *
-    * @param array the array to copy
-    * @return the NDArray
-    */
-   public NDArray copy(@NonNull NDArray array) {
-      if (getImplementationClass().isInstance(array)) {
-         return array.copy();
-      }
-      return zeros(array.numRows(), array.numCols())
-                .addi(array)
-                .setLabel(array.getLabel())
-                .setWeight(array.getWeight())
-                .setPredicted(array.getPredicted());
-   }
-
-   /**
-    * Creates a new NDArray of given shape and initializes using the given initializer
-    *
-    * @param i           The number of rows
-    * @param j           The number of columns
-    * @param initializer How to initialize the values in the NDArray
-    * @return The NDArray
-    */
-   public NDArray create(int i, int j, @NonNull NDArrayInitializer initializer) {
-      return initializer.initialize(zeros(i, j));
-   }
-
-   /**
-    * Creates a new NDArray of given dimension and initializes using the given initializer
-    *
-    * @param dimension   The dimension of the vector
-    * @param initializer How to initialize the values in the NDArray
-    * @return The NDArray
-    */
-   public NDArray create(int dimension, @NonNull NDArrayInitializer initializer) {
-      return initializer.initialize(zeros(dimension));
-   }
-
-   /**
-    * Creates a new NDArray  that wraps the given set of values
-    *
-    * @param data the values
-    * @return the NDArray
-    */
-   public NDArray create(double[] data) {
-      NDArray z = zeros(data.length);
-      for (int i = 0; i < data.length; i++) {
-         z.set(i, data[i]);
-      }
-      return z;
-   }
-
-   /**
-    * Creates a new NDArray that wraps the given set of values
-    *
-    * @param r    the number of rows
-    * @param c    the number of columns
-    * @param data the values
-    * @return the NDArray
-    */
-   public NDArray create(int r, int c, double[] data) {
-      NDArray z = zeros(r, c);
-      for (int i = 0; i < data.length; i++) {
-         z.set(i, data[i]);
-      }
-      return z;
-   }
-
-   /**
-    * Creates a new NDArray that wraps the given set of values
-    *
-    * @param data the values
-    * @return the NDArray
-    */
-   public NDArray create(double[][] data) {
-      NDArray z = zeros(data.length, data[0].length);
-      for (int j = 0; j < z.numRows(); j++) {
-         for (int i = 0; i < z.numCols(); i++) {
-            z.set(j, i, data[j][i]);
-         }
-      }
-      return z;
-   }
-
-   /**
-    * Creates a diagonal 2D NDArray from a 1D NDArray
-    *
-    * @param vector the 1D NDArray, or vector, to use as the diagonal
-    * @return the NDArray
-    */
-   public NDArray diag(@NonNull NDArray vector) {
-      Validation.checkArgument(vector.isVector());
-      int dim = Math.max(vector.numRows(), vector.numCols());
-      NDArray toReturn = zeros(dim, dim);
-      for (int i = 0; i < dim; i++) {
-         toReturn.set(i, i, vector.get(i));
-      }
-      return toReturn;
-   }
-
-   /**
-    * Creates a new Empty NDArray
-    *
-    * @return the NDArray
-    */
    public NDArray empty() {
-      return EmptyNDArray.INSTANCE;
+      return zeros(0);
    }
 
-   /**
-    * Creates an identity matrix
-    *
-    * @param n the number of rows and columns
-    * @return the NDArray
-    */
+   public abstract NDArray zeros(int... dimensions);
+
+   public NDArray fromLayers(NDArray... slices) {
+      return fromLayers(slices.length, 1, slices);
+   }
+
+   public abstract NDArray fromLayers(int kernels, int channels, NDArray... slices);
+
+   public NDArray ones(int... dimensions) {
+      return create(NDArrayInitializer.ones, dimensions);
+   }
+
+   public NDArray constant(float value, int... dimensions) {
+      return zeros(dimensions).fill(value);
+   }
+
+   public NDArray rand(int... dimensions) {
+      return create(NDArrayInitializer.rand, dimensions);
+   }
+
+   public NDArray randn(int... dimensions) {
+      return create(NDArrayInitializer.randn, dimensions);
+   }
+
+   public NDArray create(NDArrayInitializer initializer, int... dimensions) {
+      NDArray out = zeros(dimensions);
+      initializer.accept(out);
+      return out;
+   }
+
    public NDArray eye(int n) {
       NDArray toReturn = zeros(n, n);
       for (int i = 0; i < n; i++) {
@@ -378,205 +124,82 @@ public enum NDArrayFactory {
       return toReturn;
    }
 
-   protected abstract Class<?> getImplementationClass();
-
-   /**
-    * Concatenates a series of column vectors into a single NDArray
-    *
-    * @param columns columns to concatenate
-    * @return the NDArray
-    */
-   public NDArray hstack(@NonNull NDArray... columns) {
-      return hstack(Arrays.asList(columns));
+   public NDArray stack(Axis axis, NDArray... arrays) {
+      return stack(axis, Arrays.asList(arrays));
    }
 
-   /**
-    * Concatenates a series of column vectors into a single NDArray
-    *
-    * @param columns columns to concatenate
-    * @return the NDArray
-    */
-   public NDArray hstack(@NonNull Collection<NDArray> columns) {
-      if (columns.size() == 1) {
-         return copy(columns.iterator().next());
-      }
-      NDArray toReturn = zeros(columns.iterator().next().numRows(), columns.size());
-      int c = 0;
-      for (NDArray column : columns) {
-         final int ci = c;
-         column.sparseIterator().forEachRemaining(e -> toReturn.set(e.getIndex(), ci, e.getValue()));
-         c++;
+   public NDArray create(int rows, int columns, double[] data) {
+      NDArray toReturn = zeros(rows, columns);
+      for (int i = 0; i < data.length; i++) {
+         toReturn.set(i, (float) data[i]);
       }
       return toReturn;
    }
 
-   /**
-    * Creates an NDArray with the given dimensions filled with ones.
-    *
-    * @param dimensions the dimensions
-    * @return the NDArray
-    */
-   public NDArray ones(@NonNull int... dimensions) {
-      return zeros(dimensions).fill(1d);
-   }
-
-   /**
-    * Creates a one-valued array with the given axis dimension
-    *
-    * @param a1   First axis
-    * @param dim1 dimension of axis one
-    * @param a2   Second axis
-    * @param dim2 dimension of axis two
-    * @return the nd array
-    * @throws IllegalArgumentException if the two axis are the same
-    */
-   public NDArray ones(@NonNull Axis a1, int dim1, @NonNull Axis a2, int dim2) {
-      Validation.checkArgument(a1 != a2, "Axis one and Axis 2 must not be the same");
-      int[] dimensions = {-1, -1};
-      dimensions[a1.index] = dim1;
-      dimensions[a2.index] = dim2;
-      return ones(dimensions[0], dimensions[1]);
-   }
-
-   /**
-    * Creates a one valued vector for the given axis
-    *
-    * @param axis      the axis of the vector (row vs column vector)
-    * @param dimension the dimension
-    * @return the nd array
-    */
-   public NDArray ones(@NonNull Axis axis, int dimension) {
-      return ones(axis, dimension, axis.T(), 1);
-   }
-
-   /**
-    * Creates an NDArray of given dimensions initialized with Random values
-    *
-    * @param dimension the dimension
-    * @return the NDArray
-    */
-   public NDArray rand(@NonNull int... dimension) {
-      if (dimension.length == 0) {
-         return empty();
-      } else if (dimension.length == 1) {
-         return create(dimension[0], NDArrayInitializer.rand());
-      }
-      return create(dimension[0], dimension[1], NDArrayInitializer.rand());
-   }
-
-   /**
-    * Creates an NDArray of given dimensions initialized with Random values following a normal distribution.
-    *
-    * @param dimension the dimension
-    * @return the NDArray
-    */
-   public NDArray randn(@NonNull int... dimension) {
-      if (dimension.length == 0) {
-         return empty();
-      } else if (dimension.length == 1) {
-         return create(dimension[0], NDArrayInitializer.randn());
-      }
-      return create(dimension[0], dimension[1], NDArrayInitializer.randn());
-   }
-
-   /**
-    * Creates an NDArray containing a single scalar value
-    *
-    * @param value the value
-    * @return the NDArray
-    */
-   public NDArray scalar(double value) {
-      return new ScalarNDArray(value);
-   }
-
-   /**
-    * Concatenates a series of row vectors into a single NDArray
-    *
-    * @param rows rows to concatenate
-    * @return the NDArray
-    */
-   public NDArray vstack(@NonNull Collection<NDArray> rows) {
-      if (rows.isEmpty()) {
-         return EmptyNDArray.INSTANCE;
-      } else if (rows.size() == 1) {
-         return Iterables.getFirst(rows, null);
-      }
-      int rowdim = Iterables.getFirst(rows, null).numCols();
-      NDArray toReturn = zeros(rows.size(), rowdim);
-      int idx = 0;
-      for (NDArray vector : rows) {
-         toReturn.setVector(idx, vector, Axis.ROW);
-         idx++;
+   public NDArray create(double[] data) {
+      NDArray toReturn = zeros(data.length);
+      for (int i = 0; i < data.length; i++) {
+         toReturn.set(i, (float) data[i]);
       }
       return toReturn;
    }
 
-   /**
-    * Concatenates a series of row vectors into a single NDArray
-    *
-    * @param rows rows to concatenate
-    * @return the NDArray
-    */
-   public NDArray vstack(@NonNull NDArray... rows) {
-      return vstack(Arrays.asList(rows));
-   }
-
-   /**
-    * Creates a zero valued matrix
-    *
-    * @param r the number of rows
-    * @param c the  number of columns
-    * @return the nd array
-    * @throws IllegalArgumentException if the number of rows or columns <= 0
-    */
-   public abstract NDArray zeros(int r, int c);
-
-   /**
-    * Creates a zero valued vector for the given axis
-    *
-    * @param axis      the axis of the vector (row vs column vector)
-    * @param dimension the dimension
-    * @return the nd array
-    */
-   public NDArray zeros(@NonNull Axis axis, int dimension) {
-      return zeros(axis, dimension, axis.T(), 1);
-   }
-
-   /**
-    * Creates a zero-value vector with the given dimensions
-    *
-    * @param dimensions the dimensions
-    * @return the nd array
-    */
-   public NDArray zeros(int... dimensions) {
-      switch (dimensions.length) {
-         case 0:
-            return EmptyNDArray.INSTANCE;
-         case 1:
-            return zeros(dimensions[0], 1);
-         case 2:
-            return zeros(dimensions[0], dimensions[1]);
+   public NDArray create(int rows, int columns, float[] data) {
+      NDArray toReturn = zeros(rows, columns);
+      for (int i = 0; i < data.length; i++) {
+         toReturn.set(i, data[i]);
       }
-      throw new IllegalArgumentException("Invalid number of dimensions: " + dimensions.length);
+      return toReturn;
    }
 
-   /**
-    * Creates a zero-value array with the given axis dimension
-    *
-    * @param a1   First axis
-    * @param dim1 dimension of axis one
-    * @param a2   Second axis
-    * @param dim2 dimension of axis two
-    * @return the nd array
-    * @throws IllegalArgumentException if the two axis are the same
-    */
-   public NDArray zeros(@NonNull Axis a1, int dim1, @NonNull Axis a2, int dim2) {
-      Validation.checkArgument(a1 != a2, "Axis one and Axis 2 must not be the same");
-      int[] dimensions = {-1, -1};
-      dimensions[a1.index] = dim1;
-      dimensions[a2.index] = dim2;
-      return zeros(dimensions[0], dimensions[1]);
+   public NDArray scalar(float value) {
+      return zeros(1).set(0, value);
    }
 
+   public NDArray create(float[] data) {
+      NDArray toReturn = zeros(data.length);
+      for (int i = 0; i < data.length; i++) {
+         toReturn.set(i, data[i]);
+      }
+      return toReturn;
+   }
+
+
+   public NDArray stack(Axis axis, Collection<NDArray> arrays) {
+      checkArgument(axis.isRowOrColumn(), "Axis (" + axis + ") is not supported.");
+      if (arrays.size() == 0) {
+         return empty();
+      } else if (arrays.size() == 1) {
+         return arrays.iterator().next().copy();
+      }
+      int[] shape = arrays.iterator().next().shape();
+      shape[axis.ordinal] = arrays.stream().mapToInt(n -> n.dimension(axis)).sum();
+      NDArray toReturn = zeros(shape);
+
+      int globalAxisIndex = 0;
+      for (NDArray array : arrays) {
+         for (int i = 0; i < array.dimension(axis); i++) {
+            toReturn.setVector(globalAxisIndex, axis, array.getVector(i, axis));
+            globalAxisIndex++;
+         }
+      }
+      return toReturn;
+   }
+
+   public NDArray vstack(NDArray... rows) {
+      return stack(Axis.ROW, rows);
+   }
+
+   public NDArray hstack(Collection<NDArray> columns) {
+      return stack(Axis.COLUMN, columns);
+   }
+
+   public NDArray vstack(Collection<NDArray> rows) {
+      return stack(Axis.ROW, rows);
+   }
+
+   public NDArray hstack(NDArray... columns) {
+      return stack(Axis.COLUMN, columns);
+   }
 
 }//END OF NDArrayFactory

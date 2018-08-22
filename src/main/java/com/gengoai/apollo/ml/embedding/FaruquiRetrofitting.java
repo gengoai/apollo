@@ -1,6 +1,5 @@
 package com.gengoai.apollo.ml.embedding;
 
-import com.gengoai.math.Math2;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.store.VectorStore;
 import com.gengoai.apollo.linear.store.VectorStoreBuilder;
@@ -8,6 +7,7 @@ import com.gengoai.collection.Sets;
 import com.gengoai.collection.multimap.HashSetMultimap;
 import com.gengoai.collection.multimap.Multimap;
 import com.gengoai.io.resource.Resource;
+import com.gengoai.math.Math2;
 import com.gengoai.string.StringUtils;
 import lombok.Getter;
 import lombok.NonNull;
@@ -80,7 +80,7 @@ public class FaruquiRetrofitting implements Retrofitting {
 
                //Normalize and update
                double div = 2.0 * similarTerms.size();//v.magnitude() + 1e-6;
-               newTermVector.divi(div);
+               newTermVector.divi((float) div);
                retrofittedVectors.put(retrofitTerm, newTermVector);
             }
          });

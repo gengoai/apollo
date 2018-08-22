@@ -14,8 +14,6 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static com.gengoai.Validation.checkArgument;
-import static com.gengoai.apollo.linear.v2.Axis.CHANNEL;
-import static com.gengoai.apollo.linear.v2.Axis.KERNEL;
 import static com.gengoai.apollo.linear.v2.NDArrayFactory.DENSE;
 import static com.gengoai.collection.Iterators.zipWithIndex;
 import static com.gengoai.tuple.Tuples.$;
@@ -151,7 +149,7 @@ public class DenseNDArray extends NDArray {
          case 3:
             return data[indices[2]].get(indices[0], indices[1]);
          case 4:
-            return data[index(indices[2], indices[3])].get(indices[0], indices[1]);
+            return data[toIndex(indices[2], shape[2], indices[3], shape[3])].get(indices[0], indices[1]);
       }
       throw new IllegalArgumentException("Too many indices");
    }
@@ -161,9 +159,6 @@ public class DenseNDArray extends NDArray {
       return DENSE;
    }
 
-   private int index(int i, int j) {
-      return i + (shape[2] * j);
-   }
 
    @Override
    public boolean isDense() {
@@ -294,18 +289,14 @@ public class DenseNDArray extends NDArray {
 
    @Override
    public NDArray set(int row, int column, int kernel, int channel, float value) {
-      data[toIndex(kernel, dimension(KERNEL),
-                   channel, dimension(CHANNEL))].put(row, column, value);
+      data[toSliceIndex(kernel, channel)].put(row, column, value);
       return this;
    }
 
    @Override
    public NDArray set(int row, int column, float value) {
-      if (order() <= 2) {
-         data[0].put(row, column, value);
-         return this;
-      }
-      throw new IllegalStateException("Must give a slice index or kernel and channel.");
+      data[0].put(row, column, value);
+      return this;
    }
 
    @Override
@@ -356,6 +347,9 @@ public class DenseNDArray extends NDArray {
 
    @Override
    public DoubleMatrix toDoubleMatrix() {
+      if (isScalar()) {
+         return DoubleMatrix.scalar(data[0].get(0));
+      }
       Validation.checkState(isMatrix());
       return MatrixFunctions.floatToDouble(data[0]);
    }
@@ -367,40 +361,6 @@ public class DenseNDArray extends NDArray {
       }
       Validation.checkState(isMatrix());
       return data[0];
-   }
-
-   private String toString(FloatMatrix matrix) {
-      return matrix.toString("%f", "[", "]", ", ", "],\n  [");
-   }
-
-   @Override
-   public String toString() {
-      StringBuilder builder = new StringBuilder("[[")
-                                 .append(toString(data[0]));
-      for (int i = 1; i < Math.min(data.length, 10); i++) {
-         builder.append("]").append(System.lineSeparator())
-                .append(" [")
-                .append(toString(data[i]));
-      }
-
-      if (data.length > 10) {
-         if (data.length > 11) {
-            builder.append("]")
-                   .append(System.lineSeparator())
-                   .append("  ...")
-                   .append(System.lineSeparator());
-         }
-         builder.append(" [").append(toString(data[10]));
-         for (int i = Math.max(11, data.length - 10);
-              i < Math.max(Math.min(20, data.length), data.length);
-              i++) {
-            builder.append("]").append(System.lineSeparator())
-                   .append(" [")
-                   .append(toString(data[i]));
-         }
-      }
-
-      return builder.append("]]").toString();
    }
 
 

@@ -239,8 +239,6 @@ public abstract class BaseNDArrayTest {
    public void rsub() throws Exception {
       assertEquals(factory.create(1, 4, new double[]{1.0, 0.0, -3.0, -2.0}), v1.rsub(1));
       assertEquals(factory.create(1, 4, new double[]{1.0, 0.0, -3.0, -2.0}), v1.copy().rsubi(1));
-
-      assertEquals(factory.create(1, 4, new double[]{-1.0, -1.0, 4.0, -1.0}), v2.rsub(v1));
       assertEquals(factory.create(1, 4, new double[]{-1.0, -1.0, 4.0, -1.0}), v2.copy().rsubi(v1));
       assertEquals(
          factory.create(3, 4, new double[]{0.0, -3.0, -6.0, 2.0, -1.0, -4.0, 4.0, 1.0, -2.0, 6.0, 3.0, 0.0}),

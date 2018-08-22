@@ -1,9 +1,12 @@
 package com.gengoai.apollo.linear.v2;
 
+import com.gengoai.conversion.Cast;
 import org.jblas.FloatMatrix;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 
 import static com.gengoai.Validation.checkArgument;
 
@@ -28,9 +31,30 @@ public enum NDArrayFactory {
          checkArgument(channels > 0, "Number of channels must be > 0");
          checkArgument(kernels * channels == slices.length,
                        "Number of slices is more than number of kernels * channels");
+         checkArgument(slices[0].isDense(), "Only Dense Layers supported");
          int[] shape = new int[]{slices[0].numRows(), slices[0].numCols(), kernels, channels};
          FloatMatrix[] matrices = Arrays.stream(slices).map(NDArray::toFloatMatrix).toArray(FloatMatrix[]::new);
          return new DenseNDArray(matrices, shape);
+      }
+   }, SPARSE {
+      @Override
+      public NDArray zeros(int... dimensions) {
+         return new SparseNDArray(dimensions);
+      }
+
+      @Override
+      public NDArray fromLayers(int kernels, int channels, NDArray... slices) {
+         checkArgument(kernels > 0, "Number of kernels must be > 0");
+         checkArgument(channels > 0, "Number of channels must be > 0");
+         checkArgument(kernels * channels == slices.length,
+                       "Number of slices is more than number of kernels * channels");
+         checkArgument(slices[0].isSparse(), "Only Sparse Layers supported");
+         int[] shape = new int[]{slices[0].numRows(), slices[0].numCols(), kernels, channels};
+         List<SparseNDArray> sliceList = new ArrayList<>();
+         for (NDArray slice : slices) {
+            sliceList.add(Cast.as(slice));
+         }
+         return new SparseNDArray(shape, sliceList);
       }
    };
 

@@ -1,8 +1,9 @@
 package com.gengoai.apollo.linear;
 
+import com.gengoai.Stopwatch;
 import com.gengoai.Validation;
+import com.gengoai.concurrent.Threads;
 import com.gengoai.conversion.Cast;
-import com.gengoai.json.JsonEntry;
 import com.gengoai.tuple.Tuple2;
 import lombok.NonNull;
 import org.jblas.DoubleMatrix;
@@ -11,13 +12,15 @@ import org.jblas.MatrixFunctions;
 import org.jblas.ranges.IntervalRange;
 
 import java.util.Arrays;
+import java.util.function.BiFunction;
 import java.util.function.BinaryOperator;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static com.gengoai.Validation.checkArgument;
+import static com.gengoai.Validation.checkElementIndex;
 import static com.gengoai.apollo.linear.NDArrayFactory.DENSE;
-import static com.gengoai.collection.Iterators.zipWithIndex;
+import static com.gengoai.apollo.linear.NDArrayFactory.SPARSE;
 import static com.gengoai.tuple.Tuples.$;
 
 /**
@@ -28,6 +31,16 @@ import static com.gengoai.tuple.Tuples.$;
 public class DenseNDArray extends NDArray {
    private static final long serialVersionUID = 1L;
    private FloatMatrix[] data;
+
+   public static void main(String[] args) throws Exception {
+      NDArray a = SPARSE.rand(25, 20_000);
+      NDArray b = SPARSE.rand(20_000, 150);
+      Threads.sleep(1000);
+      System.out.println("Waking up...");
+      System.out.println(Stopwatch.timeIt(5000, () -> {
+         b.getVector((int) (Math.random() % b.numCols()), Axis.COLUMN);
+      }));
+   }
 
    /**
     * Instantiates a new Dense nd array.
@@ -55,116 +68,104 @@ public class DenseNDArray extends NDArray {
    }
 
 
+   @Override
+   public float dot(NDArray other) {
+      if (other instanceof DenseNDArray) {
+         DenseNDArray dense = Cast.as(other);
+         return (float) matrixStream().mapToDouble(t -> {
+            FloatMatrix fm = dense.slices() > 1 ? dense.data[t.v1] : dense.data[0];
+            return t.v2.dot(fm);
+         }).sum();
+      }
+      return super.dot(other);
+   }
+
    /**
     * Instantiates a new Dense nd array.
     *
     * @param other the other
     */
    DenseNDArray(NDArray other) {
-      super(other.shape);
+      super(other.shape());
       this.data = new FloatMatrix[other.slices()];
-      IntStream.range(0, data.length).parallel().forEach(slice -> {
+      IntStream.range(0, data.length).forEach(slice -> {
          if (other instanceof DenseNDArray) {
-            this.data[slice] = other.tensorSlice(slice).toFloatMatrix().dup();
+            this.data[slice] = other.getSlice(slice).toFloatMatrix().dup();
          } else {
-            this.data[slice] = other.tensorSlice(slice).toFloatMatrix();
+            this.data[slice] = other.getSlice(slice).toFloatMatrix();
          }
       });
    }
 
-   /**
-    * From json nd array.
-    *
-    * @param entry the entry
-    * @return the nd array
-    */
-   public static NDArray fromJson(JsonEntry entry) {
-      int[] shape = ensureCorrectIndices(entry.getValProperty("shape").asIntegerValueArray());
-      FloatMatrix[] matrices = new FloatMatrix[shape[2] * shape[3]];
-      JsonEntry array = entry.getProperty("data");
-      zipWithIndex(array.elementIterator()).forEachRemaining(e -> {
-         matrices[e.getValue()] = new FloatMatrix(e.getKey().getAsArray(Float.class));
-         matrices[e.getValue()].reshape(shape[0], shape[1]);
-      });
-      return new DenseNDArray(matrices, shape);
-   }
-
-   /**
-    * The entry point of application.
-    *
-    * @param args the input arguments
-    * @throws Exception the exception
-    */
-   public static void main(String[] args) throws Exception {
-      NDArray x = DENSE.rand(1, 2, 1, 1);
-      NDArray y = DENSE.rand(1, 2, 1, 1);
-      System.out.printf("x=%s\n\ny=%s\n\n%s\n\n%s",
-                        x, y, DENSE.vstack(x, y), DENSE.hstack(x, y)
-                       );
-   }
-
    @Override
    public NDArray add(NDArray other) {
-      if (other.order() >= 2 || (other.order() == order() && order() < 2)) {
-         return mapDense(newZeroArray(), other, FloatMatrix::add);
+      if (other.order() <= 2) {
+         return mapFloatMatrix(newZeroArray(),
+                               other,
+                               FloatMatrix::addRowVector,
+                               FloatMatrix::addColumnVector,
+                               FloatMatrix::add);
       }
       return super.add(other);
    }
 
    @Override
    public NDArray addi(NDArray other) {
-      if (other.order() >= 2 || (other.order() == order() && order() < 2)) {
-         return mapDense(this, other, FloatMatrix::addi);
+      if (other.order() <= 2) {
+         return mapFloatMatrix(this,
+                               other,
+                               FloatMatrix::addiRowVector,
+                               FloatMatrix::addiColumnVector,
+                               FloatMatrix::addi);
       }
       return super.addi(other);
    }
 
    @Override
-   public NDArray copy() {
-      return new DenseNDArray(this).setWeight(getWeight())
-                                   .setLabel(getLabel())
-                                   .setPredicted(getPredicted());
+   public NDArray copyData() {
+      return new DenseNDArray(this);
    }
+
 
    @Override
    public NDArray div(NDArray other) {
-      if (other.order() >= 2 || (other.order() == order() && order() < 2)) {
-         return mapDense(newZeroArray(), other, FloatMatrix::div);
+      if (other.order() <= 2) {
+         return mapFloatMatrix(newZeroArray(),
+                               other,
+                               FloatMatrix::divRowVector,
+                               FloatMatrix::divColumnVector,
+                               FloatMatrix::div);
       }
       return super.div(other);
    }
 
    @Override
    public NDArray divi(NDArray other) {
-      if (other.order() >= 2 || (other.order() == order() && order() < 2)) {
-         return mapDense(this, other, FloatMatrix::divi);
+      if (other.order() <= 2) {
+         return mapFloatMatrix(this,
+                               other,
+                               FloatMatrix::diviRowVector,
+                               FloatMatrix::diviColumnVector,
+                               FloatMatrix::divi);
       }
       return super.divi(other);
    }
 
    @Override
-   public float get(int... indices) {
-      switch (indices.length) {
-         case 1:
-            if (order() <= 2) {
-               return data[0].get(indices[0]);
-            }
-            return get(fromIndex(indices[0], shape));
-         case 2:
-            return data[0].get(indices[0], indices[1]);
-         case 3:
-            return data[indices[2]].get(indices[0], indices[1]);
-         case 4:
-            return data[toIndex(indices[2], shape[2], indices[3], shape[3])].get(indices[0], indices[1]);
-      }
-      throw new IllegalArgumentException("Too many indices");
+   public float getIndexedValue(int sliceIndex, int matrixIndex) {
+      return data[sliceIndex].get(matrixIndex);
+   }
+
+   @Override
+   public NDArray setIndexedValue(int sliceIndex, int matrixIndex, double value) {
+      data[sliceIndex].put(matrixIndex, (float) value);
+      return this;
    }
 
    @Override
    public NDArrayFactory getFactory() {
       return DENSE;
    }
-
 
    @Override
    public boolean isDense() {
@@ -174,12 +175,13 @@ public class DenseNDArray extends NDArray {
    private NDArray mapDense(DenseNDArray out, NDArray other, BinaryOperator<FloatMatrix> operator) {
       if (other.order() <= 2) {
          checkArgument(order() >= other.order(), "Cannot broadcast "
-                                                    + Arrays.toString(other.shape()) + " to " + Arrays.toString(shape));
-         NDArray o = mapFloatMatrix(out, other, operator);
-         return o;
+                                                    + Arrays.toString(other.shape()) + " to " + Arrays.toString(
+            shape()));
+         return mapFloatMatrix(out, other, operator);
       } else if (other.order() > 2) {
          checkArgument(order() == other.order(), "Cannot broadcast "
-                                                    + Arrays.toString(other.shape()) + " to " + Arrays.toString(shape));
+                                                    + Arrays.toString(other.shape()) + " to " + Arrays.toString(
+            shape()));
          return mapTensorFloatMatrix(this, other, operator);
       }
       throw new IllegalArgumentException();
@@ -195,7 +197,7 @@ public class DenseNDArray extends NDArray {
       checkArgument(slices() == tensor.slices(),
                     "Number of slices does not match. (" + slices() + ") != (" + tensor.slices() + ")");
       IntStream.range(0, data.length).parallel().forEach(slice -> {
-         out.setSlice(slice, operator.apply(data[slice], tensor.tensorSlice(slice).toFloatMatrix()));
+         out.setSlice(slice, operator.apply(data[slice], tensor.getSlice(slice).toFloatMatrix()));
       });
       return out;
    }
@@ -206,59 +208,155 @@ public class DenseNDArray extends NDArray {
     * @return the stream
     */
    protected Stream<Tuple2<Integer, FloatMatrix>> matrixStream() {
-      return IntStream.range(0, data.length)
-                      .parallel().mapToObj(i -> $(i, data[i]));
+      return IntStream.range(0, data.length).mapToObj(i -> $(i, data[i])).parallel();
+   }
+
+   @Override
+   protected NDArray adjustOrPutIndexedValue(int sliceIndex, int matrixIndex, double value) {
+      setIndexedValue(sliceIndex, matrixIndex, getIndexedValue(sliceIndex, matrixIndex) + value);
+      return this;
+   }
+
+   private NDArray broadcastTensor(DenseNDArray out, NDArray other, BiFunction<FloatMatrix, FloatMatrix, FloatMatrix> operator) {
+      final FloatMatrix oSlice = other.order() <= 2 ? other.toFloatMatrix() : null;
+
+      forEachSlice((index, slice) -> {
+         FloatMatrix otherFloat = oSlice;
+         if (other.order() > 2) {
+            otherFloat = other.getSlice(index).toFloatMatrix();
+         }
+         out.setSlice(index, operator.apply(slice.toFloatMatrix(), otherFloat));
+      });
+      return out;
    }
 
    @Override
    public NDArray mmul(NDArray other) {
+      checkArgument(other.order() <= 2 || other.order() == order(),
+                    "Order mismatch, cannot mmul order (" + this.order() + ") and order (" + other.order() + ")");
       int[] outShape = new int[]{
          numRows(),
          other.numCols(),
          Math.max(numKernels(), other.numKernels()),
          Math.max(numChannels(), other.numChannels())
       };
-
       if (this.order() <= 2) {
-         if (other.order() <= 2) {
-            return new DenseNDArray(data[0].mmul(other.toFloatMatrix()));
-         }
-         FloatMatrix[] matrices = new FloatMatrix[other.slices()];
-         IntStream.range(0, other.slices())
-                  .parallel()
-                  .forEach(slice -> matrices[slice] = toFloatMatrix().mmul(other.tensorSlice(slice).toFloatMatrix()));
-         return new DenseNDArray(matrices, outShape);
+         return new DenseNDArray(data[0].mmul(other.toFloatMatrix()));
       }
-
-      if (other.order() <= 2) {
-         return mapFloatMatrix(Cast.as(getFactory().zeros(outShape)),
-                               other,
-                               FloatMatrix::mmul);
-      }
-
-      return mapTensorFloatMatrix(Cast.as(getFactory().zeros(outShape)),
-                                  other,
-                                  FloatMatrix::mmul);
+      return broadcastTensor(Cast.as(getFactory().zeros(outShape)),
+                             other,
+                             FloatMatrix::mmul);
    }
 
    @Override
    public NDArray mul(NDArray other) {
-      if (other.order() >= 2 || (other.order() == order() && order() < 2)) {
-         return mapDense(newZeroArray(), other, FloatMatrix::mul);
+      if (other.order() <= 2) {
+         return mapFloatMatrix(newZeroArray(),
+                               other,
+                               FloatMatrix::mulRowVector,
+                               FloatMatrix::mulColumnVector,
+                               FloatMatrix::mul);
       }
       return super.mul(other);
    }
 
+
+   @Override
+   public NDArray getVector(int index, Axis axis) {
+      checkArgument(axis.isRowOrColumn(), () -> axisNotSupported(axis));
+      if (dimension(axis) == 1) {
+         return copyData();
+      }
+      checkElementIndex(index, slices(), () -> sliceOutBounds(index, slices()));
+      FloatMatrix[] fm = new FloatMatrix[slices()];
+      int[] newShape = shape();
+      newShape[axis.ordinal] = 1;
+      matrixStream().forEach(t -> {
+         if (axis == Axis.ROW) {
+            fm[t.v1] = t.v2.getRow(index);
+         } else {
+            fm[t.v1] = t.v2.getColumn(index);
+         }
+      });
+      return new DenseNDArray(fm, newShape);
+   }
+
+   @Override
+   public NDArray setVector(int index, Axis axis, NDArray other) {
+      checkArgument(axis.isRowOrColumn(), "Axis (" + axis + ") is invalid.");
+      matrixStream().forEach(t -> {
+         if (axis == Axis.COLUMN) {
+            t.v2.putColumn(index, other.getSlice(t.v1).toFloatMatrix());
+         } else if (axis == Axis.ROW) {
+            t.v2.putRow(index, other.getSlice(t.v1).toFloatMatrix());
+         } else {
+            throw new IllegalArgumentException("Axis (" + axis + ") is not supported.");
+         }
+      });
+      return this;
+   }
+
+   @Override
+   public NDArray muli(double value) {
+      matrixStream().forEach(t -> t.v2.muli((float) value));
+      return this;
+   }
+
+   @Override
+   public NDArray divi(double value) {
+      matrixStream().forEach(t -> t.v2.divi((float) value));
+      return this;
+   }
+
+   @Override
+   public NDArray addi(double value) {
+      matrixStream().forEach(t -> t.v2.addi((float) value));
+      return this;
+   }
+
+   @Override
+   public NDArray subi(double value) {
+      matrixStream().forEach(t -> t.v2.subi((float) value));
+      return this;
+   }
+
+
    @Override
    public NDArray muli(NDArray other) {
-      if (other.order() >= 2 || (other.order() == order() && order() < 2)) {
-         return mapDense(this, other, FloatMatrix::muli);
+      if (other.order() <= 2) {
+         return mapFloatMatrix(this,
+                               other,
+                               FloatMatrix::muliRowVector,
+                               FloatMatrix::muliColumnVector,
+                               FloatMatrix::muli);
       }
       return super.muli(other);
    }
 
+   private NDArray mapFloatMatrix(DenseNDArray out,
+                                  NDArray other,
+                                  BiFunction<FloatMatrix, FloatMatrix, FloatMatrix> rowOp,
+                                  BiFunction<FloatMatrix, FloatMatrix, FloatMatrix> colOp,
+                                  BiFunction<FloatMatrix, FloatMatrix, FloatMatrix> matrixOp
+                                 ) {
+      final FloatMatrix fm = other.toFloatMatrix();
+      BiFunction<FloatMatrix, FloatMatrix, FloatMatrix> op;
+      if (other.order() == order()) {
+         op = matrixOp;
+      } else if (other.isRowVector()) {
+         op = rowOp;
+      } else if (other.isColumnVector()) {
+         op = colOp;
+      } else {
+         throw new IllegalArgumentException("Incompatible");
+      }
+      matrixStream().forEach(t -> out.setSlice(t.v1, op.apply(t.v2, fm)));
+      return out;
+   }
+
+
    private DenseNDArray newZeroArray() {
-      return Cast.as(getFactory().zeros(shape));
+      return Cast.as(getFactory().zeros(shape()));
    }
 
    @Override
@@ -291,28 +389,6 @@ public class DenseNDArray extends NDArray {
          return mapDense(newZeroArray(), other, FloatMatrix::rsubi);
       }
       return super.rsubi(other);
-   }
-
-   @Override
-   public NDArray set(int row, int column, int kernel, int channel, double value) {
-      data[toSliceIndex(kernel, channel)].put(row, column, (float) value);
-      return this;
-   }
-
-   @Override
-   public NDArray set(int row, int column, double value) {
-      data[0].put(row, column, (float) value);
-      return this;
-   }
-
-   @Override
-   public NDArray set(int index, double value) {
-      if (order() <= 2) {
-         data[0].put(index, (float) value);
-      } else {
-         set(fromIndex(index, shape), value);
-      }
-      return this;
    }
 
    @Override
@@ -350,29 +426,45 @@ public class DenseNDArray extends NDArray {
 
    @Override
    public NDArray sub(NDArray other) {
-      if (other.order() >= 2 || (other.order() == order() && order() < 2)) {
-         return mapDense(newZeroArray(), other, FloatMatrix::sub);
+      if (other.order() <= 2) {
+         return mapFloatMatrix(newZeroArray(),
+                               other,
+                               FloatMatrix::subRowVector,
+                               FloatMatrix::subColumnVector,
+                               FloatMatrix::sub);
       }
       return super.sub(other);
    }
 
    @Override
    public NDArray subi(NDArray other) {
-      if (other.order() >= 2 || (other.order() == order() && order() < 2)) {
-         return mapDense(this, other, FloatMatrix::subi);
+      if (other.order() <= 2) {
+         return mapFloatMatrix(this,
+                               other,
+                               FloatMatrix::subiRowVector,
+                               FloatMatrix::subiColumnVector,
+                               FloatMatrix::subi);
       }
       return super.subi(other);
    }
 
    @Override
-   public NDArray tensorSlice(int index) {
+   public NDArray getSlice(int index) {
+      if (order() <= 2) {
+         return this;
+      }
       return new DenseNDArray(data[index]);
    }
 
    @Override
-   public NDArray tensorSlice(int kernel, int channel) {
-      return new DenseNDArray(data[toSliceIndex(kernel, channel)]);
+   public NDArray T() {
+      FloatMatrix[] matrices = new FloatMatrix[slices()];
+      for (int i = 0; i < data.length; i++) {
+         matrices[i] = data[i].transpose();
+      }
+      return new DenseNDArray(matrices, new int[]{numCols(), numRows(), numKernels(), numChannels()});
    }
+
 
    @Override
    public NDArray slice(int from, int to) {

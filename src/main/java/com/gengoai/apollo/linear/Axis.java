@@ -1,5 +1,7 @@
 package com.gengoai.apollo.linear;
 
+import java.util.Arrays;
+
 /**
  * @author David B. Bracewell
  */
@@ -13,6 +15,16 @@ public enum Axis {
 
    Axis(int ordinal) {
       this.ordinal = ordinal;
+   }
+
+   public boolean is(Axis... choices) {
+      return Arrays.stream(choices).anyMatch(c -> c == this);
+   }
+
+
+   public int[] set(int[] indices, int value) {
+      indices[ordinal] = value;
+      return indices;
    }
 
    public int select(int... indices) {

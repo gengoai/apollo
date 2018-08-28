@@ -1,7 +1,6 @@
 package com.gengoai.apollo.linear;
 
 import com.gengoai.Copyable;
-import com.gengoai.Validation;
 import com.gengoai.collection.Iterators;
 import com.gengoai.collection.Streams;
 import com.gengoai.conversion.Cast;
@@ -10,13 +9,15 @@ import com.gengoai.json.JsonSerializable;
 import com.gengoai.math.Math2;
 import com.gengoai.math.Operator;
 import com.gengoai.math.Optimum;
+import com.gengoai.string.StringUtils;
 import com.gengoai.tuple.Tuple2;
-import lombok.NonNull;
 import org.apache.commons.math3.util.FastMath;
 import org.jblas.DoubleMatrix;
 import org.jblas.FloatMatrix;
 
 import java.io.Serializable;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Objects;
@@ -25,9 +26,7 @@ import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import static com.gengoai.Validation.checkArgument;
-import static com.gengoai.Validation.checkElementIndex;
-import static com.gengoai.apollo.linear.NDArrayFactory.DENSE;
+import static com.gengoai.Validation.*;
 import static com.gengoai.collection.Iterators.zipWithIndex;
 import static com.gengoai.tuple.Tuples.$;
 
@@ -38,10 +37,8 @@ import static com.gengoai.tuple.Tuples.$;
  */
 public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSerializable, Iterable<NDArray.Entry> {
    private static final long serialVersionUID = 1L;
-   /**
-    * The Shape.
-    */
-   protected final int[] shape;
+   private static NumberFormat decimalFormatter = new DecimalFormat(" 0.000000;-0");
+   private final int[] shape;
    private final long length;
    private final int matrixLength;
    private final int numSlices;
@@ -51,45 +48,6 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
    private float weight;
 
 
-   public boolean shapeEquals(NDArray other) {
-      return Arrays.equals(shape, other.shape);
-   }
-
-   @Override
-   public int hashCode() {
-      return Objects.hash(label, predicted, weight, toFloatArray());
-   }
-
-   @Override
-   public boolean equals(Object o) {
-      if (o instanceof NDArray) {
-         NDArray oa = Cast.as(o);
-         if (Objects.equals(label, oa.label) &&
-                Objects.equals(predicted, oa.predicted) &&
-                Objects.equals(weight, oa.weight) &&
-                shapeEquals(oa)) {
-            for (int i = 0; i < slices(); i++) {
-               if (!Arrays.equals(tensorSlice(i).toFloatArray(), oa.tensorSlice(i).toFloatArray())) {
-                  return false;
-               }
-            }
-            return true;
-         }
-         return false;
-      }
-      return false;
-   }
-
-
-   /**
-    * Zero nd array.
-    *
-    * @return the nd array
-    */
-   public NDArray zero() {
-      return fill(0f);
-   }
-
    /**
     * Default Constructor
     *
@@ -97,63 +55,63 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
     * @throws IllegalArgumentException if the length of the shape array is greater than four.
     */
    protected NDArray(int[] shape) {
-      checkArgument(shape.length <= 4, "Invalid shape of length (" + shape.length + ").");
+      checkArgument(shape.length <= 4, () -> invalidNumberOfIndices(shape.length));
       this.shape = new int[]{1, 1, 1, 1};
       System.arraycopy(shape, 0, this.shape, 0, shape.length);
-      this.order = Arrays.stream(shape).map(i -> i > 1 ? 1 : 0).sum();
+      if (this.shape[Axis.CHANNEL.ordinal] > 1) {
+         this.order = 4;
+      } else if (this.shape[Axis.KERNEL.ordinal] > 1) {
+         this.order = 3;
+      } else if (this.shape[Axis.ROW.ordinal] > 1 && this.shape[Axis.COLUMN.ordinal] > 1) {
+         this.order = 2;
+      } else if (this.shape[Axis.ROW.ordinal] > 1 || this.shape[Axis.COLUMN.ordinal] > 1) {
+         this.order = 1;
+      } else {
+         this.order = 0;
+      }
       this.matrixLength = this.shape[0] * this.shape[1];
       this.numSlices = this.shape[2] * this.shape[3];
       this.length = this.matrixLength * this.numSlices;
    }
 
-   /**
-    * Ensure correct indices int [ ].
-    *
-    * @param dimensions the dimensions
-    * @return the int [ ]
-    */
-   public static int[] ensureCorrectIndices(int... dimensions) {
-      int[] shape = new int[]{1, 1, 1, 1};
-      System.arraycopy(dimensions, 0, shape, 0, dimensions.length);
-      return shape;
+   private static void addLabelProperty(JsonEntry entry, String propertyName, Object label) {
+      if (label instanceof String ||
+             label instanceof Number ||
+             label instanceof Boolean) {
+         entry.addProperty(propertyName, label);
+      } else {
+         entry.addProperty(propertyName, JsonEntry.object()
+                                                  .addProperty("class", label.getClass())
+                                                  .addProperty("object", label));
+      }
    }
 
    /**
-    * From index int [ ].
+    * Axis not supported string.
     *
-    * @param index  the index
-    * @param dimAx1 the dim ax 1
-    * @param dimAx2 the dim ax 2
-    * @return the int [ ]
+    * @param axis the axis
+    * @return the string
     */
-   public static int[] fromIndex(long index, int dimAx1, int dimAx2) {
-      return new int[]{
-         (int) index % dimAx1,
-         (int) index / dimAx1
-      };
+   static String axisNotSupported(Axis axis) {
+      return "Axis (" + axis + ") is not supported.";
    }
 
-   /**
-    * From index int [ ].
-    *
-    * @param index the index
-    * @param shape the shape
-    * @return the int [ ]
-    */
-   public static int[] fromIndex(long index, int[] shape) {
-      shape = ensureCorrectIndices(shape);
-      int matrixLength = shape[0] * shape[1];
-      int sliceLength = shape[2] * shape[3];
-      int[] imd = fromIndex(index, matrixLength, sliceLength);
-      int[] matrix = fromIndex(imd[0], shape[0], shape[1]);
-      int[] slice = fromIndex(imd[1], shape[2], shape[3]);
-      return new int[]{
-         matrix[0],
-         matrix[1],
-         slice[0],
-         slice[1]
-      };
+   static String invalidNumberOfIndices(int length) {
+      return "Invalid number of indices (" + length + ")";
    }
+
+   static String orderNotSupported(int order) {
+      return "Order (" + order + ") is not supported.";
+   }
+
+   static String sliceOutBounds(int slice, int numSlices) {
+      return "Slice index (" + slice + ") out of bounds [0, " + numSlices + ")";
+   }
+
+   static String lengthMismatch(int l1, int l2) {
+      return "Length mismatch (" + l1 + ") != (" + l2 + ")";
+   }
+
 
    /**
     * Method for constructing an NDArray from JsonEntry for use in serializing / deserializing to/from json.
@@ -162,72 +120,57 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
     * @return The NDArray from the JsonEntry
     */
    public static NDArray fromJson(JsonEntry entry) {
-      if (entry.getBooleanProperty("dense")) {
-         return DenseNDArray.fromJson(entry);
+      NDArrayFactory factory = entry.getValProperty("factory").as(NDArrayFactory.class);
+      NDArray ndArray = factory.zeros(entry.getValProperty("shape").asIntegerValueArray());
+      if (entry.hasProperty("weight")) {
+         ndArray.setWeight(entry.getFloatProperty("weight"));
       }
-      NDArray ndArray = DENSE.zeros(entry.getValProperty("shape")
-                                         .asIntegerValueArray());
+      if (entry.hasProperty("label")) {
+         ndArray.setLabel(getLabelProperty(entry.getProperty("label")));
+      }
+      if (entry.hasProperty("predicted")) {
+         ndArray.setPredicted(getLabelProperty(entry.getProperty("predicted")));
+      }
       JsonEntry array = entry.getProperty("data");
-      zipWithIndex(array.elementIterator()).forEachRemaining(e -> {
-         NDArray matrix = ndArray.tensorSlice(e.getValue());
-         zipWithIndex(e.getKey().elementIterator())
-            .forEachRemaining(v -> matrix.set(v.getValue(), v.getKey().getAsFloat()));
-      });
+      if (ndArray.isDense()) {
+         zipWithIndex(array.elementIterator())
+            .forEachRemaining(e -> zipWithIndex(e.getKey().elementIterator())
+                                      .forEachRemaining(
+                                         v -> ndArray.setIndexedValue(e.getValue(),
+                                                                      v.getValue(),
+                                                                      v.getKey().getAsFloat())));
+      } else {
+         zipWithIndex(array.elementIterator())
+            .forEachRemaining(e -> e.getKey().propertyIterator()
+                                    .forEachRemaining(v -> ndArray.setIndexedValue(e.getValue(),
+                                                                                   Integer.parseInt(v.getKey()),
+                                                                                   v.getValue().getAsFloat())));
+      }
       return ndArray;
    }
 
+   private static Object getLabelProperty(JsonEntry entry) {
+      if (entry.isString()) {
+         return entry.getAsString();
+      } else if (entry.isNumber()) {
+         return entry.getAsFloat();
+      } else if (entry.isBoolean()) {
+         return entry.getAsBoolean();
+      }
+      return entry.getValProperty("object").as(entry.getValProperty("class").asClass());
+   }
+
    /**
-    * To index int.
+    * Calculates a dimension-2 major index (e.g. column major) given two axis indices and their dimensions
     *
-    * @param ax1    the ax 1
-    * @param dimAx1 the dim ax 1
-    * @param ax2    the ax 2
-    * @param dimAx2 the dim ax 2
-    * @return the int
+    * @param ax1    the index along axis 1
+    * @param dimAx1 the dimension of axis 1
+    * @param ax2    the index along axis 2
+    * @param dimAx2 the dimension of axis 2
+    * @return the encoded index
     */
    public static int toIndex(int ax1, int dimAx1, int ax2, int dimAx2) {
       return ax1 + (dimAx1 * ax2);
-   }
-
-   protected int toSliceIndex(int kernel, int channel) {
-      return toIndex(kernel, shape[Axis.KERNEL.ordinal],
-                     channel, shape[Axis.CHANNEL.ordinal]);
-   }
-
-   protected int toMatrixIndex(int row, int column) {
-      return toIndex(row, shape[Axis.ROW.ordinal],
-                     column, shape[Axis.COLUMN.ordinal]);
-   }
-
-   /**
-    * To long index long.
-    *
-    * @param indices the indices
-    * @param shape   the shape
-    * @return the long
-    */
-   public static long toLongIndex(int[] indices, int[] shape) {
-      checkArgument(indices.length <= 4,
-                    "Invalid number of indices (" + indices.length + ")");
-      switch (indices.length) {
-         case 0:
-            return 0;
-         case 1:
-            return indices[0];
-         case 2:
-            return toIndex(indices[0], shape[0], indices[1], shape[1]);
-         case 3:
-            return toIndex(toIndex(indices[0], shape[0], indices[1], shape[1]),
-                           shape[0] * shape[1],
-                           indices[2],
-                           shape[2]);
-         case 4:
-            return toIndex(toIndex(indices[0], shape[0], indices[1], shape[1]),
-                           shape[0] * shape[1],
-                           toIndex(indices[2], shape[2], indices[3], shape[3]),
-                           shape[2] * shape[3]);
-      }
-      throw new IllegalArgumentException("Invalid number of indices (" + indices.length + ")");
    }
 
    /**
@@ -238,7 +181,7 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
    public NDArray T() {
       return sliceUnaryOperation(v -> {
          NDArray out = getFactory().zeros(v.numCols(), v.numRows());
-         v.forEach(e -> out.set(e.getColumn(), e.getRow(), e.getValue()));
+         v.forEachSparse(e -> out.set(e.getColumn(), e.getRow(), e.getValue()));
          return out;
       });
    }
@@ -270,7 +213,8 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
    public NDArray add(double scalar) {
       return mapScalar(newZeroArray(),
                        scalar,
-                       Operator::add);
+                       Operator::add,
+                       false);
    }
 
    /**
@@ -283,7 +227,8 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
    public NDArray add(NDArray other) {
       return map(newZeroArray(),
                  other,
-                 Operator::add);
+                 Operator::add,
+                 false);
    }
 
    /**
@@ -298,7 +243,8 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
       return mapVector(newZeroArray(),
                        other,
                        axis,
-                       Operator::add);
+                       Operator::add,
+                       false);
    }
 
    /**
@@ -310,7 +256,8 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
    public NDArray addi(double scalar) {
       return mapScalar(this,
                        scalar,
-                       Operator::add);
+                       Operator::add,
+                       false);
    }
 
    /**
@@ -323,7 +270,8 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
    public NDArray addi(NDArray other) {
       return map(this,
                  other,
-                 Operator::add);
+                 Operator::add,
+                 false);
    }
 
    /**
@@ -338,8 +286,19 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
       return mapVector(this,
                        other,
                        axis,
-                       Operator::add);
+                       Operator::add,
+                       false);
    }
+
+   /**
+    * Adjust or put indexed value nd array.
+    *
+    * @param sliceIndex  the slice index
+    * @param matrixIndex the matrix index
+    * @param value       the value
+    * @return the nd array
+    */
+   protected abstract NDArray adjustOrPutIndexedValue(int sliceIndex, int matrixIndex, double value);
 
    /**
     * Calculates the index of the maximum along each row or column based on the given axis.
@@ -348,7 +307,8 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
     * @return array of int array of row/column indexes relating to max values per slice
     */
    public int[][] argMax(Axis axis) {
-      return argOptimum(axis, Optimum.MAXIMUM);
+      return argOptimum(axis,
+                        Optimum.MAXIMUM);
    }
 
    /**
@@ -358,11 +318,12 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
     * @return array of int array of row/column indexes relating to minimum values per slice
     */
    public int[][] argMin(Axis axis) {
-      return argOptimum(axis, Optimum.MINIMUM);
+      return argOptimum(axis,
+                        Optimum.MINIMUM);
    }
 
    private int[][] argOptimum(Axis axis, Optimum optimum) {
-      checkArgument(axis.isRowOrColumn(), "Axis (" + axis + ") not supported");
+      checkArgument(axis.isRowOrColumn(), () -> axisNotSupported(axis));
       int[][] out = new int[numSlices][dimension(axis)];
       double[][] optimums = new double[numSlices][dimension(axis)];
       for (int slice = 0; slice < numSlices; slice++) {
@@ -378,21 +339,33 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
    }
 
    /**
-    * Number of Channels in the NDArray
+    * Column iterator iterator.
     *
-    * @return the number of channels
+    * @param column the column
+    * @return the iterator
     */
-   public int numChannels() {
-      return dimension(Axis.CHANNEL);
-   }
+   public Iterator<Entry> columnIterator(final int column) {
+      return new Iterator<Entry>() {
+         int slice = 0;
+         int row = 0;
 
-   /**
-    * Number of columns in the NDArray
-    *
-    * @return the number of columns
-    */
-   public int numCols() {
-      return dimension(Axis.COLUMN);
+         @Override
+         public boolean hasNext() {
+            return row < numRows() && slice < numSlices;
+         }
+
+         @Override
+         public Entry next() {
+            checkElementIndex(row, numRows());
+            Entry e = new Entry(slice, toMatrixIndex(row, column));
+            row++;
+            if (row > numRows()) {
+               row = 0;
+               slice++;
+            }
+            return e;
+         }
+      };
    }
 
    /**
@@ -403,6 +376,20 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
    public NDArray compress() {
       return this;
    }
+
+   @Override
+   public NDArray copy() {
+      return copyData().setLabel(label)
+                       .setWeight(weight)
+                       .setPredicted(predicted);
+   }
+
+   /**
+    * Copy data nd array.
+    *
+    * @return the nd array
+    */
+   protected abstract NDArray copyData();
 
    /**
     * Calculates the variance-covariance matrix of this NDArray. Each slice is operated on independently.
@@ -426,7 +413,17 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
     * @return this NDArray
     */
    public NDArray decrement(int[] indices, double value) {
-      return set(indices, get(indices) - value);
+      checkArgument(indices.length > 0 && indices.length <= 4, () -> invalidNumberOfIndices(shape.length));
+      switch (indices.length) {
+         case 1:
+            return decrement(indices[0], value);
+         case 2:
+            return decrement(indices[0], indices[1], value);
+         case 3:
+            return decrement(indices[0], indices[1], indices[2], value);
+         default:
+            return decrement(indices[0], indices[1], indices[2], indices[3], value);
+      }
    }
 
    /**
@@ -440,7 +437,7 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
     * @return This NDArray
     */
    public NDArray decrement(int row, int column, int kernel, int channel, double value) {
-      return set(row, column, kernel, channel, get(row, column, kernel, channel) - value);
+      return adjustOrPutIndexedValue(toSliceIndex(kernel, channel), toMatrixIndex(row, column), -value);
    }
 
    /**
@@ -453,7 +450,7 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
     * @return This NDArray
     */
    public NDArray decrement(int row, int column, int kernel, double value) {
-      return set(row, column, kernel, get(row, column, kernel) - value);
+      return adjustOrPutIndexedValue(kernel, toMatrixIndex(row, column), -value);
    }
 
    /**
@@ -465,7 +462,7 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
     * @return This NDArray
     */
    public NDArray decrement(int row, int column, double value) {
-      return set(row, column, get(row, column) - value);
+      return adjustOrPutIndexedValue(0, toMatrixIndex(row, column), -value);
    }
 
    /**
@@ -476,7 +473,7 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
     * @return This NDArray
     */
    public NDArray decrement(int row, double value) {
-      return set(row, get(row) - value);
+      return adjustOrPutIndexedValue(0, row, -value);
    }
 
    /**
@@ -528,9 +525,10 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
     * @return the new NDArray with the result of this / other
     */
    public NDArray div(NDArray other) {
-      return mapSparse(newZeroArray(),
-                       other,
-                       Operator::divide);
+      return map(newZeroArray(),
+                 other,
+                 Operator::divide,
+                 true);
    }
 
    /**
@@ -540,9 +538,10 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
     * @return the new NDArray with the scalar value divided
     */
    public NDArray div(double value) {
-      return mapSparseScalar(newZeroArray(),
-                             value,
-                             Operator::divide);
+      return mapScalar(newZeroArray(),
+                       value,
+                       Operator::divide,
+                       true);
    }
 
    /**
@@ -554,10 +553,11 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
     * @return the new NDArray with the result of this / other
     */
    public NDArray div(NDArray other, Axis axis) {
-      return mapSparseVector(newZeroArray(),
-                             other,
-                             axis,
-                             Operator::divide);
+      return mapVector(newZeroArray(),
+                       other,
+                       axis,
+                       Operator::divide,
+                       true);
    }
 
    /**
@@ -567,9 +567,10 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
     * @return this NDArray with the scalar value divided
     */
    public NDArray divi(double value) {
-      return mapSparseScalar(this,
-                             value,
-                             Operator::divide);
+      return mapScalar(this,
+                       value,
+                       Operator::divide,
+                       true);
    }
 
    /**
@@ -581,9 +582,10 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
     * @throws IllegalArgumentException If the shape of this NDArray does not match that of the other NDArray
     */
    public NDArray divi(NDArray other) {
-      return mapSparse(this,
-                       other,
-                       Operator::divide);
+      return map(this,
+                 other,
+                 Operator::divide,
+                 true);
    }
 
    /**
@@ -595,10 +597,11 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
     * @return this NDArray with the result of this / other
     */
    public NDArray divi(NDArray other, Axis axis) {
-      return mapSparseVector(this,
-                             other,
-                             axis,
-                             Operator::divide);
+      return mapVector(this,
+                       other,
+                       axis,
+                       Operator::divide,
+                       true);
    }
 
    /**
@@ -610,19 +613,15 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
     * @return The NDArray containing the dot product
     */
    public NDArray dot(NDArray other, Axis axis) {
-      checkArgument(axis.isRowOrColumn(), "Axis (" + axis + ") is not supported.");
-      checkArgument(dimension(axis.T()) == other.dimension(axis.T()),
-                    "Dimension (" + axis.T() + ") mismatch (" + dimension(axis.T()) + ")  != (" + other.dimension(
-                       axis.T()) + ")");
-      int[] newShape = shape();
-      newShape[axis.T().ordinal] = 1;
-      NDArray out = getFactory().zeros(newShape);
-      sliceStream().forEach(t -> {
-         NDArray otherSlice = other.tensorSlice(t.v1);
-         NDArray outSlice = out.tensorSlice(t.v1);
-         t.v2.forEachSparse(e -> outSlice.increment(e.getIndex(axis),
-                                                    otherSlice.get(e.row, e.column) * e.getValue()
-                                                   ));
+      checkArgument(axis.isRowOrColumn(), () -> axisNotSupported(axis));
+      checkArgument(dimension(axis.T()) == other.dimension(axis.T()), () -> lengthMismatch(dimension(axis.T()),
+                                                                                           other.dimension(axis.T())));
+      NDArray out = getFactory().zeros(axis.T().set(shape(), 1));
+      forEachSlice((si, slice) -> {
+         NDArray os = other.getSlice(si);
+         slice.forEachSparse(e -> out.adjustOrPutIndexedValue(si,
+                                                              e.matrixIndex,
+                                                              os.get(e.matrixIndex) * e.getValue()));
       });
       return out;
    }
@@ -635,12 +634,38 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
     * @return The sum of the dot products across the slices.
     */
    public float dot(NDArray other) {
-      checkArgument(matrixLength == other.matrixLength,
-                    "Length mismatch (" + matrixLength + ")  != (" + other.matrixLength);
+      checkArgument(matrixLength == other.matrixLength, () -> lengthMismatch(matrixLength, other.matrixLength));
       return (float) sliceStream().mapToDouble(t -> {
-         NDArray os = other.tensorSlice(t.v1);
-         return Streams.asStream(t.v2.sparseIterator()).mapToDouble(e -> e.getValue() * os.get(e.matrixIndex())).sum();
+         NDArray os = other.getSlice(t.v1);
+         double dot = 0d;
+         NDArray small = t.v2.size() > os.size() ? os : t.v2;
+         NDArray big = t.v2.size() > os.size() ? t.v2 : os;
+         for (Iterator<Entry> itr = small.sparseIterator(); itr.hasNext(); ) {
+            Entry e = itr.next();
+            dot += e.getValue() * big.getIndexedValue(0, e.matrixIndex);
+         }
+         return dot;
       }).sum();
+   }
+
+   @Override
+   public boolean equals(Object o) {
+      if (o instanceof NDArray) {
+         NDArray oa = Cast.as(o);
+         if (Objects.equals(label, oa.label) &&
+                Objects.equals(predicted, oa.predicted) &&
+                Objects.equals(weight, oa.weight) &&
+                shapeEquals(oa)) {
+            for (int i = 0; i < slices(); i++) {
+               if (!Arrays.equals(getSlice(i).toFloatArray(), oa.getSlice(i).toFloatArray())) {
+                  return false;
+               }
+            }
+            return true;
+         }
+         return false;
+      }
+      return false;
    }
 
    /**
@@ -668,7 +693,7 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
     * @return This NDArray
     */
    public NDArray fill(double value) {
-      forEachSlice(ndarray -> ndarray.forEach(e -> e.setValue(value)));
+      iterator().forEachRemaining(e -> e.setValue(value));
       return this;
    }
 
@@ -679,7 +704,7 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
     * @return This NDArray
     */
    public NDArray fill(DoubleSupplier supplier) {
-      forEachSlice(ndarray -> ndarray.forEach(e -> e.setValue((float) supplier.getAsDouble())));
+      iterator().forEachRemaining(e -> e.setValue(supplier.getAsDouble()));
       return this;
    }
 
@@ -688,8 +713,10 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
     *
     * @param sliceConsumer the slice consumer
     */
-   public void forEachSlice(Consumer<NDArray> sliceConsumer) {
-      sliceStream().forEach(t -> sliceConsumer.accept(t.v2));
+   public void forEachSlice(BiConsumer<Integer, NDArray> sliceConsumer) {
+      for (int i = 0; i < slices(); i++) {
+         sliceConsumer.accept(i, getSlice(i));
+      }
    }
 
    /**
@@ -707,7 +734,19 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
     * @param indices the indices of the value to get
     * @return the value at the given indices
     */
-   public abstract float get(int... indices);
+   public float get(int... indices) {
+      checkArgument(indices.length > 0 && indices.length <= 4, () -> invalidNumberOfIndices(indices.length));
+      switch (indices.length) {
+         case 1:
+            return getIndexedValue(0, indices[0]);
+         case 2:
+            return getIndexedValue(0, toMatrixIndex(indices[0], indices[1]));
+         case 3:
+            return getIndexedValue(indices[2], toMatrixIndex(indices[0], indices[1]));
+         default:
+            return getIndexedValue(toSliceIndex(indices[2], indices[3]), toMatrixIndex(indices[0], indices[1]));
+      }
+   }
 
    /**
     * Gets the factory used to create NDArrays of this type
@@ -715,6 +754,15 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
     * @return the NDArrayFactory
     */
    public abstract NDArrayFactory getFactory();
+
+   /**
+    * Gets indexed value.
+    *
+    * @param sliceIndex  the slice index
+    * @param matrixIndex the matrix index
+    * @return the indexed value
+    */
+   public abstract float getIndexedValue(int sliceIndex, int matrixIndex);
 
    /**
     * Gets label.
@@ -735,22 +783,6 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
    public NDArray setLabel(Object label) {
       this.label = label;
       return this;
-   }
-
-   /**
-    * Gets label as double.
-    *
-    * @return the label as double
-    */
-   public float getLabelAsFloat() {
-      if (label == null) {
-         return Float.NaN;
-      }
-      return Cast.<Number>as(label).floatValue();
-   }
-
-   public long size() {
-      return length;
    }
 
    /**
@@ -794,6 +826,27 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
       }
       return Cast.as(label);
    }
+
+   /**
+    * Gets the slice at the given kernel and channel  or this NDArray if it has order <= 2.. All changes made to the
+    * slice will be reflected in the NDArray.
+    *
+    * @param kernel  the kernel
+    * @param channel the channel
+    * @return The slice NDArray
+    */
+   public NDArray getSlice(int kernel, int channel) {
+      return getSlice(toSliceIndex(kernel, channel));
+   }
+
+   /**
+    * Gets the slice at the given index or this NDArray if it has order <= 2. All changes made to the slice will be
+    * reflected in the NDArray.
+    *
+    * @param index the index
+    * @return The slice NDArray
+    */
+   public abstract NDArray getSlice(int index);
 
    /**
     * Gets predicted.
@@ -859,28 +912,27 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
    }
 
    /**
-    * Gets the vector(s) at the given index along the given axis. This works across slices.
+    * Gets the vector(s) at the given index along the given axis. This works across slices. In addition this will
+    * broadcast row and column vectors, e.g. if the dimension along the given axis is 1 and a copy of the vector will
+    * always be returned.
     *
     * @param index the index of the vector to retrieve
     * @param axis  the axis of the vector
     * @return the NDArray of vectors
     */
    public NDArray getVector(int index, Axis axis) {
-      checkArgument(axis.isRowOrColumn(), "Axis (" + axis + ") is invalid.");
-      int[] newShape = shape();
-      newShape[axis.ordinal] = 1;
-      NDArray out = getFactory().zeros(newShape);
-      sliceStream().forEach(t -> {
-         NDArray slice = out.tensorSlice(t.v1);
-         for (int i = 0; i < dimension(axis.T()); i++) {
-            if (axis == Axis.ROW) {
-               slice.set(i, t.v2.get(index, i));
-            } else {
-               slice.set(i, t.v2.get(i, index));
-            }
+      checkArgument(axis.isRowOrColumn(), () -> axisNotSupported(axis));
+      if (dimension(axis) == 1) {
+         return copyData();
+      }
+      return sliceUnaryOperation(slice -> {
+         NDArray out = getFactory().zeros(axis.set(new int[]{slice.numRows(), slice.numCols()}, 1));
+         for (Iterator<Entry> itr = sparseVectorIterator(index, axis); itr.hasNext(); ) {
+            Entry e = itr.next();
+            out.set(axis.T().select(e.getRow(), e.getColumn()), e.getValue());
          }
+         return out;
       });
-      return out;
    }
 
    /**
@@ -911,7 +963,17 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
     * @return This NDArray
     */
    public NDArray increment(int[] indices, double value) {
-      return set(indices, get(indices) + value);
+      checkArgument(indices.length > 0 && indices.length <= 4, () -> invalidNumberOfIndices(indices.length));
+      switch (indices.length) {
+         case 1:
+            return increment(indices[0], value);
+         case 2:
+            return increment(indices[0], indices[1], value);
+         case 3:
+            return increment(indices[0], indices[1], indices[2], value);
+         default:
+            return increment(indices[0], indices[1], indices[2], indices[3], value);
+      }
    }
 
    /**
@@ -925,7 +987,7 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
     * @return This NDArray
     */
    public NDArray increment(int row, int column, int kernel, int channel, double value) {
-      return set(row, column, kernel, channel, get(row, column, kernel, channel) + value);
+      return adjustOrPutIndexedValue(toSliceIndex(kernel, channel), toMatrixIndex(row, column), value);
    }
 
    /**
@@ -938,7 +1000,7 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
     * @return This NDArray
     */
    public NDArray increment(int row, int column, int kernel, double value) {
-      return set(row, column, kernel, get(row, column, kernel) + value);
+      return adjustOrPutIndexedValue(kernel, toMatrixIndex(row, column), value);
    }
 
    /**
@@ -950,7 +1012,7 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
     * @return This NDArray
     */
    public NDArray increment(int row, int column, double value) {
-      return set(row, column, get(row, column) + value);
+      return adjustOrPutIndexedValue(0, toMatrixIndex(row, column), value);
    }
 
    /**
@@ -961,7 +1023,7 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
     * @return This NDArray
     */
    public NDArray increment(int row, double value) {
-      return set(row, get(row) + value);
+      return adjustOrPutIndexedValue(0, row, value);
    }
 
    /**
@@ -1039,16 +1101,11 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
 
    @Override
    public Iterator<Entry> iterator() {
-      return Iterators.transform(new IndicesIterator(), Entry::new);
+      return new IndexIterator();
    }
 
-   /**
-    * Number of kernels in the NDArray
-    *
-    * @return the number of kernels
-    */
-   public int numKernels() {
-      return dimension(Axis.KERNEL);
+   private Iterator<Entry> iterator(boolean sparse) {
+      return sparse ? sparseIterator() : iterator();
    }
 
    /**
@@ -1085,86 +1142,36 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
     * @return The new  NDArray with the operator applied to this NDArray's values
     */
    public NDArray map(DoubleUnaryOperator operator) {
-      return mapOperator(newZeroArray(), operator);
+      return mapOperator(newZeroArray(),
+                         operator,
+                         false);
    }
 
-   /**
-    * Performs the given operator on each sparse entry in the NDArray storing the result in a new NDArray
-    *
-    * @param operator the operation to perform
-    * @return The new  NDArray with the operator applied to this NDArray's values
-    */
-   public NDArray mapSparse(DoubleUnaryOperator operator) {
-      return mapSparseOperator(newZeroArray(), operator);
-   }
-
-   /**
-    * Performs the given operator on each sparse entry in the NDArray storing the result in a new NDArray
-    *
-    * @param operator the operation to perform
-    * @return The new  NDArray with the operator applied to this NDArray's values
-    */
-   public NDArray mapSparse(NDArray other, DoubleBinaryOperator operator) {
-      return mapSparse(newZeroArray(), other, operator);
-   }
-
-   /**
-    * Applies an operation to the non-zero elements in this NDArray and given other NDArray using the given operator
-    * in-place.
-    *
-    * @param operator the operator to apply
-    * @return this NDArray
-    */
-   public NDArray mapiSparse(DoubleUnaryOperator operator) {
-      return mapSparseOperator(this, operator);
-   }
-
-
-   /**
-    * Performs the given operator on each sparse entry in the NDArray storing the result in a new NDArray
-    *
-    * @param operator the operation to perform
-    * @return The new  NDArray with the operator applied to this NDArray's values
-    */
-   public NDArray mapiSparse(NDArray other, DoubleBinaryOperator operator) {
-      return mapSparse(newZeroArray(), other, operator);
-   }
-
-   private NDArray mapSparseOperator(NDArray out, DoubleUnaryOperator operator) {
-      forEachSparse(e -> out.set(e.getIndicies(), (float) operator.applyAsDouble(e.getValue())));
-      return out;
-   }
-
-   private NDArray map(NDArray out, NDArray other, DoubleBinaryOperator operator) {
-      if (other.isScalar()) {
-         return mapScalar(out, other.get(0), operator);
-      }
-      if (other.isVector() && !isVector()) {
-         return mapVector(out,
-                          other,
-                          other.isRowVector() ? Axis.COLUMN : Axis.ROW,
-                          operator);
-      }
-      if (other.isMatrix()) {
-         return mapMatrix(out, other, operator);
-      }
-      return mapTensor(out, other, operator);
-   }
-
-   private NDArray mapSparse(NDArray out, NDArray other, DoubleBinaryOperator operator) {
-      if (other.isScalar()) {
-         return mapSparseScalar(out, other.get(0), operator);
-      }
-      if (other.isVector() && !isVector()) {
-         return mapSparseVector(out,
+   private NDArray map(NDArray out, NDArray other, DoubleBinaryOperator operator, boolean sparse) {
+      switch (other.order) {
+         case 0:
+            return mapScalar(out,
+                             other.get(0),
+                             operator,
+                             sparse);
+         case 1:
+            if (order == 1) {
+               return mapTensor(out,
                                 other,
-                                other.isRowVector() ? Axis.COLUMN : Axis.ROW,
-                                operator);
+                                operator,
+                                sparse);
+            }
+            return mapVector(out,
+                             other,
+                             other.isRowVector() ? Axis.COLUMN : Axis.ROW,
+                             operator,
+                             sparse);
+         default:
+            return mapTensor(out,
+                             other,
+                             operator,
+                             sparse);
       }
-      if (other.isMatrix()) {
-         return mapSparseMatrix(out, other, operator);
-      }
-      return mapSparseTensor(out, other, operator);
    }
 
    /**
@@ -1176,7 +1183,10 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
     * @return the new NDArray
     */
    public NDArray map(NDArray other, DoubleBinaryOperator operator) {
-      return map(newZeroArray(), other, operator);
+      return map(newZeroArray(),
+                 other,
+                 operator,
+                 false);
    }
 
    /**
@@ -1192,97 +1202,82 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
       return mapVector(newZeroArray(),
                        other,
                        axis,
-                       operator);
+                       operator,
+                       false);
    }
 
-   private NDArray mapMatrix(NDArray out, NDArray matrix, DoubleBinaryOperator operator) {
-      sliceStream().forEach(t -> {
-         NDArray s2 = out.tensorSlice(t.v1);
-         t.v2.forEach(
-            e -> s2.set(e.matrixIndex(), (float) operator.applyAsDouble(e.getValue(), matrix.get(e.matrixIndex()))));
+   private NDArray mapOperator(NDArray out, DoubleUnaryOperator operator, boolean sparse) {
+      forEachSlice((index, slice) -> {
+         for (Iterator<Entry> itr = iterator(sparse); itr.hasNext(); ) {
+            Entry e = itr.next();
+            out.setIndexedValue(index,
+                                e.matrixIndex,
+                                operator.applyAsDouble(e.getValue()));
+         }
       });
       return out;
    }
 
-   private NDArray mapSparseMatrix(NDArray out, NDArray matrix, DoubleBinaryOperator operator) {
-      sliceStream().forEach(t -> {
-         NDArray s2 = out.tensorSlice(t.v1);
-         t.v2.forEachSparse(
-            e -> s2.set(e.matrixIndex(), (float) operator.applyAsDouble(e.getValue(), matrix.get(e.matrixIndex()))));
+   private NDArray mapScalar(NDArray out, double scalar, DoubleBinaryOperator operator, boolean sparse) {
+      forEachSlice((index, slice) -> {
+         for (Iterator<Entry> itr = iterator(sparse); itr.hasNext(); ) {
+            Entry e = itr.next();
+            out.setIndexedValue(index,
+                                e.matrixIndex,
+                                operator.applyAsDouble(e.getValue(), scalar));
+         }
       });
       return out;
    }
 
-   private NDArray mapOperator(NDArray out, DoubleUnaryOperator operator) {
-      sliceStream().forEach(t -> {
-         NDArray slice = out.tensorSlice(t.v1);
-         t.v2.forEach(e -> slice.set(e.matrixIndex(), (float) operator.applyAsDouble(e.getValue())));
+   /**
+    * Performs the given operator on each sparse entry in the NDArray storing the result in a new NDArray
+    *
+    * @param operator the operation to perform
+    * @return The new  NDArray with the operator applied to this NDArray's values
+    */
+   public NDArray mapSparse(DoubleUnaryOperator operator) {
+      return mapOperator(newZeroArray(),
+                         operator,
+                         true);
+   }
+
+   /**
+    * Performs the given operator on each sparse entry in the NDArray storing the result in a new NDArray
+    *
+    * @param other    the other
+    * @param operator the operation to perform
+    * @return The new  NDArray with the operator applied to this NDArray's values
+    */
+   public NDArray mapSparse(NDArray other, DoubleBinaryOperator operator) {
+      return map(newZeroArray(),
+                 other,
+                 operator,
+                 true);
+   }
+
+   private NDArray mapTensor(NDArray out, NDArray other, DoubleBinaryOperator operator, boolean sparse) {
+      forEachSlice((index, slice) -> {
+         NDArray oSlice = other.getSlice(index);
+         for (Iterator<Entry> itr = iterator(sparse); itr.hasNext(); ) {
+            Entry e = itr.next();
+            out.setIndexedValue(e.sliceIndex,
+                                e.matrixIndex,
+                                operator.applyAsDouble(e.getValue(), oSlice.get(e.matrixIndex)));
+         }
       });
       return out;
    }
 
-   private NDArray mapScalar(NDArray out, double scalar, DoubleBinaryOperator operator) {
-      sliceStream().forEach(t -> {
-         NDArray s2 = out.tensorSlice(t.v1);
-         t.v2.forEach(e -> s2.set(e.matrixIndex(), (float) operator.applyAsDouble(e.getValue(), scalar)));
-      });
-      return out;
-   }
-
-   private NDArray mapSparseScalar(NDArray out, double scalar, DoubleBinaryOperator operator) {
-      sliceStream().forEach(t -> {
-         NDArray s2 = out.tensorSlice(t.v1);
-         t.v2.forEachSparse(e -> s2.set(e.matrixIndex(), (float) operator.applyAsDouble(e.getValue(), scalar)));
-      });
-      return out;
-   }
-
-   private NDArray mapTensor(NDArray out, NDArray tensor, DoubleBinaryOperator operator) {
-      checkArgument(tensor.sliceLength() == sliceLength(),
-                    "Length of each slice is not the same. (" + sliceLength() + ") != (" + tensor.sliceLength() + ")");
-      checkArgument(slices() == tensor.slices(),
-                    "Number of slices does not match. (" + slices() + ") != (" + tensor.slices() + ")");
-      sliceStream().forEach(t -> {
-         NDArray s2 = tensor.tensorSlice(t.v1);
-         NDArray sOut = out.tensorSlice(t.v1);
-         t.v2.forEach(
-            e -> sOut.set(e.matrixIndex(), (float) operator.applyAsDouble(e.getValue(), s2.get(e.matrixIndex()))));
-      });
-      return out;
-   }
-
-   private NDArray mapSparseTensor(NDArray out, NDArray tensor, DoubleBinaryOperator operator) {
-      checkArgument(tensor.sliceLength() == sliceLength(),
-                    "Length of each slice is not the same. (" + sliceLength() + ") != (" + tensor.sliceLength() + ")");
-      checkArgument(slices() == tensor.slices(),
-                    "Number of slices does not match. (" + slices() + ") != (" + tensor.slices() + ")");
-      sliceStream().forEach(t -> {
-         NDArray s2 = tensor.tensorSlice(t.v1);
-         NDArray sOut = out.tensorSlice(t.v1);
-         t.v2.forEachSparse(
-            e -> sOut.set(e.matrixIndex(), (float) operator.applyAsDouble(e.getValue(), s2.get(e.matrixIndex()))));
-      });
-      return out;
-   }
-
-   private NDArray mapVector(NDArray out, NDArray rowVector,
-                             Axis axis, DoubleBinaryOperator operator
-                            ) {
-      sliceStream().forEach(t -> {
-         NDArray s2 = out.tensorSlice(t.v1);
-         t.v2.forEach(e -> s2.set(e.matrixIndex(), (float) operator.applyAsDouble(e.getValue(), rowVector.get(
-            axis.T().select(e.row, e.column)))));
-      });
-      return out;
-   }
-
-   private NDArray mapSparseVector(NDArray out, NDArray rowVector,
-                                   Axis axis, DoubleBinaryOperator operator
-                                  ) {
-      sliceStream().forEach(t -> {
-         NDArray s2 = out.tensorSlice(t.v1);
-         t.v2.forEachSparse(e -> s2.set(e.matrixIndex(), (float) operator.applyAsDouble(e.getValue(), rowVector.get(
-            axis.T().select(e.row, e.column)))));
+   private NDArray mapVector(NDArray out, NDArray rowVector, Axis axis, DoubleBinaryOperator operator, boolean sparse) {
+      forEachSlice((index, slice) -> {
+         for (Iterator<Entry> itr = iterator(sparse); itr.hasNext(); ) {
+            Entry e = itr.next();
+            out.setIndexedValue(index,
+                                e.matrixIndex,
+                                operator.applyAsDouble(e.getValue(),
+                                                       rowVector.get(axis.T().select(e.getRow(), e.getColumn()))));
+         }
       });
       return out;
    }
@@ -1296,7 +1291,10 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
     * @return this NDArray
     */
    public NDArray mapi(NDArray other, DoubleBinaryOperator operator) {
-      return map(this, other, operator);
+      return map(this,
+                 other,
+                 operator,
+                 false);
    }
 
    /**
@@ -1306,7 +1304,9 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
     * @return this NDArray
     */
    public NDArray mapi(DoubleUnaryOperator operator) {
-      return mapOperator(this, operator);
+      return mapOperator(this,
+                         operator,
+                         false);
    }
 
    /**
@@ -1322,7 +1322,55 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
       return mapVector(this,
                        other,
                        axis,
-                       operator);
+                       operator,
+                       false);
+   }
+
+   /**
+    * Applies an operation to the non-zero elements in this NDArray and given other NDArray using the given operator
+    * in-place.
+    *
+    * @param operator the operator to apply
+    * @return this NDArray
+    */
+   public NDArray mapiSparse(DoubleUnaryOperator operator) {
+      return mapOperator(this,
+                         operator,
+                         true);
+   }
+
+   /**
+    * Performs the given operator on each sparse entry in the NDArray storing the result in a new NDArray
+    *
+    * @param other    the other
+    * @param operator the operation to perform
+    * @return The new  NDArray with the operator applied to this NDArray's values
+    */
+   public NDArray mapiSparse(NDArray other, DoubleBinaryOperator operator) {
+      return map(this,
+                 other,
+                 operator,
+                 true);
+   }
+
+   private String matrixToString(int maxR, int maxC) {
+      StringBuilder builder = new StringBuilder("[");
+      builder.append(rowToString(0, maxC));
+      int half = maxR / 2;
+      boolean firstHalf = true;
+      for (int i = 1; i < numRows(); i++) {
+         builder.append(",");
+         if (i > half && firstHalf) {
+            firstHalf = false;
+            int ni = Math.max(numRows() - half, i + 1);
+            if (ni > i + 1) {
+               builder.append(System.lineSeparator()).append("     ...").append(System.lineSeparator());
+            }
+            i = ni;
+         }
+         builder.append(System.lineSeparator()).append("  ").append(rowToString(i, maxC));
+      }
+      return builder.append("]").toString();
    }
 
    /**
@@ -1382,84 +1430,13 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
       return optimum(axis, Optimum.MINIMUM);
    }
 
-   public Iterator<Entry> sparseRowIterator(final int row) {
-      checkArgument(order <= 2, "Order (" + order + ") is not supported.");
-      return Iterators.filter(rowIterator(row), e -> e.getValue() != 0);
-   }
-
-   public Iterator<Entry> rowIterator(final int row) {
-      checkArgument(order <= 2, "Order (" + order + ") is not supported.");
-      return new Iterator<Entry>() {
-         int column = 0;
-
-         @Override
-         public boolean hasNext() {
-            return column < numCols();
-         }
-
-         @Override
-         public Entry next() {
-            checkElementIndex(column, numCols());
-            Entry e = new Entry(row, column, 0, 0);
-            column++;
-            return e;
-         }
-      };
-   }
-
-   public Iterator<Entry> sparseColumnIterator(final int column) {
-      checkArgument(order <= 2, "Order (" + order + ") is not supported.");
-      return Iterators.filter(columnIterator(column), e -> e.getValue() != 0);
-   }
-
-   public Iterator<Entry> columnIterator(final int column) {
-      checkArgument(order <= 2, "Order (" + order + ") is not supported.");
-      return new Iterator<Entry>() {
-         int row = 0;
-
-         @Override
-         public boolean hasNext() {
-            return row < numRows();
-         }
-
-         @Override
-         public Entry next() {
-            checkElementIndex(row, numRows());
-            Entry e = new Entry(row, column, 0, 0);
-            row++;
-            return e;
-         }
-      };
-   }
-
    /**
     * Calculates the product of this and the given NDArray (i.e. matrix multiplication). Works on a per slice basis
     *
     * @param other The other NDArray to multiple
     * @return a new NDArray that is the result of this X other
     */
-   public NDArray mmul(NDArray other) {
-      if (order <= 2 && other.order <= 2) {
-         NDArray toReturn = getFactory().zeros(numRows(), other.numCols());
-         return mmul(toReturn, other);
-      }
-      NDArray out = getFactory().zeros(numRows(),
-                                       other.numCols(),
-                                       Math.max(numKernels(), other.numKernels()),
-                                       Math.max(numChannels(), other.numChannels()));
-      if (other.order <= 2) {
-         sliceStream().forEach(t -> mmul(out.tensorSlice(t.v1), other));
-      } else {
-         sliceStream().forEach(t -> mmul(out.tensorSlice(t.v1), other.tensorSlice(t.v1)));
-      }
-      return out;
-   }
-
-   private NDArray mmul(NDArray out, NDArray other) {
-      forEach(e -> other.sparseRowIterator(e.column)
-                        .forEachRemaining(e2 -> out.increment(e.row, e2.column, e2.getValue() * e.getValue())));
-      return out;
-   }
+   public abstract NDArray mmul(NDArray other);
 
    /**
     * Multiplies the values in the other NDArray to this one element by element. Basic broadcasting will occur for
@@ -1469,7 +1446,10 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
     * @return the new NDArray with the result of this * other
     */
    public NDArray mul(NDArray other) {
-      return mapSparse(newZeroArray(), other, Operator::multiply);
+      return map(newZeroArray(),
+                 other,
+                 Operator::multiply,
+                 true);
    }
 
    /**
@@ -1479,7 +1459,10 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
     * @return the new NDArray with the scalar value multiplied
     */
    public NDArray mul(double value) {
-      return mapSparseScalar(newZeroArray(), value, Operator::multiply);
+      return mapScalar(newZeroArray(),
+                       value,
+                       Operator::multiply,
+                       true);
    }
 
    /**
@@ -1491,10 +1474,10 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
     * @return the new NDArray with the result of this * other
     */
    public NDArray mul(NDArray other, Axis axis) {
-      return mapSparseVector(newZeroArray(),
-                             other,
-                             axis,
-                             Operator::multiply);
+      return mapVector(newZeroArray(),
+                       other,
+                       axis,
+                       Operator::multiply, true);
    }
 
    /**
@@ -1504,7 +1487,10 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
     * @return this NDArray with the scalar value multiplied
     */
    public NDArray muli(double value) {
-      return mapSparseScalar(this, value, Operator::multiply);
+      return mapScalar(this,
+                       value,
+                       Operator::multiply,
+                       true);
    }
 
    /**
@@ -1515,9 +1501,10 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
     * @return this NDArray with the result of this * other
     */
    public NDArray muli(NDArray other) {
-      return mapSparse(this,
-                       other,
-                       Operator::multiply);
+      return map(this,
+                 other,
+                 Operator::multiply,
+                 true);
    }
 
    /**
@@ -1529,10 +1516,11 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
     * @return this NDArray with the result of this * other
     */
    public NDArray muli(NDArray other, Axis axis) {
-      return mapSparseVector(this,
-                             other,
-                             axis,
-                             Operator::multiply);
+      return mapVector(this,
+                       other,
+                       axis,
+                       Operator::multiply,
+                       true);
    }
 
    /**
@@ -1541,7 +1529,7 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
     * @return the new NDArray with negated values
     */
    public NDArray neg() {
-      return map(v -> -v);
+      return mapSparse(v -> -v);
    }
 
    /**
@@ -1550,7 +1538,7 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
     * @return this NDArray
     */
    public NDArray negi() {
-      return mapi(v -> -v);
+      return mapiSparse(v -> -v);
    }
 
    private NDArray newZeroArray() {
@@ -1566,11 +1554,9 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
     * @return the L1-norm
     */
    public float norm1() {
-      return (float) sliceStream().mapToDouble(t ->
-                                                  Streams.asStream(t.v2)
-                                                         .mapToDouble(e -> Math.abs(e.getValue()))
-                                                         .sum()
-                                              ).sum();
+      return (float) sliceStream().mapToDouble(t -> Streams.asStream(t.v2)
+                                                           .mapToDouble(e -> Math.abs(e.getValue()))
+                                                           .sum()).sum();
    }
 
    /**
@@ -1583,16 +1569,51 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
       return (float) Math.sqrt(sumOfSquares());
    }
 
+   /**
+    * Number of Channels in the NDArray
+    *
+    * @return the number of channels
+    */
+   public int numChannels() {
+      return dimension(Axis.CHANNEL);
+   }
+
+   /**
+    * Number of columns in the NDArray
+    *
+    * @return the number of columns
+    */
+   public int numCols() {
+      return dimension(Axis.COLUMN);
+   }
+
+   /**
+    * Number of kernels in the NDArray
+    *
+    * @return the number of kernels
+    */
+   public int numKernels() {
+      return dimension(Axis.KERNEL);
+   }
+
+   /**
+    * Gets the number of rows in the NDArray
+    *
+    * @return the number of rows in the NDArray
+    */
+   public int numRows() {
+      return dimension(Axis.ROW);
+   }
+
    private NDArray optimum(Axis axis, Optimum optimum) {
-      Validation.checkArgument(axis == Axis.ROW || axis == Axis.COLUMN,
-                               "Only ROW and Axis.COLUMN supported");
+      checkArgument(axis.isRowOrColumn(), () -> axisNotSupported(axis));
       int[] newShape = shape();
       newShape[axis.T().ordinal] = 1;
       NDArray out = getFactory().constant((float) optimum.startingValue(), newShape);
       sliceStream().forEach(t -> {
-         NDArray outSlice = out.tensorSlice(t.v1);
+         NDArray outSlice = out.getSlice(t.v1);
          t.v2.iterator().forEachRemaining(e -> {
-            int i = axis.select(e.row, e.column);
+            int i = axis.select(e.getRow(), e.getColumn());
             if (optimum.test(e.getValue(), outSlice.get(i))) {
                outSlice.set(i, e.getValue());
             }
@@ -1691,7 +1712,8 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
    public NDArray rdiv(NDArray other) {
       return map(newZeroArray(),
                  other,
-                 (v1, v2) -> v2 / v1);
+                 (v1, v2) -> v2 / v1,
+                 false);
    }
 
    /**
@@ -1703,7 +1725,7 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
    public NDArray rdiv(double value) {
       return mapScalar(newZeroArray(),
                        value,
-                       (v1, v2) -> v2 / v1);
+                       (v1, v2) -> v2 / v1, false);
    }
 
    /**
@@ -1718,7 +1740,8 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
       return mapVector(newZeroArray(),
                        other,
                        axis,
-                       (v1, v2) -> v2 / v1);
+                       (v1, v2) -> v2 / v1,
+                       false);
    }
 
    /**
@@ -1731,7 +1754,8 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
    public NDArray rdivi(NDArray other) {
       return map(this,
                  other,
-                 (v1, v2) -> v2 / v1);
+                 (v1, v2) -> v2 / v1,
+                 false);
    }
 
    /**
@@ -1743,7 +1767,8 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
    public NDArray rdivi(double value) {
       return mapScalar(this,
                        value,
-                       (v1, v2) -> v2 / v1);
+                       (v1, v2) -> v2 / v1,
+                       false);
    }
 
    /**
@@ -1758,16 +1783,57 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
       return mapVector(this,
                        other,
                        axis,
-                       (v1, v2) -> v2 / v1);
+                       (v1, v2) -> v2 / v1,
+                       false);
    }
 
    /**
-    * Gets the number of rows in the NDArray
+    * Row iterator iterator.
     *
-    * @return the number of rows in the NDArray
+    * @param row the row
+    * @return the iterator
     */
-   public int numRows() {
-      return dimension(Axis.ROW);
+   public Iterator<Entry> rowIterator(final int row) {
+      return new Iterator<Entry>() {
+         int slice = 0;
+         int column = 0;
+
+         @Override
+         public boolean hasNext() {
+            return column < numCols() && slice < slices();
+         }
+
+         @Override
+         public Entry next() {
+            checkElementIndex(column, numCols());
+            Entry e = new Entry(0, toMatrixIndex(row, column));
+            column++;
+            if (column >= numCols()) {
+               slice++;
+               column = 0;
+            }
+            return e;
+         }
+      };
+   }
+
+   private String rowToString(int i, int maxC) {
+      StringBuilder builder = new StringBuilder("[");
+      builder.append(decimalFormatter.format(get(i, 0)));
+      int half = maxC / 2;
+      boolean firstHalf = true;
+      for (int j = 1; j < numCols(); j++) {
+         if (j > half && firstHalf) {
+            firstHalf = false;
+            int nj = Math.max(numCols() - half, j + 1);
+            if (nj > j + 1) {
+               builder.append(", ...");
+            }
+            j = nj;
+         }
+         builder.append(", ").append(decimalFormatter.format(get(i, j)));
+      }
+      return builder.append("]").toString();
    }
 
    /**
@@ -1778,7 +1844,10 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
     * @return the new NDArray with the result of other - this
     */
    public NDArray rsub(NDArray other) {
-      return map(newZeroArray(), other, (v1, v2) -> v2 - v1);
+      return map(newZeroArray(),
+                 other,
+                 (v1, v2) -> v2 - v1,
+                 false);
    }
 
    /**
@@ -1788,7 +1857,10 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
     * @return the new NDArray with the scalar value subtracted
     */
    public NDArray rsub(double value) {
-      return mapScalar(newZeroArray(), value, (v1, v2) -> v2 - v1);
+      return mapScalar(newZeroArray(),
+                       value,
+                       (v1, v2) -> v2 - v1,
+                       false);
    }
 
    /**
@@ -1800,7 +1872,11 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
     * @return the new NDArray with the result of this - other
     */
    public NDArray rsub(NDArray other, Axis axis) {
-      return mapVector(newZeroArray(), other, axis, (v1, v2) -> v2 - v1);
+      return mapVector(newZeroArray(),
+                       other,
+                       axis,
+                       (v1, v2) -> v2 - v1,
+                       false);
    }
 
    /**
@@ -1810,7 +1886,10 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
     * @return the new NDArray with the scalar value subtracted
     */
    public NDArray rsubi(double value) {
-      return mapScalar(this, value, (v1, v2) -> v2 - v1);
+      return mapScalar(this,
+                       value,
+                       (v1, v2) -> v2 - v1,
+                       false);
    }
 
    /**
@@ -1821,7 +1900,10 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
     * @return the new NDArray with the result of other - this
     */
    public NDArray rsubi(NDArray other) {
-      return map(this, other, (v1, v2) -> v2 - v1);
+      return map(this,
+                 other,
+                 (v1, v2) -> v2 - v1,
+                 false);
    }
 
    /**
@@ -1833,7 +1915,11 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
     * @return the new NDArray with the result of this - other
     */
    public NDArray rsubi(NDArray other, Axis axis) {
-      return mapVector(this, other, axis, (v1, v2) -> v2 - v1);
+      return mapVector(this,
+                       other,
+                       axis,
+                       (v1, v2) -> v2 - v1,
+                       false);
    }
 
    /**
@@ -1853,7 +1939,8 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
     */
    public NDArray select(DoublePredicate predicate) {
       return mapOperator(newZeroArray(),
-                         v -> predicate.test(v) ? v : 0f);
+                         v -> predicate.test(v) ? v : 0f,
+                         false);
    }
 
    /**
@@ -1866,7 +1953,8 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
    public NDArray select(NDArray predicate) {
       return map(newZeroArray(),
                  predicate,
-                 (v1, v2) -> v2 != 0 ? v1 : 0f);
+                 (v1, v2) -> v2 != 0 ? v1 : 0f,
+                 false);
    }
 
    /**
@@ -1876,7 +1964,9 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
     * @return this NDArray with values passing the given predicate and zeros elsewhere
     */
    public NDArray selecti(DoublePredicate predicate) {
-      return mapOperator(this, v -> predicate.test(v) ? v : 0f);
+      return mapOperator(this,
+                         v -> predicate.test(v) ? v : 0f,
+                         false);
    }
 
    /**
@@ -1889,7 +1979,8 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
    public NDArray selecti(NDArray predicate) {
       return map(this,
                  predicate,
-                 (v1, v2) -> v2 != 0 ? v1 : 0f);
+                 (v1, v2) -> v2 != 0 ? v1 : 0f,
+                 false);
    }
 
    /**
@@ -1900,8 +1991,17 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
     * @return This NDArray
     */
    public NDArray set(int[] indices, double value) {
-      int[] dims = ensureCorrectIndices(indices);
-      return set(dims[0], dims[1], dims[2], dims[3], value);
+      checkArgument(indices.length > 0 && indices.length <= 4, () -> invalidNumberOfIndices(indices.length));
+      switch (indices.length) {
+         case 1:
+            return setIndexedValue(0, indices[0], value);
+         case 2:
+            return setIndexedValue(0, toMatrixIndex(indices[0], indices[1]), value);
+         case 3:
+            return setIndexedValue(indices[2], toMatrixIndex(indices[0], indices[1]), value);
+         default:
+            return setIndexedValue(toSliceIndex(indices[2], indices[3]), toMatrixIndex(indices[0], indices[1]), value);
+      }
    }
 
    /**
@@ -1914,7 +2014,9 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
     * @param value   the value
     * @return This NDArray
     */
-   public abstract NDArray set(int row, int column, int kernel, int channel, double value);
+   public NDArray set(int row, int column, int kernel, int channel, double value) {
+      return setIndexedValue(toSliceIndex(kernel, channel), toMatrixIndex(row, column), value);
+   }
 
    /**
     * Sets the value at the given indices.
@@ -1926,7 +2028,7 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
     * @return This NDArray
     */
    public NDArray set(int row, int column, int kernel, double value) {
-      return set(row, column, kernel, 0, value);
+      return setIndexedValue(kernel, toMatrixIndex(row, column), value);
    }
 
    /**
@@ -1938,7 +2040,7 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
     * @return This NDArray
     */
    public NDArray set(int row, int column, double value) {
-      return set(row, column, 0, 0, value);
+      return setIndexedValue(0, toMatrixIndex(row, column), value);
    }
 
    /**
@@ -1949,8 +2051,18 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
     * @return This NDArray
     */
    public NDArray set(int row, double value) {
-      return set(row, 0, 0, 0, value);
+      return setIndexedValue(0, row, value);
    }
+
+   /**
+    * Sets indexed value.
+    *
+    * @param sliceIndex  the slice index
+    * @param matrixIndex the matrix index
+    * @param value       the value
+    * @return the indexed value
+    */
+   public abstract NDArray setIndexedValue(int sliceIndex, int matrixIndex, double value);
 
    /**
     * Replaces the slice at the given index.
@@ -1969,36 +2081,23 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
     * @return this NDArray
     */
    public NDArray setVector(int index, Axis axis, NDArray other) {
-      IntStream.range(0, numSlices).forEach(i -> {
-         if (other.order == 1) {
-            setVector(i, index, axis, other);
-         } else {
-            setVector(i, index, axis, other.tensorSlice(i));
+      checkArgument(axis.isRowOrColumn(), () -> axisNotSupported(axis));
+      int dimLength = dimension(axis.T());
+      forEachSlice((i, slice) -> {
+         NDArray oSlice = other.getSlice(i);
+         for (int j = 0; j < dimLength; j++) {
+            int row;
+            int col;
+            if (axis == Axis.ROW) {
+               row = index;
+               col = j;
+            } else {
+               row = j;
+               col = index;
+            }
+            slice.set(row, col, oSlice.get(j));
          }
       });
-      return this;
-   }
-
-   /**
-    * Sets the vector at the given index along the given axis at the given slice index.
-    *
-    * @param sliceIndex the index of the slice whose vector will be set
-    * @param index      the index of the row / column to set
-    * @param axis       the axis (row or column)
-    * @param vector     the vector to use to set.
-    * @return this NDArray
-    */
-   public NDArray setVector(int sliceIndex, int index, Axis axis, NDArray vector) {
-      checkArgument(axis.isRowOrColumn(), "Axis (" + axis + ") not supported.");
-      checkArgument(vector.order < 2, "Order (" + vector.order + ") not supported as vector");
-      NDArray slice = tensorSlice(sliceIndex);
-      for (int i = 0; i < dimension(axis.T()); i++) {
-         if (axis == Axis.ROW) {
-            slice.set(index, i, vector.get(i));
-         } else {
-            slice.set(i, index, vector.get(i));
-         }
-      }
       return this;
    }
 
@@ -2012,23 +2111,52 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
    }
 
    /**
-    * Gets the slice at the given kernel and channel. All changes made to the slice will be reflected in the NDArray.
+    * Shape equals boolean.
     *
-    * @param kernel  the kernel
-    * @param channel the channel
-    * @return The slice NDArray
+    * @param other the other
+    * @return the boolean
     */
-   public NDArray tensorSlice(int kernel, int channel) {
-      return tensorSlice(toSliceIndex(kernel, channel));
+   public boolean shapeEquals(NDArray other) {
+      return Arrays.equals(shape, other.shape);
    }
 
    /**
-    * Gets the slice at the given index. All changes made to the slice will be reflected in the NDArray.
+    * Size long.
     *
-    * @param index the index
-    * @return The slice NDArray
+    * @return the long
     */
-   public abstract NDArray tensorSlice(int index);
+   public long size() {
+      return length;
+   }
+
+   /**
+    * Slice nd array.
+    *
+    * @param from the from
+    * @param to   the to
+    * @return the nd array
+    */
+   public abstract NDArray slice(int from, int to);
+
+   /**
+    * Slice nd array.
+    *
+    * @param iFrom the from
+    * @param iTo   the to
+    * @param jFrom the j from
+    * @param jTo   the j to
+    * @return the nd array
+    */
+   public abstract NDArray slice(int iFrom, int iTo, int jFrom, int jTo);
+
+   /**
+    * Slice nd array.
+    *
+    * @param axis    the axis
+    * @param indexes the indexes
+    * @return the nd array
+    */
+   public abstract NDArray slice(Axis axis, int... indexes);
 
    /**
     * Applies the given binary function to the slices of this NDArray and the given other NDArray. If the given other
@@ -2044,7 +2172,7 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
       if (other.order > 2) {
          checkArgument(other.sliceLength() == sliceLength(),
                        "Slice length mismatch (" + sliceLength() + ") != (" + other.sliceLength() + ")");
-         sliceStream().forEach(t -> out[t.v1] = function.apply(t.v2, other.tensorSlice(t.v1)));
+         sliceStream().forEach(t -> out[t.v1] = function.apply(t.v2, other.getSlice(t.v1)));
       } else {
          sliceStream().forEach(t -> out[t.v1] = function.apply(t.v2, other));
       }
@@ -2061,6 +2189,10 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
       checkArgument(matrixLength == other.matrixLength,
                     "Length mismatch (" + matrixLength + ")  != (" + other.matrixLength);
       return sliceBinaryOperation(other, (a1, a2) -> getFactory().constant(a1.dot(a2), 1));
+   }
+
+   protected IntStream sliceIndexStream() {
+      return IntStream.range(0, numSlices);
    }
 
    /**
@@ -2128,7 +2260,7 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
     * @return the stream slice index and slice
     */
    public Stream<Tuple2<Integer, NDArray>> sliceStream() {
-      return IntStream.range(0, slices()).mapToObj(i -> $(i, tensorSlice(i))).parallel();
+      return IntStream.range(0, slices()).mapToObj(i -> $(i, getSlice(i)));
    }
 
    /**
@@ -2159,8 +2291,11 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
     * @return the resulting NDArray
     */
    public NDArray sliceUnaryOperation(Function<NDArray, NDArray> function) {
+//      for (int i = 0; i < slices(); i++) {
+//         sliceConsumer.accept(i, getMatrix(i));
+//      }
       NDArray[] out = new NDArray[numSlices];
-      sliceStream().forEach(t -> out[t.v1] = function.apply(t.v2));
+      forEachSlice((si, slice) -> out[si] = function.apply(slice));
       return getFactory().fromLayers(numKernels(), numChannels(), out);
    }
 
@@ -2174,25 +2309,50 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
    }
 
    /**
-    * Iterator over the non-zero entries in the NDArray
+    * Sparse column iterator iterator.
+    *
+    * @param column the column
+    * @return the iterator
+    */
+   public Iterator<Entry> sparseColumnIterator(final int column) {
+      return Iterators.filter(columnIterator(column), e -> e.getValue() != 0);
+   }
+
+   /**
+    * Sparse iterator (Dense implementations will return a dense iterator)
     *
     * @return the non-zero entry iterator
     */
    public Iterator<Entry> sparseIterator() {
-      return Iterators.filter(iterator(), e -> e.getValue() != 0f);
+      return iterator();
    }
 
+   /**
+    * Sparse ordered iterator (Dense implementations will return a dense iterator)
+    *
+    * @return the sparse entry iterator ordered by slice index, matrix index,
+    */
    public Iterator<Entry> sparseOrderedIterator() {
       return sparseIterator();
    }
 
-
-   public NDArray toUnitVector() {
-      checkArgument(isVector(), "NDArray must be a vector");
-      float mag = norm2();
-      return div(mag);
+   /**
+    * Sparse row iterator iterator.
+    *
+    * @param row the row
+    * @return the iterator
+    */
+   public Iterator<Entry> sparseRowIterator(final int row) {
+      return Iterators.filter(rowIterator(row), e -> e.getValue() != 0);
    }
 
+   public Iterator<Entry> sparseVectorIterator(int index, Axis axis) {
+      checkArgument(axis.isRowOrColumn(), () -> axisNotSupported(axis));
+      if (axis == Axis.ROW) {
+         return sparseRowIterator(index);
+      }
+      return sparseColumnIterator(index);
+   }
 
    /**
     * Subtracts the values in the other NDArray to this one. Basic broadcasting will occur for scalar, vector, and
@@ -2204,7 +2364,8 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
    public NDArray sub(NDArray other) {
       return map(newZeroArray(),
                  other,
-                 Operator::subtract);
+                 Operator::subtract,
+                 false);
    }
 
    /**
@@ -2219,7 +2380,8 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
       return mapVector(newZeroArray(),
                        other,
                        axis,
-                       Operator::subtract);
+                       Operator::subtract,
+                       false);
    }
 
    /**
@@ -2229,9 +2391,7 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
     * @return the new NDArray with the scalar value subtracted
     */
    public NDArray sub(double value) {
-      return mapScalar(newZeroArray(),
-                       value,
-                       Operator::subtract);
+      return mapScalar(newZeroArray(), value, Operator::subtract, false);
    }
 
    /**
@@ -2241,9 +2401,7 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
     * @return the new NDArray with the scalar value subtracted
     */
    public NDArray subi(double value) {
-      return mapScalar(this,
-                       value,
-                       Operator::subtract);
+      return mapScalar(this, value, Operator::subtract, false);
    }
 
    /**
@@ -2254,9 +2412,8 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
     * @return the new NDArray with the result of this - other
     */
    public NDArray subi(NDArray other) {
-      return map(this,
-                 other,
-                 Operator::subtract);
+      return map(this, other, Operator::subtract,
+                 false);
    }
 
    /**
@@ -2271,7 +2428,7 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
       return mapVector(this,
                        other,
                        axis,
-                       Operator::subtract);
+                       Operator::subtract, false);
    }
 
    /**
@@ -2297,20 +2454,16 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
     * @return An NDArray of the sum
     */
    public NDArray sum(Axis axis) {
-      Validation.checkArgument(axis.isRowOrColumn(),
-                               "Axis (" + axis + ") is not supported");
+      checkArgument(axis.isRowOrColumn(), () -> axisNotSupported(axis));
       int[] newShape = shape();
       newShape[axis.T().ordinal] = 1;
       NDArray out = getFactory().zeros(newShape);
-
-      sliceStream().forEach(t -> {
-         NDArray outSlice = out.tensorSlice(t.v1);
-         t.v2.iterator().forEachRemaining(e -> {
-            int i = axis.select(e.row, e.column);
-            outSlice.set(i, outSlice.get(i) + e.getValue());
-         });
+      forEachSlice((i, slice) -> {
+         for (Iterator<Entry> itr = slice.sparseIterator(); itr.hasNext(); ) {
+            Entry e = itr.next();
+            out.adjustOrPutIndexedValue(i, e.getIndex(axis), e.getValue());
+         }
       });
-
       return out;
    }
 
@@ -2334,7 +2487,9 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
     * @return new NDArray with test results
     */
    public NDArray test(DoublePredicate predicate) {
-      return mapOperator(newZeroArray(), v -> predicate.test(v) ? 1 : 0f);
+      return mapOperator(newZeroArray(),
+                         v -> predicate.test(v) ? 1 : 0f,
+                         false);
    }
 
    /**
@@ -2344,7 +2499,44 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
     * @return this with test results
     */
    public NDArray testi(DoublePredicate predicate) {
-      return mapOperator(this, v -> predicate.test(v) ? 1 : 0f);
+      return mapOperator(this,
+                         v -> predicate.test(v) ? 1 : 0f,
+                         false);
+   }
+
+   /**
+    * To channel int.
+    *
+    * @param sliceIndex the slice index
+    * @return the int
+    */
+   public int toChannel(int sliceIndex) {
+      return sliceIndex / numKernels();
+   }
+
+   /**
+    * To column int.
+    *
+    * @param matrixIndex the matrix index
+    * @return the int
+    */
+   public int toColumn(int matrixIndex) {
+      return matrixIndex / numRows();
+   }
+
+   public DenseNDArray toDense() {
+      return new DenseNDArray(this);
+   }
+
+   /**
+    * To double array double [ ].
+    *
+    * @return the double [ ]
+    */
+   public double[] toDoubleArray() {
+      double[] out = new double[(int) length()];
+      sparseIterator().forEachRemaining(e -> out[(int) e.getIndex()] = e.getValue());
+      return out;
    }
 
    /**
@@ -2360,14 +2552,8 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
     * @return 1d array of float values
     */
    public float[] toFloatArray() {
-      float[] out = new float[(int) length()];
-      sparseIterator().forEachRemaining(e -> out[(int) e.getIndex()] = e.getValue());
-      return out;
-   }
-
-   public double[] toDoubleArray() {
-      double[] out = new double[(int) length()];
-      sparseIterator().forEachRemaining(e -> out[(int) e.getIndex()] = e.getValue());
+      float[] out = new float[matrixLength];
+      forEachSparse(e -> out[e.matrixIndex] = e.getValue());
       return out;
    }
 
@@ -2378,130 +2564,201 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
     */
    public abstract FloatMatrix toFloatMatrix();
 
-   /**
-    * To index long.
-    *
-    * @param indices the indices
-    * @return the long
-    */
-   protected long toIndex(int[] indices) {
-      return toLongIndex(indices, shape);
-   }
-
    @Override
    public JsonEntry toJson() {
       JsonEntry ndarray = JsonEntry.object()
                                    .addProperty("shape", shape())
-                                   .addProperty("dense", isDense());
+                                   .addProperty("factory", getFactory().name())
+                                   .addProperty("weight", weight);
+      if (label != null) {
+         addLabelProperty(ndarray, "label", label);
+      }
+      if (predicted != null) {
+         addLabelProperty(ndarray, "predicted", predicted);
+      }
       JsonEntry array = JsonEntry.array();
       for (int i = 0; i < slices(); i++) {
-         array.addValue(tensorSlice(i).toFloatArray());
+         if (isDense()) {
+            array.addValue(getSlice(i).toFloatArray());
+         } else {
+            JsonEntry map = JsonEntry.object();
+            sparseIterator().forEachRemaining(e -> map.addProperty(Integer.toString(e.matrixIndex), e.getValue()));
+            array.addValue(map);
+         }
       }
       ndarray.addProperty("data", array);
       return ndarray;
    }
 
-   private class IndicesIterator implements Iterator<int[]> {
-      private int[] indices = new int[4];
+   /**
+    * To kernel int.
+    *
+    * @param sliceIndex the slice index
+    * @return the int
+    */
+   public int toKernel(int sliceIndex) {
+      return sliceIndex % numKernels();
+   }
+
+   /**
+    * To matrix index int.
+    *
+    * @param row    the row
+    * @param column the column
+    * @return the int
+    */
+   protected int toMatrixIndex(int row, int column) {
+      return toIndex(row, numRows(), column, numCols());
+   }
+
+   /**
+    * To row int.
+    *
+    * @param matrixIndex the matrix index
+    * @return the int
+    */
+   public int toRow(int matrixIndex) {
+      return matrixIndex % numRows();
+   }
+
+   /**
+    * To slice index int.
+    *
+    * @param kernel  the kernel
+    * @param channel the channel
+    * @return the int
+    */
+   protected int toSliceIndex(int kernel, int channel) {
+      return toIndex(kernel, shape[Axis.KERNEL.ordinal],
+                     channel, shape[Axis.CHANNEL.ordinal]);
+   }
+
+   public SparseNDArray toSparse() {
+      return new SparseNDArray(this);
+   }
+
+   private String toString(FloatMatrix matrix) {
+      return matrix.toString("%f", "[", "]", ", ", "],\n  [");
+   }
+
+   @Override
+   public String toString() {
+      return toString(Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE);
+   }
+
+   /**
+    * To string string.
+    *
+    * @param maxSlices  the max slices
+    * @param maxRows    the max rows
+    * @param maxColumns the max columns
+    * @return the string
+    */
+   public String toString(int maxSlices, int maxRows, int maxColumns) {
+      StringBuilder builder = new StringBuilder("[");
+      builder.append(getSlice(0).matrixToString(maxRows, maxColumns));
+      int half = maxSlices / 2;
+      boolean firstHalf = true;
+      for (int i = 1; i < slices(); i++) {
+         builder.append(",");
+         if (i > half && firstHalf) {
+            firstHalf = false;
+            int ni = Math.max(slices() - half, i + 1);
+            if (ni > i + 1) {
+               String outDot = StringUtils.repeat(StringUtils.padStart(".", 8, ' '),
+                                                  Math.min(numCols(), maxColumns + 2));
+               builder.append(System.lineSeparator())
+                      .append(System.lineSeparator()).append(outDot)
+                      .append(System.lineSeparator()).append(outDot)
+                      .append(System.lineSeparator()).append(outDot)
+                      .append(System.lineSeparator())
+                      .append(System.lineSeparator());
+            }
+            i = ni;
+         }
+         builder.append(System.lineSeparator()).append(System.lineSeparator()).append(" ")
+                .append(getSlice(0).matrixToString(maxRows, maxColumns));
+      }
+      return builder.append("]").toString();
+   }
+
+   /**
+    * To unit vector nd array.
+    *
+    * @return the nd array
+    */
+   public NDArray toUnitVector() {
+      checkArgument(isVector(), "NDArray must be a vector");
+      float mag = norm2();
+      return div(mag);
+   }
+
+   /**
+    * Zeroes the entries in this NDArray
+    *
+    * @return this NDArray with all zeros
+    */
+   public NDArray zero() {
+      return fill(0f);
+   }
+
+   private class IndexIterator implements Iterator<Entry> {
+      private int matrixIndex = 0;
+      private int sliceIndex = 0;
+
+      /**
+       * Advance boolean.
+       *
+       * @return the boolean
+       */
+      public boolean advance() {
+         while ((matrixIndex >= matrixLength && sliceIndex < numSlices)) {
+            matrixIndex = 0;
+            sliceIndex++;
+         }
+         return sliceIndex < numSlices;
+      }
 
       @Override
       public boolean hasNext() {
-         return indices[0] < shape[0]
-                   && indices[1] < shape[1]
-                   && indices[2] < shape[2]
-                   && indices[3] < shape[3];
-      }
-
-      private void incrementChannel() {
-         indices[3]++;
-         if (indices[3] >= shape[3]) {
-            indices[3] = 0;
-            incrementKernel();
-         }
-      }
-
-      private void incrementColumn() {
-         indices[1]++;
-         if (indices[1] >= shape[1]) {
-            indices[1] = 0;
-            incrementRow();
-         }
-      }
-
-      private void incrementKernel() {
-         indices[2]++;
-      }
-
-      private void incrementRow() {
-         indices[0]++;
-         if (indices[0] >= shape[0]) {
-            indices[0] = 0;
-            incrementChannel();
-         }
+         return advance();
       }
 
       @Override
-      public int[] next() {
-         checkArgument(hasNext(), "No next index");
-         int[] next = new int[]{indices[0], indices[1], indices[2], indices[3]};
-         incrementColumn();
-         return next;
+      public Entry next() {
+         checkState(advance(), "No such element");
+         Entry e = new Entry(sliceIndex, matrixIndex);
+         matrixIndex++;
+         return e;
       }
-
    }
 
    /**
     * Defines an entry, or cell, in the NDArray with corresponding indices and value
     */
    public class Entry {
+
       /**
-       * The Row.
+       * The Matrix index.
        */
-      final int row, /**
-       * The Column.
+      final int matrixIndex;
+      /**
+       * The Slice index.
        */
-      column, /**
-       * The Kernel.
-       */
-      kernel, /**
-       * The Channel.
-       */
-      channel;
+      final int sliceIndex;
+
 
       /**
        * Instantiates a new Entry.
        *
-       * @param indices the indices
+       * @param sliceIndex  the slice index
+       * @param matrixIndex the matrix index
        */
-      protected Entry(int[] indices) {
-         this(indices[0], indices[1], indices[2], indices[3]);
+      Entry(int sliceIndex, int matrixIndex) {
+         this.sliceIndex = sliceIndex;
+         this.matrixIndex = matrixIndex;
       }
 
-      /**
-       * Instantiates a new Entry.
-       *
-       * @param row     the row
-       * @param column  the column
-       * @param kernel  the kernel
-       * @param channel the channel
-       */
-      protected Entry(int row, int column, int kernel, int channel) {
-         this.row = row;
-         this.column = column;
-         this.kernel = kernel;
-         this.channel = channel;
-      }
-
-      @Override
-      public boolean equals(Object obj) {
-         if (this == obj) {return true;}
-         if (obj == null || getClass() != obj.getClass()) {return false;}
-         final Entry other = (Entry) obj;
-         return Objects.equals(this.row, other.row)
-                   && Objects.equals(this.column, other.column)
-                   && Objects.equals(this.kernel, other.kernel)
-                   && Objects.equals(this.channel, other.channel);
-      }
 
       /**
        * Gets channel.
@@ -2509,7 +2766,7 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
        * @return the channel
        */
       public int getChannel() {
-         return channel;
+         return toChannel(sliceIndex);
       }
 
       /**
@@ -2518,7 +2775,7 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
        * @return the column
        */
       public int getColumn() {
-         return column;
+         return toColumn(matrixIndex);
       }
 
       /**
@@ -2527,7 +2784,7 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
        * @return the index
        */
       public long getIndex() {
-         return toIndex(new int[]{row, column, kernel, channel});
+         return toIndex(matrixIndex, matrixLength, sliceIndex, numSlices);
       }
 
       /**
@@ -2571,7 +2828,7 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
        * @return the kernel
        */
       public int getKernel() {
-         return kernel;
+         return toKernel(sliceIndex);
       }
 
       /**
@@ -2580,7 +2837,7 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
        * @return the row
        */
       public int getRow() {
-         return row;
+         return toRow(matrixIndex);
       }
 
       /**
@@ -2589,7 +2846,7 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
        * @return the value
        */
       public float getValue() {
-         return get(row, column, kernel, channel);
+         return getIndexedValue(sliceIndex, matrixIndex);
       }
 
       /**
@@ -2598,12 +2855,7 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
        * @param value the value
        */
       public void setValue(double value) {
-         set(row, column, kernel, channel, value);
-      }
-
-      @Override
-      public int hashCode() {
-         return Objects.hash(row, column, kernel, channel);
+         setIndexedValue(sliceIndex, matrixIndex, value);
       }
 
       /**
@@ -2612,7 +2864,7 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
        * @return the int
        */
       public int matrixIndex() {
-         return toIndex(row, shape[0], column, shape[1]);
+         return matrixIndex;
       }
 
       /**
@@ -2621,59 +2873,17 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
        * @return the int
        */
       public int sliceIndex() {
-         return toIndex(kernel, shape[2], channel, shape[3]);
+         return sliceIndex;
       }
 
       @Override
       public String toString() {
          return "Entry[" +
-                   "row=" + row +
-                   ", column=" + column +
-                   ", kernel=" + kernel +
-                   ", channel=" + channel +
-                   "]=" + getValue();
+                   "sliceIndex=" + sliceIndex
+                   + ", matrixIndex=" + matrixIndex + "]=" + getValue();
       }
 
    }
 
 
-   private String toString(FloatMatrix matrix) {
-      return matrix.toString("%f", "[", "]", ", ", "],\n  [");
-   }
-
-   @Override
-   public String toString() {
-      StringBuilder builder = new StringBuilder("[[")
-                                 .append(toString(tensorSlice(0).toFloatMatrix()));
-      for (int i = 1; i < Math.min(slices(), 10); i++) {
-         builder.append("]").append(System.lineSeparator())
-                .append(" [")
-                .append(toString(tensorSlice(i).toFloatMatrix()));
-      }
-
-      if (slices() > 10) {
-         if (slices() > 11) {
-            builder.append("]")
-                   .append(System.lineSeparator())
-                   .append("  ...")
-                   .append(System.lineSeparator());
-         }
-         builder.append(" [").append(toString(tensorSlice(10).toFloatMatrix()));
-         for (int i = Math.max(11, slices() - 10);
-              i < Math.max(Math.min(20, slices()), slices());
-              i++) {
-            builder.append("]").append(System.lineSeparator())
-                   .append(" [")
-                   .append(toString(tensorSlice(i).toFloatMatrix()));
-         }
-      }
-
-      return builder.append("]]").toString();
-   }
-
-   public abstract NDArray slice(int from, int to);
-
-   public abstract NDArray slice(int iFrom, int iTo, int jFrom, int jTo);
-
-   public abstract NDArray slice(@NonNull Axis axis, int... indexes);
 }//END OF NDArray

@@ -421,7 +421,7 @@ public abstract class Dataset<T extends Example> implements Iterable<T>, Copyabl
          reader.beginDocument();
          List<T> batch = new LinkedList<>();
          preprocessors.clear();
-         //preprocessors.addAll(reader.nextProperty(PreprocessorList.class).v2);
+         preprocessors.addAll(reader.<PreprocessorList<T>>nextProperty(PreprocessorList.class).v2);
          reader.beginArray("data");
          while (reader.peek() != JsonToken.END_ARRAY) {
             batch.add(reader.nextValue(exampleType));

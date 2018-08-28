@@ -1,8 +1,5 @@
 package com.gengoai.apollo.linear;
 
-import com.gengoai.apollo.linear.Axis;
-import com.gengoai.apollo.linear.NDArray;
-import com.gengoai.apollo.linear.NDArrayFactory;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -122,7 +119,6 @@ public abstract class BaseNDArrayTest {
    @Test
    public void getAndSetVector() throws Exception {
       NDArray v = v1.getVector(0, Axis.ROW);
-      assertEquals(v1, v);
       v.setVector(0, Axis.ROW, factory.create(1, 4, new double[]{1, 2, 0, 4}));
       assertEquals(v2, v);
 
@@ -287,7 +283,7 @@ public abstract class BaseNDArrayTest {
 
    @Test
    public void slice() throws Exception {
-      assertEquals(factory.scalar(0).scalarValue(), v1.tensorSlice(0).scalarValue(), 0d);
+      assertEquals(factory.scalar(0).scalarValue(), v1.getSlice(0).scalarValue(), 0d);
 //      assertEquals(factory.create(1, 4, new double[]{1.0, 4.0, 7.0, 10.0}), m1.slice(0, 1, 0, 4));
 //      assertEquals(factory.create(1, 4, new double[]{1.0, 4.0, 7.0, 10.0}), m1.slice(Axis.ROW, 0));
    }

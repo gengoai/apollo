@@ -5,6 +5,7 @@ import com.gengoai.apollo.linear.Axis;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.ml.optimization.*;
 import com.gengoai.function.SerializableSupplier;
+import com.gengoai.math.NumericComparison;
 import com.gengoai.stream.MStream;
 import com.gengoai.tuple.Tuple2;
 import com.gengoai.tuple.Tuple3;
@@ -31,16 +32,19 @@ public class Backprop implements Optimizer<FeedForwardNetwork> {
    @Setter
    private int threads = 4;
 
-   static float correct(NDArray predicted, NDArray gold) {
-      int[] pMax = predicted.argMax(Axis.COLUMN)[0];
-      int[] gMax = gold.argMax(Axis.COLUMN)[0];
-      float correct = 0;
-      for (int i = 0; i < pMax.length; i++) {
-         if (pMax[i] == gMax[i]) {
-            correct++;
-         }
-      }
-      return correct;
+   static double correct(NDArray predicted, NDArray gold) {
+      NDArray pMax = predicted.argMax(Axis.COLUMN);
+      NDArray gMax = gold.argMax(Axis.COLUMN);
+      return pMax.selecti(gMax, NumericComparison.EQ).scalarSum();
+//      int[] pMax = predicted.argMax(Axis.COLUMN).toIntArray(0);
+//      int[] gMax = gold.argMax(Axis.COLUMN).toIntArray(0);
+//      float correct = 0;
+//      for (int i = 0; i < pMax.length; i++) {
+//         if (pMax[i] == gMax[i]) {
+//            correct++;
+//         }
+//      }
+//      return correct;
    }
 
    @Override

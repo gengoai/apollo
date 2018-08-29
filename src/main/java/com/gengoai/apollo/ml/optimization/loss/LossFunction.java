@@ -37,7 +37,7 @@ public interface LossFunction {
     * @return the double
     */
    default double loss(NDArray predictedValue, NDArray trueValue) {
-      return predictedValue.map(trueValue, this::loss).sum();
+      return predictedValue.map(trueValue, this::loss).scalarSum();
    }
 
    /**

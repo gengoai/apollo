@@ -37,7 +37,7 @@ public class LinearModel extends Classifier implements LinearModelParameters {
       //vector is numFeatures x 1
       if (isBinary()) {
          double[] dist = new double[2];
-         dist[1] = activation.apply(weights.dot(vector) + bias.scalarValue());
+         dist[1] = activation.apply(weights.scalarDot(vector) + bias.scalarValue());
          if (activation.isProbabilistic()) {
             dist[0] = 1d - dist[1];
          } else {

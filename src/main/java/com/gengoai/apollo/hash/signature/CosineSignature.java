@@ -77,7 +77,7 @@ public class CosineSignature implements SignatureFunction {
    public int[] signature(NDArray vector) {
       int[] sig = new int[randomProjections.length];
       for (int i = 0; i < signatureSize; i++) {
-         sig[i] = randomProjections[i].dot(vector) > 0 ? 1 : 0;
+         sig[i] = randomProjections[i].scalarDot(vector) > 0 ? 1 : 0;
       }
       return sig;
    }

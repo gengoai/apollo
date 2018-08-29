@@ -68,14 +68,12 @@ public class DenseNDArray extends NDArray {
    }
 
 
-   @Override
-   public float dot(NDArray other) {
+   public NDArray dot(NDArray other) {
       if (other instanceof DenseNDArray) {
-         DenseNDArray dense = Cast.as(other);
-         return (float) matrixStream().mapToDouble(t -> {
-            FloatMatrix fm = dense.slices() > 1 ? dense.data[t.v1] : dense.data[0];
-            return t.v2.dot(fm);
-         }).sum();
+         NDArray[] out = new NDArray[slices()];
+         forEachSlice((si, n) -> out[si] = DENSE.scalar(n.toFloatMatrix()
+                                                         .dot(other.getSlice(si).toFloatMatrix())));
+         return DENSE.fromLayers(numKernels(), numChannels(), out);
       }
       return super.dot(other);
    }

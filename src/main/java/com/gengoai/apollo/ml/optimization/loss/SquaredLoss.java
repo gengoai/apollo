@@ -25,7 +25,7 @@ public class SquaredLoss implements LossFunction, Serializable {
 
    @Override
    public double loss(NDArray predictedValue, NDArray trueValue) {
-      return trueValue.sub(predictedValue).mapi(x -> x * x).sum();
+      return trueValue.sub(predictedValue).mapi(x -> x * x).scalarSum();
    }
 
    @Override

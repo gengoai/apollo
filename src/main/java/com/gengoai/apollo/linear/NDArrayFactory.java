@@ -139,7 +139,7 @@ public enum NDArrayFactory {
     * @param dimensions the dimensions
     * @return the nd array
     */
-   public NDArray constant(float value, int... dimensions) {
+   public NDArray constant(double value, int... dimensions) {
       return zeros(dimensions).fill(value);
    }
 
@@ -315,8 +315,8 @@ public enum NDArrayFactory {
     * @param value the value
     * @return the nd array
     */
-   public NDArray scalar(float value) {
-      return zeros(1).set(0, value);
+   public NDArray scalar(double value) {
+      return new DenseNDArray(FloatMatrix.scalar((float)value));
    }
 
    /**

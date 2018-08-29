@@ -28,7 +28,7 @@ public class SimpleRegressionModel extends Regression {
 
    @Override
    public double estimate(@NonNull NDArray vector) {
-      return bias + weights.dot(vector);
+      return bias + weights.scalarDot(vector);
    }
 
    @Override

@@ -55,7 +55,7 @@ public class LSAModel extends TopicModel {
       double[] scores = new double[size()];
       NDArray vector = getPreprocessors().apply(instance).toVector(getEncoderPair());
       for (int i = 0; i < size(); i++) {
-         double score = vector.dot(getTopicVector(i));
+         double score = vector.scalarDot(getTopicVector(i));
          scores[i] = score;
       }
       return scores;

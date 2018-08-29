@@ -38,7 +38,7 @@ public enum Similarity implements SimilarityMeasure {
    DotProduct {
       @Override
       public double calculate(@NonNull NDArray v1, @NonNull NDArray v2) {
-         return v1.dot(v2);
+         return v1.scalarDot(v2);
       }
 
       @Override
@@ -52,7 +52,7 @@ public enum Similarity implements SimilarityMeasure {
    Dice {
       @Override
       public double calculate(@NonNull NDArray v1, @NonNull NDArray v2) {
-         return 2 * v1.map(v2, Math::min).sum() / v1.add(v2).sum();
+         return 2 * v1.map(v2, Math::min).scalarSum() / v1.add(v2).scalarSum();
       }
 
       @Override
@@ -69,7 +69,7 @@ public enum Similarity implements SimilarityMeasure {
    DiceGen2 {
       @Override
       public double calculate(@NonNull NDArray v1, @NonNull NDArray v2) {
-         return v1.dot(v2) / (v1.sum() + v2.sum());
+         return v1.scalarDot(v2) / (v1.scalarSum() + v2.scalarSum());
       }
 
       @Override
@@ -85,7 +85,7 @@ public enum Similarity implements SimilarityMeasure {
    Cosine {
       @Override
       public double calculate(@NonNull NDArray v1, @NonNull NDArray v2) {
-         return v1.dot(v2) / (v1.norm2() * v2.norm2());
+         return v1.scalarDot(v2) / (v1.scalarNorm2() * v2.scalarNorm2());
       }
 
       @Override
@@ -104,7 +104,7 @@ public enum Similarity implements SimilarityMeasure {
    Jaccard {
       @Override
       public double calculate(@NonNull NDArray v1, @NonNull NDArray v2) {
-         return v1.map(v2, Math::min).sum() / v1.map(v2, Math::max).sum();
+         return v1.map(v2, Math::min).scalarSum() / v1.map(v2, Math::max).scalarSum();
       }
 
       @Override
@@ -120,7 +120,7 @@ public enum Similarity implements SimilarityMeasure {
    Overlap {
       @Override
       public double calculate(@NonNull NDArray v1, @NonNull NDArray v2) {
-         return Math2.clip(v1.dot(v2) / Math.min(v1.sumOfSquares(), v2.sumOfSquares()), -1, 1);
+         return Math2.clip(v1.scalarDot(v2) / Math.min(v1.scalarSumOfSquares(), v2.scalarSumOfSquares()), -1, 1);
       }
 
 

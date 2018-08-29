@@ -104,8 +104,8 @@ public abstract class BaseNDArrayTest {
 
    @Test
    public void dot() throws Exception {
-      assertEquals(14d, v1.dot(v2), 0d);
-      assertEquals(584d, m1.dot(m2.T()), 0);
+      assertEquals(14d, v1.scalarDot(v2), 0d);
+      assertEquals(584d, m1.scalarDot(m2.T()), 0);
    }
 
    @Test
@@ -145,23 +145,23 @@ public abstract class BaseNDArrayTest {
    @Test
    public void minMax() throws Exception {
       double max = v1.max();
-      int[][] index = v1.argMax(Axis.ROW);
+      NDArray index = v1.argMax(Axis.ROW);
       assertEquals(4d, max, 0d);
-      assertArrayEquals(new int[]{2}, index[0]);
+      assertEquals(2, index.scalarValue(), 0d);
       double min = v1.min();
-      index = v1.argMin(Axis.ROW);
+      NDArray mins = v1.argMin(Axis.ROW);
       assertEquals(0d, min, 0d);
-      assertArrayEquals(new int[]{0}, index[0]);
+      assertEquals(0, mins.getIndexedValue(0,0), 0);
 
       max = m1.max();
       index = m1.argMax(Axis.COLUMN);
       assertEquals(12d, max, 0d);
-      assertArrayEquals(new int[]{2, 2, 2, 2}, index[0]);
+      assertEquals(NDArrayFactory.wrap(new float[]{2, 2, 2, 2}), index);
 
       min = m1.min();
-      index = m1.argMin(Axis.COLUMN);
+      mins = m1.argMin(Axis.COLUMN);
       assertEquals(1, min, 0d);
-      assertArrayEquals(new int[]{0, 0, 0, 0}, index[0]);
+      assertEquals(factory.zeros(1,4), mins.getSlice(0));
 
    }
 
@@ -290,7 +290,7 @@ public abstract class BaseNDArrayTest {
 
    @Test
    public void stats() throws Exception {
-      assertEquals(8, v1.sum(), 0d);
+      assertEquals(8, v1.scalarSum(), 0d);
       assertEquals(factory.scalar(8), v1.sum(Axis.ROW));
       assertEquals(factory.create(1, 4, new double[]{6, 15, 24, 33}), m1.sum(Axis.COLUMN));
    }
@@ -326,6 +326,6 @@ public abstract class BaseNDArrayTest {
 
    @Test
    public void zero() throws Exception {
-      assertEquals(0, v1.copy().zero().sum(), 0d);
+      assertEquals(0, v1.copy().zero().scalarSum(), 0d);
    }
 }// END OF BaseNDArrayTest

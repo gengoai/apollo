@@ -84,7 +84,7 @@ public class EuclideanSignature implements SignatureFunction {
    public int[] signature(NDArray vector) {
       int[] sig = new int[randomProjections.length];
       for (int i = 0; i < signatureSize; i++) {
-         sig[i] = (int) Math.round((vector.dot(randomProjections[i]) + offset[i]) / (double) w[i]);
+         sig[i] = (int) Math.round((vector.scalarDot(randomProjections[i]) + offset[i]) / (double) w[i]);
       }
       return sig;
    }

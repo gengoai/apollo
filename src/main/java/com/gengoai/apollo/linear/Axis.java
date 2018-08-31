@@ -1,6 +1,11 @@
 package com.gengoai.apollo.linear;
 
+import com.gengoai.tuple.Tuple3;
+
 import java.util.Arrays;
+
+import static com.gengoai.Validation.checkArgument;
+import static com.gengoai.tuple.Tuples.$;
 
 /**
  * @author David B. Bracewell
@@ -21,6 +26,12 @@ public enum Axis {
       return Arrays.stream(choices).anyMatch(c -> c == this);
    }
 
+
+   public Tuple3<Axis,Integer,Integer> range(int start, int end){
+      checkArgument(end >= start, "End must be > start");
+      checkArgument(start >= 0, "Start must be non-negative");
+      return $(this,start,end);
+   }
 
    public int[] set(int[] indices, int value) {
       indices[ordinal] = value;

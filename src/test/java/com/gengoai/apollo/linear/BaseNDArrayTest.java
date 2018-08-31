@@ -144,21 +144,21 @@ public abstract class BaseNDArrayTest {
 
    @Test
    public void minMax() throws Exception {
-      double max = v1.max();
+      double max = v1.scalarMax();
       NDArray index = v1.argMax(Axis.ROW);
       assertEquals(4d, max, 0d);
       assertEquals(2, index.scalarValue(), 0d);
-      double min = v1.min();
+      double min = v1.scalarMin();
       NDArray mins = v1.argMin(Axis.ROW);
       assertEquals(0d, min, 0d);
       assertEquals(0, mins.getIndexedValue(0,0), 0);
 
-      max = m1.max();
+      max = m1.scalarMax();
       index = m1.argMax(Axis.COLUMN);
       assertEquals(12d, max, 0d);
-      assertEquals(NDArrayFactory.wrap(new float[]{2, 2, 2, 2}), index);
+      assertEquals(NDArrayFactory.rowVector(new float[]{2, 2, 2, 2}), index);
 
-      min = m1.min();
+      min = m1.scalarMin();
       mins = m1.argMin(Axis.COLUMN);
       assertEquals(1, min, 0d);
       assertEquals(factory.zeros(1,4), mins.getSlice(0));

@@ -59,7 +59,7 @@ public class FaruquiRetrofitting implements Retrofitting {
 
       //Unit Normalize the vectors
       sourceVocab.forEach(w -> {
-         NDArray v = origVectors.get(w).toUnitVector();
+         NDArray v = origVectors.get(w).unitize();
          retrofittedVectors.put(w, v);
          unitNormedVectors.put(w, v.copy());
       });

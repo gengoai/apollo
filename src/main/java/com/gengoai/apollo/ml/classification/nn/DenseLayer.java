@@ -3,6 +3,7 @@ package com.gengoai.apollo.ml.classification.nn;
 
 import com.gengoai.apollo.linear.NDArrayInitializer;
 import com.gengoai.apollo.ml.optimization.activation.Activation;
+import com.gengoai.apollo.ml.optimization.activation.TanH;
 
 /**
  * @author David B. Bracewell
@@ -28,6 +29,9 @@ public class DenseLayer extends WeightLayer {
       return new Builder().activation(Activation.LINEAR);
    }
 
+   public static Builder tanH() {
+      return new Builder().activation(new TanH());
+   }
 
    @Override
    public Layer copy() {

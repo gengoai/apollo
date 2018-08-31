@@ -33,6 +33,11 @@ public enum NDArrayFactory {
       }
 
       @Override
+      public NDArray scalar(double value) {
+         return new DenseNDArray(FloatMatrix.scalar((float) value));
+      }
+
+      @Override
       public NDArray fromLayers(int kernels, int channels, NDArray... slices) {
          checkArgument(kernels > 0, "Number of kernels must be > 0");
          checkArgument(channels > 0, "Number of channels must be > 0");
@@ -100,6 +105,14 @@ public enum NDArrayFactory {
     */
    public static NDArray wrap(float[] vector) {
       return new DenseNDArray(new FloatMatrix(vector));
+   }
+
+   public static NDArray columnVector(float[] vector) {
+      return new DenseNDArray(new FloatMatrix(vector.length, 1, vector));
+   }
+
+   public static NDArray rowVector(float[] vector) {
+      return new DenseNDArray(new FloatMatrix(1, vector.length, vector));
    }
 
    /**
@@ -316,7 +329,7 @@ public enum NDArrayFactory {
     * @return the nd array
     */
    public NDArray scalar(double value) {
-      return new DenseNDArray(FloatMatrix.scalar((float)value));
+      return constant(value, 1, 1, 1, 1);
    }
 
    /**

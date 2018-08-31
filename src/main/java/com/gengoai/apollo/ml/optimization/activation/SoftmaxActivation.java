@@ -19,7 +19,7 @@ public class SoftmaxActivation implements Activation {
    @Override
    public NDArray apply(NDArray x) {
       if (x.isVector()) {
-         val max = x.max();
+         val max = x.scalarMax();
          x.mapi(d -> FastMath.exp(d - max));
          val sum = x.sum();
          return x.divi(sum);

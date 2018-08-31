@@ -24,9 +24,9 @@ public class SparseNDArray extends NDArray {
 
    SparseNDArray(int... dimensions) {
       super(dimensions);
-      this.data = new OpenIntFloatHashMap[slices()];
-      this.bitSet = new boolean[slices()][sliceLength()];
-      for (int i = 0; i < slices(); i++) {
+      this.data = new OpenIntFloatHashMap[numSlices()];
+      this.bitSet = new boolean[numSlices()][sliceLength()];
+      for (int i = 0; i < numSlices(); i++) {
          this.data[i] = new OpenIntFloatHashMap();
       }
    }
@@ -34,14 +34,14 @@ public class SparseNDArray extends NDArray {
 
    SparseNDArray(NDArray copy) {
       this(copy.shape());
-      copy.forEachSlice(this::setSlice);
+      copy.forEachSlice((si,n) -> n.forEachSparse(e -> set(si,e.matrixIndex,e.getValue())));
    }
 
 
    SparseNDArray(int[] shape, List<SparseNDArray> slices) {
       super(shape);
-      this.data = new OpenIntFloatHashMap[slices()];
-      this.bitSet = new boolean[slices()][sliceLength()];
+      this.data = new OpenIntFloatHashMap[numSlices()];
+      this.bitSet = new boolean[numSlices()][sliceLength()];
       for (int i = 0; i < slices.size(); i++) {
          this.data[i] = slices.get(i).data[0];
          this.bitSet[i] = slices.get(i).bitSet[i];
@@ -56,7 +56,9 @@ public class SparseNDArray extends NDArray {
    }
 
    @Override
-   protected NDArray adjustOrPutIndexedValue(int sliceIndex, int matrixIndex, double value) {
+   public NDArray adjustIndexedValue(int sliceIndex, int matrixIndex, double value) {
+      checkElementIndex(sliceIndex, numSlices(), "Slice");
+      checkElementIndex(matrixIndex, sliceLength(), "Matrix");
       if (value == 0) {
          return this;
       }
@@ -87,7 +89,7 @@ public class SparseNDArray extends NDArray {
 
    @Override
    public float getIndexedValue(int sliceIndex, int matrixIndex) {
-      checkElementIndex(sliceIndex, slices(), "Slice");
+      checkElementIndex(sliceIndex, numSlices(), "Slice");
       checkElementIndex(matrixIndex, sliceLength(), "Matrix");
       if (bitSet[sliceIndex][matrixIndex]) {
          return data[sliceIndex].get(matrixIndex);
@@ -121,9 +123,9 @@ public class SparseNDArray extends NDArray {
             int row = toRow(index);
             int col = toColumn(index);
             oth.sparseRowIterator(col)
-               .forEachRemaining(e2 -> toReturn.adjustOrPutIndexedValue(sIndex,
-                                                                        toReturn.toMatrixIndex(row, e2.getColumn()),
-                                                                        e2.getValue() * value));
+               .forEachRemaining(e2 -> toReturn.adjustIndexedValue(sIndex,
+                                                                   toReturn.toMatrixIndex(row, e2.getColumn()),
+                                                                   e2.getValue() * value));
             return true;
          });
       });
@@ -132,7 +134,7 @@ public class SparseNDArray extends NDArray {
 
    @Override
    public NDArray setIndexedValue(int sliceIndex, int matrixIndex, double value) {
-      checkElementIndex(sliceIndex, slices(), "Slice");
+      checkElementIndex(sliceIndex, numSlices(), "Slice");
       checkElementIndex(matrixIndex, sliceLength(), "Matrix");
       if (value == 0) {
          data[sliceIndex].removeKey(matrixIndex);
@@ -147,9 +149,10 @@ public class SparseNDArray extends NDArray {
    @Override
    protected void setSlice(int slice, NDArray newSlice) {
       checkArgument(newSlice.order() <= 2, () -> orderNotSupported(newSlice.order()));
-      checkElementIndex(slice, slices(), "Slice");
+      checkElementIndex(slice, numSlices(), "Slice");
       Arrays.fill(bitSet[slice], false);
-      newSlice.forEach(e -> set(e.getIndicies(), e.getValue()));
+      data[slice] =  new OpenIntFloatHashMap();
+      newSlice.forEachSparse(e -> set(e.getIndicies(), e.getValue()));
    }
 
    @Override
@@ -174,7 +177,7 @@ public class SparseNDArray extends NDArray {
 
    @Override
    public NDArray sliceUnaryOperation(Function<NDArray, NDArray> function) {
-      SparseNDArray[] out = new SparseNDArray[slices()];
+      SparseNDArray[] out = new SparseNDArray[numSlices()];
       sliceStream().forEach(t -> {
          NDArray i = function.apply(t.v2);
          if (i instanceof SparseNDArray) {
@@ -228,7 +231,7 @@ public class SparseNDArray extends NDArray {
 
    @Override
    public NDArray zero() {
-      for (int i = 0; i < slices(); i++) {
+      for (int i = 0; i < numSlices(); i++) {
          data[i].clear();
          Arrays.fill(bitSet[i], false);
       }
@@ -246,14 +249,14 @@ public class SparseNDArray extends NDArray {
       }
 
       public boolean advance() {
-         while ((matrixKeys == null || matrixIndex >= matrixKeys.size()) && sliceIndex < slices()) {
+         while ((matrixKeys == null || matrixIndex >= matrixKeys.size()) && sliceIndex < numSlices()) {
             sliceIndex++;
-            if (sliceIndex >= slices()) {
+            if (sliceIndex >= numSlices()) {
                return false;
             }
             setNextKeys();
          }
-         return sliceIndex < slices();
+         return sliceIndex < numSlices();
       }
 
       @Override
@@ -291,12 +294,12 @@ public class SparseNDArray extends NDArray {
       }
 
       public boolean advance() {
-         while (sliceIndex < slices() && !advanceColumn()) {
+         while (sliceIndex < numSlices() && !advanceColumn()) {
             sliceIndex++;
             col = 0;
             lastMatrixIndex = startingMatrixIndex;
          }
-         return sliceIndex < slices();
+         return sliceIndex < numSlices();
       }
 
       private boolean advanceColumn() {
@@ -333,11 +336,11 @@ public class SparseNDArray extends NDArray {
       }
 
       public boolean advance() {
-         while (sliceIndex < slices() && !advanceRow()) {
+         while (sliceIndex < numSlices() && !advanceRow()) {
             sliceIndex++;
             row = 0;
          }
-         return sliceIndex < slices();
+         return sliceIndex < numSlices();
       }
 
       private boolean advanceRow() {

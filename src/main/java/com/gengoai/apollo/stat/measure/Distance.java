@@ -74,7 +74,7 @@ public enum Distance implements DistanceMeasure {
    Chebyshev {
       @Override
       public double calculate(@NonNull NDArray v1, @NonNull NDArray v2) {
-         return v1.map(v2, (d1, d2) -> Math.abs(d1 - d2)).max();
+         return v1.map(v2, (d1, d2) -> Math.abs(d1 - d2)).scalarMax();
       }
    },
    /**

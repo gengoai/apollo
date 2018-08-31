@@ -33,7 +33,7 @@ import static com.gengoai.collection.Iterators.zipWithIndex;
 import static com.gengoai.tuple.Tuples.$;
 
 /**
- * The type Nd array.
+ *  An n-dimension array of float values used for vectors, matrices, and tensors.
  *
  * @author David B. Bracewell
  */

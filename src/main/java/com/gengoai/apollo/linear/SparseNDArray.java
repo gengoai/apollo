@@ -34,7 +34,7 @@ public class SparseNDArray extends NDArray {
 
    SparseNDArray(NDArray copy) {
       this(copy.shape());
-      copy.forEachSlice((si,n) -> n.forEachSparse(e -> set(si,e.matrixIndex,e.getValue())));
+      copy.forEachSlice((si, n) -> n.forEachSparse(e -> setIndexedValue(si, e.matrixIndex, e.getValue())));
    }
 
 
@@ -151,8 +151,8 @@ public class SparseNDArray extends NDArray {
       checkArgument(newSlice.order() <= 2, () -> orderNotSupported(newSlice.order()));
       checkElementIndex(slice, numSlices(), "Slice");
       Arrays.fill(bitSet[slice], false);
-      data[slice] =  new OpenIntFloatHashMap();
-      newSlice.forEachSparse(e -> set(e.getIndicies(), e.getValue()));
+      data[slice].clear();
+      newSlice.forEachSparse(e -> setIndexedValue(0, e.matrixIndex, e.getValue()));
    }
 
    @Override

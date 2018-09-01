@@ -5,7 +5,6 @@ import com.gengoai.Validation;
 import com.gengoai.concurrent.Threads;
 import com.gengoai.conversion.Cast;
 import com.gengoai.tuple.Tuple2;
-import lombok.NonNull;
 import org.jblas.DoubleMatrix;
 import org.jblas.FloatMatrix;
 import org.jblas.MatrixFunctions;
@@ -414,6 +413,7 @@ public class DenseNDArray extends NDArray {
       data[slice] = matrix;
    }
 
+
    @Override
    public NDArray slice(int iFrom, int iTo, int jFrom, int jTo) {
       FloatMatrix[] matrices = new FloatMatrix[numSlices()];
@@ -422,16 +422,7 @@ public class DenseNDArray extends NDArray {
       return new DenseNDArray(matrices, new int[]{matrices[0].rows, matrices[0].columns, numKernels(), numChannels()});
    }
 
-   @Override
-   public NDArray slice(@NonNull Axis axis, int... indexes) {
-      FloatMatrix[] matrices = new FloatMatrix[numSlices()];
-      if (axis == Axis.ROW) {
-         matrixStream().forEach(t -> matrices[t.v1] = t.v2.getRows(indexes));
-      } else {
-         matrixStream().forEach(t -> matrices[t.v1] = t.v2.getColumns(indexes));
-      }
-      return new DenseNDArray(matrices, new int[]{matrices[0].rows, matrices[0].columns, numKernels(), numChannels()});
-   }
+
 
    @Override
    public NDArray sub(NDArray other) {

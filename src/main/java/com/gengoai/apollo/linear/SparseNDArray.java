@@ -1,6 +1,5 @@
 package com.gengoai.apollo.linear;
 
-import com.gengoai.conversion.Cast;
 import org.apache.mahout.math.function.IntFloatProcedure;
 import org.apache.mahout.math.list.IntArrayList;
 import org.apache.mahout.math.map.OpenIntFloatHashMap;
@@ -11,7 +10,6 @@ import org.jblas.MatrixFunctions;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-import java.util.function.Function;
 
 import static com.gengoai.Validation.*;
 
@@ -162,33 +160,49 @@ public class SparseNDArray extends NDArray {
 
    @Override
    public NDArray slice(int from, int to) {
-      return null;
+      int dim = to - from;
+      return sliceUnaryOperation(n -> {
+         NDArray out = getFactory().zeros(dim);
+         for (int i = from; i < to; i++) {
+            out.set(i, n.get(i));
+         }
+         return out;
+      });
    }
 
    @Override
    public NDArray slice(int iFrom, int iTo, int jFrom, int jTo) {
-      return null;
-   }
-
-   @Override
-   public NDArray slice(Axis axis, int... indexes) {
-      return null;
-   }
-
-   @Override
-   public NDArray sliceUnaryOperation(Function<NDArray, NDArray> function) {
-      SparseNDArray[] out = new SparseNDArray[numSlices()];
-      sliceStream().forEach(t -> {
-         NDArray i = function.apply(t.v2);
-         if (i instanceof SparseNDArray) {
-            out[t.v1] = Cast.as(i);
-         } else {
-            out[t.v1] = new SparseNDArray(out[t.v1]);
+      int rows = iTo - iFrom;
+      int cols = jTo - jFrom;
+      return sliceUnaryOperation(n -> {
+         NDArray out = getFactory().zeros(rows, cols);
+         for (int i = iFrom; i < iTo; i++) {
+            for (int j = jFrom; j < jTo; j++) {
+               out.set(i, j, n.get(i, j));
+            }
          }
+         return out;
       });
-      return new SparseNDArray(new int[]{out[0].numRows(), out[0].numCols(), numKernels(), numChannels()},
-                               Arrays.asList(out));
    }
+
+
+//   @Override
+//   public NDArray sliceUnaryOperation(Function<NDArray, NDArray> function) {
+//      SparseNDArray[] out = new SparseNDArray[numSlices()];
+//      sliceStream().forEach(t -> {
+//         NDArray i = function.apply(t.v2);
+//         if (i instanceof SparseNDArray) {
+//            out[t.v1] = Cast.as(i);
+//         } else {
+//            out[t.v1] = new SparseNDArray(out[t.v1]);
+//         }
+//      });
+//      return new SparseNDArray(new int[]{out[0].numRows(), out[0].numCols(), numKernels(), numChannels()},
+//                               Arrays.asList(out))
+//                .setWeight(getWeight())
+//                .setPredicted(getPredicted())
+//                .setLabel(getLabel());
+//   }
 
    @Override
    public Iterator<Entry> sparseColumnIterator(int column) {

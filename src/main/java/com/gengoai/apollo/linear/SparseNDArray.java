@@ -330,24 +330,42 @@ public class SparseNDArray extends NDArray {
       private final int col;
       private int row = 0;
       private int sliceIndex = 0;
+      private int mi;
+      private byte STATE = 0; // 0 - dirty, 1 - has next, 2 - end of iterator
 
       private SparseColumnIndexIterator(int col) {
          this.col = col;
+         this.mi = numRows() * col;
       }
 
       public boolean advance() {
-         while (sliceIndex < numSlices() && !advanceRow()) {
+         switch (STATE) {
+            case 1:
+               return true;
+            case 2:
+               return false;
+            default:
+               return computeNext();
+         }
+      }
+
+      private boolean computeNext() {
+         while (STATE != 2 && !advanceRow()) {
             sliceIndex++;
             row = 0;
+            mi = numRows() * col;
+            STATE = (sliceIndex < numSlices()) ? (byte) 0 : 2;
          }
-         return sliceIndex < numSlices();
+         return STATE == 1;
       }
 
       private boolean advanceRow() {
-         while (row < numRows() && !bitSet[sliceIndex][toMatrixIndex(row, col)]) {
+         while (row < numRows() && !bitSet[sliceIndex][mi]) {
             row++;
+            mi++;
          }
-         return row < numRows();
+         STATE = (row < numRows()) ? (byte) 1 : 0;
+         return STATE == 1;
       }
 
       @Override
@@ -358,8 +376,10 @@ public class SparseNDArray extends NDArray {
       @Override
       public Entry next() {
          checkState(advance(), "No such element");
-         Entry e = new Entry(sliceIndex, toMatrixIndex(row, col));
+         Entry e = new Entry(sliceIndex, mi);
          row++;
+         mi++;
+         STATE = 0;
          return e;
       }
    }

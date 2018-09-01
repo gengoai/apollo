@@ -35,16 +35,7 @@ public class Backprop implements Optimizer<FeedForwardNetwork> {
    static double correct(NDArray predicted, NDArray gold) {
       NDArray pMax = predicted.argMax(Axis.COLUMN);
       NDArray gMax = gold.argMax(Axis.COLUMN);
-      return pMax.selecti(gMax, NumericComparison.EQ).scalarSum();
-//      int[] pMax = predicted.argMax(Axis.COLUMN).toIntArray(0);
-//      int[] gMax = gold.argMax(Axis.COLUMN).toIntArray(0);
-//      float correct = 0;
-//      for (int i = 0; i < pMax.length; i++) {
-//         if (pMax[i] == gMax[i]) {
-//            correct++;
-//         }
-//      }
-//      return correct;
+      return pMax.testi(gMax, NumericComparison.EQ).scalarSum();
    }
 
    @Override

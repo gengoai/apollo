@@ -42,6 +42,15 @@ public class DenseNDArray extends NDArray {
       }));
    }
 
+   @Override
+   public NDArray reshape(int... dims) {
+      super.reshape(dims);
+      for (int i = 0; i < numSlices(); i++) {
+         data[i].reshape(numRows(), numCols());
+      }
+      return this;
+   }
+
    /**
     * Instantiates a new Dense nd array.
     *

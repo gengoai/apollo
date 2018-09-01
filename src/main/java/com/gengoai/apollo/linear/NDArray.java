@@ -370,7 +370,6 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
       }
       NDArray nd = Cast.as(o, NDArray.class);
       notNull(nd, "Cannot create NDArray from object.");
-      checkState(nd.length == dimension, lengthMismatch(dimension, (int) nd.length));
       return nd;
    }
 

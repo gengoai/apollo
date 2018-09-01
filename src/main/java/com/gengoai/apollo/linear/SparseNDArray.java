@@ -286,7 +286,7 @@ public class SparseNDArray extends NDArray {
       private int sliceIndex = 0;
       private int lastMatrixIndex;
       private int startingMatrixIndex;
-
+      private byte STATE = 0; // 0 - dirty, 1 - has next, 2 - end of iterator
 
       private SparseRowIndexIterator(int row) {
          this.lastMatrixIndex = toMatrixIndex(row, 0);
@@ -294,13 +294,26 @@ public class SparseNDArray extends NDArray {
       }
 
       public boolean advance() {
-         while (sliceIndex < numSlices() && !advanceColumn()) {
+         switch (STATE) {
+            case 1:
+               return true;
+            case 2:
+               return false;
+            default:
+               return computeNext();
+         }
+      }
+
+      private boolean computeNext() {
+         while (STATE != 2 && !advanceColumn()) {
             sliceIndex++;
             col = 0;
             lastMatrixIndex = startingMatrixIndex;
+            STATE = (sliceIndex < numSlices()) ? (byte) 0 : 2;
          }
-         return sliceIndex < numSlices();
+         return STATE == 1;
       }
+
 
       private boolean advanceColumn() {
          while (col < numCols()
@@ -308,7 +321,8 @@ public class SparseNDArray extends NDArray {
             col++;
             lastMatrixIndex += numRows();
          }
-         return col < numCols();
+         STATE = (col < numCols()) ? (byte) 1 : 0;
+         return STATE == 1;
       }
 
       @Override
@@ -322,6 +336,7 @@ public class SparseNDArray extends NDArray {
          Entry e = new Entry(sliceIndex, lastMatrixIndex);
          col++;
          lastMatrixIndex += numRows();
+         STATE = 0;
          return e;
       }
    }

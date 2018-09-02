@@ -1,7 +1,6 @@
 package com.gengoai.apollo.linear;
 
 import com.gengoai.Copyable;
-import com.gengoai.collection.Iterators;
 import com.gengoai.collection.Streams;
 import com.gengoai.conversion.Cast;
 import com.gengoai.json.JsonEntry;
@@ -2369,13 +2368,13 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
    }
 
    /**
-    * Sparse column iterator iterator.
+    * Sparse iterator over given column. (Dense implementations will return a dense iterator)
     *
-    * @param column the column
+    * @param column the column to iterate over
     * @return the iterator
     */
    public Iterator<Entry> sparseColumnIterator(final int column) {
-      return Iterators.filter(columnIterator(column), e -> e.getValue() != 0);
+      return columnIterator(column);
    }
 
    /**
@@ -2397,20 +2396,20 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
    }
 
    /**
-    * Sparse row iterator iterator.
+    * Sparse iterator over given row  (Dense implementations will return a dense iterator)
     *
-    * @param row the row
+    * @param row the row to iterate over
     * @return the iterator
     */
    public Iterator<Entry> sparseRowIterator(final int row) {
-      return Iterators.filter(rowIterator(row), e -> e.getValue() != 0);
+      return rowIterator(row);
    }
 
    /**
-    * Sparse vector iterator iterator.
+    * Sparse iterator over given index for given axis. (Dense Implementations will return a dense iterator)
     *
-    * @param index the index
-    * @param axis  the axis
+    * @param index the index to iterate over
+    * @param axis  the axis to iterate over
     * @return the iterator
     */
    public Iterator<Entry> sparseVectorIterator(int index, Axis axis) {
@@ -2422,9 +2421,9 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
    }
 
    /**
-    * Stream stream.
+    * Gets a stream of entries for the NDArray
     *
-    * @param sparse the sparse
+    * @param sparse True use a sparse stream if possible
     * @return the stream
     */
    public Stream<Entry> stream(boolean sparse) {
@@ -2540,9 +2539,9 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
    }
 
    /**
-    * Sum of squares nd array.
+    * Calculates the sum of squares per slice
     *
-    * @return the nd array
+    * @return NDArray with each slice having the sum of squares for corresponding slice in this NDArray
     */
    public NDArray sumOfSquares() {
       NDArray[] out = new NDArray[numSlices()];
@@ -2552,11 +2551,12 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
    }
 
    /**
-    * Select nd array.
+    * Compares entries in this NDArray with the given NDArray using the given comparison, setting entries to
+    * <code>1.0</code> if the comparison returns true and <code>0.0</code> otherwise.
     *
     * @param predicate  the predicate
     * @param comparison the comparison
-    * @return the nd array
+    * @return the NDArray with test results
     */
    public NDArray test(NDArray predicate, NumericComparison comparison) {
       return map(newZeroArray(),
@@ -2578,12 +2578,12 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
    }
 
    /**
-    * Selects all values in this NDArray whose corresponding element in the given predicate NDArray is not zero
-    * in-place. Basic broadcasting will occur for scalar, vector, and matrix NDArrays.
+    * Compares entries in this NDArray with the given NDArray using the given comparison, setting entries to
+    * <code>1.0</code> if the comparison returns true and <code>0.0</code> otherwise.
     *
     * @param predicate  the predicate NDArray test
     * @param comparison the comparison
-    * @return this NDArray with values passing the given predicate and zeros elsewhere
+    * @return this NDArray with 1.0 or 0.0 values based on the resultsof the comparison
     */
    public NDArray testi(NDArray predicate, NumericComparison comparison) {
       return map(this,
@@ -2605,20 +2605,20 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
    }
 
    /**
-    * To channel int.
+    * Calculates the channel index given the slice index
     *
     * @param sliceIndex the slice index
-    * @return the int
+    * @return the channel index
     */
    protected int toChannel(int sliceIndex) {
       return sliceIndex / numKernels();
    }
 
    /**
-    * To column int.
+    * Calculates the column index given the matrix index
     *
     * @param matrixIndex the matrix index
-    * @return the int
+    * @return the column index
     */
    protected int toColumn(int matrixIndex) {
       return matrixIndex / numRows();
@@ -2634,9 +2634,9 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
    }
 
    /**
-    * To double array double [ ].
+    * Generates a double view of the NDArray
     *
-    * @return the double [ ]
+    * @return 1d array of double values
     */
    public double[] toDoubleArray() {
       double[] out = new double[(int) length()];
@@ -2669,17 +2669,6 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
     */
    public abstract FloatMatrix toFloatMatrix();
 
-   /**
-    * To int array int [ ].
-    *
-    * @param slice the slice
-    * @return the int [ ]
-    */
-   public int[] toIntArray(int slice) {
-      int[] out = new int[matrixLength];
-      getSlice(slice).forEachSparse(e -> out[e.matrixIndex] = (int) e.getValue());
-      return out;
-   }
 
    @Override
    public JsonEntry toJson() {
@@ -2708,21 +2697,21 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
    }
 
    /**
-    * To kernel int.
+    * Calculates the kernel index given the slice index
     *
     * @param sliceIndex the slice index
-    * @return the int
+    * @return the kernel index
     */
    protected int toKernel(int sliceIndex) {
       return sliceIndex % numKernels();
    }
 
    /**
-    * To matrix index int.
+    * Calculates the matrix index from the row and column index
     *
     * @param row    the row
     * @param column the column
-    * @return the int
+    * @return the matrix index
     */
    protected int toMatrixIndex(int row, int column) {
       return toIndex(row, numRows(), column);
@@ -2739,20 +2728,20 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
    }
 
    /**
-    * To slice index int.
+    * Calculates the slice index from the kernel and channel
     *
     * @param kernel  the kernel
     * @param channel the channel
-    * @return the int
+    * @return the slice index
     */
    protected int toSliceIndex(int kernel, int channel) {
       return toIndex(kernel, numKernels(), channel);
    }
 
    /**
-    * To sparse sparse nd array.
+    * Converts the NDArray to a sparse implementation
     *
-    * @return the sparse nd array
+    * @return the sparse NDArray
     */
    public SparseNDArray toSparse() {
       return new SparseNDArray(this);
@@ -2764,7 +2753,7 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
    }
 
    /**
-    * To string string.
+    * Creates string representation of the NDArray with the given number of max slices, rows, and columns
     *
     * @param maxSlices  the max slices
     * @param maxRows    the max rows
@@ -2800,18 +2789,18 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
    }
 
    /**
-    * To unit vector nd array.
+    * Unitizes the NDArray by dividing the values by L2 Norm (per slice)
     *
-    * @return the nd array
+    * @return Unitized version of this NDArray
     */
    public NDArray unitize() {
       return div(norm2());
    }
 
    /**
-    * Value stream double stream.
+    * Creates a double stream of the values in this NDArray.
     *
-    * @param sparse the sparse
+    * @param sparse True if we want a sparse stream (only for sparse implementations)
     * @return the double stream
     */
    public DoubleStream valueStream(boolean sparse) {

@@ -8,6 +8,8 @@ import com.gengoai.conversion.Cast;
 import lombok.NonNull;
 
 import java.io.Serializable;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -29,7 +31,7 @@ public interface Featurizer<INPUT> extends Serializable {
       if (featurizers.length == 0) {
          return Cast.as(featurizerOne);
       }
-      return new FeaturizerChain<>(featurizerOne, featurizers);
+      return new FeaturizerChain<>(featurizerOne, Arrays.asList(featurizers));
    }
 
    /**
@@ -43,7 +45,7 @@ public interface Featurizer<INPUT> extends Serializable {
          Cast.<FeaturizerChain<INPUT>>as(this).addFeaturizer(featurizer);
          return this;
       }
-      return new FeaturizerChain<>(this, featurizer);
+      return new FeaturizerChain<>(this, Collections.singleton(featurizer));
    }
 
    /**

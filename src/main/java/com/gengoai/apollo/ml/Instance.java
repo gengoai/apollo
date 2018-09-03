@@ -26,11 +26,11 @@ import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.ml.encoder.EncoderPair;
 import com.gengoai.apollo.ml.encoder.HashingEncoder;
+import com.gengoai.collection.Sets;
 import com.gengoai.collection.counter.Counter;
 import com.gengoai.conversion.Cast;
 import com.gengoai.json.JsonEntry;
 import com.gengoai.json.JsonSerializable;
-import com.google.common.collect.Sets;
 import lombok.*;
 
 import java.io.Serializable;
@@ -207,9 +207,9 @@ public class Instance implements Example, Serializable, Iterable<Feature>, JsonS
       } else if (label instanceof Collection) {
          this.label = new HashSet<>(Cast.as(label));
       } else if (label instanceof Iterable) {
-         this.label = Sets.newHashSet(Cast.<Iterable>as(label));
+         this.label = Sets.set(Cast.<Iterable>as(label));
       } else if (label instanceof Iterator) {
-         this.label = Sets.newHashSet(Cast.<Iterator<?>>as(label));
+         this.label = Sets.set(Cast.<Iterator<?>>as(label));
       } else if (label.getClass().isArray()) {
          this.label = new HashSet<>(Arrays.asList(Cast.<Object[]>as(label)));
       } else {

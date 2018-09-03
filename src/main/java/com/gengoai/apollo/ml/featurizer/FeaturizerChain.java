@@ -25,7 +25,7 @@ import com.gengoai.apollo.ml.Feature;
 import com.gengoai.conversion.Cast;
 import lombok.NonNull;
 
-import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -39,7 +39,7 @@ import java.util.stream.Collectors;
  */
 class FeaturizerChain<INPUT> implements Featurizer<INPUT> {
    private static final long serialVersionUID = 1L;
-   private final Set<Featurizer<INPUT>> featurizers = new HashSet<>();
+   private final Set<Featurizer<? super INPUT>> featurizers = new HashSet<>();
 
 
    /**
@@ -48,11 +48,11 @@ class FeaturizerChain<INPUT> implements Featurizer<INPUT> {
     * @param featurizerOne the first featurizer
     * @param featurizers   the featurizers making up the chain
     */
-   @SafeVarargs
-   public FeaturizerChain(@NonNull Featurizer<? super INPUT> featurizerOne, Featurizer<? super INPUT>... featurizers) {
+   public FeaturizerChain(@NonNull Featurizer<? super INPUT> featurizerOne,
+                          Collection<Featurizer<? super INPUT>> featurizers) {
       this.featurizers.add(Cast.as(featurizerOne));
-      if (featurizers != null && featurizers.length > 0) {
-         this.featurizers.addAll(Cast.cast(Arrays.asList(featurizers)));
+      if (featurizers != null && featurizers.size() > 0) {
+         this.featurizers.addAll(featurizers);
       }
    }
 

@@ -76,7 +76,15 @@ public class SparseNDArray extends NDArray {
       return new SparseNDArray(this);
    }
 
-   protected void forEachPair(IntFloatProcedure procedure) {
+   @Override
+   public NDArray fill(double value) {
+      if (value == 0) {
+         return zero();
+      }
+      return super.fill(value);
+   }
+
+   private void forEachPair(IntFloatProcedure procedure) {
       data[0].forEachPair(procedure);
    }
 
@@ -184,25 +192,6 @@ public class SparseNDArray extends NDArray {
          return out;
       });
    }
-
-
-//   @Override
-//   public NDArray sliceUnaryOperation(Function<NDArray, NDArray> function) {
-//      SparseNDArray[] out = new SparseNDArray[numSlices()];
-//      sliceStream().forEach(t -> {
-//         NDArray i = function.apply(t.v2);
-//         if (i instanceof SparseNDArray) {
-//            out[t.v1] = Cast.as(i);
-//         } else {
-//            out[t.v1] = new SparseNDArray(out[t.v1]);
-//         }
-//      });
-//      return new SparseNDArray(new int[]{out[0].numRows(), out[0].numCols(), numKernels(), numChannels()},
-//                               Arrays.asList(out))
-//                .setWeight(getWeight())
-//                .setPredicted(getPredicted())
-//                .setLabel(getLabel());
-//   }
 
    @Override
    public Iterator<Entry> sparseColumnIterator(int column) {
@@ -318,17 +307,6 @@ public class SparseNDArray extends NDArray {
          }
       }
 
-      private boolean computeNext() {
-         while (STATE != 2 && !advanceColumn()) {
-            sliceIndex++;
-            col = 0;
-            lastMatrixIndex = startingMatrixIndex;
-            STATE = (sliceIndex < numSlices()) ? (byte) 0 : 2;
-         }
-         return STATE == 1;
-      }
-
-
       private boolean advanceColumn() {
          while (col < numCols()
                    && !bitSet[sliceIndex][lastMatrixIndex]) {
@@ -336,6 +314,16 @@ public class SparseNDArray extends NDArray {
             lastMatrixIndex += numRows();
          }
          STATE = (col < numCols()) ? (byte) 1 : 0;
+         return STATE == 1;
+      }
+
+      private boolean computeNext() {
+         while (STATE != 2 && !advanceColumn()) {
+            sliceIndex++;
+            col = 0;
+            lastMatrixIndex = startingMatrixIndex;
+            STATE = (sliceIndex < numSlices()) ? (byte) 0 : 2;
+         }
          return STATE == 1;
       }
 
@@ -378,6 +366,15 @@ public class SparseNDArray extends NDArray {
          }
       }
 
+      private boolean advanceRow() {
+         while (row < numRows() && !bitSet[sliceIndex][mi]) {
+            row++;
+            mi++;
+         }
+         STATE = (row < numRows()) ? (byte) 1 : 0;
+         return STATE == 1;
+      }
+
       private boolean computeNext() {
          while (STATE != 2 && !advanceRow()) {
             sliceIndex++;
@@ -385,15 +382,6 @@ public class SparseNDArray extends NDArray {
             mi = numRows() * col;
             STATE = (sliceIndex < numSlices()) ? (byte) 0 : 2;
          }
-         return STATE == 1;
-      }
-
-      private boolean advanceRow() {
-         while (row < numRows() && !bitSet[sliceIndex][mi]) {
-            row++;
-            mi++;
-         }
-         STATE = (row < numRows()) ? (byte) 1 : 0;
          return STATE == 1;
       }
 

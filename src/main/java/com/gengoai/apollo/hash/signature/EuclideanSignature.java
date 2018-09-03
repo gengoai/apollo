@@ -23,6 +23,7 @@ package com.gengoai.apollo.hash.signature;
 
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
+import com.gengoai.apollo.linear.NDArrayInitializer;
 import com.gengoai.apollo.stat.measure.Distance;
 import com.gengoai.apollo.stat.measure.Measure;
 
@@ -53,7 +54,7 @@ public class EuclideanSignature implements SignatureFunction {
       this.w = new int[signatureSize];
       this.offset = new int[signatureSize];
       for (int i = 0; i < signatureSize; i++) {
-         this.randomProjections[i] = NDArrayFactory.DEFAULT().randn(dimension);
+         this.randomProjections[i] = NDArrayFactory.DEFAULT().create(NDArrayInitializer.randn,dimension);
          this.w[i] = (int) Math.round(Math.random() * maxW);
          this.offset[i] = (int) Math.floor(Math.random() * this.w[i]);
       }

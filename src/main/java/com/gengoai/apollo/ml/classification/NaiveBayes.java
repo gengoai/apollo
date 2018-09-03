@@ -118,7 +118,7 @@ public class NaiveBayes extends Classifier {
 
          @Override
          double[] distribution(NDArray instance, double[] priors, double[][] conditionals) {
-            NDArray distribution = NDArrayFactory.wrap(priors);
+            NDArray distribution = NDArrayFactory.columnVector(priors);
             for (int i = 0; i < priors.length; i++) {
                for (int f = 0; f < conditionals.length; f++) {
                   if (instance.get(f) != 0) {
@@ -158,7 +158,7 @@ public class NaiveBayes extends Classifier {
        * @return the distribution as an array
        */
       double[] distribution(NDArray instance, double[] priors, double[][] conditionals) {
-         NDArray distribution = NDArrayFactory.wrap(priors);
+         NDArray distribution = NDArrayFactory.columnVector(priors);
          instance.forEachSparse(entry -> {
             for (int i = 0; i < priors.length; i++) {
                distribution.decrement(i, entry.getValue() * conditionals[(int) entry.getIndex()][i]);

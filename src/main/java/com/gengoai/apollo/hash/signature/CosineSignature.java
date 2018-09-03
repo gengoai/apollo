@@ -23,6 +23,7 @@ package com.gengoai.apollo.hash.signature;
 
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
+import com.gengoai.apollo.linear.NDArrayInitializer;
 import com.gengoai.apollo.stat.measure.Measure;
 import com.gengoai.apollo.stat.measure.Similarity;
 
@@ -49,7 +50,7 @@ public class CosineSignature implements SignatureFunction {
       this.dimension = dimension;
       this.randomProjections = new NDArray[signatureSize];
       for (int i = 0; i < signatureSize; i++) {
-         this.randomProjections[i] = NDArrayFactory.DEFAULT().randn(dimension);
+         this.randomProjections[i] = NDArrayFactory.DEFAULT().create(NDArrayInitializer.randn, dimension);
       }
    }
 

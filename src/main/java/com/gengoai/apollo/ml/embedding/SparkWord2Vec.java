@@ -86,7 +86,7 @@ public class SparkWord2Vec extends EmbeddingLearner {
       builder.measure(Similarity.Cosine);
       for (Map.Entry<String, float[]> vector : JavaConversions.mapAsJavaMap(model.getVectors()).entrySet()) {
          encoder.encode(vector.getKey());
-         builder.add(vector.getKey(), NDArrayFactory.wrap(Convert.convert(vector.getValue(), double[].class)));
+         builder.add(vector.getKey(), NDArrayFactory.columnVector(Convert.convert(vector.getValue(), double[].class)));
       }
       try {
          return new Embedding(builder.build());

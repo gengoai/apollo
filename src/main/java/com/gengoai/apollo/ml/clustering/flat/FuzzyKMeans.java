@@ -88,7 +88,7 @@ public class FuzzyKMeans extends Clusterer<FlatClustering> {
                                         .filter(c -> c.getPoints().size() > 0)
                                         .map(c -> {
                                            Cluster cp = new Cluster();
-                                           cp.setCentroid(NDArrayFactory.wrap(c.getCenter().getPoint()));
+                                           cp.setCentroid(NDArrayFactory.columnVector(c.getCenter().getPoint()));
                                            c.getPoints().forEach(ap -> cp.addPoint(ap.getVector()));
                                            return cp;
                                         }).collect(Collectors.toList());

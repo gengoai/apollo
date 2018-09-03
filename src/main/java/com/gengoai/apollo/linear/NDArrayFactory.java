@@ -13,13 +13,13 @@ import java.util.List;
 import static com.gengoai.Validation.checkArgument;
 
 /**
- * The enum Nd array factory.
+ * Factory for NDArrays
  *
  * @author David B. Bracewell
  */
 public enum NDArrayFactory {
    /**
-    * The Dense.
+    * Dense JBlas FloatMatrix backed NDArrays
     */
    DENSE {
       @Override
@@ -48,9 +48,11 @@ public enum NDArrayFactory {
          FloatMatrix[] matrices = Arrays.stream(slices).map(NDArray::toFloatMatrix).toArray(FloatMatrix[]::new);
          return new DenseNDArray(matrices, shape);
       }
+
+
    },
    /**
-    * The Sparse.
+    * Sparse Matrices with boolean array indexes for fast lookup
     */
    SPARSE {
       @Override
@@ -79,12 +81,33 @@ public enum NDArrayFactory {
    };
 
    /**
-    * Default nd array factory.
+    * Gets the default NDArray factory checking first if it is set via Config and if not defaulting to DENSE.
     *
-    * @return the nd array factory
+    * @return the default NDArray Factory
     */
    public static NDArrayFactory DEFAULT() {
       return Config.get("ndarray.factory").as(NDArrayFactory.class, DENSE);
+   }
+
+   /**
+    * Creates a dense column vector wrapping the given float array (i.e. changes to the array will be reflected in the
+    * NDArray).
+    *
+    * @param vector the float array vector to wrap
+    * @return the dense NDArray
+    */
+   public static NDArray columnVector(float[] vector) {
+      return new DenseNDArray(new FloatMatrix(vector.length, 1, vector));
+   }
+
+   /**
+    * Creates a dense column vector from the given double array.
+    *
+    * @param vector the double array vector to wrap
+    * @return the dense NDArray
+    */
+   public static NDArray columnVector(double[] vector) {
+      return new DenseNDArray(new DoubleMatrix(vector));
    }
 
    private static int[] ensureDimensions(int... dimensions) {
@@ -98,70 +121,63 @@ public enum NDArrayFactory {
    }
 
    /**
-    * Wrap nd array.
+    * Wraps the given 2d float array as a matrix NDArray.
     *
-    * @param vector the vector
-    * @return the nd array
+    * @param matrix the matrix
+    * @return the dense NDArray
     */
-   public static NDArray wrap(float[] vector) {
-      return new DenseNDArray(new FloatMatrix(vector));
+   public static NDArray matrix(float[][] matrix) {
+      return new DenseNDArray(new FloatMatrix(matrix));
    }
 
-   public static NDArray columnVector(float[] vector) {
-      return new DenseNDArray(new FloatMatrix(vector.length, 1, vector));
+   /**
+    * Wraps the given 2d double array as a matrix NDArray.
+    *
+    * @param matrix the matrix
+    * @return the dense NDArray
+    */
+   public static NDArray matrix(double[][] matrix) {
+      return new DenseNDArray(new DoubleMatrix(matrix));
    }
 
+   /**
+    * Creates a dense row vector wrapping the given float array (i.e. changes to the array will be reflected in the
+    * NDArray).
+    *
+    * @param vector the float array vector to wrap
+    * @return the dense NDArray
+    */
    public static NDArray rowVector(float[] vector) {
       return new DenseNDArray(new FloatMatrix(1, vector.length, vector));
    }
 
    /**
-    * Wrap nd array.
+    * Creates a dense column vector from the given double array.
     *
-    * @param vector the vector
-    * @return the nd array
+    * @param vector the double array vector to wrap
+    * @return the dense NDArray
     */
-   public static NDArray wrap(double[] vector) {
-      return new DenseNDArray(new DoubleMatrix(vector));
+   public static NDArray rowVector(double[] vector) {
+      return new DenseNDArray(new DoubleMatrix(1, vector.length, vector));
    }
 
    /**
-    * Wrap nd array.
+    * Creates an NDArray of given dimensions filled with the given value.
     *
-    * @param matrix the matrix
-    * @return the nd array
-    */
-   public static NDArray wrap(float[][] matrix) {
-      return new DenseNDArray(new FloatMatrix(matrix));
-   }
-
-   /**
-    * Wrap nd array.
-    *
-    * @param matrix the matrix
-    * @return the nd array
-    */
-   public static NDArray wrap(double[][] matrix) {
-      return new DenseNDArray(new DoubleMatrix(matrix));
-   }
-
-   /**
-    * Constant nd array.
-    *
-    * @param value      the value
-    * @param dimensions the dimensions
-    * @return the nd array
+    * @param value      the constant value to fill the new NDArray with
+    * @param dimensions the dimensions of the NDArray
+    * @return the NDArray
     */
    public NDArray constant(double value, int... dimensions) {
       return zeros(dimensions).fill(value);
    }
 
    /**
-    * Create nd array.
+    * Creates an NDArray of given dimensions initializing it with the given {@link NDArrayInitializer}
     *
-    * @param initializer the initializer
-    * @param dimensions  the dimensions
-    * @return the nd array
+    * @param initializer the initializer to use to initialize the values of the NDArray
+    * @param dimensions  the dimensions of the NDArray
+    * @return the NDArray
     */
    public NDArray create(NDArrayInitializer initializer, int... dimensions) {
       NDArray out = zeros(dimensions);
@@ -170,79 +186,19 @@ public enum NDArrayFactory {
    }
 
    /**
-    * Create nd array.
+    * Creates an Empty NDArray
     *
-    * @param rows    the rows
-    * @param columns the columns
-    * @param data    the data
-    * @return the nd array
-    */
-   public NDArray create(int rows, int columns, double[] data) {
-      NDArray toReturn = zeros(rows, columns);
-      for (int i = 0; i < data.length; i++) {
-         toReturn.set(i, (float) data[i]);
-      }
-      return toReturn;
-   }
-
-   /**
-    * Create nd array.
-    *
-    * @param data the data
-    * @return the nd array
-    */
-   public NDArray create(double[] data) {
-      NDArray toReturn = zeros(data.length);
-      for (int i = 0; i < data.length; i++) {
-         toReturn.set(i, (float) data[i]);
-      }
-      return toReturn;
-   }
-
-   /**
-    * Create nd array.
-    *
-    * @param rows    the rows
-    * @param columns the columns
-    * @param data    the data
-    * @return the nd array
-    */
-   public NDArray create(int rows, int columns, float[] data) {
-      NDArray toReturn = zeros(rows, columns);
-      for (int i = 0; i < data.length; i++) {
-         toReturn.set(i, data[i]);
-      }
-      return toReturn;
-   }
-
-   /**
-    * Create nd array.
-    *
-    * @param data the data
-    * @return the nd array
-    */
-   public NDArray create(float[] data) {
-      NDArray toReturn = zeros(data.length);
-      for (int i = 0; i < data.length; i++) {
-         toReturn.set(i, data[i]);
-      }
-      return toReturn;
-   }
-
-   /**
-    * Empty nd array.
-    *
-    * @return the nd array
+    * @return the NDArray
     */
    public NDArray empty() {
       return zeros(0);
    }
 
    /**
-    * Eye nd array.
+    * Creates an identity matrix
     *
-    * @param n the n
-    * @return the nd array
+    * @param n the number of rows and columns
+    * @return the identity matrix NDArray
     */
    public NDArray eye(int n) {
       NDArray toReturn = zeros(n, n);
@@ -253,104 +209,102 @@ public enum NDArrayFactory {
    }
 
    /**
-    * From layers nd array.
+    * Creates a 3D NDArray from the given slices. (Slices are kept as-is meaning external changes to them will be
+    * represented in the new NDArray).
     *
     * @param slices the slices
-    * @return the nd array
+    * @return the NDArray
     */
    public NDArray fromLayers(NDArray... slices) {
       return fromLayers(slices.length, 1, slices);
    }
 
    /**
-    * From layers nd array.
+    * Creates a 3D or 4D NDArray from the given slices. (Slices are kept as-is meaning external changes to them will be
+    * represented in the new NDArray).
     *
-    * @param kernels  the kernels
-    * @param channels the channels
+    * @param kernels  the number of kernels
+    * @param channels the number of channels
     * @param slices   the slices
-    * @return the nd array
+    * @return the NDArray
     */
    public abstract NDArray fromLayers(int kernels, int channels, NDArray... slices);
 
    /**
-    * Hstack nd array.
+    * Horizontally stacks the given NDArrays concatenating the columns.
     *
-    * @param columns the columns
-    * @return the nd array
+    * @param columns the column NDArrays
+    * @return the NDArray
     */
    public NDArray hstack(Collection<NDArray> columns) {
       return stack(Axis.COLUMN, columns);
    }
 
    /**
-    * Hstack nd array.
+    * Horizontally stacks the given NDArrays concatenating the columns.
     *
-    * @param columns the columns
-    * @return the nd array
+    * @param columns the column NDArrays
+    * @return the NDArray
     */
    public NDArray hstack(NDArray... columns) {
-      return stack(Axis.COLUMN, columns);
+      return stack(Axis.COLUMN, Arrays.asList(columns));
    }
 
    /**
-    * Ones nd array.
+    * Creates a matrix NDArray from the given double array.
     *
-    * @param dimensions the dimensions
-    * @return the nd array
+    * @param rows    the number of rows
+    * @param columns the number of columns
+    * @param data    the matrix values
+    * @return the NDArray
+    */
+   public NDArray matrix(int rows, int columns, double[] data) {
+      NDArray toReturn = zeros(rows, columns);
+      for (int i = 0; i < data.length; i++) {
+         toReturn.set(i, (float) data[i]);
+      }
+      return toReturn;
+   }
+
+   /**
+    * Creates a matrix NDArray from the given float array.
+    *
+    * @param rows    the number of rows
+    * @param columns the number of columns
+    * @param data    the matrix values
+    * @return the NDArray
+    */
+   public NDArray matrix(int rows, int columns, float[] data) {
+      NDArray toReturn = zeros(rows, columns);
+      for (int i = 0; i < data.length; i++) {
+         toReturn.set(i, data[i]);
+      }
+      return toReturn;
+   }
+
+   /**
+    * Creates a new NDArray of given dimensions where all values are <code>1.0</code>.
+    *
+    * @param dimensions the dimensions of the NDArray
+    * @return the NDArray
     */
    public NDArray ones(int... dimensions) {
       return create(NDArrayInitializer.ones, dimensions);
    }
 
-   /**
-    * Rand nd array.
-    *
-    * @param dimensions the dimensions
-    * @return the nd array
-    */
-   public NDArray rand(int... dimensions) {
-      return create(NDArrayInitializer.rand, dimensions);
-   }
 
    /**
-    * Randn nd array.
-    *
-    * @param dimensions the dimensions
-    * @return the nd array
-    */
-   public NDArray randn(int... dimensions) {
-      return create(NDArrayInitializer.randn, dimensions);
-   }
-
-   /**
-    * Scalar nd array.
+    * Creates a scalar NDArray of size <code>(1,1,1,1)</code> with the given value.
     *
     * @param value the value
-    * @return the nd array
+    * @return the NDArray
     */
    public NDArray scalar(double value) {
       return constant(value, 1, 1, 1, 1);
    }
 
-   /**
-    * Stack nd array.
-    *
-    * @param axis   the axis
-    * @param arrays the arrays
-    * @return the nd array
-    */
-   public NDArray stack(Axis axis, NDArray... arrays) {
-      return stack(axis, Arrays.asList(arrays));
-   }
 
-   /**
-    * Stack nd array.
-    *
-    * @param axis   the axis
-    * @param arrays the arrays
-    * @return the nd array
-    */
-   public NDArray stack(Axis axis, Collection<NDArray> arrays) {
+   private NDArray stack(Axis axis, Collection<NDArray> arrays) {
       checkArgument(axis.isRowOrColumn(), "Axis (" + axis + ") is not supported.");
       if (arrays.size() == 0) {
          return empty();
@@ -358,7 +312,7 @@ public enum NDArrayFactory {
          return arrays.iterator().next().copy();
       }
       int[] shape = arrays.iterator().next().shape();
-      shape[axis.ordinal] = arrays.stream().mapToInt(n -> n.dimension(axis)).sum();
+      shape[axis.index] = arrays.stream().mapToInt(n -> n.dimension(axis)).sum();
       NDArray toReturn = zeros(shape);
 
       int globalAxisIndex = 0;
@@ -372,30 +326,30 @@ public enum NDArrayFactory {
    }
 
    /**
-    * Vstack nd array.
+    * Vertically stacks the given NDArrays concatenating the rows.
     *
-    * @param rows the rows
-    * @return the nd array
+    * @param rows the row NDArrays
+    * @return the NDArray
     */
    public NDArray vstack(NDArray... rows) {
-      return stack(Axis.ROW, rows);
+      return stack(Axis.ROW, Arrays.asList(rows));
    }
 
    /**
-    * Vstack nd array.
+    * Vertically stacks the given NDArrays concatenating the rows.
     *
-    * @param rows the rows
-    * @return the nd array
+    * @param rows the row NDArrays
+    * @return the NDArray
     */
    public NDArray vstack(Collection<NDArray> rows) {
       return stack(Axis.ROW, rows);
    }
 
    /**
-    * Zeros nd array.
+    * Creates a new NDArray of given dimensions where all values are <code>0.0</code>.
     *
-    * @param dimensions the dimensions
-    * @return the nd array
+    * @param dimensions the dimensions of the NDArray
+    * @return the NDArray
     */
    public abstract NDArray zeros(int... dimensions);
 

@@ -48,7 +48,7 @@ public class FeedForwardNetwork extends Classifier {
       if (vector.length() == 1) {
          Activation activation = Cast.<WeightLayer>as(layers.get(layers.size() - 1)).activation;
          double shift = activation.isProbabilistic() ? 1d : 0d;
-         vector = NDArrayFactory.wrap(new double[]{shift - vector.scalarValue(), vector.scalarValue()});
+         vector = NDArrayFactory.columnVector(new double[]{shift - vector.scalarValue(), vector.scalarValue()});
       }
       return createResult(vector.toDoubleArray());
    }

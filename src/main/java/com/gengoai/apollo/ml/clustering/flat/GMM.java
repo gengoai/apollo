@@ -29,7 +29,7 @@ public class GMM extends Clustering {
    public Cluster get(int index) {
       Validation.checkElementIndex(index, components.size());
       Cluster c = new Cluster();
-      c.setCentroid(NDArrayFactory.wrap(components.get(index).sample()));
+      c.setCentroid(NDArrayFactory.columnVector(components.get(index).sample()));
       return c;
    }
 

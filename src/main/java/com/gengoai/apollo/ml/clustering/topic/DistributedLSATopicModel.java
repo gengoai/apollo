@@ -60,7 +60,7 @@ public class DistributedLSATopicModel extends Clusterer<LSAModel> {
       LSAModel model = new LSAModel(this, Similarity.Cosine.asDistanceMeasure(), K);
       for (int i = 0; i < K; i++) {
          Cluster c = new Cluster();
-         c.addPoint(NDArrayFactory.wrap(topics.getVector(i, Axis.ROW).toDoubleArray()));
+         c.addPoint(NDArrayFactory.columnVector(topics.getVector(i, Axis.ROW).toDoubleArray()));
          model.addCluster(c);
       }
       return model;

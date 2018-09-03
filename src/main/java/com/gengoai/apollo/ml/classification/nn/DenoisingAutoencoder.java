@@ -86,9 +86,9 @@ public class DenoisingAutoencoder {
 
    public static void main(String[] args) throws Exception {
       List<NDArray> data = Lists.list(
-         NDArrayFactory.wrap(new double[]{1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0}),
-         NDArrayFactory.wrap(new double[]{0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0}),
-         NDArrayFactory.wrap(new double[]{0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1})
+         NDArrayFactory.columnVector(new double[]{1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0}),
+         NDArrayFactory.columnVector(new double[]{0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0}),
+         NDArrayFactory.columnVector(new double[]{0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1})
                                      );
       DenoisingAutoencoder autoencoder = new DenoisingAutoencoder(5, 12);
       autoencoder.train(data, 3, 0.1, 0.3);

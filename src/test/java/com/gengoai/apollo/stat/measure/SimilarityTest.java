@@ -13,9 +13,9 @@ import static org.junit.Assert.*;
  */
 public class SimilarityTest {
 
-   final NDArray v1 = NDArrayFactory.wrap(new double[]{
+   final NDArray v1 = NDArrayFactory.columnVector(new double[]{
       0.06017036811209875, 0.6200632004644884, 0.7609311190726616, 0.49296225829243057, 0.4550247106358657, 0.46427358814876685, 0.19906369044188432, 0.6462803017542045, 0.5371970147563676, 0.4244205654374822});
-   final NDArray v2 = NDArrayFactory.wrap(
+   final NDArray v2 = NDArrayFactory.columnVector(
       new double[]{0.07114390080558797, 0.246121098350624, 0.778677300972233, 0.2843022452280499, 0.9286238183735879, 0.9800765792531674, 0.595180121663983, 0.42473313393664824, 0.8406326336670255, 0.31775147612780663});
 
    final ContingencyTable table = ContingencyTable.create2X2(10, 20, 25, 45);

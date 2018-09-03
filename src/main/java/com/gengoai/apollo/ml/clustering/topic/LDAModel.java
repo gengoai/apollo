@@ -50,7 +50,7 @@ public class LDAModel extends TopicModel {
 
    @Override
    public NDArray getTopicVector(int topic) {
-      return NDArrayFactory.wrap(wordTopic.probabilities(topic));
+      return NDArrayFactory.columnVector(wordTopic.probabilities(topic));
    }
 
    @Override

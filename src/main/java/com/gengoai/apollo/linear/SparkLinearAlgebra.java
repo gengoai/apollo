@@ -132,7 +132,7 @@ public final class SparkLinearAlgebra {
     * @return the Apollo matrix
     */
    public static NDArray toMatrix(@NonNull org.apache.spark.mllib.linalg.Matrix m) {
-      return NDArrayFactory.DENSE.create(m.numRows(), m.numCols(), m.toArray());
+      return NDArrayFactory.DENSE.matrix(m.numRows(), m.numCols(), m.toArray());
    }
 
    public static RowMatrix toRowMatrix(@NonNull NDArray matrix) {

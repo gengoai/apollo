@@ -171,13 +171,13 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
     * @return the int
     */
    protected static int orderOf(int[] shape) {
-      if (shape[Axis.CHANNEL.ordinal] > 1) {
+      if (shape[Axis.CHANNEL.index] > 1) {
          return 4;
-      } else if (shape[Axis.KERNEL.ordinal] > 1) {
+      } else if (shape[Axis.KERNEL.index] > 1) {
          return 3;
-      } else if (shape[Axis.ROW.ordinal] > 1 && shape[Axis.COLUMN.ordinal] > 1) {
+      } else if (shape[Axis.ROW.index] > 1 && shape[Axis.COLUMN.index] > 1) {
          return 2;
-      } else if (shape[Axis.ROW.ordinal] > 1 || shape[Axis.COLUMN.ordinal] > 1) {
+      } else if (shape[Axis.ROW.index] > 1 || shape[Axis.COLUMN.index] > 1) {
          return 1;
       }
       return 0;
@@ -554,7 +554,7 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
     * @return the dimension of the given axis
     */
    public int dimension(Axis axis) {
-      return shape[axis.ordinal];
+      return shape[axis.index];
    }
 
    /**
@@ -731,11 +731,7 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
     * @return This NDArray
     */
    public NDArray fill(double value) {
-      if (value == 0) {
-         zero();
-      } else {
-         forEach(e -> e.setValue(value));
-      }
+      forEach(e -> e.setValue(value));
       return this;
    }
 
@@ -1677,7 +1673,7 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
    private NDArray optimum(Axis axis, Optimum optimum) {
       checkArgument(axis.isRowOrColumn(), () -> axisNotSupported(axis));
       int[] newShape = shape();
-      newShape[axis.T().ordinal] = 1;
+      newShape[axis.T().index] = 1;
       NDArray out = getFactory().constant((float) optimum.startingValue(), newShape);
       sliceStream().forEach(t -> {
          NDArray outSlice = out.getSlice(t.v1);
@@ -1713,8 +1709,8 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
 
    private NDArray optimumPosition(Axis axis, Optimum optimum) {
       checkArgument(axis.isRowOrColumn(), () -> axisNotSupported(axis));
-      final int rows = axis.is(Axis.ROW) ? dimension(axis) : 1;
-      final int cols = axis.is(Axis.COLUMN) ? dimension(axis) : 1;
+      final int rows = axis == Axis.ROW ? dimension(axis) : 1;
+      final int cols = axis == Axis.COLUMN ? dimension(axis) : 1;
       return sliceUnaryOperation(n -> {
          NDArray out = getFactory().zeros(rows, cols);
          final double[] optimums = new double[Math.max(rows, cols)];
@@ -2527,7 +2523,7 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
    public NDArray sum(Axis axis) {
       checkArgument(axis.isRowOrColumn(), () -> axisNotSupported(axis));
       int[] newShape = shape();
-      newShape[axis.T().ordinal] = 1;
+      newShape[axis.T().index] = 1;
       NDArray out = getFactory().zeros(newShape);
       forEachSlice((i, slice) -> {
          for (Iterator<Entry> itr = slice.sparseIterator(); itr.hasNext(); ) {

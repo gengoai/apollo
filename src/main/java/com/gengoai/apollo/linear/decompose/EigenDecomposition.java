@@ -36,8 +36,8 @@ public class EigenDecomposition implements Decomposition, Serializable {
       org.apache.commons.math3.linear.EigenDecomposition decomposition =
          new org.apache.commons.math3.linear.EigenDecomposition(new RealMatrixWrapper(input));
       return new NDArray[]{
-         NDArrayFactory.wrap(decomposition.getV().getData()),
-         NDArrayFactory.wrap(decomposition.getD().getData())
+         NDArrayFactory.matrix(decomposition.getV().getData()),
+         NDArrayFactory.matrix(decomposition.getD().getData())
       };
    }
 }// END OF EigenDecomposition

@@ -44,11 +44,11 @@ public class BisectingKMeans extends Clusterer<FlatCentroidClustering> {
       org.apache.spark.mllib.linalg.Vector[] centers = model.clusterCenters();
       for (int i = 0; i < K; i++) {
          clustering.addCluster(new Cluster());
-         clustering.get(i).setCentroid(NDArrayFactory.wrap(centers[i].toArray()));
+         clustering.get(i).setCentroid(NDArrayFactory.columnVector(centers[i].toArray()));
       }
       Map<org.apache.spark.mllib.linalg.Vector, Integer> assignments = rdd.mapToPair(
          v -> Tuple2.apply(v, model.predict(v))).collectAsMap();
-      assignments.forEach((v, i) -> clustering.get(i).addPoint(NDArrayFactory.wrap(v.toArray())));
+      assignments.forEach((v, i) -> clustering.get(i).addPoint(NDArrayFactory.columnVector(v.toArray())));
 
       return clustering;
    }

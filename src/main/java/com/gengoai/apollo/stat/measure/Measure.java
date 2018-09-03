@@ -43,7 +43,7 @@ public interface Measure extends Serializable {
     * @return the metric result
     */
    default double calculate(@NonNull double[] v1, @NonNull double[] v2) {
-      return calculate(NDArrayFactory.wrap(v1), NDArrayFactory.wrap(v2));
+      return calculate(NDArrayFactory.columnVector(v1), NDArrayFactory.columnVector(v2));
    }
 
    /**

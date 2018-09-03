@@ -82,10 +82,10 @@ public class DistributedKMeans extends Clusterer<FlatClustering> {
          Tuple2<Integer, Iterable<Tuple2<String, Vector>>> tuple = itr.next();
          Cluster cluster = new Cluster();
          int i = tuple._1();
-         cluster.setCentroid(NDArrayFactory.wrap(centroids[i].toArray()));
+         cluster.setCentroid(NDArrayFactory.columnVector(centroids[i].toArray()));
          if (isKeepPoints()) {
             tuple._2().forEach(lp -> cluster.addPoint(
-               NDArrayFactory.wrap(lp._2().toArray()).setLabel(lp._1())));
+               NDArrayFactory.columnVector(lp._2().toArray()).setLabel(lp._1())));
          }
          clusters.set(i, cluster);
       }

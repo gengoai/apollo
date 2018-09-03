@@ -82,7 +82,7 @@ public class Classification implements Serializable {
    }
 
    public NDArray asVector() {
-      return NDArrayFactory.wrap(distribution);
+      return NDArrayFactory.columnVector(distribution);
    }
 
    /**

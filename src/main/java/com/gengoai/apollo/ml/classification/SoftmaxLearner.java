@@ -1,6 +1,7 @@
 package com.gengoai.apollo.ml.classification;
 
 import com.gengoai.apollo.linear.NDArrayFactory;
+import com.gengoai.apollo.linear.NDArrayInitializer;
 import com.gengoai.apollo.ml.Instance;
 import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.apollo.ml.optimization.*;
@@ -58,7 +59,7 @@ public class SoftmaxLearner extends ClassifierLearner {
       }
       LinearModel model = new LinearModel(this);
       GradientDescentOptimizer optimizer = GradientDescentOptimizer.builder().batchSize(batchSize).build();
-      model.weights = NDArrayFactory.DEFAULT().rand(numL, model.numberOfFeatures());
+      model.weights = NDArrayFactory.DEFAULT().create(NDArrayInitializer.rand, numL, model.numberOfFeatures());
       model.bias = NDArrayFactory.DEFAULT().zeros(numL);
       model.activation = Activation.SOFTMAX;
       optimizer.optimize(model,

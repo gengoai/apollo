@@ -49,7 +49,7 @@ public class OneVsRestClassifier extends Classifier {
 
    @Override
    public Classification classify(NDArray vector) {
-      NDArray distribution = NDArrayFactory.wrap(new double[numberOfLabels()]);
+      NDArray distribution = NDArrayFactory.columnVector(new double[numberOfLabels()]);
       for (int ci = 0; ci < distribution.length(); ci++) {
          distribution.set(ci, classifiers[ci].classify(vector).distribution()[1]);
       }

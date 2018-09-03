@@ -27,7 +27,6 @@ import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.stat.measure.Measure;
 import com.gengoai.collection.Iterators;
 import com.gengoai.math.Optimum;
-import com.google.common.collect.MinMaxPriorityQueue;
 import lombok.NonNull;
 
 import java.io.IOException;
@@ -98,17 +97,11 @@ public class LSHVectorStore<KEY> implements VectorStore<KEY>, Serializable {
 
    @Override
    public final List<NDArray> nearest(@NonNull NDArray query, int K, double threshold) {
-      MinMaxPriorityQueue<NDArray> queue = MinMaxPriorityQueue
-                                              .<NDArray>orderedBy(
-                                                 (v1, v2) -> lsh.getOptimum().compare(v1.getWeight(), v2.getWeight()))
-                                              .maximumSize(K)
-                                              .create();
-      queue.addAll(nearest(query, threshold));
-      List<NDArray> list = new ArrayList<>();
-      while (!queue.isEmpty()) {
-         list.add(queue.remove());
-      }
-      return list;
+      List<NDArray> nearest = nearest(query, threshold);
+      nearest.sort((v1, v2) -> lsh.getMeasure()
+                                  .getOptimum()
+                                  .compare(v1.getWeight(), v2.getWeight()));
+      return nearest.subList(0, Math.min(nearest.size(), K));
    }
 
    @Override

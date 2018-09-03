@@ -25,7 +25,6 @@ import com.gengoai.apollo.hash.signature.*;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.stat.measure.Measure;
 import com.gengoai.math.Optimum;
-import lombok.NonNull;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -92,7 +91,7 @@ public class LocalitySensitiveHash implements Serializable {
     *
     * @param vector the NDArray
     */
-   public void add(@NonNull NDArray vector) {
+   public void add(NDArray vector) {
       int[] hash = hash(vector);
       for (int band = 0; band < bands; band++) {
          storage.add(vector, band, hash[band]);
@@ -235,7 +234,7 @@ public class LocalitySensitiveHash implements Serializable {
     * @param input the input vector
     * @return the set of nearest neighbors
     */
-   public Set<NDArray> query(@NonNull NDArray input) {
+   public Set<NDArray> query(NDArray input) {
       int[] hash = hash(input);
       Set<NDArray> toReturn = new HashSet<>();
       Set<Object> keys = new HashSet<>();
@@ -419,7 +418,7 @@ public class LocalitySensitiveHash implements Serializable {
        * @param parameters the parameters
        * @return the builder
        */
-      public Builder parameters(@NonNull Map<String, Number> parameters) {
+      public Builder parameters(Map<String, Number> parameters) {
          this.parameters.putAll(parameters);
          return this;
       }

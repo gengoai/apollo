@@ -49,13 +49,20 @@ public class LSHVectorStore<KEY> implements VectorStore<KEY>, Serializable {
    /**
     * Instantiates a new Lsh NDArray store.
     *
-    * @param lsh the lsh to use
+    * @param lsh          the lsh to use
+    * @param keyVectorMap the key vector map
     */
    protected LSHVectorStore(LocalitySensitiveHash lsh, Map<KEY, NDArray> keyVectorMap) {
       this.lsh = lsh;
       this.keyVectorMap = keyVectorMap;
    }
 
+   /**
+    * Builder builder.
+    *
+    * @param <KEY> the type parameter
+    * @return the builder
+    */
    public static <KEY> Builder<KEY> builder() {
       return new Builder<>();
    }
@@ -76,13 +83,18 @@ public class LSHVectorStore<KEY> implements VectorStore<KEY>, Serializable {
    }
 
    @Override
+   public Measure getQueryMeasure() {
+      return lsh.getMeasure();
+   }
+
+   @Override
    public Iterator<NDArray> iterator() {
       return Iterators.unmodifiableIterator(keyVectorMap.values().iterator());
    }
 
    @Override
-   public Collection<KEY> keys() {
-      return Collections.unmodifiableCollection(keyVectorMap.keySet());
+   public Set<KEY> keySet() {
+      return Collections.unmodifiableSet(keyVectorMap.keySet());
    }
 
    @Override
@@ -124,22 +136,47 @@ public class LSHVectorStore<KEY> implements VectorStore<KEY>, Serializable {
       return new LSHVectorStore.Builder<>(lsh.toBuilder());
    }
 
+   /**
+    * The type Builder.
+    *
+    * @param <KEY> the type parameter
+    */
    public static class Builder<KEY> extends VectorStoreBuilder<KEY> {
       private final LocalitySensitiveHash.Builder lshBuilder;
 
+      /**
+       * Instantiates a new Builder.
+       */
       public Builder() {
          this.lshBuilder = LocalitySensitiveHash.builder();
       }
 
+      /**
+       * Instantiates a new Builder.
+       *
+       * @param lsh the lsh
+       */
       public Builder(LocalitySensitiveHash.Builder lsh) {
          this.lshBuilder = lsh;
       }
 
+      /**
+       * Bands builder.
+       *
+       * @param bands the bands
+       * @return the builder
+       */
       public Builder<KEY> bands(int bands) {
          lshBuilder.bands(bands);
          return this;
       }
 
+      /**
+       * Buckets builder.
+       *
+       * @param buckets the buckets
+       * @return the builder
+       */
       public Builder<KEY> buckets(int buckets) {
          lshBuilder.buckets(buckets);
          return this;
@@ -155,24 +192,38 @@ public class LSHVectorStore<KEY> implements VectorStore<KEY>, Serializable {
          return new LSHVectorStore<>(lsh, keyVector);
       }
 
+      /**
+       * Param builder.
+       *
+       * @param key   the key
+       * @param value the value
+       * @return the builder
+       */
       public Builder<KEY> param(String key, Number value) {
          lshBuilder.param(key, value);
          return this;
       }
 
+      /**
+       * Signature builder.
+       *
+       * @param signature the signature
+       * @return the builder
+       */
       public Builder<KEY> signature(String signature) {
          lshBuilder.signature(signature);
          return this;
       }
 
+      /**
+       * Threshold builder.
+       *
+       * @param threshold the threshold
+       * @return the builder
+       */
       public Builder<KEY> threshold(double threshold) {
          lshBuilder.threshold(threshold);
          return this;
       }
-   }
-
-   @Override
-   public Measure getQueryMeasure() {
-      return lsh.getMeasure();
    }
 }// END OF LSHVectorStore

@@ -21,14 +21,11 @@
 
 package com.gengoai.apollo.linear.store;
 
-import com.gengoai.Validation;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.stat.measure.Measure;
 import com.gengoai.collection.Iterators;
-import lombok.NonNull;
 
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.*;
 
@@ -41,31 +38,37 @@ import java.util.*;
 public class DefaultVectorStore<KEY> implements VectorStore<KEY>, Serializable {
    private static final long serialVersionUID = 1L;
    private final Map<KEY, NDArray> vectorMap = new HashMap<>();
-   private int dimension;
-   private Measure queryMeasure;
+   private final int dimension;
+   private final Measure queryMeasure;
 
-   /**
-    * Instantiates a new Default vector store.
-    *
-    * @param dimension    the dimension
-    * @param queryMeasure the query measure
-    */
-   public DefaultVectorStore(int dimension, @NonNull Measure queryMeasure) {
-      Validation.checkArgument(dimension > 0, "Dimension must be > 0");
+   private DefaultVectorStore(int dimension, Measure queryMeasure) {
       this.dimension = dimension;
       this.queryMeasure = queryMeasure;
    }
 
+   /**
+    * Builder vector store builder.
+    *
+    * @param <KEY>     the type parameter
+    * @param dimension the dimension
+    * @return the vector store builder
+    */
    public static <KEY> VectorStoreBuilder<KEY> builder(int dimension) {
       return new Builder<KEY>().dimension(dimension);
    }
 
+   /**
+    * Builder vector store builder.
+    *
+    * @param <KEY> the type parameter
+    * @return the vector store builder
+    */
    public static <KEY> VectorStoreBuilder<KEY> builder() {
       return new Builder<>();
    }
 
    @Override
-   public boolean containsKey(@NonNull KEY key) {
+   public boolean containsKey(KEY key) {
       return vectorMap.containsKey(key);
    }
 
@@ -75,7 +78,7 @@ public class DefaultVectorStore<KEY> implements VectorStore<KEY>, Serializable {
    }
 
    @Override
-   public NDArray get(@NonNull KEY key) {
+   public NDArray get(KEY key) {
       return vectorMap.getOrDefault(key, NDArrayFactory.SPARSE.zeros(dimension));
    }
 
@@ -85,7 +88,7 @@ public class DefaultVectorStore<KEY> implements VectorStore<KEY>, Serializable {
    }
 
    @Override
-   public Set<KEY> keys() {
+   public Set<KEY> keySet() {
       return Collections.unmodifiableSet(vectorMap.keySet());
    }
 
@@ -101,12 +104,17 @@ public class DefaultVectorStore<KEY> implements VectorStore<KEY>, Serializable {
 
    @Override
    public VectorStoreBuilder<KEY> toBuilder() {
-      return builder(dimension);
+      return DefaultVectorStore.<KEY>builder(dimension).measure(getQueryMeasure());
    }
 
+   /**
+    * The type Builder.
+    *
+    * @param <KEY> the type parameter
+    */
    public static class Builder<KEY> extends VectorStoreBuilder<KEY> {
       @Override
-      public VectorStore<KEY> build() throws IOException {
+      public VectorStore<KEY> build() {
          DefaultVectorStore<KEY> vs = new DefaultVectorStore<>(dimension(), measure());
          vs.vectorMap.putAll(vectors);
          return vs;

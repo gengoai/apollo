@@ -5,7 +5,6 @@ import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.stat.measure.Measure;
 import com.gengoai.apollo.stat.measure.Similarity;
 import com.gengoai.conversion.Cast;
-import lombok.NonNull;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -33,7 +32,7 @@ public abstract class VectorStoreBuilder<KEY> {
     * @return this vector store builder
     * @throws NullPointerException if the vector or its key is null
     */
-   public final VectorStoreBuilder<KEY> add(@NonNull NDArray vector) {
+   public final VectorStoreBuilder<KEY> add(NDArray vector) {
       return add(vector.getLabel(), vector);
    }
 
@@ -45,7 +44,7 @@ public abstract class VectorStoreBuilder<KEY> {
     * @return the vector store builder
     * @throws NullPointerException if the vector or its key is null
     */
-   public final VectorStoreBuilder<KEY> add(@NonNull KEY key, @NonNull NDArray vector) {
+   public final VectorStoreBuilder<KEY> add(KEY key, NDArray vector) {
       vectors.put(key, vector.copy().setLabel(key));
       return this;
    }
@@ -57,7 +56,7 @@ public abstract class VectorStoreBuilder<KEY> {
     * @return this vector store builder
     * @throws NullPointerException if the vectors or their keys are null
     */
-   public final VectorStoreBuilder<KEY> addAll(@NonNull Iterable<NDArray> vectors) {
+   public final VectorStoreBuilder<KEY> addAll(Iterable<NDArray> vectors) {
       vectors.forEach(this::add);
       return this;
    }
@@ -82,6 +81,11 @@ public abstract class VectorStoreBuilder<KEY> {
       return this;
    }
 
+   /**
+    * Dimension int.
+    *
+    * @return the int
+    */
    public int dimension() {
       return this.dimension;
    }
@@ -92,11 +96,16 @@ public abstract class VectorStoreBuilder<KEY> {
     * @param measure the measure to use
     * @return the vector store builder
     */
-   public final VectorStoreBuilder<KEY> measure(@NonNull Measure measure) {
+   public final VectorStoreBuilder<KEY> measure(Measure measure) {
       this.measure = measure;
       return this;
    }
 
+   /**
+    * Measure measure.
+    *
+    * @return the measure
+    */
    public Measure measure() {
       return this.measure;
    }
@@ -108,7 +117,7 @@ public abstract class VectorStoreBuilder<KEY> {
     * @return the vector associated with the key or null if no vector is assigned to that key
     * @throws NullPointerException if the key is null
     */
-   public final NDArray remove(@NonNull KEY key) {
+   public final NDArray remove(KEY key) {
       return vectors.remove(key);
    }
 
@@ -119,7 +128,7 @@ public abstract class VectorStoreBuilder<KEY> {
     * @return True if the vector was removed, False if not
     * @throws NullPointerException if the vector or its label is null
     */
-   public final boolean remove(@NonNull NDArray vector) {
+   public final boolean remove(NDArray vector) {
       return remove(Cast.<KEY>as(vector.getLabel())) != null;
    }
 

@@ -21,7 +21,6 @@
 
 package com.gengoai.apollo.linear.store;
 
-import com.gengoai.Validation;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.linear.VectorComposition;
@@ -30,13 +29,13 @@ import com.gengoai.collection.Streams;
 import com.gengoai.conversion.Cast;
 import com.gengoai.io.Commitable;
 import com.gengoai.tuple.Tuple;
-import lombok.NonNull;
 
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.gengoai.Validation.checkArgument;
 import static com.gengoai.tuple.Tuples.$;
 
 /**
@@ -66,7 +65,7 @@ public interface VectorStore<KEY> extends Iterable<NDArray>, AutoCloseable, Clos
     * @return a composite vector consisting of the given words and calculated using the given vector composition
     */
    @SuppressWarnings("unchecked")
-   default NDArray compose(@NonNull VectorComposition composition, KEY... words) {
+   default NDArray compose(VectorComposition composition, KEY... words) {
       if (words == null) {
          return NDArrayFactory.DEFAULT().zeros(dimension());
       } else if (words.length == 1) {
@@ -112,7 +111,7 @@ public interface VectorStore<KEY> extends Iterable<NDArray>, AutoCloseable, Clos
     *
     * @return the set of vector label keys
     */
-   Collection<KEY> keys();
+   Set<KEY> keySet();
 
    /**
     * Queries the vector store for the nearest vectors to the given <code>query</code> vector returning only matches
@@ -124,8 +123,8 @@ public interface VectorStore<KEY> extends Iterable<NDArray>, AutoCloseable, Clos
     * @return the list of vectors with their labels and scored by the stores measure with respect to the query vector.
     */
    default List<NDArray> nearest(NDArray query, double threshold) {
-      Validation.checkArgument(query.length() == dimension(),
-                               "Dimension mismatch, vector store can only store vectors with k of " + dimension());
+      checkArgument(query.length() == dimension(),
+                    "Dimension mismatch, vector store can only store vectors with k of " + dimension());
       return Streams.asParallelStream(iterator())
                     .map(v -> v.copy().setWeight(getQueryMeasure().calculate(v, query)))
                     .filter(s -> getQueryMeasure().getOptimum().test(s.getWeight(), threshold))
@@ -142,9 +141,9 @@ public interface VectorStore<KEY> extends Iterable<NDArray>, AutoCloseable, Clos
     * @param threshold the threshold to filter vectors
     * @return the list of vectors with their labels and scored by the stores measure with respect to the query vector.
     */
-   default List<NDArray> nearest(@NonNull NDArray query, int K, double threshold) {
-      Validation.checkArgument(query.length() == dimension(),
-                               "Dimension mismatch, vector store can only store vectors with k of " + dimension());
+   default List<NDArray> nearest(NDArray query, int K, double threshold) {
+      checkArgument(query.length() == dimension(),
+                    "Dimension mismatch, vector store can only store vectors with k of " + dimension());
       List<NDArray> vectors = Streams.asParallelStream(iterator())
                                      .map(v -> v.copy().setWeight(getQueryMeasure().calculate(v, query)))
                                      .filter(s -> getQueryMeasure().getOptimum().test(s.getWeight(), threshold))
@@ -161,8 +160,8 @@ public interface VectorStore<KEY> extends Iterable<NDArray>, AutoCloseable, Clos
     * @return the list of vectors with their labels and scored by the stores measure with respect to the query vector.
     */
    default List<NDArray> nearest(NDArray query) {
-      Validation.checkArgument(query.length() == dimension(),
-                               "Dimension mismatch, vector store can only store vectors with k of " + dimension());
+      checkArgument(query.length() == dimension(),
+                    "Dimension mismatch, vector store can only store vectors with k of " + dimension());
       return Streams.asParallelStream(iterator())
                     .map(v -> v.copy().setWeight(getQueryMeasure().calculate(v, query)))
                     .collect(Collectors.toList());
@@ -176,9 +175,9 @@ public interface VectorStore<KEY> extends Iterable<NDArray>, AutoCloseable, Clos
     * @param K     the maximum number of results to return
     * @return the list of vectors with their labels and scored by the stores measure with respect to the query vector.
     */
-   default List<NDArray> nearest(@NonNull NDArray query, int K) {
-      Validation.checkArgument(query.length() == dimension(),
-                               "Dimension mismatch, vector store can only store vectors with k of " + dimension());
+   default List<NDArray> nearest(NDArray query, int K) {
+      checkArgument(query.length() == dimension(),
+                    "Dimension mismatch, vector store can only store vectors with k of " + dimension());
       List<NDArray> vectors = Streams.asParallelStream(iterator())
                                      .map(v -> v.copy().setWeight(getQueryMeasure().calculate(v, query)))
                                      .sorted((s1, s2) -> getQueryMeasure().getOptimum()
@@ -194,7 +193,7 @@ public interface VectorStore<KEY> extends Iterable<NDArray>, AutoCloseable, Clos
     * @param K    the maximum number of neighbors to return
     * @return the list of scored K-nearest vectors
     */
-   default List<NDArray> nearest(@NonNull KEY word, int K) {
+   default List<NDArray> nearest(KEY word, int K) {
       return nearest(word, K, Double.NEGATIVE_INFINITY);
    }
 
@@ -206,7 +205,7 @@ public interface VectorStore<KEY> extends Iterable<NDArray>, AutoCloseable, Clos
     * @param threshold threshold for selecting vectors
     * @return the list of scored K-nearest vectors
     */
-   default List<NDArray> nearest(@NonNull KEY word, int K, double threshold) {
+   default List<NDArray> nearest(KEY word, int K, double threshold) {
       NDArray v1 = get(word);
       if (v1 == null) {
          return Collections.emptyList();
@@ -230,7 +229,7 @@ public interface VectorStore<KEY> extends Iterable<NDArray>, AutoCloseable, Clos
     * @param threshold threshold for selecting vectors
     * @return the list of scored K-nearest vectors
     */
-   default List<NDArray> nearest(@NonNull Tuple positive, @NonNull Tuple negative, int K, double threshold) {
+   default List<NDArray> nearest(Tuple positive, Tuple negative, int K, double threshold) {
       NDArray pVec = NDArrayFactory.DEFAULT().zeros(dimension());
       positive.forEach(word -> pVec.addi(get(Cast.as(word))));
       NDArray nVec = NDArrayFactory.DEFAULT().zeros(dimension());
@@ -254,7 +253,7 @@ public interface VectorStore<KEY> extends Iterable<NDArray>, AutoCloseable, Clos
     * @param K     the maximum number of neighbors to return
     * @return the list of scored K-nearest vectors
     */
-   default List<NDArray> nearest(@NonNull Tuple words, int K) {
+   default List<NDArray> nearest(Tuple words, int K) {
       return nearest(words, $(), K, Double.NEGATIVE_INFINITY);
    }
 

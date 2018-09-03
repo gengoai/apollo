@@ -18,9 +18,9 @@ import lombok.NonNull;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -151,8 +151,8 @@ public class Embedding implements Model, VectorStore<String>, Serializable {
    }
 
    @Override
-   public Collection<String> keys() {
-      return vectorStore.keys();
+   public Set<String> keySet() {
+      return vectorStore.keySet();
    }
 
    @Override

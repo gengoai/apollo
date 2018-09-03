@@ -44,7 +44,7 @@ public class CompositionRetrofitting implements Retrofitting {
    public Embedding process(@NonNull VectorStore<String> embedding) {
       VectorStoreBuilder<String> newEmbedding = embedding.toBuilder();
       embedding
-         .keys()
+         .keySet()
          .forEach(term -> {
             NDArray tv = embedding.get(term).copy();
             if (background.contains(term)) {

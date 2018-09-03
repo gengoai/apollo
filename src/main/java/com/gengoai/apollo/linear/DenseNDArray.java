@@ -28,7 +28,11 @@ public class DenseNDArray extends NDArray {
    private static final long serialVersionUID = 1L;
    private FloatMatrix[] data;
 
-   DenseNDArray(FloatMatrix matrix) {
+   /***
+    * Creates a new DenseNDArray by wrapping a given <code>FloatMatrix</code>
+    * @param matrix the matrix to wrap
+    */
+   public DenseNDArray(FloatMatrix matrix) {
       super(new int[]{matrix.rows, matrix.columns, 1, 1});
       this.data = new FloatMatrix[]{matrix};
    }

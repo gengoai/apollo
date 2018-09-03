@@ -43,13 +43,13 @@ public final class IndexedFileStore implements VectorStore<String>, Serializable
    }
 
    /**
-    * From vector store.
+    * Convenience method for loading an indexed vector store
     *
-    * @param resource the resource
+    * @param resource the resource containing the vectors
     * @return the vector store
-    * @throws IOException the io exception
+    * @throws IOException Something went wrong reading the store
     */
-   public static VectorStore<String> from(Resource resource) throws IOException {
+   public static VectorStore<String> read(Resource resource) throws IOException {
       return builder().location(resource.asFile().orElseThrow(IllegalStateException::new)).build();
    }
 

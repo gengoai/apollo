@@ -10,23 +10,22 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.gengoai.Validation.notNull;
+
 /**
- * The interface Vector store builder.
+ * Abstract base builder for {@link VectorStore}s.
  *
- * @param <KEY> the type parameter
+ * @param <KEY> the key type parameter
  * @author David B. Bracewell
  */
 public abstract class VectorStoreBuilder<KEY> {
-   /**
-    * The Vectors.
-    */
    protected final Map<KEY, NDArray> vectors = new HashMap<>();
    private int dimension = 100;
    private Measure measure = Similarity.Cosine;
 
 
    /**
-    * Add a vector to the vector store.
+    * Add a vector to the vector store. The key is expected to be the label of the vector
     *
     * @param vector the vector to add
     * @return this vector store builder
@@ -45,6 +44,7 @@ public abstract class VectorStoreBuilder<KEY> {
     * @throws NullPointerException if the vector or its key is null
     */
    public final VectorStoreBuilder<KEY> add(KEY key, NDArray vector) {
+      notNull(key, "Key cannot be null");
       vectors.put(key, vector.copy().setLabel(key));
       return this;
    }
@@ -82,9 +82,9 @@ public abstract class VectorStoreBuilder<KEY> {
    }
 
    /**
-    * Dimension int.
+    * Gets the dimension of the vectors in the store
     *
-    * @return the int
+    * @return the dimension of the vectors in the story
     */
    public int dimension() {
       return this.dimension;
@@ -102,9 +102,9 @@ public abstract class VectorStoreBuilder<KEY> {
    }
 
    /**
-    * Measure measure.
+    * Gets the measure used for nearest neighbors
     *
-    * @return the measure
+    * @return the measure used for nearest neighbor calculations
     */
    public Measure measure() {
       return this.measure;

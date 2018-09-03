@@ -71,11 +71,9 @@ public interface VectorStore<KEY> extends Iterable<NDArray>, AutoCloseable, Clos
       } else if (words.length == 1) {
          return get(words[0]);
       }
-      List<NDArray> vectors = new ArrayList<>();
-      for (KEY w : words) {
-         vectors.add(get(w));
-      }
-      return composition.compose(vectors);
+      return composition.compose(Arrays.stream(words)
+                                       .map(this::get)
+                                       .collect(Collectors.toList()));
    }
 
    /**

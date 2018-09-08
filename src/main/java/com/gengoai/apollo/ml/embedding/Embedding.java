@@ -7,7 +7,6 @@ import com.gengoai.apollo.linear.store.VectorStore;
 import com.gengoai.apollo.linear.store.VectorStoreBuilder;
 import com.gengoai.apollo.ml.Model;
 import com.gengoai.apollo.ml.encoder.EncoderPair;
-import com.gengoai.apollo.stat.measure.Similarity;
 import com.gengoai.conversion.Cast;
 import com.gengoai.function.SerializableSupplier;
 import com.gengoai.function.Unchecked;
@@ -68,7 +67,7 @@ public class Embedding implements Model, VectorStore, Serializable {
 //      } else {
          builder = InMemoryVectorStore.builder();
 //      }
-      builder.measure(Similarity.Cosine);
+//      builder.measure(Similarity.Cosine);
 
       lines.stream()
            .skip(firstRow)

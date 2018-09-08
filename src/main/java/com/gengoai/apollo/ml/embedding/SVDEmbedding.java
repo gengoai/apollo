@@ -34,7 +34,6 @@ import com.gengoai.apollo.ml.sequence.Sequence;
 import com.gengoai.apollo.stat.measure.Association;
 import com.gengoai.apollo.stat.measure.ContingencyTable;
 import com.gengoai.apollo.stat.measure.ContingencyTableCalculator;
-import com.gengoai.apollo.stat.measure.Similarity;
 import com.gengoai.collection.counter.MultiCounter;
 import com.gengoai.math.Operator;
 import com.gengoai.stream.StreamingContext;
@@ -142,7 +141,7 @@ public class SVDEmbedding extends EmbeddingLearner {
          builder = InMemoryVectorStore.builder();
 //      }
 //      builder.dimension(getDimension());
-      builder.measure(Similarity.Cosine);
+//      builder.measure(Similarity.Cosine);
 
       SingularValueDecomposition<RowMatrix, Matrix> svd = sparkSVD(mat, getDimension());
       NDArray em = toMatrix(svd.U()).mmul(toDiagonalMatrix(svd.s()));

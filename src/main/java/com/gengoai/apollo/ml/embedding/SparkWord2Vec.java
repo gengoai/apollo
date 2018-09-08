@@ -8,7 +8,6 @@ import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.apollo.ml.encoder.Encoder;
 import com.gengoai.apollo.ml.encoder.IndexEncoder;
 import com.gengoai.apollo.ml.sequence.Sequence;
-import com.gengoai.apollo.stat.measure.Similarity;
 import com.gengoai.stream.SparkStream;
 import lombok.Getter;
 import lombok.Setter;
@@ -81,7 +80,7 @@ public class SparkWord2Vec extends EmbeddingLearner {
          builder = InMemoryVectorStore.builder();
 //      }
 //      builder.dimension(getDimension());
-      builder.measure(Similarity.Cosine);
+//      builder.measure(Similarity.Cosine);
       for (Map.Entry<String, float[]> vector : JavaConversions.mapAsJavaMap(model.getVectors()).entrySet()) {
          encoder.encode(vector.getKey());
          builder.add(vector.getKey(), NDArrayFactory.columnVector(vector.getValue()));

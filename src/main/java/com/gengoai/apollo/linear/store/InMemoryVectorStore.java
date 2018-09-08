@@ -102,10 +102,10 @@ public class InMemoryVectorStore implements VectorStore, Serializable {
       public VectorStoreBuilder add(String key, NDArray vector) {
          notNullOrBlank(key, "The key must not be null or blank");
          if (dimension() == -1) {
-            dimension = (int) vector.length();
+            dimension((int) vector.length());
          }
-         checkArgument(dimension == vector.length(),
-                       () -> "Dimension mismatch. (" + dimension + ") != (" + vector.length() + ")");
+         checkArgument(dimension() == vector.length(),
+                       () -> "Dimension mismatch. (" + dimension() + ") != (" + vector.length() + ")");
          vectors.put(key, vector);
          return this;
       }

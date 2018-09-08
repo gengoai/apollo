@@ -2,18 +2,17 @@ package com.gengoai.apollo.linear.store;
 
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
-import com.gengoai.apollo.stat.measure.Measure;
+import com.gengoai.apollo.linear.store.io.VectorStoreTextWriter;
 import com.gengoai.cache.AutoCalculatingLRUCache;
 import com.gengoai.cache.Cache;
-import com.gengoai.io.CSV;
-import com.gengoai.io.CSVReader;
-import com.gengoai.io.CSVWriter;
 import com.gengoai.io.Resources;
 import com.gengoai.io.resource.Resource;
 import com.gengoai.logging.Loggable;
-import com.gengoai.string.CharMatcher;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.io.Serializable;
 import java.util.*;
 
 import static com.gengoai.Validation.checkArgument;
@@ -29,21 +28,30 @@ public final class DiskBasedVectorStore implements VectorStore, Serializable, Lo
    private final Map<String, Long> keyOffsets;
    private final File vectorFile;
    private transient final Cache<String, NDArray> vectorCache;
-   private int dimension = 50;
-   private Measure queryMeasure;
-   private int cacheSize;
+   private final int dimension;
+   private final int cacheSize;
 
 
    private DiskBasedVectorStore(File vectorFile,
-                                int cacheSize,
-                                Measure queryMeasure
+                                int cacheSize
                                ) throws IOException {
       this.vectorFile = vectorFile;
-      this.queryMeasure = queryMeasure;
       this.keyOffsets = new HashMap<>();
       this.cacheSize = cacheSize;
+      this.dimension = VectorStoreTextWriter.determineDimension(vectorFile);
       indexFile();
       vectorCache = new AutoCalculatingLRUCache<>(cacheSize, this::loadNDArray);
+
+   }
+
+   public static void main(String[] args) throws Exception {
+      DiskBasedVectorStore.Builder builder = builder().location(new File("/home/ik/glove.6B.50d.txt"));
+//      for (int i = 0; i < 100; i++) {
+//         builder.add(StringUtils.randomHexString(10), NDArrayFactory.DENSE
+//                                                         .create(NDArrayInitializer.rand, 50));
+//      }
+      VectorStore vs = builder.build();
+      vs.keySet().forEach(key -> System.out.println(key + " : " + vs.get(key)));
    }
 
    /**
@@ -82,41 +90,12 @@ public final class DiskBasedVectorStore implements VectorStore, Serializable, Lo
    }
 
    private void indexFile() throws IOException {
-      File indexFile = new File(vectorFile.getAbsolutePath() + ".idx");
+      File indexFile = VectorStoreTextWriter.indexFileFor(vectorFile);
       if (indexFile.exists()) {
-         try {
-            readFromIndex(indexFile);
-            return;
-         } catch (Exception e) {
-            logWarn("Error loading pre-computed index file {0}, going to reindex.", e);
-         }
-      }
-
-      try (RandomAccessFile raf = new RandomAccessFile(vectorFile, "r")) {
-         String line = raf.readLine();
-         long start = raf.getFilePointer();
-         String[] cells = line.split("[ \t]+");
-         if (cells.length > 4) {
-            dimension = cells.length - 1;
-            keyOffsets.put(cells[0], start);
-         } else {
-            dimension = Integer.parseInt(cells[1]);
-         }
-         start = raf.getFilePointer();
-         while ((line = raf.readLine()) != null) {
-            int i = CharMatcher.WhiteSpace.findIn(line);
-            if (i > 0) {
-               keyOffsets.put(line.substring(0, i), start);
-               start = raf.getFilePointer();
-            }
-         }
-      }
-
-      try {
-         writeToIndexFile(indexFile);
-      } catch (Exception e) {
-         logInfo("Error creating a pre-computed index file {0}, ignoring.", e);
-         Resources.fromFile(indexFile).delete();
+         keyOffsets.putAll(VectorStoreTextWriter.readIndexFor(vectorFile));
+      } else {
+         keyOffsets.putAll(VectorStoreTextWriter.createIndexFor(vectorFile));
+         VectorStoreTextWriter.writeIndexFor(vectorFile, keyOffsets);
       }
    }
 
@@ -146,7 +125,7 @@ public final class DiskBasedVectorStore implements VectorStore, Serializable, Lo
       if (keyOffsets.containsKey(key)) {
          try (RandomAccessFile raf = new RandomAccessFile(vectorFile, "r")) {
             long offset = keyOffsets.get(key);
-            NDArray vector = NDArrayFactory.DENSE.zeros(dimension);
+            NDArray vector = NDArrayFactory.DENSE.zeros(1, dimension);
             raf.seek(offset);
             String line = raf.readLine();
             String[] parts = line.split("[ \t]+");
@@ -162,18 +141,6 @@ public final class DiskBasedVectorStore implements VectorStore, Serializable, Lo
       return NDArrayFactory.SPARSE.zeros(dimension);
    }
 
-   private void readFromIndex(File indexFile) throws IOException {
-      try (CSVReader reader = CSV.csv().reader(Resources.fromFile(indexFile))) {
-         List<String> row;
-         dimension = Integer.parseInt(reader.nextRow().get(0));
-         while ((row = reader.nextRow()) != null) {
-            if (row.size() >= 2) {
-               keyOffsets.put(row.get(0), Long.parseLong(row.get(1)));
-            }
-         }
-      }
-   }
-
    @Override
    public int size() {
       return keyOffsets.size();
@@ -182,40 +149,34 @@ public final class DiskBasedVectorStore implements VectorStore, Serializable, Lo
    @Override
    public VectorStoreBuilder toBuilder() {
       return new Builder().location(vectorFile)
-                          .cacheSize(cacheSize)
-                          .measure(queryMeasure);
-   }
-
-   private void writeToIndexFile(File indexFile) throws IOException {
-      try (CSVWriter writer = CSV.csv().writer(Resources.fromFile(indexFile).setIsCompressed(true))) {
-         writer.write(dimension);
-         for (Map.Entry<String, Long> entry : keyOffsets.entrySet()) {
-            writer.write(entry.getKey(), entry.getValue());
-         }
-      }
+                          .cacheSize(cacheSize);
    }
 
    /**
     * The type Builder.
     */
    public static class Builder extends VectorStoreBuilder {
-      private File location;
-      private File tempLocation;
-      private Map<String, Long> offsets = new HashMap<>();
-      private RandomAccessFile writer;
-      private long lastOffset = 0;
-      private int cacheSize = 5_000;
+      public static final String CACHE_SIZE = "CACHE_SIZE";
+      public static final String LOCATION = "LOCATION";
+      private VectorStoreTextWriter writer = null;
 
       /**
        * Instantiates a new Builder.
        */
       public Builder() {
-         this.location = Resources.temporaryFile().asFile().orElseThrow(IllegalStateException::new);
-         this.tempLocation = Resources.temporaryFile().asFile().orElseThrow(IllegalStateException::new);
-         try {
-            this.writer = new RandomAccessFile(tempLocation, "rw");
-         } catch (FileNotFoundException e) {
-            throw new RuntimeException(e);
+         parameter(CACHE_SIZE, 5_000);
+      }
+
+      private void ensureWriter() {
+         if (writer == null) {
+            try {
+               writer = new VectorStoreTextWriter(dimension(),
+                                                  Resources.temporaryFile()
+                                                           .asFile()
+                                                           .orElseThrow(IllegalStateException::new));
+            } catch (IOException e) {
+               throw new RuntimeException(e);
+            }
          }
       }
 
@@ -224,22 +185,12 @@ public final class DiskBasedVectorStore implements VectorStore, Serializable, Lo
          notNullOrBlank(key, "The key must not be null or blank");
          try {
             if (dimension() == -1) {
-               dimension = (int) vector.length();
-               writer.write("? ".getBytes());
-               writer.write(Integer.toString(dimension).getBytes());
-               writer.write("\n".getBytes());
-               lastOffset = writer.getFilePointer();
+               dimension((int) vector.length());
             }
-            checkArgument(dimension == vector.length(),
-                          () -> "Dimension mismatch. (" + dimension + ") != (" + vector.length() + ")");
-            StringBuilder cLine = new StringBuilder(key);
-            for (int i = 0; i < vector.length(); i++) {
-               cLine.append(" ").append(vector.get(i));
-            }
-            cLine.append("\n");
-            writer.write(cLine.toString().getBytes());
-            offsets.put(key, lastOffset);
-            lastOffset = writer.getFilePointer();
+            checkArgument(dimension() == vector.length(),
+                          () -> "Dimension mismatch. (" + dimension() + ") != (" + vector.length() + ")");
+            ensureWriter();
+            writer.write(key, vector);
          } catch (IOException e) {
             throw new RuntimeException(e);
          }
@@ -248,18 +199,17 @@ public final class DiskBasedVectorStore implements VectorStore, Serializable, Lo
 
       @Override
       public VectorStore build() throws IOException {
-         writer.close();
-         System.out.println(dimension);
-         System.out.println(offsets);
-         Resources.fromFile(tempLocation).copy(Resources.fromFile(location));
-         File indexFile = new File(location.getAbsolutePath() + ".idx");
-         try (CSVWriter writer = CSV.csv().writer(Resources.fromFile(indexFile).setIsCompressed(true))) {
-            writer.write(dimension);
-            for (Map.Entry<String, Long> entry : offsets.entrySet()) {
-               writer.write(entry.getKey(), entry.getValue());
-            }
+         File location = parameterAs(LOCATION, File.class);
+         File indexLocation = VectorStoreTextWriter.indexFileFor(location);
+         if (writer != null) {
+            writer.close();
+            Resource vectors = Resources.fromFile(writer.getVectorFile());
+            Resource index = Resources.fromFile(writer.getIndexFile());
+            vectors.copy(Resources.fromFile(location));
+            index.copy(Resources.fromFile(indexLocation));
          }
-         return new DiskBasedVectorStore(location, cacheSize, measure());
+         writer = null;
+         return new DiskBasedVectorStore(location, parameterAs(CACHE_SIZE, Integer.class));
       }
 
       /**
@@ -269,7 +219,7 @@ public final class DiskBasedVectorStore implements VectorStore, Serializable, Lo
        * @return the builder
        */
       public Builder cacheSize(int size) {
-         this.cacheSize = size;
+         parameter(CACHE_SIZE, size);
          return this;
       }
 
@@ -280,7 +230,7 @@ public final class DiskBasedVectorStore implements VectorStore, Serializable, Lo
        * @return the builder
        */
       public Builder location(File location) {
-         this.location = location;
+         parameter(LOCATION, location);
          return this;
       }
    }

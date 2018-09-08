@@ -1,10 +1,12 @@
 package com.gengoai.apollo.linear.store;
 
 import com.gengoai.apollo.linear.NDArray;
-import com.gengoai.apollo.stat.measure.Measure;
-import com.gengoai.apollo.stat.measure.Similarity;
+import com.gengoai.collection.map.NormalizedStringMap;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Abstract base builder for {@link VectorStore}s.
@@ -12,9 +14,30 @@ import java.io.IOException;
  * @author David B. Bracewell
  */
 public abstract class VectorStoreBuilder {
-   protected int dimension = -1;
-   private Measure measure = Similarity.Cosine;
+   public static final String DIMENSION = "DIMENSION";
+   private final Map<String, Object> parameters = new NormalizedStringMap<>();
 
+   public VectorStoreBuilder() {
+      parameters.put(DIMENSION, -1);
+   }
+
+   public VectorStoreBuilder parameter(String name, Object value) {
+      parameters.put(name, value);
+      return this;
+   }
+
+   public <T> T parameterAs(String name, Class<T> clazz) {
+      Object value = parameters.get(name);
+      return value == null ? null : clazz.cast(value);
+   }
+
+   public Map<String, Object> parameterMap() {
+      return Collections.unmodifiableMap(parameters);
+   }
+
+   public Set<String> parameterNames() {
+      return Collections.unmodifiableSet(parameters.keySet());
+   }
 
    /**
     * Add a vector to the vector store. The key is expected to be the label of the vector
@@ -44,7 +67,7 @@ public abstract class VectorStoreBuilder {
     * @return this vector store builder
     * @throws NullPointerException if the vectors or their keys are null
     */
-   public final VectorStoreBuilder addAll(Iterable<NDArray> vectors) {
+   public VectorStoreBuilder addAll(Iterable<NDArray> vectors) {
       vectors.forEach(this::add);
       return this;
    }
@@ -63,27 +86,11 @@ public abstract class VectorStoreBuilder {
     * @return the dimension of the vectors in the story
     */
    public int dimension() {
-      return this.dimension;
+      return parameterAs(DIMENSION, Integer.class);
    }
 
-   /**
-    * Sets the measure used for doing nearest neighbor queries
-    *
-    * @param measure the measure to use
-    * @return the vector store builder
-    */
-   public final VectorStoreBuilder measure(Measure measure) {
-      this.measure = measure;
-      return this;
-   }
-
-   /**
-    * Gets the measure used for nearest neighbors
-    *
-    * @return the measure used for nearest neighbor calculations
-    */
-   public Measure measure() {
-      return this.measure;
+   public VectorStoreBuilder dimension(int dimension) {
+      return parameter(DIMENSION, dimension);
    }
 
 

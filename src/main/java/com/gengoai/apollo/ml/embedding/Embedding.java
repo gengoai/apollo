@@ -2,13 +2,11 @@ package com.gengoai.apollo.ml.embedding;
 
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
-import com.gengoai.apollo.linear.store.DefaultVectorStore;
-import com.gengoai.apollo.linear.store.LSHVectorStore;
+import com.gengoai.apollo.linear.store.InMemoryVectorStore;
 import com.gengoai.apollo.linear.store.VectorStore;
 import com.gengoai.apollo.linear.store.VectorStoreBuilder;
 import com.gengoai.apollo.ml.Model;
 import com.gengoai.apollo.ml.encoder.EncoderPair;
-import com.gengoai.apollo.stat.measure.Measure;
 import com.gengoai.apollo.stat.measure.Similarity;
 import com.gengoai.conversion.Cast;
 import com.gengoai.function.SerializableSupplier;
@@ -28,16 +26,16 @@ import java.util.stream.Collectors;
  *
  * @author David B. Bracewell
  */
-public class Embedding implements Model, VectorStore<String>, Serializable {
+public class Embedding implements Model, VectorStore, Serializable {
    private static final long serialVersionUID = 1L;
-   private VectorStore<String> vectorStore;
+   private VectorStore vectorStore;
 
    /**
     * Instantiates a new Embedding.
     *
     * @param vectorStore the vector store
     */
-   public Embedding(@NonNull VectorStore<String> vectorStore) {
+   public Embedding(@NonNull VectorStore vectorStore) {
       this.vectorStore = vectorStore;
    }
 
@@ -47,7 +45,7 @@ public class Embedding implements Model, VectorStore<String>, Serializable {
     * @param vectors the vectors
     * @return the embedding
     */
-   public static Embedding fromVectorStore(@NonNull VectorStore<String> vectors) {
+   public static Embedding fromVectorStore(@NonNull VectorStore vectors) {
       return new Embedding(vectors);
    }
 
@@ -64,13 +62,12 @@ public class Embedding implements Model, VectorStore<String>, Serializable {
          firstRow = 0;
          dimension = lines.get(0).trim().split("\\s+").length - 1;
       }
-      VectorStoreBuilder<String> builder;
-      if (fastNearestNeighbors) {
-         builder = LSHVectorStore.<String>builder().signature("COSINE");
-      } else {
-         builder = DefaultVectorStore.builder();
-      }
-      builder.dimension(dimension);
+      VectorStoreBuilder builder;
+      //if (fastNearestNeighbors) {
+         //builder = LSHVectorStore.<String>builder().signature("COSINE");
+//      } else {
+         builder = InMemoryVectorStore.builder();
+//      }
       builder.measure(Similarity.Cosine);
 
       lines.stream()
@@ -126,7 +123,7 @@ public class Embedding implements Model, VectorStore<String>, Serializable {
    }
 
    @Override
-   public VectorStoreBuilder<String> toBuilder() {
+   public VectorStoreBuilder toBuilder() {
       return vectorStore.toBuilder();
    }
 
@@ -155,30 +152,30 @@ public class Embedding implements Model, VectorStore<String>, Serializable {
       return vectorStore.keySet();
    }
 
-   @Override
-   public List<NDArray> nearest(@NonNull NDArray v, int K) {
-      return nearest(v, K, Double.NEGATIVE_INFINITY);
-   }
-
-   @Override
-   public List<NDArray> nearest(NDArray query, double threshold) {
-      return vectorStore.nearest(query, threshold);
-   }
-
-   @Override
-   public Measure getQueryMeasure() {
-      return vectorStore.getQueryMeasure();
-   }
-
-   @Override
-   public List<NDArray> nearest(@NonNull NDArray v, int K, double threshold) {
-      return vectorStore.nearest(v, K, threshold);
-   }
-
-   @Override
-   public List<NDArray> nearest(NDArray query) {
-      return vectorStore.nearest(query);
-   }
+//   @Override
+//   public List<NDArray> nearest(@NonNull NDArray v, int K) {
+//      return nearest(v, K, Double.NEGATIVE_INFINITY);
+//   }
+//
+//   @Override
+//   public List<NDArray> nearest(NDArray query, double threshold) {
+//      return vectorStore.nearest(query, threshold);
+//   }
+//
+//   @Override
+//   public Measure getQueryMeasure() {
+//      return vectorStore.getQueryMeasure();
+//   }
+//
+//   @Override
+//   public List<NDArray> nearest(@NonNull NDArray v, int K, double threshold) {
+//      return vectorStore.nearest(v, K, threshold);
+////   }
+//
+//   @Override
+//   public List<NDArray> nearest(NDArray query) {
+//      return vectorStore.nearest(query);
+//   }
 
    @Override
    public int size() {

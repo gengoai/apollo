@@ -23,52 +23,41 @@ package com.gengoai.apollo.linear.store;
 
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
-import com.gengoai.apollo.stat.measure.Measure;
 import com.gengoai.collection.Iterators;
 
 import java.io.Serializable;
 import java.util.*;
 
+import static com.gengoai.Validation.checkArgument;
+import static com.gengoai.Validation.notNullOrBlank;
+
 /**
  * The type Default vector store.
  *
- * @param <KEY> the type parameter
  * @author David B. Bracewell
  */
-public class DefaultVectorStore<KEY> implements VectorStore<KEY>, Serializable {
+public class InMemoryVectorStore implements VectorStore, Serializable {
    private static final long serialVersionUID = 1L;
-   private final Map<KEY, NDArray> vectorMap = new HashMap<>();
+   private final Map<String, NDArray> vectorMap = new HashMap<>();
    private final int dimension;
-   private final Measure queryMeasure;
 
-   private DefaultVectorStore(int dimension, Measure queryMeasure) {
+
+   public InMemoryVectorStore(int dimension) {
       this.dimension = dimension;
-      this.queryMeasure = queryMeasure;
    }
 
    /**
     * Builder vector store builder.
     *
-    * @param <KEY>     the type parameter
-    * @param dimension the dimension
     * @return the vector store builder
     */
-   public static <KEY> VectorStoreBuilder<KEY> builder(int dimension) {
-      return new Builder<KEY>().dimension(dimension);
+   public static VectorStoreBuilder builder() {
+      return new Builder();
    }
 
-   /**
-    * Builder vector store builder.
-    *
-    * @param <KEY> the type parameter
-    * @return the vector store builder
-    */
-   public static <KEY> VectorStoreBuilder<KEY> builder() {
-      return new Builder<>();
-   }
 
    @Override
-   public boolean containsKey(KEY key) {
+   public boolean containsKey(String key) {
       return vectorMap.containsKey(key);
    }
 
@@ -78,23 +67,19 @@ public class DefaultVectorStore<KEY> implements VectorStore<KEY>, Serializable {
    }
 
    @Override
-   public NDArray get(KEY key) {
+   public NDArray get(String key) {
       return vectorMap.getOrDefault(key, NDArrayFactory.SPARSE.zeros(dimension));
    }
 
    @Override
    public Iterator<NDArray> iterator() {
-      return Iterators.unmodifiableIterator(vectorMap.values().iterator());
+      return Iterators.unmodifiableIterator(Iterators.transform(vectorMap.entrySet().iterator(),
+                                                                e -> e.getValue().setLabel(e.getKey())));
    }
 
    @Override
-   public Set<KEY> keySet() {
+   public Set<String> keySet() {
       return Collections.unmodifiableSet(vectorMap.keySet());
-   }
-
-   @Override
-   public Measure getQueryMeasure() {
-      return queryMeasure;
    }
 
    @Override
@@ -103,22 +88,34 @@ public class DefaultVectorStore<KEY> implements VectorStore<KEY>, Serializable {
    }
 
    @Override
-   public VectorStoreBuilder<KEY> toBuilder() {
-      return DefaultVectorStore.<KEY>builder(dimension).measure(getQueryMeasure());
+   public VectorStoreBuilder toBuilder() {
+      return InMemoryVectorStore.builder();
    }
 
    /**
     * The type Builder.
-    *
-    * @param <KEY> the type parameter
     */
-   public static class Builder<KEY> extends VectorStoreBuilder<KEY> {
+   public static class Builder extends VectorStoreBuilder {
+      private final Map<String, NDArray> vectors = new HashMap<>();
+
       @Override
-      public VectorStore<KEY> build() {
-         DefaultVectorStore<KEY> vs = new DefaultVectorStore<>(dimension(), measure());
+      public VectorStoreBuilder add(String key, NDArray vector) {
+         notNullOrBlank(key, "The key must not be null or blank");
+         if (dimension() == -1) {
+            dimension = (int) vector.length();
+         }
+         checkArgument(dimension == vector.length(),
+                       () -> "Dimension mismatch. (" + dimension + ") != (" + vector.length() + ")");
+         vectors.put(key, vector);
+         return this;
+      }
+
+      @Override
+      public VectorStore build() {
+         InMemoryVectorStore vs = new InMemoryVectorStore(dimension());
          vs.vectorMap.putAll(vectors);
          return vs;
       }
    }// END OF Builder
 
-}//END OF DefaultVectorStore
+}//END OF InMemoryVectorStore

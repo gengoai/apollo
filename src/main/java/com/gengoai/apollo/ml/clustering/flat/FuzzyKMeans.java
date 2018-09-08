@@ -39,7 +39,7 @@ public class FuzzyKMeans extends Clusterer<FlatClustering> {
    @Setter
    private double epsilon = 1e-3;
    @Getter
-   @Setter(onParam = @_({@NonNull}))
+   @Setter
    private DistanceMeasure distanceMeasure = Distance.Euclidean;
 
    private FuzzyKMeans() {

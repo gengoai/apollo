@@ -24,8 +24,7 @@ package com.gengoai.apollo.ml.embedding;
 import com.gengoai.apollo.linear.Axis;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
-import com.gengoai.apollo.linear.store.DefaultVectorStore;
-import com.gengoai.apollo.linear.store.LSHVectorStore;
+import com.gengoai.apollo.linear.store.InMemoryVectorStore;
 import com.gengoai.apollo.linear.store.VectorStoreBuilder;
 import com.gengoai.apollo.ml.Instance;
 import com.gengoai.apollo.ml.data.Dataset;
@@ -136,13 +135,13 @@ public class SVDEmbedding extends EmbeddingLearner {
                                                     .rdd());
 
 
-      VectorStoreBuilder<String> builder;
-      if (fastKNN) {
-         builder = LSHVectorStore.<String>builder().signature("COSINE");
-      } else {
-         builder = DefaultVectorStore.builder();
-      }
-      builder.dimension(getDimension());
+      VectorStoreBuilder builder;
+//      if (fastKNN) {
+//         builder = LSHVectorStore.<String>builder().signature("COSINE");
+//      } else {
+         builder = InMemoryVectorStore.builder();
+//      }
+//      builder.dimension(getDimension());
       builder.measure(Similarity.Cosine);
 
       SingularValueDecomposition<RowMatrix, Matrix> svd = sparkSVD(mat, getDimension());

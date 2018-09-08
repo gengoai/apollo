@@ -16,6 +16,6 @@ public interface Retrofitting {
     * @param embedding the embedding
     * @return the embedding
     */
-   Embedding process(VectorStore<String> embedding);
+   Embedding process(VectorStore  embedding);
 
 }//END OF Retrofitting

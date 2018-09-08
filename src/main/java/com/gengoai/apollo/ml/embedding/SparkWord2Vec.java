@@ -1,8 +1,7 @@
 package com.gengoai.apollo.ml.embedding;
 
 import com.gengoai.apollo.linear.NDArrayFactory;
-import com.gengoai.apollo.linear.store.DefaultVectorStore;
-import com.gengoai.apollo.linear.store.LSHVectorStore;
+import com.gengoai.apollo.linear.store.InMemoryVectorStore;
 import com.gengoai.apollo.linear.store.VectorStoreBuilder;
 import com.gengoai.apollo.ml.Instance;
 import com.gengoai.apollo.ml.data.Dataset;
@@ -10,7 +9,6 @@ import com.gengoai.apollo.ml.encoder.Encoder;
 import com.gengoai.apollo.ml.encoder.IndexEncoder;
 import com.gengoai.apollo.ml.sequence.Sequence;
 import com.gengoai.apollo.stat.measure.Similarity;
-import com.gengoai.conversion.Convert;
 import com.gengoai.stream.SparkStream;
 import lombok.Getter;
 import lombok.Setter;
@@ -76,13 +74,13 @@ public class SparkWord2Vec extends EmbeddingLearner {
                                                                          }));
       Word2VecModel model = w2v.fit(sentences.getRDD());
       Encoder encoder = new IndexEncoder();
-      VectorStoreBuilder<String> builder;
-      if (fastKNN) {
-         builder = LSHVectorStore.<String>builder().signature("COSINE");
-      } else {
-         builder = DefaultVectorStore.builder();
-      }
-      builder.dimension(getDimension());
+      VectorStoreBuilder builder;
+//      if (fastKNN) {
+//         builder = LSHVectorStore.<String>builder().signature("COSINE");
+//      } else {
+         builder = InMemoryVectorStore.builder();
+//      }
+//      builder.dimension(getDimension());
       builder.measure(Similarity.Cosine);
       for (Map.Entry<String, float[]> vector : JavaConversions.mapAsJavaMap(model.getVectors()).entrySet()) {
          encoder.encode(vector.getKey());

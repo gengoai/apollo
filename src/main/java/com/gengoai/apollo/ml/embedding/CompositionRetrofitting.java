@@ -1,6 +1,5 @@
 package com.gengoai.apollo.ml.embedding;
 
-import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.store.VectorStore;
 import com.gengoai.apollo.linear.store.VectorStoreBuilder;
 import com.gengoai.io.resource.Resource;
@@ -41,22 +40,22 @@ public class CompositionRetrofitting implements Retrofitting {
    }
 
    @Override
-   public Embedding process(@NonNull VectorStore<String> embedding) {
-      VectorStoreBuilder<String> newEmbedding = embedding.toBuilder();
-      embedding
-         .keySet()
-         .forEach(term -> {
-            NDArray tv = embedding.get(term).copy();
-            if (background.contains(term)) {
-               tv.addi(background.get(term));
-               if (neighborSize > 0 && neighborWeight > 0) {
-                  background
-                     .nearest(term, neighborSize, neighborThreshold)
-                     .forEach(n -> tv.addi(n.mul((float) neighborWeight)));
-               }
-            }
-            newEmbedding.add(term, tv);
-         });
+   public Embedding process(@NonNull VectorStore embedding) {
+      VectorStoreBuilder newEmbedding = embedding.toBuilder();
+//      embedding
+//         .keySet()
+//         .forEach(term -> {
+//            NDArray tv = embedding.get(term).copy();
+//            if (background.contains(term)) {
+//               tv.addi(background.get(term));
+//               if (neighborSize > 0 && neighborWeight > 0) {
+//                  background
+//                     .nearest(term, neighborSize, neighborThreshold)
+//                     .forEach(n -> tv.addi(n.mul((float) neighborWeight)));
+//               }
+//            }
+//            newEmbedding.add(term, tv);
+//         });
 
       try {
          return new Embedding(newEmbedding.build());

@@ -51,7 +51,7 @@ public class FaruquiRetrofitting implements Retrofitting {
    }
 
    @Override
-   public Embedding process(@NonNull VectorStore<String> origVectors) {
+   public Embedding process(@NonNull VectorStore origVectors) {
       Set<String> sourceVocab = new HashSet<>(origVectors.keySet());
       Set<String> sharedVocab = Sets.intersection(sourceVocab, lexicon.keySet());
       Map<String, NDArray> unitNormedVectors = new HashMap<>();
@@ -86,7 +86,7 @@ public class FaruquiRetrofitting implements Retrofitting {
          });
       }
 
-      VectorStoreBuilder<String> newVectors = origVectors.toBuilder();
+      VectorStoreBuilder newVectors = origVectors.toBuilder();
       retrofittedVectors.forEach(newVectors::add);
       try {
          return new Embedding(newVectors.build());

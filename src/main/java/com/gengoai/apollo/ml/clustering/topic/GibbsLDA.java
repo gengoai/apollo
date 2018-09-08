@@ -51,7 +51,7 @@ public class GibbsLDA extends Clusterer<LDAModel> {
    @Setter
    private boolean keepDocumentTopicAssignments = false;
    @Getter
-   @Setter(onParam = @_({@NonNull}))
+   @Setter
    private RandomGenerator randomGenerator = new Well19937c();
 
 

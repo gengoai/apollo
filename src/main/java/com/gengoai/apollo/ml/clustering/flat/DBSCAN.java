@@ -31,7 +31,7 @@ public class DBSCAN extends Clusterer<FlatClustering> {
    @Setter
    private int minPts;
    @Getter
-   @Setter(onParam = @_({@NonNull}))
+   @Setter
    private DistanceMeasure distanceMeasure;
 
 

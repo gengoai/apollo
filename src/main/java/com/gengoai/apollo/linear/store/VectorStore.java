@@ -24,38 +24,20 @@ package com.gengoai.apollo.linear.store;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.linear.VectorComposition;
-import com.gengoai.apollo.stat.measure.Measure;
 import com.gengoai.collection.Streams;
-import com.gengoai.conversion.Cast;
-import com.gengoai.io.Commitable;
-import com.gengoai.tuple.Tuple;
 
-import java.io.Closeable;
-import java.io.IOException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Set;
 import java.util.stream.Collectors;
-
-import static com.gengoai.Validation.checkArgument;
-import static com.gengoai.tuple.Tuples.$;
+import java.util.stream.Stream;
 
 /**
  * <p>A vector store provides access and lookup of vectors by labels and to find vectors in the store closest to query
  * vectors. </p>
  *
- * @param <KEY> the type of key associated with vectors
  * @author David B. Bracewell
  */
-public interface VectorStore<KEY> extends Iterable<NDArray>, AutoCloseable, Closeable, Commitable {
-
-   @Override
-   default void close() throws IOException {
-
-   }
-
-   @Override
-   default void commit() {
-
-   }
+public interface VectorStore extends Iterable<NDArray> {
 
    /**
     * Creates a vector using the given vector composition for the given words.
@@ -65,7 +47,7 @@ public interface VectorStore<KEY> extends Iterable<NDArray>, AutoCloseable, Clos
     * @return a composite vector consisting of the given words and calculated using the given vector composition
     */
    @SuppressWarnings("unchecked")
-   default NDArray compose(VectorComposition composition, KEY... words) {
+   default NDArray compose(VectorComposition composition, String... words) {
       if (words == null) {
          return NDArrayFactory.DEFAULT().zeros(dimension());
       } else if (words.length == 1) {
@@ -77,12 +59,12 @@ public interface VectorStore<KEY> extends Iterable<NDArray>, AutoCloseable, Clos
    }
 
    /**
-    * Determines if a vector with the label of the given key is in the store.
+    * Determines if a vector with the label of the given String is in the store.
     *
-    * @param key the key
-    * @return True if a vector is associated with the given key, False otherwise
+    * @param String the String
+    * @return True if a vector is associated with the given String, False otherwise
     */
-   boolean containsKey(KEY key);
+   boolean containsKey(String String);
 
    /**
     * The dimension of the vectors in the store
@@ -92,168 +74,44 @@ public interface VectorStore<KEY> extends Iterable<NDArray>, AutoCloseable, Clos
    int dimension();
 
    /**
-    * Gets the vector associated with the given key.
+    * Gets the vector associated with the given String.
     *
-    * @param key the key to look up
-    * @return the labeled vector or null if key is not in store
+    * @param String the String to look up
+    * @return the labeled vector or null if String is not in store
     */
-   NDArray get(KEY key);
+   NDArray get(String String);
 
    /**
-    * @return The query measured for nearest neighbor calls
+    * The label Strings in the store
+    *
+    * @return the set of vector label Strings
     */
-   Measure getQueryMeasure();
+   Set<String> keySet();
 
    /**
-    * The label keys in the store
+    * Queries the vector store to find similar vectors to the given {@link VSQuery}.
     *
-    * @return the set of vector label keys
+    * @param query the query to use find similar vectors
+    * @return Stream of vectors matching the query
     */
-   Set<KEY> keySet();
-
-   /**
-    * Queries the vector store for the nearest vectors to the given <code>query</code> vector returning only matches
-    * whose score pass the given <code>threshold</code>. How the threshold is used is determined by the type of measure
-    * used in the vector store.
-    *
-    * @param query     the query vector
-    * @param threshold the threshold to filter vectors
-    * @return the list of vectors with their labels and scored by the stores measure with respect to the query vector.
-    */
-   default List<NDArray> nearest(NDArray query, double threshold) {
-      checkArgument(query.length() == dimension(),
-                    "Dimension mismatch, vector store can only store vectors with k of " + dimension());
-      return Streams.asParallelStream(iterator())
-                    .map(v -> v.copy().setWeight(getQueryMeasure().calculate(v, query)))
-                    .filter(s -> getQueryMeasure().getOptimum().test(s.getWeight(), threshold))
-                    .collect(Collectors.toList());
-   }
-
-   /**
-    * Queries the vector store for the nearest vectors to the given <code>query</code> vector returning only the top
-    * <code>K</code> matches whose score pass the given <code>threshold</code>. How the threshold is used is determined
-    * by the type of measure used in the vector store.
-    *
-    * @param query     the query vector
-    * @param K         the maximum number of results to return
-    * @param threshold the threshold to filter vectors
-    * @return the list of vectors with their labels and scored by the stores measure with respect to the query vector.
-    */
-   default List<NDArray> nearest(NDArray query, int K, double threshold) {
-      checkArgument(query.length() == dimension(),
-                    "Dimension mismatch, vector store can only store vectors with k of " + dimension());
-      List<NDArray> vectors = Streams.asParallelStream(iterator())
-                                     .map(v -> v.copy().setWeight(getQueryMeasure().calculate(v, query)))
-                                     .filter(s -> getQueryMeasure().getOptimum().test(s.getWeight(), threshold))
-                                     .sorted((s1, s2) -> getQueryMeasure().getOptimum()
-                                                                          .compare(s1.getWeight(), s2.getWeight()))
-                                     .collect(Collectors.toList());
-      return vectors.subList(0, Math.min(K, vectors.size()));
-   }
-
-   /**
-    * Queries the vector store for the nearest vectors to the given <code>query</code> vector.
-    *
-    * @param query the query vector
-    * @return the list of vectors with their labels and scored by the stores measure with respect to the query vector.
-    */
-   default List<NDArray> nearest(NDArray query) {
-      checkArgument(query.length() == dimension(),
-                    "Dimension mismatch, vector store can only store vectors with k of " + dimension());
-      return Streams.asParallelStream(iterator())
-                    .map(v -> v.copy().setWeight(getQueryMeasure().calculate(v, query)))
-                    .collect(Collectors.toList());
-   }
-
-   /**
-    * Queries the vector store for the nearest vectors to the given <code>query</code> vector returning only the top
-    * <code>K</code>.
-    *
-    * @param query the query vector
-    * @param K     the maximum number of results to return
-    * @return the list of vectors with their labels and scored by the stores measure with respect to the query vector.
-    */
-   default List<NDArray> nearest(NDArray query, int K) {
-      checkArgument(query.length() == dimension(),
-                    "Dimension mismatch, vector store can only store vectors with k of " + dimension());
-      List<NDArray> vectors = Streams.asParallelStream(iterator())
-                                     .map(v -> v.copy().setWeight(getQueryMeasure().calculate(v, query)))
-                                     .sorted((s1, s2) -> getQueryMeasure().getOptimum()
-                                                                          .compare(s1.getWeight(), s2.getWeight()))
-                                     .collect(Collectors.toList());
-      return vectors.subList(0, Math.min(K, vectors.size()));
-   }
-
-   /**
-    * Finds the closest K vectors to the given word/feature in the embedding
-    *
-    * @param word the word/feature whose neighbors we want
-    * @param K    the maximum number of neighbors to return
-    * @return the list of scored K-nearest vectors
-    */
-   default List<NDArray> nearest(KEY word, int K) {
-      return nearest(word, K, Double.NEGATIVE_INFINITY);
-   }
-
-   /**
-    * Finds the closest K vectors to the given word/feature in the embedding
-    *
-    * @param word      the word/feature whose neighbors we want
-    * @param K         the maximum number of neighbors to return
-    * @param threshold threshold for selecting vectors
-    * @return the list of scored K-nearest vectors
-    */
-   default List<NDArray> nearest(KEY word, int K, double threshold) {
-      NDArray v1 = get(word);
-      if (v1 == null) {
-         return Collections.emptyList();
+   default Stream<NDArray> query(VSQuery query) {
+      NDArray queryVector = query.queryVector(this);
+      Stream<NDArray> stream = Streams.asParallelStream(iterator())
+                                      .map(v -> v.copy().setWeight(query.measure().calculate(v, queryVector)));
+      if (Double.isFinite(query.threshold())) {
+         stream = stream.filter(v -> query.measure().getOptimum().test(v.getWeight(), query.threshold()));
       }
-      List<NDArray> near = nearest(v1, K + 1, threshold)
-                              .stream()
-                              .filter(slv -> !word.equals(slv.getLabel()))
-                              .collect(Collectors.toList());
-      return near.subList(0, Math.min(K, near.size()));
+      stream = stream.sorted((v1, v2) -> query.measure().getOptimum().compare(v1.getWeight(), v2.getWeight()));
+      Set<String> exclude = query.getExcludedLabels();
+      if (exclude.size() > 0) {
+         stream = stream.filter(v -> !exclude.contains(v.getLabel()));
+      }
+      if (query.limit() > 0 && query.limit() < Integer.MAX_VALUE) {
+         stream = stream.limit(query.limit());
+      }
+      return stream;
    }
 
-   /**
-    * Finds the closest K vectors to the given positive tuple of words/features and not near the negative tuple of
-    * words/features in the embedding
-    *
-    * @param positive  a tuple of words/features (the individual vectors are composed using vector addition) whose
-    *                  neighbors we want
-    * @param negative  a tuple of words/features (the individual vectors are composed using vector addition) subtracted
-    *                  from the positive vectors.
-    * @param K         the maximum number of neighbors to return
-    * @param threshold threshold for selecting vectors
-    * @return the list of scored K-nearest vectors
-    */
-   default List<NDArray> nearest(Tuple positive, Tuple negative, int K, double threshold) {
-      NDArray pVec = NDArrayFactory.DEFAULT().zeros(dimension());
-      positive.forEach(word -> pVec.addi(get(Cast.as(word))));
-      NDArray nVec = NDArrayFactory.DEFAULT().zeros(dimension());
-      negative.forEach(word -> nVec.addi(get(Cast.as(word))));
-      Set<String> ignore = new HashSet<>();
-      positive.forEach(o -> ignore.add(o.toString()));
-      negative.forEach(o -> ignore.add(o.toString()));
-      List<NDArray> vectors = nearest(pVec.sub(nVec), K + positive.degree() + negative.degree(),
-                                      threshold)
-                                 .stream()
-                                 .filter(slv -> !ignore.contains(slv.<String>getLabel()))
-                                 .collect(Collectors.toList());
-      return vectors.subList(0, Math.min(K, vectors.size()));
-   }
-
-   /**
-    * Finds the closest K vectors to the given tuple of words/features in the embedding
-    *
-    * @param words a tuple of words/features (the individual vectors are composed using vector addition) whose neighbors
-    *              we want
-    * @param K     the maximum number of neighbors to return
-    * @return the list of scored K-nearest vectors
-    */
-   default List<NDArray> nearest(Tuple words, int K) {
-      return nearest(words, $(), K, Double.NEGATIVE_INFINITY);
-   }
 
    /**
     * The number of vectors stored
@@ -267,6 +125,6 @@ public interface VectorStore<KEY> extends Iterable<NDArray>, AutoCloseable, Clos
     *
     * @return the vector store
     */
-   VectorStoreBuilder<KEY> toBuilder();
+   VectorStoreBuilder toBuilder();
 
 }// END OF VectorStore

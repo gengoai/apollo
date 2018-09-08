@@ -18,7 +18,7 @@ import java.util.Arrays;
 public class NaiveBayesLearner extends ClassifierLearner {
    private static final long serialVersionUID = 1L;
    @Getter
-   @Setter(onParam = @_({@NonNull}))
+   @Setter
    private volatile NaiveBayes.ModelType modelType;
 
    /**

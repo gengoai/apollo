@@ -39,19 +39,24 @@ public final class DiskBasedVectorStore implements VectorStore, Serializable, Lo
       this.keyOffsets = new HashMap<>();
       this.cacheSize = cacheSize;
       this.dimension = VectorStoreTextWriter.determineDimension(vectorFile);
-      indexFile();
+      File indexFile = VectorStoreTextWriter.indexFileFor(vectorFile);
+      if (indexFile.exists()) {
+         keyOffsets.putAll(VectorStoreTextWriter.readIndexFor(vectorFile));
+      } else {
+         keyOffsets.putAll(VectorStoreTextWriter.createIndexFor(vectorFile));
+         VectorStoreTextWriter.writeIndexFor(vectorFile, keyOffsets);
+      }
       vectorCache = new AutoCalculatingLRUCache<>(cacheSize, this::loadNDArray);
 
    }
 
-   public static void main(String[] args) throws Exception {
-      DiskBasedVectorStore.Builder builder = builder().location(new File("/home/ik/glove.6B.50d.txt"));
-//      for (int i = 0; i < 100; i++) {
-//         builder.add(StringUtils.randomHexString(10), NDArrayFactory.DENSE
-//                                                         .create(NDArrayInitializer.rand, 50));
-//      }
-      VectorStore vs = builder.build();
-      vs.keySet().forEach(key -> System.out.println(key + " : " + vs.get(key)));
+   @Override
+   public void write(Resource location) throws IOException {
+      Resource vectors = Resources.fromFile(vectorFile);
+      Resource index = Resources.fromFile(VectorStoreTextWriter.indexFileFor(vectorFile));
+      vectors.copy(location);
+      index.copy(Resources.fromFile(VectorStoreTextWriter.indexFileFor(location.asFile()
+                                                                               .orElseThrow(IOException::new))));
    }
 
    /**
@@ -89,16 +94,6 @@ public final class DiskBasedVectorStore implements VectorStore, Serializable, Lo
       return vectorCache.get(s);
    }
 
-   private void indexFile() throws IOException {
-      File indexFile = VectorStoreTextWriter.indexFileFor(vectorFile);
-      if (indexFile.exists()) {
-         keyOffsets.putAll(VectorStoreTextWriter.readIndexFor(vectorFile));
-      } else {
-         keyOffsets.putAll(VectorStoreTextWriter.createIndexFor(vectorFile));
-         VectorStoreTextWriter.writeIndexFor(vectorFile, keyOffsets);
-      }
-   }
-
    @Override
    public Iterator<NDArray> iterator() {
       return new Iterator<NDArray>() {
@@ -124,18 +119,10 @@ public final class DiskBasedVectorStore implements VectorStore, Serializable, Lo
    private NDArray loadNDArray(String key) {
       if (keyOffsets.containsKey(key)) {
          try (RandomAccessFile raf = new RandomAccessFile(vectorFile, "r")) {
-            long offset = keyOffsets.get(key);
-            NDArray vector = NDArrayFactory.DENSE.zeros(1, dimension);
-            raf.seek(offset);
-            String line = raf.readLine();
-            String[] parts = line.split("[ \t]+");
-            for (int i = 1; i < parts.length; i++) {
-               vector.set(i - 1, Double.parseDouble(parts[i]));
-            }
-            vector.setLabel(parts[0]);
-            return vector;
+            raf.seek(keyOffsets.get(key));
+            return VectorStoreTextWriter.lineToVector(raf.readLine(), dimension);
          } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
          }
       }
       return NDArrayFactory.SPARSE.zeros(dimension);

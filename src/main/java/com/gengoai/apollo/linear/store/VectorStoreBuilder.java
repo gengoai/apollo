@@ -7,13 +7,14 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 
 /**
  * Abstract base builder for {@link VectorStore}s.
  *
  * @author David B. Bracewell
  */
-public abstract class VectorStoreBuilder {
+public abstract class VectorStoreBuilder  {
    public static final String DIMENSION = "DIMENSION";
    private final Map<String, Object> parameters = new NormalizedStringMap<>();
 
@@ -68,6 +69,18 @@ public abstract class VectorStoreBuilder {
     * @throws NullPointerException if the vectors or their keys are null
     */
    public VectorStoreBuilder addAll(Iterable<NDArray> vectors) {
+      vectors.forEach(this::add);
+      return this;
+   }
+
+   /**
+    * Adds all vectors in the given stream to the vector store
+    *
+    * @param vectors the vectors to add
+    * @return this vector store builder
+    * @throws NullPointerException if the vectors or their keys are null
+    */
+   public VectorStoreBuilder addAll(Stream<NDArray> vectors){
       vectors.forEach(this::add);
       return this;
    }

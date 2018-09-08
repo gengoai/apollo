@@ -21,12 +21,96 @@
 
 package com.gengoai.apollo.linear.store;
 
+import com.gengoai.apollo.hash.LocalitySensitiveHash;
+import com.gengoai.apollo.linear.NDArray;
+import com.gengoai.io.resource.Resource;
+
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.Iterator;
+import java.util.Set;
+
 /**
  * <p>Abstract base interface for LSH based NDArray stores.</p>
  *
  * @author David B. Bracewell
  */
-public class LSHVectorStore {
+public class LSHVectorStore implements VectorStore, Serializable {
+   public static final String BANDS = "BANDS";
+   public static final String BUCKETS = "BUCKETS";
+   public static final String THRESHOLD = "THRESHOLD";
+   public static final String SIGNATURE = "SIGNATURE";
+   public static final String SIGNATURE_SIZE = "SIGNATURE_SIZE";
+   private LocalitySensitiveHash lsh;
+   private VectorStore store;
+
+   @Override
+   public boolean containsKey(String String) {
+      return store.containsKey(toString());
+   }
+
+   @Override
+   public int dimension() {
+      return store.dimension();
+   }
+
+   @Override
+   public NDArray get(String term) {
+      return store.get(term);
+   }
+
+   @Override
+   public Iterator<NDArray> iterator() {
+      return store.iterator();
+   }
+
+   @Override
+   public Set<String> keySet() {
+      return store.keySet();
+   }
+
+   @Override
+   public void write(Resource location) throws IOException {
+
+   }
+
+   @Override
+   public int size() {
+      return store.size();
+   }
+
+   @Override
+   public VectorStoreBuilder toBuilder() {
+      return null;
+   }
+
+   public static class Builder extends VectorStoreBuilder {
+      VectorStoreBuilder wrappedBuilder;
+
+      public Builder(boolean inMemory) {
+         wrappedBuilder = inMemory ? InMemoryVectorStore.builder() : DiskBasedVectorStore.builder();
+      }
+
+      @Override
+      public VectorStoreBuilder add(String key, NDArray vector) {
+         wrappedBuilder.add(key, vector);
+         return this;
+      }
+
+      @Override
+      public VectorStoreBuilder parameter(String name, Object value) {
+
+         return this;
+      }
+
+      @Override
+      public VectorStore build() throws IOException {
+         VectorStore wrapped = wrappedBuilder.build();
+
+         return new LSHVectorStore();
+      }
+   }
+}
 //   implements
 //} VectorStore, Serializable {
 //   private static final long serialVersionUID = 1L;
@@ -224,4 +308,4 @@ public class LSHVectorStore {
 //         return this;
 //      }
 //   }
-}// END OF LSHVectorStore
+//}// END OF LSHVectorStore

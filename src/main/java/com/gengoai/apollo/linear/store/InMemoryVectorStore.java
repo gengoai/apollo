@@ -23,8 +23,11 @@ package com.gengoai.apollo.linear.store;
 
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
+import com.gengoai.apollo.linear.store.io.VectorStoreTextWriter;
 import com.gengoai.collection.Iterators;
+import com.gengoai.io.resource.Resource;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.*;
 
@@ -40,7 +43,6 @@ public class InMemoryVectorStore implements VectorStore, Serializable {
    private static final long serialVersionUID = 1L;
    private final Map<String, NDArray> vectorMap = new HashMap<>();
    private final int dimension;
-
 
    public InMemoryVectorStore(int dimension) {
       this.dimension = dimension;
@@ -90,6 +92,15 @@ public class InMemoryVectorStore implements VectorStore, Serializable {
    @Override
    public VectorStoreBuilder toBuilder() {
       return InMemoryVectorStore.builder();
+   }
+
+   @Override
+   public void write(Resource location) throws IOException {
+      VectorStoreTextWriter writer = new VectorStoreTextWriter(dimension,
+                                                               location.asFile().orElseThrow(IOException::new));
+      for (NDArray value : vectorMap.values()) {
+         writer.write(value);
+      }
    }
 
    /**

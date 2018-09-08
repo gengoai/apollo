@@ -1,6 +1,7 @@
 package com.gengoai.apollo.linear.store.io;
 
 import com.gengoai.apollo.linear.NDArray;
+import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.io.Resources;
 import com.gengoai.io.resource.Resource;
 import com.gengoai.json.Json;
@@ -41,6 +42,16 @@ public class VectorStoreTextWriter implements VectorStoreWriter {
 
    public static File indexFileFor(File vectorStore) {
       return new File(vectorStore.getAbsolutePath() + INDEX_EXT);
+   }
+
+   public static NDArray lineToVector(String line, int dimension) {
+      NDArray vector = NDArrayFactory.DENSE.zeros(1, dimension);
+      String[] parts = line.split("[ \t]+");
+      for (int i = 1; i < parts.length; i++) {
+         vector.set(i - 1, Double.parseDouble(parts[i]));
+      }
+      vector.setLabel(parts[0]);
+      return vector;
    }
 
    public static Map<String, Long> readIndexFor(File vectorStore) throws IOException {

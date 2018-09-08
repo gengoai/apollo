@@ -63,9 +63,9 @@ public class Embedding implements Model, VectorStore, Serializable {
       }
       VectorStoreBuilder builder;
       //if (fastNearestNeighbors) {
-         //builder = LSHVectorStore.<String>builder().signature("COSINE");
+      //builder = LSHVectorStore.<String>builder().signature("COSINE");
 //      } else {
-         builder = InMemoryVectorStore.builder();
+      builder = InMemoryVectorStore.builder();
 //      }
 //      builder.measure(Similarity.Cosine);
 
@@ -139,6 +139,11 @@ public class Embedding implements Model, VectorStore, Serializable {
    @Override
    public EncoderPair getEncoderPair() {
       return EncoderPair.NO_OPT;
+   }
+
+   @Override
+   public void write(Resource modelResource) throws IOException {
+      vectorStore.write(modelResource);
    }
 
    @Override

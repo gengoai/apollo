@@ -25,7 +25,9 @@ import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.linear.VectorComposition;
 import com.gengoai.collection.Streams;
+import com.gengoai.io.resource.Resource;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -87,6 +89,8 @@ public interface VectorStore extends Iterable<NDArray> {
     * @return the set of vector label Strings
     */
    Set<String> keySet();
+
+   void write(Resource location) throws IOException;
 
    /**
     * Queries the vector store to find similar vectors to the given {@link VSQuery}.

@@ -34,6 +34,38 @@ import java.io.Serializable;
  */
 public interface SignatureFunction extends Serializable {
 
+   static SignatureParameters newParameters() {
+      return new SignatureParameters();
+   }
+
+   static SignatureFunction create(String name, SignatureParameters parameters) {
+      switch (name.toUpperCase()) {
+         case "JACCARD":
+         case "JACCARDSIMILARITY":
+         case "MINHASH":
+         case "JACCARD_SIMILARITY":
+         case "MIN_HASH":
+            return new MinHashSignature(parameters);
+         case "JACCARDDISTANCE":
+         case "JACCARD_DISTANCE":
+         case "MINHASHDISTANCE":
+         case "MIN_HASH_DISTANCE":
+            return new MinHashDistanceSignature(parameters);
+         case "COSINE":
+         case "COSINESIMILARITY":
+         case "COSINE_SIMILARITY":
+            return new CosineSignature(parameters);
+         case "COSINEDISTANCE":
+         case "COSINE_DISTANCE":
+            return new CosineDistanceSignature(parameters);
+         case "EUCLIDEAN":
+         case "EUCLIDEANDISTANCE":
+         case "EUCLIDEAN_DISTANCE":
+            return new EuclideanSignature(parameters);
+      }
+      throw new IllegalArgumentException("Unknown value: " + name);
+   }
+
    /**
     * Converts the given vector into a signature
     *

@@ -34,41 +34,31 @@ import java.util.Random;
  * @author David B. Bracewell
  */
 public class MinHashSignature implements SignatureFunction {
+   public static final String NAME = "MIN_HASH";
    private static final long serialVersionUID = 1L;
-   private final int signatureSize;
-   private final int dimension;
    private final long[][] coefficients;
+   private final SignatureParameters parameters;
 
    /**
     * Instantiates a new Min hash signature.
-    *
-    * @param error     the allowed error rate
-    * @param dimension the dimension of the vector
     */
-   public MinHashSignature(double error, int dimension) {
-      this((int) (1 / (error * error)), dimension);
-   }
-
-   /**
-    * Instantiates a new Min hash signature.
-    *
-    * @param signatureSize the signature size controlling the number of random projections
-    * @param dimension     the dimension of the vector
-    */
-   public MinHashSignature(int signatureSize, int dimension) {
-      this.signatureSize = signatureSize;
-      this.dimension = dimension;
+   public MinHashSignature(SignatureParameters parameters) {
+      this.parameters = parameters.copy();
+      double error = 1d - parameters.getThreshold(0.0);
+      int ss = parameters.getOrDefault(SignatureParameters.SIGNATURE_SIZE,
+                                       (int) (1d / (error * error)));
+      this.parameters.setSignatureSize(ss);
       Random rnd = new Random();
-      this.coefficients = new long[signatureSize][2];
-      for (int i = 0; i < signatureSize; i++) {
-         this.coefficients[i][0] = rnd.nextInt(dimension);
-         this.coefficients[i][1] = rnd.nextInt(dimension);
+      this.coefficients = new long[ss][2];
+      for (int i = 0; i < ss; i++) {
+         this.coefficients[i][0] = rnd.nextInt(parameters.getDimension());
+         this.coefficients[i][1] = rnd.nextInt(parameters.getDimension());
       }
    }
 
    @Override
    public int getDimension() {
-      return dimension;
+      return parameters.getDimension();
    }
 
    @Override
@@ -78,11 +68,11 @@ public class MinHashSignature implements SignatureFunction {
 
    @Override
    public int getSignatureSize() {
-      return signatureSize;
+      return parameters.getSignatureSize();
    }
 
    private int h(int i, long x) {
-      return (int) (coefficients[i][0] * x + coefficients[i][1]) % dimension;
+      return (int) (coefficients[i][0] * x + coefficients[i][1]) % parameters.getDimension();
    }
 
    @Override
@@ -92,11 +82,11 @@ public class MinHashSignature implements SignatureFunction {
 
    @Override
    public int[] signature(NDArray vector) {
-      int[] sig = new int[signatureSize];
+      int[] sig = new int[parameters.getSignatureSize()];
       Arrays.fill(sig, Integer.MAX_VALUE);
       vector.sparseIterator().forEachRemaining(entry -> {
          if (entry.getValue() > 0) {
-            for (int i = 0; i < signatureSize; i++) {
+            for (int i = 0; i < parameters.getSignatureSize(); i++) {
                sig[i] = Math.min(sig[i], h(i, entry.getIndex()));
             }
          }

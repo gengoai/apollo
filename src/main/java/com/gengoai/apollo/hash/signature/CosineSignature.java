@@ -34,29 +34,24 @@ import com.gengoai.apollo.stat.measure.Similarity;
  */
 public class CosineSignature implements SignatureFunction {
    private static final long serialVersionUID = 1L;
-
-   private final int dimension;
-   private final int signatureSize;
+   private final SignatureParameters parameters;
    private final NDArray[] randomProjections;
 
    /**
     * Instantiates a new Cosine signature.
-    *
-    * @param signatureSize the signature size controlling the number of random projections
-    * @param dimension     the dimension of the vector
     */
-   public CosineSignature(int signatureSize, int dimension) {
-      this.signatureSize = signatureSize;
-      this.dimension = dimension;
-      this.randomProjections = new NDArray[signatureSize];
-      for (int i = 0; i < signatureSize; i++) {
-         this.randomProjections[i] = NDArrayFactory.DEFAULT().create(NDArrayInitializer.randn, dimension);
+   public CosineSignature(SignatureParameters parameters) {
+      this.parameters = parameters.copy();
+      this.randomProjections = new NDArray[parameters.getSignatureSize()];
+      for (int i = 0; i < parameters.getSignatureSize(); i++) {
+         this.randomProjections[i] = NDArrayFactory.DEFAULT().create(NDArrayInitializer.randn,
+                                                                     parameters.getDimension());
       }
    }
 
    @Override
    public int getDimension() {
-      return dimension;
+      return parameters.getDimension();
    }
 
    @Override
@@ -66,7 +61,7 @@ public class CosineSignature implements SignatureFunction {
 
    @Override
    public int getSignatureSize() {
-      return signatureSize;
+      return parameters.getSignatureSize();
    }
 
    @Override
@@ -77,7 +72,7 @@ public class CosineSignature implements SignatureFunction {
    @Override
    public int[] signature(NDArray vector) {
       int[] sig = new int[randomProjections.length];
-      for (int i = 0; i < signatureSize; i++) {
+      for (int i = 0; i < parameters.getSignatureSize(); i++) {
          sig[i] = randomProjections[i].scalarDot(vector) > 0 ? 1 : 0;
       }
       return sig;

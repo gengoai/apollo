@@ -30,26 +30,15 @@ import com.gengoai.apollo.stat.measure.Similarity;
  * @author David B. Bracewell
  */
 public class MinHashDistanceSignature extends MinHashSignature {
+   public static final String NAME = "MIN_HASH";
    private static final long serialVersionUID = 1L;
 
-   /**
-    * Instantiates a new Min hash distance signature.
-    *
-    * @param error     the error
-    * @param dimension the dimension
-    */
-   public MinHashDistanceSignature(double error, int dimension) {
-      super(error, dimension);
-   }
 
    /**
     * Instantiates a new Min hash signature.
-    *
-    * @param signatureSize the signature size controlling the number of random projections
-    * @param dimension     the dimension of the vector
     */
-   public MinHashDistanceSignature(int signatureSize, int dimension) {
-      super(signatureSize, dimension);
+   public MinHashDistanceSignature(SignatureParameters parameters) {
+      super(parameters);
    }
 
    @Override

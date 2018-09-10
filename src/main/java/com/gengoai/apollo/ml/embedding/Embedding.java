@@ -4,7 +4,7 @@ import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.linear.store.InMemoryVectorStore;
 import com.gengoai.apollo.linear.store.VectorStore;
-import com.gengoai.apollo.linear.store.VectorStoreBuilder;
+import com.gengoai.apollo.linear.store.VSBuilder;
 import com.gengoai.apollo.ml.Model;
 import com.gengoai.apollo.ml.encoder.EncoderPair;
 import com.gengoai.conversion.Cast;
@@ -61,7 +61,7 @@ public class Embedding implements Model, VectorStore, Serializable {
          firstRow = 0;
          dimension = lines.get(0).trim().split("\\s+").length - 1;
       }
-      VectorStoreBuilder builder;
+      VSBuilder builder;
       //if (fastNearestNeighbors) {
       //builder = LSHVectorStore.<String>builder().signature("COSINE");
 //      } else {
@@ -122,7 +122,7 @@ public class Embedding implements Model, VectorStore, Serializable {
    }
 
    @Override
-   public VectorStoreBuilder toBuilder() {
+   public VSBuilder toBuilder() {
       return vectorStore.toBuilder();
    }
 

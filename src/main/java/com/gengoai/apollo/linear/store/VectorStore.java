@@ -21,12 +21,14 @@
 
 package com.gengoai.apollo.linear.store;
 
+import com.gengoai.Parameters;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.linear.VectorComposition;
 import com.gengoai.collection.Streams;
 import com.gengoai.io.resource.Resource;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Set;
@@ -129,6 +131,21 @@ public interface VectorStore extends Iterable<NDArray> {
     *
     * @return the vector store
     */
-   VectorStoreBuilder toBuilder();
+   VSBuilder toBuilder();
+
+
+   static VectorStore create(Parameters<VSParams> params) {
+      VectorStore store;
+      if (params.getBoolean(VSParams.IN_MEMORY)) {
+         store = new InMemoryVectorStore(params.getInt(VSParams.DIMENSION));
+      } else {
+         store = new DiskBasedVectorStore(new File(params.getString(VSParams.LOCATION)),
+                                          params.getInt(VSParams.CACHE_SIZE));
+      }
+
+
+      return store;
+   }
+
 
 }// END OF VectorStore

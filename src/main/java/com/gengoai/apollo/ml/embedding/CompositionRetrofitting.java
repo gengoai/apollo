@@ -1,7 +1,7 @@
 package com.gengoai.apollo.ml.embedding;
 
 import com.gengoai.apollo.linear.store.VectorStore;
-import com.gengoai.apollo.linear.store.VectorStoreBuilder;
+import com.gengoai.apollo.linear.store.VSBuilder;
 import com.gengoai.io.resource.Resource;
 import lombok.Getter;
 import lombok.NonNull;
@@ -41,7 +41,7 @@ public class CompositionRetrofitting implements Retrofitting {
 
    @Override
    public Embedding process(@NonNull VectorStore embedding) {
-      VectorStoreBuilder newEmbedding = embedding.toBuilder();
+      VSBuilder newEmbedding = embedding.toBuilder();
 //      embedding
 //         .keySet()
 //         .forEach(term -> {

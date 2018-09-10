@@ -21,6 +21,8 @@
 
 package com.gengoai.apollo.hash.signature;
 
+import com.gengoai.Parameters;
+import com.gengoai.apollo.hash.LSHParameter;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.stat.measure.Measure;
 
@@ -34,11 +36,8 @@ import java.io.Serializable;
  */
 public interface SignatureFunction extends Serializable {
 
-   static SignatureParameters newParameters() {
-      return new SignatureParameters();
-   }
 
-   static SignatureFunction create(String name, SignatureParameters parameters) {
+   static SignatureFunction create(String name, Parameters<LSHParameter> parameters) {
       switch (name.toUpperCase()) {
          case "JACCARD":
          case "JACCARDSIMILARITY":
@@ -81,19 +80,7 @@ public interface SignatureFunction extends Serializable {
     */
    boolean isBinary();
 
-   /**
-    * Gets the dimensions of vectors it can handle.
-    *
-    * @return the dimension
-    */
-   int getDimension();
-
-   /**
-    * Gets the signature size.
-    *
-    * @return the signature size
-    */
-   int getSignatureSize();
+   Parameters<LSHParameter> getParameters();
 
    /**
     * Gets the measure that is associated with this signature function.

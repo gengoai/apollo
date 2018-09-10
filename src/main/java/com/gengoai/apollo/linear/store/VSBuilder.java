@@ -1,12 +1,9 @@
 package com.gengoai.apollo.linear.store;
 
+import com.gengoai.Parameters;
 import com.gengoai.apollo.linear.NDArray;
-import com.gengoai.collection.map.NormalizedStringMap;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Set;
 import java.util.stream.Stream;
 
 /**
@@ -14,31 +11,7 @@ import java.util.stream.Stream;
  *
  * @author David B. Bracewell
  */
-public abstract class VectorStoreBuilder  {
-   public static final String DIMENSION = "DIMENSION";
-   private final Map<String, Object> parameters = new NormalizedStringMap<>();
-
-   public VectorStoreBuilder() {
-      parameters.put(DIMENSION, -1);
-   }
-
-   public VectorStoreBuilder parameter(String name, Object value) {
-      parameters.put(name, value);
-      return this;
-   }
-
-   public <T> T parameterAs(String name, Class<T> clazz) {
-      Object value = parameters.get(name);
-      return value == null ? null : clazz.cast(value);
-   }
-
-   public Map<String, Object> parameterMap() {
-      return Collections.unmodifiableMap(parameters);
-   }
-
-   public Set<String> parameterNames() {
-      return Collections.unmodifiableSet(parameters.keySet());
-   }
+public interface VSBuilder {
 
    /**
     * Add a vector to the vector store. The key is expected to be the label of the vector
@@ -47,7 +20,7 @@ public abstract class VectorStoreBuilder  {
     * @return this vector store builder
     * @throws NullPointerException if the vector or its key is null
     */
-   public final VectorStoreBuilder add(NDArray vector) {
+   default VSBuilder add(NDArray vector) {
       return add(vector.getLabel(), vector);
    }
 
@@ -59,7 +32,7 @@ public abstract class VectorStoreBuilder  {
     * @return the vector store builder
     * @throws NullPointerException if the vector or its key is null
     */
-   public abstract VectorStoreBuilder add(String key, NDArray vector);
+   VSBuilder add(String key, NDArray vector);
 
    /**
     * Adds all vectors in the given iterable to the vector store
@@ -68,7 +41,7 @@ public abstract class VectorStoreBuilder  {
     * @return this vector store builder
     * @throws NullPointerException if the vectors or their keys are null
     */
-   public VectorStoreBuilder addAll(Iterable<NDArray> vectors) {
+   default VSBuilder addAll(Iterable<NDArray> vectors) {
       vectors.forEach(this::add);
       return this;
    }
@@ -80,7 +53,7 @@ public abstract class VectorStoreBuilder  {
     * @return this vector store builder
     * @throws NullPointerException if the vectors or their keys are null
     */
-   public VectorStoreBuilder addAll(Stream<NDArray> vectors){
+   default VSBuilder addAll(Stream<NDArray> vectors) {
       vectors.forEach(this::add);
       return this;
    }
@@ -91,20 +64,6 @@ public abstract class VectorStoreBuilder  {
     * @return the built vector store
     * @throws IOException Something went wrong finalizing the build
     */
-   public abstract VectorStore build() throws IOException;
-
-   /**
-    * Gets the dimension of the vectors in the store
-    *
-    * @return the dimension of the vectors in the story
-    */
-   public int dimension() {
-      return parameterAs(DIMENSION, Integer.class);
-   }
-
-   public VectorStoreBuilder dimension(int dimension) {
-      return parameter(DIMENSION, dimension);
-   }
-
+   VectorStore build(Parameters<VSParams> params) throws IOException;
 
 }// END OF VectorStoreBuilder

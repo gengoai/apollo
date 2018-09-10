@@ -21,11 +21,16 @@
 
 package com.gengoai.apollo.hash.signature;
 
+import com.gengoai.Parameters;
+import com.gengoai.apollo.hash.LSHParameter;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.linear.NDArrayInitializer;
 import com.gengoai.apollo.stat.measure.Measure;
 import com.gengoai.apollo.stat.measure.Similarity;
+
+import static com.gengoai.apollo.hash.LSHParameter.DIMENSION;
+import static com.gengoai.apollo.hash.LSHParameter.SIGNATURE_SIZE;
 
 /**
  * <p>Signature function for Cosine distance / similarity. Uses the Cosine similarity as its measure.</p>
@@ -33,36 +38,29 @@ import com.gengoai.apollo.stat.measure.Similarity;
  * @author David B. Bracewell
  */
 public class CosineSignature implements SignatureFunction {
+   public static final String NAME = "COSINE_SIMILARITY";
    private static final long serialVersionUID = 1L;
-   private final SignatureParameters parameters;
+   private final Parameters<LSHParameter> parameters;
    private final NDArray[] randomProjections;
 
    /**
     * Instantiates a new Cosine signature.
     */
-   public CosineSignature(SignatureParameters parameters) {
+   public CosineSignature(Parameters<LSHParameter> parameters) {
       this.parameters = parameters.copy();
-      this.randomProjections = new NDArray[parameters.getSignatureSize()];
-      for (int i = 0; i < parameters.getSignatureSize(); i++) {
+      this.randomProjections = new NDArray[parameters.getInt(SIGNATURE_SIZE)];
+      for (int i = 0; i < randomProjections.length; i++) {
          this.randomProjections[i] = NDArrayFactory.DEFAULT().create(NDArrayInitializer.randn,
-                                                                     parameters.getDimension());
+                                                                     parameters.getInt(DIMENSION));
       }
    }
 
-   @Override
-   public int getDimension() {
-      return parameters.getDimension();
-   }
 
    @Override
    public Measure getMeasure() {
       return Similarity.Cosine;
    }
 
-   @Override
-   public int getSignatureSize() {
-      return parameters.getSignatureSize();
-   }
 
    @Override
    public boolean isBinary() {
@@ -70,9 +68,14 @@ public class CosineSignature implements SignatureFunction {
    }
 
    @Override
+   public Parameters<LSHParameter> getParameters() {
+      return parameters;
+   }
+
+   @Override
    public int[] signature(NDArray vector) {
       int[] sig = new int[randomProjections.length];
-      for (int i = 0; i < parameters.getSignatureSize(); i++) {
+      for (int i = 0; i < parameters.getInt(SIGNATURE_SIZE); i++) {
          sig[i] = randomProjections[i].scalarDot(vector) > 0 ? 1 : 0;
       }
       return sig;

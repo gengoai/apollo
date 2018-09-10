@@ -309,27 +309,27 @@ public class LocalitySensitiveHash implements Serializable {
             int r = (int) (Math.ceil(Math.log(1.0 / bands) / Math.log(threshold)) + 1);
             parameters.put(SIGNATURE_SIZE, r * bands);
          }
-         SignatureFunction signatureFunction;
-         switch (signature.toUpperCase()) {
-            case "COSINE":
-               signatureFunction = new CosineSignature(parameters.get(SIGNATURE_SIZE).intValue(), dimension);
-               break;
-            case "COSINE_DISTANCE":
-               signatureFunction = new CosineDistanceSignature(parameters.get(SIGNATURE_SIZE).intValue(), dimension);
-               break;
-            case "EUCLIDEAN":
-               signatureFunction = new EuclideanSignature(parameters.get(SIGNATURE_SIZE).intValue(),
-                                                          dimension,
-                                                          parameters.getOrDefault("MAXW", 100).intValue());
-               break;
-            case "JACCARD":
-            case "MIN_HASH":
-               signatureFunction = new MinHashDistanceSignature(1d - threshold, dimension);
-               break;
-            default:
-               throw new IllegalStateException(
-                  signature + " is not one of [COSINE, COSINE_DISTANCE, EUCLIDEAN, JACCARD, MIN_HASH[");
-         }
+         SignatureFunction signatureFunction = null;
+//         switch (signature.toUpperCase()) {
+//            case "COSINE":
+//               signatureFunction = new CosineSignature(parameters.get(SIGNATURE_SIZE).intValue(), dimension);
+//               break;
+//            case "COSINE_DISTANCE":
+//               signatureFunction = new CosineDistanceSignature(parameters.get(SIGNATURE_SIZE).intValue(), dimension);
+//               break;
+//            case "EUCLIDEAN":
+//               signatureFunction = new EuclideanSignature(parameters.get(SIGNATURE_SIZE).intValue(),
+//                                                          dimension,
+//                                                          parameters.getOrDefault("MAXW", 100).intValue());
+//               break;
+//            case "JACCARD":
+//            case "MIN_HASH":
+//               signatureFunction = new MinHashDistanceSignature(1d - threshold, dimension);
+//               break;
+//            default:
+//               throw new IllegalStateException(
+//                  signature + " is not one of [COSINE, COSINE_DISTANCE, EUCLIDEAN, JACCARD, MIN_HASH[");
+//         }
 
          return new LocalitySensitiveHash(bands, buckets, dimension, signatureFunction, storage, threshold, signature,
                                           parameters);

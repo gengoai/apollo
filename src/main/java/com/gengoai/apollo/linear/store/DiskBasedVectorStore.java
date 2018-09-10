@@ -1,5 +1,6 @@
 package com.gengoai.apollo.linear.store;
 
+import com.gengoai.Parameters;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.linear.store.io.VectorStoreTextWriter;
@@ -31,23 +32,23 @@ public final class DiskBasedVectorStore implements VectorStore, Serializable, Lo
    private final int dimension;
    private final int cacheSize;
 
-
-   private DiskBasedVectorStore(File vectorFile,
-                                int cacheSize
-                               ) throws IOException {
-      this.vectorFile = vectorFile;
-      this.keyOffsets = new HashMap<>();
-      this.cacheSize = cacheSize;
-      this.dimension = VectorStoreTextWriter.determineDimension(vectorFile);
-      File indexFile = VectorStoreTextWriter.indexFileFor(vectorFile);
-      if (indexFile.exists()) {
-         keyOffsets.putAll(VectorStoreTextWriter.readIndexFor(vectorFile));
-      } else {
-         keyOffsets.putAll(VectorStoreTextWriter.createIndexFor(vectorFile));
-         VectorStoreTextWriter.writeIndexFor(vectorFile, keyOffsets);
+   public DiskBasedVectorStore(File vectorFile, int cacheSize) {
+      try {
+         this.vectorFile = vectorFile;
+         this.keyOffsets = new HashMap<>();
+         this.cacheSize = cacheSize;
+         this.dimension = VectorStoreTextWriter.determineDimension(vectorFile);
+         File indexFile = VectorStoreTextWriter.indexFileFor(vectorFile);
+         if (indexFile.exists()) {
+            keyOffsets.putAll(VectorStoreTextWriter.readIndexFor(vectorFile));
+         } else {
+            keyOffsets.putAll(VectorStoreTextWriter.createIndexFor(vectorFile));
+            VectorStoreTextWriter.writeIndexFor(vectorFile, keyOffsets);
+         }
+         vectorCache = new AutoCalculatingLRUCache<>(cacheSize, this::loadNDArray);
+      } catch (Exception e) {
+         throw new RuntimeException(e);
       }
-      vectorCache = new AutoCalculatingLRUCache<>(cacheSize, this::loadNDArray);
-
    }
 
    @Override
@@ -66,17 +67,6 @@ public final class DiskBasedVectorStore implements VectorStore, Serializable, Lo
     */
    public static Builder builder() {
       return new Builder();
-   }
-
-   /**
-    * Convenience method for loading an indexed vector store
-    *
-    * @param resource the resource containing the vectors
-    * @return the vector store
-    * @throws IOException Something went wrong reading the store
-    */
-   public static VectorStore read(Resource resource) throws IOException {
-      return builder().location(resource.asFile().orElseThrow(IllegalStateException::new)).build();
    }
 
    @Override
@@ -134,30 +124,21 @@ public final class DiskBasedVectorStore implements VectorStore, Serializable, Lo
    }
 
    @Override
-   public VectorStoreBuilder toBuilder() {
-      return new Builder().location(vectorFile)
-                          .cacheSize(cacheSize);
+   public VSBuilder toBuilder() {
+      return new Builder();
    }
 
    /**
     * The type Builder.
     */
-   public static class Builder extends VectorStoreBuilder {
-      public static final String CACHE_SIZE = "CACHE_SIZE";
-      public static final String LOCATION = "LOCATION";
+   public static class Builder implements VSBuilder {
       private VectorStoreTextWriter writer = null;
-
-      /**
-       * Instantiates a new Builder.
-       */
-      public Builder() {
-         parameter(CACHE_SIZE, 5_000);
-      }
+      private int dimension = -1;
 
       private void ensureWriter() {
          if (writer == null) {
             try {
-               writer = new VectorStoreTextWriter(dimension(),
+               writer = new VectorStoreTextWriter(dimension,
                                                   Resources.temporaryFile()
                                                            .asFile()
                                                            .orElseThrow(IllegalStateException::new));
@@ -168,14 +149,14 @@ public final class DiskBasedVectorStore implements VectorStore, Serializable, Lo
       }
 
       @Override
-      public VectorStoreBuilder add(String key, NDArray vector) {
+      public VSBuilder add(String key, NDArray vector) {
          notNullOrBlank(key, "The key must not be null or blank");
          try {
-            if (dimension() == -1) {
-               dimension((int) vector.length());
+            if (dimension == -1) {
+               dimension = (int) vector.length();
             }
-            checkArgument(dimension() == vector.length(),
-                          () -> "Dimension mismatch. (" + dimension() + ") != (" + vector.length() + ")");
+            checkArgument(dimension == vector.length(),
+                          () -> "Dimension mismatch. (" + dimension + ") != (" + vector.length() + ")");
             ensureWriter();
             writer.write(key, vector);
          } catch (IOException e) {
@@ -185,8 +166,8 @@ public final class DiskBasedVectorStore implements VectorStore, Serializable, Lo
       }
 
       @Override
-      public VectorStore build() throws IOException {
-         File location = parameterAs(LOCATION, File.class);
+      public VectorStore build(Parameters<VSParams> params) throws IOException {
+         File location = new File(params.getString(VSParams.LOCATION));
          File indexLocation = VectorStoreTextWriter.indexFileFor(location);
          if (writer != null) {
             writer.close();
@@ -196,30 +177,9 @@ public final class DiskBasedVectorStore implements VectorStore, Serializable, Lo
             index.copy(Resources.fromFile(indexLocation));
          }
          writer = null;
-         return new DiskBasedVectorStore(location, parameterAs(CACHE_SIZE, Integer.class));
+         return new DiskBasedVectorStore(location, params.getInt(VSParams.CACHE_SIZE));
       }
 
-      /**
-       * Cache size builder.
-       *
-       * @param size the size
-       * @return the builder
-       */
-      public Builder cacheSize(int size) {
-         parameter(CACHE_SIZE, size);
-         return this;
-      }
-
-      /**
-       * Location builder.
-       *
-       * @param location the location
-       * @return the builder
-       */
-      public Builder location(File location) {
-         parameter(LOCATION, location);
-         return this;
-      }
    }
 
 }//END OF DiskBasedVectorStore

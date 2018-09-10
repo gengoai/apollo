@@ -2,7 +2,7 @@ package com.gengoai.apollo.ml.embedding;
 
 import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.linear.store.InMemoryVectorStore;
-import com.gengoai.apollo.linear.store.VectorStoreBuilder;
+import com.gengoai.apollo.linear.store.VSBuilder;
 import com.gengoai.apollo.ml.Instance;
 import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.apollo.ml.encoder.Encoder;
@@ -73,7 +73,7 @@ public class SparkWord2Vec extends EmbeddingLearner {
                                                                          }));
       Word2VecModel model = w2v.fit(sentences.getRDD());
       Encoder encoder = new IndexEncoder();
-      VectorStoreBuilder builder;
+      VSBuilder builder;
 //      if (fastKNN) {
 //         builder = LSHVectorStore.<String>builder().signature("COSINE");
 //      } else {

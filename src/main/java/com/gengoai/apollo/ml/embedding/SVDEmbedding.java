@@ -25,7 +25,7 @@ import com.gengoai.apollo.linear.Axis;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.linear.store.InMemoryVectorStore;
-import com.gengoai.apollo.linear.store.VectorStoreBuilder;
+import com.gengoai.apollo.linear.store.VSBuilder;
 import com.gengoai.apollo.ml.Instance;
 import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.apollo.ml.encoder.Encoder;
@@ -134,7 +134,7 @@ public class SVDEmbedding extends EmbeddingLearner {
                                                     .rdd());
 
 
-      VectorStoreBuilder builder;
+      VSBuilder builder;
 //      if (fastKNN) {
 //         builder = LSHVectorStore.<String>builder().signature("COSINE");
 //      } else {

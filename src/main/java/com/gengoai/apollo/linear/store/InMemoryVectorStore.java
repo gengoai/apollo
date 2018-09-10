@@ -21,6 +21,8 @@
 
 package com.gengoai.apollo.linear.store;
 
+import com.gengoai.Parameters;
+import com.gengoai.apollo.hash.LSHParameter;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.linear.store.io.VectorStoreTextWriter;
@@ -53,7 +55,7 @@ public class InMemoryVectorStore implements VectorStore, Serializable {
     *
     * @return the vector store builder
     */
-   public static VectorStoreBuilder builder() {
+   public static VSBuilder builder() {
       return new Builder();
    }
 
@@ -90,7 +92,7 @@ public class InMemoryVectorStore implements VectorStore, Serializable {
    }
 
    @Override
-   public VectorStoreBuilder toBuilder() {
+   public VSBuilder toBuilder() {
       return InMemoryVectorStore.builder();
    }
 
@@ -106,25 +108,30 @@ public class InMemoryVectorStore implements VectorStore, Serializable {
    /**
     * The type Builder.
     */
-   public static class Builder extends VectorStoreBuilder {
+   public static class Builder implements VSBuilder {
       private final Map<String, NDArray> vectors = new HashMap<>();
+      private int dimension = -1;
 
       @Override
-      public VectorStoreBuilder add(String key, NDArray vector) {
+      public VSBuilder add(String key, NDArray vector) {
          notNullOrBlank(key, "The key must not be null or blank");
-         if (dimension() == -1) {
-            dimension((int) vector.length());
+         if (dimension == -1) {
+            dimension = (int) vector.length();
          }
-         checkArgument(dimension() == vector.length(),
-                       () -> "Dimension mismatch. (" + dimension() + ") != (" + vector.length() + ")");
+         checkArgument(dimension == vector.length(),
+                       () -> "Dimension mismatch. (" + dimension + ") != (" + vector.length() + ")");
          vectors.put(key, vector);
          return this;
       }
 
       @Override
-      public VectorStore build() {
-         InMemoryVectorStore vs = new InMemoryVectorStore(dimension());
+      public VectorStore build(Parameters<VSParams> params) {
+         Parameters<LSHParameter> lshParameters = params.get(VSParams.LSH);
+         InMemoryVectorStore vs = new InMemoryVectorStore(dimension);
          vs.vectorMap.putAll(vectors);
+         if( lshParameters != null){
+            lshParameters.set(LSHParameter.DIMENSION, dimension);
+         }
          return vs;
       }
    }// END OF Builder

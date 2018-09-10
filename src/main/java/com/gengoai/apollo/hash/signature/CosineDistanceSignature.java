@@ -21,6 +21,8 @@
 
 package com.gengoai.apollo.hash.signature;
 
+import com.gengoai.Parameters;
+import com.gengoai.apollo.hash.LSHParameter;
 import com.gengoai.apollo.stat.measure.Measure;
 import com.gengoai.apollo.stat.measure.Similarity;
 
@@ -30,12 +32,13 @@ import com.gengoai.apollo.stat.measure.Similarity;
  * @author David B. Bracewell
  */
 public class CosineDistanceSignature extends CosineSignature {
+   public static final String NAME = "COSINE_DISTANCE";
    private static final long serialVersionUID = 1L;
 
    /**
     * Instantiates a new Cosine signature.
     */
-   public CosineDistanceSignature(SignatureParameters parameters) {
+   public CosineDistanceSignature(Parameters<LSHParameter> parameters) {
       super(parameters);
    }
 

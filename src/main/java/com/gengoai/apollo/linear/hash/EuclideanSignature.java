@@ -19,17 +19,16 @@
  * under the License.
  */
 
-package com.gengoai.apollo.hash.signature;
+package com.gengoai.apollo.linear.hash;
 
 import com.gengoai.Parameters;
-import com.gengoai.apollo.hash.LSHParameter;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.linear.NDArrayInitializer;
 import com.gengoai.apollo.stat.measure.Distance;
 import com.gengoai.apollo.stat.measure.Measure;
 
-import static com.gengoai.apollo.hash.LSHParameter.*;
+import static com.gengoai.apollo.linear.hash.LSHParameter.*;
 
 /**
  * <p>Signature function for Euclidean distance</p>

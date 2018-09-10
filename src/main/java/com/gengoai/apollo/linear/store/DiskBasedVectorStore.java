@@ -16,6 +16,7 @@ import java.io.RandomAccessFile;
 import java.io.Serializable;
 import java.util.*;
 
+import static com.gengoai.Parameters.params;
 import static com.gengoai.Validation.checkArgument;
 import static com.gengoai.Validation.notNullOrBlank;
 
@@ -124,8 +125,10 @@ public final class DiskBasedVectorStore implements VectorStore, Serializable, Lo
    }
 
    @Override
-   public VSBuilder toBuilder() {
-      return new Builder();
+   public Parameters<VSParams> getParameters() {
+      return params(VSParams.IN_MEMORY, false,
+                    VSParams.CACHE_SIZE, cacheSize,
+                    VSParams.LOCATION, vectorFile.getAbsolutePath());
    }
 
    /**

@@ -19,10 +19,9 @@
  * under the License.
  */
 
-package com.gengoai.apollo.hash.signature;
+package com.gengoai.apollo.linear.hash;
 
 import com.gengoai.Parameters;
-import com.gengoai.apollo.hash.LSHParameter;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.stat.measure.Measure;
 import com.gengoai.apollo.stat.measure.Similarity;
@@ -30,7 +29,7 @@ import com.gengoai.apollo.stat.measure.Similarity;
 import java.util.Arrays;
 import java.util.Random;
 
-import static com.gengoai.apollo.hash.LSHParameter.*;
+import static com.gengoai.apollo.linear.hash.LSHParameter.*;
 
 /**
  * <p>Signature function for Jaccard distance / similarity. Uses the Jaccard similarity as its measure.</p>

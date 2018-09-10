@@ -22,9 +22,9 @@
 package com.gengoai.apollo.linear.store;
 
 import com.gengoai.Parameters;
-import com.gengoai.apollo.hash.LSHParameter;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
+import com.gengoai.apollo.linear.hash.LSHParameter;
 import com.gengoai.apollo.linear.store.io.VectorStoreTextWriter;
 import com.gengoai.collection.Iterators;
 import com.gengoai.io.resource.Resource;
@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.*;
 
+import static com.gengoai.Parameters.params;
 import static com.gengoai.Validation.checkArgument;
 import static com.gengoai.Validation.notNullOrBlank;
 
@@ -92,8 +93,8 @@ public class InMemoryVectorStore implements VectorStore, Serializable {
    }
 
    @Override
-   public VSBuilder toBuilder() {
-      return InMemoryVectorStore.builder();
+   public Parameters<VSParams> getParameters() {
+      return params(VSParams.IN_MEMORY, true);
    }
 
    @Override
@@ -129,7 +130,7 @@ public class InMemoryVectorStore implements VectorStore, Serializable {
          Parameters<LSHParameter> lshParameters = params.get(VSParams.LSH);
          InMemoryVectorStore vs = new InMemoryVectorStore(dimension);
          vs.vectorMap.putAll(vectors);
-         if( lshParameters != null){
+         if (lshParameters != null) {
             lshParameters.set(LSHParameter.DIMENSION, dimension);
          }
          return vs;

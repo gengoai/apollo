@@ -19,10 +19,9 @@
  * under the License.
  */
 
-package com.gengoai.apollo.hash;
+package com.gengoai.apollo.linear.hash;
 
 import com.gengoai.Parameters;
-import com.gengoai.apollo.hash.signature.SignatureFunction;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.stat.measure.Measure;
 import com.gengoai.collection.multimap.HashSetMultimap;
@@ -33,7 +32,7 @@ import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 
-import static com.gengoai.apollo.hash.LSHParameter.*;
+import static com.gengoai.apollo.linear.hash.LSHParameter.*;
 
 /**
  * <p>Implementation of <a href="https://en.wikipedia.org/wiki/Locality-sensitive_hashing">Locality-sensitive
@@ -43,9 +42,14 @@ import static com.gengoai.apollo.hash.LSHParameter.*;
  *
  * @author David B. Bracewell
  */
-public class LocalitySensitiveHash2<KEY> implements Serializable {
+public class LocalitySensitiveHash<KEY> implements Serializable {
    private static final long LARGE_PRIME = 433494437;
    private static final long serialVersionUID = 1L;
+
+   public Parameters<LSHParameter> getParameters() {
+      return parameters;
+   }
+
    private final Parameters<LSHParameter> parameters;
    private final SignatureFunction signatureFunction;
    private final Multimap<Integer, KEY> store = new HashSetMultimap<>();
@@ -57,7 +61,7 @@ public class LocalitySensitiveHash2<KEY> implements Serializable {
    /**
     * Instantiates a new Locality sensitive hash.
     */
-   private LocalitySensitiveHash2(Parameters<LSHParameter> parameters) {
+   private LocalitySensitiveHash(Parameters<LSHParameter> parameters) {
       this.parameters = parameters.copy();
       this.signatureFunction = SignatureFunction.create(parameters.get(SIGNATURE), parameters);
    }

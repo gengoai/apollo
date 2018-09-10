@@ -1,4 +1,4 @@
-package com.gengoai.apollo.hash;
+package com.gengoai.apollo.linear.hash;
 
 import com.gengoai.ValueTypeInformation;
 import com.gengoai.conversion.Cast;

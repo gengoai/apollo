@@ -19,18 +19,17 @@
  * under the License.
  */
 
-package com.gengoai.apollo.hash.signature;
+package com.gengoai.apollo.linear.hash;
 
 import com.gengoai.Parameters;
-import com.gengoai.apollo.hash.LSHParameter;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.linear.NDArrayInitializer;
 import com.gengoai.apollo.stat.measure.Measure;
 import com.gengoai.apollo.stat.measure.Similarity;
 
-import static com.gengoai.apollo.hash.LSHParameter.DIMENSION;
-import static com.gengoai.apollo.hash.LSHParameter.SIGNATURE_SIZE;
+import static com.gengoai.apollo.linear.hash.LSHParameter.DIMENSION;
+import static com.gengoai.apollo.linear.hash.LSHParameter.SIGNATURE_SIZE;
 
 /**
  * <p>Signature function for Cosine distance / similarity. Uses the Cosine similarity as its measure.</p>

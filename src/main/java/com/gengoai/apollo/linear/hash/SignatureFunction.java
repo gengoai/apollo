@@ -19,10 +19,9 @@
  * under the License.
  */
 
-package com.gengoai.apollo.hash.signature;
+package com.gengoai.apollo.linear.hash;
 
 import com.gengoai.Parameters;
-import com.gengoai.apollo.hash.LSHParameter;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.stat.measure.Measure;
 

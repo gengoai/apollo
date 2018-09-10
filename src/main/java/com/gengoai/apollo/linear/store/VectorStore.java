@@ -28,7 +28,6 @@ import com.gengoai.apollo.linear.VectorComposition;
 import com.gengoai.collection.Streams;
 import com.gengoai.io.resource.Resource;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Set;
@@ -131,20 +130,14 @@ public interface VectorStore extends Iterable<NDArray> {
     *
     * @return the vector store
     */
-   VSBuilder toBuilder();
+   Parameters<VSParams> getParameters();
 
 
-   static VectorStore create(Parameters<VSParams> params) {
-      VectorStore store;
+   static VSBuilder builder(Parameters<VSParams> params) {
       if (params.getBoolean(VSParams.IN_MEMORY)) {
-         store = new InMemoryVectorStore(params.getInt(VSParams.DIMENSION));
-      } else {
-         store = new DiskBasedVectorStore(new File(params.getString(VSParams.LOCATION)),
-                                          params.getInt(VSParams.CACHE_SIZE));
+         return InMemoryVectorStore.builder();
       }
-
-
-      return store;
+      return DiskBasedVectorStore.builder();
    }
 
 

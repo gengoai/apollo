@@ -21,8 +21,9 @@
 
 package com.gengoai.apollo.linear.store;
 
-import com.gengoai.apollo.hash.LocalitySensitiveHash;
+import com.gengoai.Parameters;
 import com.gengoai.apollo.linear.NDArray;
+import com.gengoai.apollo.linear.hash.LocalitySensitiveHash;
 import com.gengoai.io.resource.Resource;
 
 import java.io.IOException;
@@ -30,17 +31,14 @@ import java.io.Serializable;
 import java.util.Iterator;
 import java.util.Set;
 
+import static com.gengoai.Parameters.params;
+
 /**
  * <p>Abstract base interface for LSH based NDArray stores.</p>
  *
  * @author David B. Bracewell
  */
 public class LSHVectorStore implements VectorStore, Serializable {
-   public static final String BANDS = "BANDS";
-   public static final String BUCKETS = "BUCKETS";
-   public static final String THRESHOLD = "THRESHOLD";
-   public static final String SIGNATURE = "SIGNATURE";
-   public static final String SIGNATURE_SIZE = "SIGNATURE_SIZE";
    private LocalitySensitiveHash lsh;
    private VectorStore store;
 
@@ -80,9 +78,11 @@ public class LSHVectorStore implements VectorStore, Serializable {
    }
 
    @Override
-   public VSBuilder toBuilder() {
-      return null;
+   public Parameters<VSParams> getParameters() {
+      return params(VSParams.LSH, lsh.getParameters())
+                .setAll(store.getParameters().asMap());
    }
+
 }
 
 //}// END OF LSHVectorStore

@@ -19,32 +19,31 @@
  * under the License.
  */
 
-package com.gengoai.apollo.hash.signature;
+package com.gengoai.apollo.linear.hash;
 
 import com.gengoai.Parameters;
-import com.gengoai.apollo.hash.LSHParameter;
 import com.gengoai.apollo.stat.measure.Measure;
 import com.gengoai.apollo.stat.measure.Similarity;
 
 /**
- * <p>Signature function for Cosine distance / similarity. Uses the Cosine distance as its measure.</p>
+ * <p>Signature function for Jaccard distance / similarity. Uses the Jaccard distance as its measure.</p>
  *
  * @author David B. Bracewell
  */
-public class CosineDistanceSignature extends CosineSignature {
-   public static final String NAME = "COSINE_DISTANCE";
+public class MinHashDistanceSignature extends MinHashSignature {
+   public static final String NAME = "MIN_HASH_DISTANCE";
    private static final long serialVersionUID = 1L;
 
+
    /**
-    * Instantiates a new Cosine signature.
+    * Instantiates a new Min hash signature.
     */
-   public CosineDistanceSignature(Parameters<LSHParameter> parameters) {
+   public MinHashDistanceSignature(Parameters<LSHParameter> parameters) {
       super(parameters);
    }
 
    @Override
    public Measure getMeasure() {
-      return Similarity.Cosine.asDistanceMeasure();
+      return Similarity.Jaccard.asDistanceMeasure();
    }
-
-}// END OF CosineDistanceSignature
+}// END OF MinHashDistanceSignature

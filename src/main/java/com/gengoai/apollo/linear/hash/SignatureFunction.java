@@ -89,4 +89,5 @@ public interface SignatureFunction extends Serializable {
    Measure getMeasure();
 
 
+
 }//END OF HashingFunction

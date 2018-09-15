@@ -24,12 +24,15 @@ package com.gengoai.apollo.linear.store;
 import com.gengoai.Parameters;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.hash.LocalitySensitiveHash;
+import com.gengoai.io.Resources;
 import com.gengoai.io.resource.Resource;
+import com.gengoai.json.Json;
 
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import static com.gengoai.Parameters.params;
 
@@ -39,8 +42,13 @@ import static com.gengoai.Parameters.params;
  * @author David B. Bracewell
  */
 public class LSHVectorStore implements VectorStore, Serializable {
-   private LocalitySensitiveHash lsh;
-   private VectorStore store;
+   private final LocalitySensitiveHash lsh;
+   private final VectorStore store;
+
+   private LSHVectorStore(LocalitySensitiveHash lsh, VectorStore store) {
+      this.lsh = lsh;
+      this.store = store;
+   }
 
    @Override
    public boolean containsKey(String String) {
@@ -69,7 +77,9 @@ public class LSHVectorStore implements VectorStore, Serializable {
 
    @Override
    public void write(Resource location) throws IOException {
-
+      Resource lshLoc = Resources.fromFile(location.path() + ".lsh.json.gz").setIsCompressed(true);
+      Json.dump(lsh, lshLoc);
+      store.write(location);
    }
 
    @Override
@@ -81,6 +91,60 @@ public class LSHVectorStore implements VectorStore, Serializable {
    public Parameters<VSParameter> getParameters() {
       return params(VSParameter.LSH, lsh.getParameters())
                 .setAll(store.getParameters().asMap());
+   }
+
+   @Override
+   public Stream<NDArray> query(VSQuery query) {
+      NDArray queryVector = query.queryVector(this);
+      lsh.query(queryVector);
+      return null;
+   }
+
+   public static class Builder implements VSBuilder {
+      private LocalitySensitiveHash<String> lsh;
+      private final Parameters<VSParameter> parameters;
+      private final VSBuilder builder;
+
+      public Builder(VSBuilder builder, Parameters<VSParameter> parameters) {
+         this.builder = builder;
+         this.parameters = parameters;
+         this.lsh = new LocalitySensitiveHash<>(parameters.get(VSParameter.LSH));
+      }
+
+      @Override
+      public VSBuilder add(String key, NDArray vector) {
+         builder.add(key, vector);
+         lsh.index(key, vector);
+         return this;
+      }
+
+      @Override
+      public VectorStore build() {
+         VectorStore vs = builder.build();
+
+         if (!parameters.getBoolean(VSParameter.IN_MEMORY)) {
+            Resource lshLoc = Resources.fromFile(parameters.getString(VSParameter.LOCATION) + ".lsh.json.gz")
+                                       .setIsCompressed(true);
+
+            boolean isLoading = lsh.size() == 0;
+            try {
+               if (isLoading) {
+                  if (lshLoc.exists()) {
+                     lsh = LocalitySensitiveHash.fromJson(Json.parse(lshLoc));
+                  } else {
+                     vs.forEach(n -> lsh.index(n.getLabel(), n));
+                     Json.dump(lsh, lshLoc);
+                  }
+               } else {
+                  Json.dump(lsh, lshLoc);
+               }
+            } catch (IOException e) {
+               throw new RuntimeException(e);
+            }
+         }
+
+         return new LSHVectorStore(lsh, vs);
+      }
    }
 
 }

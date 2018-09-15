@@ -53,8 +53,8 @@ public class EuclideanSignature implements SignatureFunction {
       this.offset = new int[parameters.<Integer>get(SIGNATURE_SIZE)];
       for (int i = 0; i < parameters.<Integer>get(SIGNATURE_SIZE); i++) {
          this.randomProjections[i] = NDArrayFactory.DEFAULT().create(NDArrayInitializer.randn,
-                                                                     parameters.get(DIMENSION));
-         this.w[i] = (int) Math.round(Math.random() * parameters.<Integer>get(MAX_W));
+                                                                     parameters.getInt(DIMENSION));
+         this.w[i] = (int) Math.round(Math.random() * parameters.getInt(MAX_W));
          this.offset[i] = (int) Math.floor(Math.random() * this.w[i]);
       }
 
@@ -80,7 +80,9 @@ public class EuclideanSignature implements SignatureFunction {
       int[] sig = new int[randomProjections.length];
       for (int i = 0; i < parameters.<Integer>get(SIGNATURE_SIZE); i++) {
          sig[i] = (int) Math.round((vector.scalarDot(randomProjections[i]) + offset[i]) / (double) w[i]);
+         sig[i] = sig[i] >= 1 ? 1 : 0;
       }
       return sig;
    }
+
 }//END OF EuclideanSignature

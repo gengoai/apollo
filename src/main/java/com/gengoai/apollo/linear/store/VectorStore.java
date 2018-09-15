@@ -125,6 +125,9 @@ public interface VectorStore extends Iterable<NDArray> {
       } else {
          builder = new DiskBasedVectorStore.Builder(parameters);
       }
+      if (parameters.contains(VSParameter.LSH)) {
+         builder = new LSHVectorStore.Builder(builder, parameters);
+      }
       return builder;
    }
 

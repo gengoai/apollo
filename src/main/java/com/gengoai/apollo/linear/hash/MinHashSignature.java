@@ -66,7 +66,7 @@ public class MinHashSignature implements SignatureFunction {
 
 
    private int h(int i, long x) {
-      return (int) (coefficients[i][0] * x + coefficients[i][1]) % parameters.<Integer>get(DIMENSION);
+      return (int) (coefficients[i][0] * x + coefficients[i][1]) % parameters.getInt(DIMENSION);
    }
 
    @Override
@@ -81,11 +81,11 @@ public class MinHashSignature implements SignatureFunction {
 
    @Override
    public int[] signature(NDArray vector) {
-      int[] sig = new int[parameters.<Integer>get(SIGNATURE_SIZE)];
+      int[] sig = new int[parameters.getInt(SIGNATURE_SIZE)];
       Arrays.fill(sig, Integer.MAX_VALUE);
       vector.sparseIterator().forEachRemaining(entry -> {
          if (entry.getValue() > 0) {
-            for (int i = 0; i < parameters.<Integer>get(SIGNATURE_SIZE); i++) {
+            for (int i = 0; i < sig.length; i++) {
                sig[i] = Math.min(sig[i], h(i, entry.getIndex()));
             }
          }

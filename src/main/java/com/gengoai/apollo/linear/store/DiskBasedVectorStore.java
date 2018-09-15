@@ -3,6 +3,10 @@ package com.gengoai.apollo.linear.store;
 import com.gengoai.Parameters;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
+import com.gengoai.apollo.linear.NDArrayInitializer;
+import com.gengoai.apollo.linear.hash.EuclideanSignature;
+import com.gengoai.apollo.linear.hash.LSHParameter;
+import com.gengoai.apollo.linear.hash.SignatureFunction;
 import com.gengoai.cache.AutoCalculatingLRUCache;
 import com.gengoai.cache.Cache;
 import com.gengoai.io.IndexedFile;
@@ -40,13 +44,34 @@ public final class DiskBasedVectorStore implements VectorStore, Serializable, Lo
 
 
    public static void main(String[] args) throws Exception {
-      VSBuilder builder = VectorStore.builder(params(VSParameter.IN_MEMORY, false,
-                                                     VSParameter.CACHE_SIZE, 20_000,
-                                                     VSParameter.LOCATION, "/home/ik/tmp.vec.txt"));
-//      for (int i = 0; i < 10000; i++) {
-//         builder.add(StringUtils.randomHexString(10), NDArrayFactory.DENSE.create(NDArrayInitializer.rand, 50));
-//      }
-      builder.build().forEach(n -> System.out.println(n.getLabel() + " : " + n));
+      NDArray n1 = NDArrayFactory.DENSE.create(NDArrayInitializer.rand, 50);
+      NDArray n2 = NDArrayFactory.DENSE.create(NDArrayInitializer.rand, 50);
+      SignatureFunction cs = new EuclideanSignature(params(LSHParameter.SIGNATURE_SIZE, 500,
+                                                           LSHParameter.DIMENSION, 50,
+                                                           LSHParameter.MAX_W, 1));
+
+      int[] b1 = cs.signature(n1);
+      int[] b2 = cs.signature(n2);
+
+      System.out.println(cs.getMeasure().calculate(n1, n2));
+      System.out.println(cs.calculateMeasure(b1, b2));
+//      Parameters<VSParameter> params = params(VSParameter.IN_MEMORY, false,
+//                                              VSParameter.CACHE_SIZE, 20_000,
+//                                              VSParameter.LOCATION, "/home/ik/tmp.vec.txt",
+//                                              VSParameter.LSH, params(LSHParameter.SIGNATURE_SIZE, 100,
+//                                                                      LSHParameter.SIGNATURE, "COSINE",
+//                                                                      LSHParameter.DIMENSION, 50));
+//      VectorStore vs = VectorStore.builder(params).build();
+////      VSBuilder builder = VectorStore.builder(params);
+////      for (int i = 0; i < 10000; i++) {
+////         builder.add(StringUtils.randomHexString(10), NDArrayFactory.DENSE.create(NDArrayInitializer.rand, 50));
+////      }
+//      VectorStore vs = builder.build();
+//      vs.forEach(n -> System.out.println(n.getLabel() + " : " +
+//                                            vs.query(VSQuery.termQuery(n.getLabel())
+//                                                            .limit(3))
+//                                              .map(NDArray::getLabel)
+//                                              .collect(Collectors.toList())));
    }
 
    public DiskBasedVectorStore(File vectorFile, int cacheSize) {

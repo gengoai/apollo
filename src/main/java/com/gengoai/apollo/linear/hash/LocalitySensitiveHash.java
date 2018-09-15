@@ -23,9 +23,13 @@ package com.gengoai.apollo.linear.hash;
 
 import com.gengoai.Parameters;
 import com.gengoai.apollo.linear.NDArray;
+import com.gengoai.apollo.linear.store.VSParameter;
 import com.gengoai.apollo.stat.measure.Measure;
 import com.gengoai.collection.multimap.HashSetMultimap;
 import com.gengoai.collection.multimap.Multimap;
+import com.gengoai.conversion.Cast;
+import com.gengoai.json.JsonEntry;
+import com.gengoai.json.JsonSerializable;
 import com.gengoai.math.Optimum;
 
 import java.io.Serializable;
@@ -42,7 +46,7 @@ import static com.gengoai.apollo.linear.hash.LSHParameter.*;
  *
  * @author David B. Bracewell
  */
-public class LocalitySensitiveHash<KEY> implements Serializable {
+public class LocalitySensitiveHash<KEY> implements Serializable, JsonSerializable {
    private static final long LARGE_PRIME = 433494437;
    private static final long serialVersionUID = 1L;
 
@@ -61,7 +65,7 @@ public class LocalitySensitiveHash<KEY> implements Serializable {
    /**
     * Instantiates a new Locality sensitive hash.
     */
-   private LocalitySensitiveHash(Parameters<LSHParameter> parameters) {
+   public LocalitySensitiveHash(Parameters<LSHParameter> parameters) {
       this.parameters = parameters.copy();
       this.signatureFunction = SignatureFunction.create(parameters.get(SIGNATURE), parameters);
    }
@@ -159,6 +163,35 @@ public class LocalitySensitiveHash<KEY> implements Serializable {
          keys.addAll(store.get(indexHash(i, hash[i])));
       }
       return keys;
+   }
+
+   @Override
+   public JsonEntry toJson() {
+      Class<?> keyClass = store.values().stream()
+                               .findFirst()
+                               .map(Object::getClass)
+                               .orElse(Cast.as(Object.class));
+      JsonEntry lsh = JsonEntry.object()
+                               .addProperty("keyClass", keyClass)
+                               .addProperty("parameters", parameters.toJson());
+
+      JsonEntry index = JsonEntry.object();
+      store.keySet().forEach(i -> index.addProperty(Integer.toString(i), JsonEntry.array(store.get(i))));
+      lsh.addProperty("index", index);
+      return lsh;
+   }
+
+   public int size() {
+      return store.size();
+   }
+
+   public static <KEY> LocalitySensitiveHash<KEY> fromJson(JsonEntry entry) {
+      LocalitySensitiveHash<KEY> lsh = new LocalitySensitiveHash<>(entry.getProperty("parameters")
+                                                                        .getAs(VSParameter.LSH.getValueType()));
+      Class<KEY> keyClass = Cast.as(entry.getValProperty("keyClass").asClass());
+      entry.getProperty("index").forEachProperty(
+         (k, v) -> lsh.store.putAll(Integer.parseInt(k), v.getAsArray(keyClass)));
+      return lsh;
    }
 
 }// END OF LSH

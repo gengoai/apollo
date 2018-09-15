@@ -78,8 +78,8 @@ public class LSHVectorStore implements VectorStore, Serializable {
    }
 
    @Override
-   public Parameters<VSParams> getParameters() {
-      return params(VSParams.LSH, lsh.getParameters())
+   public Parameters<VSParameter> getParameters() {
+      return params(VSParameter.LSH, lsh.getParameters())
                 .setAll(store.getParameters().asMap());
    }
 

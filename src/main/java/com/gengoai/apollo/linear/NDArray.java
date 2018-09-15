@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.function.*;
+import java.util.stream.Collectors;
 import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -47,6 +48,12 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
    private Object label;
    private Object predicted;
    private float weight;
+
+   public static String vec2String(NDArray vec) {
+      return Streams.asStream(vec.iterator())
+                    .map(v -> Float.toString(v.getValue()))
+                    .collect(Collectors.joining(" "));
+   }
 
    /**
     * Default Constructor

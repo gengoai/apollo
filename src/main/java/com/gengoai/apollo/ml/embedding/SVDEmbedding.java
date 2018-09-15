@@ -21,11 +21,6 @@
 
 package com.gengoai.apollo.ml.embedding;
 
-import com.gengoai.apollo.linear.Axis;
-import com.gengoai.apollo.linear.NDArray;
-import com.gengoai.apollo.linear.NDArrayFactory;
-import com.gengoai.apollo.linear.store.InMemoryVectorStore;
-import com.gengoai.apollo.linear.store.VSBuilder;
 import com.gengoai.apollo.ml.Instance;
 import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.apollo.ml.encoder.Encoder;
@@ -41,15 +36,11 @@ import com.gengoai.stream.accumulator.MMultiCounterAccumulator;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.spark.mllib.linalg.DenseVector;
-import org.apache.spark.mllib.linalg.Matrix;
-import org.apache.spark.mllib.linalg.SingularValueDecomposition;
 import org.apache.spark.mllib.linalg.Vector;
 import org.apache.spark.mllib.linalg.distributed.RowMatrix;
 
-import java.io.IOException;
 import java.util.Map;
 
-import static com.gengoai.apollo.linear.SparkLinearAlgebra.*;
 import static com.gengoai.tuple.Tuples.$;
 
 /**
@@ -134,26 +125,27 @@ public class SVDEmbedding extends EmbeddingLearner {
                                                     .rdd());
 
 
-      VSBuilder builder;
-//      if (fastKNN) {
-//         builder = LSHVectorStore.<String>builder().signature("COSINE");
-//      } else {
-         builder = InMemoryVectorStore.builder();
+//      VSBuilder builder;
+////      if (fastKNN) {
+////         builder = LSHVectorStore.<String>builder().signature("COSINE");
+////      } else {
+//         builder = InMemoryVectorStore.builder();
+////      }
+////      builder.dimension(getDimension());
+////      builder.measure(Similarity.Cosine);
+//
+//      SingularValueDecomposition<RowMatrix, Matrix> svd = sparkSVD(mat, getDimension());
+//      NDArray em = toMatrix(svd.U()).mmul(toDiagonalMatrix(svd.s()));
+//      for (int i = 0; i < em.numRows(); i++) {
+//         builder.add(featureEncoder.decode(i).toString(),
+//                     NDArrayFactory.columnVector(em.getVector(i, Axis.ROW).toDoubleArray()));
 //      }
-//      builder.dimension(getDimension());
-//      builder.measure(Similarity.Cosine);
-
-      SingularValueDecomposition<RowMatrix, Matrix> svd = sparkSVD(mat, getDimension());
-      NDArray em = toMatrix(svd.U()).mmul(toDiagonalMatrix(svd.s()));
-      for (int i = 0; i < em.numRows(); i++) {
-         builder.add(featureEncoder.decode(i).toString(),
-                     NDArrayFactory.columnVector(em.getVector(i, Axis.ROW).toDoubleArray()));
-      }
-      try {
-         return new Embedding(builder.build());
-      } catch (IOException e) {
-         throw new RuntimeException(e);
-      }
+//      try {
+//         return new Embedding(builder.build());
+//      } catch (IOException e) {
+//         throw new RuntimeException(e);
+//      }
+      return null;
    }
 
 }//END OF SparkLSA

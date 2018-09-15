@@ -11,7 +11,7 @@ import java.lang.reflect.Type;
 /**
  * @author David B. Bracewell
  */
-public enum VSParams implements ValueTypeInformation {
+public enum VSParameter implements ValueTypeInformation {
    CACHE_SIZE(Integer.class, 5_000),
    LOCATION(String.class, null),
    IN_MEMORY(Boolean.class, true),
@@ -20,7 +20,7 @@ public enum VSParams implements ValueTypeInformation {
    private final Type type;
    private final Object defaultValue;
 
-   VSParams(Type type, Object defaultValue) {
+   VSParameter(Type type, Object defaultValue) {
       this.type = type;
       this.defaultValue = defaultValue;
    }

@@ -1,7 +1,5 @@
 package com.gengoai.apollo.ml.embedding;
 
-import com.gengoai.apollo.linear.NDArrayFactory;
-import com.gengoai.apollo.linear.store.InMemoryVectorStore;
 import com.gengoai.apollo.linear.store.VSBuilder;
 import com.gengoai.apollo.ml.Instance;
 import com.gengoai.apollo.ml.data.Dataset;
@@ -13,13 +11,10 @@ import lombok.Getter;
 import lombok.Setter;
 import org.apache.spark.mllib.feature.Word2Vec;
 import org.apache.spark.mllib.feature.Word2VecModel;
-import scala.collection.JavaConversions;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
 /**
  * <p>Wrapper around Spark's Word2Vec implementation</p>
@@ -76,20 +71,21 @@ public class SparkWord2Vec extends EmbeddingLearner {
       VSBuilder builder;
 //      if (fastKNN) {
 //         builder = LSHVectorStore.<String>builder().signature("COSINE");
-//      } else {
-         builder = InMemoryVectorStore.builder();
+////      } else {
+//         builder = InMemoryVectorStore.builder();
+////      }
+////      builder.dimension(getDimension());
+////      builder.measure(Similarity.Cosine);
+//      for (Map.Entry<String, float[]> vector : JavaConversions.mapAsJavaMap(model.getVectors()).entrySet()) {
+//         encoder.encode(vector.getKey());
+//         builder.add(vector.getKey(), NDArrayFactory.columnVector(vector.getValue()));
 //      }
-//      builder.dimension(getDimension());
-//      builder.measure(Similarity.Cosine);
-      for (Map.Entry<String, float[]> vector : JavaConversions.mapAsJavaMap(model.getVectors()).entrySet()) {
-         encoder.encode(vector.getKey());
-         builder.add(vector.getKey(), NDArrayFactory.columnVector(vector.getValue()));
-      }
-      try {
-         return new Embedding(builder.build());
-      } catch (IOException e) {
-         throw new RuntimeException(e);
-      }
+//      try {
+//         return new Embedding(builder.build());
+//      } catch (IOException e) {
+//         throw new RuntimeException(e);
+//      }
+      return null;
    }
 
 

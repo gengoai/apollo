@@ -1,9 +1,7 @@
 package com.gengoai.apollo.linear.store;
 
-import com.gengoai.Parameters;
 import com.gengoai.apollo.linear.NDArray;
 
-import java.io.IOException;
 import java.util.stream.Stream;
 
 /**
@@ -62,8 +60,7 @@ public interface VSBuilder {
     * Finalizes the building of the {@link VectorStore}.
     *
     * @return the built vector store
-    * @throws IOException Something went wrong finalizing the build
     */
-   VectorStore build(Parameters<VSParams> params) throws IOException;
+   VectorStore build();
 
 }// END OF VectorStoreBuilder

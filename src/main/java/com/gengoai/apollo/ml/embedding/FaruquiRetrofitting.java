@@ -2,7 +2,6 @@ package com.gengoai.apollo.ml.embedding;
 
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.store.VectorStore;
-import com.gengoai.apollo.linear.store.VSBuilder;
 import com.gengoai.collection.Sets;
 import com.gengoai.collection.multimap.HashSetMultimap;
 import com.gengoai.collection.multimap.Multimap;
@@ -86,13 +85,14 @@ public class FaruquiRetrofitting implements Retrofitting {
          });
       }
 
-      VSBuilder newVectors = origVectors.toBuilder();
-      retrofittedVectors.forEach(newVectors::add);
-      try {
-         return new Embedding(newVectors.build());
-      } catch (IOException e) {
-         throw new RuntimeException(e);
-      }
+//      VSBuilder newVectors = origVectors.toBuilder();
+//      retrofittedVectors.forEach(newVectors::add);
+//      try {
+//         return new Embedding(newVectors.build());
+//      } catch (IOException e) {
+//         throw new RuntimeException(e);
+//      }
+      return null;
    }
 
    public void setLexicon(@NonNull Resource resource) throws IOException {

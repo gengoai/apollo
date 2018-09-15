@@ -1,10 +1,10 @@
 package com.gengoai.apollo.ml.embedding;
 
+import com.gengoai.Parameters;
 import com.gengoai.apollo.linear.NDArray;
-import com.gengoai.apollo.linear.NDArrayFactory;
-import com.gengoai.apollo.linear.store.InMemoryVectorStore;
-import com.gengoai.apollo.linear.store.VectorStore;
 import com.gengoai.apollo.linear.store.VSBuilder;
+import com.gengoai.apollo.linear.store.VSParameter;
+import com.gengoai.apollo.linear.store.VectorStore;
 import com.gengoai.apollo.ml.Model;
 import com.gengoai.apollo.ml.encoder.EncoderPair;
 import com.gengoai.conversion.Cast;
@@ -18,7 +18,6 @@ import java.io.Serializable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * <p>A word/feature embedding model where words/features have been mapped into vectors.</p>
@@ -65,25 +64,26 @@ public class Embedding implements Model, VectorStore, Serializable {
       //if (fastNearestNeighbors) {
       //builder = LSHVectorStore.<String>builder().signature("COSINE");
 //      } else {
-      builder = InMemoryVectorStore.builder();
+//      builder = InMemoryVectorStore.builder();
 //      }
 //      builder.measure(Similarity.Cosine);
 
-      lines.stream()
-           .skip(firstRow)
-           .parallel()
-           .map(line -> {
-              NDArray v = NDArrayFactory.DEFAULT().zeros(builder.dimension());
-              String[] parts = line.trim().split("\\s+");
-              for (int vi = 1; vi < parts.length; vi++) {
-                 v.set(vi - 1, Double.parseDouble(parts[vi]));
-              }
-              v.setLabel(parts[0].replace('_', ' '));
-              return v;
-           })
-           .collect(Collectors.toList())
-           .forEach(builder::add);
-      return new Embedding(builder.build());
+//      lines.stream()
+//           .skip(firstRow)
+//           .parallel()
+//           .map(line -> {
+//              NDArray v = NDArrayFactory.DEFAULT().zeros(builder.dimension());
+//              String[] parts = line.trim().split("\\s+");
+//              for (int vi = 1; vi < parts.length; vi++) {
+//                 v.set(vi - 1, Double.parseDouble(parts[vi]));
+//              }
+//              v.setLabel(parts[0].replace('_', ' '));
+//              return v;
+//           })
+//           .collect(Collectors.toList())
+//           .forEach(builder::add);
+//      return new Embedding(builder.build());
+      return null;
    }
 
 
@@ -121,10 +121,10 @@ public class Embedding implements Model, VectorStore, Serializable {
       return vectorStore.containsKey(s);
    }
 
-   @Override
-   public VSBuilder toBuilder() {
-      return vectorStore.toBuilder();
-   }
+//   @Override
+//   public VSBuilder toBuilder() {
+//      return vectorStore.toBuilder();
+//   }
 
    @Override
    public int dimension() {
@@ -184,6 +184,11 @@ public class Embedding implements Model, VectorStore, Serializable {
    @Override
    public int size() {
       return vectorStore.size();
+   }
+
+   @Override
+   public Parameters<VSParameter> getParameters() {
+      return null;
    }
 
 }// END OF Embedding

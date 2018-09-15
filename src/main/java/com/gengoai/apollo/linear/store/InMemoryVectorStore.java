@@ -25,10 +25,10 @@ import com.gengoai.Parameters;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.linear.hash.LSHParameter;
-import com.gengoai.apollo.linear.store.io.VectorStoreTextWriter;
 import com.gengoai.collection.Iterators;
 import com.gengoai.io.resource.Resource;
 
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.*;
@@ -36,6 +36,7 @@ import java.util.*;
 import static com.gengoai.Parameters.params;
 import static com.gengoai.Validation.checkArgument;
 import static com.gengoai.Validation.notNullOrBlank;
+import static com.gengoai.apollo.linear.NDArray.vec2String;
 
 /**
  * The type Default vector store.
@@ -49,15 +50,6 @@ public class InMemoryVectorStore implements VectorStore, Serializable {
 
    public InMemoryVectorStore(int dimension) {
       this.dimension = dimension;
-   }
-
-   /**
-    * Builder vector store builder.
-    *
-    * @return the vector store builder
-    */
-   public static VSBuilder builder() {
-      return new Builder();
    }
 
 
@@ -93,18 +85,22 @@ public class InMemoryVectorStore implements VectorStore, Serializable {
    }
 
    @Override
-   public Parameters<VSParams> getParameters() {
-      return params(VSParams.IN_MEMORY, true);
+   public Parameters<VSParameter> getParameters() {
+      return params(VSParameter.IN_MEMORY, true);
    }
 
    @Override
    public void write(Resource location) throws IOException {
-      VectorStoreTextWriter writer = new VectorStoreTextWriter(dimension,
-                                                               location.asFile().orElseThrow(IOException::new));
-      for (NDArray value : vectorMap.values()) {
-         writer.write(value);
+      try (BufferedWriter writer = new BufferedWriter(location.writer())) {
+         for (Map.Entry<String, NDArray> entry : vectorMap.entrySet()) {
+            writer.write(entry.getKey());
+            writer.write(" ");
+            writer.write(vec2String(entry.getValue()));
+            writer.write("\n");
+         }
       }
    }
+
 
    /**
     * The type Builder.
@@ -112,6 +108,11 @@ public class InMemoryVectorStore implements VectorStore, Serializable {
    public static class Builder implements VSBuilder {
       private final Map<String, NDArray> vectors = new HashMap<>();
       private int dimension = -1;
+      private final Parameters<VSParameter> params;
+
+      public Builder(Parameters<VSParameter> params) {
+         this.params = params;
+      }
 
       @Override
       public VSBuilder add(String key, NDArray vector) {
@@ -126,8 +127,8 @@ public class InMemoryVectorStore implements VectorStore, Serializable {
       }
 
       @Override
-      public VectorStore build(Parameters<VSParams> params) {
-         Parameters<LSHParameter> lshParameters = params.get(VSParams.LSH);
+      public VectorStore build() {
+         Parameters<LSHParameter> lshParameters = params.get(VSParameter.LSH);
          InMemoryVectorStore vs = new InMemoryVectorStore(dimension);
          vs.vectorMap.putAll(vectors);
          if (lshParameters != null) {
@@ -135,6 +136,7 @@ public class InMemoryVectorStore implements VectorStore, Serializable {
          }
          return vs;
       }
+
    }// END OF Builder
 
 }//END OF InMemoryVectorStore

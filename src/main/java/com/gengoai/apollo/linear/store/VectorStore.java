@@ -118,9 +118,17 @@ public interface VectorStore extends Iterable<NDArray> {
    }
 
 
+   static VSBuilder builder(Parameters<VSParameter> parameters) {
+      VSBuilder builder;
+      if (parameters.getBoolean(VSParameter.IN_MEMORY)) {
+         builder = new InMemoryVectorStore.Builder(parameters);
+      } else {
+         builder = new DiskBasedVectorStore.Builder(parameters);
+      }
+      return builder;
+   }
+
    /**
-    * The number of vectors stored
-    *
     * @return the number of vectors
     */
    int size();
@@ -130,15 +138,7 @@ public interface VectorStore extends Iterable<NDArray> {
     *
     * @return the vector store
     */
-   Parameters<VSParams> getParameters();
-
-
-   static VSBuilder builder(Parameters<VSParams> params) {
-      if (params.getBoolean(VSParams.IN_MEMORY)) {
-         return InMemoryVectorStore.builder();
-      }
-      return DiskBasedVectorStore.builder();
-   }
+   Parameters<VSParameter> getParameters();
 
 
 }// END OF VectorStore

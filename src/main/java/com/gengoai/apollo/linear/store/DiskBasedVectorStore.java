@@ -3,18 +3,21 @@ package com.gengoai.apollo.linear.store;
 import com.gengoai.Parameters;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
-import com.gengoai.apollo.linear.NDArrayInitializer;
-import com.gengoai.apollo.linear.hash.EuclideanSignature;
 import com.gengoai.apollo.linear.hash.LSHParameter;
-import com.gengoai.apollo.linear.hash.SignatureFunction;
 import com.gengoai.cache.AutoCalculatingLRUCache;
 import com.gengoai.cache.Cache;
+import com.gengoai.collection.counter.MultiCounter;
+import com.gengoai.collection.counter.MultiCounters;
 import com.gengoai.io.IndexedFile;
 import com.gengoai.io.IndexedFileReader;
 import com.gengoai.io.IndexedFileWriter;
 import com.gengoai.io.Resources;
 import com.gengoai.io.resource.Resource;
+import com.gengoai.io.resource.StringResource;
+import com.gengoai.json.Json;
+import com.gengoai.json.JsonEntry;
 import com.gengoai.logging.Loggable;
+import com.gengoai.reflection.Types;
 import com.gengoai.string.StringUtils;
 
 import java.io.BufferedReader;
@@ -29,6 +32,7 @@ import static com.gengoai.Parameters.params;
 import static com.gengoai.Validation.checkArgument;
 import static com.gengoai.Validation.notNullOrBlank;
 import static com.gengoai.apollo.linear.NDArray.vec2String;
+import static com.gengoai.tuple.Tuples.$;
 
 /**
  * The type Indexed file store.
@@ -44,28 +48,29 @@ public final class DiskBasedVectorStore implements VectorStore, Serializable, Lo
 
 
    public static void main(String[] args) throws Exception {
-      NDArray n1 = NDArrayFactory.DENSE.create(NDArrayInitializer.rand, 50);
-      NDArray n2 = NDArrayFactory.DENSE.create(NDArrayInitializer.rand, 50);
-      SignatureFunction cs = new EuclideanSignature(params(LSHParameter.SIGNATURE_SIZE, 500,
-                                                           LSHParameter.DIMENSION, 50,
-                                                           LSHParameter.MAX_W, 1));
+      Parameters<VSParameter> params = params(VSParameter.IN_MEMORY, false,
+                                              VSParameter.CACHE_SIZE, 20_000,
+                                              VSParameter.LOCATION, "/home/ik/tmp.vec.txt",
+                                              VSParameter.LSH, params(LSHParameter.SIGNATURE_SIZE, 100,
+                                                                      LSHParameter.SIGNATURE, "COSINE",
+                                                                      LSHParameter.DIMENSION, 50));
+      JsonEntry e = params.toJson();
+      System.out.println(e);
+      System.out.println(e.<Parameters<VSParameter>>getAs(Types.type(Parameters.class, VSParameter.class)));
 
-      int[] b1 = cs.signature(n1);
-      int[] b2 = cs.signature(n2);
+      MultiCounter<String, String> mc = MultiCounters.newMultiCounter($("A", "B"), $("A", "C"), $("D", "E"));
+      Resource r = Json.dump(mc, new StringResource());
+      System.out.println(">>>" + r.readToString());
+      MultiCounter<String, String> m2 = Json.parse(r).getAs(
+         Types.parameterizedType(MultiCounter.class, String.class, String.class));
+      System.out.println(m2);
 
-      System.out.println(cs.getMeasure().calculate(n1, n2));
-      System.out.println(cs.calculateMeasure(b1, b2));
-//      Parameters<VSParameter> params = params(VSParameter.IN_MEMORY, false,
-//                                              VSParameter.CACHE_SIZE, 20_000,
-//                                              VSParameter.LOCATION, "/home/ik/tmp.vec.txt",
-//                                              VSParameter.LSH, params(LSHParameter.SIGNATURE_SIZE, 100,
-//                                                                      LSHParameter.SIGNATURE, "COSINE",
-//                                                                      LSHParameter.DIMENSION, 50));
+
 //      VectorStore vs = VectorStore.builder(params).build();
-////      VSBuilder builder = VectorStore.builder(params);
-////      for (int i = 0; i < 10000; i++) {
-////         builder.add(StringUtils.randomHexString(10), NDArrayFactory.DENSE.create(NDArrayInitializer.rand, 50));
-////      }
+//      VSBuilder builder = VectorStore.builder(params);
+//      for (int i = 0; i < 10000; i++) {
+//         builder.add(StringUtils.randomHexString(10), NDArrayFactory.DENSE.create(NDArrayInitializer.rand, 50));
+//      }
 //      VectorStore vs = builder.build();
 //      vs.forEach(n -> System.out.println(n.getLabel() + " : " +
 //                                            vs.query(VSQuery.termQuery(n.getLabel())

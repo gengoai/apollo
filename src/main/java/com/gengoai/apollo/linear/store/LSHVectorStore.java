@@ -42,10 +42,11 @@ import static com.gengoai.Parameters.params;
  * @author David B. Bracewell
  */
 public class LSHVectorStore implements VectorStore, Serializable {
-   private final LocalitySensitiveHash lsh;
+   public static final String LSH_EXT = ".lsh.json.gz";
+   private final LocalitySensitiveHash<String> lsh;
    private final VectorStore store;
 
-   private LSHVectorStore(LocalitySensitiveHash lsh, VectorStore store) {
+   private LSHVectorStore(LocalitySensitiveHash<String> lsh, VectorStore store) {
       this.lsh = lsh;
       this.store = store;
    }
@@ -77,7 +78,7 @@ public class LSHVectorStore implements VectorStore, Serializable {
 
    @Override
    public void write(Resource location) throws IOException {
-      Resource lshLoc = Resources.fromFile(location.path() + ".lsh.json.gz").setIsCompressed(true);
+      Resource lshLoc = Resources.fromFile(location.path() + LSH_EXT).setIsCompressed(true);
       Json.dump(lsh, lshLoc);
       store.write(location);
    }
@@ -96,8 +97,13 @@ public class LSHVectorStore implements VectorStore, Serializable {
    @Override
    public Stream<NDArray> query(VSQuery query) {
       NDArray queryVector = query.queryVector(this);
-      lsh.query(queryVector);
-      return null;
+      return query.applyFilters(lsh.query(queryVector)
+                                   .stream()
+                                   .map(k -> {
+                                      NDArray v = store.get(k);
+                                      v.setWeight(lsh.getMeasure().calculate(queryVector, v));
+                                      return v;
+                                   }));
    }
 
    public static class Builder implements VSBuilder {
@@ -123,14 +129,14 @@ public class LSHVectorStore implements VectorStore, Serializable {
          VectorStore vs = builder.build();
 
          if (!parameters.getBoolean(VSParameter.IN_MEMORY)) {
-            Resource lshLoc = Resources.fromFile(parameters.getString(VSParameter.LOCATION) + ".lsh.json.gz")
+            Resource lshLoc = Resources.fromFile(parameters.getString(VSParameter.LOCATION) + LSH_EXT)
                                        .setIsCompressed(true);
 
             boolean isLoading = lsh.size() == 0;
             try {
                if (isLoading) {
                   if (lshLoc.exists()) {
-                     lsh = LocalitySensitiveHash.fromJson(Json.parse(lshLoc));
+                     lsh = LocalitySensitiveHash.fromJson(Json.parse(lshLoc), String.class);
                   } else {
                      vs.forEach(n -> lsh.index(n.getLabel(), n));
                      Json.dump(lsh, lshLoc);

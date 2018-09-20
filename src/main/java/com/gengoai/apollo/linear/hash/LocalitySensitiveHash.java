@@ -33,6 +33,7 @@ import com.gengoai.json.JsonSerializable;
 import com.gengoai.math.Optimum;
 
 import java.io.Serializable;
+import java.lang.reflect.Type;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -167,14 +168,8 @@ public class LocalitySensitiveHash<KEY> implements Serializable, JsonSerializabl
 
    @Override
    public JsonEntry toJson() {
-      Class<?> keyClass = store.values().stream()
-                               .findFirst()
-                               .map(Object::getClass)
-                               .orElse(Cast.as(Object.class));
       JsonEntry lsh = JsonEntry.object()
-                               .addProperty("keyClass", keyClass)
                                .addProperty("parameters", parameters.toJson());
-
       JsonEntry index = JsonEntry.object();
       store.keySet().forEach(i -> index.addProperty(Integer.toString(i), JsonEntry.array(store.get(i))));
       lsh.addProperty("index", index);
@@ -185,12 +180,12 @@ public class LocalitySensitiveHash<KEY> implements Serializable, JsonSerializabl
       return store.size();
    }
 
-   public static <KEY> LocalitySensitiveHash<KEY> fromJson(JsonEntry entry) {
+   public static <KEY> LocalitySensitiveHash<KEY> fromJson(JsonEntry entry, Type... types) {
       LocalitySensitiveHash<KEY> lsh = new LocalitySensitiveHash<>(entry.getProperty("parameters")
                                                                         .getAs(VSParameter.LSH.getValueType()));
-      Class<KEY> keyClass = Cast.as(entry.getValProperty("keyClass").asClass());
+      Type keyType = Cast.as(types.length > 0 ? types[0] : Object.class);
       entry.getProperty("index").forEachProperty(
-         (k, v) -> lsh.store.putAll(Integer.parseInt(k), v.getAsArray(keyClass)));
+         (k, v) -> lsh.store.putAll(Integer.parseInt(k), v.getAsArray(keyType)));
       return lsh;
    }
 

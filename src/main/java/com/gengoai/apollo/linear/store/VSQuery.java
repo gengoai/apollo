@@ -305,4 +305,20 @@ public final class VSQuery {
       return threshold;
    }
 
+
+   public Stream<NDArray> applyFilters(Stream<NDArray> stream) {
+      if (Double.isFinite(threshold())) {
+         stream = stream.filter(v -> measure().getOptimum().test(v.getWeight(), threshold()));
+      }
+      stream = stream.sorted((v1, v2) -> measure().getOptimum().compare(v1.getWeight(), v2.getWeight()));
+      Set<String> exclude = getExcludedLabels();
+      if (exclude.size() > 0) {
+         stream = stream.filter(v -> !exclude.contains(v.getLabel()));
+      }
+      if (limit() > 0 && limit() < Integer.MAX_VALUE) {
+         stream = stream.limit(limit());
+      }
+      return stream;
+   }
+
 }//END OF VSQuery

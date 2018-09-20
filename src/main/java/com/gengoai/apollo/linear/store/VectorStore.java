@@ -25,9 +25,12 @@ import com.gengoai.Parameters;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.linear.VectorComposition;
+import com.gengoai.apollo.linear.hash.LSHParameter;
 import com.gengoai.collection.Streams;
+import com.gengoai.io.IndexedFile;
 import com.gengoai.io.resource.Resource;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Set;
@@ -41,6 +44,34 @@ import java.util.stream.Stream;
  * @author David B. Bracewell
  */
 public interface VectorStore extends Iterable<NDArray> {
+
+   static VSBuilder builder(Parameters<VSParameter> parameters) {
+      VSBuilder builder;
+      if (parameters.getBoolean(VSParameter.IN_MEMORY)) {
+         builder = new InMemoryVectorStore.Builder(parameters);
+      } else {
+         builder = new DiskBasedVectorStore.Builder(parameters);
+      }
+      if (parameters.isSet(VSParameter.LSH)) {
+         builder = new LSHVectorStore.Builder(builder, parameters);
+      }
+      return builder;
+   }
+
+
+   static VectorStore read(Resource vectors) throws IOException {
+      File vectorFile = vectors.asFile().orElseThrow(IOException::new);
+      File indexFile = IndexedFile.indexFileFor(vectorFile);
+      File lshFile = new File(vectorFile.getAbsolutePath() + LSHVectorStore.LSH_EXT);
+      Parameters<VSParameter> params = Parameters.params(VSParameter.LOCATION, vectorFile.getAbsolutePath());
+      if (indexFile.exists()) {
+         params.set(VSParameter.IN_MEMORY, false);
+      }
+      if (lshFile.exists()) {
+         params.set(VSParameter.LSH, Parameters.params(LSHParameter.SIGNATURE_SIZE, 100));
+      }
+      return builder(params).build();
+   }
 
    /**
     * Creates a vector using the given vector composition for the given words.
@@ -85,13 +116,18 @@ public interface VectorStore extends Iterable<NDArray> {
    NDArray get(String String);
 
    /**
+    * Create new vector store.
+    *
+    * @return the vector store
+    */
+   Parameters<VSParameter> getParameters();
+
+   /**
     * The label Strings in the store
     *
     * @return the set of vector label Strings
     */
    Set<String> keySet();
-
-   void write(Resource location) throws IOException;
 
    /**
     * Queries the vector store to find similar vectors to the given {@link VSQuery}.
@@ -101,34 +137,8 @@ public interface VectorStore extends Iterable<NDArray> {
     */
    default Stream<NDArray> query(VSQuery query) {
       NDArray queryVector = query.queryVector(this);
-      Stream<NDArray> stream = Streams.asParallelStream(iterator())
-                                      .map(v -> v.copy().setWeight(query.measure().calculate(v, queryVector)));
-      if (Double.isFinite(query.threshold())) {
-         stream = stream.filter(v -> query.measure().getOptimum().test(v.getWeight(), query.threshold()));
-      }
-      stream = stream.sorted((v1, v2) -> query.measure().getOptimum().compare(v1.getWeight(), v2.getWeight()));
-      Set<String> exclude = query.getExcludedLabels();
-      if (exclude.size() > 0) {
-         stream = stream.filter(v -> !exclude.contains(v.getLabel()));
-      }
-      if (query.limit() > 0 && query.limit() < Integer.MAX_VALUE) {
-         stream = stream.limit(query.limit());
-      }
-      return stream;
-   }
-
-
-   static VSBuilder builder(Parameters<VSParameter> parameters) {
-      VSBuilder builder;
-      if (parameters.getBoolean(VSParameter.IN_MEMORY)) {
-         builder = new InMemoryVectorStore.Builder(parameters);
-      } else {
-         builder = new DiskBasedVectorStore.Builder(parameters);
-      }
-      if (parameters.isSet(VSParameter.LSH)) {
-         builder = new LSHVectorStore.Builder(builder, parameters);
-      }
-      return builder;
+      return query.applyFilters(Streams.asParallelStream(iterator())
+                                       .map(v -> v.copy().setWeight(query.measure().calculate(v, queryVector))));
    }
 
    /**
@@ -136,12 +146,7 @@ public interface VectorStore extends Iterable<NDArray> {
     */
    int size();
 
-   /**
-    * Create new vector store.
-    *
-    * @return the vector store
-    */
-   Parameters<VSParameter> getParameters();
+   void write(Resource location) throws IOException;
 
 
 }// END OF VectorStore

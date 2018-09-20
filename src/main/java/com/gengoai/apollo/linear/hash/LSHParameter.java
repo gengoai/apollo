@@ -12,8 +12,8 @@ public enum LSHParameter implements ValueTypeInformation {
    BANDS(Integer.class, 5),
    BUCKETS(Integer.class, 20),
    SIGNATURE(String.class, "COSINE"),
-   DIMENSION(Integer.class, -1),
-   SIGNATURE_SIZE(Integer.class, -1),
+   DIMENSION(Integer.class, 1),
+   SIGNATURE_SIZE(Integer.class, 1),
    MAX_W(Integer.class, 100),
    THRESHOLD(Double.class, 0.5);
 

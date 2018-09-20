@@ -26,17 +26,17 @@ import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.linear.hash.LSHParameter;
 import com.gengoai.collection.Iterators;
+import com.gengoai.io.Resources;
 import com.gengoai.io.resource.Resource;
+import com.gengoai.string.StringUtils;
 
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.Serializable;
+import java.io.*;
 import java.util.*;
 
 import static com.gengoai.Parameters.params;
 import static com.gengoai.Validation.checkArgument;
 import static com.gengoai.Validation.notNullOrBlank;
-import static com.gengoai.apollo.linear.NDArray.vec2String;
+import static com.gengoai.apollo.linear.store.VSTextUtils.vectorToLine;
 
 /**
  * The type Default vector store.
@@ -95,7 +95,7 @@ public class InMemoryVectorStore implements VectorStore, Serializable {
          for (Map.Entry<String, NDArray> entry : vectorMap.entrySet()) {
             writer.write(entry.getKey());
             writer.write(" ");
-            writer.write(vec2String(entry.getValue()));
+            writer.write(vectorToLine(entry.getValue()));
             writer.write("\n");
          }
       }
@@ -129,11 +129,35 @@ public class InMemoryVectorStore implements VectorStore, Serializable {
       @Override
       public VectorStore build() {
          Parameters<LSHParameter> lshParameters = params.get(VSParameter.LSH);
-         InMemoryVectorStore vs = new InMemoryVectorStore(dimension);
-         vs.vectorMap.putAll(vectors);
-         if (lshParameters != null) {
-            lshParameters.set(LSHParameter.DIMENSION, dimension);
+         InMemoryVectorStore vs;
+         if (vectors.size() > 0 || !params.isSet(VSParameter.LOCATION)) {
+            vs = new InMemoryVectorStore(dimension);
+            vs.vectorMap.putAll(vectors);
+            if (lshParameters != null) {
+               lshParameters.set(LSHParameter.DIMENSION, dimension);
+            }
+         } else {
+            File vectorFile = new File(params.getString(VSParameter.LOCATION));
+            try {
+               dimension = VSTextUtils.determineDimension(vectorFile);
+               vs = new InMemoryVectorStore(dimension);
+               try (BufferedReader reader = new BufferedReader(Resources.fromFile(vectorFile).reader())) {
+                  String line;
+                  while ((line = reader.readLine()) != null) {
+                     if (StringUtils.isNotNullOrBlank(line)) {
+                        NDArray v = VSTextUtils.convertLineToVector(line, dimension);
+                        vs.vectorMap.put(v.getLabel(), v);
+                     }
+                  }
+               }
+
+
+            } catch (IOException e) {
+               throw new RuntimeException(e.getCause());
+            }
          }
+
+
          return vs;
       }
 

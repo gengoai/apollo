@@ -6,32 +6,25 @@ import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.linear.hash.LSHParameter;
 import com.gengoai.cache.AutoCalculatingLRUCache;
 import com.gengoai.cache.Cache;
-import com.gengoai.collection.counter.Counter;
-import com.gengoai.collection.counter.Counters;
 import com.gengoai.io.IndexedFile;
 import com.gengoai.io.IndexedFileReader;
 import com.gengoai.io.IndexedFileWriter;
 import com.gengoai.io.Resources;
 import com.gengoai.io.resource.Resource;
-import com.gengoai.io.resource.StringResource;
-import com.gengoai.json.Json;
-import com.gengoai.json.JsonEntry;
 import com.gengoai.logging.Loggable;
-import com.gengoai.reflection.Types;
-import com.gengoai.string.StringUtils;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.gengoai.Parameters.params;
 import static com.gengoai.Validation.checkArgument;
 import static com.gengoai.Validation.notNullOrBlank;
-import static com.gengoai.apollo.linear.NDArray.vec2String;
+import static com.gengoai.apollo.linear.store.VSTextUtils.*;
 
 /**
  * The type Indexed file store.
@@ -50,32 +43,24 @@ public final class DiskBasedVectorStore implements VectorStore, Serializable, Lo
       Parameters<VSParameter> params = params(VSParameter.IN_MEMORY, false,
                                               VSParameter.CACHE_SIZE, 20_000,
                                               VSParameter.LOCATION, "/home/ik/tmp.vec.txt",
-                                              VSParameter.LSH, params(LSHParameter.SIGNATURE_SIZE, 100,
+                                              VSParameter.LSH, params(LSHParameter.SIGNATURE_SIZE, 1024,
                                                                       LSHParameter.SIGNATURE, "COSINE",
                                                                       LSHParameter.DIMENSION, 50));
-      JsonEntry e = params.toJson();
-      System.out.println(e);
-      System.out.println(e.<Parameters<VSParameter>>getAs(Types.type(Parameters.class, VSParameter.class)));
-
-      Counter<String> mc = Counters.newCounter("A","B","C","A","D");
-      Resource r = Json.dump(mc, new StringResource());
-      System.out.println(">>>" + r.readToString());
-      Counter<String> m2 = Json.parse(r).getAs(
-         Types.parameterizedType(Counter.class, String.class, String.class));
-      System.out.println(m2);
-
-
-//      VectorStore vs = VectorStore.builder(params).build();
+      VectorStore vs = VectorStore.read(Resources.from("/home/ik/glove.6B.50d.txt"));
+      System.out.println(vs.getClass());
+//         VectorStore.builder(params).build();
 //      VSBuilder builder = VectorStore.builder(params);
 //      for (int i = 0; i < 10000; i++) {
 //         builder.add(StringUtils.randomHexString(10), NDArrayFactory.DENSE.create(NDArrayInitializer.rand, 50));
 //      }
 //      VectorStore vs = builder.build();
-//      vs.forEach(n -> System.out.println(n.getLabel() + " : " +
-//                                            vs.query(VSQuery.termQuery(n.getLabel())
-//                                                            .limit(3))
-//                                              .map(NDArray::getLabel)
-//                                              .collect(Collectors.toList())));
+      vs.keySet().stream().limit(10).forEach(k -> {
+         NDArray n = vs.get(k);
+         System.out.println(n.getLabel() + " : " +
+                               vs.query(VSQuery.termQuery(n.getLabel()).limit(3))
+                                 .map(v -> v.getLabel() + " : " + v.getWeight())
+                                 .collect(Collectors.toList()));
+      });
    }
 
    public DiskBasedVectorStore(File vectorFile, int cacheSize) {
@@ -89,21 +74,6 @@ public final class DiskBasedVectorStore implements VectorStore, Serializable, Lo
       }
    }
 
-
-   private static int determineDimension(File vectorStore) throws IOException {
-      Resource r = Resources.fromFile(vectorStore);
-      try (BufferedReader reader = new BufferedReader(r.reader())) {
-         String line = reader.readLine();
-         if (StringUtils.isNullOrBlank(line)) {
-            throw new IOException("Unexpected empty line at beginning of file: " + vectorStore);
-         }
-         String[] cells = line.trim().split("[ \t]+");
-         if (cells.length > 4) {
-            return cells.length - 1;
-         }
-         return Integer.parseInt(cells[1]);
-      }
-   }
 
    @Override
    public void write(Resource location) throws IOException {
@@ -152,13 +122,7 @@ public final class DiskBasedVectorStore implements VectorStore, Serializable, Lo
    private NDArray loadNDArray(String key) {
       if (reader.containsKey(key)) {
          try {
-            NDArray vector = NDArrayFactory.DENSE.zeros(1, dimension);
-            String[] parts = reader.get(key).split("[ \t]+");
-            for (int i = 1; i < parts.length; i++) {
-               vector.set(i - 1, Double.parseDouble(parts[i]));
-            }
-            vector.setLabel(parts[0]);
-            return vector;
+            return convertLineToVector(reader.get(key), dimension);
          } catch (Exception e) {
             throw new RuntimeException(e);
          }
@@ -216,7 +180,7 @@ public final class DiskBasedVectorStore implements VectorStore, Serializable, Lo
             checkArgument(dimension == vector.length(),
                           () -> "Dimension mismatch. (" + dimension + ") != (" + vector.length() + ")");
             ensureWriter();
-            writer.write(key, key + " " + vec2String(vector));
+            writer.write(key, key + " " + vectorToLine(vector));
          } catch (IOException e) {
             throw new RuntimeException(e);
          }

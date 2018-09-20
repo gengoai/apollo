@@ -6,8 +6,8 @@ import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.linear.hash.LSHParameter;
 import com.gengoai.cache.AutoCalculatingLRUCache;
 import com.gengoai.cache.Cache;
-import com.gengoai.collection.counter.MultiCounter;
-import com.gengoai.collection.counter.MultiCounters;
+import com.gengoai.collection.counter.Counter;
+import com.gengoai.collection.counter.Counters;
 import com.gengoai.io.IndexedFile;
 import com.gengoai.io.IndexedFileReader;
 import com.gengoai.io.IndexedFileWriter;
@@ -32,7 +32,6 @@ import static com.gengoai.Parameters.params;
 import static com.gengoai.Validation.checkArgument;
 import static com.gengoai.Validation.notNullOrBlank;
 import static com.gengoai.apollo.linear.NDArray.vec2String;
-import static com.gengoai.tuple.Tuples.$;
 
 /**
  * The type Indexed file store.
@@ -58,11 +57,11 @@ public final class DiskBasedVectorStore implements VectorStore, Serializable, Lo
       System.out.println(e);
       System.out.println(e.<Parameters<VSParameter>>getAs(Types.type(Parameters.class, VSParameter.class)));
 
-      MultiCounter<String, String> mc = MultiCounters.newMultiCounter($("A", "B"), $("A", "C"), $("D", "E"));
+      Counter<String> mc = Counters.newCounter("A","B","C","A","D");
       Resource r = Json.dump(mc, new StringResource());
       System.out.println(">>>" + r.readToString());
-      MultiCounter<String, String> m2 = Json.parse(r).getAs(
-         Types.parameterizedType(MultiCounter.class, String.class, String.class));
+      Counter<String> m2 = Json.parse(r).getAs(
+         Types.parameterizedType(Counter.class, String.class, String.class));
       System.out.println(m2);
 
 

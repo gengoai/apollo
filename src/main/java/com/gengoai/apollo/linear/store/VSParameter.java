@@ -7,7 +7,8 @@ import com.gengoai.conversion.Cast;
 
 import java.lang.reflect.Type;
 
-import static com.gengoai.reflection.Types.type;
+import static com.gengoai.reflection.Types.parameterizedType;
+
 
 /**
  * @author David B. Bracewell
@@ -16,7 +17,7 @@ public enum VSParameter implements ValueTypeInformation {
    CACHE_SIZE(Integer.class, 5_000),
    LOCATION(String.class, null),
    IN_MEMORY(Boolean.class, true),
-   LSH(type(Parameters.class, LSHParameter.class), null);
+   LSH(parameterizedType(Parameters.class, LSHParameter.class), null);
 
    private final Type type;
    private final Object defaultValue;

@@ -2,8 +2,8 @@ package com.gengoai.apollo.ml.encoder;
 
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.data.Dataset;
-import com.gengoai.collection.index.HashMapIndex;
-import com.gengoai.collection.index.Index;
+import com.gengoai.collection.HashMapIndex;
+import com.gengoai.collection.Index;
 import com.gengoai.conversion.Cast;
 import com.gengoai.stream.MStream;
 import com.gengoai.stream.accumulator.MAccumulator;

@@ -6,7 +6,7 @@ import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.collection.Iterators;
 import com.gengoai.collection.Lists;
 import com.gengoai.function.SerializableFunction;
-import com.gengoai.string.StringUtils;
+import com.gengoai.string.Strings;
 import lombok.NonNull;
 
 import java.io.Serializable;
@@ -141,7 +141,7 @@ public interface TransitionFeature extends Serializable {
     */
    static List<SerializableFunction<Context<Instance>, String>> parse(String template) {
       final Pattern extractor = Pattern.compile("^(.*)\\[([\\-\\+]?\\d+)\\]$");
-      List<String> elements = StringUtils.split(template, ',');
+      List<String> elements = Strings.split(template, ',');
       List<SerializableFunction<Context<Instance>, String>> parts = new ArrayList<>();
       elements.forEach(p -> {
          Matcher m = extractor.matcher(p);

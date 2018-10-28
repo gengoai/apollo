@@ -7,7 +7,7 @@ import com.gengoai.collection.multimap.HashSetMultimap;
 import com.gengoai.collection.multimap.Multimap;
 import com.gengoai.io.resource.Resource;
 import com.gengoai.math.Math2;
-import com.gengoai.string.StringUtils;
+import com.gengoai.string.Strings;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
@@ -43,7 +43,7 @@ public class FaruquiRetrofitting implements Retrofitting {
    private String norm(String string) {
       if (Math2.tryParseDouble(string) != null) {
          return "---num---";
-      } else if (StringUtils.isPunctuation(string)) {
+      } else if (Strings.isPunctuation(string)) {
          return "---punc---";
       }
       return string.toLowerCase().replace('_', ' ');

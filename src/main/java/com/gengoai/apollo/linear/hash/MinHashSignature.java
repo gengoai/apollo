@@ -21,7 +21,7 @@
 
 package com.gengoai.apollo.linear.hash;
 
-import com.gengoai.Parameters;
+import com.gengoai.NamedParameters;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.stat.measure.Measure;
 import com.gengoai.apollo.stat.measure.Similarity;
@@ -40,12 +40,12 @@ public class MinHashSignature implements SignatureFunction {
    public static final String NAME = "MIN_HASH";
    private static final long serialVersionUID = 1L;
    private final long[][] coefficients;
-   private final Parameters<LSHParameter> parameters;
+   private final NamedParameters<LSHParameter> parameters;
 
    /**
     * Instantiates a new Min hash signature.
     */
-   public MinHashSignature(Parameters<LSHParameter> parameters) {
+   public MinHashSignature(NamedParameters<LSHParameter> parameters) {
       this.parameters = parameters.copy();
       double error = 1d - parameters.<Double>get(THRESHOLD);
       int ss = parameters.getOrDefault(SIGNATURE_SIZE, (int) (1d / (error * error)));
@@ -75,7 +75,7 @@ public class MinHashSignature implements SignatureFunction {
    }
 
    @Override
-   public Parameters<LSHParameter> getParameters() {
+   public NamedParameters<LSHParameter> getParameters() {
       return parameters;
    }
 

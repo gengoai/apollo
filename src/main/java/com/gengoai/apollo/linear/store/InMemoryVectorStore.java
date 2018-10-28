@@ -21,19 +21,19 @@
 
 package com.gengoai.apollo.linear.store;
 
-import com.gengoai.Parameters;
+import com.gengoai.NamedParameters;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.linear.hash.LSHParameter;
 import com.gengoai.collection.Iterators;
 import com.gengoai.io.Resources;
 import com.gengoai.io.resource.Resource;
-import com.gengoai.string.StringUtils;
+import com.gengoai.string.Strings;
 
 import java.io.*;
 import java.util.*;
 
-import static com.gengoai.Parameters.params;
+import static com.gengoai.NamedParameters.params;
 import static com.gengoai.Validation.checkArgument;
 import static com.gengoai.Validation.notNullOrBlank;
 import static com.gengoai.apollo.linear.store.VSTextUtils.vectorToLine;
@@ -85,7 +85,7 @@ public class InMemoryVectorStore implements VectorStore, Serializable {
    }
 
    @Override
-   public Parameters<VSParameter> getParameters() {
+   public NamedParameters<VSParameter> getParameters() {
       return params(VSParameter.IN_MEMORY, true);
    }
 
@@ -108,9 +108,9 @@ public class InMemoryVectorStore implements VectorStore, Serializable {
    public static class Builder implements VSBuilder {
       private final Map<String, NDArray> vectors = new HashMap<>();
       private int dimension = -1;
-      private final Parameters<VSParameter> params;
+      private final NamedParameters<VSParameter> params;
 
-      public Builder(Parameters<VSParameter> params) {
+      public Builder(NamedParameters<VSParameter> params) {
          this.params = params;
       }
 
@@ -128,7 +128,7 @@ public class InMemoryVectorStore implements VectorStore, Serializable {
 
       @Override
       public VectorStore build() {
-         Parameters<LSHParameter> lshParameters = params.get(VSParameter.LSH);
+         NamedParameters<LSHParameter> lshParameters = params.get(VSParameter.LSH);
          InMemoryVectorStore vs;
          if (vectors.size() > 0 || !params.isSet(VSParameter.LOCATION)) {
             vs = new InMemoryVectorStore(dimension);
@@ -144,7 +144,7 @@ public class InMemoryVectorStore implements VectorStore, Serializable {
                try (BufferedReader reader = new BufferedReader(Resources.fromFile(vectorFile).reader())) {
                   String line;
                   while ((line = reader.readLine()) != null) {
-                     if (StringUtils.isNotNullOrBlank(line)) {
+                     if (Strings.isNotNullOrBlank(line)) {
                         NDArray v = VSTextUtils.convertLineToVector(line, dimension);
                         vs.vectorMap.put(v.getLabel(), v);
                      }

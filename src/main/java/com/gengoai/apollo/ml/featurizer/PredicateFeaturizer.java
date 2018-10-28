@@ -22,7 +22,7 @@
 package com.gengoai.apollo.ml.featurizer;
 
 import com.gengoai.apollo.ml.Feature;
-import com.gengoai.string.StringUtils;
+import com.gengoai.string.Strings;
 import lombok.Getter;
 import lombok.NonNull;
 
@@ -52,7 +52,7 @@ public abstract class PredicateFeaturizer<INPUT> implements Featurizer<INPUT> {
    @Override
    public final List<Feature> apply(@NonNull INPUT input) {
       String predicate = extractPredicate(input);
-      if (StringUtils.isNullOrBlank(predicate)) {
+      if (Strings.isNullOrBlank(predicate)) {
          return Collections.emptyList();
       }
       return Collections.singletonList(Feature.TRUE(prefix, predicate));

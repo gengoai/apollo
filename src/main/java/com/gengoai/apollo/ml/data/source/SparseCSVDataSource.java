@@ -10,7 +10,7 @@ import com.gengoai.io.QuietIO;
 import com.gengoai.io.resource.Resource;
 import com.gengoai.stream.MStream;
 import com.gengoai.stream.StreamingContext;
-import com.gengoai.string.StringUtils;
+import com.gengoai.string.Strings;
 import lombok.Getter;
 import lombok.NonNull;
 
@@ -50,7 +50,7 @@ public class SparseCSVDataSource extends DataSource<Instance> {
     */
    public SparseCSVDataSource(@NonNull Resource resource, String labelName, @NonNull CSV format) {
       super(resource);
-      Validation.checkArgument(StringUtils.isNotNullOrBlank(labelName), "Must specify a label name.");
+      Validation.checkArgument(Strings.isNotNullOrBlank(labelName), "Must specify a label name.");
       this.csvFormat = format;
       this.labelName = labelName;
    }
@@ -61,7 +61,7 @@ public class SparseCSVDataSource extends DataSource<Instance> {
          List<Feature> features = new ArrayList<>();
          String label = null;
          for (String aList : list) {
-            List<String> parts = StringUtils.split(aList, ':');
+            List<String> parts = Strings.split(aList, ':');
             if (parts.get(0).equals(labelName)) {
                label = parts.get(1);
             } else {

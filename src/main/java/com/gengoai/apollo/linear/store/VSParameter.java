@@ -1,7 +1,6 @@
 package com.gengoai.apollo.linear.store;
 
-import com.gengoai.Parameters;
-import com.gengoai.ValueTypeInformation;
+import com.gengoai.NamedParameters;
 import com.gengoai.apollo.linear.hash.LSHParameter;
 import com.gengoai.conversion.Cast;
 
@@ -13,11 +12,11 @@ import static com.gengoai.reflection.Types.parameterizedType;
 /**
  * @author David B. Bracewell
  */
-public enum VSParameter implements ValueTypeInformation {
+public enum VSParameter implements NamedParameters.Value {
    CACHE_SIZE(Integer.class, 5_000),
    LOCATION(String.class, null),
    IN_MEMORY(Boolean.class, true),
-   LSH(parameterizedType(Parameters.class, LSHParameter.class), null);
+   LSH(parameterizedType(NamedParameters.class, LSHParameter.class), null);
 
    private final Type type;
    private final Object defaultValue;

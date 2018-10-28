@@ -1,6 +1,6 @@
 package com.gengoai.apollo.ml.embedding;
 
-import com.gengoai.Parameters;
+import com.gengoai.NamedParameters;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.store.VSBuilder;
 import com.gengoai.apollo.linear.store.VSParameter;
@@ -187,7 +187,7 @@ public class Embedding implements Model, VectorStore, Serializable {
    }
 
    @Override
-   public Parameters<VSParameter> getParameters() {
+   public NamedParameters<VSParameter> getParameters() {
       return null;
    }
 

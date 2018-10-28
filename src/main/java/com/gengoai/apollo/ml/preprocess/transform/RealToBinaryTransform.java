@@ -5,7 +5,7 @@ import com.gengoai.apollo.ml.Instance;
 import com.gengoai.apollo.ml.preprocess.RestrictedInstancePreprocessor;
 import com.gengoai.json.JsonEntry;
 import com.gengoai.stream.MStream;
-import com.gengoai.string.StringUtils;
+import com.gengoai.string.Strings;
 
 import java.io.Serializable;
 import java.util.List;
@@ -43,7 +43,7 @@ public class RealToBinaryTransform extends RestrictedInstancePreprocessor implem
    }
 
    protected RealToBinaryTransform() {
-      this(StringUtils.EMPTY, 0);
+      this(Strings.EMPTY, 0);
    }
 
    @Override

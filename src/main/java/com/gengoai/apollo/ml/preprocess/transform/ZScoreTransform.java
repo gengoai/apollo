@@ -7,7 +7,7 @@ import com.gengoai.json.JsonEntry;
 import com.gengoai.math.EnhancedDoubleStatistics;
 import com.gengoai.stream.MStream;
 import com.gengoai.stream.accumulator.MStatisticsAccumulator;
-import com.gengoai.string.StringUtils;
+import com.gengoai.string.Strings;
 
 import java.io.Serializable;
 import java.util.List;
@@ -29,7 +29,7 @@ public class ZScoreTransform extends RestrictedInstancePreprocessor implements T
     * Instantiates a new Z-Score transform calculating statistics for all features.
     */
    public ZScoreTransform() {
-      super(StringUtils.EMPTY);
+      super(Strings.EMPTY);
    }
 
    /**

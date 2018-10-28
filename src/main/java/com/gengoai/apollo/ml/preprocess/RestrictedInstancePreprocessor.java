@@ -4,7 +4,7 @@ import com.gengoai.apollo.ml.Feature;
 import com.gengoai.apollo.ml.Instance;
 import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.stream.MStream;
-import com.gengoai.string.StringUtils;
+import com.gengoai.string.Strings;
 import lombok.NonNull;
 
 import java.io.Serializable;
@@ -31,7 +31,7 @@ public abstract class RestrictedInstancePreprocessor implements InstancePreproce
     */
    protected RestrictedInstancePreprocessor(String featureNamePrefix) {
       this.featureNamePrefix = featureNamePrefix;
-      this.acceptAll = StringUtils.isNullOrBlank(featureNamePrefix);
+      this.acceptAll = Strings.isNullOrBlank(featureNamePrefix);
    }
 
    /**
@@ -86,7 +86,7 @@ public abstract class RestrictedInstancePreprocessor implements InstancePreproce
     */
    protected final void setRestriction(String prefix) {
       this.featureNamePrefix = prefix;
-      this.acceptAll = StringUtils.isNullOrBlank(featureNamePrefix);
+      this.acceptAll = Strings.isNullOrBlank(featureNamePrefix);
    }
 
    /**

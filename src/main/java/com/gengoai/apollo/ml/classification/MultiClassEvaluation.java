@@ -31,7 +31,7 @@ import com.gengoai.collection.counter.HashMapMultiCounter;
 import com.gengoai.collection.counter.MultiCounter;
 import com.gengoai.conversion.Cast;
 import com.gengoai.logging.Logger;
-import com.gengoai.string.StringUtils;
+import com.gengoai.string.Strings;
 import com.gengoai.string.TableFormatter;
 import com.gengoai.tuple.Tuple2;
 import lombok.NonNull;
@@ -374,7 +374,7 @@ public class MultiClassEvaluation implements ClassifierEvaluation {
       TableFormatter tableFormatter = new TableFormatter();
       if (printConfusionMatrix) {
          tableFormatter.title("Confusion Matrix");
-         tableFormatter.header(Collections.singleton(StringUtils.EMPTY));
+         tableFormatter.header(Collections.singleton(Strings.EMPTY));
          tableFormatter.header(columns);
          tableFormatter.header(Collections.singleton("Total"));
          sorted.forEach(gold -> {
@@ -398,7 +398,7 @@ public class MultiClassEvaluation implements ClassifierEvaluation {
       tableFormatter.clear();
       tableFormatter
          .title("Classification Metrics")
-         .header(Arrays.asList(StringUtils.EMPTY, "Precision", "Recall", "F1-Measure", "Correct", "Incorrect", "Missed",
+         .header(Arrays.asList(Strings.EMPTY, "Precision", "Recall", "F1-Measure", "Correct", "Incorrect", "Missed",
                                "Total"));
 
       sorted.forEach(g ->

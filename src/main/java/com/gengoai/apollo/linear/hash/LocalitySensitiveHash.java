@@ -21,7 +21,7 @@
 
 package com.gengoai.apollo.linear.hash;
 
-import com.gengoai.Parameters;
+import com.gengoai.NamedParameters;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.store.VSParameter;
 import com.gengoai.apollo.stat.measure.Measure;
@@ -51,11 +51,11 @@ public class LocalitySensitiveHash<KEY> implements Serializable, JsonSerializabl
    private static final long LARGE_PRIME = 433494437;
    private static final long serialVersionUID = 1L;
 
-   public Parameters<LSHParameter> getParameters() {
+   public NamedParameters<LSHParameter> getParameters() {
       return parameters;
    }
 
-   private final Parameters<LSHParameter> parameters;
+   private final NamedParameters<LSHParameter> parameters;
    private final SignatureFunction signatureFunction;
    private final Multimap<Integer, KEY> store = new HashSetMultimap<>();
 
@@ -66,7 +66,7 @@ public class LocalitySensitiveHash<KEY> implements Serializable, JsonSerializabl
    /**
     * Instantiates a new Locality sensitive hash.
     */
-   public LocalitySensitiveHash(Parameters<LSHParameter> parameters) {
+   public LocalitySensitiveHash(NamedParameters<LSHParameter> parameters) {
       this.parameters = parameters.copy();
       this.signatureFunction = SignatureFunction.create(parameters.get(SIGNATURE), parameters);
    }

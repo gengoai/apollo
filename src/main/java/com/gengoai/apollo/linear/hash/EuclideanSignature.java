@@ -21,7 +21,7 @@
 
 package com.gengoai.apollo.linear.hash;
 
-import com.gengoai.Parameters;
+import com.gengoai.NamedParameters;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.linear.NDArrayInitializer;
@@ -41,12 +41,12 @@ public class EuclideanSignature implements SignatureFunction {
    private final NDArray[] randomProjections;
    private final int[] offset;
    private final int[] w;
-   private final Parameters<LSHParameter> parameters;
+   private final NamedParameters<LSHParameter> parameters;
 
    /**
     * Instantiates a new Euclidean signature.
     */
-   public EuclideanSignature(Parameters<LSHParameter> parameters) {
+   public EuclideanSignature(NamedParameters<LSHParameter> parameters) {
       this.parameters = parameters.copy();
       this.randomProjections = new NDArray[parameters.<Integer>get(SIGNATURE_SIZE)];
       this.w = new int[parameters.<Integer>get(SIGNATURE_SIZE)];
@@ -66,7 +66,7 @@ public class EuclideanSignature implements SignatureFunction {
    }
 
    @Override
-   public Parameters<LSHParameter> getParameters() {
+   public NamedParameters<LSHParameter> getParameters() {
       return parameters;
    }
 

@@ -1,6 +1,6 @@
 package com.gengoai.apollo.linear.hash;
 
-import com.gengoai.ValueTypeInformation;
+import com.gengoai.NamedParameters;
 import com.gengoai.conversion.Cast;
 
 import java.lang.reflect.Type;
@@ -8,7 +8,7 @@ import java.lang.reflect.Type;
 /**
  * @author David B. Bracewell
  */
-public enum LSHParameter implements ValueTypeInformation {
+public enum LSHParameter implements NamedParameters.Value {
    BANDS(Integer.class, 5),
    BUCKETS(Integer.class, 20),
    SIGNATURE(String.class, "COSINE"),

@@ -21,7 +21,7 @@
 
 package com.gengoai.apollo.linear.store;
 
-import com.gengoai.Parameters;
+import com.gengoai.NamedParameters;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.linear.VectorComposition;
@@ -45,7 +45,7 @@ import java.util.stream.Stream;
  */
 public interface VectorStore extends Iterable<NDArray> {
 
-   static VSBuilder builder(Parameters<VSParameter> parameters) {
+   static VSBuilder builder(NamedParameters<VSParameter> parameters) {
       VSBuilder builder;
       if (parameters.getBoolean(VSParameter.IN_MEMORY)) {
          builder = new InMemoryVectorStore.Builder(parameters);
@@ -63,12 +63,12 @@ public interface VectorStore extends Iterable<NDArray> {
       File vectorFile = vectors.asFile().orElseThrow(IOException::new);
       File indexFile = IndexedFile.indexFileFor(vectorFile);
       File lshFile = new File(vectorFile.getAbsolutePath() + LSHVectorStore.LSH_EXT);
-      Parameters<VSParameter> params = Parameters.params(VSParameter.LOCATION, vectorFile.getAbsolutePath());
+      NamedParameters<VSParameter> params = NamedParameters.params(VSParameter.LOCATION, vectorFile.getAbsolutePath());
       if (indexFile.exists()) {
          params.set(VSParameter.IN_MEMORY, false);
       }
       if (lshFile.exists()) {
-         params.set(VSParameter.LSH, Parameters.params(LSHParameter.SIGNATURE_SIZE, 100));
+         params.set(VSParameter.LSH, NamedParameters.params(LSHParameter.SIGNATURE_SIZE, 100));
       }
       return builder(params).build();
    }
@@ -120,7 +120,7 @@ public interface VectorStore extends Iterable<NDArray> {
     *
     * @return the vector store
     */
-   Parameters<VSParameter> getParameters();
+   NamedParameters<VSParameter> getParameters();
 
    /**
     * The label Strings in the store

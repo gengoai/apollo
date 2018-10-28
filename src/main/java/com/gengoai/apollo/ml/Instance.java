@@ -207,9 +207,9 @@ public class Instance implements Example, Serializable, Iterable<Feature>, JsonS
       } else if (label instanceof Collection) {
          this.label = new HashSet<>(Cast.as(label));
       } else if (label instanceof Iterable) {
-         this.label = Sets.set(Cast.<Iterable>as(label));
+         this.label = Sets.hashSetOf(Cast.<Iterable>as(label));
       } else if (label instanceof Iterator) {
-         this.label = Sets.set(Cast.<Iterator<?>>as(label));
+         this.label = Sets.hashSetOf(Cast.<Iterator<?>>as(label));
       } else if (label.getClass().isArray()) {
          this.label = new HashSet<>(Arrays.asList(Cast.<Object[]>as(label)));
       } else {

@@ -21,7 +21,7 @@
 
 package com.gengoai.apollo.linear.store;
 
-import com.gengoai.Parameters;
+import com.gengoai.NamedParameters;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.hash.LocalitySensitiveHash;
 import com.gengoai.io.Resources;
@@ -34,7 +34,7 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import static com.gengoai.Parameters.params;
+import static com.gengoai.NamedParameters.params;
 
 /**
  * <p>Abstract base interface for LSH based NDArray stores.</p>
@@ -89,7 +89,7 @@ public class LSHVectorStore implements VectorStore, Serializable {
    }
 
    @Override
-   public Parameters<VSParameter> getParameters() {
+   public NamedParameters<VSParameter> getParameters() {
       return params(VSParameter.LSH, lsh.getParameters())
                 .setAll(store.getParameters().asMap());
    }
@@ -108,10 +108,10 @@ public class LSHVectorStore implements VectorStore, Serializable {
 
    public static class Builder implements VSBuilder {
       private LocalitySensitiveHash<String> lsh;
-      private final Parameters<VSParameter> parameters;
+      private final NamedParameters<VSParameter> parameters;
       private final VSBuilder builder;
 
-      public Builder(VSBuilder builder, Parameters<VSParameter> parameters) {
+      public Builder(VSBuilder builder, NamedParameters<VSParameter> parameters) {
          this.builder = builder;
          this.parameters = parameters;
          this.lsh = new LocalitySensitiveHash<>(parameters.get(VSParameter.LSH));

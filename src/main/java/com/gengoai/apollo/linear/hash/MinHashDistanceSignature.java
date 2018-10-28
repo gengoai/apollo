@@ -21,7 +21,7 @@
 
 package com.gengoai.apollo.linear.hash;
 
-import com.gengoai.Parameters;
+import com.gengoai.NamedParameters;
 import com.gengoai.apollo.stat.measure.Measure;
 import com.gengoai.apollo.stat.measure.Similarity;
 
@@ -38,7 +38,7 @@ public class MinHashDistanceSignature extends MinHashSignature {
    /**
     * Instantiates a new Min hash signature.
     */
-   public MinHashDistanceSignature(Parameters<LSHParameter> parameters) {
+   public MinHashDistanceSignature(NamedParameters<LSHParameter> parameters) {
       super(parameters);
    }
 

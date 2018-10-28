@@ -9,7 +9,7 @@ import com.gengoai.math.Math2;
 import com.gengoai.math.NumericComparison;
 import com.gengoai.math.Operator;
 import com.gengoai.math.Optimum;
-import com.gengoai.string.StringUtils;
+import com.gengoai.string.Strings;
 import com.gengoai.tuple.Tuple2;
 import org.apache.commons.math3.util.FastMath;
 import org.jblas.DoubleMatrix;
@@ -2767,8 +2767,8 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
             firstHalf = false;
             int ni = Math.max(numSlices() - half, i + 1);
             if (ni > i + 1) {
-               String outDot = StringUtils.repeat(StringUtils.padStart(".", 8, ' '),
-                                                  Math.min(numCols(), maxColumns + 2));
+               String outDot = Strings.repeat(Strings.padStart(".", 8, ' '),
+                                              Math.min(numCols(), maxColumns + 2));
                builder.append(System.lineSeparator())
                       .append(System.lineSeparator()).append(outDot)
                       .append(System.lineSeparator()).append(outDot)

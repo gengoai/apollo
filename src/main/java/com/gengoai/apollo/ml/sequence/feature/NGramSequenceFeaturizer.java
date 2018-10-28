@@ -26,7 +26,7 @@ import com.gengoai.apollo.ml.Feature;
 import com.gengoai.apollo.ml.featurizer.PredicateFeaturizer;
 import com.gengoai.apollo.ml.sequence.Context;
 import com.gengoai.apollo.ml.sequence.SequenceFeaturizer;
-import com.gengoai.string.StringUtils;
+import com.gengoai.string.Strings;
 import lombok.NonNull;
 
 import java.util.ArrayList;
@@ -100,9 +100,9 @@ public class NGramSequenceFeaturizer<E> implements SequenceFeaturizer<E> {
          int start = i < zeroIndex ? -(zeroIndex - i) : i > zeroIndex + 1 ? (i - zeroIndex) : 0;
          for (int j = i + 1; j < all.size(); j++) {
             int end = j < zeroIndex ? -(zeroIndex - j) : j > zeroIndex + 1 ? (j - zeroIndex) : 0;
-            features.add(Feature.TRUE(prefix + "[" + start + "..." + end + "]=" + StringUtils.join(all.subList(i,
-                                                                                                               j + 1),
-                                                                                                   "_")));
+            features.add(Feature.TRUE(prefix + "[" + start + "..." + end + "]=" + Strings.join(all.subList(i,
+                                                                                                           j + 1),
+                                                                                               "_")));
          }
       }
 

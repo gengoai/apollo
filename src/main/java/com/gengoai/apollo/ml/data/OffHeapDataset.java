@@ -11,7 +11,7 @@ import com.gengoai.io.Resources;
 import com.gengoai.io.resource.Resource;
 import com.gengoai.stream.MStream;
 import com.gengoai.stream.StreamingContext;
-import com.gengoai.string.StringUtils;
+import com.gengoai.string.Strings;
 import com.gengoai.tuple.Tuples;
 import lombok.NonNull;
 
@@ -148,7 +148,7 @@ public class OffHeapDataset<T extends Example> extends Dataset<T> {
       return StreamingContext.local()
                              .stream(outputResource.getChildren().parallelStream()
                                                    .flatMap(function(r -> r.lines().javaStream()))
-                                                   .filter(StringUtils::isNotNullOrBlank)
+                                                   .filter(Strings::isNotNullOrBlank)
                                                    .map(function(line -> Cast.as(Example.fromJson(line, clazz)))));
    }
 

@@ -7,7 +7,7 @@ import com.gengoai.io.Resources;
 import com.gengoai.io.resource.Resource;
 import com.gengoai.json.JsonReader;
 import com.gengoai.json.JsonSerializable;
-import com.gengoai.string.StringUtils;
+import com.gengoai.string.Strings;
 import lombok.NonNull;
 
 import java.io.IOException;
@@ -30,7 +30,7 @@ public interface Example extends Copyable<Example>, JsonSerializable {
     * @throws IOException Something went wrong converting the string into an example
     */
    static <T extends Example> T fromJson(String input, @NonNull Class<T> example) throws IOException {
-      Validation.checkArgument(!StringUtils.isNullOrBlank(input),
+      Validation.checkArgument(!Strings.isNullOrBlank(input),
                                "Cannot create example from null or empty string.");
       Resource r = Resources.fromString(input);
       T rval;

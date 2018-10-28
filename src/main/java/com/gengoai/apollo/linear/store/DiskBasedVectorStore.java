@@ -1,6 +1,6 @@
 package com.gengoai.apollo.linear.store;
 
-import com.gengoai.Parameters;
+import com.gengoai.NamedParameters;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.linear.hash.LSHParameter;
@@ -21,7 +21,7 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.gengoai.Parameters.params;
+import static com.gengoai.NamedParameters.params;
 import static com.gengoai.Validation.checkArgument;
 import static com.gengoai.Validation.notNullOrBlank;
 import static com.gengoai.apollo.linear.store.VSTextUtils.*;
@@ -40,10 +40,10 @@ public final class DiskBasedVectorStore implements VectorStore, Serializable, Lo
 
 
    public static void main(String[] args) throws Exception {
-      Parameters<VSParameter> params = params(VSParameter.IN_MEMORY, false,
-                                              VSParameter.CACHE_SIZE, 20_000,
-                                              VSParameter.LOCATION, "/home/ik/tmp.vec.txt",
-                                              VSParameter.LSH, params(LSHParameter.SIGNATURE_SIZE, 1024,
+      NamedParameters<VSParameter> params = params(VSParameter.IN_MEMORY, false,
+                                                   VSParameter.CACHE_SIZE, 20_000,
+                                                   VSParameter.LOCATION, "/home/ik/tmp.vec.txt",
+                                                   VSParameter.LSH, params(LSHParameter.SIGNATURE_SIZE, 1024,
                                                                       LSHParameter.SIGNATURE, "COSINE",
                                                                       LSHParameter.DIMENSION, 50));
       VectorStore vs = VectorStore.read(Resources.from("/home/ik/glove.6B.50d.txt"));
@@ -136,7 +136,7 @@ public final class DiskBasedVectorStore implements VectorStore, Serializable, Lo
    }
 
    @Override
-   public Parameters<VSParameter> getParameters() {
+   public NamedParameters<VSParameter> getParameters() {
       return params(VSParameter.IN_MEMORY, false,
                     VSParameter.CACHE_SIZE, cacheSize,
                     VSParameter.LOCATION, reader.getBackingFile().getAbsolutePath());
@@ -148,9 +148,9 @@ public final class DiskBasedVectorStore implements VectorStore, Serializable, Lo
    public static class Builder implements VSBuilder {
       private volatile IndexedFileWriter writer = null;
       private int dimension = -1;
-      private final Parameters<VSParameter> parameters;
+      private final NamedParameters<VSParameter> parameters;
 
-      public Builder(Parameters<VSParameter> parameters) {
+      public Builder(NamedParameters<VSParameter> parameters) {
          this.parameters = parameters;
       }
 

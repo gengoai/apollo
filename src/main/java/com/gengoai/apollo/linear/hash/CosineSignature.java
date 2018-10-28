@@ -21,7 +21,7 @@
 
 package com.gengoai.apollo.linear.hash;
 
-import com.gengoai.Parameters;
+import com.gengoai.NamedParameters;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.linear.NDArrayInitializer;
@@ -39,13 +39,13 @@ import static com.gengoai.apollo.linear.hash.LSHParameter.SIGNATURE_SIZE;
 public class CosineSignature implements SignatureFunction {
    public static final String NAME = "COSINE_SIMILARITY";
    private static final long serialVersionUID = 1L;
-   private final Parameters<LSHParameter> parameters;
+   private final NamedParameters<LSHParameter> parameters;
    private final NDArray[] randomProjections;
 
    /**
     * Instantiates a new Cosine signature.
     */
-   public CosineSignature(Parameters<LSHParameter> parameters) {
+   public CosineSignature(NamedParameters<LSHParameter> parameters) {
       this.parameters = parameters.copy();
       this.randomProjections = new NDArray[parameters.getInt(SIGNATURE_SIZE)];
       for (int i = 0; i < randomProjections.length; i++) {
@@ -67,7 +67,7 @@ public class CosineSignature implements SignatureFunction {
    }
 
    @Override
-   public Parameters<LSHParameter> getParameters() {
+   public NamedParameters<LSHParameter> getParameters() {
       return parameters;
    }
 

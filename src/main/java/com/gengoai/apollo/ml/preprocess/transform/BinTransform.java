@@ -9,7 +9,7 @@ import com.gengoai.json.JsonEntry;
 import com.gengoai.math.EnhancedDoubleStatistics;
 import com.gengoai.stream.MStream;
 import com.gengoai.stream.accumulator.MStatisticsAccumulator;
-import com.gengoai.string.StringUtils;
+import com.gengoai.string.Strings;
 
 import java.io.Serializable;
 import java.util.Arrays;
@@ -53,7 +53,7 @@ public class BinTransform extends RestrictedInstancePreprocessor implements Tran
     * Instantiates a new Real to discrete transform.
     */
    protected BinTransform() {
-      this(StringUtils.EMPTY, 1);
+      this(Strings.EMPTY, 1);
    }
 
    @Override

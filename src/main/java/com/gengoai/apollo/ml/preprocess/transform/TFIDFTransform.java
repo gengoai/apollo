@@ -8,7 +8,7 @@ import com.gengoai.collection.counter.Counters;
 import com.gengoai.json.JsonEntry;
 import com.gengoai.stream.MStream;
 import com.gengoai.stream.accumulator.MDoubleAccumulator;
-import com.gengoai.string.StringUtils;
+import com.gengoai.string.Strings;
 
 import java.io.Serializable;
 import java.util.List;
@@ -29,7 +29,7 @@ public class TFIDFTransform extends RestrictedInstancePreprocessor implements Tr
     * Instantiates a new Tfidf transform.
     */
    public TFIDFTransform() {
-      super(StringUtils.EMPTY);
+      super(Strings.EMPTY);
    }
 
 

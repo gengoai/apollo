@@ -24,7 +24,7 @@ package com.gengoai.apollo.ml;
 import com.gengoai.Copyable;
 import com.gengoai.json.JsonEntry;
 import com.gengoai.json.JsonSerializable;
-import com.gengoai.string.StringUtils;
+import com.gengoai.string.Strings;
 import lombok.NonNull;
 
 import java.io.Serializable;
@@ -65,7 +65,7 @@ public class Feature implements Serializable, Comparable<Feature>, Copyable<Feat
     * @return the feature
     */
    public static Feature TRUE(@NonNull String featurePrefix, @NonNull String... featureComponents) {
-      return new Feature(featurePrefix + "=" + StringUtils.join(featureComponents, "_"), 1.0);
+      return new Feature(featurePrefix + "=" + Strings.join(featureComponents, "_"), 1.0);
    }
 
    /**
@@ -170,7 +170,7 @@ public class Feature implements Serializable, Comparable<Feature>, Copyable<Feat
       int brIndex = name.indexOf('[');
 
       if (eqIndex <= 0 && brIndex <= 0) {
-         return StringUtils.EMPTY;
+         return Strings.EMPTY;
       } else if (eqIndex <= 0) {
          return removePosition(name.substring(0, brIndex));
       } else if (brIndex <= 0) {

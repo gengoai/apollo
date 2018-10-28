@@ -9,7 +9,7 @@ import com.gengoai.io.QuietIO;
 import com.gengoai.io.resource.Resource;
 import com.gengoai.stream.MStream;
 import com.gengoai.stream.StreamingContext;
-import com.gengoai.string.StringUtils;
+import com.gengoai.string.Strings;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
@@ -78,7 +78,7 @@ public class DenseCSVDataSource extends DataSource<Instance> {
       if (reader.getHeader() != null) {
          names.addAll(reader.getHeader());
       }
-      if (reader.getHeader() != null && !StringUtils.isNullOrBlank(labelName)) {
+      if (reader.getHeader() != null && !Strings.isNullOrBlank(labelName)) {
          classIndex = reader.getHeader().indexOf(labelName);
          if (classIndex == -1) {
             throw new IllegalStateException(labelName + " is not in the dataset");

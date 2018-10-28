@@ -5,7 +5,7 @@ import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.collection.Streams;
 import com.gengoai.io.Resources;
 import com.gengoai.io.resource.Resource;
-import com.gengoai.string.StringUtils;
+import com.gengoai.string.Strings;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -41,7 +41,7 @@ public class VSTextUtils {
       Resource r = Resources.fromFile(vectorStore);
       try (BufferedReader reader = new BufferedReader(r.reader())) {
          String line = reader.readLine();
-         if (StringUtils.isNullOrBlank(line)) {
+         if (Strings.isNullOrBlank(line)) {
             throw new IOException("Unexpected empty line at beginning of file: " + vectorStore);
          }
          String[] cells = line.trim().split("[ \t]+");

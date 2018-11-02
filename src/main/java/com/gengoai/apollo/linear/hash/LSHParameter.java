@@ -31,7 +31,7 @@ public enum LSHParameter implements NamedParameters.Value {
    }
 
    @Override
-   public <T> T defaultValue() {
+   public Object defaultValue() {
       return Cast.as(defaultValue);
    }
 

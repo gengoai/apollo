@@ -67,7 +67,7 @@ public final class DiskBasedVectorStore implements VectorStore, Serializable, Lo
       try {
          this.cacheSize = cacheSize;
          this.dimension = determineDimension(vectorFile);
-         this.reader = IndexedFile.reader(vectorFile, line -> line.split("[ \t]+")[0]);
+         this.reader = IndexedFile.reader(vectorFile); // , line -> line.split("[ \t]+")[0]
          this.vectorCache = new AutoCalculatingLRUCache<>(cacheSize, this::loadNDArray);
       } catch (Exception e) {
          throw new RuntimeException(e);

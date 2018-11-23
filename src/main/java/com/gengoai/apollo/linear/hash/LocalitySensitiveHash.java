@@ -50,19 +50,9 @@ import static com.gengoai.apollo.linear.hash.LSHParameter.*;
 public class LocalitySensitiveHash<KEY> implements Serializable, JsonSerializable {
    private static final long LARGE_PRIME = 433494437;
    private static final long serialVersionUID = 1L;
-
-   public NamedParameters<LSHParameter> getParameters() {
-      return parameters;
-   }
-
    private final NamedParameters<LSHParameter> parameters;
    private final SignatureFunction signatureFunction;
    private final Multimap<Integer, KEY> store = new HashSetMultimap<>();
-
-   private static int indexHash(int x, int y) {
-      return 17 + (x * 31) + y;
-   }
-
    /**
     * Instantiates a new Locality sensitive hash.
     */
@@ -71,16 +61,17 @@ public class LocalitySensitiveHash<KEY> implements Serializable, JsonSerializabl
       this.signatureFunction = SignatureFunction.create(parameters.get(SIGNATURE), parameters);
    }
 
-   /**
-    * Adds the given NDArray with the given NDArray id to the LSH table
-    *
-    * @param vector the NDArray
-    */
-   public void index(KEY key, NDArray vector) {
-      int[] hash = hash(vector);
-      for (int band = 0; band < parameters.getInt(BANDS); band++) {
-         store.put(indexHash(band, hash[band]), key);
-      }
+   public static <KEY> LocalitySensitiveHash<KEY> fromJson(JsonEntry entry, Type... types) {
+      LocalitySensitiveHash<KEY> lsh = new LocalitySensitiveHash<>(entry.getProperty("parameters")
+                                                                        .getAs(VSParameter.LSH.getValueType()));
+      Type keyType = Cast.as(types.length > 0 ? types[0] : Object.class);
+      entry.getProperty("index").forEachProperty(
+         (k, v) -> lsh.store.putAll(Integer.parseInt(k), v.getAsArray(keyType)));
+      return lsh;
+   }
+
+   private static int indexHash(int x, int y) {
+      return 17 + (x * 31) + y;
    }
 
    private int[] booleanSignatureHash(final int[] signature) {
@@ -130,12 +121,27 @@ public class LocalitySensitiveHash<KEY> implements Serializable, JsonSerializabl
       return signatureFunction.getMeasure().getOptimum();
    }
 
+   public NamedParameters<LSHParameter> getParameters() {
+      return parameters;
+   }
 
    private int[] hash(NDArray NDArray) {
       if (signatureFunction.isBinary()) {
          return booleanSignatureHash(signatureFunction.signature(NDArray));
       }
       return intSignatureHash(signatureFunction.signature(NDArray));
+   }
+
+   /**
+    * Adds the given NDArray with the given NDArray id to the LSH table
+    *
+    * @param vector the NDArray
+    */
+   public void index(KEY key, NDArray vector) {
+      int[] hash = hash(vector);
+      for (int band = 0; band < parameters.getInt(BANDS); band++) {
+         store.put(indexHash(band, hash[band]), key);
+      }
    }
 
    private int[] intSignatureHash(final int[] signature) {
@@ -166,6 +172,10 @@ public class LocalitySensitiveHash<KEY> implements Serializable, JsonSerializabl
       return keys;
    }
 
+   public int size() {
+      return store.size();
+   }
+
    @Override
    public JsonEntry toJson() {
       JsonEntry lsh = JsonEntry.object()
@@ -173,19 +183,6 @@ public class LocalitySensitiveHash<KEY> implements Serializable, JsonSerializabl
       JsonEntry index = JsonEntry.object();
       store.keySet().forEach(i -> index.addProperty(Integer.toString(i), JsonEntry.array(store.get(i))));
       lsh.addProperty("index", index);
-      return lsh;
-   }
-
-   public int size() {
-      return store.size();
-   }
-
-   public static <KEY> LocalitySensitiveHash<KEY> fromJson(JsonEntry entry, Type... types) {
-      LocalitySensitiveHash<KEY> lsh = new LocalitySensitiveHash<>(entry.getProperty("parameters")
-                                                                        .getAs(VSParameter.LSH.getValueType()));
-      Type keyType = Cast.as(types.length > 0 ? types[0] : Object.class);
-      entry.getProperty("index").forEachProperty(
-         (k, v) -> lsh.store.putAll(Integer.parseInt(k), v.getAsArray(keyType)));
       return lsh;
    }
 

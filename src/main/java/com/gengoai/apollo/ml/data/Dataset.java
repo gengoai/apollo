@@ -59,7 +59,7 @@ import java.util.stream.Stream;
  * @param <T> the type parameter
  * @author David B. Bracewell
  */
-public abstract class Dataset<T extends Example> implements Iterable<T>, Copyable<Dataset>, Serializable, AutoCloseable {
+public abstract class Dataset<T extends Example> implements Iterable<T>, Copyable<Dataset<T>>, Serializable, AutoCloseable {
    private static final Logger log = Logger.getLogger(Dataset.class);
    private static final long serialVersionUID = 1L;
    private final EncoderPair encoders;

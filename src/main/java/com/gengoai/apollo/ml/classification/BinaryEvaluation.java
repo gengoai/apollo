@@ -61,7 +61,6 @@ public class BinaryEvaluation implements ClassifierEvaluation {
       return tn;
    }
 
-
    public void entry(String gold, double[] distribution) {
       int predictedClass = distribution[1] >= 0.5 ? 1 : 0;
       int goldClass = gold.equals(positiveLabel) ? 1 : 0;

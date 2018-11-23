@@ -8,12 +8,19 @@ import org.apache.commons.math3.linear.RealMatrix;
 import java.io.Serializable;
 
 /**
+ * Wraps an NDArray treating it as a RealMatrix for use in Apache Commons Math algorithms.
+ *
  * @author David B. Bracewell
  */
 public class RealMatrixWrapper extends AbstractRealMatrix implements Serializable {
    private static final long serialVersionUID = 1L;
-   final NDArray array;
+   private final NDArray array;
 
+   /**
+    * Instantiates a new Real matrix wrapper.
+    *
+    * @param array the array
+    */
    public RealMatrixWrapper(NDArray array) {
       this.array = array;
    }

@@ -10,6 +10,10 @@ import org.jblas.Singular;
 import java.io.Serializable;
 
 /**
+ * <p>Performs <a href="https://en.wikipedia.org/wiki/Singular_value_decomposition">Singular Value Decomposition</a> on
+ * the given input NDArray. The returned array is in order {U, S, V}</p>
+ *
+ *
  * @author David B. Bracewell
  */
 public class SingularValueDecomposition implements Decomposition, Serializable {
@@ -19,18 +23,39 @@ public class SingularValueDecomposition implements Decomposition, Serializable {
    private final boolean sparse;
    private final int K;
 
+   /**
+    * Instantiates a new Singular value decomposition with K=-1
+    */
    public SingularValueDecomposition() {
       this(false, false, -1);
    }
 
+   /**
+    * Instantiates a new Singular value decomposition.
+    *
+    * @param K the number of components to truncate the SVD to
+    */
    public SingularValueDecomposition(int K) {
       this(false, false, K);
    }
 
+   /**
+    * Instantiates a new Singular value decomposition.
+    *
+    * @param distributed True - run using Spark in distributed mode, False locally use JBlas
+    * @param sparse      True - run using SparseSVD, False full SVD (only used when not distributed).
+    */
    public SingularValueDecomposition(boolean distributed, boolean sparse) {
       this(distributed, sparse, -1);
    }
 
+   /**
+    * Instantiates a new Singular value decomposition.
+    *
+    * @param distributed True - run using Spark in distributed mode, False locally use JBlas
+    * @param sparse      True - run using SparseSVD, False full SVD (only used when not distributed).
+    * @param K           the number of components to truncate the SVD to
+    */
    public SingularValueDecomposition(boolean distributed, boolean sparse, int K) {
       this.distributed = distributed;
       this.sparse = sparse;

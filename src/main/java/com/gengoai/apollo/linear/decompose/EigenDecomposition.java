@@ -10,6 +10,9 @@ import org.jblas.Eigen;
 import java.io.Serializable;
 
 /**
+ * <p>Performs <a href="https://en.wikipedia.org/wiki/Eigendecomposition_of_a_matrix">Eigen Decomposition</a> on the
+ * given input NDArray. The returned array is in order {V,D}</p>
+ *
  * @author David B. Bracewell
  */
 public class EigenDecomposition implements Decomposition, Serializable {
@@ -17,14 +20,6 @@ public class EigenDecomposition implements Decomposition, Serializable {
 
    @Override
    public NDArray[] decompose(NDArray input) {
-//      if (input instanceof De) {
-//         ComplexDoubleMatrix[] r = Eigen.eigenvectors(input.toDoubleMatrix());
-//         NDArray[] toReturn = new NDArray[r.length];
-//         for (int i = 0; i < r.length; i++) {
-//            toReturn[i] = new DenseDoubleNDArray(r[i].getReal());
-//         }
-//         return toReturn;
-//      } else
       if (input instanceof DenseNDArray) {
          ComplexFloatMatrix[] r = Eigen.eigenvectors(input.toFloatMatrix());
          NDArray[] toReturn = new NDArray[r.length];

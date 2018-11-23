@@ -10,6 +10,9 @@ import org.jblas.FloatMatrix;
 import java.io.Serializable;
 
 /**
+ * <p>Performs <a href="https://en.wikipedia.org/wiki/LU_decomposition">LU Decomposition</a> on the
+ * given input NDArray. The returned array is in order {L, U, P}</p>
+ *
  * @author David B. Bracewell
  */
 public class LUDecomposition implements Decomposition, Serializable {
@@ -17,13 +20,6 @@ public class LUDecomposition implements Decomposition, Serializable {
 
    public NDArray[] decompose(@NonNull NDArray m) {
       Validation.checkArgument(m.isSquare(), "Only square matrices are supported");
-//      if (m instanceof DenseDoubleNDArray) {
-//         Decompose.LUDecomposition<DoubleMatrix> r = Decompose.lu(m.toDoubleMatrix());
-//         return new NDArray[]{new DenseDoubleNDArray(r.l),
-//            new DenseDoubleNDArray(r.u),
-//            new DenseDoubleNDArray(r.p)};
-//      } else
-
       if (m instanceof DenseNDArray) {
          Decompose.LUDecomposition<FloatMatrix> r = Decompose.lu(m.toFloatMatrix());
          return new NDArray[]{new DenseNDArray(r.l),

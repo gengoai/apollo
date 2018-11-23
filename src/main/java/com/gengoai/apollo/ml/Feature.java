@@ -68,14 +68,9 @@ public class Feature implements Serializable, Comparable<Feature>, Copyable<Feat
       return new Feature(featurePrefix + "=" + Strings.join(featureComponents, "_"), 1.0);
    }
 
-   /**
-    * Is false boolean.
-    *
-    * @param value the value
-    * @return the boolean
-    */
-   public static boolean isFalse(double value) {
-      return value == 0 || value == -1;
+   public static Feature fromJson(JsonEntry element) {
+      return Feature.real(element.getStringProperty("name"),
+                          element.getDoubleProperty("value"));
    }
 
    /**
@@ -89,13 +84,13 @@ public class Feature implements Serializable, Comparable<Feature>, Copyable<Feat
    }
 
    /**
-    * Is true boolean.
+    * Is false boolean.
     *
     * @param value the value
     * @return the boolean
     */
-   public static boolean isTrue(String value) {
-      return value.toLowerCase().equals("true");
+   public static boolean isFalse(double value) {
+      return value == 0 || value == -1;
    }
 
    /**
@@ -106,6 +101,16 @@ public class Feature implements Serializable, Comparable<Feature>, Copyable<Feat
     */
    public static boolean isTrue(double value) {
       return value == 1;
+   }
+
+   /**
+    * Is true boolean.
+    *
+    * @param value the value
+    * @return the boolean
+    */
+   public static boolean isTrue(String value) {
+      return value.toLowerCase().equals("true");
    }
 
    /**
@@ -127,6 +132,15 @@ public class Feature implements Serializable, Comparable<Feature>, Copyable<Feat
    @Override
    public Feature copy() {
       return new Feature(name, value);
+   }
+
+   @Override
+   public boolean equals(Object o) {
+      if (this == o) return true;
+      if (!(o instanceof Feature)) return false;
+      Feature feature = (Feature) o;
+      return Double.compare(feature.value, value) == 0 &&
+                Objects.equals(name, feature.name);
    }
 
    /**
@@ -189,20 +203,14 @@ public class Feature implements Serializable, Comparable<Feature>, Copyable<Feat
       return this.value;
    }
 
-
-   @Override
-   public boolean equals(Object o) {
-      if (this == o) return true;
-      if (!(o instanceof Feature)) return false;
-      Feature feature = (Feature) o;
-      return Double.compare(feature.value, value) == 0 &&
-                Objects.equals(name, feature.name);
-   }
-
    @Override
    public int hashCode() {
 
       return Objects.hash(name, value);
+   }
+
+   private String removePosition(String n) {
+      return n.replaceAll("\\[[^\\]]+?\\]$", "");
    }
 
    @Override
@@ -210,15 +218,6 @@ public class Feature implements Serializable, Comparable<Feature>, Copyable<Feat
       return JsonEntry.object()
                       .addProperty("name", name)
                       .addProperty("value", value);
-   }
-
-   public static Feature fromJson(JsonEntry element) {
-      return Feature.real(element.getStringProperty("name"),
-                          element.getDoubleProperty("value"));
-   }
-
-   private String removePosition(String n) {
-      return n.replaceAll("\\[[^\\]]+?\\]$", "");
    }
 
    @Override

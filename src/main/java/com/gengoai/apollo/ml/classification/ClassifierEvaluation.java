@@ -20,7 +20,7 @@ public interface ClassifierEvaluation extends Evaluation<Instance, Classifier>, 
     * @return the classifier evaluation
     */
    static ClassifierEvaluation evaluateModel(@NonNull Classifier classifier, @NonNull Dataset<Instance> testSet) {
-      ClassifierEvaluation evaluation = null;
+      ClassifierEvaluation evaluation;
       if (classifier.getLabelEncoder().size() == 2) {
          evaluation = new BinaryEvaluation(classifier.getLabelEncoder());
       } else {

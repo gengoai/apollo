@@ -21,6 +21,7 @@
 
 package com.gengoai.apollo.ml.sequence;
 
+import com.gengoai.Stopwatch;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.ml.Feature;
@@ -108,7 +109,7 @@ public class StructuredPerceptronLearner extends SequenceLabelerLearner {
       List<Sequence> sequenceList = Lists.asLinkedList(Iterables.asIterable(dataset.iterator()));
       int c = 1;
       for (int itr = 0; itr < maxIterations; itr++) {
-//         Stopwatch sw = Stopwatch.createStarted();
+         Stopwatch sw = Stopwatch.createStarted();
 
          double count = 0;
          double correct = 0;
@@ -160,9 +161,9 @@ public class StructuredPerceptronLearner extends SequenceLabelerLearner {
 
          }
 
-//         sw.stop();
+         sw.stop();
          log.info("iteration={0} accuracy={1} ({2}/{3}) [completed in {4}]", itr + 1, formatter.format(correct / count),
-                  correct, count, "sw");
+                  correct, count, sw);
 
          if (count - correct == 0) {
             break;

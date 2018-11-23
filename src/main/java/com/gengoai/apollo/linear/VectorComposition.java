@@ -1,7 +1,5 @@
 package com.gengoai.apollo.linear;
 
-import lombok.NonNull;
-
 import java.util.Arrays;
 import java.util.Collection;
 
@@ -19,7 +17,7 @@ public interface VectorComposition {
     * @param vectors the vectors to compose
     * @return the composed vector
     */
-   default NDArray compose(@NonNull NDArray... vectors) {
+   default NDArray compose(NDArray... vectors) {
       return compose(Arrays.asList(vectors));
    }
 

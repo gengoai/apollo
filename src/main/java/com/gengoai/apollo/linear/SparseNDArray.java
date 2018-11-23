@@ -14,12 +14,19 @@ import java.util.List;
 import static com.gengoai.Validation.*;
 
 /**
+ * The type Sparse nd array.
+ *
  * @author David B. Bracewell
  */
 public class SparseNDArray extends NDArray {
    private final OpenIntFloatHashMap[] data;
    private final boolean[][] bitSet;
 
+   /**
+    * Instantiates a new Sparse nd array.
+    *
+    * @param dimensions the dimensions
+    */
    SparseNDArray(int... dimensions) {
       super(dimensions);
       this.data = new OpenIntFloatHashMap[numSlices()];
@@ -30,12 +37,23 @@ public class SparseNDArray extends NDArray {
    }
 
 
+   /**
+    * Instantiates a new Sparse nd array.
+    *
+    * @param copy the copy
+    */
    SparseNDArray(NDArray copy) {
       this(copy.shape());
       copy.forEachSlice((si, n) -> n.forEachSparse(e -> setIndexedValue(si, e.matrixIndex, e.getValue())));
    }
 
 
+   /**
+    * Instantiates a new Sparse nd array.
+    *
+    * @param shape  the shape
+    * @param slices the slices
+    */
    SparseNDArray(int[] shape, List<SparseNDArray> slices) {
       super(shape);
       this.data = new OpenIntFloatHashMap[numSlices()];
@@ -46,6 +64,14 @@ public class SparseNDArray extends NDArray {
       }
    }
 
+   /**
+    * Instantiates a new Sparse nd array.
+    *
+    * @param rows    the rows
+    * @param columns the columns
+    * @param matrix  the matrix
+    * @param bitSet  the bit set
+    */
    SparseNDArray(int rows, int columns, OpenIntFloatHashMap matrix, boolean[] bitSet) {
       super(new int[]{rows, columns, 1, 1});
       this.data = new OpenIntFloatHashMap[]{matrix};
@@ -251,6 +277,11 @@ public class SparseNDArray extends NDArray {
          this.ordered = ordered;
       }
 
+      /**
+       * Advance boolean.
+       *
+       * @return the boolean
+       */
       public boolean advance() {
          while ((matrixKeys == null || matrixIndex >= matrixKeys.size()) && sliceIndex < numSlices()) {
             sliceIndex++;
@@ -296,6 +327,11 @@ public class SparseNDArray extends NDArray {
          this.startingMatrixIndex = this.lastMatrixIndex;
       }
 
+      /**
+       * Advance boolean.
+       *
+       * @return the boolean
+       */
       public boolean advance() {
          switch (STATE) {
             case 1:
@@ -355,6 +391,11 @@ public class SparseNDArray extends NDArray {
          this.mi = numRows() * col;
       }
 
+      /**
+       * Advance boolean.
+       *
+       * @return the boolean
+       */
       public boolean advance() {
          switch (STATE) {
             case 1:

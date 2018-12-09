@@ -22,7 +22,6 @@
 package com.gengoai.apollo.stat.distribution;
 
 import com.gengoai.Validation;
-import lombok.NonNull;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.commons.math3.random.Well19937c;
 
@@ -65,7 +64,7 @@ public class UniformDiscrete implements UnivariateDiscreteDistribution<UniformDi
     * @param k      the number of items ranging from <code>0</code> to <code>k</code>
     * @param random the random number generator for sampling
     */
-   public UniformDiscrete(int k, @NonNull RandomGenerator random) {
+   public UniformDiscrete(int k, RandomGenerator random) {
       this(0, k, random);
    }
 
@@ -76,7 +75,7 @@ public class UniformDiscrete implements UnivariateDiscreteDistribution<UniformDi
     * @param max    the maximum range of value
     * @param random the random number generator for sampling
     */
-   public UniformDiscrete(int min, int max, @NonNull RandomGenerator random) {
+   public UniformDiscrete(int min, int max, RandomGenerator random) {
       Validation.checkArgument(min <= max, "Max must be >= min");
       this.min = min;
       this.max = max;

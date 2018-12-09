@@ -370,8 +370,11 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
       if (o == null) {
          return getFactory().empty();
       } else if (o instanceof Number) {
-         return getFactory().zeros(dimension)
-                            .set(Cast.<Number>as(label).intValue(), 1f);
+         Number numLabel = Cast.as(o);
+         if (dimension == 1) {
+            return getFactory().scalar(numLabel.floatValue());
+         }
+         return getFactory().zeros(dimension).set(numLabel.intValue(), 1f);
       }
       NDArray nd = Cast.as(o, NDArray.class);
       notNull(nd, "Cannot create NDArray from object.");
@@ -923,7 +926,7 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
     * @param index the index
     * @return The slice NDArray
     */
-   protected abstract NDArray getSlice(int index);
+   public abstract NDArray getSlice(int index);
 
    /**
     * Gets the vector(s) at the given index along the given axis. This works across slices. In addition this will
@@ -2758,6 +2761,16 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
     */
    public String toString(int maxSlices, int maxRows, int maxColumns) {
       StringBuilder builder = new StringBuilder("[");
+      if (isRowVector() || isColumnVector()) {
+         for (long i = 0; i < length; i++) {
+            if (i > 0) {
+               builder.append(", ");
+            }
+            builder.append(get((int) i));
+         }
+         return builder.append("]").toString();
+      }
+
       builder.append(getSlice(0).matrixToString(maxRows, maxColumns));
       int half = maxSlices / 2;
       boolean firstHalf = true;

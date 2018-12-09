@@ -1,49 +1,26 @@
-/*
- * (c) 2005 David B. Bracewell
- *
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
- */
-
 package com.gengoai.apollo.ml.classification;
 
+import com.gengoai.Copyable;
 import com.gengoai.apollo.linear.NDArray;
-import com.gengoai.collection.counter.HashMapMultiCounter;
-import com.gengoai.collection.counter.MultiCounter;
-import de.bwaldvogel.liblinear.Feature;
-import de.bwaldvogel.liblinear.FeatureNode;
-import de.bwaldvogel.liblinear.Linear;
-import de.bwaldvogel.liblinear.Model;
+import com.gengoai.apollo.linear.NDArrayFactory;
+import com.gengoai.apollo.ml.FitParameters;
+import com.gengoai.conversion.Cast;
+import com.gengoai.function.SerializableSupplier;
+import com.gengoai.logging.Loggable;
+import com.gengoai.stream.MStream;
+import de.bwaldvogel.liblinear.*;
 
 import java.util.Iterator;
 
 /**
- * A model trained using LibLinear
+ * The type Lib linear model.
  *
  * @author David B. Bracewell
  */
-public class LibLinearModel extends Classifier {
+public class LibLinearModel implements Classifier, Loggable {
    private static final long serialVersionUID = 1L;
-   protected Model model;
-   protected int biasIndex = 0;
-
-   protected LibLinearModel(ClassifierLearner learner) {
-      super(learner);
-   }
+   private int biasIndex = -1;
+   private Model model;
 
 
    /**
@@ -68,45 +45,87 @@ public class LibLinearModel extends Classifier {
    }
 
    @Override
-   public Classification classify(NDArray vector) {
-      double[] p = new double[numberOfLabels()];
-      if (model.isProbabilityModel()) {
-         Linear.predictProbability(model, toFeature(vector, biasIndex), p);
+   public Classifier copy() {
+      LibLinearModel copy = new LibLinearModel();
+      copy.biasIndex = biasIndex;
+      copy.model = Copyable.copy(model);
+      return copy;
+   }
+
+   public void fit(SerializableSupplier<MStream<NDArray>> dataSupplier, Parameters fitParameters) {
+      Problem problem = new Problem();
+      problem.l = (int) dataSupplier.get().count();
+      problem.x = new Feature[problem.l][];
+      problem.y = new double[problem.l];
+      problem.n = fitParameters.numFeatures + 1;
+      problem.bias = fitParameters.bias ? 0 : -1;
+      biasIndex = (fitParameters.bias ? fitParameters.numFeatures + 1 : -1);
+
+      dataSupplier.get().zipWithIndex()
+                  .forEach((datum, index) -> {
+                     problem.x[index.intValue()] = toFeature(datum, biasIndex);
+                     problem.y[index.intValue()] = datum.getLabelAsDouble();
+                  });
+
+      if (fitParameters.verbose) {
+         Linear.enableDebugOutput();
       } else {
-         Linear.predictValues(model, toFeature(vector, biasIndex), p);
+         Linear.disableDebugOutput();
+      }
+
+      model = Linear.train(problem, new Parameter(fitParameters.solver, fitParameters.C, fitParameters.eps));
+   }
+
+   @Override
+   public void fit(SerializableSupplier<MStream<NDArray>> dataSupplier, FitParameters parameters) {
+      fit(dataSupplier, Cast.as(parameters, Parameters.class));
+   }
+
+   @Override
+   public Parameters getDefaultFitParameters() {
+      return new Parameters();
+   }
+
+   @Override
+   public NDArray estimate(NDArray data) {
+      double[] p = new double[model.getNrClass()];
+      if (model.isProbabilityModel()) {
+         Linear.predictProbability(model, toFeature(data, biasIndex), p);
+      } else {
+         Linear.predictValues(model, toFeature(data, biasIndex), p);
       }
 
       //re-arrange the probabilities to match the target feature
-      double[] prime = new double[numberOfLabels()];
+      double[] prime = new double[model.getNrClass()];
       int[] labels = model.getLabels();
       for (int i = 0; i < labels.length; i++) {
          prime[labels[i]] = p[i];
       }
 
-      return createResult(prime);
+      data.setPredicted(NDArrayFactory.rowVector(prime));
+      return data;
    }
 
-   @Override
-   public MultiCounter<String, String> getModelParameters() {
-      double[] modelWeights = model.getFeatureWeights();
-      int[] labels = model.getLabels();
-      MultiCounter<String, String> weights = new HashMapMultiCounter<>();
-
-      int nrClass = model.getNrClass() - 1;
-      for (int i = 0, index = 0; i < getFeatureEncoder().size(); i++, index += nrClass) {
-         String featureName = getFeatureEncoder().decode(i).toString();
-         for (int j = 0; j < nrClass; j++) {
-            weights.set(featureName, getLabelEncoder().decode(labels[j]).toString(), modelWeights[j + index]);
-         }
-      }
-
-      if (modelWeights.length > (nrClass * model.getNrFeature())) {
-         for (int j = modelWeights.length - nrClass, ci = 0; j < modelWeights.length; j++, ci++) {
-            weights.set("**BIAS**", getLabelEncoder().decode(labels[ci]).toString(), modelWeights[j]);
-         }
-      }
-
-      return weights;
+   /**
+    * The type Parameters.
+    */
+   public static class Parameters extends FitParameters {
+      private static final long serialVersionUID = 1L;
+      /**
+       * The C.
+       */
+      public double C = 1.0;
+      /**
+       * The Bias.
+       */
+      public boolean bias = false;
+      /**
+       * The Eps.
+       */
+      public double eps = 0.0001;
+      /**
+       * The Solver.
+       */
+      public SolverType solver = SolverType.L2R_LR;
    }
-
 }//END OF LibLinearModel

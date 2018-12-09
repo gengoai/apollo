@@ -1,7 +1,6 @@
 package com.gengoai.apollo.stat.measure;
 
 import com.gengoai.Validation;
-import lombok.NonNull;
 
 /**
  * @author David B. Bracewell
@@ -9,7 +8,7 @@ import lombok.NonNull;
 public enum Agreement implements ContingencyTableCalculator {
    Cohen_Kappa {
       @Override
-      public double calculate(@NonNull ContingencyTable table) {
+      public double calculate(ContingencyTable table) {
          Validation.checkArgument(table.columnCount() == 2
                                         && table.rowCount() == 2,
                                   "Only 2x2 tables supported");

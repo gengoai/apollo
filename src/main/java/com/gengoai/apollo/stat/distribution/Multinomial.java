@@ -22,7 +22,6 @@
 package com.gengoai.apollo.stat.distribution;
 
 import com.gengoai.Validation;
-import lombok.NonNull;
 import org.apache.commons.math3.distribution.EnumeratedIntegerDistribution;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.commons.math3.random.Well19937c;
@@ -52,7 +51,7 @@ public class Multinomial implements UnivariateDiscreteDistribution<Multinomial>,
     * @param alpha  the smoothing parameter
     * @param random the random number generator to use for sampling
     */
-   public Multinomial(int k, double alpha, @NonNull RandomGenerator random) {
+   public Multinomial(int k, double alpha, RandomGenerator random) {
       Validation.checkArgument(k > 0, "Size must be > 0");
       Validation.checkArgument(Double.isFinite(alpha), "Alpha must be finite");
       Validation.checkArgument(alpha > 0, "Alpha must be > 0");

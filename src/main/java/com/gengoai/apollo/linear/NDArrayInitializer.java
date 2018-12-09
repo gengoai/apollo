@@ -1,7 +1,6 @@
 package com.gengoai.apollo.linear;
 
 import com.gengoai.function.SerializableConsumer;
-import lombok.NonNull;
 
 import java.util.Random;
 
@@ -34,7 +33,7 @@ public interface NDArrayInitializer extends SerializableConsumer<NDArray> {
     * @param rnd the rnd
     * @return the nd array initializer
     */
-   static NDArrayInitializer rand(@NonNull Random rnd) {
+   static NDArrayInitializer rand(Random rnd) {
       return (m) -> m.mapi(d -> rnd.nextDouble());
    }
 
@@ -51,7 +50,7 @@ public interface NDArrayInitializer extends SerializableConsumer<NDArray> {
     * @param max the max
     * @return the nd array initializer
     */
-   static NDArrayInitializer rand(@NonNull Random rnd, int min, int max) {
+   static NDArrayInitializer rand(Random rnd, int min, int max) {
       return (m) -> m.mapi(d -> min + rnd.nextDouble() * max);
    }
 

@@ -22,7 +22,6 @@
 package com.gengoai.apollo.stat.measure;
 
 import com.gengoai.apollo.linear.NDArray;
-import lombok.NonNull;
 
 /**
  * <p>Distance measure implementation that is the one minus the value of a similarity measure</p>
@@ -38,7 +37,7 @@ class OneMinusSimilarityDistance implements DistanceMeasure {
     *
     * @param similarityMeasure the similarity measure
     */
-   public OneMinusSimilarityDistance(@NonNull SimilarityMeasure similarityMeasure) {
+   public OneMinusSimilarityDistance(SimilarityMeasure similarityMeasure) {
       this.similarityMeasure = similarityMeasure;
    }
 

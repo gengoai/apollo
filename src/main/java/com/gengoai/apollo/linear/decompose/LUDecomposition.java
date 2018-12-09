@@ -3,7 +3,6 @@ package com.gengoai.apollo.linear.decompose;
 import com.gengoai.Validation;
 import com.gengoai.apollo.linear.DenseNDArray;
 import com.gengoai.apollo.linear.NDArray;
-import lombok.NonNull;
 import org.jblas.Decompose;
 import org.jblas.FloatMatrix;
 
@@ -18,7 +17,7 @@ import java.io.Serializable;
 public class LUDecomposition implements Decomposition, Serializable {
    private static final long serialVersionUID = 1L;
 
-   public NDArray[] decompose(@NonNull NDArray m) {
+   public NDArray[] decompose(NDArray m) {
       Validation.checkArgument(m.isSquare(), "Only square matrices are supported");
       if (m instanceof DenseNDArray) {
          Decompose.LUDecomposition<FloatMatrix> r = Decompose.lu(m.toFloatMatrix());

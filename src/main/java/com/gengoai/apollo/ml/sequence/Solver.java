@@ -22,7 +22,7 @@
 package com.gengoai.apollo.ml.sequence;
 
 /**
- * <p>Different solvers (optimizers) that can be used with the {@link CRFTrainer}</p>
+ * <p>Different solvers (optimizers) that can be used with the {@link Crf}</p>
  *
  * @author David B. Bracewell
  */

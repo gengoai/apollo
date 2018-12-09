@@ -3,7 +3,6 @@ package com.gengoai.apollo.linear.decompose;
 import com.gengoai.apollo.linear.DenseNDArray;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.SparkLinearAlgebra;
-import lombok.NonNull;
 import org.jblas.FloatMatrix;
 import org.jblas.Singular;
 
@@ -63,7 +62,7 @@ public class SingularValueDecomposition implements Decomposition, Serializable {
    }
 
    @Override
-   public NDArray[] decompose(@NonNull NDArray input) {
+   public NDArray[] decompose(NDArray input) {
       if (distributed) {
          return SparkLinearAlgebra.svd(input, K <= 0 ? input.numCols() : K);
       }

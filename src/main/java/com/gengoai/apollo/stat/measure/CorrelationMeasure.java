@@ -23,7 +23,6 @@ package com.gengoai.apollo.stat.measure;
 
 import com.gengoai.Validation;
 import com.gengoai.apollo.linear.NDArray;
-import lombok.NonNull;
 import org.apache.commons.math3.distribution.TDistribution;
 import org.apache.commons.math3.util.FastMath;
 
@@ -35,7 +34,7 @@ import org.apache.commons.math3.util.FastMath;
 public interface CorrelationMeasure extends SimilarityMeasure {
 
    @Override
-   default double calculate(@NonNull NDArray v1, @NonNull NDArray v2) {
+   default double calculate(NDArray v1, NDArray v2) {
       Validation.checkArgument(v1.isVector() && v2.isVector(), "v1 and v2 must be bectors");
       return calculate(v1.toDoubleArray(), v2.toDoubleArray());
    }

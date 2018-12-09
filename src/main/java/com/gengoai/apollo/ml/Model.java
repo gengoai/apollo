@@ -1,130 +1,78 @@
 package com.gengoai.apollo.ml;
 
-import com.gengoai.apollo.ml.encoder.Encoder;
-import com.gengoai.apollo.ml.encoder.EncoderPair;
-import com.gengoai.apollo.ml.encoder.LabelEncoder;
+import com.gengoai.apollo.linear.NDArray;
+import com.gengoai.conversion.Cast;
+import com.gengoai.function.SerializableSupplier;
 import com.gengoai.io.resource.Resource;
-import lombok.NonNull;
+import com.gengoai.stream.MStream;
 
 import java.io.Serializable;
+import java.util.function.Consumer;
 
 /**
- * <p>A generic interface to classification, regression, and sequence models</p>
+ * <p>A generic interface to classification, regression, and sequence models. Models are trained using the
+ * <code>fit</code> method which takes in the training data and {@link Parameters}. Models are used on new data by
+ * calling the <code>transform</code> method. </p>
  *
  * @author David B. Bracewell
  */
 public interface Model extends Serializable {
 
    /**
-    * Reads the model from the given resource
+    * Reads a Classifier from the given resource
     *
-    * @param <T>           the type of model to read
-    * @param modelResource the resource containing the serialized model
-    * @return the deserialized model
-    * @throws Exception Something went wrong reading the model
+    * @param resource the resource containing the saved model
+    * @return the deserialized (loaded) model
+    * @throws Exception Something went wrong reading in the model
     */
-   static <T extends Model> T read(@NonNull Resource modelResource) throws Exception {
-      return modelResource.readObject();
+   static Model read(Resource resource) throws Exception {
+      return resource.readObject();
    }
 
    /**
-    * Convenience method for decoding an encoded feature value into an Object
+    * Estimates the outcome for a single NDArray. The return value is the given NDArray data with the estimation on the
+    * <code>predicted</code> value.
     *
-    * @param value the encoded feature value
-    * @return the decoded object
+    * @param data the NDArray to transform.
+    * @return the input data with the estimation on the <code>predicted</code> label ( {@link NDArray#getPredicted()} )
     */
-   default Object decodeFeature(double value) {
-      return getEncoderPair().decodeFeature(value);
+   NDArray estimate(NDArray data);
+
+   /**
+    * Fits the model (i.e. trains) it on the given data using the given model parameters..
+    *
+    * @param dataSupplier  A supplier of {@link NDArray} representing training data
+    * @param fitParameters the fit parameters
+    */
+   void fit(SerializableSupplier<MStream<NDArray>> dataSupplier, FitParameters fitParameters);
+
+   /**
+    * Fit.
+    *
+    * @param dataSupplier  the data supplier
+    * @param fitParameters the fit parameters
+    */
+   default void fit(SerializableSupplier<MStream<NDArray>> dataSupplier, Consumer<? extends FitParameters> fitParameters) {
+      FitParameters f = getDefaultFitParameters();
+      fitParameters.accept(Cast.as(f));
+      this.fit(dataSupplier, f);
    }
 
    /**
-    * Convenience method for decoding an encoded label value into an Object
+    * Gets default fit parameters.
     *
-    * @param value the encoded label value
-    * @return the decoded object
+    * @return the default fit parameters
     */
-   default Object decodeLabel(double value) {
-      return getEncoderPair().decodeLabel(value);
-   }
+   FitParameters getDefaultFitParameters();
 
    /**
-    * Convenience method for encoding a feature into a double value
+    * Writes the model to the given resource.
     *
-    * @param feature the feature to encode
-    * @return the encoded double value
+    * @param resource the resource to write the model to
+    * @throws Exception Something went wrong writing the model
     */
-   default double encodeFeature(Object feature) {
-      return getEncoderPair().encodeFeature(feature);
+   default void write(Resource resource) throws Exception {
+      resource.setIsCompressed(true).writeObject(this);
    }
 
-   /**
-    * Convenience method for encoding a label into a double value
-    *
-    * @param label the label to encode
-    * @return the encoded double value
-    */
-   default double encodeLabel(Object label) {
-      return getEncoderPair().encodeLabel(label);
-   }
-
-   /**
-    * Signal that training of this model has finished.
-    */
-   default void finishTraining() {
-      getEncoderPair().freeze();
-   }
-
-   /**
-    * Gets the encoder pair this model uses.
-    *
-    * @return the encoder pair
-    */
-   EncoderPair getEncoderPair();
-
-   /**
-    * Convenience method for retrieving the feature encoder.
-    *
-    * @return the feature encoder
-    */
-   default Encoder getFeatureEncoder() {
-      return getEncoderPair().getFeatureEncoder();
-   }
-
-   /**
-    * Convenience method for retrieving the label encoder
-    *
-    * @return the label encoder
-    */
-   default LabelEncoder getLabelEncoder() {
-      return getEncoderPair().getLabelEncoder();
-   }
-
-   /**
-    * Convenience method for retrieving the total number of features.
-    *
-    * @return the number of model features
-    */
-   default int numberOfFeatures() {
-      return getEncoderPair().numberOfFeatures();
-   }
-
-   /**
-    * Convenience method for retrieving the total number of labels
-    *
-    * @return the number of possible labels
-    */
-   default int numberOfLabels() {
-      return getEncoderPair().numberOfLabels();
-   }
-
-   /**
-    * Serializes the model to the given resource.
-    *
-    * @param modelResource the resource to serialize the model to
-    * @throws Exception Something went wrong serializing the model
-    */
-   default void write(@NonNull Resource modelResource) throws Exception {
-      modelResource.setIsCompressed(true).writeObject(this);
-   }
-
-}// END OF Model
+}//END OF Model

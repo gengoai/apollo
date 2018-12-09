@@ -86,7 +86,7 @@ public enum NDArrayFactory {
     * @return the default NDArray Factory
     */
    public static NDArrayFactory DEFAULT() {
-      return Config.get("ndarray.factory").as(NDArrayFactory.class, DENSE);
+      return Config.get("ndarray.factory").as(NDArrayFactory.class, SPARSE);
    }
 
    /**

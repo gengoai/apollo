@@ -59,8 +59,7 @@ public class LabeledDatum<T> implements Serializable {
       if (this == o) return true;
       if (!(o instanceof LabeledDatum)) return false;
       LabeledDatum<?> that = (LabeledDatum<?>) o;
-      return Objects.equals(label, that.label) &&
-                Objects.equals(data, that.data);
+      return Objects.equals(label, that.label) && Objects.equals(data, that.data);
    }
 
    @Override

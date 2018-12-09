@@ -1,76 +1,201 @@
 package com.gengoai.apollo.ml.classification;
 
+import com.gengoai.Copyable;
 import com.gengoai.apollo.linear.NDArray;
-import com.gengoai.apollo.ml.optimization.LinearModelParameters;
-import com.gengoai.apollo.ml.optimization.activation.Activation;
+import com.gengoai.apollo.linear.NDArrayFactory;
+import com.gengoai.apollo.linear.NDArrayInitializer;
+import com.gengoai.apollo.ml.FitParameters;
+import com.gengoai.apollo.optimization.*;
+import com.gengoai.apollo.optimization.activation.Activation;
+import com.gengoai.apollo.optimization.loss.LogLoss;
+import com.gengoai.apollo.optimization.loss.LossFunction;
+import com.gengoai.conversion.Cast;
+import com.gengoai.function.SerializableSupplier;
+import com.gengoai.io.resource.ByteArrayResource;
+import com.gengoai.logging.Loggable;
+import com.gengoai.stream.MStream;
+
+import java.io.Serializable;
 
 /**
+ * <p>A generalized linear model.</p>
+ *
  * @author David B. Bracewell
  */
-public class LinearModel extends Classifier implements LinearModelParameters {
+public class LinearModel implements Classifier, Loggable {
    private static final long serialVersionUID = 1L;
-   public NDArray weights; //num Classes x num Features
-   public NDArray bias; //numClasses x 1
-   public Activation activation;
-   private final boolean isBinary;
+   private final ModelParameters modelParameters;
 
-   public LinearModel(ClassifierLearner learner) {
-      super(learner);
-      this.isBinary = learner.getEncoderPair().getLabelEncoder().size() <= 2;
+   /**
+    * Instantiates a new Linear model.
+    */
+   public LinearModel() {
+      this.modelParameters = new ModelParameters();
    }
 
-   public LinearModel(ClassifierLearner learner, boolean isBinary) {
-      super(learner);
-      this.isBinary = isBinary;
-   }
-
-   protected LinearModel(LinearModel model) {
-      super(model.getPreprocessors(), model.getEncoderPair());
-      this.weights = model.weights.copy();
-      this.bias = model.bias.copy();
-      this.activation = model.activation;
-      this.isBinary = model.isBinary;
+   /**
+    * Instantiates a new Linear model.
+    *
+    * @param modelParameters the model parameters
+    */
+   protected LinearModel(ModelParameters modelParameters) {
+      this.modelParameters = Cast.as(modelParameters.copy());
    }
 
    @Override
-   public Classification classify(NDArray vector) {
-      //vector is numFeatures x 1
-      if (isBinary()) {
-         double[] dist = new double[2];
-         dist[1] = activation.apply(weights.scalarDot(vector) + bias.scalarValue());
-         if (activation.isProbabilistic()) {
-            dist[0] = 1d - dist[1];
-         } else {
-            dist[0] = -dist[1];
-         }
-         return createResult(dist);
+   public Classifier copy() {
+      return new LinearModel(modelParameters.copy());
+   }
+
+   @Override
+   public NDArray estimate(NDArray example) {
+      return example.setPredicted(modelParameters.activate(example));
+   }
+
+   public void fit(SerializableSupplier<MStream<NDArray>> dataSupplier, Parameters parameters) {
+      GradientDescentOptimizer optimizer = GradientDescentOptimizer.builder()
+                                                                   .batchSize(parameters.batchSize).build();
+      if (parameters.cacheData) {
+         logInfo("Caching dataset...");
+         MStream<NDArray> cached = dataSupplier.get().cache();
+         dataSupplier = () -> cached;
       }
-      return createResult(activation.apply(weights.mmul(vector).addi(bias)).toDoubleArray());
+      this.modelParameters.update(parameters);
+
+      optimizer.optimize(modelParameters,
+                         dataSupplier,
+                         new GradientDescentCostFunction(parameters.lossFunction, -1),
+                         TerminationCriteria.create()
+                                            .maxIterations(parameters.maxIterations)
+                                            .historySize(parameters.historySize)
+                                            .tolerance(parameters.tolerance),
+                         parameters.weightUpdater,
+                         parameters.reportInterval);
    }
 
    @Override
-   public boolean isBinary() {
-      return isBinary;
+   public void fit(SerializableSupplier<MStream<NDArray>> dataSupplier, FitParameters fitParameters) {
+      fit(dataSupplier, Cast.as(fitParameters, Parameters.class));
    }
 
    @Override
-   public Activation getActivation() {
-      return activation;
+   public Parameters getDefaultFitParameters() {
+      return new Parameters();
    }
 
-   @Override
-   public NDArray getBias() {
-      return bias;
+   private static class ModelParameters implements LinearModelParameters, Serializable, Copyable<ModelParameters> {
+      private static final long serialVersionUID = 1L;
+      private Activation activation = Activation.SIGMOID;
+      private NDArray bias;
+      private int numFeatures;
+      private int numLabels;
+      private NDArray weights;
+
+      @Override
+      public ModelParameters copy() {
+         try {
+            return new ByteArrayResource().writeObject(this).readObject();
+         } catch (Exception e) {
+            throw new RuntimeException(e);
+         }
+      }
+
+      @Override
+      public Activation getActivation() {
+         return activation;
+      }
+
+      @Override
+      public NDArray getBias() {
+         return bias;
+      }
+
+      @Override
+      public NDArray getWeights() {
+         return weights;
+      }
+
+      @Override
+      public int numberOfFeatures() {
+         return numFeatures;
+      }
+
+      @Override
+      public int numberOfLabels() {
+         return numLabels;
+      }
+
+      /**
+       * Update.
+       *
+       * @param parameters the fit parameters
+       */
+      public void update(Parameters parameters) {
+         this.numLabels = parameters.numLabels;
+         this.numFeatures = parameters.numFeatures;
+         int numL = numLabels <= 2 ? 1 : numLabels;
+         this.activation = parameters.activation;
+         this.weights = NDArrayFactory.DEFAULT().create(NDArrayInitializer.rand, numL, numFeatures);
+         this.bias = NDArrayFactory.DEFAULT().zeros(numL);
+      }
    }
 
-   @Override
-   public NDArray getWeights() {
-      return weights;
+   /**
+    * The type Fit parameters.
+    */
+   public static class Parameters extends com.gengoai.apollo.ml.FitParameters {
+      private static final long serialVersionUID = 1L;
+      /**
+       * The Activation.
+       */
+      public Activation activation = Activation.SIGMOID;
+      /**
+       * The Batch size.
+       */
+      public int batchSize = 32;
+      /**
+       * The Cache data.
+       */
+      public boolean cacheData = true;
+      /**
+       * The History size.
+       */
+      public int historySize = 3;
+      /**
+       * The Loss function.
+       */
+      public LossFunction lossFunction = new LogLoss();
+      /**
+       * The Max iterations.
+       */
+      public int maxIterations = 300;
+      /**
+       * The Tolerance.
+       */
+      public double tolerance = 1e-9;
+      /**
+       * The Weight updater.
+       */
+      public WeightUpdate weightUpdater = SGDUpdater.builder().build();
+
+      @Override
+      public String toString() {
+         return "Parameters{" +
+                   "activation=" + activation +
+                   ", batchSize=" + batchSize +
+                   ", cacheData=" + cacheData +
+                   ", historySize=" + historySize +
+                   ", lossFunction=" + lossFunction +
+                   ", maxIterations=" + maxIterations +
+                   ", tolerance=" + tolerance +
+                   ", weightUpdater=" + weightUpdater +
+                   ", numFeatures=" + numFeatures +
+                   ", numLabels=" + numLabels +
+                   ", verbose=" + verbose +
+                   ", reportInterval=" + reportInterval +
+                   '}';
+      }
    }
 
-   @Override
-   public int numberOfLabels() {
-      return getEncoderPair().numberOfLabels();
-   }
 
-}// END OF GLM
+}//END OF LinearModel

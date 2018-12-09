@@ -23,8 +23,6 @@ package com.gengoai.apollo.stat.measure;
 
 import com.gengoai.Lazy;
 import com.gengoai.Validation;
-import lombok.NonNull;
-import lombok.val;
 import org.apache.commons.math3.stat.correlation.KendallsCorrelation;
 import org.apache.commons.math3.stat.correlation.SpearmansCorrelation;
 import org.apache.commons.math3.util.FastMath;
@@ -41,7 +39,7 @@ public enum Correlation implements CorrelationMeasure {
     */
    Pearson {
       @Override
-      public double calculate(@NonNull double[] x, @NonNull double[] y) {
+      public double calculate(double[] x, double[] y) {
          Validation.checkArgument(x.length == y.length,
                                   "Dimension mismatch dim(x)=" + x.length + " != dim(y)=" + y.length);
          double x2 = 0d;
@@ -70,7 +68,7 @@ public enum Correlation implements CorrelationMeasure {
       final transient Lazy<SpearmansCorrelation> spearmansCorrelation = new Lazy<>(SpearmansCorrelation::new);
 
       @Override
-      public double calculate(@NonNull double[] v1, @NonNull double[] v2) {
+      public double calculate(double[] v1, double[] v2) {
          Validation.checkArgument(v1.length == v2.length,
                                      "Vector dimension mismatch " + v1.length + " != " + v2.length);
          Validation.checkArgument(v1.length >= 2, "Need at least two elements");
@@ -99,12 +97,6 @@ public enum Correlation implements CorrelationMeasure {
       }
    };
 
-   public static void main(String[] args) {
-      val x = new double[]{490, 500, 530, 550, 580, 590, 600, 600, 650, 700};
-      val y = new double[]{560, 500, 510, 600, 600, 620, 550, 630, 650, 750};
-      System.out.println(Pearson.calculate(x, y));
-      System.out.println(Pearson.pValue(Pearson.calculate(x, y), x.length));
-   }
 
 
 }//END OF Correlation

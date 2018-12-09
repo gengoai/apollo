@@ -21,10 +21,9 @@
 
 package com.gengoai.apollo.stat.measure;
 
-import com.gengoai.math.Math2;
 import com.gengoai.Validation;
 import com.gengoai.apollo.linear.NDArray;
-import lombok.NonNull;
+import com.gengoai.math.Math2;
 
 /**
  * <p>Common methods for determining the similarity between two items</p>
@@ -37,7 +36,7 @@ public enum Similarity implements SimilarityMeasure {
     */
    DotProduct {
       @Override
-      public double calculate(@NonNull NDArray v1, @NonNull NDArray v2) {
+      public double calculate(NDArray v1, NDArray v2) {
          return v1.scalarDot(v2);
       }
 
@@ -51,12 +50,12 @@ public enum Similarity implements SimilarityMeasure {
     */
    Dice {
       @Override
-      public double calculate(@NonNull NDArray v1, @NonNull NDArray v2) {
+      public double calculate(NDArray v1, NDArray v2) {
          return 2 * v1.map(v2, Math::min).scalarSum() / v1.add(v2).scalarSum();
       }
 
       @Override
-      public double calculate(@NonNull ContingencyTable table) {
+      public double calculate(ContingencyTable table) {
          Validation.checkArgument(table.rowCount() == table.columnCount() && table.rowCount() == 2,
                                   "Only supports 2x2 contingency tables.");
          return 2 * table.get(0, 0) / (table.columnSum(0) + table.rowSum(0));
@@ -68,12 +67,12 @@ public enum Similarity implements SimilarityMeasure {
     */
    DiceGen2 {
       @Override
-      public double calculate(@NonNull NDArray v1, @NonNull NDArray v2) {
+      public double calculate(NDArray v1, NDArray v2) {
          return v1.scalarDot(v2) / (v1.scalarSum() + v2.scalarSum());
       }
 
       @Override
-      public double calculate(@NonNull ContingencyTable table) {
+      public double calculate(ContingencyTable table) {
          Validation.checkArgument(table.rowCount() == table.columnCount() && table.rowCount() == 2,
                                      "Only supports 2x2 contingency tables.");
          return 2 * table.get(0, 0) / (table.columnSum(0) + table.rowSum(0));
@@ -84,12 +83,12 @@ public enum Similarity implements SimilarityMeasure {
     */
    Cosine {
       @Override
-      public double calculate(@NonNull NDArray v1, @NonNull NDArray v2) {
+      public double calculate(NDArray v1, NDArray v2) {
          return v1.scalarDot(v2) / (v1.scalarNorm2() * v2.scalarNorm2());
       }
 
       @Override
-      public double calculate(@NonNull ContingencyTable table) {
+      public double calculate(ContingencyTable table) {
          Validation.checkArgument(table.rowCount() == table.columnCount() && table.rowCount() == 2,
                                      "Only supports 2x2 contingency tables.");
          double c = Math.sqrt(Math.pow(table.get(0, 0), 2) + Math.pow(table.get(0, 1), 2));
@@ -103,12 +102,12 @@ public enum Similarity implements SimilarityMeasure {
     */
    Jaccard {
       @Override
-      public double calculate(@NonNull NDArray v1, @NonNull NDArray v2) {
+      public double calculate(NDArray v1, NDArray v2) {
          return v1.map(v2, Math::min).scalarSum() / v1.map(v2, Math::max).scalarSum();
       }
 
       @Override
-      public double calculate(@NonNull ContingencyTable table) {
+      public double calculate(ContingencyTable table) {
          Validation.checkArgument(table.rowCount() == table.columnCount() && table.rowCount() == 2,
                                      "Only supports 2x2 contingency tables.");
          return table.get(0, 0) / (table.get(0, 0) + table.get(0, 1) + table.get(1, 0));
@@ -119,13 +118,13 @@ public enum Similarity implements SimilarityMeasure {
     */
    Overlap {
       @Override
-      public double calculate(@NonNull NDArray v1, @NonNull NDArray v2) {
+      public double calculate(NDArray v1, NDArray v2) {
          return Math2.clip(v1.scalarDot(v2) / Math.min(v1.scalarSumOfSquares(), v2.scalarSumOfSquares()), -1, 1);
       }
 
 
       @Override
-      public double calculate(@NonNull ContingencyTable table) {
+      public double calculate(ContingencyTable table) {
          Validation.notNull(table);
          Validation.checkArgument(table.rowCount() == table.columnCount() && table.rowCount() == 2,
                                      "Only supports 2x2 contingency tables.");
@@ -143,7 +142,7 @@ public enum Similarity implements SimilarityMeasure {
       }
 
       @Override
-      public double calculate(@NonNull NDArray v1, @NonNull NDArray v2) {
+      public double calculate(NDArray v1, NDArray v2) {
          return 1.0 - Math.acos(Cosine.calculate(v1, v2)) / Math.PI;
       }
 

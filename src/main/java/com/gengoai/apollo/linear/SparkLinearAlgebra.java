@@ -4,7 +4,6 @@ import com.gengoai.Validation;
 import com.gengoai.stream.MStream;
 import com.gengoai.stream.SparkStream;
 import com.gengoai.stream.StreamingContext;
-import lombok.NonNull;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.mllib.linalg.Vector;
 import org.apache.spark.mllib.linalg.Vectors;
@@ -31,7 +30,7 @@ public final class SparkLinearAlgebra {
     * @param mat                    the matrix to perform PCA on
     * @param numPrincipalComponents the number of principal components
     */
-   public static NDArray pca(@NonNull RowMatrix mat, int numPrincipalComponents) {
+   public static NDArray pca(RowMatrix mat, int numPrincipalComponents) {
       Validation.checkArgument(numPrincipalComponents > 0, "Number of principal components must be > 0");
       return toMatrix(mat.multiply(mat.computePrincipalComponents(numPrincipalComponents)));
    }
@@ -42,7 +41,7 @@ public final class SparkLinearAlgebra {
     * @param mat                    the matrix to perform PCA on
     * @param numPrincipalComponents the number of principal components
     */
-   public static NDArray pca(@NonNull NDArray mat, int numPrincipalComponents) {
+   public static NDArray pca(NDArray mat, int numPrincipalComponents) {
       Validation.checkArgument(numPrincipalComponents > 0, "Number of principal components must be > 0");
       return toMatrix(toRowMatrix(mat).computePrincipalComponents(numPrincipalComponents));
    }
@@ -54,7 +53,7 @@ public final class SparkLinearAlgebra {
     * @param mat                    the matrix to perform PCA on
     * @param numPrincipalComponents the number of principal components
     */
-   public static RowMatrix sparkPCA(@NonNull RowMatrix mat, int numPrincipalComponents) {
+   public static RowMatrix sparkPCA(RowMatrix mat, int numPrincipalComponents) {
       Validation.checkArgument(numPrincipalComponents > 0, "Number of principal components must be > 0");
       return mat.multiply(mat.computePrincipalComponents(numPrincipalComponents));
    }
@@ -66,7 +65,7 @@ public final class SparkLinearAlgebra {
     * @param k   the number of singular values
     * @return Thee resulting decomposition
     */
-   public static org.apache.spark.mllib.linalg.SingularValueDecomposition<RowMatrix, org.apache.spark.mllib.linalg.Matrix> sparkSVD(@NonNull RowMatrix mat, int k) {
+   public static org.apache.spark.mllib.linalg.SingularValueDecomposition<RowMatrix, org.apache.spark.mllib.linalg.Matrix> sparkSVD(RowMatrix mat, int k) {
       Validation.checkArgument(k > 0, "K must be > 0");
       return mat.computeSVD(k, true, 1.0E-9);
    }
@@ -79,7 +78,7 @@ public final class SparkLinearAlgebra {
     * @param K   the number of singular values
     * @return Thee resulting decomposition
     */
-   public static NDArray[] svd(@NonNull RowMatrix mat, int K) {
+   public static NDArray[] svd(RowMatrix mat, int K) {
       org.apache.spark.mllib.linalg.SingularValueDecomposition<RowMatrix, org.apache.spark.mllib.linalg.Matrix> svd = sparkSVD(
          mat, K);
       return new NDArray[]{toMatrix(svd.U()), toDiagonalMatrix(svd.s()), toMatrix(svd.V())};
@@ -93,7 +92,7 @@ public final class SparkLinearAlgebra {
     * @param K   the number of singular values
     * @return Thee resulting decomposition
     */
-   public static NDArray[] svd(@NonNull NDArray mat, int K) {
+   public static NDArray[] svd(NDArray mat, int K) {
       org.apache.spark.mllib.linalg.SingularValueDecomposition<RowMatrix, org.apache.spark.mllib.linalg.Matrix> svd = sparkSVD(
          toRowMatrix(mat), K);
       return new NDArray[]{toMatrix(svd.U()), toDiagonalMatrix(svd.s()), toMatrix(svd.V())};
@@ -105,7 +104,7 @@ public final class SparkLinearAlgebra {
     * @param v the vector to convert
     * @return the diagonal matrix
     */
-   public static NDArray toDiagonalMatrix(@NonNull org.apache.spark.mllib.linalg.Vector v) {
+   public static NDArray toDiagonalMatrix(org.apache.spark.mllib.linalg.Vector v) {
       return new DenseNDArray(DoubleMatrix.diag(new DoubleMatrix(v.toArray())));
    }
 
@@ -115,7 +114,7 @@ public final class SparkLinearAlgebra {
     * @param m the matrix to convert
     * @return the Apollo matrix
     */
-   public static NDArray toMatrix(@NonNull RowMatrix m) {
+   public static NDArray toMatrix(RowMatrix m) {
       final DoubleMatrix mprime = new DoubleMatrix((int) m.numRows(), (int) m.numCols());
       m.rows()
        .toJavaRDD()
@@ -131,11 +130,11 @@ public final class SparkLinearAlgebra {
     * @param m the matrix to convert
     * @return the Apollo matrix
     */
-   public static NDArray toMatrix(@NonNull org.apache.spark.mllib.linalg.Matrix m) {
+   public static NDArray toMatrix(org.apache.spark.mllib.linalg.Matrix m) {
       return NDArrayFactory.DENSE.matrix(m.numRows(), m.numCols(), m.toArray());
    }
 
-   public static RowMatrix toRowMatrix(@NonNull NDArray matrix) {
+   public static RowMatrix toRowMatrix(NDArray matrix) {
       JavaRDD<Vector> rdd = StreamingContext
                                .distributed()
                                .range(0, matrix.numRows())

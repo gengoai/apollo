@@ -1,81 +1,31 @@
-/*
- * (c) 2005 David B. Bracewell
- *
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
- */
-
 package com.gengoai.apollo.ml;
 
-import com.gengoai.Interner;
-import com.gengoai.apollo.linear.NDArray;
-import com.gengoai.apollo.linear.NDArrayFactory;
-import com.gengoai.apollo.ml.encoder.EncoderPair;
-import com.gengoai.apollo.ml.encoder.HashingEncoder;
-import com.gengoai.collection.Sets;
-import com.gengoai.collection.counter.Counter;
+import com.gengoai.Validation;
 import com.gengoai.conversion.Cast;
-import com.gengoai.json.JsonEntry;
-import com.gengoai.json.JsonSerializable;
-import lombok.*;
+import com.gengoai.conversion.Converter;
+import com.gengoai.conversion.TypeConversionException;
+import com.gengoai.reflection.Types;
 
-import java.io.Serializable;
 import java.util.*;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static com.gengoai.apollo.ml.Feature.booleanFeature;
+
 /**
- * <p>A container for a set of features, associated label, and weight.</p>
+ * <p>An Instance represents an example over a single object. It has a {@link #size()} of <code>1</code> and is not
+ * allowed to add any child examples. Instances are used for input to classification and regression problems and as the
+ * child examples for sequence labeling problems.</p>
  *
  * @author David B. Bracewell
  */
-@EqualsAndHashCode
-@ToString
-public class Instance implements Example, Serializable, Iterable<Feature>, JsonSerializable {
+public class Instance extends Example {
    private static final long serialVersionUID = 1L;
-   private final ArrayList<Feature> features;
+   private final List<Feature> features;
    private Object label;
-   @Getter
-   @Setter
-   private double weight = 1.0;
+
 
    /**
-    * Instantiates a new Instance.
-    *
-    * @param features the features
-    */
-   public Instance(@NonNull Collection<Feature> features) {
-      this(features, null);
-   }
-
-   /**
-    * Instantiates a new Instance.
-    *
-    * @param features the features
-    * @param label    the label
-    */
-   public Instance(@NonNull Collection<Feature> features, Object label) {
-      this.features = new ArrayList<>(features);
-      this.features.trimToSize();
-      setLabel(label);
-   }
-
-   /**
-    * Instantiates a new Instance.
+    * Instantiates a new Instance with a null label and no features defined.
     */
    public Instance() {
       this.features = new ArrayList<>();
@@ -83,275 +33,169 @@ public class Instance implements Example, Serializable, Iterable<Feature>, JsonS
    }
 
    /**
-    * Convenience method for creating an instance from a collection of features.
+    * Instantiates a new Instance with the given label and features.
     *
+    * @param label    the label
     * @param features the features
-    * @return the instance
     */
-   public static Instance create(@NonNull Collection<Feature> features) {
-      return new Instance(features);
+   public Instance(Object label, Feature... features) {
+      this(label, Arrays.asList(features));
    }
 
    /**
-    * Creates an instance from a counter containing feature name (keys) and their values.
+    * Instantiates a new Instance with  the given label and features.
     *
-    * @param features the feature counter
-    * @return the instance
-    */
-   public static Instance create(@NonNull Counter<String> features) {
-      return create(features, null);
-   }
-
-   /**
-    * Creates an instance from a counter containing feature name (keys) and their values.
-    *
-    * @param features the feature counter
-    * @param label    the instance label
-    * @return the instance
-    */
-   public static Instance create(@NonNull Counter<String> features, Object label) {
-      List<Feature> featureList = features.entries()
-                                          .stream()
-                                          .map(e -> Feature.real(e.getKey(), e.getValue()))
-                                          .collect(Collectors.toList());
-      return create(featureList, label);
-   }
-
-   /**
-    * Creates an instance from a map containing feature name (keys) and their values.
-    *
-    * @param features the feature map
-    * @return the instance
-    */
-   public static Instance create(@NonNull Map<String, Double> features) {
-      return create(features, null);
-   }
-
-   /**
-    * Creates an instance from a map containing feature name (keys) and their values.
-    *
-    * @param features the feature map
-    * @param label    the instance label
-    * @return the instance
-    */
-   public static Instance create(@NonNull Map<String, Double> features, Object label) {
-      List<Feature> featureList = features.entrySet()
-                                          .stream()
-                                          .map(e -> Feature.real(e.getKey(), e.getValue()))
-                                          .collect(Collectors.toList());
-      return create(featureList, label);
-   }
-
-   /**
-    * Convenience method for creating an instance from a collection of features.
-    *
+    * @param label    the label
     * @param features the features
-    * @param label    the label of the instance
-    * @return the instance
     */
-   public static Instance create(@NonNull Collection<Feature> features, Object label) {
-      return new Instance(features, label);
-   }
-
-   @Override
-   public List<Instance> asInstances() {
-      return Collections.singletonList(this);
-   }
-
-   @Override
-   public Instance copy() {
-      return new Instance(features.stream().map(Feature::copy).collect(Collectors.toList()), label);
-   }
-
-   public static Instance fromJson(JsonEntry element) {
-      Instance instance = new Instance();
-      instance.setLabel(element.getValProperty("label").cast());
-      instance.weight = element.getValProperty("weight").asDoubleValue(1.0);
-      element.getProperty("features").forEachElement(e -> instance.features.add(e.getAs(Feature.class)));
-      instance.features.trimToSize();
-      return instance;
-   }
-
-
-   @Override
-   public Stream<String> getFeatureSpace() {
-      return features.stream().map(Feature::getFeatureName);
+   public Instance(Object label, List<Feature> features) {
+      this.features = new ArrayList<>(features);
+      setLabel(label);
    }
 
    /**
-    * Gets the features of the instance.
+    * Creates a special Instance denoting the begin of sequence (or sentence), which has a label and single True feature
+    * named <code>__BOS-INDEX__</code>, where <code>INDEX</code> is the offset from the <code>0</code> index. This
+    * instance will return the single feature name with given prefix on all calls to {@link
+    * #getFeatureByPrefix(String)}.
     *
-    * @return the features
+    * @param distanceFromBegin the offset from the beginning of the sequence (i.e. index 0, e.g. -1)
+    * @return the special beginning of sequence example at the given offset
     */
+   public static Example BEGIN_OF_SEQUENCE(int distanceFromBegin) {
+      String name = "__BOS-" + Math.abs(distanceFromBegin) + "__";
+      return new Instance(name, booleanFeature(name)) {
+         @Override
+         public Feature getFeatureByPrefix(String prefix) {
+            return booleanFeature(prefix + name);
+         }
+      };
+   }
+
+   /**
+    * Creates a special Instance denoting the end of sequence (or sentence), which has a label and single True feature
+    * named <code>__EOS-INDEX+1__</code>, where <code>INDEX</code> is the offset from the size of the example in the
+    * sequence. This instance will return the single feature name with given prefix on all calls to {@link
+    * #getFeatureByPrefix(String)}.
+    *
+    * @param distanceFromEnd the offset from the size of the example. (e.g. if the size is 4 an offset could be 0 when
+    *                        the index is at 4, 1 when the index is at 5, etc.)
+    * @return the special end of sequence example at the given offset
+    */
+   public static Example END_OF_SEQUENCE(int distanceFromEnd) {
+      String name = "__EOS-" + (distanceFromEnd + 1) + "__";
+      return new Instance(name, booleanFeature(name)) {
+         @Override
+         public Feature getFeatureByPrefix(String prefix) {
+            return booleanFeature(prefix + name);
+         }
+      };
+   }
+
+   @Override
+   public Example copy() {
+      Instance copy = new Instance(label, features);
+      copy.setWeight(getWeight());
+      return copy;
+   }
+
+   @Override
+   public boolean equals(Object o) {
+      if (this == o) return true;
+      if (!(o instanceof Instance)) return false;
+      Instance instance = (Instance) o;
+      return Objects.equals(features, instance.features) &&
+                Objects.equals(label, instance.label);
+   }
+
+   @Override
+   public Example getExample(int index) {
+      Validation.checkPositionIndex(index, 1);
+      return this;
+   }
+
+   @Override
+   public Feature getFeatureByPrefix(String prefix, Feature defaultValue) {
+      return features.stream()
+                     .filter(f -> f.hasPrefix(prefix))
+                     .findFirst()
+                     .orElse(defaultValue);
+   }
+
+   @Override
    public List<Feature> getFeatures() {
       return features;
    }
 
-   /**
-    * Gets the label of the instance.
-    *
-    * @return the label
-    */
-   public Object getLabel() {
-      return label;
+   @Override
+   public <T> T getLabel() {
+      return Cast.as(label);
    }
 
-   /**
-    * Sets the label of the instance.
-    *
-    * @param label the label
-    */
+   @Override
    public void setLabel(Object label) {
       if (label == null) {
          this.label = null;
-      } else if (label instanceof Collection) {
-         this.label = new HashSet<>(Cast.as(label));
-      } else if (label instanceof Iterable) {
-         this.label = Sets.hashSetOf(Cast.<Iterable>as(label));
-      } else if (label instanceof Iterator) {
-         this.label = Sets.hashSetOf(Cast.<Iterator<?>>as(label));
-      } else if (label.getClass().isArray()) {
-         this.label = new HashSet<>(Arrays.asList(Cast.<Object[]>as(label)));
+      } else if (label instanceof Number) {
+         this.label = Cast.<Number>as(label).doubleValue();
+      } else if (label.getClass().isArray() && label.getClass().getComponentType().isPrimitive()) {
+         try {
+            this.label = Converter.convert(label, float[].class);
+         } catch (TypeConversionException e) {
+            throw new IllegalArgumentException("Unable to set (" + label + ") as the Instance's label");
+         }
+      } else if (label instanceof CharSequence) {
+         this.label = label.toString();
+      } else if (label instanceof Iterator
+                    || label instanceof Iterable
+                    || label instanceof Stream
+                    || label.getClass().isArray()
+      ) {
+         try {
+            this.label = Converter.convert(label, Types.parameterizedType(Set.class, String.class));
+         } catch (TypeConversionException e) {
+            throw new IllegalArgumentException("Unable to set (" + label + ") as the Instance's label");
+         }
       } else {
-         this.label = label;
+         throw new IllegalArgumentException("Unable to set (" + label + ") as the Instance's label");
       }
-   }
-
-   /**
-    * Gets the label as a set. Useful for multilabel classification.
-    *
-    * @return the label set
-    */
-   public Set<Object> getLabelSet() {
-      if (this.label == null) {
-         return Collections.emptySet();
-      } else if (this.label instanceof Set) {
-         return Collections.unmodifiableSet(Cast.as(this.label));
-      }
-      return Collections.singleton(this.label);
    }
 
    @Override
-   public Stream<Object> getLabelSpace() {
-      return getLabelSet().stream();
+   public boolean isSingleExample() {
+      return true;
    }
 
-   /**
-    * Gets the value of the given feature.
-    *
-    * @param feature the feature name to look up
-    * @return the value of the given feature or 0 if not in the instance
-    */
-   public double getValue(@NonNull String feature) {
-      return features.stream()
-                     .filter(f -> f.getFeatureName().equals(feature))
-                     .map(Feature::getValue)
-                     .findFirst()
-                     .orElse(0d);
+   @Override
+   public int hashCode() {
+      return Objects.hash(features, label);
    }
 
-   /**
-    * Determines if the instance has the given label.
-    *
-    * @param label the label to check
-    * @return True if the instance has the given label, False otherwise
-    */
-   public boolean hasLabel(Object label) {
-      return getLabelSet().contains(label);
+   @Override
+   public int size() {
+      return 1;
    }
 
-   /**
-    * Determines if the instance has a label associated with it or not.
-    *
-    * @return True if the instance has a non-null label, False otherwise
-    */
+   @Override
+   public String toString() {
+      return "Instance{" +
+                "features=" + features +
+                ", label=" + label +
+                ", weight=" + getWeight() +
+                '}';
+   }
+
+   @Override
+   public Set<String> getLabelAsSet() {
+      Object lbl = getLabel();
+      if (lbl instanceof Set) {
+         return Cast.as(lbl);
+      }
+      return Collections.singleton(lbl.toString());
+   }
+
+   @Override
    public boolean hasLabel() {
       return label != null;
    }
-
-   @Override
-   public Instance intern(@NonNull Interner<String> interner) {
-      return create(features.stream()
-                            .map(f -> Feature.real(interner.intern(f.getFeatureName()), f.getValue()))
-                            .collect(Collectors.toList()),
-                    label
-                   );
-   }
-
-   /**
-    * Checks if this instance has a collection of labels.
-    *
-    * @return True if the instances has multiple labels, false if not
-    */
-   public boolean isMultiLabeled() {
-      return (this.label instanceof Collection);
-   }
-
-   @Override
-   public Iterator<Feature> iterator() {
-      return this.features.iterator();
-   }
-
-   /**
-    * Gets the features making up the instance as a stream
-    *
-    * @return the stream
-    */
-   public Stream<Feature> stream() {
-      return features.stream();
-   }
-
-   public JsonEntry toJson() {
-      return JsonEntry.object()
-                      .addProperty("label", label)
-                      .addProperty("weight", weight)
-                      .addProperty("features", features);
-   }
-
-   /**
-    * Converts the instance into a feature vector using the given encoder pair to map feature names and labels to double
-    * values
-    *
-    * @param encoderPair the encoder pair
-    * @param factory     The factory to use to create vectors
-    * @return the vector
-    */
-   public <T> NDArray toVector(@NonNull EncoderPair encoderPair, @NonNull NDArrayFactory factory) {
-      NDArray vector = factory.zeros(encoderPair.numberOfFeatures());
-      boolean isBinary = encoderPair.getFeatureEncoder() instanceof HashingEncoder && Cast.<HashingEncoder>as(
-         encoderPair.getFeatureEncoder()).isBinary();
-      features.forEach(f -> {
-         int fi = (int) encoderPair.encodeFeature(f.getFeatureName());
-         if (fi != -1) {
-            if (isBinary) {
-               vector.increment(fi, 1.0f);
-            } else {
-               vector.increment(fi, (float) f.getValue());
-            }
-         }
-      });
-      if (label instanceof Iterable) {
-         NDArray lblVector = factory.zeros(encoderPair.getLabelEncoder().size());
-         for (Object lbl : Cast.<Iterable<Object>>as(label)) {
-            lblVector.set((int) encoderPair.encodeLabel(lbl), 1.0f);
-         }
-         vector.setLabel(lblVector);
-      } else {
-         vector.setLabel(encoderPair.encodeLabel(label));
-      }
-      vector.setWeight((float) weight);
-      return vector;
-   }
-
-   /**
-    * Converts the instance into a feature vector using the given encoder pair to map feature names and labels to double
-    * values
-    *
-    * @param encoderPair the encoder pair
-    * @return the vector
-    */
-   public NDArray toVector(@NonNull EncoderPair encoderPair) {
-      return toVector(encoderPair, NDArrayFactory.SPARSE);
-   }
-
 }//END OF Instance

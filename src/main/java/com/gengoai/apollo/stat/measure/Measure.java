@@ -21,10 +21,9 @@
 
 package com.gengoai.apollo.stat.measure;
 
-import com.gengoai.math.Optimum;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
-import lombok.NonNull;
+import com.gengoai.math.Optimum;
 
 import java.io.Serializable;
 
@@ -42,7 +41,7 @@ public interface Measure extends Serializable {
     * @param v2 the second double array
     * @return the metric result
     */
-   default double calculate(@NonNull double[] v1, @NonNull double[] v2) {
+   default double calculate(double[] v1, double[] v2) {
       return calculate(NDArrayFactory.columnVector(v1), NDArrayFactory.columnVector(v2));
    }
 
@@ -53,7 +52,7 @@ public interface Measure extends Serializable {
     * @param v2 the second vector
     * @return the metric result
     */
-   double calculate(@NonNull NDArray v1, @NonNull NDArray v2);
+   double calculate(NDArray v1, NDArray v2);
 
 
    /**

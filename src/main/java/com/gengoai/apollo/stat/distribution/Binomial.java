@@ -1,7 +1,6 @@
 package com.gengoai.apollo.stat.distribution;
 
 import com.gengoai.Copyable;
-import lombok.NonNull;
 import org.apache.commons.math3.distribution.BinomialDistribution;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.commons.math3.random.Well19937c;
@@ -43,7 +42,7 @@ public final class Binomial implements UnivariateDiscreteDistribution<Binomial>,
     * @param numberOfTrials  the number of trials
     * @param randomGenerator the random generator to use for sampling
     */
-   public Binomial(int numberOfSuccess, int numberOfTrials, @NonNull RandomGenerator randomGenerator) {
+   public Binomial(int numberOfSuccess, int numberOfTrials, RandomGenerator randomGenerator) {
       this.nSuccess = numberOfSuccess;
       this.trials = numberOfTrials;
       this.randomGenerator = randomGenerator;

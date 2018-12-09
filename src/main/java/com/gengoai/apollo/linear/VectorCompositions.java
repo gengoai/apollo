@@ -1,7 +1,6 @@
 package com.gengoai.apollo.linear;
 
 import com.gengoai.apollo.linear.decompose.SingularValueDecomposition;
-import lombok.NonNull;
 
 import java.util.Collection;
 
@@ -16,7 +15,7 @@ public enum VectorCompositions implements VectorComposition {
     */
    Average {
       @Override
-      public NDArray compose(@NonNull Collection<NDArray> vectors) {
+      public NDArray compose(Collection<NDArray> vectors) {
          return Sum.compose(vectors).divi(vectors.size());
       }
    },
@@ -25,7 +24,7 @@ public enum VectorCompositions implements VectorComposition {
     */
    Sum {
       @Override
-      public NDArray compose(@NonNull Collection<NDArray> vectors) {
+      public NDArray compose(Collection<NDArray> vectors) {
          if (vectors.size() == 0) {
             return NDArrayFactory.DEFAULT().empty();
          }
@@ -45,7 +44,7 @@ public enum VectorCompositions implements VectorComposition {
     */
    PointWiseMultiply {
       @Override
-      public NDArray compose(@NonNull Collection<NDArray> vectors) {
+      public NDArray compose(Collection<NDArray> vectors) {
          if (vectors.size() == 0) {
             return NDArrayFactory.DEFAULT().empty();
          }
@@ -65,7 +64,7 @@ public enum VectorCompositions implements VectorComposition {
     */
    Max {
       @Override
-      public NDArray compose(@NonNull Collection<NDArray> vectors) {
+      public NDArray compose(Collection<NDArray> vectors) {
          if (vectors.size() == 0) {
             return NDArrayFactory.DEFAULT().empty();
          }
@@ -85,7 +84,7 @@ public enum VectorCompositions implements VectorComposition {
     */
    Min {
       @Override
-      public NDArray compose(@NonNull Collection<NDArray> vectors) {
+      public NDArray compose(Collection<NDArray> vectors) {
          if (vectors.size() == 0) {
             return NDArrayFactory.DEFAULT().empty();
          }
@@ -107,7 +106,7 @@ public enum VectorCompositions implements VectorComposition {
       private final SingularValueDecomposition svd = new SingularValueDecomposition(1);
 
       @Override
-      public NDArray compose(@NonNull Collection<NDArray> vectors) {
+      public NDArray compose(Collection<NDArray> vectors) {
          if (vectors.size() == 0) {
             return NDArrayFactory.DEFAULT().empty();
          }

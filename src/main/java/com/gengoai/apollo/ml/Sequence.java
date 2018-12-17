@@ -6,6 +6,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.gengoai.Validation.checkArgument;
 
@@ -28,6 +31,17 @@ public class Sequence extends Example {
    public Sequence(Example... examples) {
       this(Arrays.asList(examples));
    }
+
+   public Sequence(){
+
+   }
+
+   public Sequence(String... tokens) {
+      this(Stream.of(tokens)
+                 .map(t -> new Instance(null, Feature.booleanFeature(t)))
+                 .collect(Collectors.toList()));
+   }
+
 
    /**
     * Instantiates a new Sequence with weight 1.0 with the given child examples.
@@ -59,6 +73,17 @@ public class Sequence extends Example {
       return Objects.equals(sequence, examples.sequence);
    }
 
+
+   @Override
+   public boolean hasLabel() {
+      for (int i = 0; i < size(); i++) {
+         if (getExample(i).hasLabel()) {
+            return true;
+         }
+      }
+      return false;
+   }
+
    @Override
    public Example getExample(int index) {
       return sequence.get(index);
@@ -87,4 +112,19 @@ public class Sequence extends Example {
                 ", weight=" + getWeight() +
                 '}';
    }
+
+   @Override
+   public Example mapFeatures(Function<? super Feature, ? extends Feature> mapper) {
+      return new Sequence(sequence.stream()
+                                  .map(e -> e.mapFeatures(mapper))
+                                  .collect(Collectors.toList()));
+   }
+
+   @Override
+   public Example mapLabel(Function<? super Object, ? extends Object> mapper) {
+      return new Sequence(sequence.stream()
+                                  .map(e -> e.mapLabel(mapper))
+                                  .collect(Collectors.toList()));
+   }
+
 }//END OF Sequence

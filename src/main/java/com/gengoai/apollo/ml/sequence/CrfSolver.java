@@ -19,30 +19,39 @@
  * under the License.
  */
 
-package com.gengoai.apollo.ml.classification;
-
-import com.gengoai.apollo.ml.Instance;
-import com.gengoai.apollo.ml.Learner;
-import com.gengoai.conversion.Cast;
-
-import java.util.Map;
+package com.gengoai.apollo.ml.sequence;
 
 /**
- * Base class for learners that produce <code>Classifier</code>s and use <code>Instance</code>s as their example type.
+ * <p>Different solvers (optimizers) that can be used with the {@link Crf}</p>
  *
  * @author David B. Bracewell
  */
-public abstract class ClassifierLearner extends Learner<Instance, Classifier> {
-   private static final long serialVersionUID = 1L;
+public enum CrfSolver {
+   /**
+    * LBFGS solver
+    */
+   LBFGS("lbfgs"),
+   /**
+    * L2 regularized Stochastic Gradient Descent solver.
+    */
+   L2SGD("l2sgd"),
+   /**
+    * Average perceptron.
+    */
+   AVERAGE_PERCEPTRON("ap"),
+   /**
+    * Passive aggressive solver.
+    */
+   PASSIVE_AGGRESSIVE("pa"),
+   /**
+    * Adaptive regularization solver.
+    */
+   ADAPTIVE_REGULARIZATION("arow");
 
-   @Override
-   public ClassifierLearner setParameter(String name, Object value) {
-      return Cast.as(super.setParameter(name, value));
+   final String parameterSetting;
+
+   CrfSolver(String parameterSetting) {
+      this.parameterSetting = parameterSetting;
    }
 
-   @Override
-   public ClassifierLearner setParameters(Map<String, Object> parameters) {
-      return Cast.as(super.setParameters(parameters));
-   }
-
-}//END OF ClassifierLearner
+}//END OF Solver

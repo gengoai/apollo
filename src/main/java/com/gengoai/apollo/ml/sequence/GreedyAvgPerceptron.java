@@ -48,7 +48,7 @@ public class GreedyAvgPerceptron implements SequenceLabeler {
 
       int instances = 0;
 
-      for (int i = 0; i < 200; i++) {
+      for (int i = 0; i < 2; i++) {
          double total = 0;
          double correct = 0;
 
@@ -90,6 +90,16 @@ public class GreedyAvgPerceptron implements SequenceLabeler {
    @Override
    public FitParameters getDefaultFitParameters() {
       return new FitParameters();
+   }
+
+   @Override
+   public int getNumberOfFeatures() {
+      return featureWeights.numRows();
+   }
+
+   @Override
+   public int getNumberOfLabels() {
+      return (int)bias.length();
    }
 
    /**

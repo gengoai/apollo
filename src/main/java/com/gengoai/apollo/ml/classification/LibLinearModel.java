@@ -52,6 +52,12 @@ public class LibLinearModel implements Classifier, Loggable {
       return copy;
    }
 
+   /**
+    * Specialized fit method taking the LibLinear Parameters object.
+    *
+    * @param dataSupplier  the data supplier
+    * @param fitParameters the fit parameters
+    */
    public void fit(SerializableSupplier<MStream<NDArray>> dataSupplier, Parameters fitParameters) {
       Problem problem = new Problem();
       problem.l = (int) dataSupplier.get().count();
@@ -73,7 +79,11 @@ public class LibLinearModel implements Classifier, Loggable {
          Linear.disableDebugOutput();
       }
 
-      model = Linear.train(problem, new Parameter(fitParameters.solver, fitParameters.C, fitParameters.eps));
+      model = Linear.train(problem, new Parameter(fitParameters.solver,
+                                                  fitParameters.C,
+                                                  fitParameters.eps,
+                                                  fitParameters.maxIterations,
+                                                  fitParameters.p));
    }
 
    @Override
@@ -95,37 +105,58 @@ public class LibLinearModel implements Classifier, Loggable {
          Linear.predictValues(model, toFeature(data, biasIndex), p);
       }
 
+
       //re-arrange the probabilities to match the target feature
       double[] prime = new double[model.getNrClass()];
       int[] labels = model.getLabels();
       for (int i = 0; i < labels.length; i++) {
          prime[labels[i]] = p[i];
       }
-
       data.setPredicted(NDArrayFactory.rowVector(prime));
+
       return data;
    }
 
+   @Override
+   public int getNumberOfFeatures() {
+      return model.getNrFeature();
+   }
+
+   @Override
+   public int getNumberOfLabels() {
+      return model.getNrClass();
+   }
+
    /**
-    * The type Parameters.
+    * Custom fit parameters for LibLinear
     */
    public static class Parameters extends FitParameters {
       private static final long serialVersionUID = 1L;
       /**
-       * The C.
+       * The cost parameter (default 1.0)
        */
       public double C = 1.0;
       /**
-       * The Bias.
+       * Use a bias feature or not. (default false)
        */
       public boolean bias = false;
       /**
-       * The Eps.
+       * The tolerance for termination.(default 0.0001)
        */
       public double eps = 0.0001;
       /**
-       * The Solver.
+       * The Solver to use. (default L2R_LR)
        */
       public SolverType solver = SolverType.L2R_LR;
+      /**
+       * The maximum number of iterations to run the trainer (Default 1000)
+       */
+      public int maxIterations = 1000;
+
+      /**
+       * The epsilon in loss function of epsilon-SVR (default 0.1)
+       */
+      public double p = 0.1;
+
    }
 }//END OF LibLinearModel

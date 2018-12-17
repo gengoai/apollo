@@ -52,6 +52,12 @@ public class LinearModel implements Classifier, Loggable {
       return example.setPredicted(modelParameters.activate(example));
    }
 
+   /**
+    * Custom fit method taking LinearModel fit parameters object.
+    *
+    * @param dataSupplier the data supplier
+    * @param parameters   the parameters
+    */
    public void fit(SerializableSupplier<MStream<NDArray>> dataSupplier, Parameters parameters) {
       GradientDescentOptimizer optimizer = GradientDescentOptimizer.builder()
                                                                    .batchSize(parameters.batchSize).build();
@@ -81,6 +87,16 @@ public class LinearModel implements Classifier, Loggable {
    @Override
    public Parameters getDefaultFitParameters() {
       return new Parameters();
+   }
+
+   @Override
+   public int getNumberOfFeatures() {
+      return modelParameters.numFeatures;
+   }
+
+   @Override
+   public int getNumberOfLabels() {
+      return modelParameters.numLabels;
    }
 
    private static class ModelParameters implements LinearModelParameters, Serializable, Copyable<ModelParameters> {
@@ -141,7 +157,7 @@ public class LinearModel implements Classifier, Loggable {
    }
 
    /**
-    * The type Fit parameters.
+    * Custom fit parameters for the LinearModel
     */
    public static class Parameters extends com.gengoai.apollo.ml.FitParameters {
       private static final long serialVersionUID = 1L;

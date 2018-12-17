@@ -1,59 +1,93 @@
 package com.gengoai.apollo.ml;
 
 import com.gengoai.Copyable;
+import com.gengoai.conversion.Cast;
 import com.gengoai.conversion.Val;
-import com.gengoai.logging.Logger;
+import com.gengoai.logging.Loggable;
 import com.gengoai.reflection.Reflect;
 import com.gengoai.reflection.ReflectionException;
 
 import java.io.Serializable;
+import java.lang.reflect.Field;
 
 /**
- * The type Parameters.
+ * <p>Generic interface for Named Arguments. Allows for set / get of public / protected fields using reflection. Usage
+ * is to create a class that implements the interface defining the arguments and their default values as public fields
+ * on the object. When able to directly use the implementing class, it is best to use the fields and avoid
+ * reflection.</p>
  *
+ * @param <T> the type parameter
  * @author David B. Bracewell
  */
-public class Parameters implements Serializable, Copyable<Parameters> {
-   private static final long serialVersionUID = 1L;
-   private static final Logger logger = Logger.getLogger(Parameters.class);
+public interface Parameters<T extends Parameters> extends Serializable, Copyable<T>, Loggable {
+
 
    @Override
-   public Parameters copy() {
-      return Copyable.copy(this);
+   default T copy() {
+      return Cast.as(Copyable.copy(this));
    }
 
    /**
-    * Sets parameter.
+    * Sets the parameter of the given name with the given value. Will print a warning if the parameter is not valid and
+    * throw a RuntimeException for other reflection related errors.
     *
-    * @param name  the name
-    * @param value the value
+    * @param name  the parameter name
+    * @param value the value to set.
+    * @return the t
     */
-   public Parameters setParameter(String name, Object value) {
+   default T set(String name, Object value) {
       try {
          Reflect.onObject(this).set(name, value);
       } catch (ReflectionException e) {
          if (e.getCause() instanceof NoSuchFieldException) {
-            logger.warn("Invalid Parameter: {0}", name);
+            logWarn("Invalid Parameter: {0}", name);
          } else {
             throw new RuntimeException(e);
          }
       }
-      return this;
+      return Cast.as(this);
    }
 
    /**
-    * Gets parameter.
+    * Sets the parameter of the given name with the given value. Will print a warning if the parameter is not valid and
+    * throw a RuntimeException for other reflection related errors.
     *
-    * @param name the name
-    * @return the parameter
+    * @param name the parameter name
+    * @return the parameter value
     */
-   public Val getParameter(String name) {
+   default Val get(String name) {
       try {
          return Val.of(Reflect.onObject(this).get(name).get());
       } catch (ReflectionException e) {
-         logger.warn("Invalid Parameter: {0}", name);
+         logWarn("Invalid Parameter: {0}", name);
          return Val.NULL;
       }
    }
+
+
+   /**
+    * Helper method to generate a String representation of this object using reflection on the fields and their values.
+    *
+    * @return the string representation of this object.
+    */
+   default String asString() {
+      StringBuilder builder = new StringBuilder(this.getClass().getSimpleName()).append("{");
+      int cnt = 0;
+      for (Field f : Reflect.onObject(this).getFields()) {
+         try {
+            if (cnt > 0) {
+               builder.append(", ");
+            }
+            builder.append(f.getName())
+                   .append("=")
+                   .append(f.get(this));
+            cnt++;
+         } catch (IllegalAccessException e) {
+            //ignore
+         }
+      }
+      return builder.append("}").toString();
+   }
+
 
 }//END OF Parameters

@@ -845,6 +845,16 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
       if (label == null) {
          return Double.NaN;
       }
+
+      if( label instanceof NDArray ){
+         NDArray lbl = Cast.as(label);
+         if( lbl.isScalar() ){
+            return lbl.scalarValue();
+         }
+         return lbl.argMax(Axis.ROW).scalarValue();
+      }
+
+
       return Cast.<Number>as(label).doubleValue();
    }
 

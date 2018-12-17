@@ -39,6 +39,27 @@ public interface Model extends Serializable {
    NDArray estimate(NDArray data);
 
    /**
+    * Evaluates the given model on the given Stream of evaluation data.
+    *
+    * @param evaluationData the evaluation data
+    * @return the evaluation
+    */
+   Evaluation evaluate(MStream<NDArray> evaluationData);
+
+   /**
+    * Fits the model (i.e. trains) it on the given data using the given model parameters..
+    *
+    * @param dataSupplier     A supplier of {@link NDArray} representing training data
+    * @param parameterUpdater Consumer to update the default fit parameters (specify type in consumer to use
+    *                         subclasses).
+    */
+   default void fit(SerializableSupplier<MStream<NDArray>> dataSupplier, Consumer<? extends FitParameters> parameterUpdater) {
+      FitParameters f = getDefaultFitParameters();
+      parameterUpdater.accept(Cast.as(f));
+      this.fit(dataSupplier, f);
+   }
+
+   /**
     * Fits the model (i.e. trains) it on the given data using the given model parameters..
     *
     * @param dataSupplier  A supplier of {@link NDArray} representing training data
@@ -47,23 +68,25 @@ public interface Model extends Serializable {
    void fit(SerializableSupplier<MStream<NDArray>> dataSupplier, FitParameters fitParameters);
 
    /**
-    * Fit.
-    *
-    * @param dataSupplier  the data supplier
-    * @param fitParameters the fit parameters
-    */
-   default void fit(SerializableSupplier<MStream<NDArray>> dataSupplier, Consumer<? extends FitParameters> fitParameters) {
-      FitParameters f = getDefaultFitParameters();
-      fitParameters.accept(Cast.as(f));
-      this.fit(dataSupplier, f);
-   }
-
-   /**
-    * Gets default fit parameters.
+    * Gets default fit parameters for the model.
     *
     * @return the default fit parameters
     */
    FitParameters getDefaultFitParameters();
+
+   /**
+    * Gets the number of features in the model.
+    *
+    * @return the number of features
+    */
+   int getNumberOfFeatures();
+
+   /**
+    * Gets the number of labels in the model.
+    *
+    * @return the number of labels
+    */
+   int getNumberOfLabels();
 
    /**
     * Writes the model to the given resource.
@@ -74,5 +97,6 @@ public interface Model extends Serializable {
    default void write(Resource resource) throws Exception {
       resource.setIsCompressed(true).writeObject(this);
    }
+
 
 }//END OF Model

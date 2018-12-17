@@ -3,6 +3,7 @@ package com.gengoai.apollo.ml;
 import com.gengoai.Copyable;
 import com.gengoai.collection.counter.Counter;
 import com.gengoai.conversion.Cast;
+import com.gengoai.function.SerializableFunction;
 import com.gengoai.stream.MStream;
 import com.gengoai.stream.StreamingContext;
 import com.gengoai.stream.accumulator.MCounterAccumulator;
@@ -40,13 +41,14 @@ public abstract class Dataset implements Iterable<Example>, Copyable<Dataset>, S
    }
 
    /**
-    * Takes the first n elements from the dataset
+    * Calculate class distribution counter.
     *
-    * @param n the number of items to take
-    * @return the list of items
+    * @return the counter
     */
-   public List<Example> take(int n) {
-      return stream().take(n);
+   public Counter<String> calculateClassDistribution() {
+      MCounterAccumulator<String> accumulator = getStreamingContext().counterAccumulator();
+      stream().flatMap(Example::getStringLabelSpace).forEach(accumulator::add);
+      return accumulator.value();
    }
 
    /**
@@ -55,10 +57,10 @@ public abstract class Dataset implements Iterable<Example>, Copyable<Dataset>, S
     * @param numberOfFolds the number of folds
     * @return the TrainTestSet made of the number of folds
     */
-   public TrainTestSplit[] fold(int numberOfFolds) {
+   public Split[] fold(int numberOfFolds) {
       checkArgument(numberOfFolds > 0, "Number of folds must be >= 0");
       checkArgument(size() >= numberOfFolds, "Number of folds must be <= number of examples");
-      TrainTestSplit[] folds = new TrainTestSplit[numberOfFolds];
+      Split[] folds = new Split[numberOfFolds];
       int foldSize = size() / numberOfFolds;
       for (int i = 0; i < numberOfFolds; i++) {
          Dataset train = newSimilarDataset(getStreamingContext().empty());
@@ -77,7 +79,7 @@ public abstract class Dataset implements Iterable<Example>, Copyable<Dataset>, S
             train.addAll(stream(testEnd, size()));
          }
 
-         folds[i] = new TrainTestSplit(train, test);
+         folds[i] = new Split(train, test);
       }
       return folds;
    }
@@ -91,15 +93,30 @@ public abstract class Dataset implements Iterable<Example>, Copyable<Dataset>, S
       return getType().getStreamingContext();
    }
 
+   /**
+    * Gets type.
+    *
+    * @return the type
+    */
    public abstract DatasetType getType();
 
-   protected abstract Dataset newSimilarDataset(MStream<Example> instances);
-
-   public Counter<String> calculateClassDistribution() {
-      MCounterAccumulator<String> accumulator = getStreamingContext().counterAccumulator();
-      stream().flatMap(Example::getStringLabelSpace).forEach(accumulator::add);
-      return accumulator.value();
+   /**
+    * Map dataset.
+    *
+    * @param function the function
+    * @return the dataset
+    */
+   public Dataset map(SerializableFunction<? super Example, ? extends Example> function) {
+      return newSimilarDataset(stream().map(function));
    }
+
+   /**
+    * New similar dataset dataset.
+    *
+    * @param instances the instances
+    * @return the dataset
+    */
+   protected abstract Dataset newSimilarDataset(MStream<Example> instances);
 
    /**
     * Creates a balanced dataset by oversampling the items
@@ -149,7 +166,7 @@ public abstract class Dataset implements Iterable<Example>, Copyable<Dataset>, S
     * @return the dataset
     */
    public final Dataset shuffle() {
-      return shuffle(new Random());
+      return shuffle(new Random(0));
    }
 
    /**
@@ -187,10 +204,10 @@ public abstract class Dataset implements Iterable<Example>, Copyable<Dataset>, S
     * @param pctTrain the percentage of the dataset to use for training
     * @return A TestTrainSet of one TestTrain item
     */
-   public TrainTestSplit split(double pctTrain) {
+   public Split split(double pctTrain) {
       checkArgument(pctTrain > 0 && pctTrain < 1, "Percentage should be between 0 and 1");
       int split = (int) Math.floor(pctTrain * size());
-      return new TrainTestSplit(slice(0, split), slice(split, size()));
+      return new Split(slice(0, split), slice(split, size()));
    }
 
    /**
@@ -211,6 +228,16 @@ public abstract class Dataset implements Iterable<Example>, Copyable<Dataset>, S
     */
    protected MStream<Example> stream(int start, int end) {
       return stream().skip(start).limit(end - start).cache();
+   }
+
+   /**
+    * Takes the first n elements from the dataset
+    *
+    * @param n the number of items to take
+    * @return the list of items
+    */
+   public List<Example> take(int n) {
+      return stream().take(n);
    }
 
    /**

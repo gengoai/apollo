@@ -1,11 +1,9 @@
 package com.gengoai.apollo.ml;
 
-import com.gengoai.conversion.Cast;
-
 /**
  * @author David B. Bracewell
  */
-public class FitParameters extends Parameters {
+public class FitParameters implements Parameters<FitParameters> {
    private static final long serialVersionUID = 1L;
    /**
     * The number of features in the problem
@@ -24,14 +22,9 @@ public class FitParameters extends Parameters {
     */
    public int reportInterval = 100;
 
-   @Override
-   public FitParameters copy() {
-      return Cast.as(super.copy());
-   }
-
 
    @Override
-   public FitParameters setParameter(String name, Object value) {
-      return Cast.as(super.setParameter(name, value));
+   public String toString() {
+      return asString();
    }
 }//END OF FitParameters

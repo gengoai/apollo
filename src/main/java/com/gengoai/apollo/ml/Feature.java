@@ -33,7 +33,7 @@ import java.util.Objects;
  *
  * @author David B. Bracewell
  */
-public class Feature implements Serializable, Comparable<Feature>, Copyable<Feature> {
+public final class Feature implements Serializable, Comparable<Feature>, Copyable<Feature> {
    private static final long serialVersionUID = 1L;
    /**
     * The name of the feature (e.g. <code>W=Apollo</code>)
@@ -70,7 +70,6 @@ public class Feature implements Serializable, Comparable<Feature>, Copyable<Feat
       return new Feature(name, value);
    }
 
-
    @Override
    public int compareTo(Feature o) {
       return this.name.compareTo(o.name);
@@ -90,9 +89,22 @@ public class Feature implements Serializable, Comparable<Feature>, Copyable<Feat
                 Objects.equals(name, feature.name);
    }
 
-   @Override
-   public int hashCode() {
-      return Objects.hash(name, value);
+   /**
+    * Gets name.
+    *
+    * @return the name
+    */
+   public String getName() {
+      return name;
+   }
+
+   /**
+    * Gets value.
+    *
+    * @return the value
+    */
+   public double getValue() {
+      return value;
    }
 
    /**
@@ -105,6 +117,10 @@ public class Feature implements Serializable, Comparable<Feature>, Copyable<Feat
       return name.startsWith(prefix);
    }
 
+   @Override
+   public int hashCode() {
+      return Objects.hash(name, value);
+   }
 
    @Override
    public String toString() {

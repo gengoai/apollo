@@ -7,6 +7,7 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import static com.gengoai.apollo.ml.Feature.booleanFeature;
@@ -229,5 +230,22 @@ public abstract class Example implements Copyable<Example>, Iterable<Example>, S
     * @return the number of  examples represented..
     */
    public abstract int size();
+
+
+   /**
+    * Map example.
+    *
+    * @param mapper the mapper
+    * @return the example
+    */
+   public abstract Example mapFeatures(Function<? super Feature, ? extends Feature> mapper);
+
+   /**
+    * Map label example.
+    *
+    * @param mapper the mapper
+    * @return the example
+    */
+   public abstract Example mapLabel(Function<? super Object, ? extends Object> mapper);
 
 }//END OF Example

@@ -30,6 +30,7 @@ public class Crf implements SequenceLabeler, Serializable {
    private static final long serialVersionUID = 1L;
    private String modelFile;
    private volatile CrfTagger tagger;
+   private int numberOfFeatures = 0;
 
 
    @Override
@@ -37,14 +38,14 @@ public class Crf implements SequenceLabeler, Serializable {
       Parameters fitParameters = Cast.as(parameters, Parameters.class);
       CrfSuiteLoader.INSTANCE.load();
       Trainer trainer = new Trainer();
-
+      this.numberOfFeatures = fitParameters.numFeatures;
       dataSupplier.get().forEachLocal(sequence -> sequence.sliceStream()
                                                           .forEach(p -> {
                                                              Tuple2<ItemSequence, StringList> seq = toItemSequence(p.v2,
                                                                                                                    true);
                                                              trainer.append(seq.v1, seq.v2, 0);
                                                           }));
-      trainer.select(fitParameters.solver.parameterSetting, "crf1d");
+      trainer.select(fitParameters.crfSolver.parameterSetting, "crf1d");
       trainer.set("max_iterations", Integer.toString(fitParameters.maxIterations));
       trainer.set("c2", Double.toString(fitParameters.c2));
       modelFile = Resources.temporaryFile().asFile().get().getAbsolutePath();
@@ -117,6 +118,16 @@ public class Crf implements SequenceLabeler, Serializable {
       stream.write(modelBytes);
    }
 
+   @Override
+   public int getNumberOfFeatures() {
+      return numberOfFeatures;
+   }
+
+   @Override
+   public int getNumberOfLabels() {
+      return tagger.getlabels().size();
+   }
+
    /**
     * The type Parameters.
     */
@@ -133,7 +144,7 @@ public class Crf implements SequenceLabeler, Serializable {
       /**
        * The Solver.
        */
-      public Solver solver = Solver.LBFGS;
+      public CrfSolver crfSolver = CrfSolver.LBFGS;
    }
 
 }//END OF Crf

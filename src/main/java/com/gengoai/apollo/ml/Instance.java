@@ -7,6 +7,8 @@ import com.gengoai.conversion.TypeConversionException;
 import com.gengoai.reflection.Types;
 
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.gengoai.apollo.ml.Feature.booleanFeature;
@@ -174,6 +176,18 @@ public class Instance extends Example {
    @Override
    public int size() {
       return 1;
+   }
+
+   @Override
+   public Example mapFeatures(Function<? super Feature, ? extends Feature> mapper) {
+      return new Instance(label, features.stream().map(mapper).filter(Objects::nonNull).collect(Collectors.toList()));
+   }
+
+   @Override
+   public Example mapLabel(Function<? super Object, ? extends Object> mapper) {
+      Example e = copy();
+      e.setLabel(mapper.apply(label));
+      return e;
    }
 
    @Override

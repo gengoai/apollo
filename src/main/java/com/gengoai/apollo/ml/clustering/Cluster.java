@@ -17,6 +17,7 @@ public class Cluster implements Serializable, Iterable<NDArray> {
       return points;
    }
 
+
    private final List<NDArray> points = new ArrayList<>();
 
    public void addPoint(NDArray point){

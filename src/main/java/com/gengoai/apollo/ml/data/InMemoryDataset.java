@@ -1,5 +1,7 @@
-package com.gengoai.apollo.ml;
+package com.gengoai.apollo.ml.data;
 
+import com.gengoai.apollo.ml.Example;
+import com.gengoai.function.SerializableFunction;
 import com.gengoai.stream.MStream;
 
 import java.util.*;
@@ -39,6 +41,14 @@ public class InMemoryDataset extends Dataset {
    @Override
    public DatasetType getType() {
       return DatasetType.InMemory;
+   }
+
+   @Override
+   public Dataset mapSelf(SerializableFunction<? super Example, ? extends Example> function) {
+      for (int i = 0; i < examples.size(); i++) {
+         examples.set(i, function.apply(examples.get(i)));
+      }
+      return this;
    }
 
    @Override

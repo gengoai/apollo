@@ -1,5 +1,6 @@
 package com.gengoai.apollo.ml;
 
+import com.gengoai.Parameters;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.conversion.Cast;
 import com.gengoai.function.SerializableSupplier;
@@ -42,12 +43,18 @@ public interface Model extends Serializable {
     * Evaluates the given model on the given Stream of evaluation data.
     *
     * @param evaluationData the evaluation data
+    * @param evaluation     the evaluation
     * @return the evaluation
     */
-   Evaluation evaluate(MStream<NDArray> evaluationData);
+   default Evaluation evaluate(MStream<NDArray> evaluationData, Evaluation evaluation) {
+      evaluationData.forEach(n -> evaluation.entry(estimate(n)));
+      return evaluation;
+   }
 
    /**
-    * Fits the model (i.e. trains) it on the given data using the given model parameters..
+    * Fits the model (i.e. trains) it on the given data using the given model parameters.Implementations should take
+    * care to reset any trained parameters to defaults on calls, i.e. this method is not meant to update a previously
+    * trained model but to retrain it from scratch.
     *
     * @param dataSupplier     A supplier of {@link NDArray} representing training data
     * @param parameterUpdater Consumer to update the default fit parameters (specify type in consumer to use
@@ -60,7 +67,9 @@ public interface Model extends Serializable {
    }
 
    /**
-    * Fits the model (i.e. trains) it on the given data using the given model parameters..
+    * Fits the model (i.e. trains) it on the given data using the given model parameters. Implementations should take
+    * care to reset any trained parameters to defaults on calls, i.e. this method is not meant to update a previously
+    * trained model but to retrain it from scratch.
     *
     * @param dataSupplier  A supplier of {@link NDArray} representing training data
     * @param fitParameters the fit parameters

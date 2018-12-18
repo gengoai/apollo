@@ -1,20 +1,18 @@
 package com.gengoai.apollo.ml.sequence;
 
-import com.gengoai.Copyable;
 import com.gengoai.apollo.linear.NDArray;
-import com.gengoai.apollo.ml.Evaluation;
 import com.gengoai.apollo.ml.Model;
-import com.gengoai.apollo.ml.classification.Classification;
-import com.gengoai.stream.MStream;
 
 /**
+ * <p>Labels each example in a sequence of examples, which may represent points in time, tokens in a sentence, etc.
+ * </p>
+ *
  * @author David B. Bracewell
  */
-public interface SequenceLabeler extends Model, Copyable<SequenceLabeler> {
+public interface SequenceLabeler extends Model {
 
    /**
-    * Specialized transform to predict an outcome of the given NDArray, returning a {@link Classification} which is more
-    * easily inheritable..
+    * Specialized transform to predict the labels for a sequence.
     *
     * @param data the NDArray input data
     */
@@ -22,12 +20,5 @@ public interface SequenceLabeler extends Model, Copyable<SequenceLabeler> {
       return new Labeling(estimate(data).getPredictedAsNDArray());
    }
 
-   default SequenceLabeler copy() {
-      return Copyable.copy(this);
-   }
 
-   @Override
-   default Evaluation evaluate(MStream<NDArray> evaluationData) {
-      return null;
-   }
 }//END OF SequenceLabeler

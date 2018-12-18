@@ -846,9 +846,9 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
          return Double.NaN;
       }
 
-      if( label instanceof NDArray ){
+      if (label instanceof NDArray) {
          NDArray lbl = Cast.as(label);
-         if( lbl.isScalar() ){
+         if (lbl.isScalar()) {
             return lbl.scalarValue();
          }
          return lbl.argMax(Axis.ROW).scalarValue();
@@ -906,6 +906,13 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
    public double getPredictedAsDouble() {
       if (predicted == null) {
          return Double.NaN;
+      }
+      if (label instanceof NDArray) {
+         NDArray lbl = Cast.as(label);
+         if (lbl.isScalar()) {
+            return lbl.scalarValue();
+         }
+         return lbl.argMax(Axis.ROW).scalarValue();
       }
       return Cast.<Number>as(predicted).doubleValue();
    }

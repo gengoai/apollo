@@ -1,9 +1,14 @@
 package com.gengoai.apollo.ml;
 
 import com.gengoai.apollo.linear.NDArray;
+import com.gengoai.apollo.ml.data.Dataset;
+import com.gengoai.apollo.ml.preprocess.Preprocessor;
+import com.gengoai.apollo.ml.preprocess.PreprocessorList;
 import com.gengoai.apollo.ml.vectorizer.Vectorizer;
 import com.gengoai.conversion.Cast;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.function.Consumer;
 
 /**
@@ -32,6 +37,7 @@ public abstract class PipelinedModel implements Model {
     *
     * @param labelVectorizer   the label vectorizer
     * @param featureVectorizer the feature vectorizer
+    * @param preprocessors     the preprocessors
     */
    protected PipelinedModel(Vectorizer<?> labelVectorizer,
                             Vectorizer<?> featureVectorizer,
@@ -49,8 +55,17 @@ public abstract class PipelinedModel implements Model {
     * @param example the example to encode and preprocess
     * @return the resulting encoded NDArray
     */
-   protected NDArray encodeAndPreprocess(Example example) {
-      example = preprocessors.apply(example);
+   protected final NDArray encodeAndPreprocess(Example example) {
+      return encode(preprocessors.apply(example));
+   }
+
+   /**
+    * Convenience method for encoding and applying preprocessors to examples;
+    *
+    * @param example the example to encode and preprocess
+    * @return the resulting encoded NDArray
+    */
+   protected final NDArray encode(Example example) {
       NDArray array = featureVectorizer.transform(example);
       if (example.hasLabel()) {
          array.setLabel(labelVectorizer.transform(example));
@@ -72,9 +87,13 @@ public abstract class PipelinedModel implements Model {
     * Evaluates the model on the given {@link Dataset}.
     *
     * @param evaluationData the evaluation data
+    * @param evaluation     the evaluation
     * @return the evaluation
     */
-   public abstract Evaluation evaluate(Dataset evaluationData);
+   public Evaluation evaluate(Dataset evaluationData, Evaluation evaluation) {
+      evaluationData.forEach(d -> evaluation.entry(estimate(d)));
+      return evaluation;
+   }
 
    /**
     * Fits the model on the given {@link Dataset} using the model's default {@link FitParameters}.
@@ -87,7 +106,7 @@ public abstract class PipelinedModel implements Model {
 
    /**
     * Fits the model on the given {@link Dataset} using the given consumer to modify the model's default {@link
-    * FitParameters}.
+    * FitParameters}**.
     *
     * @param dataset       the dataset
     * @param fitParameters the consumer to use to update the fit parameters
@@ -107,10 +126,10 @@ public abstract class PipelinedModel implements Model {
    public final void fit(Dataset dataset, FitParameters fitParameters) {
       labelVectorizer.fit(dataset);
       featureVectorizer.fit(dataset);
-      preprocessors.forEach(p -> p.fit(dataset));
+      final Dataset preprocessed = preprocessors.fitAndTransform(dataset);
       fitParameters.numLabels = labelVectorizer.size();
       fitParameters.numFeatures = featureVectorizer.size();
-      fit(() -> dataset.stream().map(this::encodeAndPreprocess), fitParameters);
+      fit(() -> preprocessed.stream().map(this::encode), fitParameters);
    }
 
    /**
@@ -133,4 +152,13 @@ public abstract class PipelinedModel implements Model {
       return Cast.as(labelVectorizer);
    }
 
+
+   /**
+    * Gets an unmodifiable list of the preprocessors used by this model.
+    *
+    * @return the preprocessors
+    */
+   public List<Preprocessor> getPreprocessors() {
+      return Collections.unmodifiableList(preprocessors);
+   }
 }//END OF PipelinedModel

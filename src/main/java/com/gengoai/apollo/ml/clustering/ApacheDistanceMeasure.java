@@ -21,49 +21,40 @@
 
 package com.gengoai.apollo.ml.clustering;
 
-import com.gengoai.Lazy;
-import com.gengoai.apollo.linear.NDArray;
-import org.apache.commons.math3.ml.clustering.Clusterable;
+import org.apache.commons.math3.exception.DimensionMismatchException;
+import org.apache.commons.math3.ml.distance.DistanceMeasure;
 
 import java.io.Serializable;
 
 /**
- * Wraps an Apollo vector into an Apache Math compatible data type for using Apache Math clustering algorithms.
+ * Wraps an Apollo distance measure making it compatible with Apache Math
  *
  * @author David B. Bracewell
  */
-public class ApacheClusterable implements Clusterable, Serializable {
+public class ApacheDistanceMeasure implements DistanceMeasure, Serializable {
    private static final long serialVersionUID = 1L;
-   private final NDArray vector;
-   private final Lazy<double[]> point;
+   private final com.gengoai.apollo.stat.measure.DistanceMeasure wrapped;
 
    /**
-    * Instantiates a new Apache clusterable.
+    * Instantiates a new Apache distance measure.
     *
-    * @param vector the vector to wrap
+    * @param wrapped the wrapped distance measure
     */
-   public ApacheClusterable(NDArray vector) {
-      this.vector = vector;
-      this.point = new Lazy<>(vector::toDoubleArray);
+   public ApacheDistanceMeasure(com.gengoai.apollo.stat.measure.DistanceMeasure wrapped) {
+      this.wrapped = wrapped;
    }
 
    @Override
-   public double[] getPoint() {
-      return point.get();
+   public double compute(double[] doubles, double[] doubles1) throws DimensionMismatchException {
+      return wrapped.calculate(doubles, doubles1);
    }
 
    /**
-    * Gets the wrapped vector.
+    * Gets the wrapped distance measure.
     *
-    * @return the vector
+    * @return the wrapped distance measure
     */
-   public NDArray getVector() {
-      return vector;
+   public com.gengoai.apollo.stat.measure.DistanceMeasure getWrapped() {
+      return wrapped;
    }
-
-   @Override
-   public String toString() {
-      return vector.toString();
-   }
-
-}// END OF ApacheClusterable
+}// END OF ApacheDistanceMeasure

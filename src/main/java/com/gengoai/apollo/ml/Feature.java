@@ -22,6 +22,7 @@
 package com.gengoai.apollo.ml;
 
 import com.gengoai.Copyable;
+import com.gengoai.Interner;
 
 import java.io.Serializable;
 import java.util.Objects;
@@ -34,6 +35,8 @@ import java.util.Objects;
  * @author David B. Bracewell
  */
 public final class Feature implements Serializable, Comparable<Feature>, Copyable<Feature> {
+   private static final Interner<String> featureInterner = new Interner<>();
+
    private static final long serialVersionUID = 1L;
    /**
     * The name of the feature (e.g. <code>W=Apollo</code>)
@@ -45,7 +48,7 @@ public final class Feature implements Serializable, Comparable<Feature>, Copyabl
    public final double value;
 
    private Feature(String name, double value) {
-      this.name = name;
+      this.name = featureInterner.intern(name);
       this.value = value;
    }
 
@@ -90,16 +93,16 @@ public final class Feature implements Serializable, Comparable<Feature>, Copyabl
    }
 
    /**
-    * Gets name.
+    * Gets the feature name.
     *
-    * @return the name
+    * @return the name of the feature
     */
    public String getName() {
       return name;
    }
 
    /**
-    * Gets value.
+    * Gets the value of the feature.
     *
     * @return the value
     */
@@ -124,6 +127,6 @@ public final class Feature implements Serializable, Comparable<Feature>, Copyabl
 
    @Override
    public String toString() {
-      return "Feature(name=" + name + ", value=" + value + ")";
+      return "Feature(" + name + " => " + value + ")";
    }
 }//END OF Feature

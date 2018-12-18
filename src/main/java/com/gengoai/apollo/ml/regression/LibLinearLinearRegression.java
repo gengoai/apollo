@@ -1,28 +1,32 @@
-package com.gengoai.apollo.ml.classification;
+package com.gengoai.apollo.ml.regression;
 
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.ml.FitParameters;
 import com.gengoai.apollo.ml.LibLinear;
 import com.gengoai.conversion.Cast;
 import com.gengoai.function.SerializableSupplier;
-import com.gengoai.logging.Loggable;
 import com.gengoai.stream.MStream;
 import de.bwaldvogel.liblinear.Model;
 import de.bwaldvogel.liblinear.Parameter;
 import de.bwaldvogel.liblinear.SolverType;
 
 /**
- * The type Lib linear model.
+ * <p>Regression model using LibLinear</p>
  *
  * @author David B. Bracewell
  */
-public class LibLinearModel implements Classifier, Loggable {
+public class LibLinearLinearRegression implements Regression {
    private static final long serialVersionUID = 1L;
-   private int biasIndex = -1;
    private Model model;
+   private int biasIndex;
+
+   @Override
+   public NDArray estimate(NDArray data) {
+      return LibLinear.estimate(model, data, biasIndex);
+   }
 
    /**
-    * Specialized fit method taking the LibLinear Parameters object.
+    * Specialized fit method that takes a Parameters object.
     *
     * @param dataSupplier  the data supplier
     * @param fitParameters the fit parameters
@@ -30,7 +34,7 @@ public class LibLinearModel implements Classifier, Loggable {
    public void fit(SerializableSupplier<MStream<NDArray>> dataSupplier, Parameters fitParameters) {
       biasIndex = (fitParameters.bias ? fitParameters.numFeatures + 1 : -1);
       model = LibLinear.fit(dataSupplier,
-                            new Parameter(fitParameters.solver,
+                            new Parameter(SolverType.L2R_L2LOSS_SVR,
                                           fitParameters.C,
                                           fitParameters.eps,
                                           fitParameters.maxIterations,
@@ -42,18 +46,13 @@ public class LibLinearModel implements Classifier, Loggable {
    }
 
    @Override
-   public void fit(SerializableSupplier<MStream<NDArray>> dataSupplier, FitParameters parameters) {
-      fit(dataSupplier, Cast.as(parameters, Parameters.class));
+   public void fit(SerializableSupplier<MStream<NDArray>> dataSupplier, FitParameters fitParameters) {
+      fit(dataSupplier, Cast.as(fitParameters, Parameters.class));
    }
 
    @Override
-   public Parameters getDefaultFitParameters() {
+   public FitParameters getDefaultFitParameters() {
       return new Parameters();
-   }
-
-   @Override
-   public NDArray estimate(NDArray data) {
-      return LibLinear.estimate(model, data, biasIndex);
    }
 
    @Override
@@ -61,10 +60,6 @@ public class LibLinearModel implements Classifier, Loggable {
       return model.getNrFeature();
    }
 
-   @Override
-   public int getNumberOfLabels() {
-      return model.getNrClass();
-   }
 
    /**
     * Custom fit parameters for LibLinear
@@ -84,10 +79,6 @@ public class LibLinearModel implements Classifier, Loggable {
        */
       public double eps = 0.0001;
       /**
-       * The Solver to use. (default L2R_LR)
-       */
-      public SolverType solver = SolverType.L2R_LR;
-      /**
        * The maximum number of iterations to run the trainer (Default 1000)
        */
       public int maxIterations = 1000;
@@ -98,4 +89,5 @@ public class LibLinearModel implements Classifier, Loggable {
       public double p = 0.1;
 
    }
-}//END OF LibLinearModel
+
+}//END OF MultivariateLinearRegression

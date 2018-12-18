@@ -1,14 +1,16 @@
 package com.gengoai.apollo.ml.vectorizer;
 
 import com.gengoai.Validation;
-import com.gengoai.apollo.ml.Dataset;
+import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.collection.HashMapIndex;
 import com.gengoai.collection.Index;
+import com.gengoai.collection.Sets;
 import com.gengoai.collection.Streams;
 import com.gengoai.json.JsonEntry;
 import com.gengoai.reflection.Types;
 
 import java.lang.reflect.Type;
+import java.util.Set;
 
 /**
  * @author David B. Bracewell
@@ -49,6 +51,11 @@ public class IndexVectorizer extends StringVectorizer {
 
    public static IndexVectorizer labelVectorizer() {
       return new IndexVectorizer(true);
+   }
+
+   @Override
+   public Set<String> alphabet() {
+      return Sets.asHashSet(index);
    }
 
    @Override

@@ -6,6 +6,7 @@ import com.gengoai.collection.Streams;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -191,15 +192,6 @@ public abstract class Example implements Copyable<Example>, Iterable<Example>, S
    }
 
    /**
-    * Checks if this example is composed of multiple examples
-    *
-    * @return True if the example is composed of multiple examples, False otherwise
-    */
-   public boolean isMultiExample() {
-      return !isSingleExample();
-   }
-
-   /**
     * Checks if the example's label has multiple values or not
     *
     * @return True if the example represents a multi-label example, False otherwise
@@ -211,17 +203,31 @@ public abstract class Example implements Copyable<Example>, Iterable<Example>, S
       return false;
    }
 
-   /**
-    * Checks if this example is a single example or not, which means that labels and features are retrievable.
-    *
-    * @return True if this is a single example, False if not.
-    */
-   public abstract boolean isSingleExample();
 
    @Override
    public ContextualIterator iterator() {
       return new ContextualIterator(this);
    }
+
+   /**
+    * Generates a new example from this one passing the features through the given mapper. The mapper returns an
+    * <code>Optional</code> for cases where the feature should be dropped. The resulting example will have the same
+    * weight and label.
+    *
+    * @param mapper the mapper
+    * @return the modified example
+    */
+   public Example mapFeatures(Function<? super Feature, Optional<Feature>> mapper) {
+      throw new UnsupportedOperationException();
+   }
+
+   /**
+    * Maps each of the instances of this example.
+    *
+    * @param mapper the mapper
+    * @return the example
+    */
+   public abstract Example mapInstance(Function<Instance, Instance> mapper);
 
    /**
     * The number of examples represented. For multi-example examples this is the number of sub-examples and for non
@@ -231,21 +237,13 @@ public abstract class Example implements Copyable<Example>, Iterable<Example>, S
     */
    public abstract int size();
 
-
    /**
-    * Map example.
+    * Creates a stream across the examples in this example
     *
-    * @param mapper the mapper
-    * @return the example
+    * @return the stream of examples
     */
-   public abstract Example mapFeatures(Function<? super Feature, ? extends Feature> mapper);
-
-   /**
-    * Map label example.
-    *
-    * @param mapper the mapper
-    * @return the example
-    */
-   public abstract Example mapLabel(Function<? super Object, ? extends Object> mapper);
+   public Stream<Example> stream() {
+      return Streams.asStream(this);
+   }
 
 }//END OF Example

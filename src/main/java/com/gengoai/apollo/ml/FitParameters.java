@@ -1,5 +1,7 @@
 package com.gengoai.apollo.ml;
 
+import com.gengoai.Parameters;
+
 /**
  * @author David B. Bracewell
  */

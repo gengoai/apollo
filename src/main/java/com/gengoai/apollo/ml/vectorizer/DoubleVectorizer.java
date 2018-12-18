@@ -3,7 +3,7 @@ package com.gengoai.apollo.ml.vectorizer;
 import com.gengoai.Validation;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
-import com.gengoai.apollo.ml.Dataset;
+import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.json.JsonEntry;
 

@@ -2,13 +2,17 @@ package com.gengoai.apollo.ml.classification;
 
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.ml.*;
+import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
+import com.gengoai.apollo.ml.preprocess.PreprocessorList;
 import com.gengoai.apollo.ml.vectorizer.BinaryVectorizer;
 import com.gengoai.apollo.ml.vectorizer.IndexVectorizer;
 import com.gengoai.apollo.ml.vectorizer.Vectorizer;
 import com.gengoai.conversion.Cast;
 import com.gengoai.function.SerializableSupplier;
 import com.gengoai.stream.MStream;
+
+import static com.gengoai.Validation.notNull;
 
 /**
  * <p>Wraps a {@link Classifier} allowing it to work directly with {@link Dataset}s and {@link Example}s instead of
@@ -20,6 +24,37 @@ public class PipelinedClassifier extends PipelinedModel implements Classifier {
    private static final long serialVersionUID = 1L;
    private final Classifier classifier;
 
+
+   /**
+    * Instantiates a new Pipelined classifier.
+    *
+    * @param classifier        the classifier
+    * @param indexVectorizer   the index vectorizer
+    * @param featureVectorizer the feature vectorizer
+    * @param preprocessors     the preprocessors
+    */
+   public PipelinedClassifier(Classifier classifier,
+                              Vectorizer<String> indexVectorizer,
+                              Vectorizer<String> featureVectorizer,
+                              Preprocessor... preprocessors
+                             ) {
+      super(indexVectorizer, featureVectorizer, new PreprocessorList(preprocessors));
+      this.classifier = classifier;
+   }
+
+   /**
+    * Instantiates a new Pipelined classifier.
+    *
+    * @param classifier        the classifier
+    * @param featureVectorizer the feature vectorizer
+    * @param preprocessors     the preprocessors
+    */
+   public PipelinedClassifier(Classifier classifier,
+                              Vectorizer<String> featureVectorizer,
+                              Preprocessor... preprocessors
+                             ) {
+      this(classifier, IndexVectorizer.labelVectorizer(), featureVectorizer, preprocessors);
+   }
 
    /**
     * Creates a {@link PipelinedClassifier} for binary problems
@@ -78,56 +113,16 @@ public class PipelinedClassifier extends PipelinedModel implements Classifier {
                                      preprocessors);
    }
 
-   /**
-    * Instantiates a new Pipelined classifier.
-    *
-    * @param classifier        the classifier
-    * @param indexVectorizer   the index vectorizer
-    * @param featureVectorizer the feature vectorizer
-    * @param preprocessors     the preprocessors
-    */
-   public PipelinedClassifier(Classifier classifier,
-                              Vectorizer<String> indexVectorizer,
-                              Vectorizer<String> featureVectorizer,
-                              Preprocessor... preprocessors
-                             ) {
-      super(indexVectorizer, featureVectorizer, new PreprocessorList(preprocessors));
-      this.classifier = classifier;
-   }
-
-   /**
-    * Instantiates a new Pipelined classifier.
-    *
-    * @param classifier        the classifier
-    * @param featureVectorizer the feature vectorizer
-    * @param preprocessors     the preprocessors
-    */
-   public PipelinedClassifier(Classifier classifier,
-                              Vectorizer<String> featureVectorizer,
-                              Preprocessor... preprocessors
-                             ) {
-      this(classifier, IndexVectorizer.labelVectorizer(), featureVectorizer, preprocessors);
-   }
-
-   @Override
-   public Classifier copy() {
-      PipelinedClassifier copy = new PipelinedClassifier(classifier.copy(), Cast.as(featureVectorizer));
-      preprocessors.forEach(p -> copy.preprocessors.add(p.copy()));
-      return copy;
-   }
-
    @Override
    public NDArray estimate(NDArray data) {
       return classifier.estimate(data);
    }
 
    @Override
-   public ClassifierEvaluation evaluate(Dataset evaluationData) {
-      ClassifierEvaluation eval = getNumberOfLabels() == 2
-                                  ? new BinaryEvaluation(getLabelVectorizer().decode(1.0).toString())
-                                  : new MultiClassEvaluation(this);
-      eval.evaluate(this, evaluationData);
-      return eval;
+   public Evaluation evaluate(Dataset evaluationData, Evaluation evaluation) {
+      ClassifierEvaluation ceval = notNull(Cast.as(evaluation, ClassifierEvaluation.class));
+      evaluationData.forEach(d -> ceval.entry(d.getLabelAsString(), predict(d)));
+      return evaluation;
    }
 
    @Override

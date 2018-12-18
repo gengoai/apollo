@@ -4,7 +4,9 @@ import com.gengoai.apollo.linear.Axis;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.ml.FitParameters;
+import com.gengoai.apollo.optimization.TerminationCriteria;
 import com.gengoai.collection.Iterables;
+import com.gengoai.conversion.Cast;
 import com.gengoai.function.SerializableSupplier;
 import com.gengoai.stream.MStream;
 
@@ -35,6 +37,17 @@ public class GreedyAvgPerceptron implements SequenceLabeler {
 
    @Override
    public void fit(SerializableSupplier<MStream<NDArray>> dataSupplier, FitParameters parameters) {
+      fit(dataSupplier, Cast.as(parameters, Parameters.class));
+
+   }
+
+   /**
+    * Fit.
+    *
+    * @param dataSupplier the data supplier
+    * @param parameters   the parameters
+    */
+   public void fit(SerializableSupplier<MStream<NDArray>> dataSupplier, Parameters parameters) {
       this.featureWeights = NDArrayFactory.SPARSE.zeros(parameters.numFeatures, parameters.numLabels);
       this.transitionWeights = NDArrayFactory.SPARSE.zeros(parameters.numLabels + 1, parameters.numLabels);
       this.bias = NDArrayFactory.SPARSE.zeros(parameters.numLabels);
@@ -47,8 +60,11 @@ public class GreedyAvgPerceptron implements SequenceLabeler {
       final NDArray bTimestamps = bias.copy();
 
       int instances = 0;
-
-      for (int i = 0; i < 2; i++) {
+      TerminationCriteria terminationCriteria = TerminationCriteria.create()
+                                                                   .historySize(parameters.historySize)
+                                                                   .maxIterations(parameters.maxIterations)
+                                                                   .tolerance(parameters.eps);
+      for (int i = 0; i < terminationCriteria.maxIterations(); i++) {
          double total = 0;
          double correct = 0;
 
@@ -75,7 +91,11 @@ public class GreedyAvgPerceptron implements SequenceLabeler {
                pLabel = gold;
             }
          }
-         System.out.println(String.format("Iteration %d complete. %.3f accuracy", i + 1, (correct / total) * 100));
+         double acc = (correct / total) * 100;
+         System.out.println(String.format("Iteration %d complete. %.3f accuracy", i + 1, acc));
+         if (terminationCriteria.check(100 - acc)) {
+            break;
+         }
       }
 
       fTotals.addi(fTimestamps.rsub(instances).mul(featureWeights));
@@ -88,8 +108,8 @@ public class GreedyAvgPerceptron implements SequenceLabeler {
    }
 
    @Override
-   public FitParameters getDefaultFitParameters() {
-      return new FitParameters();
+   public Parameters getDefaultFitParameters() {
+      return new Parameters();
    }
 
    @Override
@@ -99,17 +119,32 @@ public class GreedyAvgPerceptron implements SequenceLabeler {
 
    @Override
    public int getNumberOfLabels() {
-      return (int)bias.length();
+      return (int) bias.length();
    }
 
+
    /**
-    * Predict float.
-    *
-    * @param row    the row
-    * @param pLabel the p label
-    * @return the float
+    * Custom fit parameters for the GreedyAveragePerceptron
     */
-   protected float predict(NDArray row, int pLabel) {
+   public static class Parameters extends FitParameters {
+      private static final long serialVersionUID = 1L;
+      /**
+       * The maximum number of iterations to run for
+       */
+      public int maxIterations = 100;
+      /**
+       * The epsilon to use for checking for convergence.
+       */
+      public double eps = 1e-5;
+
+      /**
+       * The number of iterations to use for determining convergence
+       */
+      public int historySize = 3;
+   }
+
+
+   private float predict(NDArray row, int pLabel) {
       NDArray scores = row.mmul(featureWeights);
       scores.addi(transitionWeights.getVector(pLabel, Axis.ROW))
             .addi(bias);

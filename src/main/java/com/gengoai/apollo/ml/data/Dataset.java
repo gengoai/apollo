@@ -1,6 +1,8 @@
-package com.gengoai.apollo.ml;
+package com.gengoai.apollo.ml.data;
 
 import com.gengoai.Copyable;
+import com.gengoai.apollo.ml.Example;
+import com.gengoai.apollo.ml.Split;
 import com.gengoai.collection.counter.Counter;
 import com.gengoai.conversion.Cast;
 import com.gengoai.function.SerializableFunction;
@@ -109,6 +111,14 @@ public abstract class Dataset implements Iterable<Example>, Copyable<Dataset>, S
    public Dataset map(SerializableFunction<? super Example, ? extends Example> function) {
       return newSimilarDataset(stream().map(function));
    }
+
+   /**
+    * Applies the given function modifying the instances of this dataset.
+    *
+    * @param function The function to apply to the examples
+    * @return This dataset
+    */
+   public abstract Dataset mapSelf(SerializableFunction<? super Example, ? extends Example> function);
 
    /**
     * New similar dataset dataset.

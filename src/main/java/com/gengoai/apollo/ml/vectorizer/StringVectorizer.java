@@ -6,6 +6,7 @@ import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.Feature;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author David B. Bracewell
@@ -36,5 +37,7 @@ public abstract class StringVectorizer implements Vectorizer<String> {
       }
       return ndArray;
    }
+
+   public abstract Set<String> alphabet();
 
 }//END OF StringVectorizer

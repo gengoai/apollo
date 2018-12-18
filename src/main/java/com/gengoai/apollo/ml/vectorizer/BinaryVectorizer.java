@@ -1,6 +1,9 @@
 package com.gengoai.apollo.ml.vectorizer;
 
-import com.gengoai.apollo.ml.Dataset;
+import com.gengoai.apollo.ml.data.Dataset;
+import com.gengoai.collection.Sets;
+
+import java.util.Set;
 
 /**
  * <p>Specialized vectorizer to encode binary classes (0/1).</p>
@@ -28,6 +31,11 @@ public class BinaryVectorizer extends StringVectorizer {
    public BinaryVectorizer(String trueLabel, String falseLabel) {
       this.trueLabel = trueLabel;
       this.falseLabel = falseLabel;
+   }
+
+   @Override
+   public Set<String> alphabet() {
+      return Sets.hashSetOf(falseLabel, trueLabel);
    }
 
    @Override

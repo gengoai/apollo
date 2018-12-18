@@ -19,23 +19,39 @@ import java.io.Serializable;
 import java.util.Base64;
 import java.util.List;
 
+import static com.gengoai.Validation.notNull;
 import static com.gengoai.tuple.Tuples.$;
 
 /**
- * The type Crf.
+ * <p>Conditional Random Field sequence labeler wrapping CRFSuite.</p>
  *
  * @author David B. Bracewell
  */
 public class Crf implements SequenceLabeler, Serializable {
    private static final long serialVersionUID = 1L;
    private String modelFile;
-   private volatile CrfTagger tagger;
    private int numberOfFeatures = 0;
+   private volatile CrfTagger tagger;
 
+   @Override
+   public NDArray estimate(NDArray sequence) {
+      CrfSuiteLoader.INSTANCE.load();
+      sequence.sliceStream()
+              .forEach(p -> {
+                 Tuple2<ItemSequence, StringList> seq = toItemSequence(p.v2, false);
+                 List<Pair<String, Double>> tags = tagger.tag(seq.v1);
+                 NDArray labels = NDArrayFactory.DENSE.zeros(1, tags.size());
+                 for (int i = 0; i < tags.size(); i++) {
+                    labels.set(i, Integer.parseInt(tags.get(i).first));
+                 }
+                 p.v2.setPredicted(labels);
+              });
+      return sequence;
+   }
 
    @Override
    public void fit(SerializableSupplier<MStream<NDArray>> dataSupplier, FitParameters parameters) {
-      Parameters fitParameters = Cast.as(parameters, Parameters.class);
+      Parameters fitParameters = Cast.as(notNull(parameters), Parameters.class);
       CrfSuiteLoader.INSTANCE.load();
       Trainer trainer = new Trainer();
       this.numberOfFeatures = fitParameters.numFeatures;
@@ -48,6 +64,9 @@ public class Crf implements SequenceLabeler, Serializable {
       trainer.select(fitParameters.crfSolver.parameterSetting, "crf1d");
       trainer.set("max_iterations", Integer.toString(fitParameters.maxIterations));
       trainer.set("c2", Double.toString(fitParameters.c2));
+      trainer.set("c1", Double.toString(fitParameters.c1));
+      trainer.set("epsilon", Double.toString(fitParameters.eps));
+      trainer.set("feature.minfreq", Integer.toString(fitParameters.minFeatureFreq));
       modelFile = Resources.temporaryFile().asFile().get().getAbsolutePath();
       trainer.train(modelFile, -1);
       trainer.clear();
@@ -59,6 +78,15 @@ public class Crf implements SequenceLabeler, Serializable {
       return new Crf.Parameters();
    }
 
+   @Override
+   public int getNumberOfFeatures() {
+      return numberOfFeatures;
+   }
+
+   @Override
+   public int getNumberOfLabels() {
+      return tagger.getlabels().size();
+   }
 
    private void readObject(java.io.ObjectInputStream stream) throws IOException, ClassNotFoundException {
       CrfSuiteLoader.INSTANCE.load();
@@ -96,55 +124,43 @@ public class Crf implements SequenceLabeler, Serializable {
       return $(seq, labels);
    }
 
-   @Override
-   public NDArray estimate(NDArray sequence) {
-      CrfSuiteLoader.INSTANCE.load();
-      sequence.sliceStream()
-              .forEach(p -> {
-                 Tuple2<ItemSequence, StringList> seq = toItemSequence(p.v2, false);
-                 List<Pair<String, Double>> tags = tagger.tag(seq.v1);
-                 NDArray labels = NDArrayFactory.DENSE.zeros(1, tags.size());
-                 for (int i = 0; i < tags.size(); i++) {
-                    labels.set(i, Integer.parseInt(tags.get(i).first));
-                 }
-                 p.v2.setPredicted(labels);
-              });
-      return sequence;
-   }
-
    private void writeObject(java.io.ObjectOutputStream stream) throws IOException {
       byte[] modelBytes = Base64.getEncoder().encode(Resources.from(modelFile).readBytes());
       stream.writeInt(modelBytes.length);
       stream.write(modelBytes);
    }
 
-   @Override
-   public int getNumberOfFeatures() {
-      return numberOfFeatures;
-   }
-
-   @Override
-   public int getNumberOfLabels() {
-      return tagger.getlabels().size();
-   }
-
    /**
-    * The type Parameters.
+    * Specialized Fit Parameters for use with CRFSuite.
     */
    public static class Parameters extends FitParameters {
       private static final long serialVersionUID = 1L;
       /**
-       * The C 2.
+       * The coefficient for L2 regularization (default 1.0)
        */
       public double c2 = 1.0;
       /**
-       * The Max iterations.
+       * The coefficient for L1 regularization (default 0.0 - not used)
        */
-      public int maxIterations = 50;
+      public double c1 = 0;
       /**
-       * The Solver.
+       * The type of solver to use (defaults to LBFGS)
        */
       public CrfSolver crfSolver = CrfSolver.LBFGS;
+      /**
+       * The maximum number of iterations (defaults to 200)
+       */
+      public int maxIterations = 200;
+      /**
+       * The minimumn number of times a feature must appear to be kept (default 0 - keep all)
+       */
+      public int minFeatureFreq = 0;
+      /**
+       * The epsilon parameter to determine convergence (default is 1e-5)
+       */
+      public double eps = 1e-5;
+
+
    }
 
 }//END OF Crf

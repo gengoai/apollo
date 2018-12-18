@@ -21,28 +21,35 @@
 
 package com.gengoai.apollo.ml.classification;
 
-import com.gengoai.Validation;
+import com.gengoai.apollo.linear.Axis;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
-import com.gengoai.apollo.ml.Dataset;
 import com.gengoai.apollo.ml.Evaluation;
-import com.gengoai.apollo.ml.Example;
+import com.gengoai.apollo.ml.FitParameters;
+import com.gengoai.apollo.ml.Split;
+import com.gengoai.apollo.ml.data.Dataset;
+import com.gengoai.apollo.ml.vectorizer.IndexVectorizer;
 import com.gengoai.apollo.ml.vectorizer.Vectorizer;
 import com.gengoai.collection.counter.Counter;
 import com.gengoai.collection.counter.Counters;
-import com.gengoai.collection.counter.HashMapMultiCounter;
-import com.gengoai.collection.counter.MultiCounter;
 import com.gengoai.conversion.Cast;
 import com.gengoai.logging.Logger;
-import com.gengoai.stream.MStream;
+import com.gengoai.math.Math2;
 import com.gengoai.string.Strings;
 import com.gengoai.string.TableFormatter;
-import com.gengoai.tuple.Tuple2;
 
 import java.io.PrintStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.stream.IntStream;
+
+import static com.gengoai.Validation.checkArgument;
+import static com.gengoai.Validation.checkState;
 
 /**
  * Provides various common metrics for measuring the quality of classifiers.
@@ -53,59 +60,94 @@ public class MultiClassEvaluation implements ClassifierEvaluation {
    private static final Logger log = Logger.getLogger(MultiClassEvaluation.class);
    private static final long serialVersionUID = 1L;
    private final NDArray confusionMatrix;
-   private final Vectorizer<String> labelVectorizer;
-   private final MultiCounter<String, String> matrix = new HashMapMultiCounter<>();
+   private final int numberOfLabels;
+   private Vectorizer<String> labelVectorizer = null;
    private double total = 0;
 
+   /**
+    * Instantiates a new Multi class evaluation.
+    *
+    * @param classifier the classifier
+    */
    public MultiClassEvaluation(PipelinedClassifier classifier) {
-      this(classifier.getNumberOfLabels(), classifier.getLabelVectorizer());
+      this(classifier.getLabelVectorizer());
    }
 
+   /**
+    * Instantiates a new Multi class evaluation.
+    *
+    * @param numberOfLabels the number of labels
+    */
    public MultiClassEvaluation(int numberOfLabels) {
-      this(numberOfLabels, null);
+      this.numberOfLabels = numberOfLabels;
+      this.confusionMatrix = NDArrayFactory.SPARSE.zeros(numberOfLabels, numberOfLabels);
    }
 
-   public MultiClassEvaluation(int numberOfLabels, Vectorizer<String> vectorizer) {
-      this.confusionMatrix = NDArrayFactory.DENSE.zeros(numberOfLabels, numberOfLabels);
+   /**
+    * Instantiates a new Multi class evaluation.
+    *
+    * @param vectorizer the vectorizer
+    */
+   public MultiClassEvaluation(Vectorizer<String> vectorizer) {
       this.labelVectorizer = vectorizer;
+      this.numberOfLabels = vectorizer.size();
+      this.confusionMatrix = NDArrayFactory.SPARSE.zeros(numberOfLabels, numberOfLabels);
    }
-
-//   /**
-//    * Cross validation classifier evaluation.
-//    *
-//    * @param dataset         the dataset
-//    * @param learnerSupplier the learner supplier
-//    * @param nFolds          the n folds
-//    * @return the classifier evaluation
-//    */
-//   public static MultiClassEvaluation crossValidation(Dataset dataset,
-//                                                      Supplier<PipelinedClassifier> learnerSupplier,
-//                                                      int nFolds
-//                                                     ) {
-//      MultiClassEvaluation evaluation = new MultiClassEvaluation();
-//      AtomicInteger foldId = new AtomicInteger(0);
-//      for (Split split : dataset.fold(nFolds)) {
-//         log.info("Running fold {0}", foldId.incrementAndGet());
-//         PipelinedClassifier model = learnerSupplier.get();
-//         model.fit(split.train);
-//         evaluation.evaluate(model, split.test);
-//         log.info("Fold {0}: Cumulative Metrics(microP={1}, microR={2}, microF1={3})", foldId.get(),
-//                  evaluation.microPrecision(),
-//                  evaluation.microRecall(),
-//                  evaluation.microF1());
-//      }
-//      return evaluation;
-//   }
-
 
    @Override
    public double accuracy() {
-      double correct = matrix.firstKeys().stream()
-                             .mapToDouble(k -> matrix.get(k, k))
-                             .sum();
+      double correct = 0;
+      for (int i = 0; i < numberOfLabels; i++) {
+         correct += confusionMatrix.get(i, i);
+      }
       return correct / total;
    }
 
+   public static MultiClassEvaluation crossValidation(Dataset dataset,
+                                                      PipelinedClassifier classifier,
+                                                      Consumer<? extends FitParameters> updater,
+                                                      int nFolds
+                                                     ) {
+      FitParameters parameters = classifier.getDefaultFitParameters();
+      updater.accept(Cast.as(parameters));
+      return crossValidation(dataset, classifier, parameters, nFolds);
+   }
+
+   /**
+    * Cross validation multi class evaluation.
+    *
+    * @param dataset       the dataset
+    * @param classifier    the classifier
+    * @param fitParameters the fit parameters
+    * @param nFolds        the n folds
+    * @return the multi class evaluation
+    */
+   public static MultiClassEvaluation crossValidation(Dataset dataset,
+                                                      PipelinedClassifier classifier,
+                                                      FitParameters fitParameters,
+                                                      int nFolds
+                                                     ) {
+
+      IndexVectorizer vectorizer = IndexVectorizer.labelVectorizer();
+      vectorizer.fit(dataset);
+
+      MultiClassEvaluation evaluation = new MultiClassEvaluation(vectorizer);
+      AtomicInteger foldId = new AtomicInteger(0);
+      for (Split split : dataset.fold(nFolds)) {
+         if (fitParameters.verbose) {
+            log.info("Running fold {0}", foldId.incrementAndGet());
+         }
+         classifier.fit(split.train, fitParameters);
+         classifier.evaluate(split.test, evaluation);
+         if (fitParameters.verbose) {
+            log.info("Fold {0}: Cumulative Metrics(microP={1}, microR={2}, microF1={3})", foldId.get(),
+                     evaluation.microPrecision(),
+                     evaluation.microRecall(),
+                     evaluation.microF1());
+         }
+      }
+      return evaluation;
+   }
 
    /**
     * Calculate the diagnostic odds ratio for the given label
@@ -117,28 +159,23 @@ public class MultiClassEvaluation implements ClassifierEvaluation {
       return positiveLikelihoodRatio(label) / negativeLikelihoodRatio(label);
    }
 
-   /**
-    * Adds a prediction entry to the evaluation.
-    *
-    * @param gold      the gold, or actual, label
-    * @param predicted the model predicted label
-    */
-   public void entry(String gold, String predicted) {
-      matrix.increment(gold, predicted);
+
+   @Override
+   public void entry(String gold, Classification predicted) {
+      entry(labelVectorizer.encode(gold),
+            labelVectorizer.encode(predicted.getResult()));
+   }
+
+   @Override
+   public void entry(double gold, double predicted) {
+      confusionMatrix.increment((int) gold, (int) predicted, 1.0);
       total++;
    }
 
    @Override
-   public void evaluate(PipelinedClassifier model, Dataset dataset) {
-      dataset.stream()
-             .filter(Example::hasLabel)
-             .mapToPair(instance -> Tuple2.of(instance.getLabel().toString(), model.predict(instance).getResult()))
-             .forEachLocal(this::entry);
-   }
-
-   @Override
-   public void evaluate(Classifier model, MStream<NDArray> dataset) {
-      dataset.forEach(instance -> entry(instance.getLabel().toString(), model.predict(instance).getResult()));
+   public void entry(NDArray entry) {
+      entry(getMax(entry.getLabelAsNDArray()),
+            getMax(entry.getPredictedAsNDArray()));
    }
 
    private double f1(double p, double r) {
@@ -160,15 +197,39 @@ public class MultiClassEvaluation implements ClassifierEvaluation {
    }
 
    /**
+    * Calculates the F1-measure for the given label, which is calculated as <code>(2 * precision(label) * recall(label))
+    * / (precision(label) + recall(label)</code>
+    *
+    * @param label the label to calculate the F1 measure for
+    * @return the f1 measure
+    */
+   public double f1(double label) {
+      return f1(precision(label), recall(label));
+   }
+
+   /**
     * Calculates the F1 measure for each class
     *
     * @return a Counter where the items are labels and the values are F1 scores
     */
-   public Counter<String> f1PerClass() {
+   public Counter<String> labeledF1PerClass() {
       Counter<String> f1 = Counters.newCounter();
-      Counter<String> p = precisionPerClass();
-      Counter<String> r = recallPerClass();
-      matrix.firstKeys().forEach(k -> f1.set(k, f1(p.get(k), r.get(k))));
+      for (int i = 0; i < numberOfLabels; i++) {
+         f1.set(labelVectorizer.decode(i), f1(i));
+      }
+      return f1;
+   }
+
+   /**
+    * Calculates the F1 measure for each class
+    *
+    * @return a Counter where the items are labels and the values are F1 scores
+    */
+   public double[] f1PerClass() {
+      double[] f1 = new double[numberOfLabels];
+      for (int i = 0; i < numberOfLabels; i++) {
+         f1[i] = f1(i);
+      }
       return f1;
    }
 
@@ -179,6 +240,17 @@ public class MultiClassEvaluation implements ClassifierEvaluation {
     * @return the false negative rate
     */
    public double falseNegativeRate(String label) {
+      checkState(labelVectorizer != null, "A label vectorizer is not set.");
+      return falseNegativeRate(labelVectorizer.encode(label));
+   }
+
+   /**
+    * Calculates the false negative rate of the given label
+    *
+    * @param label the label to calculate the false negative rate of
+    * @return the false negative rate
+    */
+   public double falseNegativeRate(double label) {
       double tp = truePositives(label);
       double fn = falseNegatives(label);
       if (tp + fn == 0) {
@@ -187,11 +259,15 @@ public class MultiClassEvaluation implements ClassifierEvaluation {
       return fn / (tp + fn);
    }
 
-
    @Override
    public double falseNegatives() {
-      return matrix.firstKeys().stream().mapToDouble(k -> matrix.get(k).sum() - matrix.get(k, k)).sum();
+      double sum = 0;
+      for (int i = 0; i < numberOfLabels; i++) {
+         sum += falseNegatives(i);
+      }
+      return sum;
    }
+
 
    /**
     * Calculates the number of false negatives for the given label
@@ -200,9 +276,21 @@ public class MultiClassEvaluation implements ClassifierEvaluation {
     * @return the number of false negatives
     */
    public double falseNegatives(String label) {
-      return matrix.get(label).sum() - matrix.get(label, label);
+      checkState(labelVectorizer != null, "A label vectorizer is not set.");
+      return falseNegatives(labelVectorizer.encode(label));
    }
 
+
+   /**
+    * Calculates the number of false negatives for the given label
+    *
+    * @param label the label to calculate the number of false negatives of
+    * @return the number of false negatives
+    */
+   public double falseNegatives(double label) {
+      return confusionMatrix.getVector((int) label, Axis.ROW).scalarSum() - confusionMatrix.get((int) label,
+                                                                                                (int) label);
+   }
 
    /**
     * Calculates the false positive rate of the given label
@@ -211,6 +299,17 @@ public class MultiClassEvaluation implements ClassifierEvaluation {
     * @return the false positive rate
     */
    public double falsePositiveRate(String label) {
+      checkState(labelVectorizer != null, "A label vectorizer is not set.");
+      return falsePositiveRate(labelVectorizer.encode(label));
+   }
+
+   /**
+    * Calculates the false positive rate of the given label
+    *
+    * @param label the label to calculate the false positive rate for
+    * @return the false positive rate
+    */
+   public double falsePositiveRate(double label) {
       double tn = trueNegatives(label);
       double fp = falsePositives(label);
       if (tn + fp == 0) {
@@ -219,21 +318,13 @@ public class MultiClassEvaluation implements ClassifierEvaluation {
       return fp / (tn + fp);
    }
 
-
    @Override
    public double falsePositives() {
-      return matrix.firstKeys()
-                   .stream()
-                   .mapToDouble(k -> {
-                                   double fp = 0;
-                                   for (String o : matrix.firstKeys()) {
-                                      if (!o.equals(k)) {
-                                         fp += matrix.get(o, k);
-                                      }
-                                   }
-                                   return fp;
-                                }
-                               ).sum();
+      double fp = 0;
+      for (int i = 0; i < numberOfLabels; i++) {
+         fp += falsePositives(i);
+      }
+      return fp;
    }
 
    /**
@@ -243,22 +334,31 @@ public class MultiClassEvaluation implements ClassifierEvaluation {
     * @return the number of false positives
     */
    public double falsePositives(String label) {
+      checkState(labelVectorizer != null, "A label vectorizer is not set.");
+      return falsePositives(labelVectorizer.encode(label));
+   }
+
+   /**
+    * Calculates the number of false positives for the given label
+    *
+    * @param label the label to calculate the number of false positives for
+    * @return the number of false positives
+    */
+   public double falsePositives(double label) {
       double fp = 0;
-      for (String o : matrix.firstKeys()) {
-         if (!o.equals(label)) {
-            fp += matrix.get(o, label);
+      for (int i = 0; i < numberOfLabels; i++) {
+         if (i != label) {
+            fp += confusionMatrix.get(i, (int) label);
          }
       }
       return fp;
    }
 
-   /**
-    * Gets the set of labels in the classification
-    *
-    * @return the set of labels
-    */
-   public Set<String> labels() {
-      return matrix.firstKeys();
+   private int getMax(NDArray array) {
+      if (array.isScalar()) {
+         return (int) array.scalarValue();
+      }
+      return (int) array.argMax(Axis.ROW).get(0);
    }
 
    /**
@@ -276,7 +376,7 @@ public class MultiClassEvaluation implements ClassifierEvaluation {
     * @return the macro precision
     */
    public double macroPrecision() {
-      return precisionPerClass().average();
+      return Math2.sum(precisionPerClass()) / numberOfLabels;
    }
 
    /**
@@ -285,17 +385,16 @@ public class MultiClassEvaluation implements ClassifierEvaluation {
     * @return the macro recall
     */
    public double macroRecall() {
-      return recallPerClass().sum() / matrix.firstKeys().size();
+      return Math2.sum(recallPerClass()) / numberOfLabels;
    }
 
    @Override
-   public void merge(Evaluation<Classifier, PipelinedClassifier> evaluation) {
-      if (evaluation != null) {
-         Validation.checkArgument(evaluation instanceof MultiClassEvaluation,
-                                  "Can only merge with other ClassifierEvaluation.");
-         matrix.merge(Cast.<MultiClassEvaluation>as(evaluation).matrix);
-         this.total += Cast.<MultiClassEvaluation>as(evaluation).total;
-      }
+   public void merge(Evaluation evaluation) {
+      checkArgument(evaluation instanceof MultiClassEvaluation,
+                    "Can only merge with other ClassifierEvaluation.");
+      MultiClassEvaluation mce = Cast.as(evaluation);
+      this.confusionMatrix.addi(mce.confusionMatrix);
+      this.total += mce.total;
    }
 
    /**
@@ -346,6 +445,17 @@ public class MultiClassEvaluation implements ClassifierEvaluation {
    }
 
    /**
+    * Calculates the negative likelihood ratio of the given label
+    *
+    * @param label the label to calculate the negative likelihood ratio for
+    * @return the negative likelihood ratio
+    */
+   public double negativeLikelihoodRatio(double label) {
+      return falseNegativeRate(label) / specificity(label);
+   }
+
+
+   /**
     * Outputs the results of the classification as per-class Precision, Recall, and F1 and also includes the confusion
     * matrix.
     *
@@ -356,6 +466,13 @@ public class MultiClassEvaluation implements ClassifierEvaluation {
       output(printStream, true);
    }
 
+
+   private String toLabel(int i) {
+      return labelVectorizer == null
+             ? Integer.toString(i)
+             : labelVectorizer.decode(i);
+   }
+
    /**
     * Outputs the results of the classification as per-class Precision, Recall, and F1 and optionally the confusion
     * matrix.
@@ -364,33 +481,29 @@ public class MultiClassEvaluation implements ClassifierEvaluation {
     * @param printConfusionMatrix True print the confusion matrix, False do not print the confusion matrix.
     */
    public void output(PrintStream printStream, boolean printConfusionMatrix) {
-
-      final Set<String> columns = matrix.entries().stream()
-                                        .flatMap(e -> Stream.of(e.v1, e.v2))
-                                        .distinct()
-                                        .collect(Collectors.toCollection(TreeSet::new));
-
-      Set<String> sorted = new TreeSet<>(matrix.firstKeys());
+      NDArray rowSums = confusionMatrix.sum(Axis.ROW);
+      NDArray colSums = confusionMatrix.sum(Axis.COLUMN);
 
       TableFormatter tableFormatter = new TableFormatter();
       if (printConfusionMatrix) {
          tableFormatter.title("Confusion Matrix");
          tableFormatter.header(Collections.singleton(Strings.EMPTY));
-         tableFormatter.header(columns);
+         tableFormatter.header(IntStream.range(0, numberOfLabels).mapToObj(this::toLabel).collect(Collectors.toList()));
          tableFormatter.header(Collections.singleton("Total"));
-         sorted.forEach(gold -> {
+         for (int i = 0; i < numberOfLabels; i++) {
             List<Object> row = new ArrayList<>();
-            row.add(gold);
-            columns.forEach(c -> row.add((long) matrix.get(gold, c)));
-            row.add((long) matrix.get(gold).sum());
+            row.add(toLabel(i));
+            confusionMatrix.rowIterator(i)
+                           .forEachRemaining(e -> row.add((long) e.getValue()));
+            row.add((long) rowSums.get(i));
             tableFormatter.content(row);
-         });
+         }
          List<Object> totalRow = new ArrayList<>();
          totalRow.add("Total");
-         columns.forEach(c -> totalRow.add((long) matrix.firstKeys().stream()
-                                                        .mapToDouble(k -> matrix.get(k, c))
-                                                        .sum()));
-         totalRow.add((long) matrix.sum());
+         for (int i = 0; i < numberOfLabels; i++) {
+            totalRow.add((long) colSums.get(i));
+         }
+         totalRow.add((long) confusionMatrix.scalarSum());
          tableFormatter.content(totalRow);
          tableFormatter.print(printStream);
          printStream.println();
@@ -402,27 +515,27 @@ public class MultiClassEvaluation implements ClassifierEvaluation {
          .header(Arrays.asList(Strings.EMPTY, "Precision", "Recall", "F1-Measure", "Correct", "Incorrect", "Missed",
                                "Total"));
 
-      sorted.forEach(g ->
-                        tableFormatter.content(Arrays.asList(
-                           g,
-                           precision(g),
-                           recall(g),
-                           f1(g),
-                           matrix.get(g, g),
-                           falsePositives(g),
-                           matrix.get(g).sum() - matrix.get(g, g),
-                           matrix.get(g).sum()
-                                                            ))
-                    );
+      for (int g = 0; g < numberOfLabels; g++) {
+         tableFormatter.content(Arrays.asList(
+            toLabel(g),
+            precision(g),
+            recall(g),
+            f1(g),
+            (long) confusionMatrix.get(g, g),
+            (long) falsePositives(g),
+            (long) rowSums.get(g) - (long) confusionMatrix.get(g, g),
+            (long) rowSums.get(g)));
+      }
+
       tableFormatter.footer(Arrays.asList(
          "micro",
          microPrecision(),
          microRecall(),
          microF1(),
-         truePositives(),
-         falsePositives(),
-         falseNegatives(),
-         total
+         (long) truePositives(),
+         (long) falsePositives(),
+         (long) falseNegatives(),
+         (long) total
                                          ));
       tableFormatter.footer(Arrays.asList(
          "macro",
@@ -438,7 +551,6 @@ public class MultiClassEvaluation implements ClassifierEvaluation {
 
    }
 
-
    /**
     * Calculates the positive likelihood ratio of the given label
     *
@@ -450,6 +562,16 @@ public class MultiClassEvaluation implements ClassifierEvaluation {
    }
 
    /**
+    * Calculates the positive likelihood ratio of the given label
+    *
+    * @param label the label to calculate the positive likelihood ratio for
+    * @return the positive likelihood ratio
+    */
+   public double positiveLikelihoodRatio(double label) {
+      return truePositiveRate(label) / falsePositiveRate(label);
+   }
+
+   /**
     * Calculates the precision of the given label, which is <code>True Positives / (True Positives + False
     * Positives)</code>
     *
@@ -457,6 +579,18 @@ public class MultiClassEvaluation implements ClassifierEvaluation {
     * @return the precision
     */
    public double precision(String label) {
+      checkState(labelVectorizer != null, "A label vectorizer is not set.");
+      return precision(labelVectorizer.encode(label));
+   }
+
+   /**
+    * Calculates the precision of the given label, which is <code>True Positives / (True Positives + False
+    * Positives)</code>
+    *
+    * @param label the label to calculate the precision of
+    * @return the precision
+    */
+   public double precision(double label) {
       double tp = truePositives(label);
       double fp = falsePositives(label);
       if (tp + fp == 0) {
@@ -470,9 +604,25 @@ public class MultiClassEvaluation implements ClassifierEvaluation {
     *
     * @return the counter of precision values
     */
-   public Counter<String> precisionPerClass() {
+   public Counter<String> labeledPrecisionPerClass() {
+      checkState(labelVectorizer != null, "A label vectorizer is not set.");
       Counter<String> precisions = Counters.newCounter();
-      matrix.firstKeys().forEach(k -> precisions.set(k, precision(k)));
+      for (int i = 0; i < numberOfLabels; i++) {
+         precisions.set(labelVectorizer.decode(i), precision(i));
+      }
+      return precisions;
+   }
+
+   /**
+    * Creates a counter where the items are labels and their values are their precision
+    *
+    * @return the counter of precision values
+    */
+   public double[] precisionPerClass() {
+      double[] precisions = new double[numberOfLabels];
+      for (int i = 0; i < numberOfLabels; i++) {
+         precisions[i] = precision(i);
+      }
       return precisions;
    }
 
@@ -484,6 +634,18 @@ public class MultiClassEvaluation implements ClassifierEvaluation {
     * @return the recall
     */
    public double recall(String label) {
+      checkState(labelVectorizer != null, "A label vectorizer is not set.");
+      return recall(labelVectorizer.encode(label));
+   }
+
+   /**
+    * Calculates the recall of the given label, which is <code>True Positives / (True Positives + True
+    * Negatives)</code>
+    *
+    * @param label the label to calculate the recall of
+    * @return the recall
+    */
+   public double recall(double label) {
       double tp = truePositives(label);
       double fn = falseNegatives(label);
       if (tp + fn == 0) {
@@ -497,9 +659,25 @@ public class MultiClassEvaluation implements ClassifierEvaluation {
     *
     * @return the counter of recall values
     */
-   public Counter<String> recallPerClass() {
+   public Counter<String> labeledRecallPerClass() {
+      checkState(labelVectorizer != null, "A label vectorizer is not set.");
       Counter<String> recalls = Counters.newCounter();
-      matrix.firstKeys().forEach(k -> recalls.set(k, recall(k)));
+      for (int i = 0; i < numberOfLabels; i++) {
+         recalls.set(labelVectorizer.decode(i), recall(i));
+      }
+      return recalls;
+   }
+
+   /**
+    * Creates a counter where the items are labels and their values are their recall
+    *
+    * @return the counter of recall values
+    */
+   public double[] recallPerClass() {
+      double[] recalls = new double[numberOfLabels];
+      for (int i = 0; i < numberOfLabels; i++) {
+         recalls[i] = recall(i);
+      }
       return recalls;
    }
 
@@ -514,12 +692,33 @@ public class MultiClassEvaluation implements ClassifierEvaluation {
    }
 
    /**
+    * Calculates the sensitivity of the given label (same as the micro-averaged recall)
+    *
+    * @param label the label to calculate the sensitivity of
+    * @return the sensitivity
+    */
+   public double sensitivity(double label) {
+      return recall(label);
+   }
+
+   /**
     * Calculates the specificity of the given label
     *
     * @param label the label to calculate the specificity of
     * @return the specificity
     */
    public double specificity(String label) {
+      checkState(labelVectorizer != null, "A label vectorizer is not set.");
+      return specificity(labelVectorizer.encode(label));
+   }
+
+   /**
+    * Calculates the specificity of the given label
+    *
+    * @param label the label to calculate the specificity of
+    * @return the specificity
+    */
+   public double specificity(double label) {
       double tn = trueNegatives(label);
       double fp = falsePositives(label);
       if (tn + fp == 0) {
@@ -538,20 +737,23 @@ public class MultiClassEvaluation implements ClassifierEvaluation {
       return specificity(label);
    }
 
+   /**
+    * Calculates the true negative rate (or specificity) of the given label
+    *
+    * @param label the label to calculate the true negative rate of
+    * @return the true negative rate
+    */
+   public double trueNegativeRate(double label) {
+      return specificity(label);
+   }
+
    @Override
    public double trueNegatives() {
-      return matrix.firstKeys()
-                   .stream()
-                   .mapToDouble(k -> {
-                                   double tn = 0;
-                                   for (String o : matrix.firstKeys()) {
-                                      if (!o.equals(k)) {
-                                         tn += matrix.get(o).sum() - matrix.get(o, k);
-                                      }
-                                   }
-                                   return tn;
-                                }
-                               ).sum();
+      double sum = 0;
+      for (int i = 0; i < numberOfLabels; i++) {
+         sum += trueNegatives(i);
+      }
+      return sum;
    }
 
    /**
@@ -561,10 +763,22 @@ public class MultiClassEvaluation implements ClassifierEvaluation {
     * @return the number of true negatvies
     */
    public double trueNegatives(String label) {
+      checkState(labelVectorizer != null, "A label vectorizer is not set.");
+      return trueNegatives(labelVectorizer.encode(label));
+   }
+
+   /**
+    * Counts the number of true negatives for the given label
+    *
+    * @param label the label
+    * @return the number of true negatvies
+    */
+   public double trueNegatives(double label) {
       double tn = 0;
-      for (String o : matrix.firstKeys()) {
-         if (!o.equals(label)) {
-            tn += matrix.get(o).sum() - matrix.get(o, label);
+      for (int i = 0; i < numberOfLabels; i++) {
+         if (i != label) {
+            NDArray row = confusionMatrix.getVector(i, Axis.ROW);
+            tn += row.scalarSum() - confusionMatrix.get(i, (int) label);
          }
       }
       return tn;
@@ -581,12 +795,26 @@ public class MultiClassEvaluation implements ClassifierEvaluation {
    }
 
    /**
+    * Calculates the true positive rate if the given label
+    *
+    * @param label the label
+    * @return the true positive rate
+    */
+   public double truePositiveRate(double label) {
+      return recall(label);
+   }
+
+   /**
     * Calculates the number of true positives.
     *
     * @return the number of true positive
     */
    public double truePositives() {
-      return matrix.firstKeys().stream().mapToDouble(k -> matrix.get(k, k)).sum();
+      double sum = 0;
+      for (int i = 0; i < numberOfLabels; i++) {
+         sum += confusionMatrix.get(i, i);
+      }
+      return sum;
    }
 
    /**
@@ -596,7 +824,19 @@ public class MultiClassEvaluation implements ClassifierEvaluation {
     * @return the number of true positive
     */
    public double truePositives(String label) {
-      return matrix.get(label, label);
+      checkState(labelVectorizer != null, "A label vectorizer is not set.");
+      return truePositives(labelVectorizer.encode(label));
    }
+
+   /**
+    * Calculates the number of true positive for the given label
+    *
+    * @param label the label
+    * @return the number of true positive
+    */
+   public double truePositives(double label) {
+      return confusionMatrix.get((int) label, (int) label);
+   }
+
 
 }//END OF ClassifierEvaluation

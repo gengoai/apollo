@@ -33,19 +33,6 @@ public class LinearModel implements Classifier, Loggable {
       this.modelParameters = new ModelParameters();
    }
 
-   /**
-    * Instantiates a new Linear model.
-    *
-    * @param modelParameters the model parameters
-    */
-   protected LinearModel(ModelParameters modelParameters) {
-      this.modelParameters = Cast.as(modelParameters.copy());
-   }
-
-   @Override
-   public Classifier copy() {
-      return new LinearModel(modelParameters.copy());
-   }
 
    @Override
    public NDArray estimate(NDArray example) {

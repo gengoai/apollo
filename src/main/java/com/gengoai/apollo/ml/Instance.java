@@ -164,42 +164,6 @@ public class Instance extends Example {
    }
 
    @Override
-   public boolean isSingleExample() {
-      return true;
-   }
-
-   @Override
-   public int hashCode() {
-      return Objects.hash(features, label);
-   }
-
-   @Override
-   public int size() {
-      return 1;
-   }
-
-   @Override
-   public Example mapFeatures(Function<? super Feature, ? extends Feature> mapper) {
-      return new Instance(label, features.stream().map(mapper).filter(Objects::nonNull).collect(Collectors.toList()));
-   }
-
-   @Override
-   public Example mapLabel(Function<? super Object, ? extends Object> mapper) {
-      Example e = copy();
-      e.setLabel(mapper.apply(label));
-      return e;
-   }
-
-   @Override
-   public String toString() {
-      return "Instance{" +
-                "features=" + features +
-                ", label=" + label +
-                ", weight=" + getWeight() +
-                '}';
-   }
-
-   @Override
    public Set<String> getLabelAsSet() {
       Object lbl = getLabel();
       if (lbl instanceof Set) {
@@ -211,5 +175,40 @@ public class Instance extends Example {
    @Override
    public boolean hasLabel() {
       return label != null;
+   }
+
+   @Override
+   public int hashCode() {
+      return Objects.hash(features, label);
+   }
+
+   @Override
+   public Instance mapFeatures(Function<? super Feature, Optional<Feature>> mapper) {
+      Instance ii = new Instance(label, features.stream()
+                                                .map(mapper)
+                                                .filter(Optional::isPresent)
+                                                .map(Optional::get)
+                                                .collect(Collectors.toList()));
+      ii.setWeight(getWeight());
+      return ii;
+   }
+
+   @Override
+   public Example mapInstance(Function<Instance, Instance> mapper) {
+      return mapper.apply(this);
+   }
+
+   @Override
+   public int size() {
+      return 1;
+   }
+
+   @Override
+   public String toString() {
+      return "Instance{" +
+                "features=" + features +
+                ", label=" + label +
+                ", weight=" + getWeight() +
+                '}';
    }
 }//END OF Instance

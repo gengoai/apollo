@@ -1,10 +1,10 @@
 package com.gengoai.apollo.ml.classification;
 
 import com.gengoai.apollo.linear.NDArray;
-import com.gengoai.apollo.ml.Dataset;
+import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.ml.Evaluation;
+import com.gengoai.apollo.ml.vectorizer.StringVectorizer;
 import com.gengoai.conversion.Cast;
-import com.gengoai.stream.MStream;
 import com.gengoai.string.TableFormatter;
 import org.apache.mahout.math.list.DoubleArrayList;
 
@@ -31,7 +31,7 @@ public class BinaryEvaluation implements ClassifierEvaluation {
     * Instantiates a new Binary evaluation.
     */
    public BinaryEvaluation() {
-      this(null);
+      this.goldLabel = null;
    }
 
    /**
@@ -41,6 +41,16 @@ public class BinaryEvaluation implements ClassifierEvaluation {
     */
    public BinaryEvaluation(String goldLabel) {
       this.goldLabel = goldLabel == null ? "true" : goldLabel;
+   }
+
+
+   /**
+    * Instantiates a new Binary evaluation.
+    *
+    * @param vectorizer the vectorizer
+    */
+   public BinaryEvaluation(StringVectorizer vectorizer) {
+      this(vectorizer.decode(1.0));
    }
 
    @Override
@@ -115,6 +125,16 @@ public class BinaryEvaluation implements ClassifierEvaluation {
       return Math.max(positive, negative) / (positive + negative);
    }
 
+   @Override
+   public void entry(String gold, Classification predicted) {
+      entry(gold, predicted.distribution());
+   }
+
+   @Override
+   public void entry(double gold, double predicted) {
+      entry(gold == 1.0, NDArrayFactory.DENSE.scalar(predicted));
+   }
+
    /**
     * Adds an entry into the metric.
     *
@@ -154,16 +174,8 @@ public class BinaryEvaluation implements ClassifierEvaluation {
    }
 
    @Override
-   public void evaluate(PipelinedClassifier model, Dataset dataset) {
-      dataset.forEach(instance -> {
-         Classification clf = model.predict(instance);
-         entry(instance.getLabel().toString(), clf.distribution());
-      });
-   }
-
-   @Override
-   public void evaluate(Classifier model, MStream<NDArray> dataset) {
-      dataset.forEach(instance -> entry(instance.getLabelAsDouble() == 1.0, model.estimate(instance)));
+   public void entry(NDArray entry) {
+      entry(entry.getLabelAsDouble() == 1.0, entry.getPredictedAsNDArray());
    }
 
    @Override

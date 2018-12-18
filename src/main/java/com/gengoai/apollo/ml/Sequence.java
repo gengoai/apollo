@@ -3,12 +3,10 @@ package com.gengoai.apollo.ml;
 import com.gengoai.conversion.Cast;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static com.gengoai.Validation.checkArgument;
 
@@ -21,27 +19,15 @@ import static com.gengoai.Validation.checkArgument;
  */
 public class Sequence extends Example {
    private static final long serialVersionUID = 1L;
-   private final List<Instance> sequence = new ArrayList<>();
+   private final ArrayList<Instance> sequence = new ArrayList<>();
+
 
    /**
-    * Instantiates a new Sequence with weight 1.0 with the given child examples.
-    *
-    * @param examples the child examples (i.e. sequence instances in order)
+    * Instantiates a new Sequence.
     */
-   public Sequence(Example... examples) {
-      this(Arrays.asList(examples));
-   }
-
-   public Sequence(){
+   public Sequence() {
 
    }
-
-   public Sequence(String... tokens) {
-      this(Stream.of(tokens)
-                 .map(t -> new Instance(null, Feature.booleanFeature(t)))
-                 .collect(Collectors.toList()));
-   }
-
 
    /**
     * Instantiates a new Sequence with weight 1.0 with the given child examples.
@@ -50,6 +36,7 @@ public class Sequence extends Example {
     */
    public Sequence(List<? extends Example> examples) {
       examples.forEach(this::add);
+      this.sequence.trimToSize();
    }
 
    @Override
@@ -73,6 +60,10 @@ public class Sequence extends Example {
       return Objects.equals(sequence, examples.sequence);
    }
 
+   @Override
+   public Example getExample(int index) {
+      return sequence.get(index);
+   }
 
    @Override
    public boolean hasLabel() {
@@ -85,19 +76,17 @@ public class Sequence extends Example {
    }
 
    @Override
-   public Example getExample(int index) {
-      return sequence.get(index);
-   }
-
-
-   @Override
-   public boolean isSingleExample() {
-      return false;
-   }
-
-   @Override
    public int hashCode() {
       return Objects.hash(sequence);
+   }
+
+   @Override
+   public Sequence mapInstance(Function<Instance, Instance> mapper) {
+      Sequence ii = new Sequence(sequence.stream()
+                                         .map(mapper)
+                                         .collect(Collectors.toList()));
+      ii.setWeight(getWeight());
+      return ii;
    }
 
    @Override
@@ -113,18 +102,5 @@ public class Sequence extends Example {
                 '}';
    }
 
-   @Override
-   public Example mapFeatures(Function<? super Feature, ? extends Feature> mapper) {
-      return new Sequence(sequence.stream()
-                                  .map(e -> e.mapFeatures(mapper))
-                                  .collect(Collectors.toList()));
-   }
-
-   @Override
-   public Example mapLabel(Function<? super Object, ? extends Object> mapper) {
-      return new Sequence(sequence.stream()
-                                  .map(e -> e.mapLabel(mapper))
-                                  .collect(Collectors.toList()));
-   }
 
 }//END OF Sequence

@@ -23,53 +23,33 @@ package com.gengoai.apollo.ml;
 
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.io.resource.Resource;
-import com.gengoai.stream.MStream;
-import com.gengoai.stream.StreamingContext;
 
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.Collection;
 
 /**
  * <p>Generic interface for evaluating models.</p>
  *
- * @param <M> the type of model
  * @author David B. Bracewell
  */
-public interface Evaluation<M extends Model, P extends PipelinedModel> {
+public interface Evaluation {
+
 
    /**
-    * Evaluate the given model using the given dataset
+    * Adds an entry to the evaluation. Requires the  entry to contain all needed information (e.g. label and predicted
+    * value.)
     *
-    * @param model   the model to evaluate
-    * @param dataset the dataset to evaluate over
+    * @param entry the entry to add.
     */
-   void evaluate(P model, Dataset dataset);
+   void entry(NDArray entry);
 
-   /**
-    * Evaluate the given model using the given set of examples
-    *
-    * @param model   the model to evaluate
-    * @param dataset the dataset to evaluate over
-    */
-   default void evaluate(M model, Collection<NDArray> dataset) {
-      evaluate(model, StreamingContext.local().stream(dataset));
-   }
-
-   /**
-    * Evaluate the given model using the given set of examples
-    *
-    * @param model   the model to evaluate
-    * @param dataset the dataset to evaluate over
-    */
-   void evaluate(M model, MStream<NDArray> dataset);
 
    /**
     * Merge this evaluation with another combining the results.
     *
     * @param evaluation the other evaluation to combine
     */
-   void merge(Evaluation<M, P> evaluation);
+   void merge(Evaluation evaluation);
 
    /**
     * Outputs the evaluation results to the given print stream.
@@ -82,6 +62,7 @@ public interface Evaluation<M extends Model, P extends PipelinedModel> {
     * Outputs the evaluation results to the given resource.
     *
     * @param resource the resource to write to
+    * @throws IOException the io exception
     */
    default void output(Resource resource) throws IOException {
       try (PrintStream ps = new PrintStream(resource.outputStream())) {
@@ -95,6 +76,5 @@ public interface Evaluation<M extends Model, P extends PipelinedModel> {
    default void output() {
       output(System.out);
    }
-
 
 }//END OF Evaluation

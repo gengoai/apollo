@@ -9,7 +9,18 @@ import java.io.Serializable;
  *
  * @author David B. Bracewell
  */
-public interface ClassifierEvaluation extends Evaluation<Classifier, PipelinedClassifier>, Serializable {
+public interface ClassifierEvaluation extends Evaluation, Serializable {
+
+   /**
+    * Adds a prediction entry to the evaluation.
+    *
+    * @param gold      the gold, or actual, label
+    * @param predicted the model predicted label
+    */
+   void entry(String gold, Classification predicted);
+
+
+   void entry(double gold, double predicted);
 
    /**
     * <p>Calculates the accuracy, which is the percentage of items correctly classified.</p>

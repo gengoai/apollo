@@ -1,5 +1,7 @@
 package com.gengoai.apollo.ml;
 
+import com.gengoai.apollo.ml.data.Dataset;
+
 /**
  * Representation of a split (e.g. fold, 80/20, etc.) of a {@link Dataset} into a train and test {@link Dataset}.
  *

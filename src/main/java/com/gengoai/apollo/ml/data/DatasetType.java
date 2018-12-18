@@ -1,4 +1,4 @@
-package com.gengoai.apollo.ml;
+package com.gengoai.apollo.ml.data;
 
 import com.gengoai.stream.StreamingContext;
 

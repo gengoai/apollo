@@ -211,4 +211,9 @@ public class Instance extends Example {
                 ", weight=" + getWeight() +
                 '}';
    }
+
+   @Override
+   public boolean isInstance() {
+      return true;
+   }
 }//END OF Instance

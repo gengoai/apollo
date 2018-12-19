@@ -3,7 +3,11 @@ package com.gengoai.apollo.ml.regression;
 import com.gengoai.Validation;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.ml.Evaluation;
+import com.gengoai.apollo.ml.FitParameters;
+import com.gengoai.apollo.ml.Split;
+import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.conversion.Cast;
+import com.gengoai.logging.Logger;
 import com.gengoai.math.Math2;
 import com.gengoai.string.TableFormatter;
 import org.apache.mahout.math.list.DoubleArrayList;
@@ -11,6 +15,7 @@ import org.apache.mahout.math.list.DoubleArrayList;
 import java.io.PrintStream;
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * <p>Evaluation for regression models.</p>
@@ -18,10 +23,41 @@ import java.util.Arrays;
  * @author David B. Bracewell
  */
 public class RegressionEvaluation implements Evaluation, Serializable {
+   private static final Logger log = Logger.getLogger(RegressionEvaluation.class);
    private static final long serialVersionUID = 1L;
    private DoubleArrayList gold = new DoubleArrayList();
    private double p = 0;
    private DoubleArrayList predicted = new DoubleArrayList();
+
+
+   /**
+    * Cross validation multi class evaluation.
+    *
+    * @param dataset       the dataset
+    * @param regression    the classifier
+    * @param fitParameters the fit parameters
+    * @param nFolds        the n folds
+    * @return the multi class evaluation
+    */
+   public static RegressionEvaluation crossValidation(Dataset dataset,
+                                                      PipelinedRegression regression,
+                                                      FitParameters fitParameters,
+                                                      int nFolds
+                                                     ) {
+      RegressionEvaluation evaluation = new RegressionEvaluation();
+      AtomicInteger foldId = new AtomicInteger(0);
+      for (Split split : dataset.fold(nFolds)) {
+         if (fitParameters.verbose) {
+            log.info("Running fold {0}", foldId.incrementAndGet());
+         }
+         regression.fit(split.train, fitParameters);
+         regression.evaluate(split.test, evaluation);
+         if (fitParameters.verbose) {
+            log.info("Fold {0}: Cumulative Metrics(r2={1})", foldId.get(), evaluation.r2());
+         }
+      }
+      return evaluation;
+   }
 
    /**
     * Calculates the adjusted r2

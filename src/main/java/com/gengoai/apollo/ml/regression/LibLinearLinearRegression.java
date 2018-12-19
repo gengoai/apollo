@@ -22,7 +22,7 @@ public class LibLinearLinearRegression implements Regression {
 
    @Override
    public NDArray estimate(NDArray data) {
-      return LibLinear.estimate(model, data, biasIndex);
+      return LibLinear.regress(model, data, biasIndex);
    }
 
    /**

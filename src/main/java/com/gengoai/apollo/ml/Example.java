@@ -246,4 +246,14 @@ public abstract class Example implements Copyable<Example>, Iterable<Example>, S
       return Streams.asStream(this);
    }
 
+
+   /**
+    * Checks if this an instance (or leaf level) example that will contain features and labels.
+    *
+    * @return True if an instance, false otherwise
+    */
+   public boolean isInstance() {
+      return false;
+   }
+
 }//END OF Example

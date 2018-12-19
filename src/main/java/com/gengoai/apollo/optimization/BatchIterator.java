@@ -2,8 +2,6 @@ package com.gengoai.apollo.optimization;
 
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
-import com.gengoai.apollo.ml.Instance;
-import org.apache.spark.sql.Dataset;
 
 import java.io.Serializable;
 import java.util.*;
@@ -38,25 +36,6 @@ public class BatchIterator implements Serializable {
          Y.add(y);
          X.add(vv);
       }
-   }
-
-
-   public BatchIterator(Dataset<Instance> dataset) {
-      this.indices = null;
-      this.numLabels = 10;
-      this.numFeatures = 10;
-//      List<NDArray> data = dataset.asVectors().collect();
-//      numLabels = dataset.getLabelEncoder().size();
-//      numFeatures = dataset.getFeatureEncoder().size();
-//      indices = new int[data.size()];
-//      for (int i1 = 0; i1 < data.size(); i1++) {
-//         NDArray vv = data.get(i1);
-//         indices[i1] = i1;
-//         NDArray y = NDArrayFactory.DEFAULT().zeros(numLabels, 1);
-//         y.set((int) vv.getLabelAsDouble(), 0, 1.0);
-//         Y.add(y);
-//         X.add(vv);
-//      }
    }
 
    private NDArray create(int rows, List<NDArray> cols, int[] indicies, int start, int end) {

@@ -49,12 +49,13 @@ public class LinearModel implements Classifier, Loggable {
       GradientDescentOptimizer optimizer = GradientDescentOptimizer.builder()
                                                                    .batchSize(parameters.batchSize).build();
       if (parameters.cacheData) {
-         logInfo("Caching dataset...");
+         if (parameters.verbose) {
+            logInfo("Caching dataset...");
+         }
          MStream<NDArray> cached = dataSupplier.get().cache();
          dataSupplier = () -> cached;
       }
       this.modelParameters.update(parameters);
-
       optimizer.optimize(modelParameters,
                          dataSupplier,
                          new GradientDescentCostFunction(parameters.lossFunction, -1),
@@ -63,7 +64,8 @@ public class LinearModel implements Classifier, Loggable {
                                             .historySize(parameters.historySize)
                                             .tolerance(parameters.tolerance),
                          parameters.weightUpdater,
-                         parameters.reportInterval);
+                         parameters.verbose ? parameters.reportInterval
+                                            : -1);
    }
 
    @Override
@@ -155,7 +157,7 @@ public class LinearModel implements Classifier, Loggable {
       /**
        * The Batch size.
        */
-      public int batchSize = 32;
+      public int batchSize = 20;
       /**
        * The Cache data.
        */

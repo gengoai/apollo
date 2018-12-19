@@ -70,6 +70,18 @@ public final class LibLinear {
    }
 
    /**
+    * Estimates an outcome for the given data using the given LibLinearModel
+    *
+    * @param model     the model
+    * @param data      the data
+    * @param biasIndex the bias index
+    * @return the nd array
+    */
+   public static NDArray regress(Model model, NDArray data, int biasIndex) {
+      return data.setPredicted(NDArrayFactory.DEFAULT().scalar(Linear.predict(model, toFeature(data, biasIndex))));
+   }
+
+   /**
     * Fits a LibLinear model given a a data supplier and set of parameters.
     *
     * @param dataSupplier the data supplier
@@ -89,7 +101,7 @@ public final class LibLinear {
       problem.l = (int) dataSupplier.get().count();
       problem.x = new Feature[problem.l][];
       problem.y = new double[problem.l];
-      problem.n = numFeatures + 1;
+      problem.n = numFeatures + (biasIndex >= 0 ? 1 : 0);
       problem.bias = biasIndex >= 0 ? 0 : -1;
       dataSupplier.get().zipWithIndex()
                   .forEach((datum, index) -> {

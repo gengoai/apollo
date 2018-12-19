@@ -1,6 +1,11 @@
 package com.gengoai.apollo.ml.data;
 
+import com.gengoai.apollo.ml.Example;
+import com.gengoai.io.resource.Resource;
+import com.gengoai.stream.MStream;
 import com.gengoai.stream.StreamingContext;
+
+import java.io.IOException;
 
 /**
  * Defines how the dataset is stored/processed.
@@ -20,7 +25,20 @@ public enum DatasetType {
    /**
     * All data is stored in-memory on local machine.
     */
-   InMemory,
+   InMemory {
+      @Override
+      public Dataset of(MStream<Example> examples) {
+         return new InMemoryDataset(examples.collect());
+      }
+
+
+      @Override
+      public Dataset load(Resource location, DataSource dataSource) throws IOException {
+         return of(dataSource.stream(location));
+      }
+
+
+   },
    /**
     * Data is stored on disk
     */
@@ -38,6 +56,16 @@ public enum DatasetType {
     */
    public StreamingContext getStreamingContext() {
       return StreamingContext.local();
+   }
+
+
+   public Dataset of(MStream<Example> examples) {
+      return new InMemoryDataset(examples.collect());
+   }
+
+
+   public Dataset load(Resource location, DataSource dataSource) throws IOException {
+      return null;
    }
 
 

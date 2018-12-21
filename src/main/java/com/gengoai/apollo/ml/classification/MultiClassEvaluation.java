@@ -48,7 +48,6 @@ import static com.gengoai.tuple.Tuples.$;
 public class MultiClassEvaluation extends ClassifierEvaluation {
    private static final long serialVersionUID = 1L;
    private final MultiCounter<String, String> confusionMatrix = MultiCounters.newMultiCounter();
-   private final Map<String, BinaryEvaluation> binaryEvaluations = new HashMap<>();
    private double total = 0;
 
 
@@ -62,18 +61,6 @@ public class MultiClassEvaluation extends ClassifierEvaluation {
 
 
    /**
-    * Calculates the AUC (Area Under the Curve)
-    *
-    * @param stringLabel the string label
-    * @return the AUC
-    */
-   public double auc(String stringLabel) {
-      return binaryEvaluations.containsKey(stringLabel)
-             ? binaryEvaluations.get(stringLabel).auc()
-             : 0d;
-   }
-
-   /**
     * Calculate the diagnostic odds ratio for the given label
     *
     * @param label the label to calculate the diagnostic odds ratio for.
@@ -85,10 +72,6 @@ public class MultiClassEvaluation extends ClassifierEvaluation {
 
    @Override
    public void entry(String gold, Classification predicted) {
-      if (!binaryEvaluations.containsKey(gold)) {
-         binaryEvaluations.put(gold, new BinaryEvaluation(gold));
-      }
-      binaryEvaluations.get(gold).entry(gold, predicted);
       confusionMatrix.increment(gold, predicted.getResult());
       total++;
    }
@@ -242,18 +225,6 @@ public class MultiClassEvaluation extends ClassifierEvaluation {
    }
 
    /**
-    * Micro auc double.
-    *
-    * @return the double
-    */
-   public double macroAuc() {
-      return binaryEvaluations.values()
-                              .stream()
-                              .mapToDouble(BinaryEvaluation::auc)
-                              .average().orElse(0);
-   }
-
-   /**
     * Calculates the macro F1-measure
     *
     * @return the macro F1-measure
@@ -287,15 +258,6 @@ public class MultiClassEvaluation extends ClassifierEvaluation {
       MultiClassEvaluation other = Cast.as(evaluation);
       confusionMatrix.merge(other.confusionMatrix);
       total += other.total;
-      other.binaryEvaluations.forEach((k, v) -> {
-         if (binaryEvaluations.containsKey(k)) {
-            binaryEvaluations.get(k).merge(v);
-         } else {
-            BinaryEvaluation binaryEvaluation = new BinaryEvaluation(k);
-            binaryEvaluation.merge(v);
-            binaryEvaluations.put(k, binaryEvaluation);
-         }
-      });
    }
 
    /**
@@ -398,7 +360,7 @@ public class MultiClassEvaluation extends ClassifierEvaluation {
       tableFormatter
          .title("Classification Metrics")
          .header(
-            Arrays.asList(Strings.EMPTY, "Precision", "Recall", "F1-Measure", "AUC", "Correct", "Incorrect", "Missed",
+            Arrays.asList(Strings.EMPTY, "Precision", "Recall", "F1-Measure", "Correct", "Incorrect", "Missed",
                           "Total"));
 
       sorted.forEach(g -> tableFormatter.content(Arrays.asList(
@@ -406,7 +368,6 @@ public class MultiClassEvaluation extends ClassifierEvaluation {
          precision(g),
          recall(g),
          f1(g),
-         auc(g),
          (long) truePositives(g),
          (long) falsePositives(g),
          (long) falseNegatives(g),
@@ -417,7 +378,6 @@ public class MultiClassEvaluation extends ClassifierEvaluation {
          microPrecision(),
          microRecall(),
          microF1(),
-         "-",
          (long) truePositives(),
          (long) falsePositives(),
          (long) falseNegatives(),
@@ -428,7 +388,6 @@ public class MultiClassEvaluation extends ClassifierEvaluation {
          macroPrecision(),
          macroRecall(),
          macroF1(),
-         macroAuc(),
          "-",
          "-",
          "-",

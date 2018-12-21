@@ -55,6 +55,11 @@ public class Classification implements Serializable {
       return distribution;
    }
 
+
+   public double getScore(String label){
+      return distribution.get((int)vectorizer.encode(label));
+   }
+
    /**
     * Gets the argMax as a string either converting the id using the supplied vectorizer or using
     * <code>Integer.toString</code>

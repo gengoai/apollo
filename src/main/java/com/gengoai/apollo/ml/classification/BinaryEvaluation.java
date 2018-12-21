@@ -1,6 +1,5 @@
 package com.gengoai.apollo.ml.classification;
 
-import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.ml.Evaluation;
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.vectorizer.Vectorizer;
@@ -70,11 +69,9 @@ public class BinaryEvaluation extends ClassifierEvaluation {
 
    @Override
    public void entry(String gold, Classification predicted) {
-      NDArray distribution = predicted.distribution();
       int predictedClass = predicted.getResult().equals(trueLabel) ? 1 : 0;
       int goldClass = gold.equals(trueLabel) ? 1 : 0;
-
-      prob[goldClass].add(distribution.get(1));
+      prob[goldClass].add(predicted.getScore(trueLabel));
       if (goldClass == 1) {
          positive++;
          if (predictedClass == 1) {

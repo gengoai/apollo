@@ -6,14 +6,21 @@ import com.gengoai.apollo.ml.Instance;
 import com.gengoai.io.CSV;
 import com.gengoai.io.CSVReader;
 import com.gengoai.io.resource.Resource;
+import com.gengoai.math.Math2;
 import com.gengoai.stream.MStream;
+import com.gengoai.stream.SparkStream;
 import com.gengoai.stream.StreamingContext;
+import org.apache.spark.sql.Row;
+import org.apache.spark.sql.SQLContext;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
+ * The type Csv data source.
+ *
  * @author David B. Bracewell
  */
 public class CSVDataSource implements DataSource {
@@ -21,16 +28,33 @@ public class CSVDataSource implements DataSource {
    private final String labelColumn;
    private final int labelColumnIndex;
 
+   /**
+    * Instantiates a new Csv data source.
+    *
+    * @param csv the csv
+    */
    public CSVDataSource(CSV csv) {
       this(csv, 0);
    }
 
+   /**
+    * Instantiates a new Csv data source.
+    *
+    * @param csv        the csv
+    * @param labelIndex the label index
+    */
    public CSVDataSource(CSV csv, int labelIndex) {
       this.csv = csv;
       this.labelColumn = null;
       this.labelColumnIndex = labelIndex;
    }
 
+   /**
+    * Instantiates a new Csv data source.
+    *
+    * @param csv         the csv
+    * @param labelColumn the label column
+    */
    public CSVDataSource(CSV csv, String labelColumn) {
       this.csv = csv;
       this.labelColumn = labelColumn;
@@ -39,7 +63,10 @@ public class CSVDataSource implements DataSource {
 
 
    @Override
-   public MStream<Example> stream(Resource location) throws IOException {
+   public MStream<Example> stream(Resource location, boolean distributed) throws IOException {
+      if (distributed) {
+         return distributed(location);
+      }
       List<Example> examples = new ArrayList<>();
       try (CSVReader reader = csv.reader(location)) {
          final List<String> headers = reader.getHeader().isEmpty()
@@ -55,10 +82,15 @@ public class CSVDataSource implements DataSource {
                String label = li >= 0 ? row.get(li) : null;
                for (int i = 0; i < row.size(); i++) {
                   if (i != li) {
-                     while (headers.size() < i) {
+                     while (headers.size() <= i) {
                         headers.add("AutoColumn_" + i);
                      }
-                     features.add(Feature.realFeature(headers.get(i), Double.parseDouble(row.get(i))));
+                     Double value = Math2.tryParseDouble(row.get(i));
+                     if (value != null) {
+                        features.add(Feature.realFeature(headers.get(i), value));
+                     } else {
+                        features.add(Feature.realFeature(headers.get(i) + "=" + row.get(i), 1.0));
+                     }
                   }
                }
                examples.add(new Instance(label, features));
@@ -69,14 +101,34 @@ public class CSVDataSource implements DataSource {
    }
 
 
-//   private MStream<Example> distributed(Resource location) throws IOException {
-//      JavaSparkContext sc = StreamingContext.distributed().sparkContext();
-//      SQLContext sqlContext = new SQLContext(sc);
-//      sqlContext.read().option("header", csv.getHasHeader()).csv(location.path());
-//   }
-
-   @Override
-   public void write(Resource location, Dataset dataset) throws IOException {
-
+   private MStream<Example> distributed(Resource location) throws IOException {
+      SQLContext sqlContext = new SQLContext(StreamingContext.distributed().sparkSession());
+      org.apache.spark.sql.Dataset<Row> rows = sqlContext.read().option("header", csv.getHasHeader()).csv(
+         location.path());
+      List<String> headers = Arrays.asList(rows.columns());
+      final int li = labelColumnIndex >= 0
+                     ? labelColumnIndex
+                     : headers.indexOf(labelColumn);
+      return new SparkStream<>(rows.toJavaRDD()
+                                   .map(row -> {
+                                      List<Feature> features = new ArrayList<>();
+                                      String label = li >= 0 ? row.getString(li) : null;
+                                      for (int i = 0; i < row.size(); i++) {
+                                         if (i != li) {
+                                            while (headers.size() < i) {
+                                               headers.add("AutoColumn_" + i);
+                                            }
+                                            Double value = Math2.tryParseDouble(row.getString(i));
+                                            if (value != null) {
+                                               features.add(Feature.realFeature(headers.get(i), value));
+                                            } else {
+                                               features.add(
+                                                  Feature.realFeature(headers.get(i) + "=" + row.get(i), 1.0));
+                                            }
+                                         }
+                                      }
+                                      return new Instance(label, features);
+                                   }));
    }
+
 }//END OF CSVDataSource

@@ -1,7 +1,7 @@
 package com.gengoai.apollo.ml;
 
-import com.gengoai.apollo.ml.classification.MultiClassEvaluation;
-import com.gengoai.apollo.ml.classification.PipelinedClassifier;
+import com.gengoai.apollo.ml.classification.Classifier;
+import com.gengoai.apollo.ml.classification.ClassifierEvaluation;
 import com.gengoai.apollo.ml.data.CSVDataSource;
 import com.gengoai.apollo.ml.data.DataSource;
 import com.gengoai.apollo.ml.data.Dataset;
@@ -18,11 +18,12 @@ import static org.junit.Assert.*;
  * @author David B. Bracewell
  */
 public abstract class BaseClassifierTest {
-   private final PipelinedClassifier classifier;
+
+   private final Classifier classifier;
    private final FitParameters fitParameters;
 
 
-   public BaseClassifierTest(PipelinedClassifier classifier,
+   public BaseClassifierTest(Classifier classifier,
                              FitParameters fitParameters
                             ) {
       this.classifier = classifier;
@@ -31,19 +32,19 @@ public abstract class BaseClassifierTest {
 
    @Test
    public void fitAndEvaluate() {
-      assertTrue(passes(MultiClassEvaluation.crossValidation(irisDataset(),
+      assertTrue(passes(ClassifierEvaluation.crossValidation(irisDataset(),
                                                              classifier,
                                                              fitParameters,
                                                              10)));
    }
 
 
-   public abstract boolean passes(MultiClassEvaluation mce);
+   public abstract boolean passes(ClassifierEvaluation mce);
 
    public Dataset irisDataset() {
       DataSource csv = new CSVDataSource(CSV.builder().hasHeader(true), "class");
       try {
-         return DatasetType.InMemory.load(Resources.fromClasspath("com/gengoai/apollo/ml/iris.csv"), csv);
+         return DatasetType.InMemory.loadDataset(Resources.fromClasspath("com/gengoai/apollo/ml/iris.csv"), csv);
       } catch (IOException e) {
          throw new RuntimeException(e);
       }

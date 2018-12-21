@@ -1,9 +1,10 @@
 package com.gengoai.apollo.ml;
 
+import com.gengoai.apollo.ml.classification.ClassifierEvaluation;
 import com.gengoai.apollo.ml.classification.LibLinearModel;
 import com.gengoai.apollo.ml.classification.MultiClassEvaluation;
-import com.gengoai.apollo.ml.classification.PipelinedClassifier;
 import com.gengoai.apollo.ml.vectorizer.IndexVectorizer;
+import com.gengoai.conversion.Cast;
 
 /**
  * @author David B. Bracewell
@@ -11,12 +12,13 @@ import com.gengoai.apollo.ml.vectorizer.IndexVectorizer;
 public class LibLinearClassifierTest extends BaseClassifierTest {
 
    public LibLinearClassifierTest() {
-      super(new PipelinedClassifier(new LibLinearModel(), IndexVectorizer.featureVectorizer()),
+      super(new LibLinearModel(IndexVectorizer.featureVectorizer()),
             new LibLinearModel.Parameters());
    }
 
    @Override
-   public boolean passes(MultiClassEvaluation mce) {
+   public boolean passes(ClassifierEvaluation evaluation) {
+      MultiClassEvaluation mce = Cast.as(evaluation);
       return mce.microF1() >= 0.85;
    }
 }//END OF LibLinearClassifierTest

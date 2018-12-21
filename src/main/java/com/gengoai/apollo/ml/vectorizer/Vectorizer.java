@@ -5,6 +5,8 @@ import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.data.Dataset;
 
 import java.io.Serializable;
+import java.util.Collections;
+import java.util.Set;
 
 /**
  * <p> Encoders are responsible for encoding and decoding objects into double values. Encoders are used to create
@@ -15,12 +17,9 @@ import java.io.Serializable;
  */
 public interface Vectorizer<T> extends Serializable {
 
-   /**
-    * Is label vectorizer boolean.
-    *
-    * @return the boolean
-    */
-   boolean isLabelVectorizer();
+   default Set<String> alphabet() {
+      return Collections.emptySet();
+   }
 
    /**
     * Decode t.

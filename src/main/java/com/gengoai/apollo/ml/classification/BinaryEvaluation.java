@@ -1,10 +1,12 @@
 package com.gengoai.apollo.ml.classification;
 
 import com.gengoai.apollo.linear.NDArray;
-import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.ml.Evaluation;
-import com.gengoai.apollo.ml.vectorizer.StringVectorizer;
+import com.gengoai.apollo.ml.Example;
+import com.gengoai.apollo.ml.vectorizer.Vectorizer;
 import com.gengoai.conversion.Cast;
+import com.gengoai.math.Math2;
+import com.gengoai.stream.MStream;
 import com.gengoai.string.TableFormatter;
 import org.apache.mahout.math.list.DoubleArrayList;
 
@@ -16,9 +18,9 @@ import java.util.Arrays;
  *
  * @author David B. Bracewell
  */
-public class BinaryEvaluation implements ClassifierEvaluation {
+public class BinaryEvaluation extends ClassifierEvaluation {
    private static final long serialVersionUID = 1L;
-   private final String goldLabel;
+   private final String trueLabel;
    private final DoubleArrayList[] prob = {new DoubleArrayList(), new DoubleArrayList()};
    private double fn = 0;
    private double fp = 0;
@@ -27,31 +29,20 @@ public class BinaryEvaluation implements ClassifierEvaluation {
    private double tn = 0;
    private double tp = 0;
 
-   /**
-    * Instantiates a new Binary evaluation.
-    */
-   public BinaryEvaluation() {
-      this.goldLabel = null;
-   }
-
-   /**
-    * Instantiates a new Binary evaluation.
-    *
-    * @param goldLabel the gold label to use when comparing classification results
-    */
-   public BinaryEvaluation(String goldLabel) {
-      this.goldLabel = goldLabel == null ? "true" : goldLabel;
-   }
-
 
    /**
     * Instantiates a new Binary evaluation.
     *
     * @param vectorizer the vectorizer
     */
-   public BinaryEvaluation(StringVectorizer vectorizer) {
+   public BinaryEvaluation(Vectorizer<String> vectorizer) {
       this(vectorizer.decode(1.0));
    }
+
+   public BinaryEvaluation(String trueLabel) {
+      this.trueLabel = trueLabel;
+   }
+
 
    @Override
    public double accuracy() {
@@ -64,56 +55,8 @@ public class BinaryEvaluation implements ClassifierEvaluation {
     * @return the AUC
     */
    public double auc() {
-      prob[0].sort();
-      prob[1].sort();
-
-      int n0 = prob[0].size();
-      int n1 = prob[1].size();
-
-      int i0 = 0, i1 = 0;
-      int rank = 1;
-      double sum = 0d;
-
-      while (i0 < n0 && i1 < n1) {
-         double v0 = prob[0].get(i0);
-         double v1 = prob[1].get(i1);
-
-         if (v0 < v1) {
-            i0++;
-            rank++;
-         } else if (v1 < v0) {
-            i1++;
-            sum += rank;
-            rank++;
-         } else {
-            double tie = v0;
-
-            int k0 = 0;
-            while (i0 < n0 && prob[0].get(i0) == tie) {
-               k0++;
-               i0++;
-            }
-
-
-            int k1 = 0;
-            while (i1 < n1 && prob[1].get(i1) == tie) {
-               k1++;
-               i1++;
-            }
-
-
-            sum += (rank + (k0 + k1 - 1) / 2.0) * k1;
-            rank += k0 + k1;
-         }
-      }
-
-      if (i1 < n1) {
-         sum += (rank + (n1 - i1 - 1) / 2.0) * (n1 - i1);
-         rank += (n1 - i1);
-      }
-
-
-      return (sum / n1 - (n1 + 1.0) / 2.0) / n0;
+      return Math2.auc(prob[0].elements(),
+                       prob[1].elements());
    }
 
    /**
@@ -127,33 +70,9 @@ public class BinaryEvaluation implements ClassifierEvaluation {
 
    @Override
    public void entry(String gold, Classification predicted) {
-      entry(gold, predicted.distribution());
-   }
-
-   @Override
-   public void entry(double gold, double predicted) {
-      entry(gold == 1.0, NDArrayFactory.DENSE.scalar(predicted));
-   }
-
-   /**
-    * Adds an entry into the metric.
-    *
-    * @param gold         the gold label
-    * @param distribution the distribution of results (examines the positive class at index 1.0)
-    */
-   public void entry(String gold, NDArray distribution) {
-      entry(gold.equals(goldLabel), distribution);
-   }
-
-   /**
-    * Adds an entry into the metric.
-    *
-    * @param gold         the gold label (true or false)
-    * @param distribution the distribution of results (examines the positive class at index 1.0)
-    */
-   public void entry(boolean gold, NDArray distribution) {
-      int predictedClass = distribution.get(1) >= 0.5 ? 1 : 0;
-      int goldClass = gold ? 1 : 0;
+      NDArray distribution = predicted.distribution();
+      int predictedClass = predicted.getResult().equals(trueLabel) ? 1 : 0;
+      int goldClass = gold.equals(trueLabel) ? 1 : 0;
 
       prob[goldClass].add(distribution.get(1));
       if (goldClass == 1) {
@@ -174,8 +93,8 @@ public class BinaryEvaluation implements ClassifierEvaluation {
    }
 
    @Override
-   public void entry(NDArray entry) {
-      entry(entry.getLabelAsDouble() == 1.0, entry.getPredictedAsNDArray());
+   public void evaluate(Classifier model, MStream<Example> dataset) {
+      dataset.forEach(instance -> entry(instance.getLabel(), model.predict(instance)));
    }
 
    @Override
@@ -222,6 +141,10 @@ public class BinaryEvaluation implements ClassifierEvaluation {
       tableFormatter.content(Arrays.asList("TN Rate", trueNegativeRate()));
       tableFormatter.content(Arrays.asList("FN Rate", falseNegativeRate()));
       tableFormatter.print(printStream);
+   }
+
+   private double toDouble(String string) {
+      return string.equals(trueLabel) ? 1.0 : 0.0;
    }
 
    @Override

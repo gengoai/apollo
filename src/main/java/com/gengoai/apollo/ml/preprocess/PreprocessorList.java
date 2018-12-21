@@ -52,6 +52,7 @@ public class PreprocessorList extends ArrayList<Preprocessor> implements Seriali
     */
    public Dataset fitAndTransform(Dataset dataset) {
       for (Preprocessor preprocessor : this) {
+         preprocessor.reset();
          dataset = preprocessor.fitAndTransform(dataset);
       }
       return dataset;

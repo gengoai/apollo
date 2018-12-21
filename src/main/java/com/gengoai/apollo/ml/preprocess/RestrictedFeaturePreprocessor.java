@@ -85,7 +85,7 @@ public abstract class RestrictedFeaturePreprocessor implements InstancePreproces
     * @return the boolean
     */
    public boolean requiresProcessing(Feature f) {
-      return acceptAll || f.name.startsWith(featureNamePrefix);
+      return acceptAll || f.hasPrefix(featureNamePrefix);
    }
 
 }//END OF RestrictedFeaturePreprocessor

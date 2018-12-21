@@ -355,6 +355,30 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
                              Optimum.MAXIMUM);
    }
 
+
+   public int argMax() {
+      if (isColumnVector()) {
+         return (int) argMax(Axis.COLUMN).scalarValue();
+      } else if (isRowVector()) {
+         return (int) argMax(Axis.ROW).scalarValue();
+      } else if (isScalar()) {
+         return 0;
+      }
+      throw new UnsupportedOperationException("Cannot take argMax of matrix or tensor");
+   }
+
+   public int argMin() {
+      if (isColumnVector()) {
+         return (int) argMin(Axis.COLUMN).scalarValue();
+      } else if (isRowVector()) {
+         return (int) argMin(Axis.ROW).scalarValue();
+      } else if (isScalar()) {
+         return 0;
+      }
+      throw new UnsupportedOperationException("Cannot take argMax of matrix or tensor");
+   }
+
+
    /**
     * Calculates the index of the minimum along each row or column based on the given axis.
     *
@@ -836,26 +860,29 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
       return this;
    }
 
+
+   private double asDouble(Object object) {
+      if (object == null) {
+         return Double.NaN;
+      } else if (object instanceof NDArray) {
+         NDArray array = Cast.as(object);
+         if (array.isScalar()) {
+            return array.scalarValue();
+         } else if (array.isColumnVector()) {
+            return array.argMax(Axis.COLUMN).scalarValue();
+         }
+         return array.argMax(Axis.ROW).scalarValue();
+      }
+      return Cast.<Number>as(label).doubleValue();
+   }
+
    /**
     * Gets the label associated with the NDArray as a double value.
     *
     * @return the label as double
     */
    public double getLabelAsDouble() {
-      if (label == null) {
-         return Double.NaN;
-      }
-
-      if (label instanceof NDArray) {
-         NDArray lbl = Cast.as(label);
-         if (lbl.isScalar()) {
-            return lbl.scalarValue();
-         }
-         return lbl.argMax(Axis.ROW).scalarValue();
-      }
-
-
-      return Cast.<Number>as(label).doubleValue();
+      return asDouble(label);
    }
 
    /**
@@ -904,17 +931,7 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
     * @return the predicted label as double
     */
    public double getPredictedAsDouble() {
-      if (predicted == null) {
-         return Double.NaN;
-      }
-      if (label instanceof NDArray) {
-         NDArray lbl = Cast.as(label);
-         if (lbl.isScalar()) {
-            return lbl.scalarValue();
-         }
-         return lbl.argMax(Axis.ROW).scalarValue();
-      }
-      return Cast.<Number>as(predicted).doubleValue();
+      return asDouble(predicted);
    }
 
    /**

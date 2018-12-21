@@ -3,7 +3,13 @@ package com.gengoai.apollo.ml.sequence;
 import com.gengoai.apollo.linear.Axis;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
+import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.FitParameters;
+import com.gengoai.apollo.ml.data.Dataset;
+import com.gengoai.apollo.ml.preprocess.Preprocessor;
+import com.gengoai.apollo.ml.preprocess.PreprocessorList;
+import com.gengoai.apollo.ml.vectorizer.IndexVectorizer;
+import com.gengoai.apollo.ml.vectorizer.Vectorizer;
 import com.gengoai.apollo.optimization.TerminationCriteria;
 import com.gengoai.collection.Iterables;
 import com.gengoai.conversion.Cast;
@@ -15,42 +21,56 @@ import com.gengoai.stream.MStream;
  *
  * @author David B. Bracewell
  */
-public class GreedyAvgPerceptron implements SequenceLabeler {
+public class GreedyAvgPerceptron extends SequenceLabeler {
+   private static final long serialVersionUID = 1L;
    private NDArray bias;
    private NDArray featureWeights;
    private NDArray transitionWeights;
 
-   @Override
-   public NDArray estimate(NDArray data) {
-      NDArray out = NDArrayFactory.DEFAULT().zeros(data.numRows(), 1, data.numKernels(), data.numChannels());
-      data.sliceStream().forEach(t -> {
-         int index = t.v1;
-         int pLabel = (int) bias.length();
-         for (int row = 0; row < t.v2.numRows(); row++) {
-            pLabel = (int) predict(t.v2.getVector(row, Axis.ROW), pLabel);
-            out.getSlice(index).set(row, pLabel);
-         }
-      });
-      data.setPredicted(out);
-      return data;
+   public GreedyAvgPerceptron(Preprocessor... preprocessors) {
+      super(IndexVectorizer.labelVectorizer(),
+            IndexVectorizer.featureVectorizer(),
+            preprocessors);
+   }
+
+   public GreedyAvgPerceptron(Vectorizer<?> labelVectorizer, Vectorizer<String> featureVectorizer, PreprocessorList preprocessors) {
+      super(labelVectorizer, featureVectorizer, preprocessors);
    }
 
    @Override
-   public void fit(SerializableSupplier<MStream<NDArray>> dataSupplier, FitParameters parameters) {
-      fit(dataSupplier, Cast.as(parameters, Parameters.class));
-
+   protected void fitPreprocessed(Dataset preprocessed, FitParameters fitParameters) {
+      fit(() -> preprocessed.stream().map(this::encode), Cast.as(fitParameters, Parameters.class));
    }
 
-   /**
-    * Fit.
-    *
-    * @param dataSupplier the data supplier
-    * @param parameters   the parameters
-    */
-   public void fit(SerializableSupplier<MStream<NDArray>> dataSupplier, Parameters parameters) {
-      this.featureWeights = NDArrayFactory.SPARSE.zeros(parameters.numFeatures, parameters.numLabels);
-      this.transitionWeights = NDArrayFactory.SPARSE.zeros(parameters.numLabels + 1, parameters.numLabels);
-      this.bias = NDArrayFactory.SPARSE.zeros(parameters.numLabels);
+   public GreedyAvgPerceptron(Vectorizer<String> featureVectorizer, PreprocessorList preprocessors) {
+      super(featureVectorizer, preprocessors);
+   }
+
+   public GreedyAvgPerceptron(Vectorizer<?> labelVectorizer, Vectorizer<String> featureVectorizer, Preprocessor... preprocessors) {
+      super(labelVectorizer, featureVectorizer, preprocessors);
+   }
+
+   public GreedyAvgPerceptron(Vectorizer<String> featureVectorizer, Preprocessor... preprocessors) {
+      super(featureVectorizer, preprocessors);
+   }
+
+   @Override
+   public Labeling label(Example example) {
+      String[] labels = new String[example.size()];
+      int pLabel = (int) bias.length();
+
+      NDArray sequence = encodeAndPreprocess(example);
+      for (int i = 0; i < sequence.numRows(); i++) {
+         pLabel = (int) predict(sequence.getVector(i, Axis.ROW), pLabel);
+         labels[i] = getLabelVectorizer().decode(pLabel);
+      }
+      return new Labeling(labels);
+   }
+
+   private void fit(SerializableSupplier<MStream<NDArray>> dataSupplier, Parameters parameters) {
+      this.featureWeights = NDArrayFactory.SPARSE.zeros(getNumberOfFeatures(), getNumberOfLabels());
+      this.transitionWeights = NDArrayFactory.SPARSE.zeros(getNumberOfLabels() + 1, getNumberOfLabels());
+      this.bias = NDArrayFactory.SPARSE.zeros(getNumberOfLabels());
 
       final NDArray fTotals = featureWeights.copy();
       final NDArray tTotals = transitionWeights.copy();
@@ -69,7 +89,7 @@ public class GreedyAvgPerceptron implements SequenceLabeler {
          double correct = 0;
 
          for (NDArray sequence : dataSupplier.get().shuffle()) {
-            int pLabel = parameters.numLabels;
+            int pLabel = getNumberOfLabels();
             NDArray y = sequence.getLabelAsNDArray().argMax(Axis.ROW);
             for (int row = 0; row < sequence.numRows(); row++) {
                final int predicted = (int) predict(sequence.getVector(row, Axis.ROW), pLabel);
@@ -110,16 +130,6 @@ public class GreedyAvgPerceptron implements SequenceLabeler {
    @Override
    public Parameters getDefaultFitParameters() {
       return new Parameters();
-   }
-
-   @Override
-   public int getNumberOfFeatures() {
-      return featureWeights.numRows();
-   }
-
-   @Override
-   public int getNumberOfLabels() {
-      return (int) bias.length();
    }
 
 

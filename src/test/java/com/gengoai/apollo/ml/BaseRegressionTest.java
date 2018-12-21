@@ -4,7 +4,7 @@ import com.gengoai.apollo.ml.data.CSVDataSource;
 import com.gengoai.apollo.ml.data.DataSource;
 import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.apollo.ml.data.DatasetType;
-import com.gengoai.apollo.ml.regression.PipelinedRegression;
+import com.gengoai.apollo.ml.regression.Regression;
 import com.gengoai.apollo.ml.regression.RegressionEvaluation;
 import com.gengoai.io.CSV;
 import com.gengoai.io.Resources;
@@ -18,23 +18,23 @@ import static junit.framework.TestCase.assertTrue;
  * @author David B. Bracewell
  */
 public abstract class BaseRegressionTest {
-   private final PipelinedRegression classifier;
+   private final Regression regression;
    private final FitParameters fitParameters;
 
 
-   public BaseRegressionTest(PipelinedRegression classifier,
+   public BaseRegressionTest(Regression regression,
                              FitParameters fitParameters
                             ) {
-      this.classifier = classifier;
+      this.regression = regression;
       this.fitParameters = fitParameters;
    }
 
    @Test
    public void fitAndEvaluate() {
       assertTrue(passes(RegressionEvaluation.crossValidation(airfoilDataset(),
-                                                             classifier,
+                                                             regression,
                                                              fitParameters,
-                                                             10)));
+                                                             3)));
    }
 
 
@@ -43,9 +43,11 @@ public abstract class BaseRegressionTest {
    public Dataset airfoilDataset() {
       DataSource csv = new CSVDataSource(CSV.builder()
                                             .delimiter('\t')
-                                            .header("Frequency", "Angle", "Chord", "Velocity", "Suction", "Pressure"), "Pressure");
+                                            .header("Frequency", "Angle", "Chord", "Velocity", "Suction", "Pressure"),
+                                         "Pressure");
       try {
-         return DatasetType.InMemory.load(Resources.fromClasspath("com/gengoai/apollo/ml/airfoil_self_noise.data"), csv);
+         return DatasetType.InMemory.loadDataset(
+            Resources.fromClasspath("com/gengoai/apollo/ml/airfoil_self_noise.data"), csv);
       } catch (IOException e) {
          throw new RuntimeException(e);
       }

@@ -1,49 +1,95 @@
 package com.gengoai.apollo.ml.classification;
 
-import com.gengoai.apollo.linear.NDArray;
+import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.FitParameters;
 import com.gengoai.apollo.ml.LibLinear;
+import com.gengoai.apollo.ml.data.Dataset;
+import com.gengoai.apollo.ml.preprocess.Preprocessor;
+import com.gengoai.apollo.ml.preprocess.PreprocessorList;
+import com.gengoai.apollo.ml.vectorizer.Vectorizer;
 import com.gengoai.conversion.Cast;
-import com.gengoai.function.SerializableSupplier;
 import com.gengoai.logging.Loggable;
-import com.gengoai.stream.MStream;
 import de.bwaldvogel.liblinear.Model;
 import de.bwaldvogel.liblinear.Parameter;
 import de.bwaldvogel.liblinear.SolverType;
 
 /**
- * The type Lib linear model.
+ * A model trained using LibLinear
  *
  * @author David B. Bracewell
  */
-public class LibLinearModel implements Classifier, Loggable {
+public class LibLinearModel extends Classifier implements Loggable {
    private static final long serialVersionUID = 1L;
    private int biasIndex = -1;
    private Model model;
 
    /**
-    * Specialized fit method taking the LibLinear Parameters object.
+    * Instantiates a new Lib linear model.
     *
-    * @param dataSupplier  the data supplier
-    * @param fitParameters the fit parameters
+    * @param preprocessors the preprocessors
     */
-   public void fit(SerializableSupplier<MStream<NDArray>> dataSupplier, Parameters fitParameters) {
-      biasIndex = (fitParameters.bias ? fitParameters.numFeatures + 1 : -1);
-      model = LibLinear.fit(dataSupplier,
+   public LibLinearModel(Preprocessor... preprocessors) {
+      super(preprocessors);
+   }
+
+   /**
+    * Instantiates a new Lib linear model.
+    *
+    * @param labelVectorizer   the label vectorizer
+    * @param featureVectorizer the feature vectorizer
+    * @param preprocessors     the preprocessors
+    */
+   public LibLinearModel(Vectorizer<String> labelVectorizer, Vectorizer<String> featureVectorizer, Preprocessor... preprocessors) {
+      super(labelVectorizer, featureVectorizer, preprocessors);
+   }
+
+   /**
+    * Instantiates a new Lib linear model.
+    *
+    * @param labelVectorizer   the label vectorizer
+    * @param featureVectorizer the feature vectorizer
+    * @param preprocessors     the preprocessors
+    */
+   public LibLinearModel(Vectorizer<String> labelVectorizer, Vectorizer<String> featureVectorizer, PreprocessorList preprocessors) {
+      super(labelVectorizer, featureVectorizer, preprocessors);
+   }
+
+   /**
+    * Instantiates a new Lib linear model.
+    *
+    * @param featureVectorizer the feature vectorizer
+    * @param preprocessors     the preprocessors
+    */
+   public LibLinearModel(Vectorizer<String> featureVectorizer, Preprocessor... preprocessors) {
+      super(featureVectorizer, preprocessors);
+   }
+
+   /**
+    * Instantiates a new Lib linear model.
+    *
+    * @param featureVectorizer the feature vectorizer
+    * @param preprocessors     the preprocessors
+    */
+   public LibLinearModel(Vectorizer<String> featureVectorizer, PreprocessorList preprocessors) {
+      super(featureVectorizer, preprocessors);
+   }
+
+
+   @Override
+   protected void fitPreprocessed(Dataset preprocessed, FitParameters parameters) {
+      Parameters fitParameters = Cast.as(parameters, Parameters.class);
+      biasIndex = (fitParameters.bias ? getNumberOfFeatures() + 1 : -1);
+      model = LibLinear.fit(() -> preprocessed.stream()
+                                              .map(this::encode),
                             new Parameter(fitParameters.solver,
                                           fitParameters.C,
                                           fitParameters.eps,
                                           fitParameters.maxIterations,
                                           fitParameters.p),
                             fitParameters.verbose,
-                            fitParameters.numFeatures,
+                            getNumberOfFeatures(),
                             biasIndex
                            );
-   }
-
-   @Override
-   public void fit(SerializableSupplier<MStream<NDArray>> dataSupplier, FitParameters parameters) {
-      fit(dataSupplier, Cast.as(parameters, Parameters.class));
    }
 
    @Override
@@ -52,18 +98,9 @@ public class LibLinearModel implements Classifier, Loggable {
    }
 
    @Override
-   public NDArray estimate(NDArray data) {
-      return LibLinear.estimate(model, data, biasIndex);
-   }
-
-   @Override
-   public int getNumberOfFeatures() {
-      return model.getNrFeature();
-   }
-
-   @Override
-   public int getNumberOfLabels() {
-      return model.getNrClass();
+   public Classification predict(Example example) {
+      return new Classification(LibLinear.estimate(model, encodeAndPreprocess(example), biasIndex),
+                                getLabelVectorizer());
    }
 
    /**
@@ -84,18 +121,17 @@ public class LibLinearModel implements Classifier, Loggable {
        */
       public double eps = 0.0001;
       /**
-       * The Solver to use. (default L2R_LR)
-       */
-      public SolverType solver = SolverType.L2R_LR;
-      /**
        * The maximum number of iterations to run the trainer (Default 1000)
        */
       public int maxIterations = 1000;
-
       /**
        * The epsilon in loss function of epsilon-SVR (default 0.1)
        */
       public double p = 0.1;
+      /**
+       * The Solver to use. (default L2R_LR)
+       */
+      public SolverType solver = SolverType.L2R_LR;
 
    }
 }//END OF LibLinearModel

@@ -27,6 +27,7 @@ public class IndexVectorizer extends StringVectorizer {
 
 
    public IndexVectorizer(boolean isLabel, String unknown) {
+      super(isLabel);
       this.isLabel = isLabel;
       this.unknown = unknown;
       if (this.unknown != null) {
@@ -85,11 +86,6 @@ public class IndexVectorizer extends StringVectorizer {
                           })
                           .distinct()
                           .collect());
-   }
-
-   @Override
-   public boolean isLabelVectorizer() {
-      return isLabel;
    }
 
    @Override

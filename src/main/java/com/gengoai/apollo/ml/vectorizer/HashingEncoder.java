@@ -1,10 +1,8 @@
 package com.gengoai.apollo.ml.vectorizer;
 
-import com.gengoai.Validation;
 import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.json.JsonEntry;
 
-import java.lang.reflect.Type;
 import java.util.Collections;
 import java.util.Set;
 
@@ -17,14 +15,9 @@ public class HashingEncoder extends StringVectorizer {
    private final int numberOfFeatures;
 
    public HashingEncoder(int numberOfFeatures, boolean isBinary) {
+      super(false);
       this.numberOfFeatures = numberOfFeatures;
       this.isBinary = isBinary;
-   }
-
-   public static HashingEncoder fromJson(JsonEntry entry, Type... parameters) {
-      Validation.checkState(entry.getStringProperty("class").equalsIgnoreCase(HashingEncoder.class.getName()));
-      return new HashingEncoder(entry.getIntProperty("numberOfFeatures"),
-                                entry.getBooleanProperty("isBinary"));
    }
 
    @Override
@@ -45,11 +38,6 @@ public class HashingEncoder extends StringVectorizer {
    @Override
    public void fit(Dataset dataset) {
 
-   }
-
-   @Override
-   public boolean isLabelVectorizer() {
-      return false;
    }
 
    @Override

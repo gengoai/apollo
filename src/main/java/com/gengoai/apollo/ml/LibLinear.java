@@ -65,8 +65,7 @@ public final class LibLinear {
       for (int i = 0; i < labels.length; i++) {
          prime[labels[i]] = p[i];
       }
-      data.setPredicted(NDArrayFactory.rowVector(prime));
-      return data;
+      return NDArrayFactory.rowVector(prime);
    }
 
    /**
@@ -77,8 +76,8 @@ public final class LibLinear {
     * @param biasIndex the bias index
     * @return the nd array
     */
-   public static NDArray regress(Model model, NDArray data, int biasIndex) {
-      return data.setPredicted(NDArrayFactory.DEFAULT().scalar(Linear.predict(model, toFeature(data, biasIndex))));
+   public static double regress(Model model, NDArray data, int biasIndex) {
+      return Linear.predict(model, toFeature(data, biasIndex));
    }
 
    /**
@@ -101,7 +100,7 @@ public final class LibLinear {
       problem.l = (int) dataSupplier.get().count();
       problem.x = new Feature[problem.l][];
       problem.y = new double[problem.l];
-      problem.n = numFeatures + (biasIndex >= 0 ? 1 : 0);
+      problem.n = numFeatures + 1;
       problem.bias = biasIndex >= 0 ? 0 : -1;
       dataSupplier.get().zipWithIndex()
                   .forEach((datum, index) -> {

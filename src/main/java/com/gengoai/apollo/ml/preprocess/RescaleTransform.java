@@ -89,6 +89,6 @@ public class RescaleTransform extends RestrictedFeaturePreprocessor {
    public String toString() {
       return "ZScoreTransform[" + getRestriction() + "]" +
                 "{sample_min=" + min + ", sample_max=" + max +
-                "target_min=" + newMin + ", target_max=" + newMax + "}";
+                ", target_min=" + newMin + ", target_max=" + newMax + "}";
    }
 }//END OF RescaleTransform

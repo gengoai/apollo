@@ -51,11 +51,6 @@ public class DoubleVectorizer implements Vectorizer<Double> {
    }
 
    @Override
-   public boolean isLabelVectorizer() {
-      return false;
-   }
-
-   @Override
    public int size() {
       return 1;
    }

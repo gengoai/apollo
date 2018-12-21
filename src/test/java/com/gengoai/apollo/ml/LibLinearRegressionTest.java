@@ -1,9 +1,10 @@
 package com.gengoai.apollo.ml;
 
-import com.gengoai.apollo.ml.preprocess.PreprocessorList;
+import com.gengoai.apollo.ml.preprocess.PerFeatureTransform;
+import com.gengoai.apollo.ml.preprocess.RescaleTransform;
 import com.gengoai.apollo.ml.regression.LibLinearLinearRegression;
-import com.gengoai.apollo.ml.regression.PipelinedRegression;
 import com.gengoai.apollo.ml.regression.RegressionEvaluation;
+import com.gengoai.apollo.ml.vectorizer.IndexVectorizer;
 
 /**
  * @author David B. Bracewell
@@ -11,12 +12,16 @@ import com.gengoai.apollo.ml.regression.RegressionEvaluation;
 public class LibLinearRegressionTest extends BaseRegressionTest {
 
    public LibLinearRegressionTest() {
-      super(new PipelinedRegression(new LibLinearLinearRegression(), new PreprocessorList()),
-            new LibLinearLinearRegression.Parameters());
+      super(new LibLinearLinearRegression(IndexVectorizer.featureVectorizer(),
+                                          new PerFeatureTransform(RescaleTransform::new)),
+            new LibLinearLinearRegression.Parameters()
+               .set("maxIterations", 200)
+               .set("eps", 1e-10)
+               .set("bias", true));
    }
 
    @Override
    public boolean passes(RegressionEvaluation mce) {
-      return mce.r2() >= 0.9;
+      return mce.rootMeanSquaredError() <= 125;
    }
 }//END OF LibLinearRegressionTest

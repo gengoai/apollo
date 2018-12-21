@@ -135,7 +135,7 @@ public class Instance extends Example {
    }
 
    @Override
-   public void setLabel(Object label) {
+   public Example setLabel(Object label) {
       if (label == null) {
          this.label = null;
       } else if (label instanceof Number) {
@@ -161,6 +161,7 @@ public class Instance extends Example {
       } else {
          throw new IllegalArgumentException("Unable to set (" + label + ") as the Instance's label");
       }
+      return this;
    }
 
    @Override

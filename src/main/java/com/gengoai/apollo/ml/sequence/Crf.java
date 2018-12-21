@@ -2,13 +2,18 @@ package com.gengoai.apollo.ml.sequence;
 
 import com.gengoai.apollo.linear.Axis;
 import com.gengoai.apollo.linear.NDArray;
-import com.gengoai.apollo.linear.NDArrayFactory;
+import com.gengoai.apollo.ml.Example;
+import com.gengoai.apollo.ml.Feature;
 import com.gengoai.apollo.ml.FitParameters;
+import com.gengoai.apollo.ml.data.Dataset;
+import com.gengoai.apollo.ml.preprocess.Preprocessor;
+import com.gengoai.apollo.ml.preprocess.PreprocessorList;
+import com.gengoai.apollo.ml.vectorizer.IndexVectorizer;
+import com.gengoai.apollo.ml.vectorizer.NoOptVectorizer;
+import com.gengoai.apollo.ml.vectorizer.Vectorizer;
 import com.gengoai.conversion.Cast;
-import com.gengoai.function.SerializableSupplier;
 import com.gengoai.io.Resources;
 import com.gengoai.io.resource.Resource;
-import com.gengoai.stream.MStream;
 import com.gengoai.tuple.Tuple2;
 import com.github.jcrfsuite.CrfTagger;
 import com.github.jcrfsuite.util.Pair;
@@ -27,40 +32,57 @@ import static com.gengoai.tuple.Tuples.$;
  *
  * @author David B. Bracewell
  */
-public class Crf implements SequenceLabeler, Serializable {
+public class Crf extends SequenceLabeler implements Serializable {
    private static final long serialVersionUID = 1L;
    private String modelFile;
-   private int numberOfFeatures = 0;
    private volatile CrfTagger tagger;
 
-   @Override
-   public NDArray estimate(NDArray sequence) {
-      CrfSuiteLoader.INSTANCE.load();
-      sequence.sliceStream()
-              .forEach(p -> {
-                 Tuple2<ItemSequence, StringList> seq = toItemSequence(p.v2, false);
-                 List<Pair<String, Double>> tags = tagger.tag(seq.v1);
-                 NDArray labels = NDArrayFactory.DENSE.zeros(1, tags.size());
-                 for (int i = 0; i < tags.size(); i++) {
-                    labels.set(i, Integer.parseInt(tags.get(i).first));
-                 }
-                 p.v2.setPredicted(labels);
-              });
-      return sequence;
+
+   /**
+    * Instantiates a new Crf.
+    */
+   public Crf(Preprocessor... preprocessors) {
+      super(new NoOptVectorizer<>(),
+            IndexVectorizer.featureVectorizer(),
+            preprocessors);
+   }
+
+   /**
+    * Instantiates a new Crf.
+    *
+    * @param featureVectorizer the feature vectorizer
+    * @param preprocessors     the preprocessors
+    */
+   public Crf(Vectorizer<String> featureVectorizer, PreprocessorList preprocessors) {
+      super(featureVectorizer, preprocessors);
+   }
+
+
+   private Tuple2<ItemSequence, StringList> toItemSequence(Example sequence) {
+      ItemSequence seq = new ItemSequence();
+      StringList labels = new StringList();
+      for (Example instance : sequence) {
+         Item item = new Item();
+         for (Feature feature : instance.getFeatures()) {
+            item.add(new Attribute(feature.name, feature.value));
+         }
+         if (instance.hasLabel()) {
+            labels.add(instance.getLabelAsString());
+         }
+         seq.add(item);
+      }
+      return $(seq, labels);
    }
 
    @Override
-   public void fit(SerializableSupplier<MStream<NDArray>> dataSupplier, FitParameters parameters) {
+   protected void fitPreprocessed(Dataset dataset, FitParameters parameters) {
       Parameters fitParameters = Cast.as(notNull(parameters), Parameters.class);
       CrfSuiteLoader.INSTANCE.load();
       Trainer trainer = new Trainer();
-      this.numberOfFeatures = fitParameters.numFeatures;
-      dataSupplier.get().forEachLocal(sequence -> sequence.sliceStream()
-                                                          .forEach(p -> {
-                                                             Tuple2<ItemSequence, StringList> seq = toItemSequence(p.v2,
-                                                                                                                   true);
-                                                             trainer.append(seq.v1, seq.v2, 0);
-                                                          }));
+      dataset.forEach(sequence -> {
+         Tuple2<ItemSequence, StringList> instance = toItemSequence(sequence);
+         trainer.append(instance.v1, instance.v2, 0);
+      });
       trainer.select(fitParameters.crfSolver.parameterSetting, "crf1d");
       trainer.set("max_iterations", Integer.toString(fitParameters.maxIterations));
       trainer.set("c2", Double.toString(fitParameters.c2));
@@ -74,13 +96,16 @@ public class Crf implements SequenceLabeler, Serializable {
    }
 
    @Override
-   public Parameters getDefaultFitParameters() {
-      return new Crf.Parameters();
+   public Labeling label(Example sequence) {
+      CrfSuiteLoader.INSTANCE.load();
+      List<Pair<String, Double>> tags = tagger.tag(toItemSequence(preprocess(sequence)).v1);
+      return new Labeling(tags.stream().map(Pair::getFirst).toArray(String[]::new));
    }
 
+
    @Override
-   public int getNumberOfFeatures() {
-      return numberOfFeatures;
+   public Parameters getDefaultFitParameters() {
+      return new Crf.Parameters();
    }
 
    @Override

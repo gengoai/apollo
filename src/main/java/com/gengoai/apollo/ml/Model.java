@@ -1,23 +1,49 @@
 package com.gengoai.apollo.ml;
 
-import com.gengoai.Parameters;
 import com.gengoai.apollo.linear.NDArray;
+import com.gengoai.apollo.ml.data.Dataset;
+import com.gengoai.apollo.ml.preprocess.Preprocessor;
+import com.gengoai.apollo.ml.preprocess.PreprocessorList;
+import com.gengoai.apollo.ml.vectorizer.Vectorizer;
 import com.gengoai.conversion.Cast;
-import com.gengoai.function.SerializableSupplier;
 import com.gengoai.io.resource.Resource;
-import com.gengoai.stream.MStream;
 
 import java.io.Serializable;
 import java.util.function.Consumer;
 
 /**
  * <p>A generic interface to classification, regression, and sequence models. Models are trained using the
- * <code>fit</code> method which takes in the training data and {@link Parameters}. Models are used on new data by
- * calling the <code>transform</code> method. </p>
+ * <code>fit</code> method which takes in the training data and {@link FitParameters}. Models are used on new data by
+ * calling the <code>estimate</code> method.</p>
+ * <p>Models can be trained and used to estimate directly on {@link NDArray}s or using {@link Dataset}s of {@link
+ * Example}s</p>
  *
  * @author David B. Bracewell
  */
-public interface Model extends Serializable {
+public abstract class Model implements Serializable {
+   private static final long serialVersionUID = 1L;
+   private final Vectorizer<String> featureVectorizer;
+   private final Vectorizer<?> labelVectorizer;
+   private final PreprocessorList preprocessors;
+
+
+   protected Model(Vectorizer<?> labelVectorizer,
+                   Vectorizer<String> featureVectorizer,
+                   Preprocessor... preprocessors
+                  ) {
+      this.featureVectorizer = featureVectorizer;
+      this.labelVectorizer = labelVectorizer;
+      this.preprocessors = new PreprocessorList(preprocessors);
+   }
+
+   protected Model(Vectorizer<?> labelVectorizer,
+                   Vectorizer<String> featureVectorizer,
+                   PreprocessorList preprocessors
+                  ) {
+      this.featureVectorizer = featureVectorizer;
+      this.labelVectorizer = labelVectorizer;
+      this.preprocessors = new PreprocessorList(preprocessors);
+   }
 
    /**
     * Reads a Classifier from the given resource
@@ -26,76 +52,119 @@ public interface Model extends Serializable {
     * @return the deserialized (loaded) model
     * @throws Exception Something went wrong reading in the model
     */
-   static Model read(Resource resource) throws Exception {
+   public static Model read(Resource resource) throws Exception {
       return resource.readObject();
    }
 
    /**
-    * Estimates the outcome for a single NDArray. The return value is the given NDArray data with the estimation on the
-    * <code>predicted</code> value.
+    * Convenience method for encoding and applying preprocessors to examples;
     *
-    * @param data the NDArray to transform.
-    * @return the input data with the estimation on the <code>predicted</code> label ( {@link NDArray#getPredicted()} )
+    * @param example the example to encode and preprocess
+    * @return the resulting encoded NDArray
     */
-   NDArray estimate(NDArray data);
+   protected final NDArray encode(Example example) {
+      NDArray array = featureVectorizer.transform(example);
+      if (example.hasLabel()) {
+         array.setLabel(labelVectorizer.transform(example));
+      }
+      return array;
+   }
 
-   /**
-    * Evaluates the given model on the given Stream of evaluation data.
-    *
-    * @param evaluationData the evaluation data
-    * @param evaluation     the evaluation
-    * @return the evaluation
-    */
-   default Evaluation evaluate(MStream<NDArray> evaluationData, Evaluation evaluation) {
-      evaluationData.forEach(n -> evaluation.entry(estimate(n)));
-      return evaluation;
+   protected final Example preprocess(Example example){
+      return preprocessors.apply(example);
    }
 
    /**
-    * Fits the model (i.e. trains) it on the given data using the given model parameters.Implementations should take
-    * care to reset any trained parameters to defaults on calls, i.e. this method is not meant to update a previously
-    * trained model but to retrain it from scratch.
+    * Convenience method for encoding and applying preprocessors to examples;
     *
-    * @param dataSupplier     A supplier of {@link NDArray} representing training data
-    * @param parameterUpdater Consumer to update the default fit parameters (specify type in consumer to use
-    *                         subclasses).
+    * @param example the example to encode and preprocess
+    * @return the resulting encoded NDArray
     */
-   default void fit(SerializableSupplier<MStream<NDArray>> dataSupplier, Consumer<? extends FitParameters> parameterUpdater) {
-      FitParameters f = getDefaultFitParameters();
-      parameterUpdater.accept(Cast.as(f));
-      this.fit(dataSupplier, f);
+   protected final NDArray encodeAndPreprocess(Example example) {
+      return encode(preprocess(example));
    }
 
    /**
-    * Fits the model (i.e. trains) it on the given data using the given model parameters. Implementations should take
-    * care to reset any trained parameters to defaults on calls, i.e. this method is not meant to update a previously
-    * trained model but to retrain it from scratch.
+    * Fits the model on the given {@link Dataset} using the model's default {@link FitParameters}.
     *
-    * @param dataSupplier  A supplier of {@link NDArray} representing training data
+    * @param dataset the dataset to fit the model on
+    */
+   public final void fit(Dataset dataset) {
+      fit(dataset, getDefaultFitParameters());
+   }
+
+   /**
+    * Fits the model on the given {@link Dataset} using the given consumer to modify the model's default {@link
+    * FitParameters}**.
+    *
+    * @param dataset       the dataset
+    * @param fitParameters the consumer to use to update the fit parameters
+    */
+   public final void fit(Dataset dataset, Consumer<? extends FitParameters> fitParameters) {
+      FitParameters p = getDefaultFitParameters();
+      fitParameters.accept(Cast.as(p));
+      fit(dataset, p);
+   }
+
+   /**
+    * Fits the model on the given {@link Dataset} using the given {@link FitParameters}.
+    *
+    * @param dataset       the dataset
     * @param fitParameters the fit parameters
     */
-   void fit(SerializableSupplier<MStream<NDArray>> dataSupplier, FitParameters fitParameters);
+   public final void fit(Dataset dataset, FitParameters fitParameters) {
+      final Dataset preprocessed = preprocessors.fitAndTransform(dataset);
+      labelVectorizer.fit(preprocessed);
+      featureVectorizer.fit(preprocessed);
+      fitPreprocessed(preprocessed, fitParameters);
+   }
+
+   protected abstract void fitPreprocessed(Dataset preprocessed, FitParameters fitParameters);
 
    /**
     * Gets default fit parameters for the model.
     *
     * @return the default fit parameters
     */
-   FitParameters getDefaultFitParameters();
+   public abstract FitParameters getDefaultFitParameters();
+
+   /**
+    * Gets the feature vectorizer used by the model.
+    *
+    * @return the feature vectorizer
+    */
+   public Vectorizer<String> getFeatureVectorizer() {
+      return featureVectorizer;
+   }
+
+   /**
+    * Gets the label vectorizer used by the model.
+    *
+    * @param <T> the type parameter
+    * @return the label vectorizer
+    */
+   public <T> Vectorizer<T> getLabelVectorizer() {
+      return Cast.as(labelVectorizer);
+   }
 
    /**
     * Gets the number of features in the model.
     *
     * @return the number of features
     */
-   int getNumberOfFeatures();
+   public int getNumberOfFeatures() {
+      return featureVectorizer.size();
+   }
 
    /**
     * Gets the number of labels in the model.
     *
     * @return the number of labels
     */
-   int getNumberOfLabels();
+   public int getNumberOfLabels() {
+      return labelVectorizer.size();
+   }
+
 
    /**
     * Writes the model to the given resource.
@@ -103,9 +172,7 @@ public interface Model extends Serializable {
     * @param resource the resource to write the model to
     * @throws Exception Something went wrong writing the model
     */
-   default void write(Resource resource) throws Exception {
+   public void write(Resource resource) throws Exception {
       resource.setIsCompressed(true).writeObject(this);
    }
-
-
 }//END OF Model

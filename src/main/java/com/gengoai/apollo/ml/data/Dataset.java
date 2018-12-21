@@ -6,10 +6,14 @@ import com.gengoai.apollo.ml.Split;
 import com.gengoai.collection.counter.Counter;
 import com.gengoai.conversion.Cast;
 import com.gengoai.function.SerializableFunction;
+import com.gengoai.io.resource.Resource;
+import com.gengoai.json.Json;
 import com.gengoai.stream.MStream;
 import com.gengoai.stream.StreamingContext;
 import com.gengoai.stream.accumulator.MCounterAccumulator;
 
+import java.io.BufferedWriter;
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
@@ -265,5 +269,23 @@ public abstract class Dataset implements Iterable<Example>, Copyable<Dataset>, S
       }
       return dataset;
    }
+
+   /**
+    * Write.
+    *
+    * @param location the location
+    * @throws IOException the io exception
+    */
+   public void write(Resource location) throws IOException {
+      try (BufferedWriter writer = new BufferedWriter(location.writer())) {
+         for (Example example : this) {
+            writer.write(Json.dumps(example));
+            writer.write("\n");
+
+
+         }
+      }
+   }
+
 
 }//END OF Dataset

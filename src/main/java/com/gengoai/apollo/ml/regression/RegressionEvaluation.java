@@ -1,14 +1,14 @@
 package com.gengoai.apollo.ml.regression;
 
 import com.gengoai.Validation;
-import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.ml.Evaluation;
+import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.FitParameters;
 import com.gengoai.apollo.ml.Split;
 import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.conversion.Cast;
 import com.gengoai.logging.Logger;
-import com.gengoai.math.Math2;
+import com.gengoai.stream.MStream;
 import com.gengoai.string.TableFormatter;
 import org.apache.mahout.math.list.DoubleArrayList;
 
@@ -22,7 +22,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  * @author David B. Bracewell
  */
-public class RegressionEvaluation implements Evaluation, Serializable {
+public class RegressionEvaluation implements Evaluation<Regression>, Serializable {
    private static final Logger log = Logger.getLogger(RegressionEvaluation.class);
    private static final long serialVersionUID = 1L;
    private DoubleArrayList gold = new DoubleArrayList();
@@ -40,18 +40,18 @@ public class RegressionEvaluation implements Evaluation, Serializable {
     * @return the multi class evaluation
     */
    public static RegressionEvaluation crossValidation(Dataset dataset,
-                                                      PipelinedRegression regression,
+                                                      Regression regression,
                                                       FitParameters fitParameters,
                                                       int nFolds
                                                      ) {
       RegressionEvaluation evaluation = new RegressionEvaluation();
       AtomicInteger foldId = new AtomicInteger(0);
-      for (Split split : dataset.fold(nFolds)) {
+      for (Split split : dataset.shuffle().fold(nFolds)) {
          if (fitParameters.verbose) {
             log.info("Running fold {0}", foldId.incrementAndGet());
          }
          regression.fit(split.train, fitParameters);
-         regression.evaluate(split.test, evaluation);
+         evaluation.evaluate(regression, split.test);
          if (fitParameters.verbose) {
             log.info("Fold {0}: Cumulative Metrics(r2={1})", foldId.get(), evaluation.r2());
          }
@@ -91,17 +91,20 @@ public class RegressionEvaluation implements Evaluation, Serializable {
    }
 
    @Override
+   public void evaluate(Regression model, MStream<Example> dataset) {
+      for (Example ii : dataset) {
+         gold.add(ii.getLabelAsDouble());
+         predicted.add(model.estimate(ii));
+      }
+      p = Math.max(p, model.getNumberOfFeatures());
+   }
+
+   @Override
    public void merge(Evaluation evaluation) {
       Validation.checkArgument(evaluation instanceof RegressionEvaluation);
       RegressionEvaluation re = Cast.as(evaluation);
       gold.addAllOf(re.gold);
       predicted.addAllOf(re.predicted);
-   }
-
-   @Override
-   public void entry(NDArray entry) {
-      gold.add(entry.getLabelAsDouble());
-      predicted.add(entry.getPredictedAsDouble());
    }
 
 
@@ -122,13 +125,13 @@ public class RegressionEvaluation implements Evaluation, Serializable {
     * @return the r2
     */
    public double r2() {
-      double yMean = Math2.sum(gold.elements()) / gold.size();
-      double SStot = Arrays.stream(gold.elements()).map(d -> Math.pow(d - yMean, 2)).sum();
-      double SSres = 0;
-      for (int i = 0; i < gold.size(); i++) {
-         SSres += Math.pow(gold.get(i) - predicted.get(i), 2);
-      }
-      return 1.0 - SSres / SStot;
+      double yMean = Arrays.stream(gold.elements())
+                           .average().orElse(0d);
+      double SSTO = Arrays.stream(gold.elements())
+                          .map(d -> Math.pow(d - yMean, 2))
+                          .sum();
+      double SSE = squaredError();
+      return 1.0 - (SSE / SSTO);
    }
 
    /**

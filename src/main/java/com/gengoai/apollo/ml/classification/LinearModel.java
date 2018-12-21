@@ -4,7 +4,12 @@ import com.gengoai.Copyable;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.linear.NDArrayInitializer;
+import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.FitParameters;
+import com.gengoai.apollo.ml.data.Dataset;
+import com.gengoai.apollo.ml.preprocess.Preprocessor;
+import com.gengoai.apollo.ml.preprocess.PreprocessorList;
+import com.gengoai.apollo.ml.vectorizer.Vectorizer;
 import com.gengoai.apollo.optimization.*;
 import com.gengoai.apollo.optimization.activation.Activation;
 import com.gengoai.apollo.optimization.loss.LogLoss;
@@ -22,38 +27,86 @@ import java.io.Serializable;
  *
  * @author David B. Bracewell
  */
-public class LinearModel implements Classifier, Loggable {
+public class LinearModel extends Classifier implements Loggable {
    private static final long serialVersionUID = 1L;
    private final ModelParameters modelParameters;
 
    /**
     * Instantiates a new Linear model.
+    *
+    * @param preprocessors the preprocessors
     */
-   public LinearModel() {
+   public LinearModel(Preprocessor... preprocessors) {
+      super(preprocessors);
       this.modelParameters = new ModelParameters();
    }
 
-
-   @Override
-   public NDArray estimate(NDArray example) {
-      return example.setPredicted(modelParameters.activate(example));
+   /**
+    * Instantiates a new Linear model.
+    *
+    * @param labelVectorizer   the label vectorizer
+    * @param featureVectorizer the feature vectorizer
+    * @param preprocessors     the preprocessors
+    */
+   public LinearModel(Vectorizer<String> labelVectorizer, Vectorizer<String> featureVectorizer, Preprocessor... preprocessors) {
+      super(labelVectorizer, featureVectorizer, preprocessors);
+      this.modelParameters = new ModelParameters();
    }
 
    /**
-    * Custom fit method taking LinearModel fit parameters object.
+    * Instantiates a new Linear model.
     *
-    * @param dataSupplier the data supplier
-    * @param parameters   the parameters
+    * @param labelVectorizer   the label vectorizer
+    * @param featureVectorizer the feature vectorizer
+    * @param preprocessors     the preprocessors
     */
-   public void fit(SerializableSupplier<MStream<NDArray>> dataSupplier, Parameters parameters) {
+   public LinearModel(Vectorizer<String> labelVectorizer, Vectorizer<String> featureVectorizer, PreprocessorList preprocessors) {
+      super(labelVectorizer, featureVectorizer, preprocessors);
+      this.modelParameters = new ModelParameters();
+   }
+
+   /**
+    * Instantiates a new Linear model.
+    *
+    * @param featureVectorizer the feature vectorizer
+    * @param preprocessors     the preprocessors
+    */
+   public LinearModel(Vectorizer<String> featureVectorizer, Preprocessor... preprocessors) {
+      super(featureVectorizer, preprocessors);
+      this.modelParameters = new ModelParameters();
+   }
+
+   /**
+    * Instantiates a new Linear model.
+    *
+    * @param featureVectorizer the feature vectorizer
+    * @param preprocessors     the preprocessors
+    */
+   public LinearModel(Vectorizer<String> featureVectorizer, PreprocessorList preprocessors) {
+      super(featureVectorizer, preprocessors);
+      this.modelParameters = new ModelParameters();
+   }
+
+   @Override
+   protected void fitPreprocessed(Dataset preprocessed, FitParameters fitParameters) {
+      Parameters parameters = Cast.as(fitParameters, Parameters.class);
+      this.modelParameters.numFeatures = getNumberOfFeatures();
+      this.modelParameters.numLabels = getNumberOfLabels();
       GradientDescentOptimizer optimizer = GradientDescentOptimizer.builder()
                                                                    .batchSize(parameters.batchSize).build();
+
+      final SerializableSupplier<MStream<NDArray>> dataSupplier;
       if (parameters.cacheData) {
          if (parameters.verbose) {
             logInfo("Caching dataset...");
          }
-         MStream<NDArray> cached = dataSupplier.get().cache();
+         final MStream<NDArray> cached = preprocessed.stream()
+                                                     .map(this::encode)
+                                                     .cache();
          dataSupplier = () -> cached;
+      } else {
+         dataSupplier = () -> preprocessed.stream()
+                                          .map(this::encode);
       }
       this.modelParameters.update(parameters);
       optimizer.optimize(modelParameters,
@@ -69,23 +122,13 @@ public class LinearModel implements Classifier, Loggable {
    }
 
    @Override
-   public void fit(SerializableSupplier<MStream<NDArray>> dataSupplier, FitParameters fitParameters) {
-      fit(dataSupplier, Cast.as(fitParameters, Parameters.class));
-   }
-
-   @Override
    public Parameters getDefaultFitParameters() {
       return new Parameters();
    }
 
    @Override
-   public int getNumberOfFeatures() {
-      return modelParameters.numFeatures;
-   }
-
-   @Override
-   public int getNumberOfLabels() {
-      return modelParameters.numLabels;
+   public Classification predict(Example example) {
+      return new Classification(modelParameters.activate(encodeAndPreprocess(example)), getLabelVectorizer());
    }
 
    private static class ModelParameters implements LinearModelParameters, Serializable, Copyable<ModelParameters> {
@@ -136,8 +179,6 @@ public class LinearModel implements Classifier, Loggable {
        * @param parameters the fit parameters
        */
       public void update(Parameters parameters) {
-         this.numLabels = parameters.numLabels;
-         this.numFeatures = parameters.numFeatures;
          int numL = numLabels <= 2 ? 1 : numLabels;
          this.activation = parameters.activation;
          this.weights = NDArrayFactory.DEFAULT().create(NDArrayInitializer.rand, numL, numFeatures);
@@ -175,6 +216,10 @@ public class LinearModel implements Classifier, Loggable {
        */
       public int maxIterations = 300;
       /**
+       * The Report interval.
+       */
+      public int reportInterval = 100;
+      /**
        * The Tolerance.
        */
       public double tolerance = 1e-9;
@@ -194,8 +239,6 @@ public class LinearModel implements Classifier, Loggable {
                    ", maxIterations=" + maxIterations +
                    ", tolerance=" + tolerance +
                    ", weightUpdater=" + weightUpdater +
-                   ", numFeatures=" + numFeatures +
-                   ", numLabels=" + numLabels +
                    ", verbose=" + verbose +
                    ", reportInterval=" + reportInterval +
                    '}';

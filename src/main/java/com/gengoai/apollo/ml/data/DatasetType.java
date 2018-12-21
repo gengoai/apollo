@@ -21,32 +21,60 @@ public enum DatasetType {
       public StreamingContext getStreamingContext() {
          return StreamingContext.distributed();
       }
+
+      @Override
+      public Dataset createDataset(MStream<Example> examples) {
+         return null;
+      }
+
+      @Override
+      public Dataset loadDataset(Resource location, DataSource dataSource) throws IOException {
+         return null;
+      }
    },
    /**
     * All data is stored in-memory on local machine.
     */
    InMemory {
       @Override
-      public Dataset of(MStream<Example> examples) {
+      public Dataset createDataset(MStream<Example> examples) {
          return new InMemoryDataset(examples.collect());
       }
 
 
       @Override
-      public Dataset load(Resource location, DataSource dataSource) throws IOException {
-         return of(dataSource.stream(location));
+      public Dataset loadDataset(Resource location, DataSource dataSource) throws IOException {
+         return createDataset(dataSource.stream(location, false));
       }
-
-
    },
    /**
     * Data is stored on disk
     */
-   OffHeap,
+   OffHeap {
+      @Override
+      public Dataset createDataset(MStream<Example> examples) {
+         return null;
+      }
+
+      @Override
+      public Dataset loadDataset(Resource location, DataSource dataSource) throws IOException {
+         return null;
+      }
+   },
    /**
     * Data is stored in a Mango stream, what kind may not be known.
     */
-   Stream;
+   Stream {
+      @Override
+      public Dataset createDataset(MStream<Example> examples) {
+         return null;
+      }
+
+      @Override
+      public Dataset loadDataset(Resource location, DataSource dataSource) throws IOException {
+         return null;
+      }
+   };
 
 
    /**
@@ -59,14 +87,35 @@ public enum DatasetType {
    }
 
 
-   public Dataset of(MStream<Example> examples) {
-      return new InMemoryDataset(examples.collect());
-   }
+   /**
+    * Of dataset.
+    *
+    * @param examples the examples
+    * @return the dataset
+    */
+   public abstract Dataset createDataset(MStream<Example> examples);
 
 
-   public Dataset load(Resource location, DataSource dataSource) throws IOException {
-      return null;
+   /**
+    * Load dataset.
+    *
+    * @param location the location
+    * @return the dataset
+    * @throws IOException the io exception
+    */
+   public final Dataset loadDataset(Resource location) throws IOException {
+      return loadDataset(location, new JsonDataSource());
    }
+
+   /**
+    * Load dataset.
+    *
+    * @param location   the location
+    * @param dataSource the data source
+    * @return the dataset
+    * @throws IOException the io exception
+    */
+   public abstract Dataset loadDataset(Resource location, DataSource dataSource) throws IOException;
 
 
 }//END OF DatasetType

@@ -15,18 +15,9 @@ import java.io.Serializable;
  */
 public class Classification implements Serializable {
    private static final long serialVersionUID = 1L;
+   private final String argMax;
    private final NDArray distribution;
    private Vectorizer<String> vectorizer;
-
-
-   /**
-    * Instantiates a new Classification.
-    *
-    * @param distribution the distribution
-    */
-   public Classification(NDArray distribution) {
-      this(distribution, null);
-   }
 
    /**
     * Instantiates a new Classification with a vectorizer to facilitate label id to label mapping.
@@ -36,25 +27,8 @@ public class Classification implements Serializable {
     */
    public Classification(NDArray distribution, Vectorizer<String> vectorizer) {
       this.distribution = distribution.isColumnVector() ? distribution.T() : distribution.copy();
+      this.argMax = vectorizer.decode(this.distribution.argMax(Axis.ROW).scalarValue());
       this.vectorizer = vectorizer;
-   }
-
-   /**
-    * The label id with maximum score.
-    *
-    * @return the label id with the maximum score.
-    */
-   public int argMax() {
-      return (int) distribution.argMax(Axis.ROW).get(0);
-   }
-
-   /**
-    * The label id with minimum score.
-    *
-    * @return the label id with the minimum score.
-    */
-   public int argMin() {
-      return (int) distribution.argMin(Axis.ROW).get(0);
    }
 
 
@@ -67,8 +41,7 @@ public class Classification implements Serializable {
    public Counter<String> asCounter() {
       Counter<String> counter = Counters.newCounter();
       for (long i = 0; i < distribution.length(); i++) {
-         counter.set((vectorizer == null ? Long.toString(i) : vectorizer.decode(i)),
-                     distribution.get((int) i));
+         counter.set(vectorizer.decode(i), distribution.get((int) i));
       }
       return counter;
    }
@@ -89,28 +62,7 @@ public class Classification implements Serializable {
     * @return the result
     */
    public String getResult() {
-      if (vectorizer == null) {
-         return Integer.toString(argMax());
-      }
-      return vectorizer.decode(argMax());
-   }
-
-   /**
-    * Selects all label ids whose score is greater than or equal to the given minimum value.
-    *
-    * @param minValue the minimum value
-    * @return the array of integers with label ids whose score is greater than or equal to the given minimum value.
-    */
-   public int[] select(double minValue) {
-      NDArray temp = distribution.test(v -> v >= minValue);
-      int[] rval = new int[(int) temp.scalarSum()];
-      for (long i = 0, j = 0; i < temp.length(); i++) {
-         if (temp.get((int) i) == 1) {
-            rval[(int) j] = (int) i;
-            j++;
-         }
-      }
-      return rval;
+      return argMax;
    }
 
    @Override

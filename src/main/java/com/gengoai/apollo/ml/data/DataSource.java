@@ -11,8 +11,6 @@ import java.io.IOException;
  */
 public interface DataSource {
 
-   MStream<Example> stream(Resource location) throws IOException;
-
-   void write(Resource location, Dataset dataset) throws IOException;
+   MStream<Example> stream(Resource location, boolean distributed) throws IOException;
 
 }//END OF DataSource

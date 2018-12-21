@@ -111,7 +111,7 @@ public abstract class Example implements Copyable<Example>, Iterable<Example>, S
     * @param label the new label
     * @throws UnsupportedOperationException If the example does not allow direct access to the label
     */
-   public void setLabel(Object label) {
+   public Example setLabel(Object label) {
       throw new UnsupportedOperationException();
    }
 
@@ -122,6 +122,9 @@ public abstract class Example implements Copyable<Example>, Iterable<Example>, S
     * @throws UnsupportedOperationException If the example does not allow direct access to the label
     */
    public double getLabelAsDouble() {
+      if (getLabel() instanceof CharSequence) {
+         return Double.parseDouble(getLabelAsString());
+      }
       return getLabel();
    }
 
@@ -192,6 +195,15 @@ public abstract class Example implements Copyable<Example>, Iterable<Example>, S
    }
 
    /**
+    * Checks if this an instance (or leaf level) example that will contain features and labels.
+    *
+    * @return True if an instance, false otherwise
+    */
+   public boolean isInstance() {
+      return false;
+   }
+
+   /**
     * Checks if the example's label has multiple values or not
     *
     * @return True if the example represents a multi-label example, False otherwise
@@ -202,7 +214,6 @@ public abstract class Example implements Copyable<Example>, Iterable<Example>, S
       }
       return false;
    }
-
 
    @Override
    public ContextualIterator iterator() {
@@ -244,16 +255,6 @@ public abstract class Example implements Copyable<Example>, Iterable<Example>, S
     */
    public Stream<Example> stream() {
       return Streams.asStream(this);
-   }
-
-
-   /**
-    * Checks if this an instance (or leaf level) example that will contain features and labels.
-    *
-    * @return True if an instance, false otherwise
-    */
-   public boolean isInstance() {
-      return false;
    }
 
 }//END OF Example

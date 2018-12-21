@@ -1,8 +1,13 @@
 package com.gengoai.apollo.ml.regression;
 
 import com.gengoai.apollo.linear.NDArray;
+import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.FitParameters;
 import com.gengoai.apollo.ml.LibLinear;
+import com.gengoai.apollo.ml.data.Dataset;
+import com.gengoai.apollo.ml.preprocess.Preprocessor;
+import com.gengoai.apollo.ml.preprocess.PreprocessorList;
+import com.gengoai.apollo.ml.vectorizer.Vectorizer;
 import com.gengoai.conversion.Cast;
 import com.gengoai.function.SerializableSupplier;
 import com.gengoai.stream.MStream;
@@ -15,24 +20,39 @@ import de.bwaldvogel.liblinear.SolverType;
  *
  * @author David B. Bracewell
  */
-public class LibLinearLinearRegression implements Regression {
+public class LibLinearLinearRegression extends Regression {
    private static final long serialVersionUID = 1L;
    private Model model;
    private int biasIndex;
 
-   @Override
-   public NDArray estimate(NDArray data) {
-      return LibLinear.regress(model, data, biasIndex);
+
+   /**
+    * Instantiates a new Lib linear linear regression.
+    */
+   public LibLinearLinearRegression() {
    }
 
    /**
-    * Specialized fit method that takes a Parameters object.
+    * Instantiates a new Lib linear linear regression.
     *
-    * @param dataSupplier  the data supplier
-    * @param fitParameters the fit parameters
+    * @param featureVectorizer the feature vectorizer
+    * @param preprocessors     the preprocessors
     */
-   public void fit(SerializableSupplier<MStream<NDArray>> dataSupplier, Parameters fitParameters) {
-      biasIndex = (fitParameters.bias ? fitParameters.numFeatures + 1 : -1);
+   public LibLinearLinearRegression(Vectorizer<String> featureVectorizer, PreprocessorList preprocessors) {
+      super(featureVectorizer, preprocessors);
+   }
+
+   public LibLinearLinearRegression(Vectorizer<String> featureVectorizer, Preprocessor... preprocessors) {
+      super(featureVectorizer, preprocessors);
+   }
+
+   @Override
+   public double estimate(Example data) {
+      return LibLinear.regress(model, encodeAndPreprocess(data), biasIndex);
+   }
+
+   private void fit(SerializableSupplier<MStream<NDArray>> dataSupplier, Parameters fitParameters) {
+      biasIndex = (fitParameters.bias ? getNumberOfFeatures() + 1 : -1);
       model = LibLinear.fit(dataSupplier,
                             new Parameter(SolverType.L2R_L2LOSS_SVR,
                                           fitParameters.C,
@@ -40,26 +60,20 @@ public class LibLinearLinearRegression implements Regression {
                                           fitParameters.maxIterations,
                                           fitParameters.p),
                             fitParameters.verbose,
-                            fitParameters.numFeatures,
+                            getNumberOfFeatures(),
                             biasIndex
                            );
    }
 
    @Override
-   public void fit(SerializableSupplier<MStream<NDArray>> dataSupplier, FitParameters fitParameters) {
-      fit(dataSupplier, Cast.as(fitParameters, Parameters.class));
+   public void fitPreprocessed(Dataset dataSupplier, FitParameters fitParameters) {
+      fit(() -> dataSupplier.stream().map(this::encode), Cast.as(fitParameters, Parameters.class));
    }
 
    @Override
    public FitParameters getDefaultFitParameters() {
       return new Parameters();
    }
-
-   @Override
-   public int getNumberOfFeatures() {
-      return model.getNrFeature();
-   }
-
 
    /**
     * Custom fit parameters for LibLinear

@@ -10,7 +10,7 @@ import java.util.Set;
  *
  * @author David B. Bracewell
  */
-public class BinaryVectorizer extends StringVectorizer {
+public class BinaryLabelVectorizer extends StringVectorizer {
    private static final long serialVersionUID = 1L;
    private final String trueLabel;
    private final String falseLabel;
@@ -18,7 +18,7 @@ public class BinaryVectorizer extends StringVectorizer {
    /**
     * Instantiates a new Binary vectorizer using "true" and "false" as the labels.
     */
-   public BinaryVectorizer() {
+   public BinaryLabelVectorizer() {
       this("true", "false");
    }
 
@@ -28,7 +28,8 @@ public class BinaryVectorizer extends StringVectorizer {
     * @param trueLabel  the true label
     * @param falseLabel the false label
     */
-   public BinaryVectorizer(String trueLabel, String falseLabel) {
+   public BinaryLabelVectorizer(String trueLabel, String falseLabel) {
+      super(true);
       this.trueLabel = trueLabel;
       this.falseLabel = falseLabel;
    }
@@ -38,10 +39,6 @@ public class BinaryVectorizer extends StringVectorizer {
       return Sets.hashSetOf(falseLabel, trueLabel);
    }
 
-   @Override
-   public boolean isLabelVectorizer() {
-      return true;
-   }
 
    @Override
    public String decode(double value) {
@@ -67,4 +64,4 @@ public class BinaryVectorizer extends StringVectorizer {
       return 2;
    }
 
-}//END OF BinaryVectorizer
+}//END OF BinaryLabelVectorizer

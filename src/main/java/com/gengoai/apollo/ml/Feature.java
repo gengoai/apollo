@@ -23,6 +23,7 @@ package com.gengoai.apollo.ml;
 
 import com.gengoai.Copyable;
 import com.gengoai.Interner;
+import com.gengoai.string.Strings;
 
 import java.io.Serializable;
 import java.util.Objects;
@@ -117,7 +118,8 @@ public final class Feature implements Serializable, Comparable<Feature>, Copyabl
     * @return True if this feature starts with the given prefix, False otherwise
     */
    public boolean hasPrefix(String prefix) {
-      return name.startsWith(prefix);
+      prefix = Strings.appendIfNotPresent(prefix, "=");
+      return name.startsWith(prefix) || (name + "=").equals(prefix);
    }
 
    @Override

@@ -4,6 +4,10 @@ import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.linear.NDArrayInitializer;
 import com.gengoai.apollo.ml.FitParameters;
+import com.gengoai.apollo.ml.data.Dataset;
+import com.gengoai.apollo.ml.preprocess.Preprocessor;
+import com.gengoai.apollo.ml.preprocess.PreprocessorList;
+import com.gengoai.apollo.ml.vectorizer.Vectorizer;
 import com.gengoai.apollo.stat.measure.Distance;
 import com.gengoai.apollo.stat.measure.Measure;
 import com.gengoai.conversion.Cast;
@@ -22,6 +26,25 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public class KMeans extends FlatClusterer {
    private int K;
+
+   public KMeans() {
+   }
+
+   public KMeans(Vectorizer<?> labelVectorizer, Vectorizer<String> featureVectorizer, PreprocessorList preprocessors) {
+      super(labelVectorizer, featureVectorizer, preprocessors);
+   }
+
+   public KMeans(Vectorizer<String> featureVectorizer, PreprocessorList preprocessors) {
+      super(featureVectorizer, preprocessors);
+   }
+
+   public KMeans(Vectorizer<?> labelVectorizer, Vectorizer<String> featureVectorizer, Preprocessor... preprocessors) {
+      super(labelVectorizer, featureVectorizer, preprocessors);
+   }
+
+   public KMeans(Vectorizer<String> featureVectorizer, Preprocessor... preprocessors) {
+      super(featureVectorizer, preprocessors);
+   }
 
    public void fit(SerializableSupplier<MStream<NDArray>> dataSupplier, Parameters fitParameters) {
       this.measure = fitParameters.measure;
@@ -121,9 +144,10 @@ public class KMeans extends FlatClusterer {
 
 
    @Override
-   public void fit(SerializableSupplier<MStream<NDArray>> dataSupplier, FitParameters fitParameters) {
-      fit(dataSupplier, Cast.as(fitParameters, Parameters.class));
+   public void fitPreprocessed(Dataset dataSupplier, FitParameters fitParameters) {
+      fit(() -> dataSupplier.stream().map(this::encode), Cast.as(fitParameters, Parameters.class));
    }
+
 
    @Override
    public FitParameters getDefaultFitParameters() {

@@ -1,33 +1,93 @@
 package com.gengoai.apollo.ml.classification;
 
 import com.gengoai.apollo.ml.Evaluation;
+import com.gengoai.apollo.ml.FitParameters;
+import com.gengoai.apollo.ml.Split;
+import com.gengoai.apollo.ml.data.Dataset;
+import com.gengoai.apollo.ml.vectorizer.BinaryLabelVectorizer;
+import com.gengoai.conversion.Cast;
+import com.gengoai.logging.Logger;
 
 import java.io.Serializable;
+import java.util.function.Consumer;
 
 /**
  * <p>Defines common methods and metrics when evaluating classification models.</p>
  *
  * @author David B. Bracewell
  */
-public interface ClassifierEvaluation extends Evaluation, Serializable {
+public abstract class ClassifierEvaluation implements Evaluation<Classifier>, Serializable {
+   private static final Logger log = Logger.getLogger(ClassifierEvaluation.class);
+   private static final long serialVersionUID = 1L;
+
+
+   public static ClassifierEvaluation evaluateClassifier(Classifier classifier, Dataset dataset) {
+      ClassifierEvaluation evaluation = classifier.getNumberOfLabels() <= 2
+                                        ? new BinaryEvaluation(classifier.getLabelVectorizer())
+                                        : new MultiClassEvaluation();
+      evaluation.evaluate(classifier, dataset);
+      return evaluation;
+   }
 
    /**
-    * Adds a prediction entry to the evaluation.
+    * Cross validation multi class evaluation.
     *
-    * @param gold      the gold, or actual, label
-    * @param predicted the model predicted label
+    * @param dataset    the dataset
+    * @param classifier the classifier
+    * @param updater    the updater
+    * @param nFolds     the n folds
+    * @return the multi class evaluation
     */
-   void entry(String gold, Classification predicted);
+   public static ClassifierEvaluation crossValidation(Dataset dataset,
+                                                      Classifier classifier,
+                                                      Consumer<? extends FitParameters> updater,
+                                                      int nFolds
+                                                     ) {
+      FitParameters parameters = classifier.getDefaultFitParameters();
+      updater.accept(Cast.as(parameters));
+      return crossValidation(dataset, classifier, parameters, nFolds);
+   }
 
+   /**
+    * Cross validation multi class evaluation.
+    *
+    * @param dataset       the dataset
+    * @param classifier    the classifier
+    * @param fitParameters the fit parameters
+    * @param nFolds        the n folds
+    * @return the multi class evaluation
+    */
+   public static ClassifierEvaluation crossValidation(Dataset dataset,
+                                                      Classifier classifier,
+                                                      FitParameters fitParameters,
+                                                      int nFolds
+                                                     ) {
 
-   void entry(double gold, double predicted);
+      ClassifierEvaluation evaluation = classifier.getLabelVectorizer() instanceof BinaryLabelVectorizer
+                                        ? new BinaryEvaluation(classifier.getLabelVectorizer())
+                                        : new MultiClassEvaluation();
+      int foldId = 0;
+      for (Split split : dataset.shuffle().fold(nFolds)) {
+         if (fitParameters.verbose) {
+            foldId++;
+            log.info("Running fold {0}", foldId);
+         }
+         classifier.fit(split.train, fitParameters);
+         evaluation.evaluate(classifier, split.test);
+         if (fitParameters.verbose) {
+            log.info("Fold {0}: Cumulative Metrics(accuracy={1})", foldId, evaluation.accuracy());
+         }
+      }
+      return evaluation;
+   }
+
 
    /**
     * <p>Calculates the accuracy, which is the percentage of items correctly classified.</p>
     *
     * @return the accuracy
     */
-   double accuracy();
+   public abstract double accuracy();
 
    /**
     * <p>Calculate the diagnostic odds ratio which is <code> positive likelihood ration / negative likelihood
@@ -37,9 +97,18 @@ public interface ClassifierEvaluation extends Evaluation, Serializable {
     *
     * @return the diagnostic odds ratio
     */
-   default double diagnosticOddsRatio() {
+   public double diagnosticOddsRatio() {
       return positiveLikelihoodRatio() / negativeLikelihoodRatio();
    }
+
+   /**
+    * Adds a prediction entry to the evaluation.
+    *
+    * @param gold      the gold, or actual, label
+    * @param predicted the model predicted label
+    */
+   public abstract void entry(String gold, Classification predicted);
+
 
    /**
     * Calculates the false negative rate, which is calculated as <code>False Positives / (True Positives + False
@@ -47,13 +116,13 @@ public interface ClassifierEvaluation extends Evaluation, Serializable {
     *
     * @return the false negative rate
     */
-   default double falseNegativeRate() {
-      double tp = truePositives();
+   public double falseNegativeRate() {
       double fn = falseNegatives();
+      double tp = truePositives();
       if (tp + fn == 0) {
          return 0.0;
       }
-      return fn / (tp + fn);
+      return fn / (fn + tp);
    }
 
    /**
@@ -61,7 +130,7 @@ public interface ClassifierEvaluation extends Evaluation, Serializable {
     *
     * @return the number of false negatives
     */
-   double falseNegatives();
+   public abstract double falseNegatives();
 
    /**
     * Calculates the false omission rate (or Negative Predictive Value), which is calculated as <code>False Negatives /
@@ -69,7 +138,7 @@ public interface ClassifierEvaluation extends Evaluation, Serializable {
     *
     * @return the false omission rate
     */
-   default double falseOmissionRate() {
+   public double falseOmissionRate() {
       double fn = falseNegatives();
       double tn = trueNegatives();
       if (tn + fn == 0) {
@@ -84,7 +153,7 @@ public interface ClassifierEvaluation extends Evaluation, Serializable {
     *
     * @return the false positive rate
     */
-   default double falsePositiveRate() {
+   public double falsePositiveRate() {
       double tn = trueNegatives();
       double fp = falsePositives();
       if (tn + fp == 0) {
@@ -98,15 +167,29 @@ public interface ClassifierEvaluation extends Evaluation, Serializable {
     *
     * @return the number of false positives
     */
-   double falsePositives();
+   public abstract double falsePositives();
 
    /**
     * Calculates the negative likelihood ratio, which is <code>False Positive Rate / Specificity</code>
     *
     * @return the negative likelihood ratio
     */
-   default double negativeLikelihoodRatio() {
+   public double negativeLikelihoodRatio() {
       return falseNegativeRate() / specificity();
+   }
+
+   /**
+    * Proportion of negative results that are true negative.
+    *
+    * @return the double
+    */
+   public double negativePredictiveValue() {
+      double tn = trueNegatives();
+      double fn = falseNegatives();
+      if (tn + fn == 0) {
+         return 0;
+      }
+      return tn / (tn + fn);
    }
 
    /**
@@ -114,7 +197,7 @@ public interface ClassifierEvaluation extends Evaluation, Serializable {
     *
     * @return the positive likelihood ratio
     */
-   default double positiveLikelihoodRatio() {
+   public double positiveLikelihoodRatio() {
       return truePositiveRate() / falsePositiveRate();
    }
 
@@ -123,7 +206,7 @@ public interface ClassifierEvaluation extends Evaluation, Serializable {
     *
     * @return the sensitivity
     */
-   default double sensitivity() {
+   public double sensitivity() {
       double tp = truePositives();
       double fn = falseNegatives();
       if (tp + fn == 0) {
@@ -137,7 +220,7 @@ public interface ClassifierEvaluation extends Evaluation, Serializable {
     *
     * @return the specificity
     */
-   default double specificity() {
+   public double specificity() {
       double tn = trueNegatives();
       double fp = falsePositives();
       if (tn + fp == 0) {
@@ -151,7 +234,7 @@ public interface ClassifierEvaluation extends Evaluation, Serializable {
     *
     * @return the true negative rate
     */
-   default double trueNegativeRate() {
+   public double trueNegativeRate() {
       return specificity();
    }
 
@@ -160,14 +243,14 @@ public interface ClassifierEvaluation extends Evaluation, Serializable {
     *
     * @return the number of true negatives
     */
-   double trueNegatives();
+   public abstract double trueNegatives();
 
    /**
     * Calculates the true positive rate (same as micro recall).
     *
     * @return the true positive rate
     */
-   default double truePositiveRate() {
+   public double truePositiveRate() {
       return sensitivity();
    }
 
@@ -176,7 +259,7 @@ public interface ClassifierEvaluation extends Evaluation, Serializable {
     *
     * @return the number of true positive
     */
-   double truePositives();
+   public abstract double truePositives();
 
 
 }//END OF ClassifierEvaluation

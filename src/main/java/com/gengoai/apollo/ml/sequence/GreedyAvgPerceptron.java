@@ -1,5 +1,6 @@
 package com.gengoai.apollo.ml.sequence;
 
+import com.gengoai.Stopwatch;
 import com.gengoai.apollo.linear.Axis;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
@@ -12,9 +13,12 @@ import com.gengoai.apollo.ml.vectorizer.IndexVectorizer;
 import com.gengoai.apollo.ml.vectorizer.Vectorizer;
 import com.gengoai.apollo.optimization.TerminationCriteria;
 import com.gengoai.collection.Iterables;
+import com.gengoai.collection.Streams;
 import com.gengoai.conversion.Cast;
 import com.gengoai.function.SerializableSupplier;
 import com.gengoai.stream.MStream;
+
+import java.util.Iterator;
 
 /**
  * The type Greedy avg perceptron.
@@ -84,6 +88,7 @@ public class GreedyAvgPerceptron extends SequenceLabeler {
                                                                    .historySize(parameters.historySize)
                                                                    .maxIterations(parameters.maxIterations)
                                                                    .tolerance(parameters.eps);
+      Stopwatch sw = Stopwatch.createStarted();
       for (int i = 0; i < terminationCriteria.maxIterations(); i++) {
          double total = 0;
          double correct = 0;
@@ -112,10 +117,13 @@ public class GreedyAvgPerceptron extends SequenceLabeler {
             }
          }
          double acc = (correct / total) * 100;
-         System.out.println(String.format("Iteration %d complete. %.3f accuracy", i + 1, acc));
+         sw.stop();
+         System.out.println(String.format("Iteration %d complete. %.3f accuracy (%s)", i + 1, acc, sw));
+         sw.reset();
          if (terminationCriteria.check(100 - acc)) {
             break;
          }
+         sw.start();
       }
 
       fTotals.addi(fTimestamps.rsub(instances).mul(featureWeights));
@@ -125,6 +133,12 @@ public class GreedyAvgPerceptron extends SequenceLabeler {
       transitionWeights = tTotals.div(instances);
       bias = bTotals.div(instances);
 
+   }
+
+   private double dot(Iterator<NDArray.Entry> itr, NDArray other) {
+      return Streams.asStream(itr)
+                     .mapToDouble(e -> other.get(e.matrixIndex()) * e.getValue())
+                    .sum();
    }
 
    @Override

@@ -15,6 +15,8 @@ import de.bwaldvogel.liblinear.Model;
 import de.bwaldvogel.liblinear.Parameter;
 import de.bwaldvogel.liblinear.SolverType;
 
+import static com.gengoai.Validation.notNull;
+
 /**
  * <p>Regression model using LibLinear</p>
  *
@@ -67,11 +69,11 @@ public class LibLinearLinearRegression extends Regression {
 
    @Override
    public void fitPreprocessed(Dataset dataSupplier, FitParameters fitParameters) {
-      fit(() -> dataSupplier.stream().map(this::encode), Cast.as(fitParameters, Parameters.class));
+      fit(() -> dataSupplier.stream().map(this::encode), notNull(Cast.as(fitParameters, Parameters.class)));
    }
 
    @Override
-   public FitParameters getDefaultFitParameters() {
+   public Parameters getDefaultFitParameters() {
       return new Parameters();
    }
 

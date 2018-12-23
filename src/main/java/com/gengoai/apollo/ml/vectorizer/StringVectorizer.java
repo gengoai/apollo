@@ -36,7 +36,7 @@ public abstract class StringVectorizer implements Vectorizer<String> {
       return transformSequence(example);
    }
 
-   private NDArray transformInstance(Example example) {
+   protected NDArray transformInstance(Example example) {
       final NDArray ndArray = NDArrayFactory.DEFAULT().zeros(size());
       if (isLabelVectorizer) {
          example.getLabelAsSet().forEach(label -> setIf(ndArray, label, 1.0));
@@ -46,7 +46,7 @@ public abstract class StringVectorizer implements Vectorizer<String> {
       return ndArray;
    }
 
-   private NDArray transformSequence(Example example) {
+   protected NDArray transformSequence(Example example) {
       NDArray ndArray = NDArrayFactory.DEFAULT().zeros(example.size(), size());
       for (int row = 0; row < example.size(); row++) {
          Example child = example.getExample(row);

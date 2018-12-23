@@ -7,6 +7,8 @@ import java.io.Serializable;
 import java.util.Optional;
 
 /**
+ * <p>Removes features whose values is non-finite.</p>
+ *
  * @author David B. Bracewell
  */
 public class RemoveNonFinite implements InstancePreprocessor, Serializable {

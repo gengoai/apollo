@@ -24,12 +24,12 @@ public enum DatasetType {
 
       @Override
       public Dataset createDataset(MStream<Example> examples) {
-         return null;
+         return new DistributedDataset(examples);
       }
 
       @Override
       public Dataset loadDataset(Resource location, DataSource dataSource) throws IOException {
-         return null;
+         return createDataset(dataSource.stream(location, true));
       }
    },
    /**

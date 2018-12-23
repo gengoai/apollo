@@ -58,7 +58,6 @@ public class TopNFilter extends RestrictedFeaturePreprocessor implements Instanc
    protected void fitFeatures(MStream<Feature> exampleStream) {
       selectedFeatures = Sets.asHashSet(Counters.newCounter(exampleStream.map(Feature::getName)
                                                                          .countByValue()).topN(topN).items());
-      System.out.println(selectedFeatures);
    }
 
    @Override

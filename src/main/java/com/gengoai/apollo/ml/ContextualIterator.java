@@ -22,27 +22,6 @@ public class ContextualIterator implements Iterator<Example>, Serializable {
       this.example = example;
    }
 
-   @Override
-   public boolean hasNext() {
-      return index + 1 < example.size();
-   }
-
-   @Override
-   public Example next() {
-      index++;
-      return example.getExample(index);
-   }
-
-   /**
-    * Gets the index of the current child Example
-    *
-    * @return the current index
-    */
-   public int getCurrentIndex() {
-      return index;
-   }
-
-
    /**
     * Gets the example a given relative position before or after the current example. When going beyond the boundaries
     * of the parent example (i.e. the relative position would be an actual <code>index < 0</code> or <code>index >=
@@ -59,6 +38,26 @@ public class ContextualIterator implements Iterator<Example>, Serializable {
          return Instance.END_OF_SEQUENCE(absIndex - example.size());
       }
       return example.getExample(absIndex);
+   }
+
+   /**
+    * Gets the index of the current child Example
+    *
+    * @return the current index
+    */
+   public int getCurrentIndex() {
+      return index;
+   }
+
+   @Override
+   public boolean hasNext() {
+      return index + 1 < example.size();
+   }
+
+   @Override
+   public Example next() {
+      index++;
+      return example.getExample(index);
    }
 
 

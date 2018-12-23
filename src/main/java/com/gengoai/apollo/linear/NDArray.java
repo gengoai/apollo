@@ -76,6 +76,18 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
       }
    }
 
+   public Axis maxDimension() {
+      int maxI = 0;
+      int max = -1;
+      for (int i = 0; i < shape.length; i++) {
+         if (shape[i] > max) {
+            max = shape[i];
+            maxI = i;
+         }
+      }
+      return Axis.valueOf(maxI);
+   }
+
    /**
     * Axis not supported string.
     *
@@ -2296,6 +2308,11 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
    public int[] shape() {
       return Arrays.copyOf(shape, shape.length);
    }
+
+   public String shapeString() {
+      return Arrays.toString(shape);
+   }
+
 
    /**
     * The size of this NDArray (only useful for sparse implementations)

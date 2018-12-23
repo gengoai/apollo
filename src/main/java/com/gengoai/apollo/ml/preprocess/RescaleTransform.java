@@ -10,7 +10,8 @@ import com.gengoai.stream.MStream;
 import java.util.Optional;
 
 /**
- * <p>Transforms features values to Z-Scores.</p>
+ * <p>Transforms features values to a new minimum and maximum based on the current minimum and maximum of the values in
+ * the dataset.</p>
  *
  * @author David B. Bracewell
  */

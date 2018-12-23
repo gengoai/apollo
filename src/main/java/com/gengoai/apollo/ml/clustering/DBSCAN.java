@@ -81,7 +81,7 @@ public class DBSCAN extends FlatClusterer {
    }
 
    @Override
-   public FitParameters getDefaultFitParameters() {
+   public Parameters getDefaultFitParameters() {
       return new Parameters();
    }
 

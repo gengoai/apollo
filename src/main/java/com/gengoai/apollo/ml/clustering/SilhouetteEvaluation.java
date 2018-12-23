@@ -57,6 +57,7 @@ public class SilhouetteEvaluation implements Evaluation<Clusterer>, Serializable
          for (NDArray point2 : c1) {
             ai += distanceMeasure.calculate(point1, point2);
          }
+         ai = Double.isFinite(ai) ? ai : Double.MAX_VALUE;
          ai /= c1.size();
          double bi = clusters.keySet().parallelStream()
                              .filter(j -> j != index)
@@ -65,9 +66,8 @@ public class SilhouetteEvaluation implements Evaluation<Clusterer>, Serializable
                                 for (NDArray point2 : clusters.get(j)) {
                                    b += distanceMeasure.calculate(point1, point2);
                                 }
-                                System.out.println(b);
                                 return b;
-                             }).min().orElse(0);
+                             }).min().orElseThrow(IllegalStateException::new);
          s += (bi - ai) / Math.max(bi, ai);
       }
 

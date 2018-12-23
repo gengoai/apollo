@@ -27,6 +27,8 @@ import com.gengoai.string.Strings;
 
 import java.io.Serializable;
 import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * <p>A feature is made up of a name and double value. By convention, features should have a name with a prefix given
@@ -37,7 +39,7 @@ import java.util.Objects;
  */
 public final class Feature implements Serializable, Comparable<Feature>, Copyable<Feature> {
    private static final Interner<String> featureInterner = new Interner<>();
-
+   public static final Pattern prefixPattern = Pattern.compile("^(.+?)=(.+?)$");
    private static final long serialVersionUID = 1L;
    /**
     * The name of the feature (e.g. <code>W=Apollo</code>)
@@ -109,6 +111,31 @@ public final class Feature implements Serializable, Comparable<Feature>, Copyabl
     */
    public double getValue() {
       return value;
+   }
+
+
+   public static String getPrefix(String name) {
+      Matcher m = Feature.prefixPattern.matcher(name);
+      if (m.find()) {
+         return m.group(1);
+      }
+      return name;
+   }
+
+   public static String getSuffix(String name) {
+      Matcher m = Feature.prefixPattern.matcher(name);
+      if (m.find()) {
+         return m.group(2);
+      }
+      return name;
+   }
+
+   public String getPrefix() {
+      return getPrefix(name);
+   }
+
+   public String getSuffix(){
+      return getSuffix(name);
    }
 
    /**

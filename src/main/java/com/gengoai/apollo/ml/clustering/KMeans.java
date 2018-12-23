@@ -150,7 +150,7 @@ public class KMeans extends FlatClusterer {
 
 
    @Override
-   public FitParameters getDefaultFitParameters() {
+   public Parameters getDefaultFitParameters() {
       return new Parameters();
    }
 

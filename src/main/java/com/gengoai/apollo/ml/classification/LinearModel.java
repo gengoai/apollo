@@ -22,6 +22,8 @@ import com.gengoai.stream.MStream;
 
 import java.io.Serializable;
 
+import static com.gengoai.Validation.notNull;
+
 /**
  * <p>A generalized linear model.</p>
  *
@@ -89,7 +91,7 @@ public class LinearModel extends Classifier implements Loggable {
 
    @Override
    protected void fitPreprocessed(Dataset preprocessed, FitParameters fitParameters) {
-      Parameters parameters = Cast.as(fitParameters, Parameters.class);
+      Parameters parameters = notNull(Cast.as(fitParameters, Parameters.class));
       this.modelParameters.numFeatures = getNumberOfFeatures();
       this.modelParameters.numLabels = getNumberOfLabels();
       GradientDescentOptimizer optimizer = GradientDescentOptimizer.builder()

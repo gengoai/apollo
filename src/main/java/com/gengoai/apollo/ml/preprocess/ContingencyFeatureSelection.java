@@ -15,13 +15,16 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
+ * <p>Uses a {@link ContingencyTableCalculator} to perform feature selection by taking the top N features per label
+ * based on the calculator measure.</p>
+ *
  * @author David B. Bracewell
  */
 public class ContingencyFeatureSelection implements InstancePreprocessor, Serializable {
    private static final long serialVersionUID = 1L;
-   protected final int numFeaturesPerClass;
-   protected final double threshold;
-   protected final ContingencyTableCalculator calculator;
+   private final int numFeaturesPerClass;
+   private final double threshold;
+   private final ContingencyTableCalculator calculator;
 
    /**
     * Instantiates a new Contingency feature selection.
@@ -37,14 +40,35 @@ public class ContingencyFeatureSelection implements InstancePreprocessor, Serial
    }
 
 
+   /**
+    * A feature selector based on chi2 association metrics
+    *
+    * @param numFeaturesPerClass the num features per class
+    * @param threshold           the threshold
+    * @return the preprocessor
+    */
    public static Preprocessor chi2Selector(int numFeaturesPerClass, double threshold) {
       return new ContingencyFeatureSelection(Association.CHI_SQUARE, numFeaturesPerClass, threshold);
    }
 
+   /**
+    * A feature selector based on g2 association metrics
+    *
+    * @param numFeaturesPerClass the num features per class
+    * @param threshold           the threshold
+    * @return the preprocessor
+    */
    public static Preprocessor g2Selector(int numFeaturesPerClass, double threshold) {
       return new ContingencyFeatureSelection(Association.G_SQUARE, numFeaturesPerClass, threshold);
    }
 
+   /**
+    * A feature selector based on odds ratio association metrics
+    *
+    * @param numFeaturesPerClass the num features per class
+    * @param threshold           the threshold
+    * @return the preprocessor
+    */
    public static Preprocessor oddsRatioSelector(int numFeaturesPerClass, double threshold) {
       return new ContingencyFeatureSelection(Association.ODDS_RATIO, numFeaturesPerClass, threshold);
    }

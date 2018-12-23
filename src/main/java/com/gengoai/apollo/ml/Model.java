@@ -16,7 +16,7 @@ import java.util.function.Consumer;
  * <code>fit</code> method which takes in the training data and {@link FitParameters}. Models are used on new data by
  * calling the <code>estimate</code> method.</p>
  * <p>Models can be trained and used to estimate directly on {@link NDArray}s or using {@link Dataset}s of {@link
- * Example}s</p>
+ * Example}*s</p>
  *
  * @author David B. Bracewell
  */
@@ -27,6 +27,13 @@ public abstract class Model implements Serializable {
    private final PreprocessorList preprocessors;
 
 
+   /**
+    * Instantiates a new Model.
+    *
+    * @param labelVectorizer   the label vectorizer
+    * @param featureVectorizer the feature vectorizer
+    * @param preprocessors     the preprocessors
+    */
    protected Model(Vectorizer<?> labelVectorizer,
                    Vectorizer<String> featureVectorizer,
                    Preprocessor... preprocessors
@@ -36,6 +43,13 @@ public abstract class Model implements Serializable {
       this.preprocessors = new PreprocessorList(preprocessors);
    }
 
+   /**
+    * Instantiates a new Model.
+    *
+    * @param labelVectorizer   the label vectorizer
+    * @param featureVectorizer the feature vectorizer
+    * @param preprocessors     the preprocessors
+    */
    protected Model(Vectorizer<?> labelVectorizer,
                    Vectorizer<String> featureVectorizer,
                    PreprocessorList preprocessors
@@ -52,7 +66,7 @@ public abstract class Model implements Serializable {
     * @return the deserialized (loaded) model
     * @throws Exception Something went wrong reading in the model
     */
-   public static Model read(Resource resource) throws Exception {
+   public static <T extends Model> T read(Resource resource) throws Exception {
       return resource.readObject();
    }
 
@@ -70,7 +84,14 @@ public abstract class Model implements Serializable {
       return array;
    }
 
-   protected final Example preprocess(Example example){
+
+   /**
+    * Preprocesses the example applying all preprocessors to it
+    *
+    * @param example the example
+    * @return the example
+    */
+   protected final Example preprocess(Example example) {
       return preprocessors.apply(example);
    }
 

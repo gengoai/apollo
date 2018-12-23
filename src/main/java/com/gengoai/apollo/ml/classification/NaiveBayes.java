@@ -16,7 +16,7 @@ import java.util.Arrays;
 import static com.gengoai.Validation.notNull;
 
 /**
- * The type Naive bayes.
+ * Naive Bayes model specifically designed for text classification problems
  *
  * @author David B. Bracewell
  */
@@ -129,7 +129,7 @@ public class NaiveBayes extends Classifier {
    }
 
    @Override
-   public FitParameters getDefaultFitParameters() {
+   public Parameters getDefaultFitParameters() {
       return new Parameters();
    }
 
@@ -143,7 +143,7 @@ public class NaiveBayes extends Classifier {
 
 
    /**
-    * The type Parameters.
+    * Custom {@link FitParameters} for Naive Bayes.
     */
    public static class Parameters extends FitParameters {
       /**

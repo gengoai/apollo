@@ -1,6 +1,5 @@
 package com.gengoai.apollo.ml.data;
 
-import com.gengoai.Copyable;
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.Split;
 import com.gengoai.collection.counter.Counter;
@@ -27,7 +26,7 @@ import static com.gengoai.Validation.checkArgument;
  *
  * @author David B. Bracewell
  */
-public abstract class Dataset implements Iterable<Example>, Copyable<Dataset>, Serializable, AutoCloseable {
+public abstract class Dataset implements Iterable<Example>, Serializable, AutoCloseable {
    private static final long serialVersionUID = 1L;
 
    /**
@@ -56,6 +55,8 @@ public abstract class Dataset implements Iterable<Example>, Copyable<Dataset>, S
       stream().flatMap(Example::getStringLabelSpace).forEach(accumulator::add);
       return accumulator.value();
    }
+
+   public abstract Dataset cache();
 
    /**
     * Creates folds for cross-validation

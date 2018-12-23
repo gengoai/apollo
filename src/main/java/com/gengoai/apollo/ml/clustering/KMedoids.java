@@ -163,7 +163,7 @@ public class KMedoids extends FlatClusterer {
 
 
    @Override
-   public FitParameters getDefaultFitParameters() {
+   public Parameters getDefaultFitParameters() {
       return new Parameters();
    }
 

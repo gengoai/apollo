@@ -32,10 +32,8 @@ public class InMemoryDataset extends Dataset {
    }
 
    @Override
-   public Dataset copy() {
-      Dataset ds = new InMemoryDataset();
-      ds.addAll(stream().map(Example::copy));
-      return ds;
+   public Dataset cache() {
+      return this;
    }
 
    @Override

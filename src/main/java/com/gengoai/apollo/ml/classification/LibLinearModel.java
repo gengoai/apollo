@@ -13,6 +13,8 @@ import de.bwaldvogel.liblinear.Model;
 import de.bwaldvogel.liblinear.Parameter;
 import de.bwaldvogel.liblinear.SolverType;
 
+import static com.gengoai.Validation.notNull;
+
 /**
  * A model trained using LibLinear
  *
@@ -74,10 +76,9 @@ public class LibLinearModel extends Classifier implements Loggable {
       super(featureVectorizer, preprocessors);
    }
 
-
    @Override
    protected void fitPreprocessed(Dataset preprocessed, FitParameters parameters) {
-      Parameters fitParameters = Cast.as(parameters, Parameters.class);
+      Parameters fitParameters = notNull(Cast.as(parameters, Parameters.class));
       biasIndex = (fitParameters.bias ? getNumberOfFeatures() + 1 : -1);
       model = LibLinear.fit(() -> preprocessed.stream()
                                               .map(this::encode),

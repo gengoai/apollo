@@ -23,7 +23,7 @@ public class RemoveNonFinite implements InstancePreprocessor, Serializable {
 
    @Override
    public Dataset fitAndTransform(Dataset dataset) {
-      return dataset.mapSelf(this::apply);
+      return dataset.map(this::apply);
    }
 
 

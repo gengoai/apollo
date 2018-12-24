@@ -9,7 +9,6 @@ import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
 import com.gengoai.apollo.ml.preprocess.PreprocessorList;
 import com.gengoai.apollo.ml.vectorizer.IndexVectorizer;
-import com.gengoai.apollo.ml.vectorizer.NoOptVectorizer;
 import com.gengoai.apollo.ml.vectorizer.Vectorizer;
 import com.gengoai.conversion.Cast;
 import com.gengoai.io.Resources;
@@ -42,7 +41,7 @@ public class Crf extends SequenceLabeler implements Serializable {
     * Instantiates a new Crf.
     */
    public Crf(Preprocessor... preprocessors) {
-      super(new NoOptVectorizer<>(),
+      super(Validator.ALWAYS_TRUE,
             IndexVectorizer.featureVectorizer(),
             preprocessors);
    }
@@ -54,7 +53,7 @@ public class Crf extends SequenceLabeler implements Serializable {
     * @param preprocessors     the preprocessors
     */
    public Crf(Vectorizer<String> featureVectorizer, PreprocessorList preprocessors) {
-      super(featureVectorizer, preprocessors);
+      super(Validator.ALWAYS_TRUE, featureVectorizer, preprocessors);
    }
 
 

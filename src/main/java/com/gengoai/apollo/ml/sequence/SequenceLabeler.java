@@ -16,28 +16,25 @@ import com.gengoai.conversion.Cast;
  */
 public abstract class SequenceLabeler extends Model {
    private static final long serialVersionUID = 1L;
+   private final Validator sequenceValidator;
 
 
-   public SequenceLabeler(Preprocessor... preprocessors) {
+   public SequenceLabeler(Validator validator, Preprocessor... preprocessors) {
       super(IndexVectorizer.labelVectorizer(),
             IndexVectorizer.featureVectorizer(),
             preprocessors);
+      this.sequenceValidator = validator;
    }
 
-   public SequenceLabeler(Vectorizer<?> labelVectorizer, Vectorizer<String> featureVectorizer, PreprocessorList preprocessors) {
-      super(labelVectorizer, featureVectorizer, preprocessors);
-   }
 
-   public SequenceLabeler(Vectorizer<String> featureVectorizer, PreprocessorList preprocessors) {
+   public SequenceLabeler(Validator sequenceValidator, Vectorizer<String> featureVectorizer, PreprocessorList preprocessors) {
       super(IndexVectorizer.labelVectorizer(), featureVectorizer, preprocessors);
+      this.sequenceValidator = sequenceValidator;
    }
 
-   public SequenceLabeler(Vectorizer<?> labelVectorizer, Vectorizer<String> featureVectorizer, Preprocessor... preprocessors) {
-      super(labelVectorizer, featureVectorizer, preprocessors);
-   }
-
-   public SequenceLabeler(Vectorizer<String> featureVectorizer, Preprocessor... preprocessors) {
+   public SequenceLabeler(Validator sequenceValidator, Vectorizer<String> featureVectorizer, Preprocessor... preprocessors) {
       super(IndexVectorizer.labelVectorizer(), featureVectorizer, preprocessors);
+      this.sequenceValidator = sequenceValidator;
    }
 
    /**
@@ -47,6 +44,16 @@ public abstract class SequenceLabeler extends Model {
     */
    public abstract Labeling label(Example example);
 
+
+   protected boolean isValidTransition(int current, int previous, Example example) {
+      return sequenceValidator.isValid(getLabelVectorizer().decode(current),
+                                       getLabelVectorizer().decode(previous),
+                                       example);
+   }
+
+   protected boolean isValidTransition(String current, String previous, Example example) {
+      return sequenceValidator.isValid(current, previous, example);
+   }
 
    @Override
    @SuppressWarnings("unchecked")

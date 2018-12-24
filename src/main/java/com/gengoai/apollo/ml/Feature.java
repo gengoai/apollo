@@ -39,7 +39,7 @@ import java.util.regex.Pattern;
  */
 public final class Feature implements Serializable, Comparable<Feature>, Copyable<Feature> {
    private static final Interner<String> featureInterner = new Interner<>();
-   public static final Pattern prefixPattern = Pattern.compile("^(.+?)=(.+?)$");
+   private static final Pattern prefixPattern = Pattern.compile("^(.+?)=(.+?)$");
    private static final long serialVersionUID = 1L;
    /**
     * The name of the feature (e.g. <code>W=Apollo</code>)
@@ -49,6 +49,7 @@ public final class Feature implements Serializable, Comparable<Feature>, Copyabl
     * The value of the feature
     */
    public final double value;
+
 
    private Feature(String name, double value) {
       this.name = featureInterner.intern(name);
@@ -66,6 +67,18 @@ public final class Feature implements Serializable, Comparable<Feature>, Copyabl
    }
 
    /**
+    * Creates a boolean valued feature with the given name and value of <code>1.0</code>.
+    *
+    * @param prefix the feature prefix
+    * @param name   the feature name
+    * @return the feature
+    */
+   public static Feature booleanFeature(String prefix, String name) {
+      return new Feature(prefix + "=" + name, 1.0);
+   }
+
+
+   /**
     * Creates a real valued feature with the given name and value.
     *
     * @param name  the feature name
@@ -74,6 +87,18 @@ public final class Feature implements Serializable, Comparable<Feature>, Copyabl
     */
    public static Feature realFeature(String name, double value) {
       return new Feature(name, value);
+   }
+
+   /**
+    * Creates a real valued feature with the given name and value.
+    *
+    * @param prefix the feature prefix
+    * @param name   the feature name
+    * @param value  the feature value
+    * @return the feature
+    */
+   public static Feature realFeature(String prefix, String name, double value) {
+      return new Feature(prefix + "=" + name, value);
    }
 
    @Override
@@ -114,6 +139,12 @@ public final class Feature implements Serializable, Comparable<Feature>, Copyabl
    }
 
 
+   /**
+    * Gets prefix.
+    *
+    * @param name the name
+    * @return the prefix
+    */
    public static String getPrefix(String name) {
       Matcher m = Feature.prefixPattern.matcher(name);
       if (m.find()) {
@@ -122,6 +153,12 @@ public final class Feature implements Serializable, Comparable<Feature>, Copyabl
       return name;
    }
 
+   /**
+    * Gets suffix.
+    *
+    * @param name the name
+    * @return the suffix
+    */
    public static String getSuffix(String name) {
       Matcher m = Feature.prefixPattern.matcher(name);
       if (m.find()) {
@@ -130,11 +167,21 @@ public final class Feature implements Serializable, Comparable<Feature>, Copyabl
       return name;
    }
 
+   /**
+    * Gets prefix.
+    *
+    * @return the prefix
+    */
    public String getPrefix() {
       return getPrefix(name);
    }
 
-   public String getSuffix(){
+   /**
+    * Get suffix string.
+    *
+    * @return the string
+    */
+   public String getSuffix() {
       return getSuffix(name);
    }
 

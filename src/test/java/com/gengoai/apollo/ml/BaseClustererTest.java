@@ -38,8 +38,8 @@ public abstract class BaseClustererTest {
    protected Dataset loadWaterData() {
       DataSource csv = new CSVDataSource(CSV.builder(), -1);
       try {
-         return DatasetType.InMemory.loadDataset(Resources.fromClasspath("com/gengoai/apollo/ml/water-treatment.data"),
-                                                 csv);
+         return DatasetType.InMemory.read(Resources.fromClasspath("com/gengoai/apollo/ml/water-treatment.data"),
+                                          csv);
       } catch (IOException e) {
          throw new RuntimeException(e);
       }

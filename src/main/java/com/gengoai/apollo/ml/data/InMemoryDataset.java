@@ -1,23 +1,29 @@
 package com.gengoai.apollo.ml.data;
 
 import com.gengoai.apollo.ml.Example;
-import com.gengoai.function.SerializableFunction;
 import com.gengoai.stream.MStream;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
 
 /**
+ * The type In memory dataset.
+ *
  * @author David B. Bracewell
  */
 public class InMemoryDataset extends Dataset {
    private static final long serialVersionUID = 1L;
    private final List<Example> examples;
 
-   public InMemoryDataset() {
-      this.examples = new ArrayList<>();
-   }
-
+   /**
+    * Instantiates a new In memory dataset.
+    *
+    * @param examples the examples
+    */
    public InMemoryDataset(Collection<Example> examples) {
+      super(DatasetType.InMemory);
       this.examples = new ArrayList<>(examples);
    }
 
@@ -27,26 +33,13 @@ public class InMemoryDataset extends Dataset {
    }
 
    @Override
-   public void close() throws Exception {
-
-   }
-
-   @Override
    public Dataset cache() {
       return this;
    }
 
    @Override
-   public DatasetType getType() {
-      return DatasetType.InMemory;
-   }
+   public void close() throws Exception {
 
-   @Override
-   public Dataset mapSelf(SerializableFunction<? super Example, ? extends Example> function) {
-      for (int i = 0; i < examples.size(); i++) {
-         examples.set(i, function.apply(examples.get(i)));
-      }
-      return this;
    }
 
    @Override
@@ -56,15 +49,18 @@ public class InMemoryDataset extends Dataset {
 
    @Override
    protected Dataset newSimilarDataset(MStream<Example> instances) {
-      Dataset ds = new InMemoryDataset();
-      ds.addAll(instances.map(Example::copy));
-      return ds;
+      return new InMemoryDataset(instances.map(e -> e.copy()).collect());
    }
 
    @Override
-   public Dataset shuffle(Random random) {
-      Collections.shuffle(examples);
-      return this;
+   public int size() {
+      return examples.size();
+   }
+
+
+   @Override
+   public MStream<Example> stream() {
+      return getStreamingContext().stream(examples);
    }
 
 }//END OF InMemoryDataset

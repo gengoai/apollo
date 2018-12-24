@@ -36,7 +36,7 @@ public abstract class RestrictedFeaturePreprocessor implements InstancePreproces
    public final Dataset fitAndTransform(Dataset dataset) {
       reset();
       fitInstances(dataset.stream().flatMap(Example::stream));
-      Dataset out = dataset.mapSelf(this::apply);
+      Dataset out = dataset.map(this::apply);
       cleanup();
       return out;
    }

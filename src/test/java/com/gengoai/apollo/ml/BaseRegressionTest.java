@@ -46,7 +46,7 @@ public abstract class BaseRegressionTest {
                                             .header("Frequency", "Angle", "Chord", "Velocity", "Suction", "Pressure"),
                                          "Pressure");
       try {
-         return DatasetType.InMemory.loadDataset(
+         return DatasetType.InMemory.read(
             Resources.fromClasspath("com/gengoai/apollo/ml/airfoil_self_noise.data"), csv);
       } catch (IOException e) {
          throw new RuntimeException(e);

@@ -4,6 +4,7 @@ import com.gengoai.Stopwatch;
 import com.gengoai.apollo.linear.Axis;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
+import com.gengoai.apollo.linear.NDArrayInitializer;
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.FitParameters;
 import com.gengoai.apollo.ml.data.Dataset;
@@ -32,48 +33,67 @@ public class GreedyAvgPerceptron extends SequenceLabeler {
    private NDArray transitionWeights;
 
    public GreedyAvgPerceptron(Preprocessor... preprocessors) {
-      super(IndexVectorizer.labelVectorizer(),
+      super(Validator.ALWAYS_TRUE,
             IndexVectorizer.featureVectorizer(),
             preprocessors);
    }
 
-   public GreedyAvgPerceptron(Vectorizer<?> labelVectorizer, Vectorizer<String> featureVectorizer, PreprocessorList preprocessors) {
-      super(labelVectorizer, featureVectorizer, preprocessors);
+   public GreedyAvgPerceptron(Validator validator, Preprocessor... preprocessors) {
+      super(validator,
+            IndexVectorizer.featureVectorizer(),
+            preprocessors);
    }
+
+
+   public GreedyAvgPerceptron(Vectorizer<String> featureVectorizer, PreprocessorList preprocessors) {
+      super(Validator.ALWAYS_TRUE, featureVectorizer, preprocessors);
+   }
+
+   public GreedyAvgPerceptron(Vectorizer<String> featureVectorizer, Preprocessor... preprocessors) {
+      super(Validator.ALWAYS_TRUE, featureVectorizer, preprocessors);
+   }
+
+   public GreedyAvgPerceptron(Validator validator, Vectorizer<String> featureVectorizer, PreprocessorList preprocessors) {
+      super(validator, featureVectorizer, preprocessors);
+   }
+
+   public GreedyAvgPerceptron(Validator validator, Vectorizer<String> featureVectorizer, Preprocessor... preprocessors) {
+      super(validator, featureVectorizer, preprocessors);
+   }
+
 
    @Override
    protected void fitPreprocessed(Dataset preprocessed, FitParameters fitParameters) {
       fit(() -> preprocessed.stream().map(this::encode), Cast.as(fitParameters, Parameters.class));
    }
 
-   public GreedyAvgPerceptron(Vectorizer<String> featureVectorizer, PreprocessorList preprocessors) {
-      super(featureVectorizer, preprocessors);
-   }
-
-   public GreedyAvgPerceptron(Vectorizer<?> labelVectorizer, Vectorizer<String> featureVectorizer, Preprocessor... preprocessors) {
-      super(labelVectorizer, featureVectorizer, preprocessors);
-   }
-
-   public GreedyAvgPerceptron(Vectorizer<String> featureVectorizer, Preprocessor... preprocessors) {
-      super(featureVectorizer, preprocessors);
-   }
 
    @Override
    public Labeling label(Example example) {
       String[] labels = new String[example.size()];
       int pLabel = (int) bias.length();
-
       NDArray sequence = encodeAndPreprocess(example);
       for (int i = 0; i < sequence.numRows(); i++) {
-         pLabel = (int) predict(sequence.getVector(i, Axis.ROW), pLabel);
-         labels[i] = getLabelVectorizer().decode(pLabel);
+         NDArray distribution = distribution(sequence.getVector(i, Axis.ROW), pLabel);
+         int cLabel = (int) distribution.argMax(Axis.ROW).get(0);
+         boolean isValid = isValidTransition(cLabel, pLabel, example.getExample(i));
+         while (!isValid) {
+            distribution.set(cLabel, Double.NEGATIVE_INFINITY);
+            cLabel = (int) distribution.argMax(Axis.ROW).get(0);
+            isValid = isValidTransition(cLabel, pLabel, example.getExample(i));
+         }
+         labels[i] = getLabelVectorizer().decode(cLabel);
+         pLabel = cLabel;
       }
       return new Labeling(labels);
    }
 
    private void fit(SerializableSupplier<MStream<NDArray>> dataSupplier, Parameters parameters) {
-      this.featureWeights = NDArrayFactory.SPARSE.zeros(getNumberOfFeatures(), getNumberOfLabels());
-      this.transitionWeights = NDArrayFactory.SPARSE.zeros(getNumberOfLabels() + 1, getNumberOfLabels());
+      this.featureWeights = NDArrayFactory.SPARSE.create(NDArrayInitializer.rand,
+                                                         getNumberOfFeatures(),
+                                                         getNumberOfLabels());
+      this.transitionWeights = NDArrayFactory.SPARSE.zeros(getNumberOfLabels() + 1,
+                                                           getNumberOfLabels());
       this.bias = NDArrayFactory.SPARSE.zeros(getNumberOfLabels());
 
       final NDArray fTotals = featureWeights.copy();
@@ -137,7 +157,7 @@ public class GreedyAvgPerceptron extends SequenceLabeler {
 
    private double dot(Iterator<NDArray.Entry> itr, NDArray other) {
       return Streams.asStream(itr)
-                     .mapToDouble(e -> other.get(e.matrixIndex()) * e.getValue())
+                    .mapToDouble(e -> other.get(e.matrixIndex()) * e.getValue())
                     .sum();
    }
 
@@ -169,10 +189,14 @@ public class GreedyAvgPerceptron extends SequenceLabeler {
 
 
    private float predict(NDArray row, int pLabel) {
+      return distribution(row, pLabel).argMax(Axis.ROW).get(0);
+   }
+
+   private NDArray distribution(NDArray row, int pLabel) {
       NDArray scores = row.mmul(featureWeights);
       scores.addi(transitionWeights.getVector(pLabel, Axis.ROW))
             .addi(bias);
-      return scores.argMax(Axis.ROW).get(0);
+      return scores;
    }
 
    private void update(int cls, int feature, double value, int iteration, NDArray weights, NDArray timeStamp, NDArray totals) {

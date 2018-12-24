@@ -3,6 +3,8 @@ package com.gengoai.apollo.ml;
 import com.gengoai.Parameters;
 
 /**
+ * Base class for describing the parameters to fit a model.
+ *
  * @author David B. Bracewell
  */
 public class FitParameters implements Parameters<FitParameters> {

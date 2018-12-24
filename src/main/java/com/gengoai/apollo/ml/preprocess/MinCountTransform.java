@@ -22,6 +22,7 @@ public class MinCountTransform extends RestrictedFeaturePreprocessor {
    private final Set<String> toKeep = new HashSet<>();
    private int minCount;
    private String unknownFeature;
+   private boolean trained = false;
 
    /**
     * Instantiates a new Min count.
@@ -72,7 +73,13 @@ public class MinCountTransform extends RestrictedFeaturePreprocessor {
 
    @Override
    public Instance applyInstance(Instance example) {
+      if (trained) {
+         return example;
+      }
       return example.mapFeatures(in -> {
+         if (!requiresProcessing(in)) {
+            return Optional.of(in);
+         }
          if (toKeep.contains(in.name)) {
             return Optional.of(in);
          } else if (!Strings.isNullOrBlank(unknownFeature)) {
@@ -92,6 +99,7 @@ public class MinCountTransform extends RestrictedFeaturePreprocessor {
    @Override
    public void reset() {
       toKeep.clear();
+      trained = false;
    }
 
    @Override
@@ -104,6 +112,7 @@ public class MinCountTransform extends RestrictedFeaturePreprocessor {
       if (Strings.isNullOrBlank(unknownFeature)) {
          toKeep.clear();
       }
+      trained = true;
    }
 
 }//END OF MinCountTransform

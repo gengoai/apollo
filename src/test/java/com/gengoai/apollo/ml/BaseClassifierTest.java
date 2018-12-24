@@ -44,7 +44,7 @@ public abstract class BaseClassifierTest {
    public Dataset irisDataset() {
       DataSource csv = new CSVDataSource(CSV.builder().hasHeader(true), "class");
       try {
-         return DatasetType.InMemory.loadDataset(Resources.fromClasspath("com/gengoai/apollo/ml/iris.csv"), csv);
+         return DatasetType.InMemory.read(Resources.fromClasspath("com/gengoai/apollo/ml/iris.csv"), csv);
       } catch (IOException e) {
          throw new RuntimeException(e);
       }

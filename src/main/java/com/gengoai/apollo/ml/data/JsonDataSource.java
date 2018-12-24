@@ -18,9 +18,14 @@ import java.io.IOException;
  * @author David B. Bracewell
  */
 public class JsonDataSource implements DataSource {
+   private final boolean distributed;
+
+   public JsonDataSource(boolean distributed) {
+      this.distributed = distributed;
+   }
 
    @Override
-   public MStream<Example> stream(Resource location, boolean distributed) throws IOException {
+   public MStream<Example> stream(Resource location) throws IOException {
       return StreamingContext.get(distributed)
                              .textFile(location)
                              .map(Unchecked.function(json -> {

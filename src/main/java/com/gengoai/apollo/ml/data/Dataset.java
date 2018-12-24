@@ -28,6 +28,11 @@ import static com.gengoai.Validation.checkArgument;
  */
 public abstract class Dataset implements Iterable<Example>, Serializable, AutoCloseable {
    private static final long serialVersionUID = 1L;
+   private final DatasetType datasetType;
+
+   protected Dataset(DatasetType datasetType) {
+      this.datasetType = datasetType;
+   }
 
    /**
     * Adds all the examples in the stream to the dataset.
@@ -45,6 +50,8 @@ public abstract class Dataset implements Iterable<Example>, Serializable, AutoCl
       addAll(getType().getStreamingContext().stream(instances));
    }
 
+   public abstract Dataset cache();
+
    /**
     * Calculate class distribution counter.
     *
@@ -55,8 +62,6 @@ public abstract class Dataset implements Iterable<Example>, Serializable, AutoCl
       stream().flatMap(Example::getStringLabelSpace).forEach(accumulator::add);
       return accumulator.value();
    }
-
-   public abstract Dataset cache();
 
    /**
     * Creates folds for cross-validation
@@ -105,7 +110,9 @@ public abstract class Dataset implements Iterable<Example>, Serializable, AutoCl
     *
     * @return the type
     */
-   public abstract DatasetType getType();
+   public final DatasetType getType() {
+      return datasetType;
+   }
 
    /**
     * Map dataset.
@@ -116,14 +123,6 @@ public abstract class Dataset implements Iterable<Example>, Serializable, AutoCl
    public Dataset map(SerializableFunction<? super Example, ? extends Example> function) {
       return newSimilarDataset(stream().map(function));
    }
-
-   /**
-    * Applies the given function modifying the instances of this dataset.
-    *
-    * @param function The function to apply to the examples
-    * @return This dataset
-    */
-   public abstract Dataset mapSelf(SerializableFunction<? super Example, ? extends Example> function);
 
    /**
     * New similar dataset dataset.
@@ -190,7 +189,9 @@ public abstract class Dataset implements Iterable<Example>, Serializable, AutoCl
     * @param random the random number generator
     * @return the dataset
     */
-   public abstract Dataset shuffle(Random random);
+   public Dataset shuffle(Random random) {
+      return newSimilarDataset(stream().shuffle(random));
+   }
 
    /**
     * The number of examples in the dataset
@@ -230,9 +231,7 @@ public abstract class Dataset implements Iterable<Example>, Serializable, AutoCl
     *
     * @return the MStream of examples
     */
-   public MStream<Example> stream() {
-      return StreamingContext.local().stream(this);
-   }
+   public abstract MStream<Example> stream();
 
    /**
     * Slices the dataset into a sub stream
@@ -282,8 +281,6 @@ public abstract class Dataset implements Iterable<Example>, Serializable, AutoCl
          for (Example example : this) {
             writer.write(Json.dumps(example));
             writer.write("\n");
-
-
          }
       }
    }

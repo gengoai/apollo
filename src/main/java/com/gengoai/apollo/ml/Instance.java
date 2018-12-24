@@ -5,6 +5,7 @@ import com.gengoai.conversion.Cast;
 import com.gengoai.conversion.Converter;
 import com.gengoai.conversion.TypeConversionException;
 import com.gengoai.reflection.Types;
+import com.gengoai.string.Strings;
 
 import java.util.*;
 import java.util.function.Function;
@@ -69,7 +70,7 @@ public class Instance extends Example {
       return new Instance(name, booleanFeature(name)) {
          @Override
          public Feature getFeatureByPrefix(String prefix) {
-            return booleanFeature(prefix + name);
+            return booleanFeature(Strings.appendIfNotPresent(prefix, "=") + name);
          }
       };
    }
@@ -89,7 +90,7 @@ public class Instance extends Example {
       return new Instance(name, booleanFeature(name)) {
          @Override
          public Feature getFeatureByPrefix(String prefix) {
-            return booleanFeature(prefix + name);
+            return booleanFeature(Strings.appendIfNotPresent(prefix, "=") + name);
          }
       };
    }

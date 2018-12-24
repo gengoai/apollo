@@ -1,15 +1,12 @@
 package com.gengoai.apollo.ml.vectorizer;
 
-import com.gengoai.Validation;
 import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.collection.HashMapIndex;
 import com.gengoai.collection.Index;
 import com.gengoai.collection.Sets;
 import com.gengoai.collection.Streams;
 import com.gengoai.json.JsonEntry;
-import com.gengoai.reflection.Types;
 
-import java.lang.reflect.Type;
 import java.util.Set;
 
 /**
@@ -41,13 +38,6 @@ public class IndexVectorizer extends StringVectorizer {
 
    public static IndexVectorizer featureVectorizer(String unknownFeature) {
       return new IndexVectorizer(false, unknownFeature);
-   }
-
-   public static IndexVectorizer fromJson(JsonEntry entry, Type... parameters) {
-      Validation.checkState(entry.getStringProperty("class").equalsIgnoreCase(IndexVectorizer.class.getName()));
-      IndexVectorizer vectorizer = new IndexVectorizer(entry.getBooleanProperty("isLabel"));
-      vectorizer.index.addAll(entry.getProperty("index").getAs(Types.parameterizedType(Index.class, String.class)));
-      return vectorizer;
    }
 
    public static IndexVectorizer labelVectorizer() {

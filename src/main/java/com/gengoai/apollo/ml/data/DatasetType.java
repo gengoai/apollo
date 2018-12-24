@@ -23,13 +23,13 @@ public enum DatasetType {
       }
 
       @Override
-      public Dataset createDataset(MStream<Example> examples) {
+      public Dataset create(MStream<Example> examples) {
          return new DistributedDataset(examples);
       }
 
       @Override
-      public Dataset loadDataset(Resource location, DataSource dataSource) throws IOException {
-         return createDataset(dataSource.stream(location, true));
+      public Dataset read(Resource location, DataSource dataSource) throws IOException {
+         return create(dataSource.stream(location));
       }
    },
    /**
@@ -37,14 +37,14 @@ public enum DatasetType {
     */
    InMemory {
       @Override
-      public Dataset createDataset(MStream<Example> examples) {
+      public Dataset create(MStream<Example> examples) {
          return new InMemoryDataset(examples.collect());
       }
 
 
       @Override
-      public Dataset loadDataset(Resource location, DataSource dataSource) throws IOException {
-         return createDataset(dataSource.stream(location, false));
+      public Dataset read(Resource location, DataSource dataSource) throws IOException {
+         return create(dataSource.stream(location));
       }
    },
    /**
@@ -52,12 +52,12 @@ public enum DatasetType {
     */
    OffHeap {
       @Override
-      public Dataset createDataset(MStream<Example> examples) {
+      public Dataset create(MStream<Example> examples) {
          return null;
       }
 
       @Override
-      public Dataset loadDataset(Resource location, DataSource dataSource) throws IOException {
+      public Dataset read(Resource location, DataSource dataSource) throws IOException {
          return null;
       }
    },
@@ -66,13 +66,13 @@ public enum DatasetType {
     */
    Stream {
       @Override
-      public Dataset createDataset(MStream<Example> examples) {
-         return null;
+      public Dataset create(MStream<Example> examples) {
+         return new MStreamDataset(examples);
       }
 
       @Override
-      public Dataset loadDataset(Resource location, DataSource dataSource) throws IOException {
-         return null;
+      public Dataset read(Resource location, DataSource dataSource) throws IOException {
+         return create(dataSource.stream(location));
       }
    };
 
@@ -93,7 +93,7 @@ public enum DatasetType {
     * @param examples the examples
     * @return the dataset
     */
-   public abstract Dataset createDataset(MStream<Example> examples);
+   public abstract Dataset create(MStream<Example> examples);
 
 
    /**
@@ -103,8 +103,8 @@ public enum DatasetType {
     * @return the dataset
     * @throws IOException the io exception
     */
-   public final Dataset loadDataset(Resource location) throws IOException {
-      return loadDataset(location, new JsonDataSource());
+   public final Dataset read(Resource location) throws IOException {
+      return read(location, new JsonDataSource(getStreamingContext().isDistributed()));
    }
 
    /**
@@ -115,7 +115,7 @@ public enum DatasetType {
     * @return the dataset
     * @throws IOException the io exception
     */
-   public abstract Dataset loadDataset(Resource location, DataSource dataSource) throws IOException;
+   public abstract Dataset read(Resource location, DataSource dataSource) throws IOException;
 
 
 }//END OF DatasetType

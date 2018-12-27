@@ -22,7 +22,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  * @author David B. Bracewell
  */
-public class RegressionEvaluation implements Evaluation<Regression>, Serializable {
+public class RegressionEvaluation implements Evaluation, Serializable {
    private static final Logger log = Logger.getLogger(RegressionEvaluation.class);
    private static final long serialVersionUID = 1L;
    private DoubleArrayList gold = new DoubleArrayList();
@@ -59,6 +59,7 @@ public class RegressionEvaluation implements Evaluation<Regression>, Serializabl
       return evaluation;
    }
 
+
    /**
     * Calculates the adjusted r2
     *
@@ -90,7 +91,16 @@ public class RegressionEvaluation implements Evaluation<Regression>, Serializabl
       return squaredError() / gold.size();
    }
 
-   @Override
+   /**
+    * Evaluate the given model using the given dataset
+    *
+    * @param model   the model to evaluate
+    * @param dataset the dataset to evaluate over
+    */
+   public void evaluate(Regression model, Dataset dataset) {
+      evaluate(model, dataset.stream());
+   }
+
    public void evaluate(Regression model, MStream<Example> dataset) {
       for (Example ii : dataset) {
          gold.add(ii.getLabelAsDouble());

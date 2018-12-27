@@ -57,6 +57,45 @@ public final class Feature implements Serializable, Comparable<Feature>, Copyabl
    }
 
    /**
+    * Is false boolean.
+    *
+    * @param value the value
+    * @return the boolean
+    */
+   public static boolean isFalse(String value) {
+      return value.toLowerCase().equals("false");
+   }
+
+   /**
+    * Is false boolean.
+    *
+    * @param value the value
+    * @return the boolean
+    */
+   public static boolean isFalse(double value) {
+      return value == 0 || value == -1;
+   }
+
+   /**
+    * Is true boolean.
+    *
+    * @param value the value
+    * @return the boolean
+    */
+   public static boolean isTrue(double value) {
+      return value == 1;
+   }
+
+   /**
+    * Is true boolean.
+    *
+    * @param value the value
+    * @return the boolean
+    */
+   public static boolean isTrue(String value) {
+      return value.toLowerCase().equals("true");
+   }
+   /**
     * Creates a boolean valued feature with the given name and value of <code>1.0</code>.
     *
     * @param name the feature name

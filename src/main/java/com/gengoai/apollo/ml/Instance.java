@@ -211,6 +211,7 @@ public class Instance extends Example {
                 "features=" + features +
                 ", label=" + label +
                 ", weight=" + getWeight() +
+                ", source=" + getSource() +
                 '}';
    }
 

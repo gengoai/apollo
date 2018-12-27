@@ -76,6 +76,9 @@ public class RescaleTransform extends RestrictedFeaturePreprocessor {
          if (!requiresProcessing(in)) {
             return Optional.of(in);
          }
+         if (min == max) {
+            return Optional.of(Feature.realFeature(in.name, newMax));
+         }
          return Optional.of(Feature.realFeature(in.name, Math2.rescale(in.value, min, max, newMin, newMax)));
       });
    }

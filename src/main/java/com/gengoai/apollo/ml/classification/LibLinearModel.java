@@ -77,7 +77,7 @@ public class LibLinearModel extends Classifier implements Loggable {
    }
 
    @Override
-   protected void fitPreprocessed(Dataset preprocessed, FitParameters parameters) {
+   protected Classifier fitPreprocessed(Dataset preprocessed, FitParameters parameters) {
       Parameters fitParameters = notNull(Cast.as(parameters, Parameters.class));
       biasIndex = (fitParameters.bias ? getNumberOfFeatures() + 1 : -1);
       model = LibLinear.fit(() -> preprocessed.stream()
@@ -91,6 +91,7 @@ public class LibLinearModel extends Classifier implements Loggable {
                             getNumberOfFeatures(),
                             biasIndex
                            );
+      return this;
    }
 
    @Override

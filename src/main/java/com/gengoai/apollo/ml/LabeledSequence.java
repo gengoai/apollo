@@ -24,6 +24,12 @@ public class LabeledSequence<T> implements Serializable, Iterable<LabeledDatum<T
 
    }
 
+   public LabeledSequence(List<T> data) {
+      for (T datum : data) {
+         sequence.add(LabeledDatum.of(null, datum));
+      }
+   }
+
    /**
     * Instantiates a new Labeled sequence.
     *

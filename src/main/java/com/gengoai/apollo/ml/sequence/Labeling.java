@@ -8,7 +8,7 @@ import java.io.Serializable;
  * @author David B. Bracewell
  */
 public class Labeling implements Serializable {
-   private final String[] labels;
+   public final String[] labels;
 
 
    public Labeling(String[] labels) {
@@ -24,5 +24,6 @@ public class Labeling implements Serializable {
    public String getLabel(int index) {
       return labels[index];
    }
+
 
 }//END OF Labeling

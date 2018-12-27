@@ -74,7 +74,7 @@ public class Crf extends SequenceLabeler implements Serializable {
    }
 
    @Override
-   protected void fitPreprocessed(Dataset dataset, FitParameters parameters) {
+   protected SequenceLabeler fitPreprocessed(Dataset dataset, FitParameters parameters) {
       Parameters fitParameters = Cast.as(notNull(parameters), Parameters.class);
       CrfSuiteLoader.INSTANCE.load();
       Trainer trainer = new Trainer();
@@ -92,6 +92,7 @@ public class Crf extends SequenceLabeler implements Serializable {
       trainer.train(modelFile, -1);
       trainer.clear();
       tagger = new CrfTagger(modelFile);
+      return this;
    }
 
    @Override

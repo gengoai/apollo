@@ -7,8 +7,10 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.gengoai.Validation.checkArgument;
+import static com.gengoai.collection.Lists.arrayListOf;
 
 /**
  * <p>A Sequence represents an example made up of a finite enumerated list of child examples ({@link Instance}s).
@@ -27,6 +29,17 @@ public class Sequence extends Example {
     */
    public Sequence() {
 
+   }
+
+
+   public static Sequence create(Stream<String> tokens) {
+      Sequence seq = new Sequence();
+      tokens.forEach(token -> seq.sequence.add(new Instance(null, arrayListOf(Feature.booleanFeature(token)))));
+      return seq;
+   }
+
+   public static Sequence create(List<String> tokens) {
+      return create(tokens.stream());
    }
 
    /**

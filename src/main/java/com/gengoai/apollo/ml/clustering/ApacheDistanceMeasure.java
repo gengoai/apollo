@@ -33,14 +33,14 @@ import java.io.Serializable;
  */
 public class ApacheDistanceMeasure implements DistanceMeasure, Serializable {
    private static final long serialVersionUID = 1L;
-   private final com.gengoai.apollo.stat.measure.DistanceMeasure wrapped;
+   private final com.gengoai.apollo.stat.measure.Measure wrapped;
 
    /**
     * Instantiates a new Apache distance measure.
     *
     * @param wrapped the wrapped distance measure
     */
-   public ApacheDistanceMeasure(com.gengoai.apollo.stat.measure.DistanceMeasure wrapped) {
+   public ApacheDistanceMeasure(com.gengoai.apollo.stat.measure.Measure wrapped) {
       this.wrapped = wrapped;
    }
 
@@ -54,7 +54,7 @@ public class ApacheDistanceMeasure implements DistanceMeasure, Serializable {
     *
     * @return the wrapped distance measure
     */
-   public com.gengoai.apollo.stat.measure.DistanceMeasure getWrapped() {
+   public com.gengoai.apollo.stat.measure.Measure getWrapped() {
       return wrapped;
    }
 }// END OF ApacheDistanceMeasure

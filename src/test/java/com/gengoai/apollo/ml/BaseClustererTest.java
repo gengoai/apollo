@@ -1,6 +1,7 @@
 package com.gengoai.apollo.ml;
 
 import com.gengoai.apollo.ml.clustering.Clusterer;
+import com.gengoai.apollo.ml.clustering.Clustering;
 import com.gengoai.apollo.ml.clustering.SilhouetteEvaluation;
 import com.gengoai.apollo.ml.data.CSVDataSource;
 import com.gengoai.apollo.ml.data.DataSource;
@@ -19,19 +20,22 @@ import static org.junit.Assert.*;
  */
 public abstract class BaseClustererTest {
    private final Clusterer clusterer;
-   private final FitParameters fitParameters;
+   private final Clusterer.ClusterParameters fitParameters;
 
-   public BaseClustererTest(Clusterer clusterer, FitParameters fitParameters) {
+   public BaseClustererTest(Clusterer clusterer, Clusterer.ClusterParameters fitParameters) {
       this.clusterer = clusterer;
       this.fitParameters = fitParameters;
    }
 
 
+   public Clustering convertClustering(Clustering clustering) {
+      return clustering;
+   }
+
    @Test
    public void fitAndEvaluate() {
-      clusterer.fit(loadWaterData(), fitParameters);
-      SilhouetteEvaluation evaluation = new SilhouetteEvaluation();
-      evaluation.evaluate(clusterer, loadWaterData());
+      SilhouetteEvaluation evaluation = new SilhouetteEvaluation(fitParameters.measure);
+      evaluation.evaluate(convertClustering(clusterer.fit(loadWaterData(), fitParameters)));
       assertTrue(passes(evaluation));
    }
 

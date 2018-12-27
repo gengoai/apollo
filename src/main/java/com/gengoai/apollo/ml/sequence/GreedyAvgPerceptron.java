@@ -63,8 +63,8 @@ public class GreedyAvgPerceptron extends SequenceLabeler {
 
 
    @Override
-   protected void fitPreprocessed(Dataset preprocessed, FitParameters fitParameters) {
-      fit(() -> preprocessed.stream().map(this::encode), Cast.as(fitParameters, Parameters.class));
+   protected SequenceLabeler fitPreprocessed(Dataset preprocessed, FitParameters fitParameters) {
+     return fit(() -> preprocessed.stream().map(this::encode), Cast.as(fitParameters, Parameters.class));
    }
 
 
@@ -88,7 +88,7 @@ public class GreedyAvgPerceptron extends SequenceLabeler {
       return new Labeling(labels);
    }
 
-   private void fit(SerializableSupplier<MStream<NDArray>> dataSupplier, Parameters parameters) {
+   private SequenceLabeler fit(SerializableSupplier<MStream<NDArray>> dataSupplier, Parameters parameters) {
       this.featureWeights = NDArrayFactory.SPARSE.create(NDArrayInitializer.rand,
                                                          getNumberOfFeatures(),
                                                          getNumberOfLabels());
@@ -152,7 +152,7 @@ public class GreedyAvgPerceptron extends SequenceLabeler {
       featureWeights = fTotals.div(instances);
       transitionWeights = tTotals.div(instances);
       bias = bTotals.div(instances);
-
+      return this;
    }
 
    private double dot(Iterator<NDArray.Entry> itr, NDArray other) {

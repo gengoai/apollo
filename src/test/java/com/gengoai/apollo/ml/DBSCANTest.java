@@ -2,7 +2,8 @@ package com.gengoai.apollo.ml;
 
 import com.gengoai.apollo.ml.clustering.DBSCAN;
 import com.gengoai.apollo.ml.clustering.SilhouetteEvaluation;
-import com.gengoai.apollo.stat.measure.Distance;
+import com.gengoai.apollo.ml.preprocess.FilterPreprocessor;
+import com.gengoai.conversion.Cast;
 
 /**
  * @author David B. Bracewell
@@ -10,15 +11,13 @@ import com.gengoai.apollo.stat.measure.Distance;
 public class DBSCANTest extends BaseClustererTest {
 
    public DBSCANTest() {
-      super(new DBSCAN(),
-            new DBSCAN.Parameters()
-               .set("eps", 1e-10)
-               .set("distanceMeasure", Distance.Manhattan));
+      super(new DBSCAN(new FilterPreprocessor("AutoColumn_0")),
+            Cast.as(new DBSCAN.Parameters()
+                       .set("eps", 500)));
    }
 
    @Override
    public boolean passes(SilhouetteEvaluation mce) {
-      mce.output();
       return mce.getAvgSilhouette() >= 0.9;
    }
 

@@ -20,10 +20,15 @@ import java.util.function.Consumer;
  *
  * @author David B. Bracewell
  */
-public abstract class Model implements Serializable {
+public abstract class Model<T> implements Serializable {
    private static final long serialVersionUID = 1L;
    private final Vectorizer<String> featureVectorizer;
    private final Vectorizer<?> labelVectorizer;
+
+   public PreprocessorList getPreprocessors() {
+      return preprocessors;
+   }
+
    private final PreprocessorList preprocessors;
 
 
@@ -76,7 +81,7 @@ public abstract class Model implements Serializable {
     * @param example the example to encode and preprocess
     * @return the resulting encoded NDArray
     */
-   protected final NDArray encode(Example example) {
+   public final NDArray encode(Example example) {
       NDArray array = featureVectorizer.transform(example);
       if (example.hasLabel()) {
          array.setLabel(labelVectorizer.transform(example));
@@ -91,7 +96,7 @@ public abstract class Model implements Serializable {
     * @param example the example
     * @return the example
     */
-   protected final Example preprocess(Example example) {
+   public final Example preprocess(Example example) {
       return preprocessors.apply(example);
    }
 
@@ -101,7 +106,7 @@ public abstract class Model implements Serializable {
     * @param example the example to encode and preprocess
     * @return the resulting encoded NDArray
     */
-   protected final NDArray encodeAndPreprocess(Example example) {
+   public final NDArray encodeAndPreprocess(Example example) {
       return encode(preprocess(example));
    }
 
@@ -110,8 +115,8 @@ public abstract class Model implements Serializable {
     *
     * @param dataset the dataset to fit the model on
     */
-   public final void fit(Dataset dataset) {
-      fit(dataset, getDefaultFitParameters());
+   public final T fit(Dataset dataset) {
+      return fit(dataset, getDefaultFitParameters());
    }
 
    /**
@@ -121,10 +126,10 @@ public abstract class Model implements Serializable {
     * @param dataset       the dataset
     * @param fitParameters the consumer to use to update the fit parameters
     */
-   public final void fit(Dataset dataset, Consumer<? extends FitParameters> fitParameters) {
+   public final T fit(Dataset dataset, Consumer<? extends FitParameters> fitParameters) {
       FitParameters p = getDefaultFitParameters();
       fitParameters.accept(Cast.as(p));
-      fit(dataset, p);
+      return fit(dataset, p);
    }
 
    /**
@@ -133,14 +138,14 @@ public abstract class Model implements Serializable {
     * @param dataset       the dataset
     * @param fitParameters the fit parameters
     */
-   public final void fit(Dataset dataset, FitParameters fitParameters) {
+   public final T fit(Dataset dataset, FitParameters fitParameters) {
       final Dataset preprocessed = preprocessors.fitAndTransform(dataset);
       labelVectorizer.fit(preprocessed);
       featureVectorizer.fit(preprocessed);
-      fitPreprocessed(preprocessed, fitParameters);
+      return fitPreprocessed(preprocessed, fitParameters);
    }
 
-   protected abstract void fitPreprocessed(Dataset preprocessed, FitParameters fitParameters);
+   protected abstract T fitPreprocessed(Dataset preprocessed, FitParameters fitParameters);
 
    /**
     * Gets default fit parameters for the model.

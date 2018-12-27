@@ -2,6 +2,7 @@ package com.gengoai.apollo.ml;
 
 import com.gengoai.Copyable;
 import com.gengoai.collection.Streams;
+import com.gengoai.conversion.Cast;
 
 import java.io.Serializable;
 import java.util.Collection;
@@ -26,6 +27,26 @@ import static com.gengoai.apollo.ml.Feature.booleanFeature;
 public abstract class Example implements Copyable<Example>, Iterable<Example>, Serializable {
    private static final long serialVersionUID = 1L;
    private double weight = 1.0;
+   private Object source = null;
+
+   /**
+    * Gets source.
+    *
+    * @param <T> the type parameter
+    * @return the source
+    */
+   public <T> T getSource() {
+      return Cast.as(source);
+   }
+
+   /**
+    * Sets source.
+    *
+    * @param source the source
+    */
+   public void setSource(Object source) {
+      this.source = source;
+   }
 
    /**
     * Adds an example. Will throw an <code>UnsupportedOperationException</code> if this is a not a multi-example.
@@ -109,6 +130,7 @@ public abstract class Example implements Copyable<Example>, Iterable<Example>, S
     * Sets the label for this example.
     *
     * @param label the new label
+    * @return the label
     * @throws UnsupportedOperationException If the example does not allow direct access to the label
     */
    public Example setLabel(Object label) {
@@ -256,5 +278,6 @@ public abstract class Example implements Copyable<Example>, Iterable<Example>, S
    public Stream<Example> stream() {
       return Streams.asStream(this);
    }
+
 
 }//END OF Example

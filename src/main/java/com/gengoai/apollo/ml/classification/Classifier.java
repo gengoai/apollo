@@ -13,7 +13,7 @@ import com.gengoai.conversion.Cast;
  *
  * @author David B. Bracewell
  */
-public abstract class Classifier extends Model {
+public abstract class Classifier extends Model<Classifier> {
    private static final long serialVersionUID = 1L;
 
    public Classifier(Preprocessor... preprocessors) {

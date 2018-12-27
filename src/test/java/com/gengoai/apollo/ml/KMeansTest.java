@@ -2,6 +2,7 @@ package com.gengoai.apollo.ml;
 
 import com.gengoai.apollo.ml.clustering.KMeans;
 import com.gengoai.apollo.ml.clustering.SilhouetteEvaluation;
+import com.gengoai.conversion.Cast;
 
 /**
  * @author David B. Bracewell
@@ -10,7 +11,7 @@ public class KMeansTest extends BaseClustererTest {
 
    public KMeansTest() {
       super(new KMeans(),
-            new KMeans.Parameters().set("K", 10));
+            Cast.as(new KMeans.Parameters().set("K", 10)));
    }
 
    @Override

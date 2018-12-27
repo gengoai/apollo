@@ -98,7 +98,7 @@ public class FeatureExtractor<I> implements Serializable {
     * @param sequence the sequence
     * @return the example
     */
-   public final Example extractSequence(LabeledSequence<I> sequence) {
+   public final Example extractSequence(LabeledSequence<? extends I> sequence) {
       Sequence out = new Sequence();
       sequence.forEach(i -> out.add(extractInstance(i)));
       return contextualize(out);
@@ -123,7 +123,7 @@ public class FeatureExtractor<I> implements Serializable {
     * @param sequence the sequence
     * @return the example
     */
-   public final Example extractSequence(List<I> sequence) {
+   public final Example extractSequence(List<? extends I> sequence) {
       Sequence out = new Sequence();
       for (I i : sequence) {
          out.add(extractInstance(i));

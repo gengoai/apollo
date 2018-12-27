@@ -68,8 +68,9 @@ public class LibLinearLinearRegression extends Regression {
    }
 
    @Override
-   public void fitPreprocessed(Dataset dataSupplier, FitParameters fitParameters) {
+   public Regression fitPreprocessed(Dataset dataSupplier, FitParameters fitParameters) {
       fit(() -> dataSupplier.stream().map(this::encode), notNull(Cast.as(fitParameters, Parameters.class)));
+      return this;
    }
 
    @Override

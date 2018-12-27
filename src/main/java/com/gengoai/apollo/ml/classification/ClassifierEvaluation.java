@@ -1,12 +1,14 @@
 package com.gengoai.apollo.ml.classification;
 
 import com.gengoai.apollo.ml.Evaluation;
+import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.FitParameters;
 import com.gengoai.apollo.ml.Split;
 import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.apollo.ml.vectorizer.BinaryLabelVectorizer;
 import com.gengoai.conversion.Cast;
 import com.gengoai.logging.Logger;
+import com.gengoai.stream.MStream;
 
 import java.io.Serializable;
 import java.util.function.Consumer;
@@ -16,7 +18,7 @@ import java.util.function.Consumer;
  *
  * @author David B. Bracewell
  */
-public abstract class ClassifierEvaluation implements Evaluation<Classifier>, Serializable {
+public abstract class ClassifierEvaluation implements Evaluation, Serializable {
    private static final Logger log = Logger.getLogger(ClassifierEvaluation.class);
    private static final long serialVersionUID = 1L;
 
@@ -28,6 +30,7 @@ public abstract class ClassifierEvaluation implements Evaluation<Classifier>, Se
       evaluation.evaluate(classifier, dataset);
       return evaluation;
    }
+
 
    /**
     * Cross validation multi class evaluation.
@@ -80,6 +83,24 @@ public abstract class ClassifierEvaluation implements Evaluation<Classifier>, Se
       }
       return evaluation;
    }
+
+   /**
+    * Evaluate the given model using the given dataset
+    *
+    * @param model   the model to evaluate
+    * @param dataset the dataset to evaluate over
+    */
+   public final void evaluate(Classifier model, Dataset dataset) {
+      evaluate(model, dataset.stream());
+   }
+
+   /**
+    * Evaluate the given model using the given set of examples
+    *
+    * @param model   the model to evaluate
+    * @param dataset the dataset to evaluate over
+    */
+   public abstract void evaluate(Classifier model, MStream<Example> dataset);
 
 
    /**

@@ -21,9 +21,7 @@
 
 package com.gengoai.apollo.ml;
 
-import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.io.resource.Resource;
-import com.gengoai.stream.MStream;
 
 import java.io.IOException;
 import java.io.PrintStream;
@@ -33,25 +31,8 @@ import java.io.PrintStream;
  *
  * @author David B. Bracewell
  */
-public interface Evaluation<M extends Model> {
+public interface Evaluation {
 
-   /**
-    * Evaluate the given model using the given dataset
-    *
-    * @param model   the model to evaluate
-    * @param dataset the dataset to evaluate over
-    */
-   default void evaluate(M model, Dataset dataset) {
-      evaluate(model, dataset.stream());
-   }
-
-   /**
-    * Evaluate the given model using the given set of examples
-    *
-    * @param model   the model to evaluate
-    * @param dataset the dataset to evaluate over
-    */
-   void evaluate(M model, MStream<Example> dataset);
 
    /**
     * Merge this evaluation with another combining the results.

@@ -77,7 +77,7 @@ public class NaiveBayes extends Classifier {
    }
 
    @Override
-   protected void fitPreprocessed(Dataset preprocessed, FitParameters fitParameters) {
+   protected Classifier fitPreprocessed(Dataset preprocessed, FitParameters fitParameters) {
       Parameters parameters = notNull(Cast.as(fitParameters, Parameters.class));
       conditionals = new double[getNumberOfFeatures()][getNumberOfLabels()];
       priors = new double[getNumberOfLabels()];
@@ -126,6 +126,8 @@ public class NaiveBayes extends Classifier {
       for (int i = 0; i < priors.length; i++) {
          priors[i] = Math.log(priors[i] / N);
       }
+
+      return this;
    }
 
    @Override

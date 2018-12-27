@@ -16,8 +16,8 @@ public class FeedForwardNetwork extends Classifier {
    ArrayList<Layer> layers = new ArrayList<>();
 
    @Override
-   protected void fitPreprocessed(Dataset preprocessed, FitParameters fitParameters) {
-
+   protected Classifier fitPreprocessed(Dataset preprocessed, FitParameters fitParameters) {
+      return this;
    }
 
    @Override

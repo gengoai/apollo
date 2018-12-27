@@ -13,7 +13,7 @@ import java.io.Serializable;
 /**
  * @author David B. Bracewell
  */
-public class PerInstanceEvaluation implements Evaluation<SequenceLabeler>, Serializable {
+public class PerInstanceEvaluation implements SequenceLabelerEvaluation, Serializable {
    private static final long serialVersionUID = 1L;
    /**
     * The wrapped classifier evaluation

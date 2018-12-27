@@ -2,10 +2,8 @@ package com.gengoai.apollo.ml.clustering;
 
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.ml.Evaluation;
-import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.stat.measure.Measure;
 import com.gengoai.math.Math2;
-import com.gengoai.stream.MStream;
 import com.gengoai.stream.StreamingContext;
 import com.gengoai.string.TableFormatter;
 
@@ -20,26 +18,28 @@ import static com.gengoai.tuple.Tuples.$;
 /**
  * @author David B. Bracewell
  */
-public class SilhouetteEvaluation implements Evaluation<Clusterer>, Serializable {
+public class SilhouetteEvaluation implements ClusteringEvaluation, Serializable {
    private static final long serialVersionUID = 1L;
    double avgSilhouette = 0;
    private Map<Integer, Double> silhouette;
+   private final Measure measure;
 
-
-   @Override
-   public void evaluate(Clusterer model, MStream<Example> dataset) {
-      evaluate(model);
+   public SilhouetteEvaluation(Measure measure) {
+      this.measure = measure;
    }
 
-   public void evaluate(Clusterer model) {
+   public void evaluate(Clustering clustering) {
       Map<Integer, Cluster> idClusterMap = new HashMap<>();
-      model.forEach(c -> idClusterMap.put(c.getId(), c));
-      silhouette = StreamingContext.local().stream(idClusterMap.keySet())
+      clustering.forEach(c -> idClusterMap.put(c.getId(), c));
+      silhouette = StreamingContext.local()
+                                   .stream(idClusterMap.keySet())
                                    .parallel()
-                                   .mapToPair(i -> $(i, silhouette(idClusterMap, i, model.getMeasure())))
+                                   .mapToPair(i -> $(i, silhouette(idClusterMap, i, measure)))
                                    .collectAsMap();
       avgSilhouette = Math2.summaryStatistics(silhouette.values()).getAverage();
+
    }
+
 
    @Override
    public void merge(Evaluation evaluation) {
@@ -62,12 +62,16 @@ public class SilhouetteEvaluation implements Evaluation<Clusterer>, Serializable
          double bi = clusters.keySet().parallelStream()
                              .filter(j -> j != index)
                              .mapToDouble(j -> {
+                                if (clusters.get(j).size() == 0) {
+                                   return Double.MAX_VALUE;
+                                }
                                 double b = 0;
                                 for (NDArray point2 : clusters.get(j)) {
                                    b += distanceMeasure.calculate(point1, point2);
                                 }
                                 return b;
-                             }).min().orElseThrow(IllegalStateException::new);
+                             }).min()
+                             .orElse(0);
          s += (bi - ai) / Math.max(bi, ai);
       }
 

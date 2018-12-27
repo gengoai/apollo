@@ -9,6 +9,7 @@ import com.gengoai.io.resource.Resource;
 import com.gengoai.math.Math2;
 import com.gengoai.stream.MStream;
 import com.gengoai.stream.StreamingContext;
+import com.gengoai.string.Strings;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -70,13 +71,16 @@ public class CSVDataSource implements DataSource {
                         : headers.indexOf(labelColumn);
 
          reader.forEach(row -> {
-            if (row.size() > 0) {
+            if (row.size() > 0 && row.stream().anyMatch(Strings::isNotNullOrBlank)) {
                List<Feature> features = new ArrayList<>();
                String label = li >= 0 ? row.get(li) : null;
                for (int i = 0; i < row.size(); i++) {
                   if (i != li) {
                      while (headers.size() <= i) {
                         headers.add("AutoColumn_" + i);
+                     }
+                     if (row.get(i).equals("?") || Strings.isNullOrBlank(row.get(i))) {
+                        continue;
                      }
                      Double value = Math2.tryParseDouble(row.get(i));
                      if (value != null) {

@@ -14,7 +14,7 @@ import com.gengoai.conversion.Cast;
  *
  * @author David B. Bracewell
  */
-public abstract class SequenceLabeler extends Model {
+public abstract class SequenceLabeler extends Model<SequenceLabeler> {
    private static final long serialVersionUID = 1L;
    private final Validator sequenceValidator;
 

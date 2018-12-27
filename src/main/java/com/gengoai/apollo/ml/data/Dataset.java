@@ -34,6 +34,12 @@ public abstract class Dataset implements Iterable<Example>, Serializable, AutoCl
       this.datasetType = datasetType;
    }
 
+
+   public static DatasetBuilder builder() {
+      return new DatasetBuilder();
+   }
+
+
    /**
     * Adds all the examples in the stream to the dataset.
     *

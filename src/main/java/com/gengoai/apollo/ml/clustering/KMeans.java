@@ -8,7 +8,6 @@ import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
 import com.gengoai.apollo.ml.preprocess.PreprocessorList;
 import com.gengoai.apollo.ml.vectorizer.Vectorizer;
-import com.gengoai.apollo.stat.measure.Distance;
 import com.gengoai.apollo.stat.measure.Measure;
 import com.gengoai.conversion.Cast;
 import com.gengoai.function.SerializableSupplier;
@@ -24,40 +23,33 @@ import java.util.concurrent.atomic.AtomicLong;
 /**
  * @author David B. Bracewell
  */
-public class KMeans extends FlatClusterer {
-   private int K;
+public class KMeans extends Clusterer {
+   private static final long serialVersionUID = 1L;
 
-   public KMeans() {
+
+   public KMeans(Preprocessor... preprocessors) {
+      super(preprocessors);
    }
 
    public KMeans(Vectorizer<?> labelVectorizer, Vectorizer<String> featureVectorizer, PreprocessorList preprocessors) {
       super(labelVectorizer, featureVectorizer, preprocessors);
    }
 
-   public KMeans(Vectorizer<String> featureVectorizer, PreprocessorList preprocessors) {
-      super(featureVectorizer, preprocessors);
-   }
-
    public KMeans(Vectorizer<?> labelVectorizer, Vectorizer<String> featureVectorizer, Preprocessor... preprocessors) {
       super(labelVectorizer, featureVectorizer, preprocessors);
    }
 
-   public KMeans(Vectorizer<String> featureVectorizer, Preprocessor... preprocessors) {
-      super(featureVectorizer, preprocessors);
-   }
-
-   public void fit(SerializableSupplier<MStream<NDArray>> dataSupplier, Parameters fitParameters) {
-      this.measure = fitParameters.measure;
-      this.K = fitParameters.K;
-
+   public FlatClustering fit(SerializableSupplier<MStream<NDArray>> dataSupplier, Parameters fitParameters) {
+      FlatClustering clusters = new FlatClustering();
       List<NDArray> instances = dataSupplier.get().collect();
-      for (NDArray centroid : initCentroids(instances)) {
+      for (NDArray centroid : initCentroids(fitParameters.K, instances)) {
          Cluster c = new Cluster();
-         c.setId(c.size());
          c.setCentroid(centroid);
          clusters.add(c);
       }
 
+
+      final Measure measure = fitParameters.measure;
       Map<NDArray, Integer> assignment = new ConcurrentHashMap<>();
 
       final AtomicLong numMoved = new AtomicLong(0);
@@ -68,7 +60,7 @@ public class KMeans extends FlatClusterer {
                   .forEach(ii -> {
                               int minI = 0;
                               double minD = measure.calculate(ii, clusters.get(0).getCentroid());
-                              for (int ci = 1; ci < K; ci++) {
+                              for (int ci = 1; ci < fitParameters.K; ci++) {
                                  double distance = measure.calculate(ii, clusters.get(ci).getCentroid());
                                  if (distance < minD) {
                                     minD = distance;
@@ -88,7 +80,8 @@ public class KMeans extends FlatClusterer {
             break;
          }
 
-         for (int i = 0; i < K; i++) {
+
+         for (int i = 0; i < fitParameters.K; i++) {
             clusters.get(i).getPoints().removeIf(Objects::isNull);
             if (clusters.get(i).size() == 0) {
                clusters.get(i).setCentroid(
@@ -122,30 +115,32 @@ public class KMeans extends FlatClusterer {
             cluster.setScore(Double.MAX_VALUE);
          }
       }
+      return clusters;
    }
 
-   private NDArray[] initCentroids(List<NDArray> instances) {
-      NDArray[] centroids = new NDArray[K];
+
+   private NDArray[] initCentroids(int K, List<NDArray> instances) {
+      NDArray[] clusters = new NDArray[K];
       for (int i = 0; i < K; i++) {
-         centroids[i] = NDArrayFactory.DEFAULT().zeros((int) instances.get(0).length());
+         clusters[i] = NDArrayFactory.DEFAULT().zeros((int) instances.get(0).length());
       }
       double[] cnts = new double[K];
       Random rnd = new Random();
       for (NDArray ii : instances) {
          int ci = rnd.nextInt(K);
-         centroids[ci].addi(ii);
+         clusters[ci].addi(ii);
          cnts[ci]++;
       }
       for (int i = 0; i < K; i++) {
-         centroids[i].divi((float) cnts[i]);
+         clusters[i].divi((float) cnts[i]);
       }
-      return centroids;
+      return clusters;
    }
 
 
    @Override
-   public void fitPreprocessed(Dataset dataSupplier, FitParameters fitParameters) {
-      fit(() -> dataSupplier.stream().map(this::encode), Cast.as(fitParameters, Parameters.class));
+   public Clustering fitPreprocessed(Dataset dataSupplier, FitParameters fitParameters) {
+      return fit(() -> dataSupplier.stream().map(this::encode), Cast.as(fitParameters, Parameters.class));
    }
 
 
@@ -154,10 +149,11 @@ public class KMeans extends FlatClusterer {
       return new Parameters();
    }
 
+
    /**
     * The type Parameters.
     */
-   public static class Parameters extends FitParameters {
+   public static class Parameters extends Clusterer.ClusterParameters {
       /**
        * The K.
        */
@@ -166,9 +162,6 @@ public class KMeans extends FlatClusterer {
        * The Max iterations.
        */
       public int maxIterations = 100;
-      /**
-       * The Measure.
-       */
-      public Measure measure = Distance.Euclidean;
+
    }
 }//END OF KMeans

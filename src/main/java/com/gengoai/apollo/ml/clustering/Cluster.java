@@ -12,40 +12,23 @@ import java.util.List;
  */
 public class Cluster implements Serializable, Iterable<NDArray> {
    private static final long serialVersionUID = 1L;
-
-   public List<NDArray> getPoints() {
-      return points;
-   }
-
-
    private final List<NDArray> points = new ArrayList<>();
+   private NDArray centroid;
+   private int id;
+   private Cluster left;
+   private Cluster parent;
+   private Cluster right;
+   private double score;
 
    public void addPoint(NDArray point){
       this.points.add(point);
    }
 
-   public Cluster getParent() {
-      return parent;
-   }
-
-   public void setParent(Cluster parent) {
-      this.parent = parent;
-   }
-
-   public Cluster getLeft() {
-      return left;
-   }
-
-   public void setLeft(Cluster left) {
-      this.left = left;
-   }
-
-   public Cluster getRight() {
-      return right;
-   }
-
-   public void setRight(Cluster right) {
-      this.right = right;
+   /**
+    * Clears the cluster, removing all points
+    */
+   public void clear() {
+      points.clear();
    }
 
    public NDArray getCentroid() {
@@ -64,25 +47,40 @@ public class Cluster implements Serializable, Iterable<NDArray> {
       this.id = id;
    }
 
+   public Cluster getLeft() {
+      return left;
+   }
+
+   public void setLeft(Cluster left) {
+      this.left = left;
+   }
+
+   public Cluster getParent() {
+      return parent;
+   }
+
+   public void setParent(Cluster parent) {
+      this.parent = parent;
+   }
+
+   public List<NDArray> getPoints() {
+      return points;
+   }
+
+   public Cluster getRight() {
+      return right;
+   }
+
+   public void setRight(Cluster right) {
+      this.right = right;
+   }
+
    public double getScore() {
       return score;
    }
 
    public void setScore(double score) {
       this.score = score;
-   }
-
-   private Cluster parent;
-   private Cluster left;
-   private Cluster right;
-   private NDArray centroid;
-   private int id;
-   private double score;
-
-
-   @Override
-   public Iterator<NDArray> iterator() {
-      return points.iterator();
    }
 
    /**
@@ -94,11 +92,9 @@ public class Cluster implements Serializable, Iterable<NDArray> {
       return points.contains(point) ? 1.0 : 0.0;
    }
 
-   /**
-    * Clears the cluster, removing all points
-    */
-   public void clear() {
-      points.clear();
+   @Override
+   public Iterator<NDArray> iterator() {
+      return points.iterator();
    }
 
    /**

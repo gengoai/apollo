@@ -13,7 +13,7 @@ import com.gengoai.apollo.ml.vectorizer.Vectorizer;
  *
  * @author David B. Bracewell
  */
-public abstract class Regression extends Model {
+public abstract class Regression extends Model<Regression> {
    private static final long serialVersionUID = 1L;
 
    /**

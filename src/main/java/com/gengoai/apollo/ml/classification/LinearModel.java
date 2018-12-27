@@ -90,7 +90,7 @@ public class LinearModel extends Classifier implements Loggable {
    }
 
    @Override
-   protected void fitPreprocessed(Dataset preprocessed, FitParameters fitParameters) {
+   protected Classifier fitPreprocessed(Dataset preprocessed, FitParameters fitParameters) {
       Parameters parameters = notNull(Cast.as(fitParameters, Parameters.class));
       this.modelParameters.numFeatures = getNumberOfFeatures();
       this.modelParameters.numLabels = getNumberOfLabels();
@@ -121,6 +121,8 @@ public class LinearModel extends Classifier implements Loggable {
                          parameters.weightUpdater,
                          parameters.verbose ? parameters.reportInterval
                                             : -1);
+
+      return this;
    }
 
    @Override

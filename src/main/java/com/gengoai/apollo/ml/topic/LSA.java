@@ -27,7 +27,9 @@ import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.FitParameters;
+import com.gengoai.apollo.ml.ModelParameters;
 import com.gengoai.apollo.ml.data.Dataset;
+import com.gengoai.apollo.ml.preprocess.Preprocessor;
 import com.gengoai.collection.counter.Counter;
 import com.gengoai.collection.counter.Counters;
 import com.gengoai.conversion.Cast;
@@ -50,6 +52,14 @@ import static com.gengoai.apollo.linear.SparkLinearAlgebra.toMatrix;
 public class LSA extends TopicModel {
    private static final long serialVersionUID = 1L;
    private List<LSATopic> topics = new ArrayList<>();
+
+   public LSA(Preprocessor... preprocessors) {
+      super(preprocessors);
+   }
+
+   public LSA(ModelParameters modelParameters) {
+      super(modelParameters);
+   }
 
    @Override
    public double[] estimate(Example example) {

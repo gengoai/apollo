@@ -50,7 +50,8 @@ import java.util.Set;
 import static com.gengoai.Validation.notNull;
 
 /**
- * The type Greedy avg perceptron.
+ * <p>A greedy sequence labeler that uses an Averaged Perceptron for classification. First-ordered transitions are
+ * included as features.</p>
  *
  * @author David B. Bracewell
  */
@@ -61,24 +62,46 @@ public class GreedyAvgPerceptron extends SequenceLabeler implements Loggable {
    private MultiCounter<String, String> featureWeights;
    private MultiCounter<String, String> transitionWeights;
 
+   /**
+    * Instantiates a new GreedyAvgPerceptron.
+    *
+    * @param preprocessors the preprocessors
+    */
    public GreedyAvgPerceptron(Preprocessor... preprocessors) {
       this(new PreprocessorList(preprocessors));
    }
 
-   public GreedyAvgPerceptron(Validator validator, Preprocessor... preprocessors) {
+   /**
+    * Instantiates a new GreedyAvgPerceptron.
+    *
+    * @param validator     the validator
+    * @param preprocessors the preprocessors
+    */
+   public GreedyAvgPerceptron(SequenceValidator validator, Preprocessor... preprocessors) {
       this(validator, new PreprocessorList(preprocessors));
    }
 
 
+   /**
+    * Instantiates a new GreedyAvgPerceptron.
+    *
+    * @param preprocessors the preprocessors
+    */
    public GreedyAvgPerceptron(PreprocessorList preprocessors) {
-      this(Validator.ALWAYS_TRUE, preprocessors);
+      this(SequenceValidator.ALWAYS_TRUE, preprocessors);
    }
 
-   public GreedyAvgPerceptron(Validator validator, PreprocessorList preprocessors) {
+   /**
+    * Instantiates a new GreedyAvgPerceptron.
+    *
+    * @param validator     the validator
+    * @param preprocessors the preprocessors
+    */
+   public GreedyAvgPerceptron(SequenceValidator validator, PreprocessorList preprocessors) {
       super(ModelParameters.create(new NoOptVectorizer<>())
                            .update(p -> {
                               p.preprocessors(preprocessors);
-                              p.sequenceValidator = Validator.ALWAYS_TRUE;
+                              p.sequenceValidator = SequenceValidator.ALWAYS_TRUE;
                               p.featureVectorizer = new NoOptVectorizer<>();
                               p.sequenceValidator = validator;
                            }));
@@ -185,20 +208,23 @@ public class GreedyAvgPerceptron extends SequenceLabeler implements Loggable {
    @Override
    public Labeling label(Example example) {
       String[] labels = new String[example.size()];
+      double[] scores = new double[example.size()];
       String pLabel = "<BOS>";
       for (int i = 0; i < example.size(); i++) {
          Example instance = preprocess(example.getExample(i));
          Counter<String> distribution = distribution(instance, pLabel);
          String cLabel = distribution.max();
+         scores[i] = distribution.get(cLabel);
          distribution.remove(cLabel);
          while (!isValidTransition(cLabel, pLabel, instance)) {
             cLabel = distribution.max();
+            scores[i] = distribution.get(cLabel);
             distribution.remove(cLabel);
          }
          labels[i] = cLabel;
          pLabel = cLabel;
       }
-      return new Labeling(labels);
+      return new Labeling(labels, scores);
    }
 
    private void update(String cls, String feature, double value, int iteration,

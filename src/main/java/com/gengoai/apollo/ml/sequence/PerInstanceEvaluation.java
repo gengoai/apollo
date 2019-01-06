@@ -32,16 +32,18 @@ import java.io.PrintStream;
 import java.io.Serializable;
 
 /**
+ * <p>Sequence labeling evaluation that evaluates each item in the sequence (i.e. instance) independently.</p>
+ *
  * @author David B. Bracewell
  */
 public class PerInstanceEvaluation implements SequenceLabelerEvaluation, Serializable {
    private static final long serialVersionUID = 1L;
-   /**
-    * The wrapped classifier evaluation
-    */
    private final MultiClassEvaluation eval;
 
 
+   /**
+    * Instantiates a new Per instance evaluation.
+    */
    public PerInstanceEvaluation() {
       this.eval = new MultiClassEvaluation();
    }

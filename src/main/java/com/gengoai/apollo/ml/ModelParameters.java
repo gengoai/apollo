@@ -25,7 +25,7 @@ package com.gengoai.apollo.ml;
 import com.gengoai.Parameters;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
 import com.gengoai.apollo.ml.preprocess.PreprocessorList;
-import com.gengoai.apollo.ml.sequence.Validator;
+import com.gengoai.apollo.ml.sequence.SequenceValidator;
 import com.gengoai.apollo.ml.vectorizer.BinaryLabelVectorizer;
 import com.gengoai.apollo.ml.vectorizer.DoubleVectorizer;
 import com.gengoai.apollo.ml.vectorizer.IndexVectorizer;
@@ -55,7 +55,7 @@ public class ModelParameters implements Parameters<ModelParameters>, Serializabl
    /**
     * The validator to use for verifying correct transitions in sequence labeling problems
     */
-   public Validator sequenceValidator = Validator.ALWAYS_TRUE;
+   public SequenceValidator sequenceValidator = SequenceValidator.ALWAYS_TRUE;
 
 
    /**

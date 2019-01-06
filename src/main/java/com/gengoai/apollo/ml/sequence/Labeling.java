@@ -22,29 +22,83 @@
 
 package com.gengoai.apollo.ml.sequence;
 
+import com.github.jcrfsuite.util.Pair;
+
 import java.io.Serializable;
+import java.util.List;
 
 /**
- * <p>Represents the predicted labels for a sequence.</p>
+ * <p>Represents the predicted labels and their scores for a sequence.</p>
  *
  * @author David B. Bracewell
  */
 public class Labeling implements Serializable {
+   /**
+    * The Labels.
+    */
    public final String[] labels;
+   /**
+    * The Scores.
+    */
+   public final double[] scores;
 
 
-   public Labeling(String[] labels) {
-      this.labels = labels;
+   /**
+    * Instantiates a new Labeling using the output of CRFSuite.
+    *
+    * @param crfSuiteTags the crf suite tags
+    */
+   public Labeling(List<Pair<String, Double>> crfSuiteTags) {
+      this.labels = new String[crfSuiteTags.size()];
+      this.scores = new double[crfSuiteTags.size()];
+      for (int i = 0; i < crfSuiteTags.size(); i++) {
+         this.labels[i] = crfSuiteTags.get(i).first;
+         this.scores[i] = crfSuiteTags.get(i).second;
+      }
    }
+
+
+   /**
+    * Instantiates a new Labeling with a given set of labels and scores.
+    *
+    * @param labels the labels
+    * @param scores the scores
+    */
+   public Labeling(String[] labels, double[] scores) {
+      this.labels = labels;
+      this.scores = scores;
+   }
+
+
+   /**
+    * Instantiates a new Labeling of a given length
+    *
+    * @param sequenceLength the sequence length
+    */
+   public Labeling(int sequenceLength) {
+      this.labels = new String[sequenceLength];
+      this.scores = new double[sequenceLength];
+   }
+
 
    /**
     * Gets the label for the item in the sequence at the given index.
     *
     * @param index the index of the item in the sequence
-    * @return the int label
+    * @return the label
     */
    public String getLabel(int index) {
       return labels[index];
+   }
+
+   /**
+    * Gets the score for the item in the sequence at the given index.
+    *
+    * @param index the index of the item in the sequence
+    * @return the score
+    */
+   public double getScore(int index) {
+      return scores[index];
    }
 
 

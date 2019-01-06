@@ -29,6 +29,8 @@ import com.gengoai.stream.MStream;
 import java.io.PrintStream;
 
 /**
+ * <p>Evaluation for {@link SequenceLabeler}s</p>
+ *
  * @author David B. Bracewell
  */
 public interface SequenceLabelerEvaluation {

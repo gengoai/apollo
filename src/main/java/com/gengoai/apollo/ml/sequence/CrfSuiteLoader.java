@@ -25,6 +25,8 @@ package com.gengoai.apollo.ml.sequence;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
+ * <p>Utility class for making suring the CRFSuite library is loaded</p>
+ *
  * @author David B. Bracewell
  */
 public enum CrfSuiteLoader {
@@ -32,6 +34,9 @@ public enum CrfSuiteLoader {
 
    private AtomicBoolean loaded = new AtomicBoolean(false);
 
+   /**
+    * Loads the library if not already loaded.
+    */
    public void load() {
       if (!loaded.get()) {
          synchronized (this) {

@@ -36,7 +36,7 @@ import com.gengoai.conversion.Cast;
  */
 public abstract class SequenceLabeler extends Model<SequenceLabeler> {
    private static final long serialVersionUID = 1L;
-   private Validator sequenceValidator;
+   private SequenceValidator sequenceValidator;
 
    public SequenceLabeler(ModelParameters modelParameters) {
       super(modelParameters);
@@ -49,11 +49,11 @@ public abstract class SequenceLabeler extends Model<SequenceLabeler> {
       return Cast.as(super.getLabelVectorizer());
    }
 
-   public Validator getSequenceValidator() {
+   public SequenceValidator getSequenceValidator() {
       return sequenceValidator;
    }
 
-   public void setSequenceValidator(Validator sequenceValidator) {
+   public void setSequenceValidator(SequenceValidator sequenceValidator) {
       this.sequenceValidator = sequenceValidator;
    }
 

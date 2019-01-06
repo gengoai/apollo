@@ -46,7 +46,7 @@ public class Word2Vec extends Embedding {
    private static final long serialVersionUID = 1L;
 
    /**
-    * Instantiates a new Word 2 vec.
+    * Instantiates a new Word2Vec.
     *
     * @param preprocessors the preprocessors
     */
@@ -58,7 +58,7 @@ public class Word2Vec extends Embedding {
    protected VectorStore fitPreprocessed(Dataset preprocessed, FitParameters fitParameters) {
       Parameters p = notNull(Cast.as(fitParameters, Parameters.class));
       org.apache.spark.mllib.feature.Word2Vec w2v = new org.apache.spark.mllib.feature.Word2Vec();
-      w2v.setMinCount(p.minCount);
+      w2v.setMinCount(1);
       w2v.setVectorSize(p.dimension);
       w2v.setLearningRate(p.learningRate);
       w2v.setNumIterations(p.numIterations);
@@ -80,31 +80,27 @@ public class Word2Vec extends Embedding {
    }
 
    /**
-    * The type Parameters.
+    * FitParameters for Word2Vec
     */
    public static class Parameters extends EmbeddingFitParameters {
       /**
-       * The Min count.
-       */
-      public int minCount = 5;
-      /**
-       * The Num iterations.
+       * The number of iterations to train the embeddings (default = 1)
        */
       public int numIterations = 1;
       /**
-       * The Learning rate.
+       * The learning rate (default = 0.025)
        */
       public double learningRate = 0.025;
       /**
-       * The Random seed.
+       * The random seed (default = current time)
        */
       public long randomSeed = new Date().getTime();
       /**
-       * The Window size.
+       * The window size (default = 5)
        */
       public int windowSize = 5;
       /**
-       * The Dimension.
+       * The dimension of the embeddings (default = 100)
        */
       public int dimension = 100;
    }

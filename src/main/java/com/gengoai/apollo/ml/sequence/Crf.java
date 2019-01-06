@@ -22,8 +22,6 @@
 
 package com.gengoai.apollo.ml.sequence;
 
-import com.gengoai.apollo.linear.Axis;
-import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.Feature;
 import com.gengoai.apollo.ml.FitParameters;
@@ -37,13 +35,11 @@ import com.gengoai.io.Resources;
 import com.gengoai.io.resource.Resource;
 import com.gengoai.tuple.Tuple2;
 import com.github.jcrfsuite.CrfTagger;
-import com.github.jcrfsuite.util.Pair;
 import third_party.org.chokkan.crfsuite.*;
 
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Base64;
-import java.util.List;
 
 import static com.gengoai.Validation.notNull;
 import static com.gengoai.tuple.Tuples.$;
@@ -58,38 +54,32 @@ public class Crf extends SequenceLabeler implements Serializable {
    private String modelFile;
    private volatile CrfTagger tagger;
 
+   /**
+    * Instantiates a new Crf with the given preprocessors.
+    *
+    * @param preprocessors the preprocessors
+    */
    public Crf(Preprocessor... preprocessors) {
       this(new PreprocessorList(preprocessors));
    }
 
+   /**
+    * Instantiates a new Crf with the given preprocessors.
+    *
+    * @param preprocessors the preprocessors
+    */
    public Crf(PreprocessorList preprocessors) {
       super(ModelParameters.create(new NoOptVectorizer<>())
                            .update(p -> {
                               p.preprocessors(preprocessors);
-                              p.sequenceValidator = Validator.ALWAYS_TRUE;
+                              p.sequenceValidator = SequenceValidator.ALWAYS_TRUE;
                               p.featureVectorizer = new NoOptVectorizer<>();
                            }));
    }
 
-   private Tuple2<ItemSequence, StringList> toItemSequence(Example sequence) {
-      ItemSequence seq = new ItemSequence();
-      StringList labels = new StringList();
-      for (Example instance : sequence) {
-         Item item = new Item();
-         for (Feature feature : instance.getFeatures()) {
-            item.add(new Attribute(feature.name, feature.value));
-         }
-         if (instance.hasLabel()) {
-            labels.add(instance.getLabelAsString());
-         }
-         seq.add(item);
-      }
-      return $(seq, labels);
-   }
-
    @Override
    protected SequenceLabeler fitPreprocessed(Dataset dataset, FitParameters parameters) {
-      Parameters fitParameters = Cast.as(notNull(parameters), Parameters.class);
+      Parameters fitParameters = notNull(Cast.as(notNull(parameters), Parameters.class));
       CrfSuiteLoader.INSTANCE.load();
       Trainer trainer = new Trainer();
       dataset.forEach(sequence -> {
@@ -110,14 +100,6 @@ public class Crf extends SequenceLabeler implements Serializable {
    }
 
    @Override
-   public Labeling label(Example sequence) {
-      CrfSuiteLoader.INSTANCE.load();
-      List<Pair<String, Double>> tags = tagger.tag(toItemSequence(preprocess(sequence)).v1);
-      return new Labeling(tags.stream().map(Pair::getFirst).toArray(String[]::new));
-   }
-
-
-   @Override
    public Parameters getDefaultFitParameters() {
       return new Crf.Parameters();
    }
@@ -125,6 +107,12 @@ public class Crf extends SequenceLabeler implements Serializable {
    @Override
    public int getNumberOfLabels() {
       return tagger.getlabels().size();
+   }
+
+   @Override
+   public Labeling label(Example sequence) {
+      CrfSuiteLoader.INSTANCE.load();
+      return new Labeling(tagger.tag(toItemSequence(preprocess(sequence)).v1));
    }
 
    private void readObject(java.io.ObjectInputStream stream) throws IOException, ClassNotFoundException {
@@ -138,25 +126,16 @@ public class Crf extends SequenceLabeler implements Serializable {
       this.tagger = new CrfTagger(modelFile);
    }
 
-   private Tuple2<ItemSequence, StringList> toItemSequence(NDArray sequence, boolean includeLabel) {
+   private Tuple2<ItemSequence, StringList> toItemSequence(Example sequence) {
       ItemSequence seq = new ItemSequence();
       StringList labels = new StringList();
-      NDArray y = null;
-      if (includeLabel) {
-         y = sequence.getLabelAsNDArray();
-         if (y.isMatrix()) {
-            y = y.argMax(Axis.ROW);
-         }
-      }
-      for (int row = 0; row < sequence.numRows(); row++) {
+      for (Example instance : sequence) {
          Item item = new Item();
-         sequence.sparseRowIterator(row)
-                 .forEachRemaining(e -> item.add(new Attribute(
-                    Integer.toString(e.getColumn()),
-                    e.getValue()
-                 )));
-         if (includeLabel) {
-            labels.add(Integer.toString((int) y.get(row)));
+         for (Feature feature : instance.getFeatures()) {
+            item.add(new Attribute(feature.name, feature.value));
+         }
+         if (instance.hasLabel()) {
+            labels.add(instance.getLabelAsString());
          }
          seq.add(item);
       }
@@ -175,17 +154,21 @@ public class Crf extends SequenceLabeler implements Serializable {
    public static class Parameters extends FitParameters {
       private static final long serialVersionUID = 1L;
       /**
-       * The coefficient for L2 regularization (default 1.0)
-       */
-      public double c2 = 1.0;
-      /**
        * The coefficient for L1 regularization (default 0.0 - not used)
        */
       public double c1 = 0;
       /**
+       * The coefficient for L2 regularization (default 1.0)
+       */
+      public double c2 = 1.0;
+      /**
        * The type of solver to use (defaults to LBFGS)
        */
       public CrfSolver crfSolver = CrfSolver.LBFGS;
+      /**
+       * The epsilon parameter to determine convergence (default is 1e-5)
+       */
+      public double eps = 1e-5;
       /**
        * The maximum number of iterations (defaults to 200)
        */
@@ -194,10 +177,6 @@ public class Crf extends SequenceLabeler implements Serializable {
        * The minimumn number of times a feature must appear to be kept (default 0 - keep all)
        */
       public int minFeatureFreq = 0;
-      /**
-       * The epsilon parameter to determine convergence (default is 1e-5)
-       */
-      public double eps = 1e-5;
 
 
    }

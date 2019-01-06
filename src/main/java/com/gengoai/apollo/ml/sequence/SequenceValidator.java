@@ -27,24 +27,27 @@ import com.gengoai.apollo.ml.Example;
 import java.io.Serializable;
 
 /**
- * The interface Validator.
+ * <p>
+ * Checks if the transition from the previous to current label for the given instance is valid.
+ * </p>
  *
  * @author David B. Bracewell
  */
-public interface Validator extends Serializable {
+@FunctionalInterface
+public interface SequenceValidator extends Serializable {
 
    /**
-    * The constant ALWAYS_TRUE.
+    * A sequence validator that returns always true
     */
-   Validator ALWAYS_TRUE = (Validator) (currentLabel, previousLabel, instance) -> true;
+   SequenceValidator ALWAYS_TRUE = (SequenceValidator) (currentLabel, previousLabel, instance) -> true;
 
    /**
-    * Is valid boolean.
+    * Checks if the transition from the previous to current label for the given instance is valid
     *
     * @param currentLabel  the current label
     * @param previousLabel the previous label
     * @param instance      the instance
-    * @return the boolean
+    * @return True if valid, False otherwise
     */
    boolean isValid(String currentLabel, String previousLabel, Example instance);
 

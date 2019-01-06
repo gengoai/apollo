@@ -28,29 +28,32 @@ import java.io.Serializable;
 import java.util.regex.Pattern;
 
 /**
+ * <p>
+ * A {@link SequenceValidator} that determines if a transition is valid using a regular expression over the previous and
+ * current labels. Patterns are defined using standard Java Regex.
+ * </p>
+ *
  * @author David B. Bracewell
  */
-public class RegexValidator implements Validator, Serializable {
-   public static final Validator BASIC_IOB_VALIDATOR = new RegexValidator(true, "(O|__BOS__)", "I-*");
+public class RegexSequenceValidator implements SequenceValidator, Serializable {
+   /**
+    * A simple validator for IOB annotation schemes.
+    */
+   public static final SequenceValidator BASIC_IOB_VALIDATOR = new RegexSequenceValidator(true, "(O|__BOS__)", "I-.*");
    private static final long serialVersionUID = 1L;
    private final Pattern pattern;
-   private final boolean inverted;
+   private final boolean negated;
 
-   public RegexValidator(String pattern) {
-      this(false, pattern);
-   }
-
-
-   public RegexValidator(boolean inverted, String... patterns) {
-      StringBuilder regex = new StringBuilder();
-      for (int i = 0; i < patterns.length; i++) {
-         if (i > 0) {
-            regex.append('\0');
-         }
-         regex.append(patterns[i].replace("*", ".*"));
-      }
-      this.pattern = Pattern.compile(regex.toString());
-      this.inverted = inverted;
+   /**
+    * Instantiates a new Regex validator.
+    *
+    * @param negated          True - negate the regex, False - match the regex as is
+    * @param prevLabelPattern the pattern to match the previous label
+    * @param curLabelPattern  the pattern to match the current label
+    */
+   public RegexSequenceValidator(boolean negated, String prevLabelPattern, String curLabelPattern) {
+      this.pattern = Pattern.compile(prevLabelPattern + "\0" + curLabelPattern);
+      this.negated = negated;
    }
 
 
@@ -59,9 +62,9 @@ public class RegexValidator implements Validator, Serializable {
       previousLabel = (previousLabel == null) ? "__BOS__" : previousLabel;
       String lbl = previousLabel + "\0" + currentLabel;
       boolean found = pattern.matcher(lbl).matches();
-      if (inverted) {
+      if (negated) {
          return !found;
       }
       return found;
    }
-}//END OF RegexValidator
+}//END OF RegexSequenceValidator

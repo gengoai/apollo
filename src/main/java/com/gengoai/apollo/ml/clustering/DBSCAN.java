@@ -1,12 +1,32 @@
+/*
+ * (c) 2005 David B. Bracewell
+ *
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ *
+ */
+
 package com.gengoai.apollo.ml.clustering;
 
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.ml.FitParameters;
+import com.gengoai.apollo.ml.ModelParameters;
 import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
-import com.gengoai.apollo.ml.preprocess.PreprocessorList;
-import com.gengoai.apollo.ml.vectorizer.IndexVectorizer;
-import com.gengoai.apollo.ml.vectorizer.Vectorizer;
 import com.gengoai.conversion.Cast;
 import com.gengoai.function.SerializableSupplier;
 import com.gengoai.stream.MStream;
@@ -15,36 +35,45 @@ import org.apache.commons.math3.ml.clustering.DBSCANClusterer;
 import java.util.List;
 
 /**
+ * <p>
+ * A wrapper around the DBSCAN clustering algorithm in Apache Math.
+ * </p>
+ *
  * @author David B. Bracewell
  */
 public class DBSCAN extends Clusterer {
 
+   /**
+    * Instantiates a new Dbscan.
+    *
+    * @param preprocessors the preprocessors
+    */
    public DBSCAN(Preprocessor... preprocessors) {
-      super(preprocessors);
+      super(ModelParameters.indexedLabelVectorizer().preprocessors(preprocessors));
    }
 
-   public DBSCAN(Vectorizer<?> labelVectorizer, Vectorizer<String> featureVectorizer, PreprocessorList preprocessors) {
-      super(labelVectorizer, featureVectorizer, preprocessors);
+   /**
+    * Instantiates a new Dbscan.
+    *
+    * @param modelParameters the model parameters
+    */
+   public DBSCAN(ModelParameters modelParameters) {
+      super(modelParameters);
    }
 
-   public DBSCAN(Vectorizer<?> labelVectorizer, Vectorizer<String> featureVectorizer, Preprocessor... preprocessors) {
-      super(labelVectorizer, featureVectorizer, preprocessors);
-   }
-
-   public DBSCAN(Vectorizer<String> featureVectorizer, PreprocessorList preprocessors) {
-      super(IndexVectorizer.labelVectorizer(), featureVectorizer, preprocessors);
-   }
-
-   public DBSCAN(Vectorizer<String> featureVectorizer, Preprocessor... preprocessors) {
-      super(IndexVectorizer.labelVectorizer(), featureVectorizer, preprocessors);
-   }
-
+   /**
+    * Clusters the given NDArray using DBSCAN fit parameters
+    *
+    * @param dataSupplier  the data supplier
+    * @param fitParameters the fit parameters
+    * @return the flat clustering
+    */
    public FlatClustering fit(SerializableSupplier<MStream<NDArray>> dataSupplier, Parameters fitParameters) {
       DBSCANClusterer<ApacheClusterable> clusterer = new DBSCANClusterer<>(fitParameters.eps,
                                                                            fitParameters.minPts,
                                                                            new ApacheDistanceMeasure(
                                                                               fitParameters.measure));
-      FlatClustering centroids = new FlatClustering();
+      FlatClustering centroids = new FlatClustering(fitParameters.measure);
       List<ApacheClusterable> apacheClusterables = dataSupplier.get()
                                                                .parallel()
                                                                .map(ApacheClusterable::new)
@@ -86,7 +115,10 @@ public class DBSCAN extends Clusterer {
       return new Parameters();
    }
 
-   public static class Parameters extends Clusterer.ClusterParameters {
+   /**
+    * FitParameters for DBSCAN
+    */
+   public static class Parameters extends ClusterParameters {
       /**
        * the maximum distance between two vectors to be in the same region
        */

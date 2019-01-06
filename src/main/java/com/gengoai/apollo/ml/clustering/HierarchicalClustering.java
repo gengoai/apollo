@@ -17,6 +17,7 @@
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
+ *
  */
 
 package com.gengoai.apollo.ml.clustering;
@@ -24,6 +25,7 @@ package com.gengoai.apollo.ml.clustering;
 
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
+import com.gengoai.apollo.stat.measure.Measure;
 
 import java.util.Collections;
 import java.util.Iterator;
@@ -33,9 +35,14 @@ import java.util.Iterator;
  *
  * @author David B. Bracewell
  */
-public class HierarchicalClustering implements Clustering {
+public final class HierarchicalClustering implements Clustering {
    private static final long serialVersionUID = 1L;
+   private final Measure measure;
    Cluster root;
+
+   public HierarchicalClustering(Measure measure) {
+      this.measure = measure;
+   }
 
    /**
     * Converts the hierarchical clustering into a flat clustering using the given threshold. Each subtree whose
@@ -45,7 +52,7 @@ public class HierarchicalClustering implements Clustering {
     * @return the flat clustering
     */
    public Clustering asFlat(double threshold) {
-      FlatClustering clustering = new FlatClustering();
+      FlatClustering clustering = new FlatClustering(measure);
       process(root, clustering, threshold);
       for (int i = 0; i < clustering.size(); i++) {
          NDArray centroid = NDArrayFactory.DEFAULT().zeros(clustering.get(i).getPoints().get(0).shape());
@@ -99,6 +106,11 @@ public class HierarchicalClustering implements Clustering {
    @Override
    public int size() {
       return 1;
+   }
+
+   @Override
+   public Measure getMeasure() {
+      return measure;
    }
 
 

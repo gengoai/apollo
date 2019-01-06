@@ -1,7 +1,7 @@
 package com.gengoai.apollo.ml;
 
-import com.gengoai.apollo.ml.data.CSVDataSource;
-import com.gengoai.apollo.ml.data.DataSource;
+import com.gengoai.apollo.ml.data.format.CSVDataFormat;
+import com.gengoai.apollo.ml.data.format.DataFormat;
 import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.apollo.ml.data.DatasetType;
 import com.gengoai.apollo.ml.regression.Regression;
@@ -41,7 +41,7 @@ public abstract class BaseRegressionTest {
    public abstract boolean passes(RegressionEvaluation mce);
 
    public Dataset airfoilDataset() {
-      DataSource csv = new CSVDataSource(CSV.builder()
+      DataFormat csv = new CSVDataFormat(CSV.builder()
                                             .delimiter('\t')
                                             .header("Frequency", "Angle", "Chord", "Velocity", "Suction", "Pressure"),
                                          "Pressure");

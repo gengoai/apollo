@@ -17,54 +17,34 @@
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
+ *
  */
 
-package com.gengoai.apollo.ml;
+package com.gengoai.apollo.ml.data.format;
 
+import com.gengoai.apollo.ml.Example;
 import com.gengoai.io.resource.Resource;
+import com.gengoai.stream.MStream;
 
 import java.io.IOException;
-import java.io.PrintStream;
 
 /**
- * <p>Generic interface for evaluating models.</p>
+ * <p>
+ * A data format provides a methodology for reading in examples from a given resource in a specific format and creating
+ * a stream of {@link Example}s.
+ * </p>
  *
  * @author David B. Bracewell
  */
-public interface Evaluation {
-
+public interface DataFormat {
 
    /**
-    * Merge this evaluation with another combining the results.
+    * Reads and converts the data in the given resource into a stream of examples.
     *
-    * @param evaluation the other evaluation to combine
+    * @param location the location of the data to read
+    * @return the stream of examples
+    * @throws IOException Something went wrong reading the data.
     */
-   void merge(Evaluation evaluation);
+   MStream<Example> read(Resource location) throws IOException;
 
-   /**
-    * Outputs the evaluation results to the given print stream.
-    *
-    * @param printStream the print stream to write to
-    */
-   void output(PrintStream printStream);
-
-   /**
-    * Outputs the evaluation results to the given resource.
-    *
-    * @param resource the resource to write to
-    * @throws IOException the io exception
-    */
-   default void output(Resource resource) throws IOException {
-      try (PrintStream ps = new PrintStream(resource.outputStream())) {
-         output(ps);
-      }
-   }
-
-   /**
-    * Outputs the evaluation results to standard out.
-    */
-   default void output() {
-      output(System.out);
-   }
-
-}//END OF Evaluation
+}//END OF DataSource

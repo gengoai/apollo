@@ -3,7 +3,6 @@ package com.gengoai.apollo.ml;
 import com.gengoai.apollo.ml.classification.ClassifierEvaluation;
 import com.gengoai.apollo.ml.classification.LibLinearModel;
 import com.gengoai.apollo.ml.classification.MultiClassEvaluation;
-import com.gengoai.apollo.ml.vectorizer.IndexVectorizer;
 import com.gengoai.conversion.Cast;
 
 /**
@@ -12,7 +11,7 @@ import com.gengoai.conversion.Cast;
 public class LibLinearClassifierTest extends BaseClassifierTest {
 
    public LibLinearClassifierTest() {
-      super(new LibLinearModel(IndexVectorizer.featureVectorizer()),
+      super(new LibLinearModel(),
             new LibLinearModel.Parameters());
    }
 

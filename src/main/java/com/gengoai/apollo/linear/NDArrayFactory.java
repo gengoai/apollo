@@ -292,7 +292,6 @@ public enum NDArrayFactory {
       return create(NDArrayInitializer.ones, dimensions);
    }
 
-
    /**
     * Creates a scalar NDArray of size <code>(1,1,1,1)</code> with the given value.
     *
@@ -302,7 +301,6 @@ public enum NDArrayFactory {
    public NDArray scalar(double value) {
       return constant(value, 1, 1, 1, 1);
    }
-
 
    private NDArray stack(Axis axis, Collection<NDArray> arrays) {
       checkArgument(axis.isRowOrColumn(), "Axis (" + axis + ") is not supported.");

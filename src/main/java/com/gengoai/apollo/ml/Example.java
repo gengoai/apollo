@@ -1,8 +1,29 @@
+/*
+ * (c) 2005 David B. Bracewell
+ *
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ *
+ */
+
 package com.gengoai.apollo.ml;
 
 import com.gengoai.Copyable;
 import com.gengoai.collection.Streams;
-import com.gengoai.conversion.Cast;
 
 import java.io.Serializable;
 import java.util.Collection;
@@ -27,26 +48,6 @@ import static com.gengoai.apollo.ml.Feature.booleanFeature;
 public abstract class Example implements Copyable<Example>, Iterable<Example>, Serializable {
    private static final long serialVersionUID = 1L;
    private double weight = 1.0;
-   private Object source = null;
-
-   /**
-    * Gets source.
-    *
-    * @param <T> the type parameter
-    * @return the source
-    */
-   public <T> T getSource() {
-      return Cast.as(source);
-   }
-
-   /**
-    * Sets source.
-    *
-    * @param source the source
-    */
-   public void setSource(Object source) {
-      this.source = source;
-   }
 
    /**
     * Adds an example. Will throw an <code>UnsupportedOperationException</code> if this is a not a multi-example.

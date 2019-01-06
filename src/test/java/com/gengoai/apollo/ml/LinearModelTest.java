@@ -3,7 +3,6 @@ package com.gengoai.apollo.ml;
 import com.gengoai.apollo.ml.classification.ClassifierEvaluation;
 import com.gengoai.apollo.ml.classification.LinearModel;
 import com.gengoai.apollo.ml.classification.MultiClassEvaluation;
-import com.gengoai.apollo.ml.vectorizer.IndexVectorizer;
 import com.gengoai.conversion.Cast;
 
 /**
@@ -12,8 +11,7 @@ import com.gengoai.conversion.Cast;
 public class LinearModelTest extends BaseClassifierTest {
 
    public LinearModelTest() {
-      super(new LinearModel(IndexVectorizer.labelVectorizer(),
-                            IndexVectorizer.featureVectorizer()),
+      super(new LinearModel(),
             new LinearModel.Parameters()
                .set("verbose", false)
                .set("maxIterations", 100));
@@ -22,7 +20,6 @@ public class LinearModelTest extends BaseClassifierTest {
    @Override
    public boolean passes(ClassifierEvaluation evaluation) {
       MultiClassEvaluation mce = Cast.as(evaluation);
-      mce.output();
       return mce.microF1() >= 0.85;
    }
 }//END OF LinearModelTest

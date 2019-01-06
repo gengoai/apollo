@@ -1,10 +1,11 @@
 package com.gengoai.apollo.ml;
 
+import com.gengoai.apollo.ml.clustering.ClusterParameters;
 import com.gengoai.apollo.ml.clustering.Clusterer;
 import com.gengoai.apollo.ml.clustering.Clustering;
 import com.gengoai.apollo.ml.clustering.SilhouetteEvaluation;
-import com.gengoai.apollo.ml.data.CSVDataSource;
-import com.gengoai.apollo.ml.data.DataSource;
+import com.gengoai.apollo.ml.data.format.CSVDataFormat;
+import com.gengoai.apollo.ml.data.format.DataFormat;
 import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.apollo.ml.data.DatasetType;
 import com.gengoai.io.CSV;
@@ -20,9 +21,9 @@ import static org.junit.Assert.*;
  */
 public abstract class BaseClustererTest {
    private final Clusterer clusterer;
-   private final Clusterer.ClusterParameters fitParameters;
+   private final ClusterParameters fitParameters;
 
-   public BaseClustererTest(Clusterer clusterer, Clusterer.ClusterParameters fitParameters) {
+   public BaseClustererTest(Clusterer clusterer, ClusterParameters fitParameters) {
       this.clusterer = clusterer;
       this.fitParameters = fitParameters;
    }
@@ -40,7 +41,7 @@ public abstract class BaseClustererTest {
    }
 
    protected Dataset loadWaterData() {
-      DataSource csv = new CSVDataSource(CSV.builder(), -1);
+      DataFormat csv = new CSVDataFormat(CSV.builder(), -1);
       try {
          return DatasetType.InMemory.read(Resources.fromClasspath("com/gengoai/apollo/ml/water-treatment.data"),
                                           csv);

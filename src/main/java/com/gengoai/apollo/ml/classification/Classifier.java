@@ -1,80 +1,63 @@
+/*
+ * (c) 2005 David B. Bracewell
+ *
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ *
+ */
+
 package com.gengoai.apollo.ml.classification;
 
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.Model;
-import com.gengoai.apollo.ml.preprocess.Preprocessor;
-import com.gengoai.apollo.ml.preprocess.PreprocessorList;
-import com.gengoai.apollo.ml.vectorizer.IndexVectorizer;
+import com.gengoai.apollo.ml.ModelParameters;
 import com.gengoai.apollo.ml.vectorizer.Vectorizer;
 import com.gengoai.conversion.Cast;
+import com.gengoai.function.SerializableFunction;
 
 /**
- * Base class for classifiers that predicts the label, or class, for a set of features.
+ * <p>
+ * A classifier assigns one or more labels (categories) to an input object. The input object, or {@link
+ * com.gengoai.apollo.ml.Instance}, is described using one or more {@link com.gengoai.apollo.ml.Feature}s describing the
+ * salient characteristics of the input.
+ * </p>
+ * <p>
+ * Classification is typically done in a supervised manner where the classifier produces a function that converts an
+ * given input {@link Example} to a {@link Classification} result describing the scores for the discrete labels in the
+ * problem.
+ * </p>
  *
  * @author David B. Bracewell
  */
-public abstract class Classifier extends Model<Classifier> {
+public abstract class Classifier extends Model<Classifier> implements SerializableFunction<Example, Classification> {
    private static final long serialVersionUID = 1L;
 
-   public Classifier(Preprocessor... preprocessors) {
-      super(IndexVectorizer.labelVectorizer(),
-            IndexVectorizer.featureVectorizer(),
-            preprocessors);
+   /**
+    * Instantiates a new Classifier with the given {@link ModelParameters}.
+    *
+    * @param modelParameters the model parameters
+    */
+   public Classifier(ModelParameters modelParameters) {
+      super(modelParameters);
    }
 
-   /**
-    * Instantiates a new Classifier.
-    *
-    * @param labelVectorizer   the label vectorizer
-    * @param featureVectorizer the feature vectorizer
-    * @param preprocessors     the preprocessors
-    */
-   protected Classifier(Vectorizer<String> labelVectorizer,
-                        Vectorizer<String> featureVectorizer,
-                        Preprocessor... preprocessors
-                       ) {
-      super(labelVectorizer,
-            featureVectorizer,
-            new PreprocessorList(preprocessors));
-   }
-
-   /**
-    * Instantiates a new Classifier.
-    *
-    * @param labelVectorizer   the label vectorizer
-    * @param featureVectorizer the feature vectorizer
-    * @param preprocessors     the preprocessors
-    */
-   protected Classifier(Vectorizer<String> labelVectorizer,
-                        Vectorizer<String> featureVectorizer,
-                        PreprocessorList preprocessors
-                       ) {
-      super(labelVectorizer, featureVectorizer, preprocessors);
-   }
-
-
-   /**
-    * Instantiates a new Classifier.
-    *
-    * @param featureVectorizer the feature vectorizer
-    * @param preprocessors     the preprocessors
-    */
-   protected Classifier(Vectorizer<String> featureVectorizer, Preprocessor... preprocessors) {
-      super(IndexVectorizer.labelVectorizer(),
-            featureVectorizer,
-            new PreprocessorList(preprocessors));
-   }
-
-   /**
-    * Instantiates a new Classifier.
-    *
-    * @param featureVectorizer the feature vectorizer
-    * @param preprocessors     the preprocessors
-    */
-   protected Classifier(Vectorizer<String> featureVectorizer, PreprocessorList preprocessors) {
-      super(IndexVectorizer.labelVectorizer(),
-            featureVectorizer,
-            preprocessors);
+   @Override
+   public Classification apply(Example example) {
+      return predict(example);
    }
 
    @Override
@@ -90,6 +73,5 @@ public abstract class Classifier extends Model<Classifier> {
     * @return the classification result
     */
    public abstract Classification predict(Example example);
-
 
 }//END OF Classifier

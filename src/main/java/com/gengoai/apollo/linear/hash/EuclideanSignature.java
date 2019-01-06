@@ -21,14 +21,11 @@
 
 package com.gengoai.apollo.linear.hash;
 
-import com.gengoai.NamedParameters;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.linear.NDArrayInitializer;
 import com.gengoai.apollo.stat.measure.Distance;
 import com.gengoai.apollo.stat.measure.Measure;
-
-import static com.gengoai.apollo.linear.hash.LSHParameter.*;
 
 /**
  * <p>Signature function for Euclidean distance</p>
@@ -41,20 +38,20 @@ public class EuclideanSignature implements SignatureFunction {
    private final NDArray[] randomProjections;
    private final int[] offset;
    private final int[] w;
-   private final NamedParameters<LSHParameter> parameters;
+   private final LSHParameter parameters;
 
    /**
     * Instantiates a new Euclidean signature.
     */
-   public EuclideanSignature(NamedParameters<LSHParameter> parameters) {
+   public EuclideanSignature(LSHParameter parameters) {
       this.parameters = parameters.copy();
-      this.randomProjections = new NDArray[parameters.<Integer>get(SIGNATURE_SIZE)];
-      this.w = new int[parameters.<Integer>get(SIGNATURE_SIZE)];
-      this.offset = new int[parameters.<Integer>get(SIGNATURE_SIZE)];
-      for (int i = 0; i < parameters.<Integer>get(SIGNATURE_SIZE); i++) {
+      this.randomProjections = new NDArray[parameters.signatureSize];
+      this.w = new int[parameters.signatureSize];
+      this.offset = new int[parameters.signatureSize];
+      for (int i = 0; i < parameters.signatureSize; i++) {
          this.randomProjections[i] = NDArrayFactory.DEFAULT().create(NDArrayInitializer.randn,
-                                                                     parameters.getInt(DIMENSION));
-         this.w[i] = (int) Math.round(Math.random() * parameters.getInt(MAX_W));
+                                                                     parameters.dimension);
+         this.w[i] = (int) Math.round(Math.random() * parameters.max_w);
          this.offset[i] = (int) Math.floor(Math.random() * this.w[i]);
       }
 
@@ -66,8 +63,8 @@ public class EuclideanSignature implements SignatureFunction {
    }
 
    @Override
-   public NamedParameters<LSHParameter> getParameters() {
-      return parameters;
+   public LSHParameter getParameters() {
+      return parameters.copy();
    }
 
    @Override
@@ -78,7 +75,7 @@ public class EuclideanSignature implements SignatureFunction {
    @Override
    public int[] signature(NDArray vector) {
       int[] sig = new int[randomProjections.length];
-      for (int i = 0; i < parameters.<Integer>get(SIGNATURE_SIZE); i++) {
+      for (int i = 0; i < parameters.signatureSize; i++) {
          sig[i] = (int) Math.round((vector.scalarDot(randomProjections[i]) + offset[i]) / (double) w[i]);
          sig[i] = sig[i] >= 1 ? 1 : 0;
       }

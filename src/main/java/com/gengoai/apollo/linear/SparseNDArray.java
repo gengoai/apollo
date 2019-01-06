@@ -27,7 +27,6 @@ import static com.gengoai.tuple.Tuples.$;
 public class SparseNDArray extends NDArray {
    private final OpenIntFloatHashMap[] data;
    private final BitSet[] bitSet;
-//   private final boolean[][] bitSet;
 
    /**
     * Instantiates a new Sparse nd array.
@@ -38,10 +37,9 @@ public class SparseNDArray extends NDArray {
       super(dimensions);
       this.data = new OpenIntFloatHashMap[numSlices()];
       this.bitSet = new BitSet[numSlices()];
-//      this.bitSet = new boolean[numSlices()][sliceLength()];
       for (int i = 0; i < numSlices(); i++) {
          this.data[i] = new OpenIntFloatHashMap();
-         this.bitSet[i] = new BitSet(sliceLength());
+         this.bitSet[i] = new BitSet();
       }
    }
 
@@ -66,12 +64,10 @@ public class SparseNDArray extends NDArray {
    SparseNDArray(int[] shape, List<SparseNDArray> slices) {
       super(shape);
       this.data = new OpenIntFloatHashMap[numSlices()];
-//      this.bitSet = new boolean[numSlices()][sliceLength()];
       this.bitSet = new BitSet[numSlices()];
       for (int i = 0; i < slices.size(); i++) {
          this.data[i] = slices.get(i).data[0];
-//         this.bitSet[i] = slices.get(i).bitSet[i];
-         this.bitSet[i] = (BitSet) slices.get(i).bitSet[i].clone();
+         this.bitSet[i] = (BitSet) slices.get(i).bitSet[0].clone();
       }
    }
 
@@ -100,7 +96,7 @@ public class SparseNDArray extends NDArray {
          return this;
       }
       data[sliceIndex].adjustOrPutValue(matrixIndex, (float) value, (float) value);
-      bitSet[sliceIndex].set(matrixIndex,true);
+      bitSet[sliceIndex].set(matrixIndex, true);
 //      bitSet[sliceIndex][matrixIndex] = true;
       return this;
    }
@@ -137,13 +133,28 @@ public class SparseNDArray extends NDArray {
    public float getIndexedValue(int sliceIndex, int matrixIndex) {
       checkElementIndex(sliceIndex, numSlices(), "Slice");
       checkElementIndex(matrixIndex, sliceLength(), "Matrix");
-      if( bitSet[sliceIndex].get(matrixIndex)) {
-//      if (bitSet[sliceIndex][matrixIndex]) {
+      if (bitSet[sliceIndex].get(matrixIndex)) {
          return data[sliceIndex].get(matrixIndex);
-//      }
       }
       return 0f;
    }
+
+   public int argMax() {
+      if (isVector()) {
+         int idx = -1;
+         double max = Double.NEGATIVE_INFINITY;
+         for (Iterator<NDArray.Entry> itr = sparseIterator(); itr.hasNext(); ) {
+            Entry e = itr.next();
+            if (e.getValue() > max) {
+               idx = e.matrixIndex;
+               max = e.getValue();
+            }
+         }
+         return idx;
+      }
+      return super.argMax();
+   }
+
 
    @Override
    public NDArray getSlice(int index) {
@@ -206,10 +217,10 @@ public class SparseNDArray extends NDArray {
       checkElementIndex(matrixIndex, sliceLength(), "Matrix");
       if (value == 0) {
          data[sliceIndex].removeKey(matrixIndex);
-         bitSet[sliceIndex].set(matrixIndex,false);
+         bitSet[sliceIndex].set(matrixIndex, false);
 //         bitSet[sliceIndex][matrixIndex] = false;
       } else {
-         bitSet[sliceIndex].set(matrixIndex,true);
+         bitSet[sliceIndex].set(matrixIndex, true);
 //         bitSet[sliceIndex][matrixIndex] = true;
          data[sliceIndex].put(matrixIndex, (float) value);
       }
@@ -281,6 +292,21 @@ public class SparseNDArray extends NDArray {
    @Override
    public DoubleMatrix toDoubleMatrix() {
       return MatrixFunctions.floatToDouble(toFloatMatrix());
+   }
+
+   @Override
+   public double scalarDot(NDArray other) {
+      if (order() > 2) {
+         return super.scalarDot(other);
+      }
+      double dot = 0d;
+      NDArray small = size() > other.size() ? other : this;
+      NDArray big = size() > other.size() ? this : other;
+      for (Iterator<Entry> itr = small.sparseIterator(); itr.hasNext(); ) {
+         Entry e = itr.next();
+         dot += e.getValue() * big.getIndexedValue(0, e.matrixIndex);
+      }
+      return dot;
    }
 
    @Override

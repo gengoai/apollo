@@ -21,7 +21,6 @@
 
 package com.gengoai.apollo.linear.store;
 
-import com.gengoai.NamedParameters;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.linear.hash.LSHParameter;
@@ -33,7 +32,6 @@ import com.gengoai.string.Strings;
 import java.io.*;
 import java.util.*;
 
-import static com.gengoai.NamedParameters.params;
 import static com.gengoai.Validation.checkArgument;
 import static com.gengoai.Validation.notNullOrBlank;
 import static com.gengoai.apollo.linear.store.VSTextUtils.vectorToLine;
@@ -85,8 +83,10 @@ public class InMemoryVectorStore implements VectorStore, Serializable {
    }
 
    @Override
-   public NamedParameters<VSParameter> getParameters() {
-      return params(VSParameter.IN_MEMORY, true);
+   public VectorStoreParameter getParameters() {
+      VectorStoreParameter parameter = new VectorStoreParameter();
+      parameter.type = VectorStoreType.InMemory;
+      return parameter;
    }
 
    @Override
@@ -108,9 +108,9 @@ public class InMemoryVectorStore implements VectorStore, Serializable {
    public static class Builder implements VSBuilder {
       private final Map<String, NDArray> vectors = new HashMap<>();
       private int dimension = -1;
-      private final NamedParameters<VSParameter> params;
+      private final VectorStoreParameter params;
 
-      public Builder(NamedParameters<VSParameter> params) {
+      public Builder(VectorStoreParameter params) {
          this.params = params;
       }
 
@@ -128,16 +128,16 @@ public class InMemoryVectorStore implements VectorStore, Serializable {
 
       @Override
       public VectorStore build() {
-         NamedParameters<LSHParameter> lshParameters = params.get(VSParameter.LSH);
+         LSHParameter lshParameters = params.lshParameters;
          InMemoryVectorStore vs;
-         if (vectors.size() > 0 || !params.isSet(VSParameter.LOCATION)) {
+         if (vectors.size() > 0 || params.location == null) {
             vs = new InMemoryVectorStore(dimension);
             vs.vectorMap.putAll(vectors);
             if (lshParameters != null) {
-               lshParameters.set(LSHParameter.DIMENSION, dimension);
+               lshParameters.dimension = dimension;
             }
          } else {
-            File vectorFile = new File(params.getString(VSParameter.LOCATION));
+            File vectorFile = params.location.asFile().orElseThrow(IllegalArgumentException::new);
             try {
                dimension = VSTextUtils.determineDimension(vectorFile);
                vs = new InMemoryVectorStore(dimension);

@@ -21,7 +21,6 @@
 
 package com.gengoai.apollo.linear.store;
 
-import com.gengoai.NamedParameters;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.hash.LocalitySensitiveHash;
 import com.gengoai.io.Resources;
@@ -33,8 +32,6 @@ import java.io.Serializable;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.stream.Stream;
-
-import static com.gengoai.NamedParameters.params;
 
 /**
  * <p>Abstract base interface for LSH based NDArray stores.</p>
@@ -89,9 +86,10 @@ public class LSHVectorStore implements VectorStore, Serializable {
    }
 
    @Override
-   public NamedParameters<VSParameter> getParameters() {
-      return params(VSParameter.LSH, lsh.getParameters())
-                .setAll(store.getParameters().asMap());
+   public VectorStoreParameter getParameters() {
+      VectorStoreParameter parameter = store.getParameters();
+      parameter.lshParameters = null;
+      return parameter;
    }
 
    @Override
@@ -108,13 +106,13 @@ public class LSHVectorStore implements VectorStore, Serializable {
 
    public static class Builder implements VSBuilder {
       private LocalitySensitiveHash<String> lsh;
-      private final NamedParameters<VSParameter> parameters;
+      private final VectorStoreParameter parameters;
       private final VSBuilder builder;
 
-      public Builder(VSBuilder builder, NamedParameters<VSParameter> parameters) {
+      public Builder(VSBuilder builder, VectorStoreParameter parameters) {
          this.builder = builder;
          this.parameters = parameters;
-         this.lsh = new LocalitySensitiveHash<>(parameters.get(VSParameter.LSH));
+         this.lsh = new LocalitySensitiveHash<>(parameters.lshParameters);
       }
 
       @Override
@@ -128,8 +126,8 @@ public class LSHVectorStore implements VectorStore, Serializable {
       public VectorStore build() {
          VectorStore vs = builder.build();
 
-         if (!parameters.getBoolean(VSParameter.IN_MEMORY)) {
-            Resource lshLoc = Resources.fromFile(parameters.getString(VSParameter.LOCATION) + LSH_EXT)
+         if (parameters.type != VectorStoreType.InMemory) {
+            Resource lshLoc = Resources.fromFile(parameters.location.path() + LSH_EXT)
                                        .setIsCompressed(true);
 
             boolean isLoading = lsh.size() == 0;

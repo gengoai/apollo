@@ -1,15 +1,37 @@
+/*
+ * (c) 2005 David B. Bracewell
+ *
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ *
+ */
+
 package com.gengoai.apollo.ml.classification;
 
-import com.gengoai.apollo.ml.Evaluation;
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.FitParameters;
 import com.gengoai.apollo.ml.Split;
 import com.gengoai.apollo.ml.data.Dataset;
-import com.gengoai.apollo.ml.vectorizer.BinaryLabelVectorizer;
+import com.gengoai.apollo.ml.vectorizer.IndexVectorizer;
 import com.gengoai.conversion.Cast;
 import com.gengoai.logging.Logger;
 import com.gengoai.stream.MStream;
 
+import java.io.PrintStream;
 import java.io.Serializable;
 import java.util.function.Consumer;
 
@@ -18,11 +40,19 @@ import java.util.function.Consumer;
  *
  * @author David B. Bracewell
  */
-public abstract class ClassifierEvaluation implements Evaluation, Serializable {
+public abstract class ClassifierEvaluation implements Serializable {
    private static final Logger log = Logger.getLogger(ClassifierEvaluation.class);
    private static final long serialVersionUID = 1L;
 
 
+   /**
+    * Evaluate the given {@link Classifier}. Will perform a binary classifier evaluation if the number of labels is two
+    * or less and multi-class otherwise.
+    *
+    * @param classifier the classifier to evaluate
+    * @param dataset    the dataset to evaluate on
+    * @return the classifier evaluation
+    */
    public static ClassifierEvaluation evaluateClassifier(Classifier classifier, Dataset dataset) {
       ClassifierEvaluation evaluation = classifier.getNumberOfLabels() <= 2
                                         ? new BinaryEvaluation(classifier.getLabelVectorizer())
@@ -33,13 +63,13 @@ public abstract class ClassifierEvaluation implements Evaluation, Serializable {
 
 
    /**
-    * Cross validation multi class evaluation.
+    * Performs a cross-validation of the given classifier using the given dataset
     *
-    * @param dataset    the dataset
-    * @param classifier the classifier
-    * @param updater    the updater
-    * @param nFolds     the n folds
-    * @return the multi class evaluation
+    * @param dataset    the dataset to perform cross-validation on
+    * @param classifier the classifier to train and test
+    * @param updater    the {@link FitParameters} updater to set the training parameters
+    * @param nFolds     the number of folds to perform
+    * @return the classifier evaluation
     */
    public static ClassifierEvaluation crossValidation(Dataset dataset,
                                                       Classifier classifier,
@@ -52,21 +82,22 @@ public abstract class ClassifierEvaluation implements Evaluation, Serializable {
    }
 
    /**
-    * Cross validation multi class evaluation.
+    * Performs a cross-validation of the given classifier using the given dataset
     *
-    * @param dataset       the dataset
-    * @param classifier    the classifier
-    * @param fitParameters the fit parameters
-    * @param nFolds        the n folds
-    * @return the multi class evaluation
+    * @param dataset       the dataset to perform cross-validation on
+    * @param classifier    the classifier to train and test
+    * @param fitParameters the {@link FitParameters} to use for training
+    * @param nFolds        the number of folds to perform
+    * @return the classifier evaluation
     */
    public static ClassifierEvaluation crossValidation(Dataset dataset,
                                                       Classifier classifier,
                                                       FitParameters fitParameters,
                                                       int nFolds
                                                      ) {
-
-      ClassifierEvaluation evaluation = classifier.getLabelVectorizer() instanceof BinaryLabelVectorizer
+      IndexVectorizer tmp = IndexVectorizer.labelVectorizer();
+      tmp.fit(dataset);
+      ClassifierEvaluation evaluation = tmp.size() <= 2
                                         ? new BinaryEvaluation(classifier.getLabelVectorizer())
                                         : new MultiClassEvaluation();
       int foldId = 0;
@@ -248,6 +279,38 @@ public abstract class ClassifierEvaluation implements Evaluation, Serializable {
          return 1.0;
       }
       return tn / (tn + fp);
+   }
+
+
+   /**
+    * Merge this evaluation with another combining the results.
+    *
+    * @param evaluation the other evaluation to combine
+    */
+   public abstract void merge(ClassifierEvaluation evaluation);
+
+   /**
+    * Outputs the results of the classification to the given <code>PrintStream</code>
+    *
+    * @param printStream          the print stream to write to
+    * @param printConfusionMatrix True print the confusion matrix, False do not print the confusion matrix.
+    */
+   public abstract void output(PrintStream printStream, boolean printConfusionMatrix);
+
+   /**
+    * Outputs the evaluation results to standard out.
+    *
+    * @param printConfusionMatrix True print the confusion matrix, False do not print the confusion matrix.
+    */
+   public void output(boolean printConfusionMatrix) {
+      output(System.out, printConfusionMatrix);
+   }
+
+   /**
+    * Outputs the evaluation results to standard out.
+    */
+   public void output() {
+      output(System.out, false);
    }
 
    /**

@@ -1,6 +1,27 @@
+/*
+ * (c) 2005 David B. Bracewell
+ *
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ *
+ */
+
 package com.gengoai.apollo.ml.classification;
 
-import com.gengoai.apollo.ml.Evaluation;
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.vectorizer.Vectorizer;
 import com.gengoai.conversion.Cast;
@@ -10,7 +31,8 @@ import com.gengoai.string.TableFormatter;
 import org.apache.mahout.math.list.DoubleArrayList;
 
 import java.io.PrintStream;
-import java.util.Arrays;
+
+import static java.util.Arrays.asList;
 
 /**
  * <p>Common methods and metrics for evaluating a binary classifier.</p>
@@ -38,6 +60,11 @@ public class BinaryEvaluation extends ClassifierEvaluation {
       this(vectorizer.decode(1.0));
    }
 
+   /**
+    * Instantiates a new Binary evaluation.
+    *
+    * @param trueLabel the true label
+    */
    public BinaryEvaluation(String trueLabel) {
       this.trueLabel = trueLabel;
    }
@@ -105,7 +132,7 @@ public class BinaryEvaluation extends ClassifierEvaluation {
    }
 
    @Override
-   public void merge(Evaluation evaluation) {
+   public void merge(ClassifierEvaluation evaluation) {
       if (evaluation instanceof BinaryEvaluation) {
          BinaryEvaluation bce = Cast.as(evaluation);
          this.prob[0].addAllOf(bce.prob[0]);
@@ -116,27 +143,29 @@ public class BinaryEvaluation extends ClassifierEvaluation {
    }
 
    @Override
-   public void output(PrintStream printStream) {
+   public void output(PrintStream printStream, boolean printConfusionMatrix) {
       TableFormatter tableFormatter = new TableFormatter();
-      tableFormatter.header(Arrays.asList("Predicted / Gold", "TRUE", "FALSE", "TOTAL"));
-      tableFormatter.content(
-         Arrays.asList("TRUE", truePositives(), falsePositives(), (truePositives() + falsePositives())));
-      tableFormatter.content(Arrays.asList("FALSE", falseNegatives(), trueNegatives(), (falseNegatives() +
-                                                                                           trueNegatives())));
-      tableFormatter.footer(
-         Arrays.asList("", (truePositives() + falseNegatives()), (falsePositives() + trueNegatives()),
-                       positive + negative));
-      tableFormatter.print(printStream);
 
-      tableFormatter = new TableFormatter();
-      tableFormatter.header(Arrays.asList("Metric", "Score"));
-      tableFormatter.content(Arrays.asList("AUC", auc()));
-      tableFormatter.content(Arrays.asList("Accuracy", accuracy()));
-      tableFormatter.content(Arrays.asList("Baseline", baseline()));
-      tableFormatter.content(Arrays.asList("TP Rate", truePositiveRate()));
-      tableFormatter.content(Arrays.asList("FP Rate", falsePositiveRate()));
-      tableFormatter.content(Arrays.asList("TN Rate", trueNegativeRate()));
-      tableFormatter.content(Arrays.asList("FN Rate", falseNegativeRate()));
+      if (printConfusionMatrix) {
+         tableFormatter.header(asList("Predicted / Gold", "TRUE", "FALSE", "TOTAL"));
+         tableFormatter.content(
+            asList("TRUE", truePositives(), falsePositives(), (truePositives() + falsePositives())));
+         tableFormatter.content(
+            asList("FALSE", falseNegatives(), trueNegatives(), (falseNegatives() + trueNegatives())));
+         tableFormatter.footer(asList("", (truePositives() + falseNegatives()), (falsePositives() + trueNegatives()),
+                                      positive + negative));
+         tableFormatter.print(printStream);
+         tableFormatter = new TableFormatter();
+      }
+
+      tableFormatter.header(asList("Metric", "Score"));
+      tableFormatter.content(asList("AUC", auc()));
+      tableFormatter.content(asList("Accuracy", accuracy()));
+      tableFormatter.content(asList("Baseline", baseline()));
+      tableFormatter.content(asList("TP Rate", truePositiveRate()));
+      tableFormatter.content(asList("FP Rate", falsePositiveRate()));
+      tableFormatter.content(asList("TN Rate", trueNegativeRate()));
+      tableFormatter.content(asList("FN Rate", falseNegativeRate()));
       tableFormatter.print(printStream);
    }
 

@@ -1,3 +1,25 @@
+/*
+ * (c) 2005 David B. Bracewell
+ *
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ *
+ */
+
 package com.gengoai.apollo.ml.data;
 
 import com.gengoai.apollo.ml.Example;
@@ -14,7 +36,6 @@ import com.gengoai.stream.accumulator.MCounterAccumulator;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.Collection;
 import java.util.List;
 import java.util.Random;
 
@@ -30,11 +51,21 @@ public abstract class Dataset implements Iterable<Example>, Serializable, AutoCl
    private static final long serialVersionUID = 1L;
    private final DatasetType datasetType;
 
+   /**
+    * Instantiates a new Dataset.
+    *
+    * @param datasetType the dataset type
+    */
    protected Dataset(DatasetType datasetType) {
       this.datasetType = datasetType;
    }
 
 
+   /**
+    * Gets a {@link DatasetBuilder} so that a new {@link Dataset} can be created.
+    *
+    * @return the dataset builder
+    */
    public static DatasetBuilder builder() {
       return new DatasetBuilder();
    }
@@ -48,20 +79,16 @@ public abstract class Dataset implements Iterable<Example>, Serializable, AutoCl
    protected abstract void addAll(MStream<Example> stream);
 
    /**
-    * Add all the examples in the collection to the dataset
+    * Caches the examples in dataset.
     *
-    * @param instances the instances
+    * @return the cached dataset
     */
-   protected void addAll(Collection<Example> instances) {
-      addAll(getType().getStreamingContext().stream(instances));
-   }
-
    public abstract Dataset cache();
 
    /**
-    * Calculate class distribution counter.
+    * Calculates the distribution of classes in the data set
     *
-    * @return the counter
+    * @return A counter containing the classes (labels) and their counts in the dataset
     */
    public Counter<String> calculateClassDistribution() {
       MCounterAccumulator<String> accumulator = getStreamingContext().counterAccumulator();
@@ -70,10 +97,11 @@ public abstract class Dataset implements Iterable<Example>, Serializable, AutoCl
    }
 
    /**
-    * Creates folds for cross-validation
+    * Generates <code>numberOfFolds</code> {@link Split}s for cross-validation. Each split will have
+    * <code>dataset.size() / numberOfFolds</code> testing data and the remaining data as training data.
     *
     * @param numberOfFolds the number of folds
-    * @return the TrainTestSet made of the number of folds
+    * @return An array of {@link Split} for each fold of the dataset
     */
    public Split[] fold(int numberOfFolds) {
       checkArgument(numberOfFolds > 0, "Number of folds must be >= 0");
@@ -81,29 +109,23 @@ public abstract class Dataset implements Iterable<Example>, Serializable, AutoCl
       Split[] folds = new Split[numberOfFolds];
       int foldSize = size() / numberOfFolds;
       for (int i = 0; i < numberOfFolds; i++) {
-         Dataset train = newSimilarDataset(getStreamingContext().empty());
-         Dataset test = newSimilarDataset(getStreamingContext().empty());
-
          int testStart = i * foldSize;
          int testEnd = testStart + foldSize;
-
-         test.addAll(stream(testStart, testEnd));
-
+         MStream<Example> testStream = stream(testStart, testEnd);
+         MStream<Example> trainStream = getStreamingContext().empty();
          if (testStart > 0) {
-            train.addAll(stream(0, testStart));
+            trainStream = trainStream.union(stream(0, testStart));
          }
-
          if (testEnd < size()) {
-            train.addAll(stream(testEnd, size()));
+            trainStream = trainStream.union(stream(testEnd, size()));
          }
-
-         folds[i] = new Split(train, test);
+         folds[i] = new Split(newDataset(trainStream), newDataset(testStream));
       }
       return folds;
    }
 
    /**
-    * Gets streaming context.
+    * Gets a streaming context compatible with this dataset
     *
     * @return the streaming context
     */
@@ -112,31 +134,27 @@ public abstract class Dataset implements Iterable<Example>, Serializable, AutoCl
    }
 
    /**
-    * Gets type.
+    * Gets the type of this dataset
     *
-    * @return the type
+    * @return the {@link DatasetType}
     */
    public final DatasetType getType() {
       return datasetType;
    }
 
    /**
-    * Map dataset.
+    * Maps the examples in this dataset using the given function and creating a new dataset in the process.
     *
-    * @param function the function
-    * @return the dataset
+    * @param function the function to transform the examples
+    * @return the dataset with the transformed examples
     */
    public Dataset map(SerializableFunction<? super Example, ? extends Example> function) {
-      return newSimilarDataset(stream().map(function));
+      return newDataset(stream().map(function));
    }
 
-   /**
-    * New similar dataset dataset.
-    *
-    * @param instances the instances
-    * @return the dataset
-    */
-   protected abstract Dataset newSimilarDataset(MStream<Example> instances);
+   protected Dataset newDataset(MStream<Example> instances) {
+      return getType().create(instances.map(Example::copy));
+   }
 
    /**
     * Creates a balanced dataset by oversampling the items
@@ -147,7 +165,7 @@ public abstract class Dataset implements Iterable<Example>, Serializable, AutoCl
       Counter<String> fCount = calculateClassDistribution();
       int targetCount = (int) fCount.maximumCount();
 
-      Dataset dataset = newSimilarDataset(getStreamingContext().empty());
+      Dataset dataset = newDataset(getStreamingContext().empty());
 
       for (Object label : fCount.items()) {
          MStream<Example> fStream = stream()
@@ -177,7 +195,7 @@ public abstract class Dataset implements Iterable<Example>, Serializable, AutoCl
     */
    public Dataset sample(boolean withReplacement, int sampleSize) {
       checkArgument(sampleSize > 0, "Sample size must be > 0");
-      return newSimilarDataset(stream().sample(withReplacement, sampleSize).map(e -> Cast.as(e.copy())));
+      return newDataset(stream().sample(withReplacement, sampleSize).map(e -> Cast.as(e.copy())));
    }
 
    /**
@@ -196,7 +214,7 @@ public abstract class Dataset implements Iterable<Example>, Serializable, AutoCl
     * @return the dataset
     */
    public Dataset shuffle(Random random) {
-      return newSimilarDataset(stream().shuffle(random));
+      return newDataset(stream().shuffle(random));
    }
 
    /**
@@ -217,7 +235,7 @@ public abstract class Dataset implements Iterable<Example>, Serializable, AutoCl
     * @return the dataset
     */
    public Dataset slice(int start, int end) {
-      return newSimilarDataset(stream().skip(start).limit(end - start));
+      return newDataset(stream().skip(start).limit(end - start));
    }
 
    /**
@@ -268,7 +286,7 @@ public abstract class Dataset implements Iterable<Example>, Serializable, AutoCl
    public Dataset undersample() {
       Counter<String> fCount = calculateClassDistribution();
       int targetCount = (int) fCount.minimumCount();
-      Dataset dataset = newSimilarDataset(getStreamingContext().empty());
+      Dataset dataset = newDataset(getStreamingContext().empty());
       for (Object label : fCount.items()) {
          dataset.addAll(stream().filter(e -> e.getStringLabelSpace().anyMatch(label::equals))
                                 .sample(false, targetCount));
@@ -277,10 +295,10 @@ public abstract class Dataset implements Iterable<Example>, Serializable, AutoCl
    }
 
    /**
-    * Write.
+    * Writes the dataset to the given location using one json per line.
     *
-    * @param location the location
-    * @throws IOException the io exception
+    * @param location the location to write the dataset
+    * @throws IOException Something went wrong writing
     */
    public void write(Resource location) throws IOException {
       try (BufferedWriter writer = new BufferedWriter(location.writer())) {

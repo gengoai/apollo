@@ -1,169 +1,235 @@
+/*
+ * (c) 2005 David B. Bracewell
+ *
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ *
+ */
+
 package com.gengoai.apollo.ml.sequence;
 
 import com.gengoai.Stopwatch;
-import com.gengoai.apollo.linear.Axis;
-import com.gengoai.apollo.linear.NDArray;
-import com.gengoai.apollo.linear.NDArrayFactory;
-import com.gengoai.apollo.linear.NDArrayInitializer;
 import com.gengoai.apollo.ml.Example;
+import com.gengoai.apollo.ml.Feature;
 import com.gengoai.apollo.ml.FitParameters;
+import com.gengoai.apollo.ml.ModelParameters;
 import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
 import com.gengoai.apollo.ml.preprocess.PreprocessorList;
 import com.gengoai.apollo.ml.vectorizer.IndexVectorizer;
-import com.gengoai.apollo.ml.vectorizer.Vectorizer;
+import com.gengoai.apollo.ml.vectorizer.NoOptVectorizer;
 import com.gengoai.apollo.optimization.TerminationCriteria;
+import com.gengoai.collection.HashBasedTable;
 import com.gengoai.collection.Iterables;
-import com.gengoai.collection.Streams;
+import com.gengoai.collection.Table;
+import com.gengoai.collection.counter.Counter;
+import com.gengoai.collection.counter.Counters;
+import com.gengoai.collection.counter.MultiCounter;
+import com.gengoai.collection.counter.MultiCounters;
 import com.gengoai.conversion.Cast;
-import com.gengoai.function.SerializableSupplier;
-import com.gengoai.stream.MStream;
+import com.gengoai.logging.Loggable;
 
-import java.util.Iterator;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
+import static com.gengoai.Validation.notNull;
 
 /**
  * The type Greedy avg perceptron.
  *
  * @author David B. Bracewell
  */
-public class GreedyAvgPerceptron extends SequenceLabeler {
+public class GreedyAvgPerceptron extends SequenceLabeler implements Loggable {
    private static final long serialVersionUID = 1L;
-   private NDArray bias;
-   private NDArray featureWeights;
-   private NDArray transitionWeights;
+   private static final Feature BIAS_FEATURE = Feature.booleanFeature("******BIAS******");
+   private Set<String> labelSet;
+   private MultiCounter<String, String> featureWeights;
+   private MultiCounter<String, String> transitionWeights;
 
    public GreedyAvgPerceptron(Preprocessor... preprocessors) {
-      super(Validator.ALWAYS_TRUE,
-            IndexVectorizer.featureVectorizer(),
-            preprocessors);
+      this(new PreprocessorList(preprocessors));
    }
 
    public GreedyAvgPerceptron(Validator validator, Preprocessor... preprocessors) {
-      super(validator,
-            IndexVectorizer.featureVectorizer(),
-            preprocessors);
+      this(validator, new PreprocessorList(preprocessors));
    }
 
 
-   public GreedyAvgPerceptron(Vectorizer<String> featureVectorizer, PreprocessorList preprocessors) {
-      super(Validator.ALWAYS_TRUE, featureVectorizer, preprocessors);
+   public GreedyAvgPerceptron(PreprocessorList preprocessors) {
+      this(Validator.ALWAYS_TRUE, preprocessors);
    }
 
-   public GreedyAvgPerceptron(Vectorizer<String> featureVectorizer, Preprocessor... preprocessors) {
-      super(Validator.ALWAYS_TRUE, featureVectorizer, preprocessors);
+   public GreedyAvgPerceptron(Validator validator, PreprocessorList preprocessors) {
+      super(ModelParameters.create(new NoOptVectorizer<>())
+                           .update(p -> {
+                              p.preprocessors(preprocessors);
+                              p.sequenceValidator = Validator.ALWAYS_TRUE;
+                              p.featureVectorizer = new NoOptVectorizer<>();
+                              p.sequenceValidator = validator;
+                           }));
    }
 
-   public GreedyAvgPerceptron(Validator validator, Vectorizer<String> featureVectorizer, PreprocessorList preprocessors) {
-      super(validator, featureVectorizer, preprocessors);
+
+   private Iterable<Feature> expandFeatures(Example example) {
+      return Iterables.concat(example.getFeatures(), Collections.singleton(BIAS_FEATURE));
    }
 
-   public GreedyAvgPerceptron(Validator validator, Vectorizer<String> featureVectorizer, Preprocessor... preprocessors) {
-      super(validator, featureVectorizer, preprocessors);
+   private Counter<String> distribution(Example example, String pLabel) {
+      Counter<String> scores = Counters.newCounter(transitionWeights.get(pLabel));
+      for (Feature feature : expandFeatures(example)) {
+         scores.merge(featureWeights.get(feature.name).adjustValues(v -> v * feature.value));
+      }
+      return scores;
    }
-
 
    @Override
    protected SequenceLabeler fitPreprocessed(Dataset preprocessed, FitParameters fitParameters) {
-     return fit(() -> preprocessed.stream().map(this::encode), Cast.as(fitParameters, Parameters.class));
-   }
+      Parameters parameters = notNull(Cast.as(fitParameters, Parameters.class));
+
+      IndexVectorizer vectorizer = IndexVectorizer.labelVectorizer();
+      vectorizer.fit(preprocessed);
+      this.labelSet = new HashSet<>(vectorizer.alphabet());
 
 
-   @Override
-   public Labeling label(Example example) {
-      String[] labels = new String[example.size()];
-      int pLabel = (int) bias.length();
-      NDArray sequence = encodeAndPreprocess(example);
-      for (int i = 0; i < sequence.numRows(); i++) {
-         NDArray distribution = distribution(sequence.getVector(i, Axis.ROW), pLabel);
-         int cLabel = (int) distribution.argMax(Axis.ROW).get(0);
-         boolean isValid = isValidTransition(cLabel, pLabel, example.getExample(i));
-         while (!isValid) {
-            distribution.set(cLabel, Double.NEGATIVE_INFINITY);
-            cLabel = (int) distribution.argMax(Axis.ROW).get(0);
-            isValid = isValidTransition(cLabel, pLabel, example.getExample(i));
-         }
-         labels[i] = getLabelVectorizer().decode(cLabel);
-         pLabel = cLabel;
-      }
-      return new Labeling(labels);
-   }
-
-   private SequenceLabeler fit(SerializableSupplier<MStream<NDArray>> dataSupplier, Parameters parameters) {
-      this.featureWeights = NDArrayFactory.SPARSE.create(NDArrayInitializer.rand,
-                                                         getNumberOfFeatures(),
-                                                         getNumberOfLabels());
-      this.transitionWeights = NDArrayFactory.SPARSE.zeros(getNumberOfLabels() + 1,
-                                                           getNumberOfLabels());
-      this.bias = NDArrayFactory.SPARSE.zeros(getNumberOfLabels());
-
-      final NDArray fTotals = featureWeights.copy();
-      final NDArray tTotals = transitionWeights.copy();
-      final NDArray bTotals = bias.copy();
-      final NDArray fTimestamps = featureWeights.copy();
-      final NDArray tTimestamps = transitionWeights.copy();
-      final NDArray bTimestamps = bias.copy();
+      this.featureWeights = MultiCounters.newMultiCounter();
+      this.transitionWeights = MultiCounters.newMultiCounter();
+      final MultiCounter<String, String> fTotals = MultiCounters.newMultiCounter();
+      final MultiCounter<String, String> tTotals = MultiCounters.newMultiCounter();
+      final Table<String, String, Integer> fTimestamps = new HashBasedTable<>();
+      final Table<String, String, Integer> tTimestamps = new HashBasedTable<>();
 
       int instances = 0;
       TerminationCriteria terminationCriteria = TerminationCriteria.create()
                                                                    .historySize(parameters.historySize)
                                                                    .maxIterations(parameters.maxIterations)
                                                                    .tolerance(parameters.eps);
-      Stopwatch sw = Stopwatch.createStarted();
+
       for (int i = 0; i < terminationCriteria.maxIterations(); i++) {
+         Stopwatch sw = Stopwatch.createStarted();
          double total = 0;
          double correct = 0;
 
-         for (NDArray sequence : dataSupplier.get().shuffle()) {
-            int pLabel = getNumberOfLabels();
-            NDArray y = sequence.getLabelAsNDArray().argMax(Axis.ROW);
-            for (int row = 0; row < sequence.numRows(); row++) {
-               final int predicted = (int) predict(sequence.getVector(row, Axis.ROW), pLabel);
-               final int gold = (int) y.get(row);
+         for (Example sequence : preprocessed.shuffle().stream()) {
+            String pLabel = "<BOS>";
+            for (int j = 0; j < sequence.size(); j++) {
                total++;
-               if (predicted != gold) {
-                  instances++;
-                  for (NDArray.Entry e : Iterables.asIterable(sequence.sparseRowIterator(row))) {
-                     update(gold, e.getColumn(), 1.0, instances, featureWeights, fTimestamps, fTotals);
-                     update(predicted, e.getColumn(), -1.0, instances, featureWeights, fTimestamps, fTotals);
+               instances++;
+               Example instance = sequence.getExample(j);
+               String y = instance.getLabelAsString();
+               String predicted = distribution(instance, pLabel).max();
+
+               if (predicted == null) {
+                  predicted = vectorizer.decode(0);
+               }
+
+               if (!y.equals(predicted)) {
+                  for (Feature feature : expandFeatures(instance)) {
+                     update(y, feature.name, 1.0, instances, featureWeights, fTimestamps, fTotals);
+                     update(predicted, feature.name, -1.0, instances, featureWeights, fTimestamps, fTotals);
                   }
-                  update(gold, pLabel, 1.0, instances, transitionWeights, tTimestamps, tTotals);
-                  update(predicted, pLabel, -1.0, instances, transitionWeights, tTimestamps, tTotals);
-                  updateBias(gold, 1.0, instances, bTimestamps, bTotals);
-                  updateBias(predicted, -1.0, instances, bTimestamps, bTotals);
+                  update(y, pLabel, 1.0, instances, transitionWeights, fTimestamps, fTotals);
+                  update(predicted, pLabel, -1.0, instances, transitionWeights, fTimestamps, fTotals);
                } else {
                   correct++;
                }
-               pLabel = gold;
+               pLabel = y;
             }
          }
-         double acc = (correct / total) * 100;
+         double error = 1d - (correct / total);
+
          sw.stop();
-         System.out.println(String.format("Iteration %d complete. %.3f accuracy (%s)", i + 1, acc, sw));
-         sw.reset();
-         if (terminationCriteria.check(100 - acc)) {
+         if (parameters.verbose) {
+            logInfo("Iteration {0}: Accuracy={1,number,#.####}, time to complete={2}", i + 1, (1d - error), sw);
+         }
+
+         if (terminationCriteria.check(error)) {
             break;
          }
-         sw.start();
       }
 
-      fTotals.addi(fTimestamps.rsub(instances).mul(featureWeights));
-      tTotals.addi(tTimestamps.rsub(instances).mul(transitionWeights));
-      bTotals.addi(bTimestamps.rsub(instances).mul(bias));
-      featureWeights = fTotals.div(instances);
-      transitionWeights = tTotals.div(instances);
-      bias = bTotals.div(instances);
+      average(instances, featureWeights, fTimestamps, fTotals);
+      average(instances, transitionWeights, tTimestamps, tTotals);
       return this;
-   }
-
-   private double dot(Iterator<NDArray.Entry> itr, NDArray other) {
-      return Streams.asStream(itr)
-                    .mapToDouble(e -> other.get(e.matrixIndex()) * e.getValue())
-                    .sum();
    }
 
    @Override
    public Parameters getDefaultFitParameters() {
       return new Parameters();
+   }
+
+   @Override
+   public int getNumberOfFeatures() {
+      return featureWeights.size();
+   }
+
+   @Override
+   public int getNumberOfLabels() {
+      return labelSet.size();
+   }
+
+   @Override
+   public Labeling label(Example example) {
+      String[] labels = new String[example.size()];
+      String pLabel = "<BOS>";
+      for (int i = 0; i < example.size(); i++) {
+         Example instance = preprocess(example.getExample(i));
+         Counter<String> distribution = distribution(instance, pLabel);
+         String cLabel = distribution.max();
+         distribution.remove(cLabel);
+         while (!isValidTransition(cLabel, pLabel, instance)) {
+            cLabel = distribution.max();
+            distribution.remove(cLabel);
+         }
+         labels[i] = cLabel;
+         pLabel = cLabel;
+      }
+      return new Labeling(labels);
+   }
+
+   private void update(String cls, String feature, double value, int iteration,
+                       MultiCounter<String, String> weights,
+                       Table<String, String, Integer> timeStamp,
+                       MultiCounter<String, String> totals
+                      ) {
+      int iterAt = iteration - timeStamp.getOrDefault(feature, cls, 0);
+      totals.increment(feature, cls, iterAt * weights.get(feature, cls));
+      weights.increment(feature, cls, value);
+      timeStamp.put(feature, cls, iteration);
+   }
+
+   private void average(int finalIteration,
+                        MultiCounter<String, String> weights,
+                        Table<String, String, Integer> timeStamp,
+                        MultiCounter<String, String> totals
+                       ) {
+      for (String feature : new HashSet<>(weights.firstKeys())) {
+         Counter<String> newWeights = Counters.newCounter();
+         weights.get(feature)
+                .forEach((cls, value) -> {
+                   double total = totals.get(feature, cls);
+                   total += (finalIteration - timeStamp.getOrDefault(feature, cls, 0)) * value;
+                   double v = total / finalIteration;
+                   if (Math.abs(v) >= 0.001) {
+                      newWeights.set(cls, v);
+                   }
+                });
+         weights.set(feature, newWeights);
+      }
    }
 
 
@@ -173,43 +239,18 @@ public class GreedyAvgPerceptron extends SequenceLabeler {
    public static class Parameters extends FitParameters {
       private static final long serialVersionUID = 1L;
       /**
-       * The maximum number of iterations to run for
-       */
-      public int maxIterations = 100;
-      /**
        * The epsilon to use for checking for convergence.
        */
-      public double eps = 1e-5;
-
+      public double eps = 1e-4;
       /**
        * The number of iterations to use for determining convergence
        */
       public int historySize = 3;
+      /**
+       * The maximum number of iterations to run for
+       */
+      public int maxIterations = 100;
    }
 
 
-   private float predict(NDArray row, int pLabel) {
-      return distribution(row, pLabel).argMax(Axis.ROW).get(0);
-   }
-
-   private NDArray distribution(NDArray row, int pLabel) {
-      NDArray scores = row.mmul(featureWeights);
-      scores.addi(transitionWeights.getVector(pLabel, Axis.ROW))
-            .addi(bias);
-      return scores;
-   }
-
-   private void update(int cls, int feature, double value, int iteration, NDArray weights, NDArray timeStamp, NDArray totals) {
-      int iterAt = iteration - (int) timeStamp.get(feature, cls);
-      totals.increment(feature, cls, iterAt * weights.get(feature, cls));
-      weights.increment(feature, cls, value);
-      timeStamp.set(feature, cls, iteration);
-   }
-
-   private void updateBias(int cls, double value, int iteration, NDArray timeStamp, NDArray totals) {
-      int iterAt = iteration - (int) timeStamp.get(cls);
-      totals.increment(cls, iterAt * bias.get(cls));
-      bias.increment(cls, value);
-      timeStamp.set(cls, iteration);
-   }
 }//END OF WindowSequenceLabeler

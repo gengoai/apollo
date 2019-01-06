@@ -1,12 +1,31 @@
+/*
+ * (c) 2005 David B. Bracewell
+ *
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ *
+ */
+
 package com.gengoai.apollo.ml.regression;
 
-import com.gengoai.Validation;
-import com.gengoai.apollo.ml.Evaluation;
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.FitParameters;
 import com.gengoai.apollo.ml.Split;
 import com.gengoai.apollo.ml.data.Dataset;
-import com.gengoai.conversion.Cast;
 import com.gengoai.logging.Logger;
 import com.gengoai.stream.MStream;
 import com.gengoai.string.TableFormatter;
@@ -22,7 +41,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  * @author David B. Bracewell
  */
-public class RegressionEvaluation implements Evaluation, Serializable {
+public class RegressionEvaluation implements Serializable {
    private static final Logger log = Logger.getLogger(RegressionEvaluation.class);
    private static final long serialVersionUID = 1L;
    private DoubleArrayList gold = new DoubleArrayList();
@@ -109,16 +128,22 @@ public class RegressionEvaluation implements Evaluation, Serializable {
       p = Math.max(p, model.getNumberOfFeatures());
    }
 
-   @Override
-   public void merge(Evaluation evaluation) {
-      Validation.checkArgument(evaluation instanceof RegressionEvaluation);
-      RegressionEvaluation re = Cast.as(evaluation);
-      gold.addAllOf(re.gold);
-      predicted.addAllOf(re.predicted);
+   /**
+    * Merge this evaluation with another combining the results.
+    *
+    * @param evaluation the other evaluation to combine
+    */
+   public void merge(RegressionEvaluation evaluation) {
+      gold.addAllOf(evaluation.gold);
+      predicted.addAllOf(evaluation.predicted);
    }
 
 
-   @Override
+   /**
+    * Outputs the evaluation results to the given print stream.
+    *
+    * @param printStream the print stream to write to
+    */
    public void output(PrintStream printStream) {
       TableFormatter formatter = new TableFormatter();
       formatter.title("Regression Metrics");
@@ -127,6 +152,13 @@ public class RegressionEvaluation implements Evaluation, Serializable {
       formatter.content(Arrays.asList("R^2", r2()));
       formatter.content(Arrays.asList("Adj. R^2", adjustedR2()));
       formatter.print(printStream);
+   }
+
+   /**
+    * Outputs the evaluation results to standard out.
+    */
+   public final void output() {
+      output(System.out);
    }
 
    /**

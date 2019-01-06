@@ -22,6 +22,11 @@ public interface VSBuilder {
       return add(vector.getLabel(), vector);
    }
 
+   default VSBuilder add(VectorStore vectorStore) {
+      vectorStore.forEach(this::add);
+      return this;
+   }
+
    /**
     * Add a vector to the vector store using the given key.
     *

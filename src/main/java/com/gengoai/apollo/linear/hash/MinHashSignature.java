@@ -21,15 +21,12 @@
 
 package com.gengoai.apollo.linear.hash;
 
-import com.gengoai.NamedParameters;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.stat.measure.Measure;
 import com.gengoai.apollo.stat.measure.Similarity;
 
 import java.util.Arrays;
 import java.util.Random;
-
-import static com.gengoai.apollo.linear.hash.LSHParameter.*;
 
 /**
  * <p>Signature function for Jaccard distance / similarity. Uses the Jaccard similarity as its measure.</p>
@@ -40,21 +37,20 @@ public class MinHashSignature implements SignatureFunction {
    public static final String NAME = "MIN_HASH";
    private static final long serialVersionUID = 1L;
    private final long[][] coefficients;
-   private final NamedParameters<LSHParameter> parameters;
+   private final LSHParameter parameters;
 
    /**
     * Instantiates a new Min hash signature.
     */
-   public MinHashSignature(NamedParameters<LSHParameter> parameters) {
+   public MinHashSignature(LSHParameter parameters) {
       this.parameters = parameters.copy();
-      double error = 1d - parameters.<Double>get(THRESHOLD);
-      int ss = parameters.getOrDefault(SIGNATURE_SIZE, (int) (1d / (error * error)));
-      this.parameters.set(SIGNATURE_SIZE, ss);
+      double error = 1d - parameters.threshold;
+      this.parameters.setIf("signatureSize", (Integer ss) -> ss <= 0, (int) (1d / (error * error)));
       Random rnd = new Random();
-      this.coefficients = new long[ss][2];
-      for (int i = 0; i < ss; i++) {
-         this.coefficients[i][0] = rnd.nextInt(parameters.get(DIMENSION));
-         this.coefficients[i][1] = rnd.nextInt(parameters.get(DIMENSION));
+      this.coefficients = new long[this.parameters.signatureSize][2];
+      for (int i = 0; i < this.parameters.signatureSize; i++) {
+         this.coefficients[i][0] = rnd.nextInt(parameters.dimension);
+         this.coefficients[i][1] = rnd.nextInt(parameters.dimension);
       }
    }
 
@@ -66,7 +62,7 @@ public class MinHashSignature implements SignatureFunction {
 
 
    private int h(int i, long x) {
-      return (int) (coefficients[i][0] * x + coefficients[i][1]) % parameters.getInt(DIMENSION);
+      return (int) (coefficients[i][0] * x + coefficients[i][1]) % parameters.dimension;
    }
 
    @Override
@@ -75,13 +71,13 @@ public class MinHashSignature implements SignatureFunction {
    }
 
    @Override
-   public NamedParameters<LSHParameter> getParameters() {
-      return parameters;
+   public LSHParameter getParameters() {
+      return parameters.copy();
    }
 
    @Override
    public int[] signature(NDArray vector) {
-      int[] sig = new int[parameters.getInt(SIGNATURE_SIZE)];
+      int[] sig = new int[this.parameters.signatureSize];
       Arrays.fill(sig, Integer.MAX_VALUE);
       vector.sparseIterator().forEachRemaining(entry -> {
          if (entry.getValue() > 0) {

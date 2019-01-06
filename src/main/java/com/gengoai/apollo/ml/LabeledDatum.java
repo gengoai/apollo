@@ -17,6 +17,7 @@
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
+ *
  */
 
 package com.gengoai.apollo.ml;
@@ -27,14 +28,22 @@ import java.util.Objects;
 import static com.gengoai.Validation.notNull;
 
 /**
- * Simple container for an object and its associated label
+ * <p>
+ * An input object with an optional associated label, which can be used for creating labeled examples.
+ * </p>
  *
  * @param <T> the type parameter
  * @author David B. Bracewell
  */
 public class LabeledDatum<T> implements Serializable {
    private static final long serialVersionUID = 1L;
+   /**
+    * The object's label
+    */
    public final Object label;
+   /**
+    * The object which will have features extracted from
+    */
    public final T data;
 
    private LabeledDatum(Object label, T data) {

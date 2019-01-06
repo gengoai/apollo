@@ -17,12 +17,12 @@
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
+ *
  */
 
 package com.gengoai.apollo.ml.classification;
 
 import com.gengoai.Validation;
-import com.gengoai.apollo.ml.Evaluation;
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.collection.counter.Counter;
 import com.gengoai.collection.counter.Counters;
@@ -252,7 +252,7 @@ public class MultiClassEvaluation extends ClassifierEvaluation {
    }
 
    @Override
-   public void merge(Evaluation evaluation) {
+   public void merge(ClassifierEvaluation evaluation) {
       Validation.checkArgument(evaluation instanceof MultiClassEvaluation,
                                "Can only merge with other ClassifierEvaluation.");
       MultiClassEvaluation other = Cast.as(evaluation);
@@ -307,24 +307,9 @@ public class MultiClassEvaluation extends ClassifierEvaluation {
       return falseNegativeRate(label) / specificity(label);
    }
 
-   /**
-    * Outputs the results of the classification as per-class Precision, Recall, and F1 and also includes the confusion
-    * matrix.
-    *
-    * @param printStream the print stream to write to
-    */
-   @Override
-   public void output(PrintStream printStream) {
-      output(printStream, true);
-   }
 
-   /**
-    * Outputs the results of the classification as per-class Precision, Recall, and F1 and optionally the confusion
-    * matrix.
-    *
-    * @param printStream          the print stream to write to
-    * @param printConfusionMatrix True print the confusion matrix, False do not print the confusion matrix.
-    */
+
+   @Override
    public void output(PrintStream printStream, boolean printConfusionMatrix) {
       final Set<String> columns = confusionMatrix.entries().stream()
                                                  .flatMap(e -> Stream.of(e.v1, e.v2))
@@ -381,8 +366,8 @@ public class MultiClassEvaluation extends ClassifierEvaluation {
          (long) truePositives(),
          (long) falsePositives(),
          (long) falseNegatives(),
-         (long) total
-                                         ));
+         (long) total));
+
       tableFormatter.footer(Arrays.asList(
          "macro",
          macroPrecision(),
@@ -391,8 +376,7 @@ public class MultiClassEvaluation extends ClassifierEvaluation {
          "-",
          "-",
          "-",
-         "-"
-                                         ));
+         "-"));
       tableFormatter.print(printStream);
 
    }

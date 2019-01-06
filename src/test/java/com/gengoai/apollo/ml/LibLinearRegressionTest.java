@@ -4,7 +4,6 @@ import com.gengoai.apollo.ml.preprocess.PerFeatureTransform;
 import com.gengoai.apollo.ml.preprocess.RescaleTransform;
 import com.gengoai.apollo.ml.regression.LibLinearLinearRegression;
 import com.gengoai.apollo.ml.regression.RegressionEvaluation;
-import com.gengoai.apollo.ml.vectorizer.IndexVectorizer;
 
 /**
  * @author David B. Bracewell
@@ -12,8 +11,7 @@ import com.gengoai.apollo.ml.vectorizer.IndexVectorizer;
 public class LibLinearRegressionTest extends BaseRegressionTest {
 
    public LibLinearRegressionTest() {
-      super(new LibLinearLinearRegression(IndexVectorizer.featureVectorizer(),
-                                          new PerFeatureTransform(RescaleTransform::new)),
+      super(new LibLinearLinearRegression(new PerFeatureTransform(RescaleTransform::new)),
             new LibLinearLinearRegression.Parameters()
                .set("maxIterations", 200)
                .set("eps", 1e-10)

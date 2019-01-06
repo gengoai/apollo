@@ -2,8 +2,8 @@ package com.gengoai.apollo.ml;
 
 import com.gengoai.apollo.ml.classification.Classifier;
 import com.gengoai.apollo.ml.classification.ClassifierEvaluation;
-import com.gengoai.apollo.ml.data.CSVDataSource;
-import com.gengoai.apollo.ml.data.DataSource;
+import com.gengoai.apollo.ml.data.format.CSVDataFormat;
+import com.gengoai.apollo.ml.data.format.DataFormat;
 import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.apollo.ml.data.DatasetType;
 import com.gengoai.io.CSV;
@@ -42,7 +42,7 @@ public abstract class BaseClassifierTest {
    public abstract boolean passes(ClassifierEvaluation mce);
 
    public Dataset irisDataset() {
-      DataSource csv = new CSVDataSource(CSV.builder().hasHeader(true), "class");
+      DataFormat csv = new CSVDataFormat(CSV.builder().hasHeader(true), "class");
       try {
          return DatasetType.InMemory.read(Resources.fromClasspath("com/gengoai/apollo/ml/iris.csv"), csv);
       } catch (IOException e) {

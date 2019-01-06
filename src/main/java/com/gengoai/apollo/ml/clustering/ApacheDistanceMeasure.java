@@ -17,30 +17,32 @@
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
+ *
  */
 
 package com.gengoai.apollo.ml.clustering;
 
+import com.gengoai.apollo.stat.measure.Measure;
 import org.apache.commons.math3.exception.DimensionMismatchException;
 import org.apache.commons.math3.ml.distance.DistanceMeasure;
 
 import java.io.Serializable;
 
 /**
- * Wraps an Apollo distance measure making it compatible with Apache Math
+ * Wraps an Apollo measure making it compatible with Apache Math
  *
  * @author David B. Bracewell
  */
 public class ApacheDistanceMeasure implements DistanceMeasure, Serializable {
    private static final long serialVersionUID = 1L;
-   private final com.gengoai.apollo.stat.measure.Measure wrapped;
+   private final Measure wrapped;
 
    /**
     * Instantiates a new Apache distance measure.
     *
     * @param wrapped the wrapped distance measure
     */
-   public ApacheDistanceMeasure(com.gengoai.apollo.stat.measure.Measure wrapped) {
+   public ApacheDistanceMeasure(Measure wrapped) {
       this.wrapped = wrapped;
    }
 
@@ -54,7 +56,7 @@ public class ApacheDistanceMeasure implements DistanceMeasure, Serializable {
     *
     * @return the wrapped distance measure
     */
-   public com.gengoai.apollo.stat.measure.Measure getWrapped() {
+   public Measure getWrapped() {
       return wrapped;
    }
 }// END OF ApacheDistanceMeasure

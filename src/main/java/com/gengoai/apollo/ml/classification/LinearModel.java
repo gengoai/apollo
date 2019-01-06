@@ -1,3 +1,25 @@
+/*
+ * (c) 2005 David B. Bracewell
+ *
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ *
+ */
+
 package com.gengoai.apollo.ml.classification;
 
 import com.gengoai.Copyable;
@@ -6,17 +28,15 @@ import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.linear.NDArrayInitializer;
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.FitParameters;
+import com.gengoai.apollo.ml.ModelParameters;
 import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
-import com.gengoai.apollo.ml.preprocess.PreprocessorList;
-import com.gengoai.apollo.ml.vectorizer.Vectorizer;
 import com.gengoai.apollo.optimization.*;
 import com.gengoai.apollo.optimization.activation.Activation;
 import com.gengoai.apollo.optimization.loss.LogLoss;
 import com.gengoai.apollo.optimization.loss.LossFunction;
 import com.gengoai.conversion.Cast;
 import com.gengoai.function.SerializableSupplier;
-import com.gengoai.io.resource.ByteArrayResource;
 import com.gengoai.logging.Loggable;
 import com.gengoai.stream.MStream;
 
@@ -25,13 +45,14 @@ import java.io.Serializable;
 import static com.gengoai.Validation.notNull;
 
 /**
- * <p>A generalized linear model.</p>
+ * <p>A generalized linear model. This model can encompass a number models dependent on the parameters when
+ * training.</p>
  *
  * @author David B. Bracewell
  */
 public class LinearModel extends Classifier implements Loggable {
    private static final long serialVersionUID = 1L;
-   private final ModelParameters modelParameters;
+   private final WeightParameters weightParameters;
 
    /**
     * Instantiates a new Linear model.
@@ -39,61 +60,26 @@ public class LinearModel extends Classifier implements Loggable {
     * @param preprocessors the preprocessors
     */
    public LinearModel(Preprocessor... preprocessors) {
-      super(preprocessors);
-      this.modelParameters = new ModelParameters();
+      super(ModelParameters.classification(false, p -> p.preprocessors(preprocessors)));
+      this.weightParameters = new WeightParameters();
    }
 
    /**
     * Instantiates a new Linear model.
     *
-    * @param labelVectorizer   the label vectorizer
-    * @param featureVectorizer the feature vectorizer
-    * @param preprocessors     the preprocessors
+    * @param modelParameters the model parameters
     */
-   public LinearModel(Vectorizer<String> labelVectorizer, Vectorizer<String> featureVectorizer, Preprocessor... preprocessors) {
-      super(labelVectorizer, featureVectorizer, preprocessors);
-      this.modelParameters = new ModelParameters();
+   public LinearModel(ModelParameters modelParameters) {
+      super(modelParameters);
+      this.weightParameters = new WeightParameters();
    }
 
-   /**
-    * Instantiates a new Linear model.
-    *
-    * @param labelVectorizer   the label vectorizer
-    * @param featureVectorizer the feature vectorizer
-    * @param preprocessors     the preprocessors
-    */
-   public LinearModel(Vectorizer<String> labelVectorizer, Vectorizer<String> featureVectorizer, PreprocessorList preprocessors) {
-      super(labelVectorizer, featureVectorizer, preprocessors);
-      this.modelParameters = new ModelParameters();
-   }
-
-   /**
-    * Instantiates a new Linear model.
-    *
-    * @param featureVectorizer the feature vectorizer
-    * @param preprocessors     the preprocessors
-    */
-   public LinearModel(Vectorizer<String> featureVectorizer, Preprocessor... preprocessors) {
-      super(featureVectorizer, preprocessors);
-      this.modelParameters = new ModelParameters();
-   }
-
-   /**
-    * Instantiates a new Linear model.
-    *
-    * @param featureVectorizer the feature vectorizer
-    * @param preprocessors     the preprocessors
-    */
-   public LinearModel(Vectorizer<String> featureVectorizer, PreprocessorList preprocessors) {
-      super(featureVectorizer, preprocessors);
-      this.modelParameters = new ModelParameters();
-   }
 
    @Override
    protected Classifier fitPreprocessed(Dataset preprocessed, FitParameters fitParameters) {
       Parameters parameters = notNull(Cast.as(fitParameters, Parameters.class));
-      this.modelParameters.numFeatures = getNumberOfFeatures();
-      this.modelParameters.numLabels = getNumberOfLabels();
+      this.weightParameters.numFeatures = getNumberOfFeatures();
+      this.weightParameters.numLabels = getNumberOfLabels();
       GradientDescentOptimizer optimizer = GradientDescentOptimizer.builder()
                                                                    .batchSize(parameters.batchSize).build();
 
@@ -110,8 +96,8 @@ public class LinearModel extends Classifier implements Loggable {
          dataSupplier = () -> preprocessed.stream()
                                           .map(this::encode);
       }
-      this.modelParameters.update(parameters);
-      optimizer.optimize(modelParameters,
+      this.weightParameters.update(parameters);
+      optimizer.optimize(weightParameters,
                          dataSupplier,
                          new GradientDescentCostFunction(parameters.lossFunction, -1),
                          TerminationCriteria.create()
@@ -132,10 +118,10 @@ public class LinearModel extends Classifier implements Loggable {
 
    @Override
    public Classification predict(Example example) {
-      return new Classification(modelParameters.activate(encodeAndPreprocess(example)), getLabelVectorizer());
+      return new Classification(weightParameters.activate(encodeAndPreprocess(example)), getLabelVectorizer());
    }
 
-   private static class ModelParameters implements LinearModelParameters, Serializable, Copyable<ModelParameters> {
+   private static class WeightParameters implements LinearModelParameters, Serializable, Copyable<WeightParameters> {
       private static final long serialVersionUID = 1L;
       private Activation activation = Activation.SIGMOID;
       private NDArray bias;
@@ -144,12 +130,8 @@ public class LinearModel extends Classifier implements Loggable {
       private NDArray weights;
 
       @Override
-      public ModelParameters copy() {
-         try {
-            return new ByteArrayResource().writeObject(this).readObject();
-         } catch (Exception e) {
-            throw new RuntimeException(e);
-         }
+      public WeightParameters copy() {
+         return Copyable.deepCopy(this);
       }
 
       @Override

@@ -1,16 +1,39 @@
+/*
+ * (c) 2005 David B. Bracewell
+ *
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ *
+ */
+
 package com.gengoai.apollo.ml.clustering;
 
+import com.gengoai.Stopwatch;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.linear.NDArrayInitializer;
 import com.gengoai.apollo.ml.FitParameters;
+import com.gengoai.apollo.ml.ModelParameters;
 import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
-import com.gengoai.apollo.ml.preprocess.PreprocessorList;
-import com.gengoai.apollo.ml.vectorizer.Vectorizer;
 import com.gengoai.apollo.stat.measure.Measure;
 import com.gengoai.conversion.Cast;
 import com.gengoai.function.SerializableSupplier;
+import com.gengoai.logging.Logger;
 import com.gengoai.stream.MStream;
 
 import java.util.List;
@@ -21,26 +44,44 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
+ * <p>
+ * Implementation of <a href="https://en.wikipedia.org/wiki/K-means_clustering">K-means</a> Clustering.
+ *
+ * </p>
+ *
  * @author David B. Bracewell
  */
 public class KMeans extends Clusterer {
+   private static final Logger log = Logger.getLogger(KMeans.class);
    private static final long serialVersionUID = 1L;
 
-
+   /**
+    * Instantiates a new K-Means model.
+    *
+    * @param preprocessors the preprocessors
+    */
    public KMeans(Preprocessor... preprocessors) {
-      super(preprocessors);
+      super(ModelParameters.indexedLabelVectorizer().preprocessors(preprocessors));
    }
 
-   public KMeans(Vectorizer<?> labelVectorizer, Vectorizer<String> featureVectorizer, PreprocessorList preprocessors) {
-      super(labelVectorizer, featureVectorizer, preprocessors);
+   /**
+    * Instantiates a new K-Means model.
+    *
+    * @param modelParameters the model parameters
+    */
+   public KMeans(ModelParameters modelParameters) {
+      super(modelParameters);
    }
 
-   public KMeans(Vectorizer<?> labelVectorizer, Vectorizer<String> featureVectorizer, Preprocessor... preprocessors) {
-      super(labelVectorizer, featureVectorizer, preprocessors);
-   }
-
+   /**
+    * Clusters the given points using the given K-means fit parameters
+    *
+    * @param dataSupplier  the data supplier
+    * @param fitParameters the fit parameters
+    * @return the flat clustering
+    */
    public FlatClustering fit(SerializableSupplier<MStream<NDArray>> dataSupplier, Parameters fitParameters) {
-      FlatClustering clusters = new FlatClustering();
+      FlatClustering clusters = new FlatClustering(fitParameters.measure);
       List<NDArray> instances = dataSupplier.get().collect();
       for (NDArray centroid : initCentroids(fitParameters.K, instances)) {
          Cluster c = new Cluster();
@@ -53,7 +94,10 @@ public class KMeans extends Clusterer {
       Map<NDArray, Integer> assignment = new ConcurrentHashMap<>();
 
       final AtomicLong numMoved = new AtomicLong(0);
+      double lastVariance = 0;
+
       for (int itr = 0; itr < fitParameters.maxIterations; itr++) {
+         Stopwatch sw = Stopwatch.createStarted();
          clusters.forEach(Cluster::clear);
          numMoved.set(0);
          instances.parallelStream()
@@ -75,12 +119,6 @@ public class KMeans extends Clusterer {
                            }
                           );
 
-
-         if (numMoved.get() == 0) {
-            break;
-         }
-
-
          for (int i = 0; i < fitParameters.K; i++) {
             clusters.get(i).getPoints().removeIf(Objects::isNull);
             if (clusters.get(i).size() == 0) {
@@ -96,6 +134,17 @@ public class KMeans extends Clusterer {
                c.divi((float) clusters.get(i).size());
             }
          }
+
+         sw.stop();
+         double variance = clusters.inGroupVariance();
+         if (fitParameters.verbose) {
+            log.info("iteration={0}: number_moved={1}, variance={2} ({3})", (itr + 1), numMoved, variance, sw);
+         }
+
+         if (numMoved.get() == 0 || (itr > 0 && Math.abs(variance - lastVariance) <= fitParameters.tolerance)) {
+            break;
+         }
+         lastVariance = variance;
       }
 
       for (int i = 0; i < clusters.size(); i++) {
@@ -132,7 +181,9 @@ public class KMeans extends Clusterer {
          cnts[ci]++;
       }
       for (int i = 0; i < K; i++) {
-         clusters[i].divi((float) cnts[i]);
+         if (cnts[i] > 0) {
+            clusters[i].divi((float) cnts[i]);
+         }
       }
       return clusters;
    }
@@ -151,17 +202,21 @@ public class KMeans extends Clusterer {
 
 
    /**
-    * The type Parameters.
+    * Fit Parameters for KMeans
     */
-   public static class Parameters extends Clusterer.ClusterParameters {
+   public static class Parameters extends ClusterParameters {
       /**
-       * The K.
+       * The number of clusters
        */
       public int K = 2;
       /**
-       * The Max iterations.
+       * The maximum number of iterations to run the clusterer for
        */
       public int maxIterations = 100;
+      /**
+       * The tolerance in change of in-group variance for determining if k-means has converged
+       */
+      public double tolerance = 1e-3;
 
    }
 }//END OF KMeans

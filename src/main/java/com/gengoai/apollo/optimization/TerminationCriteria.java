@@ -40,7 +40,9 @@ public final class TerminationCriteria implements Serializable {
          converged = Math.abs(sumLoss - history.removeLast()) <= tolerance;
          Iterator<Double> itr = history.iterator();
          while (converged && itr.hasNext()) {
-            converged = Math.abs(sumLoss - itr.next()) <= tolerance;
+            double n = itr.next();
+            converged = Math.abs(sumLoss - n) <= tolerance //loss in tolerance
+                           || sumLoss > n; //or we got worse
          }
       }
       history.addFirst(sumLoss);

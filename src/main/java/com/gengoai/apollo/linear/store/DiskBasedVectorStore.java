@@ -1,9 +1,7 @@
 package com.gengoai.apollo.linear.store;
 
-import com.gengoai.NamedParameters;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
-import com.gengoai.apollo.linear.hash.LSHParameter;
 import com.gengoai.cache.AutoCalculatingLRUCache;
 import com.gengoai.cache.Cache;
 import com.gengoai.io.IndexedFile;
@@ -19,9 +17,7 @@ import java.io.Serializable;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Set;
-import java.util.stream.Collectors;
 
-import static com.gengoai.NamedParameters.params;
 import static com.gengoai.Validation.checkArgument;
 import static com.gengoai.Validation.notNullOrBlank;
 import static com.gengoai.apollo.linear.store.VSTextUtils.*;
@@ -38,36 +34,12 @@ public final class DiskBasedVectorStore implements VectorStore, Serializable, Lo
    private final int dimension;
    private final int cacheSize;
 
-
-   public static void main(String[] args) throws Exception {
-      NamedParameters<VSParameter> params = params(VSParameter.IN_MEMORY, false,
-                                                   VSParameter.CACHE_SIZE, 20_000,
-                                                   VSParameter.LOCATION, "/home/ik/tmp.vec.txt",
-                                                   VSParameter.LSH, params(LSHParameter.SIGNATURE_SIZE, 1024,
-                                                                      LSHParameter.SIGNATURE, "COSINE",
-                                                                      LSHParameter.DIMENSION, 50));
-      VectorStore vs = VectorStore.read(Resources.from("/home/ik/glove.6B.50d.txt"));
-      System.out.println(vs.getClass());
-//         VectorStore.builder(params).build();
-//      VSBuilder builder = VectorStore.builder(params);
-//      for (int i = 0; i < 10000; i++) {
-//         builder.add(StringUtils.randomHexString(10), NDArrayFactory.DENSE.create(NDArrayInitializer.rand, 50));
-//      }
-//      VectorStore vs = builder.build();
-      vs.keySet().stream().limit(10).forEach(k -> {
-         NDArray n = vs.get(k);
-         System.out.println(n.getLabel() + " : " +
-                               vs.query(VSQuery.termQuery(n.getLabel()).limit(3))
-                                 .map(v -> v.getLabel() + " : " + v.getWeight())
-                                 .collect(Collectors.toList()));
-      });
-   }
-
    public DiskBasedVectorStore(File vectorFile, int cacheSize) {
       try {
          this.cacheSize = cacheSize;
          this.dimension = determineDimension(vectorFile);
          this.reader = IndexedFile.reader(vectorFile); // , line -> line.split("[ \t]+")[0]
+         System.out.println(this.reader.numberOfKeys());
          this.vectorCache = new AutoCalculatingLRUCache<>(cacheSize, this::loadNDArray);
       } catch (Exception e) {
          throw new RuntimeException(e);
@@ -136,10 +108,12 @@ public final class DiskBasedVectorStore implements VectorStore, Serializable, Lo
    }
 
    @Override
-   public NamedParameters<VSParameter> getParameters() {
-      return params(VSParameter.IN_MEMORY, false,
-                    VSParameter.CACHE_SIZE, cacheSize,
-                    VSParameter.LOCATION, reader.getBackingFile().getAbsolutePath());
+   public VectorStoreParameter getParameters() {
+      VectorStoreParameter parameter = new VectorStoreParameter();
+      parameter.type = VectorStoreType.IndexedFile;
+      parameter.cacheSize = cacheSize;
+      parameter.location = Resources.fromFile(reader.getBackingFile());
+      return parameter;
    }
 
    /**
@@ -148,9 +122,9 @@ public final class DiskBasedVectorStore implements VectorStore, Serializable, Lo
    public static class Builder implements VSBuilder {
       private volatile IndexedFileWriter writer = null;
       private int dimension = -1;
-      private final NamedParameters<VSParameter> parameters;
+      private final VectorStoreParameter parameters;
 
-      public Builder(NamedParameters<VSParameter> parameters) {
+      public Builder(VectorStoreParameter parameters) {
          this.parameters = parameters;
       }
 
@@ -160,7 +134,8 @@ public final class DiskBasedVectorStore implements VectorStore, Serializable, Lo
             synchronized (this) {
                if (writer == null) {
                   try {
-                     writer = new IndexedFileWriter(new File(parameters.getString(VSParameter.LOCATION)));
+                     writer = new IndexedFileWriter(
+                        parameters.location.asFile().orElseThrow(IllegalArgumentException::new));
                   } catch (IOException e) {
                      throw new RuntimeException(e);
                   }
@@ -196,8 +171,11 @@ public final class DiskBasedVectorStore implements VectorStore, Serializable, Lo
                throw new RuntimeException(e);
             }
          }
-         return new DiskBasedVectorStore(new File(parameters.getString(VSParameter.LOCATION)),
-                                         parameters.getInt(VSParameter.CACHE_SIZE));
+         if (parameters.lshParameters != null) {
+            parameters.lshParameters.dimension = dimension;
+         }
+         return new DiskBasedVectorStore(parameters.location.asFile().orElseThrow(IllegalArgumentException::new),
+                                         parameters.cacheSize);
       }
 
    }

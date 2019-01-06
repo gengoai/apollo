@@ -1,12 +1,33 @@
+/*
+ * (c) 2005 David B. Bracewell
+ *
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ *
+ */
+
 package com.gengoai.apollo.ml.classification;
 
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.FitParameters;
 import com.gengoai.apollo.ml.LibLinear;
+import com.gengoai.apollo.ml.ModelParameters;
 import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
-import com.gengoai.apollo.ml.preprocess.PreprocessorList;
-import com.gengoai.apollo.ml.vectorizer.Vectorizer;
 import com.gengoai.conversion.Cast;
 import com.gengoai.logging.Loggable;
 import de.bwaldvogel.liblinear.Model;
@@ -16,7 +37,9 @@ import de.bwaldvogel.liblinear.SolverType;
 import static com.gengoai.Validation.notNull;
 
 /**
- * A model trained using LibLinear
+ * <p>
+ *    A classifier wrapper around LibLinear.
+ * </p>
  *
  * @author David B. Bracewell
  */
@@ -31,50 +54,18 @@ public class LibLinearModel extends Classifier implements Loggable {
     * @param preprocessors the preprocessors
     */
    public LibLinearModel(Preprocessor... preprocessors) {
-      super(preprocessors);
+      super(ModelParameters.classification(false, p -> p.preprocessors(preprocessors)));
    }
 
    /**
     * Instantiates a new Lib linear model.
     *
-    * @param labelVectorizer   the label vectorizer
-    * @param featureVectorizer the feature vectorizer
-    * @param preprocessors     the preprocessors
+    * @param modelParameters the model parameters
     */
-   public LibLinearModel(Vectorizer<String> labelVectorizer, Vectorizer<String> featureVectorizer, Preprocessor... preprocessors) {
-      super(labelVectorizer, featureVectorizer, preprocessors);
+   public LibLinearModel(ModelParameters modelParameters) {
+      super(modelParameters);
    }
 
-   /**
-    * Instantiates a new Lib linear model.
-    *
-    * @param labelVectorizer   the label vectorizer
-    * @param featureVectorizer the feature vectorizer
-    * @param preprocessors     the preprocessors
-    */
-   public LibLinearModel(Vectorizer<String> labelVectorizer, Vectorizer<String> featureVectorizer, PreprocessorList preprocessors) {
-      super(labelVectorizer, featureVectorizer, preprocessors);
-   }
-
-   /**
-    * Instantiates a new Lib linear model.
-    *
-    * @param featureVectorizer the feature vectorizer
-    * @param preprocessors     the preprocessors
-    */
-   public LibLinearModel(Vectorizer<String> featureVectorizer, Preprocessor... preprocessors) {
-      super(featureVectorizer, preprocessors);
-   }
-
-   /**
-    * Instantiates a new Lib linear model.
-    *
-    * @param featureVectorizer the feature vectorizer
-    * @param preprocessors     the preprocessors
-    */
-   public LibLinearModel(Vectorizer<String> featureVectorizer, PreprocessorList preprocessors) {
-      super(featureVectorizer, preprocessors);
-   }
 
    @Override
    protected Classifier fitPreprocessed(Dataset preprocessed, FitParameters parameters) {

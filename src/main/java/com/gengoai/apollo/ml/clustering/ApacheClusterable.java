@@ -17,6 +17,7 @@
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
+ *
  */
 
 package com.gengoai.apollo.ml.clustering;
@@ -28,7 +29,7 @@ import org.apache.commons.math3.ml.clustering.Clusterable;
 import java.io.Serializable;
 
 /**
- * Wraps an Apollo vector into an Apache Math compatible data type for using Apache Math clustering algorithms.
+ * Wraps an Apollo NDArray into an Apache Math compatible data type for using Apache Math clustering algorithms.
  *
  * @author David B. Bracewell
  */

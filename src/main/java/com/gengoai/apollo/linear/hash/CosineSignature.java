@@ -21,15 +21,11 @@
 
 package com.gengoai.apollo.linear.hash;
 
-import com.gengoai.NamedParameters;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.linear.NDArrayInitializer;
 import com.gengoai.apollo.stat.measure.Measure;
 import com.gengoai.apollo.stat.measure.Similarity;
-
-import static com.gengoai.apollo.linear.hash.LSHParameter.DIMENSION;
-import static com.gengoai.apollo.linear.hash.LSHParameter.SIGNATURE_SIZE;
 
 /**
  * <p>Signature function for Cosine distance / similarity. Uses the Cosine similarity as its measure.</p>
@@ -39,18 +35,18 @@ import static com.gengoai.apollo.linear.hash.LSHParameter.SIGNATURE_SIZE;
 public class CosineSignature implements SignatureFunction {
    public static final String NAME = "COSINE_SIMILARITY";
    private static final long serialVersionUID = 1L;
-   private final NamedParameters<LSHParameter> parameters;
+   private final LSHParameter parameters;
    private final NDArray[] randomProjections;
 
    /**
     * Instantiates a new Cosine signature.
     */
-   public CosineSignature(NamedParameters<LSHParameter> parameters) {
+   public CosineSignature(LSHParameter parameters) {
       this.parameters = parameters.copy();
-      this.randomProjections = new NDArray[parameters.getInt(SIGNATURE_SIZE)];
+      this.randomProjections = new NDArray[parameters.signatureSize];
       for (int i = 0; i < randomProjections.length; i++) {
          this.randomProjections[i] = NDArrayFactory.DEFAULT().create(NDArrayInitializer.randn,
-                                                                     parameters.getInt(DIMENSION));
+                                                                     parameters.dimension);
       }
    }
 
@@ -67,14 +63,14 @@ public class CosineSignature implements SignatureFunction {
    }
 
    @Override
-   public NamedParameters<LSHParameter> getParameters() {
-      return parameters;
+   public LSHParameter getParameters() {
+      return parameters.copy();
    }
 
    @Override
    public int[] signature(NDArray vector) {
       int[] sig = new int[randomProjections.length];
-      for (int i = 0; i < parameters.getInt(SIGNATURE_SIZE); i++) {
+      for (int i = 0; i < parameters.signatureSize; i++) {
          sig[i] = randomProjections[i].scalarDot(vector) > 0 ? 1 : 0;
       }
       return sig;

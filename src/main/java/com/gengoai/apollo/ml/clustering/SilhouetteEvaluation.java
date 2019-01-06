@@ -1,7 +1,28 @@
+/*
+ * (c) 2005 David B. Bracewell
+ *
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ *
+ */
+
 package com.gengoai.apollo.ml.clustering;
 
 import com.gengoai.apollo.linear.NDArray;
-import com.gengoai.apollo.ml.Evaluation;
 import com.gengoai.apollo.stat.measure.Measure;
 import com.gengoai.math.Math2;
 import com.gengoai.stream.StreamingContext;
@@ -16,18 +37,29 @@ import java.util.Map;
 import static com.gengoai.tuple.Tuples.$;
 
 /**
+ * <p>
+ * Evaluates a Clustering using <a href="https://en.wikipedia.org/wiki/Silhouette_(clustering)">Silhouette</a>, which is
+ * a measure of how similar an object is to its own cluster compared to others.
+ * </p>
+ *
  * @author David B. Bracewell
  */
 public class SilhouetteEvaluation implements ClusteringEvaluation, Serializable {
    private static final long serialVersionUID = 1L;
-   double avgSilhouette = 0;
+   private double avgSilhouette = 0;
    private Map<Integer, Double> silhouette;
    private final Measure measure;
 
+   /**
+    * Instantiates a new Silhouette evaluation.
+    *
+    * @param measure the measure
+    */
    public SilhouetteEvaluation(Measure measure) {
       this.measure = measure;
    }
 
+   @Override
    public void evaluate(Clustering clustering) {
       Map<Integer, Cluster> idClusterMap = new HashMap<>();
       clustering.forEach(c -> idClusterMap.put(c.getId(), c));
@@ -41,12 +73,7 @@ public class SilhouetteEvaluation implements ClusteringEvaluation, Serializable 
    }
 
 
-   @Override
-   public void merge(Evaluation evaluation) {
-      throw new UnsupportedOperationException();
-   }
-
-   public double silhouette(Map<Integer, Cluster> clusters, int index, Measure distanceMeasure) {
+   private double silhouette(Map<Integer, Cluster> clusters, int index, Measure distanceMeasure) {
       Cluster c1 = clusters.get(index);
       if (c1.size() <= 1) {
          return 0;
@@ -78,11 +105,6 @@ public class SilhouetteEvaluation implements ClusteringEvaluation, Serializable 
       return s / c1.size();
    }
 
-   public void reset() {
-      this.avgSilhouette = 0;
-      this.silhouette.clear();
-   }
-
    @Override
    public void output(PrintStream printStream) {
       TableFormatter formatter = new TableFormatter();
@@ -96,10 +118,21 @@ public class SilhouetteEvaluation implements ClusteringEvaluation, Serializable 
       formatter.print(printStream);
    }
 
+   /**
+    * Gets avg silhouette.
+    *
+    * @return the avg silhouette
+    */
    public double getAvgSilhouette() {
       return avgSilhouette;
    }
 
+   /**
+    * Gets silhouette.
+    *
+    * @param id the id
+    * @return the silhouette
+    */
    public double getSilhouette(int id) {
       return silhouette.get(id);
    }

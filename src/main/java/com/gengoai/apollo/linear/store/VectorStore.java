@@ -17,11 +17,11 @@
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
+ *
  */
 
 package com.gengoai.apollo.linear.store;
 
-import com.gengoai.NamedParameters;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.linear.VectorComposition;
@@ -34,6 +34,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -45,32 +46,69 @@ import java.util.stream.Stream;
  */
 public interface VectorStore extends Iterable<NDArray> {
 
-   static VSBuilder builder(NamedParameters<VSParameter> parameters) {
+   /**
+    * Builder vs builder.
+    *
+    * @return the vs builder
+    */
+   static VSBuilder builder() {
+      return builder(new VectorStoreParameter());
+   }
+
+   /**
+    * Builder vs builder.
+    *
+    * @param updater the updater
+    * @return the vs builder
+    */
+   static VSBuilder builder(Consumer<VectorStoreParameter> updater) {
+      VectorStoreParameter parameter = new VectorStoreParameter();
+      updater.accept(parameter);
+      return builder(parameter);
+   }
+
+   /**
+    * Builder vs builder.
+    *
+    * @param parameter the parameter
+    * @return the vs builder
+    */
+   static VSBuilder builder(VectorStoreParameter parameter) {
       VSBuilder builder;
-      if (parameters.getBoolean(VSParameter.IN_MEMORY)) {
-         builder = new InMemoryVectorStore.Builder(parameters);
+      if (parameter.type == VectorStoreType.IndexedFile) {
+         builder = new DiskBasedVectorStore.Builder(parameter);
       } else {
-         builder = new DiskBasedVectorStore.Builder(parameters);
+         builder = new InMemoryVectorStore.Builder(parameter);
       }
-      if (parameters.isSet(VSParameter.LSH)) {
-         builder = new LSHVectorStore.Builder(builder, parameters);
+      if (parameter.lshParameters != null) {
+         builder = new LSHVectorStore.Builder(builder, parameter);
       }
       return builder;
    }
 
-
+   /**
+    * Read vector store.
+    *
+    * @param vectors the vectors
+    * @return the vector store
+    * @throws IOException the io exception
+    */
    static VectorStore read(Resource vectors) throws IOException {
       File vectorFile = vectors.asFile().orElseThrow(IOException::new);
       File indexFile = IndexedFile.indexFileFor(vectorFile);
       File lshFile = new File(vectorFile.getAbsolutePath() + LSHVectorStore.LSH_EXT);
-      NamedParameters<VSParameter> params = NamedParameters.params(VSParameter.LOCATION, vectorFile.getAbsolutePath());
+      VectorStoreParameter parameter = new VectorStoreParameter();
+      parameter.location = vectors;
       if (indexFile.exists()) {
-         params.set(VSParameter.IN_MEMORY, false);
+         parameter.type = VectorStoreType.IndexedFile;
+      } else {
+         parameter.type = VectorStoreType.InMemory;
       }
       if (lshFile.exists()) {
-         params.set(VSParameter.LSH, NamedParameters.params(LSHParameter.SIGNATURE_SIZE, 100));
+         parameter.lshParameters = new LSHParameter();
+         parameter.lshParameters.signatureSize = 100;
       }
-      return builder(params).build();
+      return builder(parameter).build();
    }
 
    /**
@@ -120,7 +158,7 @@ public interface VectorStore extends Iterable<NDArray> {
     *
     * @return the vector store
     */
-   NamedParameters<VSParameter> getParameters();
+   VectorStoreParameter getParameters();
 
    /**
     * The label Strings in the store
@@ -142,11 +180,18 @@ public interface VectorStore extends Iterable<NDArray> {
    }
 
    /**
+    * Size int.
+    *
     * @return the number of vectors
     */
    int size();
 
+   /**
+    * Write.
+    *
+    * @param location the location
+    * @throws IOException the io exception
+    */
    void write(Resource location) throws IOException;
-
 
 }// END OF VectorStore

@@ -26,7 +26,6 @@ import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.linear.store.VSBuilder;
 import com.gengoai.apollo.linear.store.VectorStore;
 import com.gengoai.apollo.ml.FitParameters;
-import com.gengoai.apollo.ml.ModelParameters;
 import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
 import com.gengoai.conversion.Cast;
@@ -51,7 +50,7 @@ public class Word2Vec extends Embedding {
     * @param preprocessors the preprocessors
     */
    public Word2Vec(Preprocessor... preprocessors) {
-      super(ModelParameters.indexedLabelVectorizer().preprocessors(preprocessors));
+      super(preprocessors);
    }
 
    @Override

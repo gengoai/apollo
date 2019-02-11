@@ -33,7 +33,7 @@ import java.io.Serializable;
  *
  * @author David B. Bracewell
  */
-public class ApacheClusterable implements Clusterable, Serializable {
+class ApacheClusterable implements Clusterable, Serializable {
    private static final long serialVersionUID = 1L;
    private final NDArray vector;
    private final Lazy<double[]> point;

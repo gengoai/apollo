@@ -24,7 +24,7 @@ package com.gengoai.apollo.ml.regression;
 
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.Model;
-import com.gengoai.apollo.ml.ModelParameters;
+import com.gengoai.apollo.ml.NumericPipeline;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
 
 /**
@@ -34,15 +34,35 @@ import com.gengoai.apollo.ml.preprocess.Preprocessor;
  */
 public abstract class Regression extends Model<Regression> {
    private static final long serialVersionUID = 1L;
+   private final NumericPipeline modelParameters;
 
+   /**
+    * Instantiates a new Regression.
+    *
+    * @param preprocessors the preprocessors
+    */
    public Regression(Preprocessor... preprocessors) {
-      super(ModelParameters.regression().preprocessors(preprocessors));
+      this(new NumericPipeline().update(p -> p.preprocessorList.addAll(preprocessors)));
    }
 
-   public Regression(ModelParameters modelParameters) {
-      super(modelParameters);
+   /**
+    * Instantiates a new Regression.
+    *
+    * @param modelParameters the model parameters
+    */
+   public Regression(NumericPipeline modelParameters) {
+      this.modelParameters = modelParameters;
    }
 
+   @Override
+   public int getNumberOfLabels() {
+      return 0;
+   }
+
+   @Override
+   public NumericPipeline getPipeline() {
+      return modelParameters;
+   }
 
    /**
     * Estimates a real-value based on the input instance.

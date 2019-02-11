@@ -35,7 +35,9 @@ import java.util.logging.Level;
 
 /**
  * <p>
- * A classifier wrapper around Mallet's C45 decision tree.
+ * A classifier wrapper around Mallet's C4.5 decision tree. The C4.5 algorithm constructs a decision tree by selecting
+ * the feature that best splits the dataset into sub-samples that support the labels using information gain at each node
+ * in the tree. The feature with the highest normalized gain is chosen as the decision for that node.
  * </p>
  *
  * @author David B. Bracewell
@@ -44,7 +46,7 @@ public class C45Classifier extends MalletClassifier {
    private static final long serialVersionUID = 1L;
 
    /**
-    * Instantiates a new C 45 classifier.
+    * Instantiates a new C45 classifier.
     *
     * @param preprocessors the preprocessors
     */

@@ -64,8 +64,8 @@ public class RealToBinaryTransform extends RestrictedFeaturePreprocessor impleme
    public Instance applyInstance(Instance example) {
       return example.mapFeatures(f -> {
          if (requiresProcessing(f)) {
-            return Optional.ofNullable(f.value >= threshold
-                                       ? Feature.booleanFeature(f.name)
+            return Optional.ofNullable(f.getValue() >= threshold
+                                       ? Feature.booleanFeature(f.getName())
                                        : null);
          }
          return Optional.of(f);

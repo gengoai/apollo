@@ -23,9 +23,9 @@
 package com.gengoai.apollo.ml.topic;
 
 import com.gengoai.apollo.linear.NDArray;
+import com.gengoai.apollo.ml.DiscreteModel;
+import com.gengoai.apollo.ml.DiscretePipeline;
 import com.gengoai.apollo.ml.Example;
-import com.gengoai.apollo.ml.Model;
-import com.gengoai.apollo.ml.ModelParameters;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
 
 /**
@@ -33,14 +33,15 @@ import com.gengoai.apollo.ml.preprocess.Preprocessor;
  *
  * @author David B. Bracewell
  */
-public abstract class TopicModel extends Model<TopicModel> {
+public abstract class TopicModel extends DiscreteModel<TopicModel> {
    private static final long serialVersionUID = 1L;
 
-   public TopicModel(Preprocessor...preprocessors) {
-      this(ModelParameters.indexedLabelVectorizer().preprocessors(preprocessors));
+
+   public TopicModel(Preprocessor... preprocessors) {
+      super(DiscretePipeline.unsupervised().update(p -> p.preprocessorList.addAll(preprocessors)));
    }
 
-   public TopicModel(ModelParameters modelParameters) {
+   public TopicModel(DiscretePipeline modelParameters) {
       super(modelParameters);
    }
 

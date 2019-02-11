@@ -22,24 +22,26 @@
 
 package com.gengoai.apollo.ml.data;
 
-import com.gengoai.apollo.ml.Example;
-import com.gengoai.apollo.ml.Split;
+import com.gengoai.apollo.linear.NDArray;
+import com.gengoai.apollo.ml.*;
 import com.gengoai.collection.counter.Counter;
-import com.gengoai.conversion.Cast;
 import com.gengoai.function.SerializableFunction;
 import com.gengoai.io.resource.Resource;
 import com.gengoai.json.Json;
 import com.gengoai.stream.MStream;
 import com.gengoai.stream.StreamingContext;
 import com.gengoai.stream.accumulator.MCounterAccumulator;
+import com.gengoai.string.Strings;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 
-import static com.gengoai.Validation.checkArgument;
+import static com.gengoai.Validation.notNull;
 
 /**
  * <p>A dataset is a collection of examples which can be used for training and evaluating models. Implementations of
@@ -49,16 +51,6 @@ import static com.gengoai.Validation.checkArgument;
  */
 public abstract class Dataset implements Iterable<Example>, Serializable, AutoCloseable {
    private static final long serialVersionUID = 1L;
-   private final DatasetType datasetType;
-
-   /**
-    * Instantiates a new Dataset.
-    *
-    * @param datasetType the dataset type
-    */
-   protected Dataset(DatasetType datasetType) {
-      this.datasetType = datasetType;
-   }
 
 
    /**
@@ -72,11 +64,23 @@ public abstract class Dataset implements Iterable<Example>, Serializable, AutoCl
 
 
    /**
-    * Adds all the examples in the stream to the dataset.
+    * Uses the given pipeline to create a stream of {@link NDArray} from the dataset
     *
-    * @param stream the stream
+    * @param pipeline the pipeline
+    * @return the stream of NDArray
     */
-   protected abstract void addAll(MStream<Example> stream);
+   public MStream<NDArray> asVectorStream(final Pipeline pipeline) {
+      notNull(pipeline, "Pipeline must not be null");
+      return stream().map(e -> e.transform(pipeline));
+   }
+
+   /**
+    * <p>Iterator that provides a batch of examples per iteration.</p>
+    *
+    * @param batchSize the batch size
+    * @return the iterator
+    */
+   public abstract Iterator<Dataset> batchIterator(final int batchSize);
 
    /**
     * Caches the examples in dataset.
@@ -92,7 +96,7 @@ public abstract class Dataset implements Iterable<Example>, Serializable, AutoCl
     */
    public Counter<String> calculateClassDistribution() {
       MCounterAccumulator<String> accumulator = getStreamingContext().counterAccumulator();
-      stream().flatMap(Example::getStringLabelSpace).forEach(accumulator::add);
+      stream().flatMap(Example::getLabelSpace).forEach(accumulator::add);
       return accumulator.value();
    }
 
@@ -103,26 +107,7 @@ public abstract class Dataset implements Iterable<Example>, Serializable, AutoCl
     * @param numberOfFolds the number of folds
     * @return An array of {@link Split} for each fold of the dataset
     */
-   public Split[] fold(int numberOfFolds) {
-      checkArgument(numberOfFolds > 0, "Number of folds must be >= 0");
-      checkArgument(size() >= numberOfFolds, "Number of folds must be <= number of examples");
-      Split[] folds = new Split[numberOfFolds];
-      int foldSize = size() / numberOfFolds;
-      for (int i = 0; i < numberOfFolds; i++) {
-         int testStart = i * foldSize;
-         int testEnd = testStart + foldSize;
-         MStream<Example> testStream = stream(testStart, testEnd);
-         MStream<Example> trainStream = getStreamingContext().empty();
-         if (testStart > 0) {
-            trainStream = trainStream.union(stream(0, testStart));
-         }
-         if (testEnd < size()) {
-            trainStream = trainStream.union(stream(testEnd, size()));
-         }
-         folds[i] = new Split(newDataset(trainStream), newDataset(testStream));
-      }
-      return folds;
-   }
+   public abstract Split[] fold(int numberOfFolds);
 
    /**
     * Gets a streaming context compatible with this dataset
@@ -138,9 +123,8 @@ public abstract class Dataset implements Iterable<Example>, Serializable, AutoCl
     *
     * @return the {@link DatasetType}
     */
-   public final DatasetType getType() {
-      return datasetType;
-   }
+   public abstract DatasetType getType();
+
 
    /**
     * Maps the examples in this dataset using the given function and creating a new dataset in the process.
@@ -148,13 +132,7 @@ public abstract class Dataset implements Iterable<Example>, Serializable, AutoCl
     * @param function the function to transform the examples
     * @return the dataset with the transformed examples
     */
-   public Dataset map(SerializableFunction<? super Example, ? extends Example> function) {
-      return newDataset(stream().map(function));
-   }
-
-   protected Dataset newDataset(MStream<Example> instances) {
-      return getType().create(instances.map(Example::copy));
-   }
+   public abstract Dataset map(SerializableFunction<? super Example, ? extends Example> function);
 
    /**
     * Creates a balanced dataset by oversampling the items
@@ -162,28 +140,29 @@ public abstract class Dataset implements Iterable<Example>, Serializable, AutoCl
     * @return the balanced dataset
     */
    public Dataset oversample() {
-      Counter<String> fCount = calculateClassDistribution();
-      int targetCount = (int) fCount.maximumCount();
-
-      Dataset dataset = newDataset(getStreamingContext().empty());
-
-      for (Object label : fCount.items()) {
-         MStream<Example> fStream = stream()
-                                       .filter(e -> e.getStringLabelSpace().anyMatch(label::equals))
-                                       .cache();
-         int count = (int) fStream.count();
-         int curCount = 0;
-         while (curCount + count < targetCount) {
-            dataset.addAll(fStream);
-            curCount += count;
-         }
-         if (curCount < targetCount) {
-            dataset.addAll(fStream.sample(false, targetCount - curCount));
-         } else if (count == targetCount) {
-            dataset.addAll(fStream);
-         }
-      }
-      return dataset;
+//      Counter<String> fCount = calculateClassDistribution();
+//      int targetCount = (int) fCount.maximumCount();
+//
+//      Dataset dataset = newDataset(getStreamingContext().empty());
+//
+//      for (Object label : fCount.items()) {
+//         MStream<Example> fStream = stream()
+//                                       .filter(e -> e.getLabelSpace().anyMatch(label::equals))
+//                                       .cache();
+//         int count = (int) fStream.count();
+//         int curCount = 0;
+//         while (curCount + count < targetCount) {
+////            dataset.addAll(fStream);
+//            curCount += count;
+//         }
+//         if (curCount < targetCount) {
+////            dataset.addAll(fStream.sample(false, targetCount - curCount));
+//         } else if (count == targetCount) {
+////            dataset.addAll(fStream);
+//         }
+//      }
+//      return dataset;
+      return this;
    }
 
    /**
@@ -193,10 +172,7 @@ public abstract class Dataset implements Iterable<Example>, Serializable, AutoCl
     * @param sampleSize      the sample size
     * @return the dataset
     */
-   public Dataset sample(boolean withReplacement, int sampleSize) {
-      checkArgument(sampleSize > 0, "Sample size must be > 0");
-      return newDataset(stream().sample(withReplacement, sampleSize).map(e -> Cast.as(e.copy())));
-   }
+   public abstract Dataset sample(boolean withReplacement, int sampleSize);
 
    /**
     * Shuffles the dataset creating a new dataset.
@@ -213,17 +189,15 @@ public abstract class Dataset implements Iterable<Example>, Serializable, AutoCl
     * @param random the random number generator
     * @return the dataset
     */
-   public Dataset shuffle(Random random) {
-      return newDataset(stream().shuffle(random));
-   }
+   public abstract Dataset shuffle(Random random);
 
    /**
     * The number of examples in the dataset
     *
     * @return the number of examples
     */
-   public int size() {
-      return (int) stream().count();
+   public long size() {
+      return stream().count();
    }
 
    /**
@@ -234,9 +208,7 @@ public abstract class Dataset implements Iterable<Example>, Serializable, AutoCl
     * @param end   the ending item index (Exclusive)
     * @return the dataset
     */
-   public Dataset slice(int start, int end) {
-      return newDataset(stream().skip(start).limit(end - start));
-   }
+   public abstract Dataset slice(long start, long end);
 
    /**
     * Split the dataset into a train and test split.
@@ -244,11 +216,7 @@ public abstract class Dataset implements Iterable<Example>, Serializable, AutoCl
     * @param pctTrain the percentage of the dataset to use for training
     * @return A TestTrainSet of one TestTrain item
     */
-   public Split split(double pctTrain) {
-      checkArgument(pctTrain > 0 && pctTrain < 1, "Percentage should be between 0 and 1");
-      int split = (int) Math.floor(pctTrain * size());
-      return new Split(slice(0, split), slice(split, size()));
-   }
+   public abstract Split split(double pctTrain);
 
    /**
     * Creates an MStream of examples from this Dataset.
@@ -256,17 +224,6 @@ public abstract class Dataset implements Iterable<Example>, Serializable, AutoCl
     * @return the MStream of examples
     */
    public abstract MStream<Example> stream();
-
-   /**
-    * Slices the dataset into a sub stream
-    *
-    * @param start the starting item index (Inclusive)
-    * @param end   the ending item index (Exclusive)
-    * @return the stream
-    */
-   protected MStream<Example> stream(int start, int end) {
-      return stream().skip(start).limit(end - start).cache();
-   }
 
    /**
     * Takes the first n elements from the dataset
@@ -284,14 +241,15 @@ public abstract class Dataset implements Iterable<Example>, Serializable, AutoCl
     * @return the balanced dataset
     */
    public Dataset undersample() {
-      Counter<String> fCount = calculateClassDistribution();
-      int targetCount = (int) fCount.minimumCount();
-      Dataset dataset = newDataset(getStreamingContext().empty());
-      for (Object label : fCount.items()) {
-         dataset.addAll(stream().filter(e -> e.getStringLabelSpace().anyMatch(label::equals))
-                                .sample(false, targetCount));
-      }
-      return dataset;
+//      Counter<String> fCount = calculateClassDistribution();
+//      int targetCount = (int) fCount.minimumCount();
+//      Dataset dataset = newDataset(getStreamingContext().empty());
+//      for (Object label : fCount.items()) {
+////         dataset.addAll(stream().filter(e -> e.getLabelSpace().anyMatch(label::equals))
+////                                .sample(false, targetCount));
+//      }
+//      return dataset;
+      return this;
    }
 
    /**
@@ -309,5 +267,22 @@ public abstract class Dataset implements Iterable<Example>, Serializable, AutoCl
       }
    }
 
+
+   public static void main(String[] args) throws Exception {
+      Dataset dataset = DatasetType.OnDisk.create(StreamingContext.local().range(0, 100).map(i -> {
+         List<Feature> features = new ArrayList<>();
+         for (int j = 0; j < 10; j++) {
+            features.add(Feature.booleanFeature(Strings.randomHexString(3)));
+         }
+         return new Instance(Strings.randomHexString(1), features);
+      }));
+
+      dataset = dataset.map(e -> e.setLabel(Strings.randomHexString(2)));
+      dataset.forEach(System.out::println);
+      dataset = dataset.map(e -> e.setLabel(Strings.randomHexString(1)));
+      System.out.println();
+      System.out.println();
+      dataset.forEach(System.out::println);
+   }
 
 }//END OF Dataset

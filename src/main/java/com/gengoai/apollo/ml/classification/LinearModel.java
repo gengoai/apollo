@@ -26,9 +26,9 @@ import com.gengoai.Copyable;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.linear.NDArrayInitializer;
+import com.gengoai.apollo.ml.DiscretePipeline;
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.FitParameters;
-import com.gengoai.apollo.ml.ModelParameters;
 import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
 import com.gengoai.apollo.optimization.*;
@@ -46,7 +46,9 @@ import static com.gengoai.Validation.notNull;
 
 /**
  * <p>A generalized linear model. This model can encompass a number models dependent on the parameters when
- * training.</p>
+ * training. A linear model learns a function to estimate observations (y) from one or more independent variables (x) in
+ * the form of y = b_0 + x_1 * b_1 + x_2 * b_2 ... + x_n * b_n, where b_i represents the weight of the corresponding
+ * variable x_i.  The LinearModel class allows for training Logistic Regression and SVM classifiers.</p>
  *
  * @author David B. Bracewell
  */
@@ -60,7 +62,7 @@ public class LinearModel extends Classifier implements Loggable {
     * @param preprocessors the preprocessors
     */
    public LinearModel(Preprocessor... preprocessors) {
-      super(ModelParameters.classification(false, p -> p.preprocessors(preprocessors)));
+      super(preprocessors);
       this.weightParameters = new WeightParameters();
    }
 
@@ -69,7 +71,7 @@ public class LinearModel extends Classifier implements Loggable {
     *
     * @param modelParameters the model parameters
     */
-   public LinearModel(ModelParameters modelParameters) {
+   public LinearModel(DiscretePipeline modelParameters) {
       super(modelParameters);
       this.weightParameters = new WeightParameters();
    }
@@ -88,13 +90,10 @@ public class LinearModel extends Classifier implements Loggable {
          if (parameters.verbose) {
             logInfo("Caching dataset...");
          }
-         final MStream<NDArray> cached = preprocessed.stream()
-                                                     .map(this::encode)
-                                                     .cache();
+         final MStream<NDArray> cached = preprocessed.asVectorStream(getPipeline()).cache();
          dataSupplier = () -> cached;
       } else {
-         dataSupplier = () -> preprocessed.stream()
-                                          .map(this::encode);
+         dataSupplier = () -> preprocessed.asVectorStream(getPipeline());
       }
       this.weightParameters.update(parameters);
       optimizer.optimize(weightParameters,
@@ -118,7 +117,8 @@ public class LinearModel extends Classifier implements Loggable {
 
    @Override
    public Classification predict(Example example) {
-      return new Classification(weightParameters.activate(encodeAndPreprocess(example)), getLabelVectorizer());
+      return new Classification(weightParameters.activate(example.preprocessAndTransform(getPipeline())),
+                                getPipeline().labelVectorizer);
    }
 
    private static class WeightParameters implements LinearModelParameters, Serializable, Copyable<WeightParameters> {

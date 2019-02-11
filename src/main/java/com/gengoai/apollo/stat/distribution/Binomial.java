@@ -84,7 +84,7 @@ public final class Binomial implements UnivariateDiscreteDistribution<Binomial>,
 
    @Override
    public double getMode() {
-      return Math.floor((trials + 1) * (nSuccess / trials));
+      return Math.floor((trials + 1) * ((float) nSuccess / trials));
    }
 
    /**

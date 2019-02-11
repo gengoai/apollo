@@ -26,8 +26,8 @@ import com.gengoai.Stopwatch;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.linear.NDArrayInitializer;
+import com.gengoai.apollo.ml.DiscretePipeline;
 import com.gengoai.apollo.ml.FitParameters;
-import com.gengoai.apollo.ml.ModelParameters;
 import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
 import com.gengoai.apollo.stat.measure.Measure;
@@ -42,11 +42,12 @@ import java.util.Objects;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.IntStream;
 
 /**
  * <p>
- * Implementation of <a href="https://en.wikipedia.org/wiki/K-means_clustering">K-means</a> Clustering.
- *
+ * Implementation of <a href="https://en.wikipedia.org/wiki/K-means_clustering">K-means</a> Clustering using Loyd's
+ * algorithm.
  * </p>
  *
  * @author David B. Bracewell
@@ -61,7 +62,7 @@ public class KMeans extends Clusterer {
     * @param preprocessors the preprocessors
     */
    public KMeans(Preprocessor... preprocessors) {
-      super(ModelParameters.indexedLabelVectorizer().preprocessors(preprocessors));
+      super(preprocessors);
    }
 
    /**
@@ -69,9 +70,10 @@ public class KMeans extends Clusterer {
     *
     * @param modelParameters the model parameters
     */
-   public KMeans(ModelParameters modelParameters) {
+   public KMeans(DiscretePipeline modelParameters) {
       super(modelParameters);
    }
+
 
    /**
     * Clusters the given points using the given K-means fit parameters
@@ -169,10 +171,10 @@ public class KMeans extends Clusterer {
 
 
    private NDArray[] initCentroids(int K, List<NDArray> instances) {
-      NDArray[] clusters = new NDArray[K];
-      for (int i = 0; i < K; i++) {
-         clusters[i] = NDArrayFactory.DEFAULT().zeros((int) instances.get(0).length());
-      }
+      NDArray[] clusters = IntStream.range(0, K)
+                                    .mapToObj(i -> NDArrayFactory.DEFAULT().zeros((int) instances.get(0).length()))
+                                    .toArray(NDArray[]::new);
+
       double[] cnts = new double[K];
       Random rnd = new Random();
       for (NDArray ii : instances) {
@@ -191,7 +193,7 @@ public class KMeans extends Clusterer {
 
    @Override
    public Clustering fitPreprocessed(Dataset dataSupplier, FitParameters fitParameters) {
-      return fit(() -> dataSupplier.stream().map(this::encode), Cast.as(fitParameters, Parameters.class));
+      return fit(() -> dataSupplier.asVectorStream(getPipeline()), Cast.as(fitParameters, Parameters.class));
    }
 
 

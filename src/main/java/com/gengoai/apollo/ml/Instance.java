@@ -23,6 +23,7 @@
 package com.gengoai.apollo.ml;
 
 import com.gengoai.Validation;
+import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.conversion.Cast;
 import com.gengoai.conversion.Converter;
 import com.gengoai.conversion.TypeConversionException;
@@ -158,7 +159,7 @@ public class Instance extends Example {
    }
 
    @Override
-   public Set<String> getLabelAsSet() {
+   public Set<String> getMultiLabel() {
       Object lbl = getLabel();
       if (lbl instanceof Set) {
          return Cast.as(lbl);
@@ -203,18 +204,10 @@ public class Instance extends Example {
          this.label = null;
       } else if (label instanceof Number) {
          this.label = Cast.<Number>as(label).doubleValue();
-      } else if (label.getClass().isArray() && label.getClass().getComponentType().isPrimitive()) {
-         try {
-            this.label = Converter.convert(label, float[].class);
-         } catch (TypeConversionException e) {
-            throw new IllegalArgumentException("Unable to set (" + label + ") as the Instance's label");
-         }
       } else if (label instanceof CharSequence) {
          this.label = label.toString();
-      } else if (label instanceof Iterator
-                    || label instanceof Iterable
-                    || label instanceof Stream
-                    || label.getClass().isArray()
+      } else if (label instanceof Iterator || label instanceof Iterable ||
+                    label instanceof Stream || label.getClass().isArray()
       ) {
          try {
             this.label = Converter.convert(label, Types.parameterizedType(Set.class, String.class));
@@ -239,5 +232,14 @@ public class Instance extends Example {
                 ", label=" + label +
                 ", weight=" + getWeight() +
                 '}';
+   }
+
+   @Override
+   public NDArray transform(Pipeline pipeline) {
+      NDArray array = pipeline.featureVectorizer.transform(this);
+      if (hasLabel()) {
+         array.setLabel(pipeline.labelVectorizer.transform(this));
+      }
+      return array.setWeight(getWeight()).compress();
    }
 }//END OF Instance

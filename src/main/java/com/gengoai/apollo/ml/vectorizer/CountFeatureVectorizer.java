@@ -22,48 +22,36 @@
 
 package com.gengoai.apollo.ml.vectorizer;
 
-import com.gengoai.apollo.ml.data.Dataset;
-import com.gengoai.collection.Index;
-import com.gengoai.collection.Indexes;
-import com.gengoai.collection.Sets;
+import com.gengoai.apollo.linear.NDArray;
+import com.gengoai.apollo.linear.NDArrayFactory;
+import com.gengoai.apollo.ml.Example;
+import com.gengoai.apollo.ml.Feature;
 
-import java.util.Collection;
-import java.util.Set;
+import java.util.stream.Stream;
 
 /**
+ * The type Count feature vectorizer.
+ *
  * @author David B. Bracewell
  */
-public class FixedAlphabetVectorizer extends StringVectorizer {
+public class CountFeatureVectorizer extends IndexVectorizer {
    private static final long serialVersionUID = 1L;
-   final Index<String> alphabet;
 
-   public FixedAlphabetVectorizer(boolean isLabelVectorizer, Collection<String> alphabet) {
-      super(isLabelVectorizer);
-      this.alphabet = Indexes.indexOf(alphabet);
+   @Override
+   protected Stream<String> getAlphabetSpace(Example example) {
+      return example.getFeatureNameSpace();
    }
 
    @Override
-   public Set<String> alphabet() {
-      return Sets.asHashSet(alphabet);
+   public NDArray transform(Example example) {
+      NDArray ndArray = NDArrayFactory.DEFAULT().zeros(size());
+      for (Feature feature : example.getFeatures()) {
+         int fi = indexOf(feature.getName());
+         if (fi >= 0) {
+            ndArray.increment(fi, feature.getValue());
+         }
+      }
+      return ndArray;
    }
 
-   @Override
-   public String decode(double value) {
-      return alphabet.get((int) value);
-   }
-
-   @Override
-   public double encode(String value) {
-      return alphabet.getId(value);
-   }
-
-   @Override
-   public void fit(Dataset dataset) {
-
-   }
-
-   @Override
-   public int size() {
-      return alphabet.size();
-   }
-}//END OF FixedAlphabetVectorizer
+}//END OF CountFeatureVectorizer

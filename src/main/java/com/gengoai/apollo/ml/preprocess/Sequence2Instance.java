@@ -126,7 +126,7 @@ public class Sequence2Instance implements Preprocessor, Serializable {
       List<String> labels = new ArrayList<>();
       example.forEach(e -> {
          for (Feature feature : e.getFeatures()) {
-            features.put(feature.name, feature.value);
+            features.put(feature.getName(), feature.getValue());
          }
          labels.add(e.getLabel());
       });

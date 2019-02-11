@@ -27,6 +27,7 @@ import com.gengoai.apollo.ml.FitParameters;
 import com.gengoai.apollo.ml.Split;
 import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.apollo.ml.vectorizer.IndexVectorizer;
+import com.gengoai.apollo.ml.vectorizer.MultiLabelBinarizer;
 import com.gengoai.conversion.Cast;
 import com.gengoai.logging.Logger;
 import com.gengoai.stream.MStream;
@@ -55,7 +56,7 @@ public abstract class ClassifierEvaluation implements Serializable {
     */
    public static ClassifierEvaluation evaluateClassifier(Classifier classifier, Dataset dataset) {
       ClassifierEvaluation evaluation = classifier.getNumberOfLabels() <= 2
-                                        ? new BinaryEvaluation(classifier.getLabelVectorizer())
+                                        ? new BinaryEvaluation(classifier.getPipeline().labelVectorizer)
                                         : new MultiClassEvaluation();
       evaluation.evaluate(classifier, dataset);
       return evaluation;
@@ -95,10 +96,10 @@ public abstract class ClassifierEvaluation implements Serializable {
                                                       FitParameters fitParameters,
                                                       int nFolds
                                                      ) {
-      IndexVectorizer tmp = IndexVectorizer.labelVectorizer();
+      IndexVectorizer tmp = new MultiLabelBinarizer();
       tmp.fit(dataset);
       ClassifierEvaluation evaluation = tmp.size() <= 2
-                                        ? new BinaryEvaluation(classifier.getLabelVectorizer())
+                                        ? new BinaryEvaluation(classifier.getPipeline().labelVectorizer)
                                         : new MultiClassEvaluation();
       int foldId = 0;
       for (Split split : dataset.shuffle().fold(nFolds)) {

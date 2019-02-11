@@ -20,28 +20,36 @@
  *
  */
 
-package com.gengoai.apollo.ml.data;
+package com.gengoai.apollo.ml.vectorizer;
 
+import com.gengoai.apollo.linear.NDArray;
+import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.ml.Example;
-import com.gengoai.stream.MStream;
+
+import java.util.stream.Stream;
 
 /**
- * <p>
- * Dataset implementation backed by Spark streams for distributed manipulation and use with Spark based ML algorithms.
- * </p>
  *
  * @author David B. Bracewell
  */
-public class DistributedDataset extends BaseStreamDataset {
+public class MultiLabelBinarizer extends IndexVectorizer {
    private static final long serialVersionUID = 1L;
 
-   /**
-    * Instantiates a new Distributed dataset.
-    *
-    * @param stream the stream
-    */
-   public DistributedDataset(MStream<Example> stream) {
-      super(DatasetType.Distributed, stream.toDistributedStream());
+
+   @Override
+   protected Stream<String> getAlphabetSpace(Example example) {
+      return example.getLabelSpace();
    }
 
-}//END OF DistributedDataset
+   @Override
+   public NDArray transform(Example example) {
+      final NDArray ndArray = NDArrayFactory.DEFAULT().zeros(size());
+      example.getMultiLabel()
+             .stream()
+             .mapToInt(this::indexOf)
+             .filter(i -> i >= 0)
+             .forEach(label -> ndArray.set(label, 1.0));
+      return ndArray;
+   }
+
+}//END OF MultiLabelBinarizer

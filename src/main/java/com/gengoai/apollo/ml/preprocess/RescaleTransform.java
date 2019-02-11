@@ -87,7 +87,7 @@ public class RescaleTransform extends RestrictedFeaturePreprocessor {
 
    @Override
    protected void fitFeatures(MStream<Feature> stream) {
-      EnhancedDoubleStatistics stats = stream.mapToDouble(f -> f.value).statistics();
+      EnhancedDoubleStatistics stats = stream.mapToDouble(Feature::getValue).statistics();
       this.min = stats.getMin();
       this.max = stats.getMax();
    }
@@ -99,9 +99,9 @@ public class RescaleTransform extends RestrictedFeaturePreprocessor {
             return Optional.of(in);
          }
          if (min == max) {
-            return Optional.of(Feature.realFeature(in.name, newMax));
+            return Optional.of(Feature.realFeature(in.getName(), newMax));
          }
-         return Optional.of(Feature.realFeature(in.name, Math2.rescale(in.value, min, max, newMin, newMax)));
+         return Optional.of(Feature.realFeature(in.getName(), Math2.rescale(in.getValue(), min, max, newMin, newMax)));
       });
    }
 

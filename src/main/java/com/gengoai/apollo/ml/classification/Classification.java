@@ -24,7 +24,7 @@ package com.gengoai.apollo.ml.classification;
 
 import com.gengoai.apollo.linear.Axis;
 import com.gengoai.apollo.linear.NDArray;
-import com.gengoai.apollo.ml.vectorizer.Vectorizer;
+import com.gengoai.apollo.ml.vectorizer.DiscreteVectorizer;
 import com.gengoai.collection.counter.Counter;
 import com.gengoai.collection.counter.Counters;
 
@@ -39,7 +39,7 @@ public class Classification implements Serializable {
    private static final long serialVersionUID = 1L;
    private final String argMax;
    private final NDArray distribution;
-   private Vectorizer<String> vectorizer;
+   private DiscreteVectorizer vectorizer;
 
    /**
     * Instantiates a new Classification with a vectorizer to facilitate label id to label mapping.
@@ -47,9 +47,9 @@ public class Classification implements Serializable {
     * @param distribution the distribution
     * @param vectorizer   the vectorizer
     */
-   public Classification(NDArray distribution, Vectorizer<String> vectorizer) {
+   public Classification(NDArray distribution, DiscreteVectorizer vectorizer) {
       this.distribution = distribution.isColumnVector() ? distribution.T() : distribution.copy();
-      this.argMax = vectorizer.decode(this.distribution.argMax(Axis.ROW).scalarValue());
+      this.argMax = vectorizer.getString(this.distribution.argMax(Axis.ROW).scalarValue());
       this.vectorizer = vectorizer;
    }
 
@@ -63,7 +63,7 @@ public class Classification implements Serializable {
    public Counter<String> asCounter() {
       Counter<String> counter = Counters.newCounter();
       for (long i = 0; i < distribution.length(); i++) {
-         counter.set(vectorizer.decode(i), distribution.get((int) i));
+         counter.set(vectorizer.getString(i), distribution.get((int) i));
       }
       return counter;
    }
@@ -85,7 +85,7 @@ public class Classification implements Serializable {
     * @return the score
     */
    public double getScore(String label) {
-      return distribution.get((int) vectorizer.encode(label));
+      return distribution.get(vectorizer.indexOf(label));
    }
 
    /**

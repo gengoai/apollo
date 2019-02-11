@@ -22,10 +22,10 @@
 
 package com.gengoai.apollo.ml.classification;
 
+import com.gengoai.apollo.ml.DiscretePipeline;
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.FitParameters;
 import com.gengoai.apollo.ml.LibLinear;
-import com.gengoai.apollo.ml.ModelParameters;
 import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
 import com.gengoai.conversion.Cast;
@@ -38,7 +38,7 @@ import static com.gengoai.Validation.notNull;
 
 /**
  * <p>
- *    A classifier wrapper around LibLinear.
+ * A classifier wrapper around LibLinear.
  * </p>
  *
  * @author David B. Bracewell
@@ -54,7 +54,7 @@ public class LibLinearModel extends Classifier implements Loggable {
     * @param preprocessors the preprocessors
     */
    public LibLinearModel(Preprocessor... preprocessors) {
-      super(ModelParameters.classification(false, p -> p.preprocessors(preprocessors)));
+      super(preprocessors);
    }
 
    /**
@@ -62,7 +62,7 @@ public class LibLinearModel extends Classifier implements Loggable {
     *
     * @param modelParameters the model parameters
     */
-   public LibLinearModel(ModelParameters modelParameters) {
+   public LibLinearModel(DiscretePipeline modelParameters) {
       super(modelParameters);
    }
 
@@ -71,8 +71,7 @@ public class LibLinearModel extends Classifier implements Loggable {
    protected Classifier fitPreprocessed(Dataset preprocessed, FitParameters parameters) {
       Parameters fitParameters = notNull(Cast.as(parameters, Parameters.class));
       biasIndex = (fitParameters.bias ? getNumberOfFeatures() + 1 : -1);
-      model = LibLinear.fit(() -> preprocessed.stream()
-                                              .map(this::encode),
+      model = LibLinear.fit(() -> preprocessed.asVectorStream(getPipeline()),
                             new Parameter(fitParameters.solver,
                                           fitParameters.C,
                                           fitParameters.eps,
@@ -92,8 +91,11 @@ public class LibLinearModel extends Classifier implements Loggable {
 
    @Override
    public Classification predict(Example example) {
-      return new Classification(LibLinear.estimate(model, encodeAndPreprocess(example), biasIndex),
-                                getLabelVectorizer());
+      return new Classification(
+         LibLinear.estimate(model,
+                            example.preprocessAndTransform(getPipeline()),
+                            biasIndex),
+         getPipeline().labelVectorizer);
    }
 
    /**

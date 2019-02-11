@@ -20,22 +20,29 @@
  *
  */
 
-package com.gengoai.apollo.ml.data;
+package com.gengoai.apollo.ml;
 
-import com.gengoai.apollo.ml.Example;
-import com.gengoai.stream.MStream;
+import com.gengoai.apollo.ml.preprocess.PerFeatureTransform;
+import com.gengoai.apollo.ml.preprocess.ZScoreTransform;
+import com.gengoai.apollo.ml.regression.LinearRegression;
+import com.gengoai.apollo.ml.regression.RegressionEvaluation;
+import com.gengoai.apollo.optimization.SGDUpdater;
 
 /**
- * <p>A dataset wrapping a Mango Stream.</p>
- *
  * @author David B. Bracewell
  */
-public class MStreamDataset extends BaseStreamDataset {
-   private static final long serialVersionUID = 1L;
+public class LinearRegressionTest extends BaseRegressionTest {
 
-   public MStreamDataset(MStream<Example> stream) {
-      super(DatasetType.Stream, stream);
+   public LinearRegressionTest() {
+      super(new LinearRegression(new PerFeatureTransform(ZScoreTransform::new)),
+            new LinearRegression.Parameters()
+               .set("maxIterations", 20)
+               .set("weightUpdater", SGDUpdater.builder().momentum(0d).build())
+               .set("tolerance", 1e-10));
    }
 
-
-}//END OF MStreamDataset
+   @Override
+   public boolean passes(RegressionEvaluation mce) {
+      return mce.r2() >= 0.9;
+   }
+}//END OF LibLinearRegressionTest

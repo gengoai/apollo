@@ -43,8 +43,8 @@ import static com.gengoai.apollo.linear.store.VSTextUtils.vectorToLine;
  */
 public class InMemoryVectorStore implements VectorStore, Serializable {
    private static final long serialVersionUID = 1L;
-   private final Map<String, NDArray> vectorMap = new HashMap<>();
    private final int dimension;
+   private final Map<String, NDArray> vectorMap = new HashMap<>();
 
    public InMemoryVectorStore(int dimension) {
       this.dimension = dimension;
@@ -67,6 +67,13 @@ public class InMemoryVectorStore implements VectorStore, Serializable {
    }
 
    @Override
+   public VectorStoreParameter getParameters() {
+      VectorStoreParameter parameter = new VectorStoreParameter();
+      parameter.type = VectorStoreType.InMemory;
+      return parameter;
+   }
+
+   @Override
    public Iterator<NDArray> iterator() {
       return Iterators.unmodifiableIterator(Iterators.transform(vectorMap.entrySet().iterator(),
                                                                 e -> e.getValue().setLabel(e.getKey())));
@@ -80,13 +87,6 @@ public class InMemoryVectorStore implements VectorStore, Serializable {
    @Override
    public int size() {
       return vectorMap.size();
-   }
-
-   @Override
-   public VectorStoreParameter getParameters() {
-      VectorStoreParameter parameter = new VectorStoreParameter();
-      parameter.type = VectorStoreType.InMemory;
-      return parameter;
    }
 
    @Override
@@ -106,9 +106,9 @@ public class InMemoryVectorStore implements VectorStore, Serializable {
     * The type Builder.
     */
    public static class Builder implements VSBuilder {
+      private final VectorStoreParameter params;
       private final Map<String, NDArray> vectors = new HashMap<>();
       private int dimension = -1;
-      private final VectorStoreParameter params;
 
       public Builder(VectorStoreParameter params) {
          this.params = params;

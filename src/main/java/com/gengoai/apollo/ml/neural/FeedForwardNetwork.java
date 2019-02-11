@@ -22,9 +22,9 @@
 
 package com.gengoai.apollo.ml.neural;
 
+import com.gengoai.apollo.ml.DiscretePipeline;
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.FitParameters;
-import com.gengoai.apollo.ml.ModelParameters;
 import com.gengoai.apollo.ml.classification.Classification;
 import com.gengoai.apollo.ml.classification.Classifier;
 import com.gengoai.apollo.ml.data.Dataset;
@@ -40,10 +40,10 @@ public class FeedForwardNetwork extends Classifier {
    ArrayList<Layer> layers = new ArrayList<>();
 
    public FeedForwardNetwork(Preprocessor... preprocessors) {
-      super(ModelParameters.classification(false, p -> p.preprocessors(preprocessors)));
+      super(preprocessors);
    }
 
-   public FeedForwardNetwork(ModelParameters modelParameters) {
+   public FeedForwardNetwork(DiscretePipeline modelParameters) {
       super(modelParameters);
    }
 

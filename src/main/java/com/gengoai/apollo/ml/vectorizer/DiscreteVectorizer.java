@@ -22,27 +22,44 @@
 
 package com.gengoai.apollo.ml.vectorizer;
 
-import com.gengoai.Lazy;
-import com.gengoai.apollo.linear.store.VectorStore;
-import com.gengoai.apollo.linear.store.VectorStoreParameter;
-import com.gengoai.io.Resources;
+import java.util.Set;
 
 /**
+ * <p>A vectorizer to handle transform one or more discrete values into an {@link com.gengoai.apollo.linear.NDArray}</p>
+ *
  * @author David B. Bracewell
  */
-public class Embeddings {
+public interface DiscreteVectorizer extends Vectorizer {
 
-   public static final Lazy<DiscreteVectorizer> glove50D = new Lazy<>(Glove50EmbeddingVectorizer::new);
+   /**
+    * Alphabet set.
+    *
+    * @return the set
+    */
+   Set<String> alphabet();
 
-   private static class Glove50EmbeddingVectorizer extends EmbeddingVectorizer {
-      private static final long serialVersionUID = 1L;
+   /**
+    * Decode t.
+    *
+    * @param value the value
+    * @return the t
+    */
+   String getString(double value);
 
-      public Glove50EmbeddingVectorizer() {
-         super(VectorStore.builder(new VectorStoreParameter()
-                                      .set("location", Resources.from("/data/Downloads/glove.6B.50d.txt"))
-                                  ).build(),
-               "unk");
-      }
-   }
+   /**
+    * Encode double.
+    *
+    * @param value the value
+    * @return the double
+    */
+   int indexOf(String value);
 
-}//END OF Embeddings
+
+   /**
+    * The unique number of features or labels known by the vectorizer.
+    *
+    * @return the number of features / labels in the vectorizer.
+    */
+   int size();
+
+}//END OF DiscreteVectorizer

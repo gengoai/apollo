@@ -26,11 +26,11 @@ import com.gengoai.Stopwatch;
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.Feature;
 import com.gengoai.apollo.ml.FitParameters;
-import com.gengoai.apollo.ml.ModelParameters;
 import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
 import com.gengoai.apollo.ml.preprocess.PreprocessorList;
 import com.gengoai.apollo.ml.vectorizer.IndexVectorizer;
+import com.gengoai.apollo.ml.vectorizer.MultiLabelBinarizer;
 import com.gengoai.apollo.ml.vectorizer.NoOptVectorizer;
 import com.gengoai.apollo.optimization.TerminationCriteria;
 import com.gengoai.collection.HashBasedTable;
@@ -98,13 +98,12 @@ public class GreedyAvgPerceptron extends SequenceLabeler implements Loggable {
     * @param preprocessors the preprocessors
     */
    public GreedyAvgPerceptron(SequenceValidator validator, PreprocessorList preprocessors) {
-      super(ModelParameters.create(new NoOptVectorizer<>())
-                           .update(p -> {
-                              p.preprocessors(preprocessors);
-                              p.sequenceValidator = SequenceValidator.ALWAYS_TRUE;
-                              p.featureVectorizer = new NoOptVectorizer<>();
-                              p.sequenceValidator = validator;
-                           }));
+      super(SequencePipeline.create(NoOptVectorizer.INSTANCE)
+                            .update(p -> {
+                                      p.preprocessorList.addAll(preprocessors);
+                                      p.featureVectorizer = NoOptVectorizer.INSTANCE;
+                                      p.sequenceValidator = validator;
+                                   }));
    }
 
 
@@ -115,7 +114,7 @@ public class GreedyAvgPerceptron extends SequenceLabeler implements Loggable {
    private Counter<String> distribution(Example example, String pLabel) {
       Counter<String> scores = Counters.newCounter(transitionWeights.get(pLabel));
       for (Feature feature : expandFeatures(example)) {
-         scores.merge(featureWeights.get(feature.name).adjustValues(v -> v * feature.value));
+         scores.merge(featureWeights.get(feature.getName()).adjustValues(v -> v * feature.getValue()));
       }
       return scores;
    }
@@ -124,7 +123,7 @@ public class GreedyAvgPerceptron extends SequenceLabeler implements Loggable {
    protected SequenceLabeler fitPreprocessed(Dataset preprocessed, FitParameters fitParameters) {
       Parameters parameters = notNull(Cast.as(fitParameters, Parameters.class));
 
-      IndexVectorizer vectorizer = IndexVectorizer.labelVectorizer();
+      IndexVectorizer vectorizer = new MultiLabelBinarizer();
       vectorizer.fit(preprocessed);
       this.labelSet = new HashSet<>(vectorizer.alphabet());
 
@@ -153,17 +152,17 @@ public class GreedyAvgPerceptron extends SequenceLabeler implements Loggable {
                total++;
                instances++;
                Example instance = sequence.getExample(j);
-               String y = instance.getLabelAsString();
+               String y = instance.getDiscreteLabel();
                String predicted = distribution(instance, pLabel).max();
 
                if (predicted == null) {
-                  predicted = vectorizer.decode(0);
+                  predicted = vectorizer.getString(0);
                }
 
                if (!y.equals(predicted)) {
                   for (Feature feature : expandFeatures(instance)) {
-                     update(y, feature.name, 1.0, instances, featureWeights, fTimestamps, fTotals);
-                     update(predicted, feature.name, -1.0, instances, featureWeights, fTimestamps, fTotals);
+                     update(y, feature.getName(), 1.0, instances, featureWeights, fTimestamps, fTotals);
+                     update(predicted, feature.getName(), -1.0, instances, featureWeights, fTimestamps, fTotals);
                   }
                   update(y, pLabel, 1.0, instances, transitionWeights, fTimestamps, fTotals);
                   update(predicted, pLabel, -1.0, instances, transitionWeights, fTimestamps, fTotals);
@@ -211,7 +210,7 @@ public class GreedyAvgPerceptron extends SequenceLabeler implements Loggable {
       double[] scores = new double[example.size()];
       String pLabel = "<BOS>";
       for (int i = 0; i < example.size(); i++) {
-         Example instance = preprocess(example.getExample(i));
+         Example instance = getPipeline().preprocessorList.apply(example.getExample(i));
          Counter<String> distribution = distribution(instance, pLabel);
          String cLabel = distribution.max();
          scores[i] = distribution.get(cLabel);

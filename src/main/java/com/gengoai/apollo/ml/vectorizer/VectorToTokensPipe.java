@@ -51,8 +51,8 @@ public class VectorToTokensPipe extends Pipe implements Serializable {
       double[] values = new double[features.size()];
       for (int i = 0; i < features.size(); i++) {
          Feature f = features.get(i);
-         names[i] = f.name;
-         values[i] = f.value;
+         names[i] = f.getName();
+         values[i] = f.getValue();
       }
       inst.setData(new FeatureVector(encoder.alphabet, names, values));
       return inst;

@@ -122,7 +122,7 @@ public class RegressionEvaluation implements Serializable {
 
    public void evaluate(Regression model, MStream<Example> dataset) {
       for (Example ii : dataset) {
-         gold.add(ii.getLabelAsDouble());
+         gold.add(ii.getNumericLabel());
          predicted.add(model.estimate(ii));
       }
       p = Math.max(p, model.getNumberOfFeatures());

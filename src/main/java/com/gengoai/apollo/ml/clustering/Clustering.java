@@ -40,7 +40,7 @@ import java.io.Serializable;
 public interface Clustering extends Serializable, Iterable<Cluster> {
 
    /**
-    * Gets the  cluster for the given index.
+    * Gets the cluster for the given index.
     *
     * @param index the index
     * @return the cluster
@@ -79,11 +79,12 @@ public interface Clustering extends Serializable, Iterable<Cluster> {
 
 
    /**
-    * Gets measure.
+    * Gets the measure used to compute the distance/similarity between points.
     *
     * @return the measure
     */
    Measure getMeasure();
+
 
    /**
     * Calculates the total in-group variance of the clustering.

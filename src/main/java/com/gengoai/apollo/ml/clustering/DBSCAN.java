@@ -23,8 +23,8 @@
 package com.gengoai.apollo.ml.clustering;
 
 import com.gengoai.apollo.linear.NDArray;
+import com.gengoai.apollo.ml.DiscretePipeline;
 import com.gengoai.apollo.ml.FitParameters;
-import com.gengoai.apollo.ml.ModelParameters;
 import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
 import com.gengoai.conversion.Cast;
@@ -36,7 +36,8 @@ import java.util.List;
 
 /**
  * <p>
- * A wrapper around the DBSCAN clustering algorithm in Apache Math.
+ * A wrapper around the DBSCAN clustering algorithm in Apache Math. DBSCAN is a flat centroid based clustering where the
+ * number of clusters does not need to be specified.
  * </p>
  *
  * @author David B. Bracewell
@@ -49,7 +50,7 @@ public class DBSCAN extends Clusterer {
     * @param preprocessors the preprocessors
     */
    public DBSCAN(Preprocessor... preprocessors) {
-      super(ModelParameters.indexedLabelVectorizer().preprocessors(preprocessors));
+      super(preprocessors);
    }
 
    /**
@@ -57,7 +58,7 @@ public class DBSCAN extends Clusterer {
     *
     * @param modelParameters the model parameters
     */
-   public DBSCAN(ModelParameters modelParameters) {
+   public DBSCAN(DiscretePipeline modelParameters) {
       super(modelParameters);
    }
 
@@ -107,7 +108,7 @@ public class DBSCAN extends Clusterer {
 
    @Override
    public Clustering fitPreprocessed(Dataset dataSupplier, FitParameters fitParameters) {
-      return fit(() -> dataSupplier.stream().map(this::encode), Cast.as(fitParameters, Parameters.class));
+      return fit(() -> dataSupplier.asVectorStream(getPipeline()), Cast.as(fitParameters, Parameters.class));
    }
 
    @Override

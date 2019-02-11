@@ -22,8 +22,11 @@
 
 package com.gengoai.apollo.ml.vectorizer;
 
+import com.gengoai.apollo.linear.NDArray;
+import com.gengoai.apollo.linear.NDArrayFactory;
+import com.gengoai.apollo.ml.Example;
+import com.gengoai.apollo.ml.Feature;
 import com.gengoai.apollo.ml.data.Dataset;
-import com.gengoai.json.JsonEntry;
 
 import java.util.Collections;
 import java.util.Set;
@@ -31,13 +34,12 @@ import java.util.Set;
 /**
  * @author David B. Bracewell
  */
-public class HashingEncoder extends StringVectorizer {
+public class HashingEncoder implements DiscreteVectorizer {
    private static final long serialVersionUID = 1L;
    private final boolean isBinary;
    private final int numberOfFeatures;
 
    public HashingEncoder(int numberOfFeatures, boolean isBinary) {
-      super(false);
       this.numberOfFeatures = numberOfFeatures;
       this.isBinary = isBinary;
    }
@@ -48,12 +50,12 @@ public class HashingEncoder extends StringVectorizer {
    }
 
    @Override
-   public String decode(double value) {
-      return null;
+   public String getString(double value) {
+      throw new UnsupportedOperationException();
    }
 
    @Override
-   public double encode(String value) {
+   public int indexOf(String value) {
       return (value.hashCode() & 0x7fffffff) % numberOfFeatures;
    }
 
@@ -63,22 +65,22 @@ public class HashingEncoder extends StringVectorizer {
    }
 
    @Override
+   public NDArray transform(Example example) {
+      NDArray ndArray = NDArrayFactory.DEFAULT().zeros(size());
+      for (Feature feature : example.getFeatures()) {
+         int fi = indexOf(feature.getName());
+         if (isBinary) {
+            ndArray.set(fi, 1.0);
+         } else {
+            ndArray.increment(fi, feature.getValue());
+         }
+      }
+      return ndArray;
+   }
+
+   @Override
    public int size() {
       return numberOfFeatures;
    }
 
-   public JsonEntry toJson() {
-      return JsonEntry.object()
-                      .addProperty("class", HashingEncoder.class)
-                      .addProperty("numberOfFeatures", numberOfFeatures)
-                      .addProperty("isBinary", isBinary);
-   }
-
-   @Override
-   public String toString() {
-      return "HashingEncoder{" +
-                "numberOfFeatures=" + numberOfFeatures +
-                ", isBinary=" + isBinary +
-                '}';
-   }
 }//END OF HashingEncoder

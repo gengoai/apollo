@@ -25,7 +25,6 @@ package com.gengoai.apollo.ml.sequence;
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.Feature;
 import com.gengoai.apollo.ml.FitParameters;
-import com.gengoai.apollo.ml.ModelParameters;
 import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
 import com.gengoai.apollo.ml.preprocess.PreprocessorList;
@@ -69,12 +68,12 @@ public class Crf extends SequenceLabeler implements Serializable {
     * @param preprocessors the preprocessors
     */
    public Crf(PreprocessorList preprocessors) {
-      super(ModelParameters.create(new NoOptVectorizer<>())
-                           .update(p -> {
-                              p.preprocessors(preprocessors);
-                              p.sequenceValidator = SequenceValidator.ALWAYS_TRUE;
-                              p.featureVectorizer = new NoOptVectorizer<>();
-                           }));
+      super(SequencePipeline.create(NoOptVectorizer.INSTANCE)
+                            .update(p -> {
+                               p.preprocessorList.addAll(preprocessors);
+                               p.sequenceValidator = SequenceValidator.ALWAYS_TRUE;
+                               p.featureVectorizer = NoOptVectorizer.INSTANCE;
+                            }));
    }
 
    @Override
@@ -112,7 +111,7 @@ public class Crf extends SequenceLabeler implements Serializable {
    @Override
    public Labeling label(Example sequence) {
       CrfSuiteLoader.INSTANCE.load();
-      return new Labeling(tagger.tag(toItemSequence(preprocess(sequence)).v1));
+      return new Labeling(tagger.tag(toItemSequence(getPipeline().preprocessorList.apply(sequence)).v1));
    }
 
    private void readObject(java.io.ObjectInputStream stream) throws IOException, ClassNotFoundException {
@@ -132,10 +131,10 @@ public class Crf extends SequenceLabeler implements Serializable {
       for (Example instance : sequence) {
          Item item = new Item();
          for (Feature feature : instance.getFeatures()) {
-            item.add(new Attribute(feature.name, feature.value));
+            item.add(new Attribute(feature.getName(), feature.getValue()));
          }
          if (instance.hasLabel()) {
-            labels.add(instance.getLabelAsString());
+            labels.add(instance.getDiscreteLabel());
          }
          seq.add(item);
       }

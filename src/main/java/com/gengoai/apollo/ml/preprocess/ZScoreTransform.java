@@ -63,15 +63,15 @@ public class ZScoreTransform extends RestrictedFeaturePreprocessor {
             return Optional.of(in);
          }
          if (standardDeviation == 0) {
-            return Optional.of(Feature.realFeature(in.name, mean));
+            return Optional.of(Feature.realFeature(in.getName(), mean));
          }
-         return Optional.of(Feature.realFeature(in.name, (in.value - mean) / standardDeviation));
+         return Optional.of(Feature.realFeature(in.getName(), (in.getValue() - mean) / standardDeviation));
       });
    }
 
    @Override
    protected void fitFeatures(MStream<Feature> stream) {
-      EnhancedDoubleStatistics stats = stream.mapToDouble(f -> f.value).statistics();
+      EnhancedDoubleStatistics stats = stream.mapToDouble(Feature::getValue).statistics();
       this.mean = stats.getAverage();
       this.standardDeviation = stats.getSampleStandardDeviation();
    }

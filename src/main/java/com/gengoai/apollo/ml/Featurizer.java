@@ -23,6 +23,7 @@
 package com.gengoai.apollo.ml;
 
 import com.gengoai.collection.counter.Counter;
+import com.gengoai.collection.counter.Counters;
 import com.gengoai.function.SerializableFunction;
 import com.gengoai.function.SerializablePredicate;
 
@@ -93,6 +94,19 @@ public abstract class Featurizer<I> implements FeatureExtractor<I>, Serializable
    }
 
 
+   public static Featurizer<Iterable<String>> countFeaturizer(String featurePrefix, boolean normalize) {
+      return new RealExtractor<>(itreable -> {
+         Counter<String> cntr = Counters.newCounter();
+         for (String s : itreable) {
+            cntr.increment(Feature.booleanFeature(featurePrefix, s).getName());
+         }
+         if (normalize) {
+            return cntr.divideBySum();
+         }
+         return cntr;
+      });
+   }
+
    /**
     * Chains multiple featurizers together into a single featurizer.
     *
@@ -122,17 +136,16 @@ public abstract class Featurizer<I> implements FeatureExtractor<I>, Serializable
    /**
     * Creates a new feature extractor that includes contextual features.
     *
-    * @param contextFeaturizer the contextual features
+    * @param patterns the contextual feature patterns
     * @return the feature extractor
     */
-   @SafeVarargs
-   public final FeatureExtractor<I> withContext(ContextFeaturizer<I>... contextFeaturizer) {
-      if (contextFeaturizer == null || contextFeaturizer.length == 0) {
+   public final FeatureExtractor<I> withContext(String... patterns) {
+      if (patterns == null || patterns.length == 0) {
          return this;
-      } else if (contextFeaturizer.length == 1) {
-         return new FeatureExtractorImpl<>(this, contextFeaturizer[0]);
+      } else if (patterns.length == 1) {
+         return new FeatureExtractorImpl<>(this, ContextFeaturizer.contextFeaturizer(patterns[0]));
       }
-      return new FeatureExtractorImpl<>(this, ContextFeaturizer.chain(contextFeaturizer));
+      return new FeatureExtractorImpl<>(this, ContextFeaturizer.chain(patterns));
    }
 
    private static class ChainFeaturizer<I> extends Featurizer<I> {

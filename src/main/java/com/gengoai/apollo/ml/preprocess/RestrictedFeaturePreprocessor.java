@@ -59,7 +59,6 @@ public abstract class RestrictedFeaturePreprocessor implements InstancePreproces
       reset();
       fitInstances(dataset.stream().flatMap(Example::stream));
       Dataset out = dataset.map(this::apply);
-      cleanup();
       return out;
    }
 
@@ -73,13 +72,6 @@ public abstract class RestrictedFeaturePreprocessor implements InstancePreproces
       return Strings.isNullOrBlank(featureNamePrefix) ? "*" : featureNamePrefix;
    }
 
-
-   /**
-    * Cleanup.
-    */
-   protected void cleanup() {
-
-   }
 
    /**
     * Fit implementation working over individual examples in the dataset. Default implementation flattens out the

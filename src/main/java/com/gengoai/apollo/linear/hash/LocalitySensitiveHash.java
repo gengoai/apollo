@@ -38,7 +38,7 @@ import java.util.Set;
 /**
  * <p>Implementation of <a href="https://en.wikipedia.org/wiki/Locality-sensitive_hashing">Locality-sensitive
  * hashing</a> which reduces high dimensional vectors into a lower k using signature functions.  The hash functions
- * cause similar vectors to be mapped into the same low k parameters.getBuckets() facilitating fast nearest neighbor
+ * cause similar vectors to be mapped into the same low k parameters facilitating fast nearest neighbor
  * searches.</p>
  *
  * @author David B. Bracewell

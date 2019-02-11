@@ -75,7 +75,11 @@ public class PreprocessorList extends ArrayList<Preprocessor> implements Seriali
    public Dataset fitAndTransform(Dataset dataset) {
       for (Preprocessor preprocessor : this) {
          preprocessor.reset();
-         dataset = preprocessor.fitAndTransform(dataset);
+         dataset = preprocessor.fitAndTransform(dataset).cache();
+      }
+      dataset = dataset.cache();
+      for (Preprocessor preprocessor : this) {
+         preprocessor.cleanup();
       }
       return dataset;
    }
@@ -91,6 +95,11 @@ public class PreprocessorList extends ArrayList<Preprocessor> implements Seriali
          toString.append(get(i));
       }
       return toString.append("]").toString();
+   }
+
+
+   public void addAll(Preprocessor... preprocessors) {
+      Collections.addAll(this, preprocessors);
    }
 
 }//END OF PreprocessorList

@@ -42,7 +42,7 @@ public class InstanceToTokenSequence extends Pipe implements Serializable {
       Example vector = Cast.as(inst.getData());
       TokenSequence sequence = new TokenSequence();
       for (Feature feature : vector.getFeatures()) {
-         sequence.add(feature.name);
+         sequence.add(feature.getName());
       }
       inst.setData(sequence);
       return inst;

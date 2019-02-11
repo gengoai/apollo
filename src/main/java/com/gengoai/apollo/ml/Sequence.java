@@ -22,6 +22,8 @@
 
 package com.gengoai.apollo.ml;
 
+import com.gengoai.apollo.linear.NDArray;
+import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.conversion.Cast;
 
 import java.util.ArrayList;
@@ -54,6 +56,16 @@ public class Sequence extends Example {
    }
 
    /**
+    * Instantiates a new Sequence with weight 1.0 with the given child examples.
+    *
+    * @param examples the child examples (i.e. sequence instances in order)
+    */
+   public Sequence(List<? extends Example> examples) {
+      examples.forEach(this::add);
+      this.sequence.trimToSize();
+   }
+
+   /**
     * Creates an unlabeled sequence from a sequence of strings.
     *
     * @param tokens the tokens
@@ -73,16 +85,6 @@ public class Sequence extends Example {
     */
    public static Sequence create(List<String> tokens) {
       return create(tokens.stream());
-   }
-
-   /**
-    * Instantiates a new Sequence with weight 1.0 with the given child examples.
-    *
-    * @param examples the child examples (i.e. sequence instances in order)
-    */
-   public Sequence(List<? extends Example> examples) {
-      examples.forEach(this::add);
-      this.sequence.trimToSize();
    }
 
    @Override
@@ -146,6 +148,18 @@ public class Sequence extends Example {
                 "sequence=" + sequence +
                 ", weight=" + getWeight() +
                 '}';
+   }
+
+   @Override
+   public NDArray transform(Pipeline pipeline) {
+      if (size() == 1) {
+         return sequence.get(0).transform(pipeline);
+      }
+      NDArray[] vectors = new NDArray[size()];
+      for (int i = 0; i < size(); i++) {
+         vectors[i] = sequence.get(i).transform(pipeline);
+      }
+      return NDArrayFactory.DEFAULT().vstack(vectors).setWeight(getWeight()).compress();
    }
 
 

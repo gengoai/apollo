@@ -20,39 +20,48 @@
  *
  */
 
-package com.gengoai.apollo.ml.clustering;
+package com.gengoai.apollo.ml;
 
-import com.gengoai.apollo.ml.DiscreteModel;
-import com.gengoai.apollo.ml.DiscretePipeline;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
 
 /**
- * <p>
- * Clustering is an unsupervised machine learning algorithm that partitions input objects often based on the distance
- * between them in their feature space. Different clustering algorithms may require the number of partitions (clusters)
- * to specified as a parameter whereas others may determine the optimal number of clusters automatically.
- * </p>
+ * <p>A model whose labels are discrete requireing a {@link com.gengoai.apollo.ml.vectorizer.DiscreteVectorizer} and
+ * use a {@link DiscretePipeline}</p>
  *
+ * @param <T> the type parameter
  * @author David B. Bracewell
  */
-public abstract class Clusterer extends DiscreteModel<Clustering> {
+public abstract class DiscreteModel<T> extends Model<T> {
    private static final long serialVersionUID = 1L;
+   private final DiscretePipeline modelParameters;
 
    /**
-    * Instantiates a new Clusterer.
+    * Instantiates a new discrete multi-class model.
+    *
+    * @param preprocessors the preprocessors
     */
-   public Clusterer(Preprocessor... preprocessors) {
-      super(DiscretePipeline.unsupervised().update(p -> p.preprocessorList.addAll(preprocessors)));
+   public DiscreteModel(Preprocessor... preprocessors) {
+      this(DiscretePipeline.multiclass().update(p -> p.preprocessorList.addAll(preprocessors)));
    }
 
    /**
-    * Instantiates a new Clusterer.
+    * Instantiates a new discrete model with the given {@link DiscretePipeline}.
     *
     * @param modelParameters the model parameters
     */
-   public Clusterer(DiscretePipeline modelParameters) {
-      super(modelParameters);
+   public DiscreteModel(DiscretePipeline modelParameters) {
+      this.modelParameters = modelParameters.copy();
+   }
+
+   @Override
+   public final int getNumberOfLabels() {
+      return modelParameters.labelVectorizer.size();
+   }
+
+   @Override
+   public final DiscretePipeline getPipeline() {
+      return modelParameters;
    }
 
 
-}//END OF Clusterer
+}//END OF DiscreteModel

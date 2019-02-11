@@ -90,7 +90,7 @@ public class BinTransform extends RestrictedFeaturePreprocessor implements Insta
    @Override
    protected void fitFeatures(MStream<Feature> stream) {
       MStatisticsAccumulator stats = stream.getContext().statisticsAccumulator();
-      stream.forEach(feature -> stats.add(feature.value));
+      stream.forEach(feature -> stats.add(feature.getValue()));
       EnhancedDoubleStatistics statistics = stats.value();
       double max = statistics.getMax();
       double min = statistics.getMin();

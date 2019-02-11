@@ -53,7 +53,7 @@ public class PerInstanceEvaluation implements SequenceLabelerEvaluation, Seriali
       dataset.forEach(sequence -> {
          Labeling result = model.label(sequence);
          for (int i = 0; i < sequence.size(); i++) {
-            eval.entry(sequence.getExample(i).getLabelAsString(), result.getLabel(i));
+            eval.entry(sequence.getExample(i).getDiscreteLabel(), result.getLabel(i));
          }
       });
    }

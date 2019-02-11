@@ -20,29 +20,23 @@
  *
  */
 
-package com.gengoai.apollo.ml.vectorizer;
+package com.gengoai.apollo.ml;
 
-import com.gengoai.Lazy;
-import com.gengoai.apollo.linear.store.VectorStore;
-import com.gengoai.apollo.linear.store.VectorStoreParameter;
-import com.gengoai.io.Resources;
+import com.gengoai.apollo.ml.vectorizer.NumericVectorizer;
 
 /**
+ * <p>A pipeline for problems whose labels are numeric, e.g. regression</p>
+ *
  * @author David B. Bracewell
  */
-public class Embeddings {
+public class NumericPipeline extends Pipeline<NumericVectorizer, NumericPipeline> {
 
-   public static final Lazy<DiscreteVectorizer> glove50D = new Lazy<>(Glove50EmbeddingVectorizer::new);
-
-   private static class Glove50EmbeddingVectorizer extends EmbeddingVectorizer {
-      private static final long serialVersionUID = 1L;
-
-      public Glove50EmbeddingVectorizer() {
-         super(VectorStore.builder(new VectorStoreParameter()
-                                      .set("location", Resources.from("/data/Downloads/glove.6B.50d.txt"))
-                                  ).build(),
-               "unk");
-      }
+   /**
+    * Instantiates a new NumericPipeline.
+    */
+   public NumericPipeline() {
+      super(NumericVectorizer.INSTANCE);
    }
 
-}//END OF Embeddings
+
+}//END OF NumericPipeline

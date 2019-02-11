@@ -33,7 +33,7 @@ import java.io.Serializable;
  *
  * @author David B. Bracewell
  */
-public class ApacheDistanceMeasure implements DistanceMeasure, Serializable {
+class ApacheDistanceMeasure implements DistanceMeasure, Serializable {
    private static final long serialVersionUID = 1L;
    private final Measure wrapped;
 

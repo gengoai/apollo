@@ -25,9 +25,9 @@ package com.gengoai.apollo.ml.topic;
 import com.gengoai.apollo.linear.Axis;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
+import com.gengoai.apollo.ml.DiscretePipeline;
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.FitParameters;
-import com.gengoai.apollo.ml.ModelParameters;
 import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
 import com.gengoai.collection.counter.Counter;
@@ -57,14 +57,14 @@ public class LSA extends TopicModel {
       super(preprocessors);
    }
 
-   public LSA(ModelParameters modelParameters) {
+   public LSA(DiscretePipeline modelParameters) {
       super(modelParameters);
    }
 
    @Override
    public double[] estimate(Example example) {
       double[] scores = new double[topics.size()];
-      NDArray vector = encodeAndPreprocess(example);
+      NDArray vector = example.preprocessAndTransform(getPipeline());
       for (int i = 0; i < topics.size(); i++) {
          double score = vector.scalarDot(getTopic(i).vector);
          scores[i] = score;
@@ -76,8 +76,7 @@ public class LSA extends TopicModel {
    protected TopicModel fitPreprocessed(Dataset preprocessed, FitParameters fitParameters) {
       Parameters parameters = notNull(Cast.as(fitParameters, Parameters.class));
       //Create document x word matrix
-      SparkStream<Vector> stream = new SparkStream<Vector>(preprocessed.stream()
-                                                                       .map(this::encode)
+      SparkStream<Vector> stream = new SparkStream<Vector>(preprocessed.asVectorStream(getPipeline())
                                                                        .map(n -> new DenseVector(n.toDoubleArray())))
                                       .cache();
       RowMatrix mat = new RowMatrix(stream.getRDD().rdd());
@@ -102,7 +101,7 @@ public class LSA extends TopicModel {
 
    @Override
    public NDArray getTopicDistribution(String feature) {
-      int i = (int) getFeatureVectorizer().encode(feature);
+      int i = getPipeline().featureVectorizer.indexOf(feature);
       if (i == -1) {
          return NDArrayFactory.rowVector(new double[topics.size()]);
       }
@@ -135,7 +134,7 @@ public class LSA extends TopicModel {
       @Override
       public Counter<String> featureDistribution() {
          Counter<String> c = Counters.newCounter();
-         vector.forEachSparse(e -> c.set(getFeatureVectorizer().decode(e.getIndex()), e.getValue()));
+         vector.forEachSparse(e -> c.set(getPipeline().featureVectorizer.getString(e.getIndex()), e.getValue()));
          return c;
       }
    }

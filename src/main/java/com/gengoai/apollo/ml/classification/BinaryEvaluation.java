@@ -23,7 +23,7 @@
 package com.gengoai.apollo.ml.classification;
 
 import com.gengoai.apollo.ml.Example;
-import com.gengoai.apollo.ml.vectorizer.Vectorizer;
+import com.gengoai.apollo.ml.vectorizer.DiscreteVectorizer;
 import com.gengoai.conversion.Cast;
 import com.gengoai.math.Math2;
 import com.gengoai.stream.MStream;
@@ -35,7 +35,17 @@ import java.io.PrintStream;
 import static java.util.Arrays.asList;
 
 /**
- * <p>Common methods and metrics for evaluating a binary classifier.</p>
+ * <p>Common methods and metrics for evaluating a binary classifier Evaluation includes the following metrics in
+ * addition to those in {@link ClassifierEvaluation}.</p>
+ * <ul>
+ * <li>Area Under the Curve (AUC)</li>
+ * <li>Accuracy</li>
+ * <li>False Positive Rate</li>
+ * <li>False Negative Rate</li>
+ * <li>True Positive Rate</li>
+ * <li>True negative Rate</li>
+ * <li>Majority Class Baseline</li>
+ * </ul>
  *
  * @author David B. Bracewell
  */
@@ -56,8 +66,8 @@ public class BinaryEvaluation extends ClassifierEvaluation {
     *
     * @param vectorizer the vectorizer
     */
-   public BinaryEvaluation(Vectorizer<String> vectorizer) {
-      this(vectorizer.decode(1.0));
+   public BinaryEvaluation(DiscreteVectorizer vectorizer) {
+      this(vectorizer.getString(1.0));
    }
 
    /**

@@ -23,10 +23,10 @@
 package com.gengoai.apollo.ml;
 
 import com.gengoai.Copyable;
+import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.collection.Streams;
 
 import java.io.Serializable;
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -57,6 +57,16 @@ public abstract class Example implements Copyable<Example>, Iterable<Example>, S
     */
    public void add(Example example) {
       throw new UnsupportedOperationException();
+   }
+
+   /**
+    * Gets the label as a String value
+    *
+    * @return the label as a string value
+    * @throws UnsupportedOperationException If the example does not allow direct access to the label
+    */
+   public String getDiscreteLabel() {
+      return getLabel();
    }
 
    /**
@@ -100,10 +110,9 @@ public abstract class Example implements Copyable<Example>, Iterable<Example>, S
     * @return the feature space
     */
    public Stream<String> getFeatureNameSpace() {
-      return Streams.asStream(this)
-                    .flatMap(e -> e.getFeatures().stream())
-                    .map(f -> f.name)
-                    .distinct();
+      return stream().flatMap(e -> e.getFeatures().stream())
+                     .map(Feature::getName)
+                     .distinct();
    }
 
    /**
@@ -139,16 +148,14 @@ public abstract class Example implements Copyable<Example>, Iterable<Example>, S
    }
 
    /**
-    * Gets the label of this example as a double value
+    * Gets the label space of the example where the labels are strings. The label space is the set of distinct labels in
+    * the example. This method will work for both singe and multi-examples where it will return a stream of labels
+    * across all examples contained in this one for multi-examples.
     *
-    * @return the label as a double
-    * @throws UnsupportedOperationException If the example does not allow direct access to the label
+    * @return the label space
     */
-   public double getLabelAsDouble() {
-      if (getLabel() instanceof CharSequence) {
-         return Double.parseDouble(getLabelAsString());
-      }
-      return getLabel();
+   public Stream<String> getLabelSpace() {
+      return stream().flatMap(e -> e.getMultiLabel().stream()).distinct();
    }
 
    /**
@@ -157,37 +164,21 @@ public abstract class Example implements Copyable<Example>, Iterable<Example>, S
     * @return the labels as a set of string
     * @throws UnsupportedOperationException If the example does not allow direct access to the label
     */
-   public Set<String> getLabelAsSet() {
+   public Set<String> getMultiLabel() {
       throw new UnsupportedOperationException();
    }
 
    /**
-    * Gets the label as a String value
+    * Gets the label of this example as a double value
     *
-    * @return the label as a string value
+    * @return the label as a double
     * @throws UnsupportedOperationException If the example does not allow direct access to the label
     */
-   public String getLabelAsString() {
-      return getLabel();
-   }
-
-   /**
-    * Gets the label space of the example where the labels are strings. The label space is the set of distinct labels in
-    * the example. This method will work for both singe and multi-examples where it will return a stream of labels
-    * across all examples contained in this one for multi-examples.
-    *
-    * @return the label space
-    */
-   public Stream<String> getStringLabelSpace() {
-      if (isMultiLabel()) {
-         return Streams.asStream(this)
-                       .flatMap(e -> e.getLabelAsSet().stream())
-                       .distinct();
-
+   public double getNumericLabel() {
+      if (getLabel() instanceof CharSequence) {
+         return Double.parseDouble(getDiscreteLabel());
       }
-      return Streams.asStream(this)
-                    .map(Example::getLabelAsString)
-                    .distinct();
+      return getLabel();
    }
 
    /**
@@ -226,17 +217,6 @@ public abstract class Example implements Copyable<Example>, Iterable<Example>, S
       return false;
    }
 
-   /**
-    * Checks if the example's label has multiple values or not
-    *
-    * @return True if the example represents a multi-label example, False otherwise
-    */
-   public boolean isMultiLabel() {
-      if (hasLabel()) {
-         return getLabel() instanceof Collection;
-      }
-      return false;
-   }
 
    @Override
    public ContextualIterator iterator() {
@@ -264,6 +244,16 @@ public abstract class Example implements Copyable<Example>, Iterable<Example>, S
    public abstract Example mapInstance(Function<Instance, Instance> mapper);
 
    /**
+    * Preprocesses the example using the given {@link Pipeline} and then transforms the result into an {@link NDArray}.
+    *
+    * @param pipeline the pipeline to use for preprocessing and vectorization
+    * @return the NDArray
+    */
+   public final NDArray preprocessAndTransform(Pipeline pipeline) {
+      return pipeline.preprocessorList.apply(this).transform(pipeline);
+   }
+
+   /**
     * The number of examples represented. For multi-example examples this is the number of sub-examples and for non
     * multi-example examples this is always 1.
     *
@@ -279,6 +269,14 @@ public abstract class Example implements Copyable<Example>, Iterable<Example>, S
    public Stream<Example> stream() {
       return Streams.asStream(this);
    }
+
+   /**
+    * Transforms this example into an {@link NDArray} using the vectorizers of the given {@link Pipeline}
+    *
+    * @param pipeline the pipeline to use for vectorization
+    * @return the NDArray
+    */
+   public abstract NDArray transform(Pipeline pipeline);
 
 
 }//END OF Example

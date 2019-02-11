@@ -150,7 +150,7 @@ public class ContingencyFeatureSelection implements InstancePreprocessor, Serial
 
       return dataset.map(example -> example.mapInstance(instance -> {
          return instance.mapFeatures(f -> {
-            if (finalFeatures.contains(f.name)) {
+            if (finalFeatures.contains(f.getName())) {
                return Optional.of(f);
             }
             return Optional.empty();

@@ -24,62 +24,35 @@ package com.gengoai.apollo.ml.vectorizer;
 
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.ml.Example;
+import com.gengoai.apollo.ml.Pipeline;
 import com.gengoai.apollo.ml.data.Dataset;
 
 import java.io.Serializable;
-import java.util.Collections;
-import java.util.Set;
 
 /**
- * <p> Encoders are responsible for encoding and decoding objects into double values. Encoders are used to create
- * vector representations of features. </p>
+ * <p>Vectorizers  are responsible for transforming instance {@link Example}s into {@link NDArray}s. Note: That
+ * vectorizer implementations should only handle instance input. {@link Example} subclasses should provide the logic for
+ * combining instances in their {@link Example#transform(Pipeline)} method.</p>
  *
- * @param <T> the type parameter
  * @author David B. Bracewell
  */
-public interface Vectorizer<T> extends Serializable {
-
-   default Set<String> alphabet() {
-      return Collections.emptySet();
-   }
+public interface Vectorizer extends Serializable {
 
    /**
-    * Decode t.
+    * Fits the vectorizer to the given {@link Dataset}.
     *
-    * @param value the value
-    * @return the t
-    */
-   T decode(double value);
-
-   /**
-    * Encode double.
-    *
-    * @param value the value
-    * @return the double
-    */
-   double encode(T value);
-
-   /**
-    * Fit.
-    *
-    * @param dataset the dataset
+    * @param dataset the dataset to fit the vectorizer on
     */
    void fit(Dataset dataset);
 
    /**
-    * Size int.
+    * Transforms an {@link com.gengoai.apollo.ml.Instance} into an {@link NDArray}.
     *
-    * @return the int
-    */
-   int size();
-
-   /**
-    * Transform nd array.
-    *
-    * @param example the example
-    * @return the nd array
+    * @param example the instance to transform
+    * @return the NDArray output of vectorizing the given instance
     */
    NDArray transform(Example example);
+
 
 
 }// END OF Encoder

@@ -84,7 +84,7 @@ public class MultiClassEvaluation extends ClassifierEvaluation {
    @Override
    public void evaluate(Classifier model, MStream<Example> dataset) {
       dataset.filter(Example::hasLabel)
-             .mapToPair(instance -> $(instance.getLabelAsString(), model.predict(instance)))
+             .mapToPair(instance -> $(instance.getDiscreteLabel(), model.predict(instance)))
              .forEachLocal(this::entry);
    }
 

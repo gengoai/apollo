@@ -34,9 +34,9 @@ import cc.mallet.types.InstanceList;
 import com.gengoai.SystemInfo;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
+import com.gengoai.apollo.ml.DiscretePipeline;
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.FitParameters;
-import com.gengoai.apollo.ml.ModelParameters;
 import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
 import com.gengoai.apollo.ml.vectorizer.InstanceToTokenSequence;
@@ -63,13 +63,14 @@ public class MalletLDA extends TopicModel {
    private SerialPipes pipes;
    private ParallelTopicModel topicModel;
 
-   public MalletLDA(Preprocessor...preprocessors) {
-      super(createModelParameters().preprocessors(preprocessors));
+   public MalletLDA(Preprocessor... preprocessors) {
+      super(createModelParameters(preprocessors));
    }
 
-   private static ModelParameters createModelParameters() {
-      ModelParameters p = ModelParameters.create(new MalletVectorizer(true, new Alphabet()));
+   private static DiscretePipeline createModelParameters(Preprocessor... preprocessors) {
+      DiscretePipeline p = DiscretePipeline.create(new MalletVectorizer(true, new Alphabet()));
       p.featureVectorizer = new MalletVectorizer(false, new Alphabet());
+      p.preprocessorList.addAll(preprocessors);
       return p;
    }
 
@@ -77,7 +78,7 @@ public class MalletLDA extends TopicModel {
    public double[] estimate(Example example) {
       InstanceList instances = new InstanceList(pipes);
       instances.addThruPipe(
-         new cc.mallet.types.Instance(preprocess(example), "", null, null));
+         new cc.mallet.types.Instance(getPipeline().preprocessorList.apply(example), "", null, null));
       return getInferencer().getSampledDistribution(instances.get(0), 800, 5, 100);
    }
 

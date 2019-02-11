@@ -102,10 +102,10 @@ public class MinCountTransform extends RestrictedFeaturePreprocessor {
          if (!requiresProcessing(in)) {
             return Optional.of(in);
          }
-         if (toKeep.contains(in.name)) {
+         if (toKeep.contains(in.getName())) {
             return Optional.of(in);
          } else if (!Strings.isNullOrBlank(unknownFeature)) {
-            return Optional.of(Feature.realFeature(unknownFeature, in.value));
+            return Optional.of(Feature.realFeature(unknownFeature, in.getValue()));
          }
          return Optional.empty();
       });
@@ -113,7 +113,7 @@ public class MinCountTransform extends RestrictedFeaturePreprocessor {
 
    @Override
    protected void fitFeatures(MStream<Feature> exampleStream) {
-      Map<String, Long> m = exampleStream.map(f -> f.name).countByValue();
+      Map<String, Long> m = exampleStream.map(Feature::getName).countByValue();
       m.values().removeIf(v -> v < minCount);
       this.toKeep.addAll(m.keySet());
    }
@@ -130,7 +130,7 @@ public class MinCountTransform extends RestrictedFeaturePreprocessor {
    }
 
    @Override
-   protected void cleanup() {
+   public void cleanup() {
       if (Strings.isNullOrBlank(unknownFeature)) {
          toKeep.clear();
       }

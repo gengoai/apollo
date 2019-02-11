@@ -39,27 +39,26 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * <p>A vector store provides access and lookup of vectors by labels and to find vectors in the store closest to query
- * vectors. </p>
+ * <p>A mapping of strings into vector representations. </p>
  *
  * @author David B. Bracewell
  */
 public interface VectorStore extends Iterable<NDArray> {
 
    /**
-    * Builder vs builder.
+    * Creates a builder to construct a new {@link VectorStore}
     *
-    * @return the vs builder
+    * @return the vector store builder
     */
    static VSBuilder builder() {
       return builder(new VectorStoreParameter());
    }
 
    /**
-    * Builder vs builder.
+    * Creates a builder to construct a new {@link VectorStore}
     *
-    * @param updater the updater
-    * @return the vs builder
+    * @param updater consumer to update the {@link VectorStoreParameter}s used to create the builder
+    * @return the vector store builder
     */
    static VSBuilder builder(Consumer<VectorStoreParameter> updater) {
       VectorStoreParameter parameter = new VectorStoreParameter();
@@ -68,22 +67,13 @@ public interface VectorStore extends Iterable<NDArray> {
    }
 
    /**
-    * Builder vs builder.
+    * Creates a builder to construct a new {@link VectorStore}
     *
-    * @param parameter the parameter
-    * @return the vs builder
+    * @param parameter the {@link VectorStoreParameter}s used to create the builder
+    * @return the vector store builder
     */
    static VSBuilder builder(VectorStoreParameter parameter) {
-      VSBuilder builder;
-      if (parameter.type == VectorStoreType.IndexedFile) {
-         builder = new DiskBasedVectorStore.Builder(parameter);
-      } else {
-         builder = new InMemoryVectorStore.Builder(parameter);
-      }
-      if (parameter.lshParameters != null) {
-         builder = new LSHVectorStore.Builder(builder, parameter);
-      }
-      return builder;
+      return parameter.type.builder(parameter);
    }
 
    /**
@@ -118,7 +108,6 @@ public interface VectorStore extends Iterable<NDArray> {
     * @param words       the words whose vectors we want to compose
     * @return a composite vector consisting of the given words and calculated using the given vector composition
     */
-   @SuppressWarnings("unchecked")
    default NDArray compose(VectorComposition composition, String... words) {
       if (words == null) {
          return NDArrayFactory.DEFAULT().zeros(dimension());

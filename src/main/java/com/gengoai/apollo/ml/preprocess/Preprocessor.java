@@ -58,4 +58,9 @@ public interface Preprocessor {
    void reset();
 
 
+   default void cleanup() {
+
+   }
+
+
 }//END OF Preprocessor

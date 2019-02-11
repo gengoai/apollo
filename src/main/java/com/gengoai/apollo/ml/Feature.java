@@ -26,6 +26,9 @@ import com.gengoai.Copyable;
 import com.gengoai.Interner;
 import com.gengoai.string.Strings;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.Objects;
 
@@ -50,14 +53,8 @@ import java.util.Objects;
 public final class Feature implements Serializable, Comparable<Feature>, Copyable<Feature> {
    private static final Interner<String> featureInterner = new Interner<>();
    private static final long serialVersionUID = 1L;
-   /**
-    * The name of the feature (e.g. <code>W=Apollo</code>)
-    */
-   public final String name;
-   /**
-    * The value of the feature
-    */
-   public final double value;
+   private String name;
+   private double value;
 
    private Feature(String name, double value) {
       this.name = featureInterner.intern(name);
@@ -252,5 +249,14 @@ public final class Feature implements Serializable, Comparable<Feature>, Copyabl
       return "Feature(" + name + " => " + value + ")";
    }
 
+   private void writeObject(ObjectOutputStream stream) throws IOException {
+      stream.writeUTF(name);
+      stream.writeDouble(value);
+   }
+
+   private void readObject(ObjectInputStream stream) throws IOException, ClassCastException {
+      this.name = featureInterner.intern(stream.readUTF());
+      this.value = stream.readDouble();
+   }
 
 }//END OF Feature

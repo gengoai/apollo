@@ -22,16 +22,13 @@
 
 package com.gengoai.apollo.ml;
 
-import com.gengoai.apollo.linear.NDArray;
+import com.gengoai.Stopwatch;
 import com.gengoai.apollo.ml.data.Dataset;
-import com.gengoai.apollo.ml.preprocess.PreprocessorList;
-import com.gengoai.apollo.ml.vectorizer.Vectorizer;
-import com.gengoai.conversion.Cast;
 import com.gengoai.io.resource.Resource;
+import com.gengoai.logging.Logger;
 
 import java.io.Serializable;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 /**
  * <p>
@@ -52,30 +49,8 @@ import java.util.function.Supplier;
  * @author David B. Bracewell
  */
 public abstract class Model<T> implements Serializable {
+   private static final Logger log = Logger.getLogger(Model.class);
    private static final long serialVersionUID = 1L;
-   private final Vectorizer<String> featureVectorizer;
-   private final Vectorizer<?> labelVectorizer;
-   private final PreprocessorList preprocessors;
-
-   /**
-    * Instantiates a new Model.
-    *
-    * @param modelParameters the model parameters
-    */
-   protected Model(ModelParameters modelParameters) {
-      this.featureVectorizer = modelParameters.featureVectorizer;
-      this.labelVectorizer = modelParameters.labelVectorizer();
-      this.preprocessors = modelParameters.preprocessors;
-   }
-
-   /**
-    * Instantiates a new Model.
-    *
-    * @param supplier A supplier to generate {@link ModelParameters}
-    */
-   protected Model(Supplier<? extends ModelParameters> supplier) {
-      this(supplier.get());
-   }
 
    /**
     * Reads a Classifier from the given resource
@@ -89,29 +64,6 @@ public abstract class Model<T> implements Serializable {
       return resource.readObject();
    }
 
-   /**
-    * Convenience method for encoding and applying preprocessors to examples;
-    *
-    * @param example the example to encode and preprocess
-    * @return the resulting encoded NDArray
-    */
-   public final NDArray encode(Example example) {
-      NDArray array = featureVectorizer.transform(example);
-      if (example.hasLabel()) {
-         array.setLabel(labelVectorizer.transform(example));
-      }
-      return array;
-   }
-
-   /**
-    * Convenience method for encoding and applying preprocessors to examples;
-    *
-    * @param example the example to encode and preprocess
-    * @return the resulting encoded NDArray
-    */
-   public final NDArray encodeAndPreprocess(Example example) {
-      return encode(preprocess(example));
-   }
 
    /**
     * Fits the model on the given {@link Dataset} using the model's default {@link FitParameters}.
@@ -127,14 +79,12 @@ public abstract class Model<T> implements Serializable {
     * Fits the model on the given {@link Dataset} using the given consumer to modify the model's default {@link
     * FitParameters}.
     *
-    * @param dataset       the dataset
-    * @param fitParameters the consumer to use to update the fit parameters
+    * @param dataset          the dataset
+    * @param parameterUpdater the consumer to use to update the fit parameters
     * @return the result of fitting
     */
-   public final T fit(Dataset dataset, Consumer<? extends FitParameters> fitParameters) {
-      FitParameters p = getDefaultFitParameters();
-      fitParameters.accept(Cast.as(p));
-      return fit(dataset, p);
+   public final T fit(Dataset dataset, Consumer<? extends FitParameters> parameterUpdater) {
+      return fit(dataset, getDefaultFitParameters().update(parameterUpdater));
    }
 
    /**
@@ -145,9 +95,15 @@ public abstract class Model<T> implements Serializable {
     * @return the result of fitting
     */
    public final T fit(Dataset dataset, FitParameters fitParameters) {
-      final Dataset preprocessed = preprocessors.fitAndTransform(dataset);
-      labelVectorizer.fit(preprocessed);
-      featureVectorizer.fit(preprocessed);
+      Stopwatch sw = Stopwatch.createStarted();
+      if (fitParameters.verbose) {
+         log.info("Preprocessing...");
+      }
+      Dataset preprocessed = getPipeline().fitAndPreprocess(dataset).cache();
+      sw.stop();
+      if (fitParameters.verbose) {
+         log.info("Preprocessing completed. ({0})", sw);
+      }
       return fitPreprocessed(preprocessed, fitParameters);
    }
 
@@ -167,24 +123,14 @@ public abstract class Model<T> implements Serializable {
     */
    public abstract FitParameters getDefaultFitParameters();
 
-   /**
-    * Gets the feature vectorizer used by the model.
-    *
-    * @return the feature vectorizer
-    */
-   public Vectorizer<String> getFeatureVectorizer() {
-      return featureVectorizer;
-   }
 
    /**
-    * Gets the label vectorizer used by the model.
+    * Gets the pipeline associated with the model. Subclasses should override the return type to match the requirements
+    * of the model.
     *
-    * @param <L> the type parameter
-    * @return the label vectorizer
+    * @return the model parameters
     */
-   public <L> Vectorizer<L> getLabelVectorizer() {
-      return Cast.as(labelVectorizer);
-   }
+   public abstract Pipeline getPipeline();
 
    /**
     * Gets the number of features in the model.
@@ -192,7 +138,7 @@ public abstract class Model<T> implements Serializable {
     * @return the number of features
     */
    public int getNumberOfFeatures() {
-      return featureVectorizer.size();
+      return getPipeline().featureVectorizer.size();
    }
 
    /**
@@ -200,28 +146,7 @@ public abstract class Model<T> implements Serializable {
     *
     * @return the number of labels
     */
-   public int getNumberOfLabels() {
-      return labelVectorizer.size();
-   }
-
-   /**
-    * Gets preprocessors.
-    *
-    * @return the preprocessors
-    */
-   public PreprocessorList getPreprocessors() {
-      return preprocessors;
-   }
-
-   /**
-    * Preprocesses the example applying all preprocessors to it
-    *
-    * @param example the example
-    * @return the example
-    */
-   public final Example preprocess(Example example) {
-      return preprocessors.apply(example);
-   }
+   public abstract int getNumberOfLabels();
 
    /**
     * Writes the model to the given resource.

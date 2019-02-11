@@ -24,9 +24,6 @@ package com.gengoai.apollo.ml.sequence;
 
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.Model;
-import com.gengoai.apollo.ml.ModelParameters;
-import com.gengoai.apollo.ml.vectorizer.Vectorizer;
-import com.gengoai.conversion.Cast;
 
 /**
  * <p>Labels each example in a sequence of examples, which may represent points in time, tokens in a sentence, etc.
@@ -36,35 +33,35 @@ import com.gengoai.conversion.Cast;
  */
 public abstract class SequenceLabeler extends Model<SequenceLabeler> {
    private static final long serialVersionUID = 1L;
-   private SequenceValidator sequenceValidator;
+   private final SequencePipeline modelParameters;
 
-   public SequenceLabeler(ModelParameters modelParameters) {
-      super(modelParameters);
-      this.sequenceValidator = modelParameters.sequenceValidator;
+   public SequenceLabeler(SequencePipeline modelParameters) {
+      this.modelParameters = modelParameters.copy();
    }
 
-   @Override
-   @SuppressWarnings("unchecked")
-   public Vectorizer<String> getLabelVectorizer() {
-      return Cast.as(super.getLabelVectorizer());
-   }
 
    public SequenceValidator getSequenceValidator() {
-      return sequenceValidator;
+      return modelParameters.sequenceValidator;
    }
 
    public void setSequenceValidator(SequenceValidator sequenceValidator) {
-      this.sequenceValidator = sequenceValidator;
+      modelParameters.sequenceValidator = sequenceValidator;
    }
 
    protected boolean isValidTransition(String current, String previous, Example example) {
-      return sequenceValidator.isValid(current, previous, example);
+      return getSequenceValidator().isValid(current, previous, example);
    }
 
    protected boolean isValidTransition(int current, int previous, Example example) {
-      return sequenceValidator.isValid(getLabelVectorizer().decode(current),
-                                       getLabelVectorizer().decode(previous),
-                                       example);
+      return getSequenceValidator().isValid(modelParameters.labelVectorizer.getString(current),
+                                            modelParameters.labelVectorizer.getString(previous),
+                                            example);
+   }
+
+
+   @Override
+   public int getNumberOfLabels() {
+      return modelParameters.labelVectorizer.size();
    }
 
    /**
@@ -74,4 +71,9 @@ public abstract class SequenceLabeler extends Model<SequenceLabeler> {
     */
    public abstract Labeling label(Example example);
 
+
+   @Override
+   public SequencePipeline getPipeline() {
+      return modelParameters;
+   }
 }//END OF SequenceLabeler

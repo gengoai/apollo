@@ -71,8 +71,8 @@ public class TFIDFTransform extends RestrictedFeaturePreprocessor {
          if (!requiresProcessing(in)) {
             return Optional.of(in);
          }
-         double tfidf = in.value / sum * Math.log(totalDocs / documentFrequencies.get(in.name));
-         return Optional.of(Feature.realFeature(in.name, tfidf));
+         double tfidf = in.getValue() / sum * Math.log(totalDocs / documentFrequencies.get(in.getName()));
+         return Optional.of(Feature.realFeature(in.getName(), tfidf));
       });
    }
 

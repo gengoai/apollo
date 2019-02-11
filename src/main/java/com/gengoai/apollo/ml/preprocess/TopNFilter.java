@@ -67,11 +67,11 @@ public class TopNFilter extends RestrictedFeaturePreprocessor implements Instanc
       if (trained) {
          return example;
       }
-      return example.mapFeatures(f -> Optional.ofNullable(selectedFeatures.contains(f.name) ? f : null));
+      return example.mapFeatures(f -> Optional.ofNullable(selectedFeatures.contains(f.getName()) ? f : null));
    }
 
    @Override
-   protected void cleanup() {
+   public void cleanup() {
       this.selectedFeatures = Collections.emptySet();
       this.trained = true;
    }

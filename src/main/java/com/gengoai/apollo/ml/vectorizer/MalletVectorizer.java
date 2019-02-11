@@ -23,6 +23,8 @@
 package com.gengoai.apollo.ml.vectorizer;
 
 import cc.mallet.types.Alphabet;
+import com.gengoai.apollo.linear.NDArray;
+import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.collection.Sets;
 import com.gengoai.conversion.Cast;
@@ -33,13 +35,14 @@ import java.util.Set;
 /**
  * @author David B. Bracewell
  */
-public class MalletVectorizer extends StringVectorizer {
+public class MalletVectorizer implements DiscreteVectorizer {
    private static final long serialVersionUID = 1L;
    protected Alphabet alphabet;
+   private final boolean isLabel;
 
    public MalletVectorizer(boolean isLabel, Alphabet alphabet) {
-      super(isLabel);
       this.alphabet = alphabet;
+      this.isLabel = isLabel;
    }
 
    public void setAlphabet(Alphabet alphabet) {
@@ -52,18 +55,23 @@ public class MalletVectorizer extends StringVectorizer {
    }
 
    @Override
-   public String decode(double value) {
+   public String getString(double value) {
       return alphabet.lookupObject((int) value).toString();
    }
 
    @Override
-   public double encode(String value) {
+   public int indexOf(String value) {
       return alphabet.lookupIndex(value);
    }
 
    @Override
    public void fit(Dataset dataset) {
 
+   }
+
+   @Override
+   public NDArray transform(Example example) {
+      return null;
    }
 
    @Override

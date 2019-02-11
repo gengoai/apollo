@@ -23,9 +23,9 @@
 package com.gengoai.apollo.ml.embedding;
 
 import com.gengoai.apollo.linear.store.VectorStore;
+import com.gengoai.apollo.ml.DiscreteModel;
+import com.gengoai.apollo.ml.DiscretePipeline;
 import com.gengoai.apollo.ml.Example;
-import com.gengoai.apollo.ml.Model;
-import com.gengoai.apollo.ml.ModelParameters;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
 import com.gengoai.collection.Streams;
 import com.gengoai.string.Strings;
@@ -41,7 +41,7 @@ import java.util.stream.Collectors;
  *
  * @author David B. Bracewell
  */
-public abstract class Embedding extends Model<VectorStore> {
+public abstract class Embedding extends DiscreteModel<VectorStore> {
    private static final long serialVersionUID = 1L;
 
    /**
@@ -50,7 +50,7 @@ public abstract class Embedding extends Model<VectorStore> {
     * @param preprocessors the preprocessors
     */
    public Embedding(Preprocessor... preprocessors) {
-      super(ModelParameters.indexedLabelVectorizer().preprocessors(preprocessors));
+      super(DiscretePipeline.unsupervised().update(p -> p.preprocessorList.addAll(preprocessors)));
    }
 
    /**
@@ -58,9 +58,10 @@ public abstract class Embedding extends Model<VectorStore> {
     *
     * @param modelParameters the model parameters
     */
-   public Embedding(ModelParameters modelParameters) {
+   public Embedding(DiscretePipeline modelParameters) {
       super(modelParameters);
    }
+
 
    /**
     * Converts an example into an ordered list of strings
@@ -74,7 +75,7 @@ public abstract class Embedding extends Model<VectorStore> {
                        .stream()
                        .map(f -> {
                           if (fullFeatureName) {
-                             return f.name;
+                             return f.getName();
                           } else {
                              return f.getSuffix();
                           }
@@ -86,7 +87,7 @@ public abstract class Embedding extends Model<VectorStore> {
                     .flatMap(e -> e.getFeatures().stream()
                                    .map(f -> {
                                       if (fullFeatureName) {
-                                         return f.name;
+                                         return f.getName();
                                       } else {
                                          return f.getSuffix();
                                       }

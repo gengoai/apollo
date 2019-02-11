@@ -30,9 +30,9 @@ import cc.mallet.types.Alphabet;
 import cc.mallet.types.InstanceList;
 import cc.mallet.types.Labeling;
 import com.gengoai.apollo.linear.NDArrayFactory;
+import com.gengoai.apollo.ml.DiscretePipeline;
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.FitParameters;
-import com.gengoai.apollo.ml.ModelParameters;
 import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
 import com.gengoai.apollo.ml.vectorizer.MalletVectorizer;
@@ -65,10 +65,10 @@ public abstract class MalletClassifier extends Classifier {
       super(createModelParameters(preprocessors));
    }
 
-   private static ModelParameters createModelParameters(Preprocessor... preprocessors) {
-      ModelParameters p = ModelParameters.create(new MalletVectorizer(true, new Alphabet()));
+   private static DiscretePipeline createModelParameters(Preprocessor... preprocessors) {
+      DiscretePipeline p = DiscretePipeline.create(new MalletVectorizer(true, new Alphabet()));
       p.featureVectorizer = new MalletVectorizer(false, new Alphabet());
-      p.preprocessors(preprocessors);
+      p.preprocessorList.addAll(preprocessors);
       return p;
    }
 
@@ -79,7 +79,7 @@ public abstract class MalletClassifier extends Classifier {
     */
    protected SerialPipes createPipe() {
       return new SerialPipes(Arrays.asList(new Target2Label(),
-                                           new VectorToTokensPipe(Cast.as(getFeatureVectorizer()))));
+                                           new VectorToTokensPipe(Cast.as(getPipeline().featureVectorizer))));
    }
 
    @Override
@@ -90,7 +90,7 @@ public abstract class MalletClassifier extends Classifier {
          example -> trainingData.addThruPipe(new cc.mallet.types.Instance(example, example.getLabel(), null, null)));
       ClassifierTrainer<?> trainer = getTrainer(fitParameters);
       model = trainer.train(trainingData);
-      MalletVectorizer labelVectorizer = Cast.as(getLabelVectorizer());
+      MalletVectorizer labelVectorizer = Cast.as(getPipeline().labelVectorizer);
       labelVectorizer.setAlphabet(model.getLabelAlphabet());
       return this;
    }
@@ -108,11 +108,11 @@ public abstract class MalletClassifier extends Classifier {
       Labeling labeling = model.classify(model.getInstancePipe()
                                               .instanceFrom(new cc.mallet.types.Instance(example, "", null, null)))
                                .getLabeling();
-      double[] result = new double[getLabelVectorizer().size()];
-      for (int i = 0; i < getLabelVectorizer().size(); i++) {
+      double[] result = new double[getNumberOfLabels()];
+      for (int i = 0; i < getNumberOfLabels(); i++) {
          result[i] = labeling.value(i);
       }
-      return new Classification(NDArrayFactory.rowVector(result), getLabelVectorizer());
+      return new Classification(NDArrayFactory.rowVector(result), getPipeline().labelVectorizer);
    }
 
 

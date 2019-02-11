@@ -23,8 +23,8 @@
 package com.gengoai.apollo.ml.clustering;
 
 import com.gengoai.apollo.linear.NDArray;
+import com.gengoai.apollo.ml.DiscretePipeline;
 import com.gengoai.apollo.ml.FitParameters;
-import com.gengoai.apollo.ml.ModelParameters;
 import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
 import com.gengoai.collection.Iterables;
@@ -59,8 +59,7 @@ public class AgglomerativeClusterer extends Clusterer {
     * @param preprocessors the preprocessors
     */
    public AgglomerativeClusterer(Preprocessor... preprocessors) {
-      super(ModelParameters.indexedLabelVectorizer()
-                           .preprocessors(preprocessors));
+      super(preprocessors);
    }
 
    /**
@@ -68,7 +67,7 @@ public class AgglomerativeClusterer extends Clusterer {
     *
     * @param modelParameters the model parameters
     */
-   public AgglomerativeClusterer(ModelParameters modelParameters) {
+   public AgglomerativeClusterer(DiscretePipeline modelParameters) {
       super(modelParameters);
    }
 
@@ -129,7 +128,7 @@ public class AgglomerativeClusterer extends Clusterer {
 
    @Override
    protected Clustering fitPreprocessed(Dataset preprocessed, FitParameters fitParameters) {
-      return fit(preprocessed.stream().map(this::encode), Cast.as(fitParameters, Parameters.class));
+      return fit(preprocessed.asVectorStream(getPipeline()), Cast.as(fitParameters, Parameters.class));
    }
 
    @Override

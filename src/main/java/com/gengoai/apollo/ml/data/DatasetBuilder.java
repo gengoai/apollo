@@ -29,8 +29,10 @@ import com.gengoai.apollo.ml.LabeledSequence;
 import com.gengoai.apollo.ml.data.format.DataFormat;
 import com.gengoai.io.resource.Resource;
 import com.gengoai.stream.MStream;
+import com.gengoai.stream.StreamingContext;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -75,7 +77,7 @@ public class DatasetBuilder {
     * @param extractor the feature extractor to transform input objects to examples
     * @return the dataset
     */
-   public <I> Dataset instances(MStream<I> instances, FeatureExtractor<I> extractor) {
+   public <I> Dataset instances(MStream<I> instances, FeatureExtractor<? super I> extractor) {
       return type.create(instances.map(extractor::extract));
    }
 
@@ -105,6 +107,20 @@ public class DatasetBuilder {
     */
    public <I> Dataset sequences(MStream<List<I>> instances, FeatureExtractor<I> extractor) {
       return type.create(instances.map(extractor::extract));
+   }
+
+   /**
+    * Creates a Dataset from the given sequence input data transforming it to examples using the given {@link
+    * FeatureExtractor}
+    *
+    * @param <I>       the input type parameter
+    * @param instances the raw input sequences which will be transformed into examples using the given {@link
+    *                  FeatureExtractor}
+    * @param extractor the feature extractor to transform input objects to examples
+    * @return the dataset
+    */
+   public <I> Dataset sequences(Collection<List<I>> instances, FeatureExtractor<I> extractor) {
+      return type.create(StreamingContext.local().stream(instances.stream().map(extractor::extract)));
    }
 
    /**

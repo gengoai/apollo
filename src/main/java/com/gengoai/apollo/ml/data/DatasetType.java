@@ -27,6 +27,7 @@ import com.gengoai.apollo.ml.data.format.DataFormat;
 import com.gengoai.apollo.ml.data.format.JsonDataFormat;
 import com.gengoai.io.resource.Resource;
 import com.gengoai.stream.MStream;
+import com.gengoai.stream.StorageLevel;
 import com.gengoai.stream.StreamingContext;
 
 import java.io.IOException;
@@ -46,15 +47,12 @@ public enum DatasetType {
          return StreamingContext.distributed();
       }
 
-      @Override
-      public Dataset create(MStream<Example> examples) {
-         return new DistributedDataset(examples);
-      }
 
       @Override
-      public Dataset read(Resource location, DataFormat dataFormat) throws IOException {
-         return create(dataFormat.read(location));
+      public Dataset create(MStream<Example> examples) {
+         return new StreamBasedDataset(Distributed, examples.toDistributedStream());
       }
+
    },
    /**
     * All data is stored in-memory on local machine.
@@ -62,53 +60,20 @@ public enum DatasetType {
    InMemory {
       @Override
       public Dataset create(MStream<Example> examples) {
-         return new InMemoryDataset(examples.collect());
+         return new StreamBasedDataset(InMemory, examples.persist(StorageLevel.InMemory));
       }
 
-
-      @Override
-      public Dataset read(Resource location, DataFormat dataFormat) throws IOException {
-         return create(dataFormat.read(location));
-      }
    },
    /**
     * Data is stored on disk
     */
-   OffHeap {
+   OnDisk {
       @Override
       public Dataset create(MStream<Example> examples) {
-         return null;
+         return new StreamBasedDataset(OnDisk, examples.persist(StorageLevel.OnDisk));
       }
 
-      @Override
-      public Dataset read(Resource location, DataFormat dataFormat) throws IOException {
-         return null;
-      }
-   },
-   /**
-    * Data is stored in a Mango stream, what kind may not be known.
-    */
-   Stream {
-      @Override
-      public Dataset create(MStream<Example> examples) {
-         return new MStreamDataset(examples);
-      }
-
-      @Override
-      public Dataset read(Resource location, DataFormat dataFormat) throws IOException {
-         return create(dataFormat.read(location));
-      }
    };
-
-
-   /**
-    * Gets the streaming context.
-    *
-    * @return the streaming context
-    */
-   public StreamingContext getStreamingContext() {
-      return StreamingContext.local();
-   }
 
 
    /**
@@ -119,6 +84,14 @@ public enum DatasetType {
     */
    public abstract Dataset create(MStream<Example> examples);
 
+   /**
+    * Gets the streaming context.
+    *
+    * @return the streaming context
+    */
+   public StreamingContext getStreamingContext() {
+      return StreamingContext.local();
+   }
 
    /**
     * Load dataset.
@@ -139,7 +112,19 @@ public enum DatasetType {
     * @return the dataset
     * @throws IOException the io exception
     */
-   public abstract Dataset read(Resource location, DataFormat dataFormat) throws IOException;
+   public Dataset read(Resource location, DataFormat dataFormat) throws IOException {
+      return create(dataFormat.read(location));
+   }
 
+
+   /**
+    * Cache dataset.
+    *
+    * @param dataset the dataset
+    * @return the dataset
+    */
+   public Dataset cache(Dataset dataset) {
+      return create(dataset.stream());
+   }
 
 }//END OF DatasetType

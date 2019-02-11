@@ -119,19 +119,19 @@ public class SilhouetteEvaluation implements ClusteringEvaluation, Serializable 
    }
 
    /**
-    * Gets avg silhouette.
+    * Gets the average silhouette score.
     *
-    * @return the avg silhouette
+    * @return the average silhouette score
     */
    public double getAvgSilhouette() {
       return avgSilhouette;
    }
 
    /**
-    * Gets silhouette.
+    * Gets the silhouette score for the given cluster id.
     *
-    * @param id the id
-    * @return the silhouette
+    * @param id the id of the cluster
+    * @return the silhouette score for the cluster with the given id
     */
    public double getSilhouette(int id) {
       return silhouette.get(id);

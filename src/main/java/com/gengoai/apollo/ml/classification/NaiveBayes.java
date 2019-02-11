@@ -24,9 +24,9 @@ package com.gengoai.apollo.ml.classification;
 
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
+import com.gengoai.apollo.ml.DiscretePipeline;
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.FitParameters;
-import com.gengoai.apollo.ml.ModelParameters;
 import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
 import com.gengoai.collection.Iterables;
@@ -37,7 +37,13 @@ import java.util.Arrays;
 import static com.gengoai.Validation.notNull;
 
 /**
- * Naive Bayes model specifically designed for text classification problems
+ * <p>Naive Bayes model specifically designed for text classification problems. Allows for training the following type
+ * of models:</p>
+ * <ul>
+ * <li>Multinomial</li>
+ * <li>Bernoulli</li>
+ * <li>Complementary</li>
+ * </ul>
  *
  * @author David B. Bracewell
  */
@@ -52,7 +58,7 @@ public class NaiveBayes extends Classifier {
     * @param preprocessors the preprocessors
     */
    public NaiveBayes(Preprocessor... preprocessors) {
-      super(ModelParameters.classification(false, p -> p.preprocessors(preprocessors)));
+      super(preprocessors);
    }
 
    /**
@@ -60,7 +66,7 @@ public class NaiveBayes extends Classifier {
     *
     * @param modelParameters the model parameters
     */
-   public NaiveBayes(ModelParameters modelParameters) {
+   public NaiveBayes(DiscretePipeline modelParameters) {
       super(modelParameters);
    }
 
@@ -76,7 +82,7 @@ public class NaiveBayes extends Classifier {
       for (Example instance : preprocessed) {
          if (instance.hasLabel()) {
             N++;
-            NDArray vector = encode(instance);
+            NDArray vector = instance.transform(getPipeline());
             int ci = vector.getLabelAsNDArray().argMax();
             priors[ci] += instance.getWeight();
             for (NDArray.Entry entry : Iterables.asIterable(vector.sparseIterator())) {
@@ -125,10 +131,10 @@ public class NaiveBayes extends Classifier {
 
    @Override
    public Classification predict(Example example) {
-      return new Classification(modelType.distribution(encodeAndPreprocess(example),
+      return new Classification(modelType.distribution(example.preprocessAndTransform(getPipeline()),
                                                        priors,
                                                        conditionals),
-                                getLabelVectorizer());
+                                getPipeline().labelVectorizer);
    }
 
 

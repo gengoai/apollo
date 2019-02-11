@@ -22,18 +22,18 @@
 
 package com.gengoai.apollo.ml.classification;
 
+import com.gengoai.apollo.ml.DiscreteModel;
+import com.gengoai.apollo.ml.DiscretePipeline;
 import com.gengoai.apollo.ml.Example;
-import com.gengoai.apollo.ml.Model;
-import com.gengoai.apollo.ml.ModelParameters;
-import com.gengoai.apollo.ml.vectorizer.Vectorizer;
-import com.gengoai.conversion.Cast;
+import com.gengoai.apollo.ml.Pipeline;
+import com.gengoai.apollo.ml.preprocess.Preprocessor;
 import com.gengoai.function.SerializableFunction;
 
 /**
  * <p>
  * A classifier assigns one or more labels (categories) to an input object. The input object, or {@link
- * com.gengoai.apollo.ml.Instance}, is described using one or more {@link com.gengoai.apollo.ml.Feature}s describing the
- * salient characteristics of the input.
+ * com.gengoai.apollo.ml.Instance}*, is described using one or more {@link com.gengoai.apollo.ml.Feature}s describing
+ * the salient characteristics of the input.
  * </p>
  * <p>
  * Classification is typically done in a supervised manner where the classifier produces a function that converts an
@@ -43,27 +43,32 @@ import com.gengoai.function.SerializableFunction;
  *
  * @author David B. Bracewell
  */
-public abstract class Classifier extends Model<Classifier> implements SerializableFunction<Example, Classification> {
+public abstract class Classifier extends DiscreteModel<Classifier> implements SerializableFunction<Example, Classification> {
    private static final long serialVersionUID = 1L;
 
+
    /**
-    * Instantiates a new Classifier with the given {@link ModelParameters}.
+    * Instantiates a new Classifier.
+    *
+    * @param preprocessors the preprocessors
+    */
+   public Classifier(Preprocessor... preprocessors) {
+      super(preprocessors);
+   }
+
+   /**
+    * Instantiates a new Classifier with the given {@link Pipeline}.
     *
     * @param modelParameters the model parameters
     */
-   public Classifier(ModelParameters modelParameters) {
+   public Classifier(DiscretePipeline modelParameters) {
       super(modelParameters);
    }
+
 
    @Override
    public Classification apply(Example example) {
       return predict(example);
-   }
-
-   @Override
-   @SuppressWarnings("unchecked")
-   public Vectorizer<String> getLabelVectorizer() {
-      return Cast.as(super.getLabelVectorizer());
    }
 
    /**

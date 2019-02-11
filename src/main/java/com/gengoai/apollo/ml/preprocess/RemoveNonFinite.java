@@ -38,7 +38,7 @@ public class RemoveNonFinite implements InstancePreprocessor, Serializable {
 
    @Override
    public Instance applyInstance(Instance example) {
-      return example.mapFeatures(f -> Optional.ofNullable(Double.isFinite(f.value)
+      return example.mapFeatures(f -> Optional.ofNullable(Double.isFinite(f.getValue())
                                                           ? f
                                                           : null));
    }

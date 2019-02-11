@@ -20,29 +20,38 @@
  *
  */
 
-package com.gengoai.apollo.ml.vectorizer;
+package com.gengoai.apollo.ml.sequence;
 
-import com.gengoai.Lazy;
-import com.gengoai.apollo.linear.store.VectorStore;
-import com.gengoai.apollo.linear.store.VectorStoreParameter;
-import com.gengoai.io.Resources;
+import com.gengoai.apollo.ml.Pipeline;
+import com.gengoai.apollo.ml.vectorizer.DiscreteVectorizer;
+import com.gengoai.apollo.ml.vectorizer.MultiLabelBinarizer;
+import com.gengoai.conversion.Cast;
 
 /**
  * @author David B. Bracewell
  */
-public class Embeddings {
+public class SequencePipeline extends Pipeline<DiscreteVectorizer, SequencePipeline> {
+   public SequenceValidator sequenceValidator = SequenceValidator.ALWAYS_TRUE;
 
-   public static final Lazy<DiscreteVectorizer> glove50D = new Lazy<>(Glove50EmbeddingVectorizer::new);
 
-   private static class Glove50EmbeddingVectorizer extends EmbeddingVectorizer {
-      private static final long serialVersionUID = 1L;
-
-      public Glove50EmbeddingVectorizer() {
-         super(VectorStore.builder(new VectorStoreParameter()
-                                      .set("location", Resources.from("/data/Downloads/glove.6B.50d.txt"))
-                                  ).build(),
-               "unk");
-      }
+   protected SequencePipeline(DiscreteVectorizer labelVectorizer) {
+      super(labelVectorizer);
    }
 
-}//END OF Embeddings
+   @Override
+   public SequencePipeline copy() {
+      return Cast.as(super.copy());
+   }
+
+
+   public static SequencePipeline create() {
+      return new SequencePipeline(new MultiLabelBinarizer());
+   }
+
+
+   public static SequencePipeline create(DiscreteVectorizer labelVectorizer) {
+      return new SequencePipeline(labelVectorizer);
+   }
+
+
+}//END OF SequenceModelParameters

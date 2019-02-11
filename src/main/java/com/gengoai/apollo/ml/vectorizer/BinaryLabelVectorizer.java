@@ -22,6 +22,9 @@
 
 package com.gengoai.apollo.ml.vectorizer;
 
+import com.gengoai.apollo.linear.NDArray;
+import com.gengoai.apollo.linear.NDArrayFactory;
+import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.collection.Sets;
 
@@ -32,53 +35,39 @@ import java.util.Set;
  *
  * @author David B. Bracewell
  */
-public class BinaryLabelVectorizer extends StringVectorizer {
+public class BinaryLabelVectorizer implements DiscreteVectorizer {
    private static final long serialVersionUID = 1L;
-   private final String trueLabel;
-   private final String falseLabel;
-
-   /**
-    * Instantiates a new Binary vectorizer using "true" and "false" as the labels.
-    */
-   public BinaryLabelVectorizer() {
-      this("true", "false");
-   }
-
-   /**
-    * Instantiates a new Binary vectorizer.
-    *
-    * @param trueLabel  the true label
-    * @param falseLabel the false label
-    */
-   public BinaryLabelVectorizer(String trueLabel, String falseLabel) {
-      super(true);
-      this.trueLabel = trueLabel;
-      this.falseLabel = falseLabel;
-   }
+   public static final DiscreteVectorizer INSTANCE = new BinaryLabelVectorizer();
 
    @Override
    public Set<String> alphabet() {
-      return Sets.hashSetOf(falseLabel, trueLabel);
+      return Sets.hashSetOf(Boolean.FALSE.toString(), Boolean.TRUE.toString());
    }
 
 
    @Override
-   public String decode(double value) {
+   public String getString(double value) {
       return value == 1.0
-             ? trueLabel
-             : falseLabel;
+             ? Boolean.TRUE.toString()
+             : Boolean.FALSE.toString();
    }
 
    @Override
-   public double encode(String value) {
-      return value.equals(trueLabel)
-             ? 1.0
-             : 0.0;
+   public int indexOf(String value) {
+      return Boolean.parseBoolean(value) ? 1 : 0;
    }
 
    @Override
    public void fit(Dataset dataset) {
 
+   }
+
+   @Override
+   public NDArray transform(Example example) {
+      if (example.hasLabel()) {
+         return NDArrayFactory.DEFAULT().zeros().set(indexOf(example.getLabel()), 1.0);
+      }
+      return NDArrayFactory.DEFAULT().scalar(Double.NaN);
    }
 
    @Override

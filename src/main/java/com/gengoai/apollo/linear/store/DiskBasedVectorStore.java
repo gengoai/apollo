@@ -171,9 +171,6 @@ public final class DiskBasedVectorStore implements VectorStore, Serializable, Lo
                throw new RuntimeException(e);
             }
          }
-         if (parameters.lshParameters != null) {
-            parameters.lshParameters.dimension = dimension;
-         }
          return new DiskBasedVectorStore(parameters.location.asFile().orElseThrow(IllegalArgumentException::new),
                                          parameters.cacheSize);
       }

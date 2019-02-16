@@ -23,7 +23,6 @@ package com.gengoai.apollo.linear.store;
 
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
-import com.gengoai.apollo.linear.hash.LSHParameter;
 import com.gengoai.collection.Iterators;
 import com.gengoai.io.Resources;
 import com.gengoai.io.resource.Resource;
@@ -128,14 +127,10 @@ public class InMemoryVectorStore implements VectorStore, Serializable {
 
       @Override
       public VectorStore build() {
-         LSHParameter lshParameters = params.lshParameters;
          InMemoryVectorStore vs;
          if (vectors.size() > 0 || params.location == null) {
             vs = new InMemoryVectorStore(dimension);
             vs.vectorMap.putAll(vectors);
-            if (lshParameters != null) {
-               lshParameters.dimension = dimension;
-            }
          } else {
             File vectorFile = params.location.asFile().orElseThrow(IllegalArgumentException::new);
             try {

@@ -30,7 +30,7 @@ import com.gengoai.apollo.ml.DiscretePipeline;
 import com.gengoai.apollo.ml.FitParameters;
 import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
-import com.gengoai.apollo.stat.measure.Measure;
+import com.gengoai.apollo.statistics.measure.Measure;
 import com.gengoai.conversion.Cast;
 import com.gengoai.function.SerializableSupplier;
 import com.gengoai.logging.Logger;
@@ -52,7 +52,7 @@ import java.util.stream.IntStream;
  *
  * @author David B. Bracewell
  */
-public class KMeans extends Clusterer {
+public class KMeans extends FlatCentroidClusterer {
    private static final Logger log = Logger.getLogger(KMeans.class);
    private static final long serialVersionUID = 1L;
 
@@ -82,13 +82,14 @@ public class KMeans extends Clusterer {
     * @param fitParameters the fit parameters
     * @return the flat clustering
     */
-   public FlatClustering fit(SerializableSupplier<MStream<NDArray>> dataSupplier, Parameters fitParameters) {
-      FlatClustering clusters = new FlatClustering(fitParameters.measure);
+   public KMeans fit(SerializableSupplier<MStream<NDArray>> dataSupplier, Parameters fitParameters) {
+      setMeasure(fitParameters.measure);
+
       List<NDArray> instances = dataSupplier.get().collect();
       for (NDArray centroid : initCentroids(fitParameters.K, instances)) {
          Cluster c = new Cluster();
          c.setCentroid(centroid);
-         clusters.add(c);
+         add(c);
       }
 
 
@@ -100,21 +101,21 @@ public class KMeans extends Clusterer {
 
       for (int itr = 0; itr < fitParameters.maxIterations; itr++) {
          Stopwatch sw = Stopwatch.createStarted();
-         clusters.forEach(Cluster::clear);
+         forEach(Cluster::clear);
          numMoved.set(0);
          instances.parallelStream()
                   .forEach(ii -> {
                               int minI = 0;
-                              double minD = measure.calculate(ii, clusters.get(0).getCentroid());
+                              double minD = measure.calculate(ii, get(0).getCentroid());
                               for (int ci = 1; ci < fitParameters.K; ci++) {
-                                 double distance = measure.calculate(ii, clusters.get(ci).getCentroid());
+                                 double distance = measure.calculate(ii, get(ci).getCentroid());
                                  if (distance < minD) {
                                     minD = distance;
                                     minI = ci;
                                  }
                               }
                               Integer old = assignment.put(ii, minI);
-                              clusters.get(minI).addPoint(ii);
+                              get(minI).addPoint(ii);
                               if (old == null || old != minI) {
                                  numMoved.incrementAndGet();
                               }
@@ -122,23 +123,23 @@ public class KMeans extends Clusterer {
                           );
 
          for (int i = 0; i < fitParameters.K; i++) {
-            clusters.get(i).getPoints().removeIf(Objects::isNull);
-            if (clusters.get(i).size() == 0) {
-               clusters.get(i).setCentroid(
+            get(i).getPoints().removeIf(Objects::isNull);
+            if (get(i).size() == 0) {
+               get(i).setCentroid(
                   NDArrayFactory.DEFAULT().create(NDArrayInitializer.rand(-1, 1), (int) instances.get(0).length()));
             } else {
-               NDArray c = clusters.get(i).getCentroid().zero();
-               for (NDArray ii : clusters.get(i)) {
+               NDArray c = get(i).getCentroid().zero();
+               for (NDArray ii : get(i)) {
                   if (ii != null) {
                      c.addi(ii);
                   }
                }
-               c.divi((float) clusters.get(i).size());
+               c.divi((float) get(i).size());
             }
          }
 
          sw.stop();
-         double variance = clusters.inGroupVariance();
+         double variance = inGroupVariance();
          if (fitParameters.verbose) {
             log.info("iteration={0}: number_moved={1}, variance={2} ({3})", (itr + 1), numMoved, variance, sw);
          }
@@ -149,8 +150,8 @@ public class KMeans extends Clusterer {
          lastVariance = variance;
       }
 
-      for (int i = 0; i < clusters.size(); i++) {
-         Cluster cluster = clusters.get(i);
+      for (int i = 0; i < size(); i++) {
+         Cluster cluster = get(i);
          cluster.setId(i);
          if (cluster.size() > 0) {
             cluster.getPoints().removeIf(Objects::isNull);
@@ -166,7 +167,7 @@ public class KMeans extends Clusterer {
             cluster.setScore(Double.MAX_VALUE);
          }
       }
-      return clusters;
+      return this;
    }
 
 
@@ -192,7 +193,7 @@ public class KMeans extends Clusterer {
 
 
    @Override
-   public Clustering fitPreprocessed(Dataset dataSupplier, FitParameters fitParameters) {
+   public KMeans fitPreprocessed(Dataset dataSupplier, FitParameters fitParameters) {
       return fit(() -> dataSupplier.asVectorStream(getPipeline()), Cast.as(fitParameters, Parameters.class));
    }
 

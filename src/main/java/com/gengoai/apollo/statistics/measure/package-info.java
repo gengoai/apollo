@@ -17,32 +17,10 @@
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
+ *
  */
-
-package com.gengoai.apollo.stat.measure;
-
-
-import com.gengoai.math.Optimum;
 
 /**
- * <p>A measure that determines how close together two items are.</p>
- *
- * @author David B. Bracewell
+ * Ways of determining the affinity (i.e. similarity, distance, correlation, and association) between two objects
  */
-public interface SimilarityMeasure extends Measure, ContingencyTableCalculator {
-
-   /**
-    * Converts the similarity measure into a distance measure
-    *
-    * @return the distance measure
-    */
-   default DistanceMeasure asDistanceMeasure() {
-      return new OneMinusSimilarityDistance(this);
-   }
-
-   @Override
-   default Optimum getOptimum() {
-      return Optimum.MAXIMUM;
-   }
-
-}//END OF SimilarityMeasure
+package com.gengoai.apollo.statistics.measure;

@@ -23,8 +23,8 @@
 package com.gengoai.apollo.ml.clustering;
 
 import com.gengoai.apollo.ml.FitParameters;
-import com.gengoai.apollo.stat.measure.Distance;
-import com.gengoai.apollo.stat.measure.Measure;
+import com.gengoai.apollo.statistics.measure.Distance;
+import com.gengoai.apollo.statistics.measure.Measure;
 
 /**
  * Specialized {@link FitParameters} for {@link Clusterer}s that includes a {@link Measure} to compute distance or

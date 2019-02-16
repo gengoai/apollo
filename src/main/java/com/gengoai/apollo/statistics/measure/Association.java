@@ -17,14 +17,15 @@
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
+ *
  */
 
-package com.gengoai.apollo.stat.measure;
+package com.gengoai.apollo.statistics.measure;
 
 import com.gengoai.Validation;
-import com.gengoai.apollo.stat.distribution.NormalDistribution;
 import com.gengoai.math.Math2;
 import org.apache.commons.math3.distribution.ChiSquaredDistribution;
+import org.apache.commons.math3.distribution.NormalDistribution;
 import org.apache.commons.math3.distribution.TDistribution;
 import org.apache.commons.math3.util.FastMath;
 

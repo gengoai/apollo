@@ -1,8 +1,8 @@
 package com.gengoai.apollo.ml;
 
 import com.gengoai.apollo.ml.clustering.AgglomerativeClusterer;
-import com.gengoai.apollo.ml.clustering.Clustering;
-import com.gengoai.apollo.ml.clustering.HierarchicalClustering;
+import com.gengoai.apollo.ml.clustering.Clusterer;
+import com.gengoai.apollo.ml.clustering.HierarchicalClusterer;
 import com.gengoai.apollo.ml.clustering.SilhouetteEvaluation;
 import com.gengoai.apollo.ml.preprocess.FilterPreprocessor;
 import com.gengoai.conversion.Cast;
@@ -19,8 +19,8 @@ public class AgglomerativeTest extends BaseClustererTest {
 
 
    @Override
-   public Clustering convertClustering(Clustering clustering) {
-      return Cast.<HierarchicalClustering>as(clustering).asFlat(4000);
+   public Clusterer convertClustering(Clusterer clustering) {
+      return Cast.<HierarchicalClusterer>as(clustering).asFlat(4000);
    }
 
    @Override

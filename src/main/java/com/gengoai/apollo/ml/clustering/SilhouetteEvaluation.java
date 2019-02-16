@@ -23,7 +23,7 @@
 package com.gengoai.apollo.ml.clustering;
 
 import com.gengoai.apollo.linear.NDArray;
-import com.gengoai.apollo.stat.measure.Measure;
+import com.gengoai.apollo.statistics.measure.Measure;
 import com.gengoai.math.Math2;
 import com.gengoai.stream.StreamingContext;
 import com.gengoai.string.TableFormatter;
@@ -60,7 +60,7 @@ public class SilhouetteEvaluation implements ClusteringEvaluation, Serializable 
    }
 
    @Override
-   public void evaluate(Clustering clustering) {
+   public void evaluate(Clusterer clustering) {
       Map<Integer, Cluster> idClusterMap = new HashMap<>();
       clustering.forEach(c -> idClusterMap.put(c.getId(), c));
       silhouette = StreamingContext.local()

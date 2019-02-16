@@ -25,7 +25,8 @@ package com.gengoai.apollo.ml.clustering;
 
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
-import com.gengoai.apollo.stat.measure.Measure;
+import com.gengoai.apollo.ml.DiscretePipeline;
+import com.gengoai.apollo.ml.preprocess.Preprocessor;
 
 import java.util.Collections;
 import java.util.Iterator;
@@ -35,13 +36,24 @@ import java.util.Iterator;
  *
  * @author David B. Bracewell
  */
-public final class HierarchicalClustering implements Clustering {
+public abstract class HierarchicalClusterer extends Clusterer {
    private static final long serialVersionUID = 1L;
-   private final Measure measure;
-   Cluster root;
+   protected Cluster root;
 
-   public HierarchicalClustering(Measure measure) {
-      this.measure = measure;
+   /**
+    * Instantiates a new Clusterer.
+    */
+   public HierarchicalClusterer(Preprocessor... preprocessors) {
+      super(DiscretePipeline.unsupervised().update(p -> p.preprocessorList.addAll(preprocessors)));
+   }
+
+   /**
+    * Instantiates a new Clusterer.
+    *
+    * @param modelParameters the model parameters
+    */
+   public HierarchicalClusterer(DiscretePipeline modelParameters) {
+      super(modelParameters);
    }
 
    /**
@@ -51,8 +63,8 @@ public final class HierarchicalClustering implements Clustering {
     * @param threshold the threshold to determine how to flatten clusters
     * @return the flat clustering
     */
-   public Clustering asFlat(double threshold) {
-      FlatClustering clustering = new FlatClustering(measure);
+   public Clusterer asFlat(double threshold) {
+      FlatClusterer clustering = new DummyFlatClusterer(getPipeline(), getMeasure());
       process(root, clustering, threshold);
       for (int i = 0; i < clustering.size(); i++) {
          NDArray centroid = NDArrayFactory.DEFAULT().zeros(clustering.get(i).getPoints().get(0).shape());
@@ -91,7 +103,7 @@ public final class HierarchicalClustering implements Clustering {
       return Collections.singleton(root).iterator();
    }
 
-   private void process(Cluster c, FlatClustering flat, double threshold) {
+   private void process(Cluster c, FlatClusterer flat, double threshold) {
       if (c == null) {
          return;
       }
@@ -106,11 +118,6 @@ public final class HierarchicalClustering implements Clustering {
    @Override
    public int size() {
       return 1;
-   }
-
-   @Override
-   public Measure getMeasure() {
-      return measure;
    }
 
 

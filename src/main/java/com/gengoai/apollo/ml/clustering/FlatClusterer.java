@@ -22,7 +22,9 @@
 
 package com.gengoai.apollo.ml.clustering;
 
-import com.gengoai.apollo.stat.measure.Measure;
+import cc.mallet.cluster.Clustering;
+import com.gengoai.apollo.ml.DiscretePipeline;
+import com.gengoai.apollo.ml.preprocess.Preprocessor;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -34,14 +36,30 @@ import java.util.List;
  *
  * @author David B. Bracewell
  */
-public final class FlatClustering implements Clustering {
+public abstract class FlatClusterer extends Clusterer {
    private static final long serialVersionUID = 1L;
-   private final Measure measure;
    private final List<Cluster> clusters = new ArrayList<>();
 
-   public FlatClustering(Measure measure) {
-      this.measure = measure;
+   /**
+    * Instantiates a new K-Means model.
+    *
+    * @param preprocessors the preprocessors
+    */
+   public FlatClusterer(Preprocessor... preprocessors) {
+      super(preprocessors);
    }
+
+   /**
+    * Instantiates a new K-Means model.
+    *
+    * @param modelParameters the model parameters
+    */
+   public FlatClusterer(DiscretePipeline modelParameters) {
+      super(modelParameters);
+   }
+
+
+
 
    /**
     * Adds a cluster to the clustering.
@@ -83,11 +101,6 @@ public final class FlatClustering implements Clustering {
    @Override
    public int size() {
       return clusters.size();
-   }
-
-   @Override
-   public Measure getMeasure() {
-      return measure;
    }
 
 

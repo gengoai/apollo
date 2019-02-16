@@ -2,12 +2,11 @@ package com.gengoai.apollo.ml;
 
 import com.gengoai.apollo.ml.clustering.ClusterParameters;
 import com.gengoai.apollo.ml.clustering.Clusterer;
-import com.gengoai.apollo.ml.clustering.Clustering;
 import com.gengoai.apollo.ml.clustering.SilhouetteEvaluation;
-import com.gengoai.apollo.ml.data.format.CSVDataFormat;
-import com.gengoai.apollo.ml.data.format.DataFormat;
 import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.apollo.ml.data.DatasetType;
+import com.gengoai.apollo.ml.data.format.CSVDataFormat;
+import com.gengoai.apollo.ml.data.format.DataFormat;
 import com.gengoai.io.CSV;
 import com.gengoai.io.Resources;
 import org.junit.Test;
@@ -29,7 +28,7 @@ public abstract class BaseClustererTest {
    }
 
 
-   public Clustering convertClustering(Clustering clustering) {
+   public Clusterer convertClustering(Clusterer clustering) {
       return clustering;
    }
 

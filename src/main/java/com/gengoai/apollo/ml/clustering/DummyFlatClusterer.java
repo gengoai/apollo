@@ -17,9 +17,35 @@
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
+ *
  */
 
+package com.gengoai.apollo.ml.clustering;
+
+import com.gengoai.apollo.ml.DiscretePipeline;
+import com.gengoai.apollo.ml.FitParameters;
+import com.gengoai.apollo.ml.data.Dataset;
+import com.gengoai.apollo.statistics.measure.Measure;
+
 /**
- * Ways of determining the affinity (i.e. similarity, distance, correlation, and association) between two objects
+ * @author David B. Bracewell
  */
-package com.gengoai.apollo.stat.measure;
+class DummyFlatClusterer extends FlatCentroidClusterer {
+   private static final long serialVersionUID = 1L;
+
+   public DummyFlatClusterer(DiscretePipeline modelParameters, Measure measure) {
+      super(modelParameters);
+      setMeasure(measure);
+   }
+
+   @Override
+   protected Clusterer fitPreprocessed(Dataset preprocessed, FitParameters fitParameters) {
+      throw new UnsupportedOperationException();
+   }
+
+   @Override
+   public FitParameters getDefaultFitParameters() {
+      throw new UnsupportedOperationException();
+   }
+
+}//END OF DummyFlatClusterer

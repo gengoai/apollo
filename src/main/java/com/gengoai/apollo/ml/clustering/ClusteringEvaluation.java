@@ -38,7 +38,7 @@ public interface ClusteringEvaluation  {
     *
     * @param clustering the clustering to evaluate.
     */
-   void evaluate(Clustering clustering);
+   void evaluate(Clusterer clustering);
 
    /**
     * Outputs the evaluation results to the given print stream.

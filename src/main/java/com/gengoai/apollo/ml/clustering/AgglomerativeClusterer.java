@@ -49,7 +49,7 @@ import static com.gengoai.tuple.Tuples.$;
  *
  * @author David B. Bracewell
  */
-public class AgglomerativeClusterer extends Clusterer {
+public class AgglomerativeClusterer extends HierarchicalClusterer {
    private static final long serialVersionUID = 1L;
    private final AtomicInteger idGenerator = new AtomicInteger();
 
@@ -69,6 +69,11 @@ public class AgglomerativeClusterer extends Clusterer {
     */
    public AgglomerativeClusterer(DiscretePipeline modelParameters) {
       super(modelParameters);
+   }
+
+   @Override
+   public NDArray distances(NDArray example) {
+      throw new UnsupportedOperationException();
    }
 
    private void doTurn(PriorityQueue<Tuple3<Cluster, Cluster, Double>> priorityQueue,
@@ -112,7 +117,7 @@ public class AgglomerativeClusterer extends Clusterer {
     * @param parameters the parameters
     * @return the clustering
     */
-   public Clustering fit(MStream<NDArray> stream, Parameters parameters) {
+   public AgglomerativeClusterer fit(MStream<NDArray> stream, Parameters parameters) {
       idGenerator.set(0);
       List<NDArray> instances = stream.collect();
       PriorityQueue<Tuple3<Cluster, Cluster, Double>> priorityQueue = new PriorityQueue<>(
@@ -121,13 +126,12 @@ public class AgglomerativeClusterer extends Clusterer {
       while (clusters.size() > 1) {
          doTurn(priorityQueue, clusters, parameters);
       }
-      HierarchicalClustering clustering = new HierarchicalClustering(parameters.measure);
-      clustering.root = clusters.get(0);
-      return clustering;
+      root = clusters.get(0);
+      return this;
    }
 
    @Override
-   protected Clustering fitPreprocessed(Dataset preprocessed, FitParameters fitParameters) {
+   protected AgglomerativeClusterer fitPreprocessed(Dataset preprocessed, FitParameters fitParameters) {
       return fit(preprocessed.asVectorStream(getPipeline()), Cast.as(fitParameters, Parameters.class));
    }
 

@@ -17,38 +17,43 @@
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
+ *
  */
 
-package com.gengoai.apollo.stat.measure;
+package com.gengoai.apollo.statistics.measure;
 
 import com.gengoai.apollo.linear.NDArray;
 
 /**
- * <p>Distance measure implementation that is the one minus the value of a similarity measure</p>
+ * <p>Distance measure implementation that is the negated value of a similarity measure</p>
  *
  * @author David B. Bracewell
  */
-class OneMinusSimilarityDistance implements DistanceMeasure {
+class NegativeDistanceSimilarity implements SimilarityMeasure {
    private static final long serialVersionUID = 1L;
-   private final SimilarityMeasure similarityMeasure;
+   private final DistanceMeasure distanceMeasure;
 
    /**
-    * Instantiates a new One minus similarity distance.
+    * Instantiates a new Negative distance similarity.
     *
-    * @param similarityMeasure the similarity measure
+    * @param distanceMeasure the distance measure
     */
-   public OneMinusSimilarityDistance(SimilarityMeasure similarityMeasure) {
-      this.similarityMeasure = similarityMeasure;
+   public NegativeDistanceSimilarity(DistanceMeasure distanceMeasure) {
+      this.distanceMeasure = distanceMeasure;
    }
 
    @Override
-   public SimilarityMeasure asSimilarityMeasure() {
-      return similarityMeasure;
+   public DistanceMeasure asDistanceMeasure() {
+      return distanceMeasure;
    }
 
    @Override
    public double calculate(NDArray v1, NDArray v2) {
-      return 1d - similarityMeasure.calculate(v1,v2);
+      return -distanceMeasure.calculate(v1, v2);
    }
 
-}//END OF OneMinusSimilarityDistance
+   @Override
+   public double calculate(ContingencyTable table) {
+      throw new UnsupportedOperationException();
+   }
+}//END OF NegativeDistanceSimilarity

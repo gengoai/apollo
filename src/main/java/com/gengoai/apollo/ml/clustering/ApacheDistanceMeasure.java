@@ -22,7 +22,7 @@
 
 package com.gengoai.apollo.ml.clustering;
 
-import com.gengoai.apollo.stat.measure.Measure;
+import com.gengoai.apollo.statistics.measure.Measure;
 import org.apache.commons.math3.exception.DimensionMismatchException;
 import org.apache.commons.math3.ml.distance.DistanceMeasure;
 

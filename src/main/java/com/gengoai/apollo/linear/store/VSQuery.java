@@ -2,8 +2,8 @@ package com.gengoai.apollo.linear.store;
 
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
-import com.gengoai.apollo.stat.measure.Measure;
-import com.gengoai.apollo.stat.measure.Similarity;
+import com.gengoai.apollo.statistics.measure.Measure;
+import com.gengoai.apollo.statistics.measure.Similarity;
 import com.gengoai.collection.Sets;
 
 import java.util.ArrayList;

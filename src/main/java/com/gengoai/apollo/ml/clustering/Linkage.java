@@ -23,7 +23,7 @@
 package com.gengoai.apollo.ml.clustering;
 
 import com.gengoai.apollo.linear.NDArray;
-import com.gengoai.apollo.stat.measure.Measure;
+import com.gengoai.apollo.statistics.measure.Measure;
 
 import java.util.ArrayList;
 import java.util.Collections;

@@ -42,7 +42,7 @@ import java.util.List;
  *
  * @author David B. Bracewell
  */
-public class DBSCAN extends Clusterer {
+public class DBSCAN extends FlatCentroidClusterer {
 
    /**
     * Instantiates a new Dbscan.
@@ -69,12 +69,12 @@ public class DBSCAN extends Clusterer {
     * @param fitParameters the fit parameters
     * @return the flat clustering
     */
-   public FlatClustering fit(SerializableSupplier<MStream<NDArray>> dataSupplier, Parameters fitParameters) {
+   public DBSCAN fit(SerializableSupplier<MStream<NDArray>> dataSupplier, Parameters fitParameters) {
+      setMeasure(fitParameters.measure);
       DBSCANClusterer<ApacheClusterable> clusterer = new DBSCANClusterer<>(fitParameters.eps,
                                                                            fitParameters.minPts,
                                                                            new ApacheDistanceMeasure(
                                                                               fitParameters.measure));
-      FlatClustering centroids = new FlatClustering(fitParameters.measure);
       List<ApacheClusterable> apacheClusterables = dataSupplier.get()
                                                                .parallel()
                                                                .map(ApacheClusterable::new)
@@ -86,28 +86,28 @@ public class DBSCAN extends Clusterer {
          Cluster cp = new Cluster();
          cp.setId(i);
          cp.setCentroid(result.get(i).getPoints().get(0).getVector());
-         centroids.add(cp);
+         add(cp);
       }
 
       apacheClusterables.forEach(a -> {
          NDArray n = a.getVector();
          int index = -1;
          double score = fitParameters.measure.getOptimum().startingValue();
-         for (int i = 0; i < centroids.size(); i++) {
-            Cluster c = centroids.get(i);
+         for (int i = 0; i < size(); i++) {
+            Cluster c = get(i);
             double s = fitParameters.measure.calculate(n, c.getCentroid());
             if (fitParameters.measure.getOptimum().test(s, score)) {
                index = i;
                score = s;
             }
          }
-         centroids.get(index).addPoint(n);
+         get(index).addPoint(n);
       });
-      return centroids;
+      return this;
    }
 
    @Override
-   public Clustering fitPreprocessed(Dataset dataSupplier, FitParameters fitParameters) {
+   public DBSCAN fitPreprocessed(Dataset dataSupplier, FitParameters fitParameters) {
       return fit(() -> dataSupplier.asVectorStream(getPipeline()), Cast.as(fitParameters, Parameters.class));
    }
 

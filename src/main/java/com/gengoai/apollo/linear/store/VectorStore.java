@@ -25,7 +25,6 @@ package com.gengoai.apollo.linear.store;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.linear.VectorComposition;
-import com.gengoai.apollo.linear.hash.LSHParameter;
 import com.gengoai.collection.Streams;
 import com.gengoai.io.IndexedFile;
 import com.gengoai.io.resource.Resource;
@@ -86,17 +85,12 @@ public interface VectorStore extends Iterable<NDArray> {
    static VectorStore read(Resource vectors) throws IOException {
       File vectorFile = vectors.asFile().orElseThrow(IOException::new);
       File indexFile = IndexedFile.indexFileFor(vectorFile);
-      File lshFile = new File(vectorFile.getAbsolutePath() + LSHVectorStore.LSH_EXT);
       VectorStoreParameter parameter = new VectorStoreParameter();
       parameter.location = vectors;
       if (indexFile.exists()) {
          parameter.type = VectorStoreType.IndexedFile;
       } else {
          parameter.type = VectorStoreType.InMemory;
-      }
-      if (lshFile.exists()) {
-         parameter.lshParameters = new LSHParameter();
-         parameter.lshParameters.signatureSize = 100;
       }
       return builder(parameter).build();
    }

@@ -17,38 +17,33 @@
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
+ *
  */
 
-package com.gengoai.apollo.stat.distribution;
+package com.gengoai.apollo.statistics.measure;
 
-import java.io.Serializable;
+
+import com.gengoai.math.Optimum;
 
 /**
- * <p>A density function involving two random variables <code>X</code> and <code>Y</code>.</p>
+ * <p>A measure that determines how far apart two items are.</p>
  *
  * @author David B. Bracewell
  */
-public interface BivariateDistribution extends Serializable {
+public interface DistanceMeasure extends Measure {
 
    /**
-    * Probability of event with <code>X=x</code> and <code>Y=y</code>
+    * Converts the distance measure to a similarity measure.
     *
-    * @param x the x variable
-    * @param y the y variable
-    * @return the probability of event with <code>X=x</code> and <code>Y=y</code>
+    * @return the similarity measure
     */
-   double probability(int x, int y);
-
-   /**
-    * Log probability of event with <code>X=x</code> and <code>Y=y</code>
-    *
-    * @param x the x variable
-    * @param y the y variable
-    * @return the log probability of event with <code>X=x</code> and <code>Y=y</code>
-    */
-   default double logProbability(int x, int y) {
-      return Math.log(probability(x, y));
+   default SimilarityMeasure asSimilarityMeasure() {
+      return new NegativeDistanceSimilarity(this);
    }
 
+   @Override
+   default Optimum getOptimum() {
+      return Optimum.MINIMUM;
+   }
 
-}//END OF BivariateDistribution
+}//END OF DistanceMeasure

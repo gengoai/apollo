@@ -24,9 +24,10 @@ package com.gengoai.apollo.ml.clustering;
 
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
+import com.gengoai.apollo.ml.DiscretePipeline;
 import com.gengoai.apollo.ml.FitParameters;
 import com.gengoai.apollo.ml.data.Dataset;
-import com.gengoai.apollo.stat.measure.Distance;
+import com.gengoai.apollo.ml.preprocess.Preprocessor;
 import com.gengoai.conversion.Cast;
 import org.apache.commons.math3.distribution.MultivariateNormalDistribution;
 import org.apache.commons.math3.distribution.fitting.MultivariateNormalMixtureExpectationMaximization;
@@ -40,11 +41,19 @@ import static com.gengoai.Validation.notNull;
 /**
  * @author David B. Bracewell
  */
-public class GaussianMixtureModel extends Clusterer {
+public class GaussianMixtureModel extends FlatCentroidClusterer {
 
+
+   public GaussianMixtureModel(Preprocessor... preprocessors) {
+      super(preprocessors);
+   }
+
+   public GaussianMixtureModel(DiscretePipeline modelParameters) {
+      super(modelParameters);
+   }
 
    @Override
-   protected Clustering fitPreprocessed(Dataset preprocessed, FitParameters fitParameters) {
+   protected GaussianMixtureModel fitPreprocessed(Dataset preprocessed, FitParameters fitParameters) {
       Parameters p = notNull(Cast.as(fitParameters, Parameters.class));
 
       List<NDArray> vectors = preprocessed.asVectorStream(getPipeline()).collect();
@@ -64,14 +73,14 @@ public class GaussianMixtureModel extends Clusterer {
                                                                                                         .collect(
                                                                                                            Collectors.toList());
 
-      FlatClustering clustering = new FlatClustering(Distance.Euclidean);
       for (int i = 0; i < components.size(); i++) {
          Cluster cluster = new Cluster();
          cluster.setId(i);
          cluster.setCentroid(NDArrayFactory.columnVector(components.get(i).sample()));
+         add(cluster);
       }
 
-      return clustering;
+      return this;
    }
 
    @Override

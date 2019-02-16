@@ -28,7 +28,7 @@ import com.gengoai.apollo.ml.DiscretePipeline;
 import com.gengoai.apollo.ml.FitParameters;
 import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
-import com.gengoai.apollo.stat.measure.Distance;
+import com.gengoai.apollo.statistics.measure.Distance;
 import com.gengoai.conversion.Cast;
 import com.gengoai.function.SerializableSupplier;
 import com.gengoai.stream.MStream;
@@ -42,7 +42,7 @@ import static com.gengoai.tuple.Tuples.$;
 /**
  * @author David B. Bracewell
  */
-public class DistributedKMeans extends Clusterer {
+public class DistributedKMeans extends FlatCentroidClusterer {
 
    public DistributedKMeans(Preprocessor... preprocessors) {
       super(preprocessors);
@@ -53,16 +53,17 @@ public class DistributedKMeans extends Clusterer {
    }
 
    @Override
-   protected Clustering fitPreprocessed(Dataset preprocessed, FitParameters fitParameters) {
+   protected DistributedKMeans fitPreprocessed(Dataset preprocessed, FitParameters fitParameters) {
       return distributed(() -> preprocessed.asVectorStream(getPipeline()),
                          notNull(Cast.as(fitParameters, Parameters.class)));
    }
 
-   private FlatClustering distributed(SerializableSupplier<MStream<NDArray>> dataSupplier, Parameters fitParameters) {
+   private DistributedKMeans distributed(SerializableSupplier<MStream<NDArray>> dataSupplier, Parameters fitParameters) {
       org.apache.spark.mllib.clustering.KMeans kMeans = new org.apache.spark.mllib.clustering.KMeans();
       kMeans.setK(fitParameters.K);
       kMeans.setMaxIterations(fitParameters.maxIterations);
       kMeans.setEpsilon(fitParameters.tolerance);
+      setMeasure(Distance.Euclidean);
 
       KMeansModel model = kMeans.run(dataSupplier.get()
                                                  .toDistributedStream()
@@ -71,21 +72,21 @@ public class DistributedKMeans extends Clusterer {
                                                  .cache()
                                                  .rdd());
 
-      FlatClustering clustering = new FlatClustering(Distance.Euclidean);
       for (int i = 0; i < model.clusterCenters().length; i++) {
          Cluster cluster = new Cluster();
          cluster.setId(i);
          cluster.setCentroid(NDArrayFactory.rowVector(model.clusterCenters()[i].toArray()));
+         add(cluster);
       }
 
       dataSupplier.get()
                   .map(n -> $(model.predict(new DenseVector(n.toDoubleArray())), n))
-                  .forEachLocal(t -> clustering.get(t.v1).addPoint(t.v2));
+                  .forEachLocal(t -> get(t.v1).addPoint(t.v2));
 
-      for (Cluster cluster : clustering) {
+      for (Cluster cluster : this) {
          cluster.setScore(cluster.getScore() / cluster.size());
       }
-      return clustering;
+      return this;
    }
 
 

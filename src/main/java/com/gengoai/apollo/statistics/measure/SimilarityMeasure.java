@@ -17,32 +17,33 @@
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
+ *
  */
 
-package com.gengoai.apollo.linear.hash;
+package com.gengoai.apollo.statistics.measure;
 
-import com.gengoai.apollo.stat.measure.Measure;
-import com.gengoai.apollo.stat.measure.Similarity;
+
+import com.gengoai.math.Optimum;
 
 /**
- * <p>Signature function for Cosine distance / similarity. Uses the Cosine distance as its measure.</p>
+ * <p>A measure that determines how close together two items are.</p>
  *
  * @author David B. Bracewell
  */
-public class CosineDistanceSignature extends CosineSignature {
-   public static final String NAME = "COSINE_DISTANCE";
-   private static final long serialVersionUID = 1L;
+public interface SimilarityMeasure extends Measure, ContingencyTableCalculator {
 
    /**
-    * Instantiates a new Cosine signature.
+    * Converts the similarity measure into a distance measure
+    *
+    * @return the distance measure
     */
-   public CosineDistanceSignature(LSHParameter parameters) {
-      super(parameters);
+   default DistanceMeasure asDistanceMeasure() {
+      return new OneMinusSimilarityDistance(this);
    }
 
    @Override
-   public Measure getMeasure() {
-      return Similarity.Cosine.asDistanceMeasure();
+   default Optimum getOptimum() {
+      return Optimum.MAXIMUM;
    }
 
-}// END OF CosineDistanceSignature
+}//END OF SimilarityMeasure

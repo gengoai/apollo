@@ -21,11 +21,7 @@ public enum VectorStoreType {
    protected abstract VSBuilder newBuilder(VectorStoreParameter parameters);
 
    public final VSBuilder builder(VectorStoreParameter parameters) {
-      VSBuilder builder = newBuilder(parameters);
-      if (parameters.lshParameters != null) {
-         builder = new LSHVectorStore.Builder(builder, parameters);
-      }
-      return builder;
+      return newBuilder(parameters);
    }
 
 }//END OF VectorStoreType

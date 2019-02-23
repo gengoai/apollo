@@ -22,26 +22,21 @@
 
 package com.gengoai.apollo.ml.clustering;
 
-import com.gengoai.Stopwatch;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.linear.NDArrayInitializer;
 import com.gengoai.apollo.ml.DiscretePipeline;
 import com.gengoai.apollo.ml.FitParameters;
-import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
+import com.gengoai.apollo.optimization.StoppingCriteria;
 import com.gengoai.apollo.statistics.measure.Measure;
 import com.gengoai.conversion.Cast;
-import com.gengoai.function.SerializableSupplier;
 import com.gengoai.logging.Logger;
 import com.gengoai.stream.MStream;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.IntStream;
 
 /**
@@ -74,88 +69,84 @@ public class KMeans extends FlatCentroidClusterer {
       super(modelParameters);
    }
 
+   private double iteration(List<NDArray> instances) {
+      //Clear the points
+      keepOnlyCentroids();
 
-   /**
-    * Clusters the given points using the given K-means fit parameters
-    *
-    * @param dataSupplier  the data supplier
-    * @param fitParameters the fit parameters
-    * @return the flat clustering
-    */
-   public KMeans fit(SerializableSupplier<MStream<NDArray>> dataSupplier, Parameters fitParameters) {
+      final Object[] locks = new Object[size()];
+      for (int i = 0; i < size(); i++) {
+         locks[i] = new Object();
+      }
+      //Assign points
+      instances.parallelStream().forEach(v -> {
+         Cluster c = estimate(v);
+         synchronized (locks[c.getId()]) {
+            c.addPoint(v);
+         }
+      });
+
+
+      double numChanged = 0;
+      for (Cluster cluster : this) {
+         NDArray centroid;
+
+         //Calculate the new centroid, randomly generating a new vector when the custer has 0 members
+         if (cluster.size() == 0) {
+            centroid = NDArrayFactory.DEFAULT().create(NDArrayInitializer.rand(-1, 1), (int) instances.get(0).length());
+         } else {
+            centroid = NDArrayFactory.DENSE.zeros(getNumberOfFeatures());
+            for (NDArray point : cluster.getPoints()) {
+               centroid.addi(point);
+            }
+            centroid.divi(cluster.size());
+         }
+         cluster.setCentroid(centroid);
+
+         //Calculate the number of points tht changed from the previous iteration
+         numChanged += cluster.getPoints()
+                              .parallelStream()
+                              .mapToDouble(n -> {
+                                 if (n.getPredicted() == null) {
+                                    n.setPredicted((double) cluster.getId());
+                                    return 1.0;
+                                 }
+                                 double c = n.getPredictedAsDouble() == cluster.getId() ? 0 : 1;
+                                 n.setPredicted((double) cluster.getId());
+                                 return c;
+                              }).sum();
+      }
+
+      return numChanged;
+   }
+
+   @Override
+   public void fit(MStream<NDArray> vectors, FitParameters parameters) {
+      Parameters fitParameters = Cast.as(parameters);
       setMeasure(fitParameters.measure);
 
-      List<NDArray> instances = dataSupplier.get().collect();
+      List<NDArray> instances = vectors.collect();
       for (NDArray centroid : initCentroids(fitParameters.K, instances)) {
          Cluster c = new Cluster();
          c.setCentroid(centroid);
          add(c);
       }
-
-
       final Measure measure = fitParameters.measure;
-      Map<NDArray, Integer> assignment = new ConcurrentHashMap<>();
 
-      final AtomicLong numMoved = new AtomicLong(0);
-      double lastVariance = 0;
-
-      for (int itr = 0; itr < fitParameters.maxIterations; itr++) {
-         Stopwatch sw = Stopwatch.createStarted();
-         forEach(Cluster::clear);
-         numMoved.set(0);
-         instances.parallelStream()
-                  .forEach(ii -> {
-                              int minI = 0;
-                              double minD = measure.calculate(ii, get(0).getCentroid());
-                              for (int ci = 1; ci < fitParameters.K; ci++) {
-                                 double distance = measure.calculate(ii, get(ci).getCentroid());
-                                 if (distance < minD) {
-                                    minD = distance;
-                                    minI = ci;
-                                 }
-                              }
-                              Integer old = assignment.put(ii, minI);
-                              get(minI).addPoint(ii);
-                              if (old == null || old != minI) {
-                                 numMoved.incrementAndGet();
-                              }
-                           }
-                          );
-
-         for (int i = 0; i < fitParameters.K; i++) {
-            get(i).getPoints().removeIf(Objects::isNull);
-            if (get(i).size() == 0) {
-               get(i).setCentroid(
-                  NDArrayFactory.DEFAULT().create(NDArrayInitializer.rand(-1, 1), (int) instances.get(0).length()));
-            } else {
-               NDArray c = get(i).getCentroid().zero();
-               for (NDArray ii : get(i)) {
-                  if (ii != null) {
-                     c.addi(ii);
-                  }
-               }
-               c.divi((float) get(i).size());
-            }
-         }
-
-         sw.stop();
-         double variance = inGroupVariance();
-         if (fitParameters.verbose) {
-            log.info("iteration={0}: number_moved={1}, variance={2} ({3})", (itr + 1), numMoved, variance, sw);
-         }
-
-         if (numMoved.get() == 0 || (itr > 0 && Math.abs(variance - lastVariance) <= fitParameters.tolerance)) {
-            break;
-         }
-         lastVariance = variance;
-      }
+      StoppingCriteria.create("numPointsChanged")
+                      .historySize(3)
+                      .maxIterations(fitParameters.maxIterations)
+                      .tolerance(fitParameters.tolerance)
+                      .reportInterval(1)
+                      .logger(log)
+                      .untilTermination(itr -> this.iteration(instances));
 
       for (int i = 0; i < size(); i++) {
          Cluster cluster = get(i);
          cluster.setId(i);
          if (cluster.size() > 0) {
             cluster.getPoints().removeIf(Objects::isNull);
-            double average = cluster.getPoints().parallelStream()
+            double average = cluster.getPoints()
+                                    .parallelStream()
                                     .flatMapToDouble(p1 -> cluster.getPoints()
                                                                   .stream()
                                                                   .filter(p2 -> p2 != p1)
@@ -167,7 +158,6 @@ public class KMeans extends FlatCentroidClusterer {
             cluster.setScore(Double.MAX_VALUE);
          }
       }
-      return this;
    }
 
 
@@ -193,12 +183,6 @@ public class KMeans extends FlatCentroidClusterer {
 
 
    @Override
-   public KMeans fitPreprocessed(Dataset dataSupplier, FitParameters fitParameters) {
-      return fit(() -> dataSupplier.asVectorStream(getPipeline()), Cast.as(fitParameters, Parameters.class));
-   }
-
-
-   @Override
    public Parameters getDefaultFitParameters() {
       return new Parameters();
    }
@@ -207,7 +191,7 @@ public class KMeans extends FlatCentroidClusterer {
    /**
     * Fit Parameters for KMeans
     */
-   public static class Parameters extends ClusterParameters {
+   public static class Parameters extends ClusterParameters<Parameters> {
       /**
        * The number of clusters
        */

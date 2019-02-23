@@ -22,17 +22,17 @@
 
 package com.gengoai.apollo.ml.clustering;
 
-import cc.mallet.cluster.Clustering;
 import com.gengoai.apollo.ml.DiscretePipeline;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
- * <p>A {@link Clustering} implementation where the clusters are flat, i.e. are a set of K lists of points where K is
- * the number of clusters</p>
+ * <p>Abstract base class for {@link Clusterer}s whose resultant clustering is flat, i.e. are a set of K lists of
+ * points where K is the number of clusters</p>
  *
  * @author David B. Bracewell
  */
@@ -41,7 +41,7 @@ public abstract class FlatClusterer extends Clusterer {
    private final List<Cluster> clusters = new ArrayList<>();
 
    /**
-    * Instantiates a new K-Means model.
+    * Instantiates a new FlatClusterer model.
     *
     * @param preprocessors the preprocessors
     */
@@ -50,7 +50,7 @@ public abstract class FlatClusterer extends Clusterer {
    }
 
    /**
-    * Instantiates a new K-Means model.
+    * Instantiates a new FlatClusterer model.
     *
     * @param modelParameters the model parameters
     */
@@ -58,15 +58,12 @@ public abstract class FlatClusterer extends Clusterer {
       super(modelParameters);
    }
 
-
-
-
    /**
     * Adds a cluster to the clustering.
     *
     * @param cluster the cluster
     */
-   public void add(Cluster cluster) {
+   protected void add(Cluster cluster) {
       cluster.setId(this.clusters.size());
       this.clusters.add(cluster);
    }
@@ -76,12 +73,10 @@ public abstract class FlatClusterer extends Clusterer {
       return clusters.get(index);
    }
 
-
    @Override
    public Cluster getRoot() {
       throw new UnsupportedOperationException();
    }
-
 
    @Override
    public boolean isFlat() {
@@ -103,5 +98,10 @@ public abstract class FlatClusterer extends Clusterer {
       return clusters.size();
    }
 
+
+   @Override
+   public Stream<Cluster> stream() {
+      return clusters.stream();
+   }
 
 }// END OF FlatClustering

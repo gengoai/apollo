@@ -40,7 +40,6 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.Base64;
 
-import static com.gengoai.Validation.notNull;
 import static com.gengoai.tuple.Tuples.$;
 
 /**
@@ -77,8 +76,8 @@ public class Crf extends SequenceLabeler implements Serializable {
    }
 
    @Override
-   protected SequenceLabeler fitPreprocessed(Dataset dataset, FitParameters parameters) {
-      Parameters fitParameters = notNull(Cast.as(notNull(parameters), Parameters.class));
+   protected void fitPreprocessed(Dataset dataset, FitParameters parameters) {
+      Parameters fitParameters = Cast.as(parameters);
       CrfSuiteLoader.INSTANCE.load();
       Trainer trainer = new Trainer();
       dataset.forEach(sequence -> {
@@ -95,7 +94,6 @@ public class Crf extends SequenceLabeler implements Serializable {
       trainer.train(modelFile, -1);
       trainer.clear();
       tagger = new CrfTagger(modelFile);
-      return this;
    }
 
    @Override

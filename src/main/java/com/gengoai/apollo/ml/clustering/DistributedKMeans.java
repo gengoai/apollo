@@ -26,23 +26,21 @@ import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.ml.DiscretePipeline;
 import com.gengoai.apollo.ml.FitParameters;
-import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
 import com.gengoai.apollo.statistics.measure.Distance;
 import com.gengoai.conversion.Cast;
-import com.gengoai.function.SerializableSupplier;
 import com.gengoai.stream.MStream;
 import org.apache.spark.mllib.clustering.KMeansModel;
 import org.apache.spark.mllib.linalg.DenseVector;
 import org.apache.spark.mllib.linalg.Vector;
 
-import static com.gengoai.Validation.notNull;
 import static com.gengoai.tuple.Tuples.$;
 
 /**
  * @author David B. Bracewell
  */
 public class DistributedKMeans extends FlatCentroidClusterer {
+   private static final long serialVersionUID = 1L;
 
    public DistributedKMeans(Preprocessor... preprocessors) {
       super(preprocessors);
@@ -53,24 +51,20 @@ public class DistributedKMeans extends FlatCentroidClusterer {
    }
 
    @Override
-   protected DistributedKMeans fitPreprocessed(Dataset preprocessed, FitParameters fitParameters) {
-      return distributed(() -> preprocessed.asVectorStream(getPipeline()),
-                         notNull(Cast.as(fitParameters, Parameters.class)));
-   }
-
-   private DistributedKMeans distributed(SerializableSupplier<MStream<NDArray>> dataSupplier, Parameters fitParameters) {
+   public void fit(MStream<NDArray> dataSupplier, FitParameters parameters) {
+      Parameters fitParameters = Cast.as(parameters);
       org.apache.spark.mllib.clustering.KMeans kMeans = new org.apache.spark.mllib.clustering.KMeans();
       kMeans.setK(fitParameters.K);
       kMeans.setMaxIterations(fitParameters.maxIterations);
       kMeans.setEpsilon(fitParameters.tolerance);
       setMeasure(Distance.Euclidean);
 
-      KMeansModel model = kMeans.run(dataSupplier.get()
-                                                 .toDistributedStream()
-                                                 .getRDD()
-                                                 .map(n -> (Vector) new DenseVector(n.toDoubleArray()))
-                                                 .cache()
-                                                 .rdd());
+      KMeansModel model = kMeans.run(dataSupplier
+                                        .toDistributedStream()
+                                        .getRDD()
+                                        .map(n -> (Vector) new DenseVector(n.toDoubleArray()))
+                                        .cache()
+                                        .rdd());
 
       for (int i = 0; i < model.clusterCenters().length; i++) {
          Cluster cluster = new Cluster();
@@ -79,19 +73,17 @@ public class DistributedKMeans extends FlatCentroidClusterer {
          add(cluster);
       }
 
-      dataSupplier.get()
-                  .map(n -> $(model.predict(new DenseVector(n.toDoubleArray())), n))
+      dataSupplier.map(n -> $(model.predict(new DenseVector(n.toDoubleArray())), n))
                   .forEachLocal(t -> get(t.v1).addPoint(t.v2));
 
       for (Cluster cluster : this) {
          cluster.setScore(cluster.getScore() / cluster.size());
       }
-      return this;
    }
 
 
    @Override
-   public FitParameters getDefaultFitParameters() {
+   public DistributedKMeans.Parameters getDefaultFitParameters() {
       return new Parameters();
    }
 

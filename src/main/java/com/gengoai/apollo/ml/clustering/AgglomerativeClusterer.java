@@ -25,7 +25,6 @@ package com.gengoai.apollo.ml.clustering;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.ml.DiscretePipeline;
 import com.gengoai.apollo.ml.FitParameters;
-import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
 import com.gengoai.collection.Iterables;
 import com.gengoai.conversion.Cast;
@@ -72,7 +71,7 @@ public class AgglomerativeClusterer extends HierarchicalClusterer {
    }
 
    @Override
-   public NDArray distances(NDArray example) {
+   public NDArray measure(NDArray example) {
       throw new UnsupportedOperationException();
    }
 
@@ -110,14 +109,9 @@ public class AgglomerativeClusterer extends HierarchicalClusterer {
 
    }
 
-   /**
-    * Fit clustering.
-    *
-    * @param stream     the stream
-    * @param parameters the parameters
-    * @return the clustering
-    */
-   public AgglomerativeClusterer fit(MStream<NDArray> stream, Parameters parameters) {
+   @Override
+   public void fit(MStream<NDArray> stream, FitParameters fitParameters) {
+      Parameters parameters = Cast.as(fitParameters);
       idGenerator.set(0);
       List<NDArray> instances = stream.collect();
       PriorityQueue<Tuple3<Cluster, Cluster, Double>> priorityQueue = new PriorityQueue<>(
@@ -127,16 +121,10 @@ public class AgglomerativeClusterer extends HierarchicalClusterer {
          doTurn(priorityQueue, clusters, parameters);
       }
       root = clusters.get(0);
-      return this;
    }
 
    @Override
-   protected AgglomerativeClusterer fitPreprocessed(Dataset preprocessed, FitParameters fitParameters) {
-      return fit(preprocessed.asVectorStream(getPipeline()), Cast.as(fitParameters, Parameters.class));
-   }
-
-   @Override
-   public FitParameters getDefaultFitParameters() {
+   public AgglomerativeClusterer.Parameters getDefaultFitParameters() {
       return new Parameters();
    }
 

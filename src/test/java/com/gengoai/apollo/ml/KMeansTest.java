@@ -7,7 +7,7 @@ import com.gengoai.conversion.Cast;
 /**
  * @author David B. Bracewell
  */
-public class KMeansTest extends BaseClustererTest {
+public class KMeansTest extends BaseClustererTest<KMeans.Parameters> {
 
    public KMeansTest() {
       super(new KMeans(),

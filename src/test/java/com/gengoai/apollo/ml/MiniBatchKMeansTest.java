@@ -17,10 +17,32 @@
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
+ *
  */
 
+package com.gengoai.apollo.ml;
+
+import com.gengoai.apollo.ml.clustering.MiniBatchKMeans;
+import com.gengoai.apollo.ml.clustering.SilhouetteEvaluation;
+import com.gengoai.conversion.Cast;
+
 /**
- * Structures for storing and retrieving vectors by label/key and implementation of LSH for fast nearest neighbor
- * searches on vectors.
+ * @author David B. Bracewell
  */
-package com.gengoai.apollo.linear.store;
+public class MiniBatchKMeansTest extends BaseClustererTest<MiniBatchKMeans.Parameters> {
+
+   public MiniBatchKMeansTest() {
+      super(new MiniBatchKMeans(),
+            Cast.as(new MiniBatchKMeans.Parameters()
+                       .set("K", 10)
+                       .set("maxIterations", 1000)));
+   }
+
+   @Override
+   public boolean passes(SilhouetteEvaluation mce) {
+      mce.output();
+      return mce.getAvgSilhouette() >= 0.9;
+   }
+
+
+}//END OF KMeansTest

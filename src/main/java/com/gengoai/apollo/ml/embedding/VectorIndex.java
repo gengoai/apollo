@@ -20,28 +20,39 @@
  *
  */
 
-package com.gengoai.apollo.ml.neural;
+package com.gengoai.apollo.ml.embedding;
 
 import com.gengoai.apollo.linear.NDArray;
 
+import java.util.stream.Stream;
+
 /**
+ * The interface Vector index.
+ *
  * @author David B. Bracewell
  */
-public class BackpropResult {
-   public final NDArray delta;
-   public final NDArray weightGradient;
-   public final NDArray biasGradient;
+public interface VectorIndex  {
 
+   /**
+    * Lookup nd array.
+    *
+    * @param index the index
+    * @return the nd array
+    */
+   NDArray lookup(int index);
 
-   public BackpropResult(NDArray delta, NDArray weightGradient, NDArray biasGradient) {
-      this.delta = delta;
-      this.weightGradient = weightGradient;
-      this.biasGradient = biasGradient;
-   }
+   /**
+    * Stream stream.
+    *
+    * @return the stream
+    */
+   Stream<NDArray> stream();
 
+   /**
+    * Dimension int.
+    *
+    * @return the int
+    */
+   int dimension();
 
-   public static BackpropResult from(NDArray delta, NDArray weightGradient, NDArray biasGradient) {
-      return new BackpropResult(delta, weightGradient, biasGradient);
-   }
-
-}// END OF BackpropResult
+}//END OF VectorIndex

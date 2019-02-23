@@ -27,6 +27,7 @@ import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.Feature;
 
+import java.util.List;
 import java.util.stream.Stream;
 
 /**
@@ -36,6 +37,17 @@ import java.util.stream.Stream;
  */
 public class CountFeatureVectorizer extends IndexVectorizer {
    private static final long serialVersionUID = 1L;
+
+   public CountFeatureVectorizer() {
+   }
+
+   public CountFeatureVectorizer(String unknown) {
+      super(unknown);
+   }
+
+   public CountFeatureVectorizer(List<String> alphabet, String unknown) {
+      super(alphabet, unknown);
+   }
 
    @Override
    protected Stream<String> getAlphabetSpace(Example example) {

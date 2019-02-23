@@ -34,8 +34,6 @@ import com.gengoai.conversion.Cast;
 
 import java.util.Arrays;
 
-import static com.gengoai.Validation.notNull;
-
 /**
  * <p>Naive Bayes model specifically designed for text classification problems. Allows for training the following type
  * of models:</p>
@@ -48,6 +46,7 @@ import static com.gengoai.Validation.notNull;
  * @author David B. Bracewell
  */
 public class NaiveBayes extends Classifier {
+   private static final long serialVersionUID = 1L;
    private ModelType modelType;
    private double[] priors;
    private double[][] conditionals;
@@ -71,8 +70,8 @@ public class NaiveBayes extends Classifier {
    }
 
    @Override
-   protected Classifier fitPreprocessed(Dataset preprocessed, FitParameters fitParameters) {
-      Parameters parameters = notNull(Cast.as(fitParameters, Parameters.class));
+   protected void fitPreprocessed(Dataset preprocessed, FitParameters fitParameters) {
+      Parameters parameters = Cast.as(fitParameters);
       conditionals = new double[getNumberOfFeatures()][getNumberOfLabels()];
       priors = new double[getNumberOfLabels()];
       modelType = parameters.modelType;
@@ -121,7 +120,6 @@ public class NaiveBayes extends Classifier {
          priors[i] = Math.log(priors[i] / N);
       }
 
-      return this;
    }
 
    @Override

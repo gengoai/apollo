@@ -8,7 +8,7 @@ import com.gengoai.conversion.Cast;
 /**
  * @author David B. Bracewell
  */
-public class LinearModelTest extends BaseClassifierTest {
+public class LinearModelTest extends BaseClassifierTest<LinearModel.Parameters> {
 
    public LinearModelTest() {
       super(new LinearModel(),

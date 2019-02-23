@@ -26,6 +26,7 @@ import cc.mallet.types.Alphabet;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.data.Dataset;
+import com.gengoai.collection.Index;
 import com.gengoai.collection.Sets;
 import com.gengoai.conversion.Cast;
 
@@ -52,6 +53,11 @@ public class MalletVectorizer implements DiscreteVectorizer {
    @Override
    public Set<String> alphabet() {
       return Cast.cast(Sets.asHashSet(Arrays.asList(alphabet.toArray())));
+   }
+
+   @Override
+   public Index<String> asIndex() {
+      throw new UnsupportedOperationException();
    }
 
    @Override

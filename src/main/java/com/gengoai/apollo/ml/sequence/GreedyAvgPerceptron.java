@@ -32,7 +32,7 @@ import com.gengoai.apollo.ml.preprocess.PreprocessorList;
 import com.gengoai.apollo.ml.vectorizer.IndexVectorizer;
 import com.gengoai.apollo.ml.vectorizer.MultiLabelBinarizer;
 import com.gengoai.apollo.ml.vectorizer.NoOptVectorizer;
-import com.gengoai.apollo.optimization.TerminationCriteria;
+import com.gengoai.apollo.optimization.StoppingCriteria;
 import com.gengoai.collection.HashBasedTable;
 import com.gengoai.collection.Iterables;
 import com.gengoai.collection.Table;
@@ -46,8 +46,6 @@ import com.gengoai.logging.Loggable;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-
-import static com.gengoai.Validation.notNull;
 
 /**
  * <p>A greedy sequence labeler that uses an Averaged Perceptron for classification. First-ordered transitions are
@@ -100,10 +98,10 @@ public class GreedyAvgPerceptron extends SequenceLabeler implements Loggable {
    public GreedyAvgPerceptron(SequenceValidator validator, PreprocessorList preprocessors) {
       super(SequencePipeline.create(NoOptVectorizer.INSTANCE)
                             .update(p -> {
-                                      p.preprocessorList.addAll(preprocessors);
-                                      p.featureVectorizer = NoOptVectorizer.INSTANCE;
-                                      p.sequenceValidator = validator;
-                                   }));
+                               p.preprocessorList.addAll(preprocessors);
+                               p.featureVectorizer = NoOptVectorizer.INSTANCE;
+                               p.sequenceValidator = validator;
+                            }));
    }
 
 
@@ -120,9 +118,8 @@ public class GreedyAvgPerceptron extends SequenceLabeler implements Loggable {
    }
 
    @Override
-   protected SequenceLabeler fitPreprocessed(Dataset preprocessed, FitParameters fitParameters) {
-      Parameters parameters = notNull(Cast.as(fitParameters, Parameters.class));
-
+   protected void fitPreprocessed(Dataset preprocessed, FitParameters fitParameters) {
+      Parameters parameters = Cast.as(fitParameters);
       IndexVectorizer vectorizer = new MultiLabelBinarizer();
       vectorizer.fit(preprocessed);
       this.labelSet = new HashSet<>(vectorizer.alphabet());
@@ -136,12 +133,12 @@ public class GreedyAvgPerceptron extends SequenceLabeler implements Loggable {
       final Table<String, String, Integer> tTimestamps = new HashBasedTable<>();
 
       int instances = 0;
-      TerminationCriteria terminationCriteria = TerminationCriteria.create()
-                                                                   .historySize(parameters.historySize)
-                                                                   .maxIterations(parameters.maxIterations)
-                                                                   .tolerance(parameters.eps);
+      StoppingCriteria stoppingCriteria = StoppingCriteria.create("pct_error")
+                                                          .historySize(parameters.historySize)
+                                                          .maxIterations(parameters.maxIterations)
+                                                          .tolerance(parameters.eps);
 
-      for (int i = 0; i < terminationCriteria.maxIterations(); i++) {
+      for (int i = 0; i < stoppingCriteria.maxIterations(); i++) {
          Stopwatch sw = Stopwatch.createStarted();
          double total = 0;
          double correct = 0;
@@ -179,14 +176,13 @@ public class GreedyAvgPerceptron extends SequenceLabeler implements Loggable {
             logInfo("Iteration {0}: Accuracy={1,number,#.####}, time to complete={2}", i + 1, (1d - error), sw);
          }
 
-         if (terminationCriteria.check(error)) {
+         if (stoppingCriteria.check(error)) {
             break;
          }
       }
 
       average(instances, featureWeights, fTimestamps, fTotals);
       average(instances, transitionWeights, tTimestamps, tTotals);
-      return this;
    }
 
    @Override

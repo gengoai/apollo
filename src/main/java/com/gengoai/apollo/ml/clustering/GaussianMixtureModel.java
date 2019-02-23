@@ -26,9 +26,9 @@ import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.ml.DiscretePipeline;
 import com.gengoai.apollo.ml.FitParameters;
-import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
 import com.gengoai.conversion.Cast;
+import com.gengoai.stream.MStream;
 import org.apache.commons.math3.distribution.MultivariateNormalDistribution;
 import org.apache.commons.math3.distribution.fitting.MultivariateNormalMixtureExpectationMaximization;
 import org.apache.commons.math3.util.Pair;
@@ -36,13 +36,11 @@ import org.apache.commons.math3.util.Pair;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.gengoai.Validation.notNull;
-
 /**
  * @author David B. Bracewell
  */
 public class GaussianMixtureModel extends FlatCentroidClusterer {
-
+   private static final long serialVersionUID = 1L;
 
    public GaussianMixtureModel(Preprocessor... preprocessors) {
       super(preprocessors);
@@ -52,16 +50,16 @@ public class GaussianMixtureModel extends FlatCentroidClusterer {
       super(modelParameters);
    }
 
-   @Override
-   protected GaussianMixtureModel fitPreprocessed(Dataset preprocessed, FitParameters fitParameters) {
-      Parameters p = notNull(Cast.as(fitParameters, Parameters.class));
 
-      List<NDArray> vectors = preprocessed.asVectorStream(getPipeline()).collect();
+   @Override
+   public void fit(MStream<NDArray> vectors, FitParameters fp) {
+      Parameters p = Cast.as(fp);
+      List<NDArray> vectorList = vectors.collect();
       int numberOfFeatures = getNumberOfFeatures();
-      int numberOfDataPoints = vectors.size();
+      int numberOfDataPoints = vectorList.size();
       double[][] data = new double[numberOfDataPoints][numberOfFeatures];
       for (int i = 0; i < numberOfDataPoints; i++) {
-         data[i] = vectors.get(i).toDoubleArray();
+         data[i] = vectorList.get(i).toDoubleArray();
       }
 
       List<MultivariateNormalDistribution> components = MultivariateNormalMixtureExpectationMaximization.estimate(data,
@@ -80,7 +78,6 @@ public class GaussianMixtureModel extends FlatCentroidClusterer {
          add(cluster);
       }
 
-      return this;
    }
 
    @Override
@@ -88,7 +85,7 @@ public class GaussianMixtureModel extends FlatCentroidClusterer {
       return new Parameters();
    }
 
-   public static class Parameters extends FitParameters {
+   public static class Parameters extends ClusterParameters<Parameters> {
       public int K = 100;
    }
 

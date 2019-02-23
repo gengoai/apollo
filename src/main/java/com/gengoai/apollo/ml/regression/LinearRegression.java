@@ -41,15 +41,28 @@ import java.io.Serializable;
 import static com.gengoai.Validation.notNull;
 
 /**
+ * The type Linear regression.
+ *
  * @author David B. Bracewell
  */
 public class LinearRegression extends Regression {
+   private static final long serialVersionUID = 1L;
    private final WeightParameters weightParameters = new WeightParameters();
 
+   /**
+    * Instantiates a new Linear regression.
+    *
+    * @param preprocessors the preprocessors
+    */
    public LinearRegression(Preprocessor... preprocessors) {
       super(preprocessors);
    }
 
+   /**
+    * Instantiates a new Linear regression.
+    *
+    * @param modelParameters the model parameters
+    */
    public LinearRegression(NumericPipeline modelParameters) {
       super(modelParameters);
    }
@@ -60,7 +73,7 @@ public class LinearRegression extends Regression {
    }
 
    @Override
-   protected Regression fitPreprocessed(Dataset preprocessed, FitParameters fitParameters) {
+   protected void fitPreprocessed(Dataset preprocessed, FitParameters fitParameters) {
       Parameters p = notNull(Cast.as(fitParameters, Parameters.class));
       weightParameters.update(getNumberOfLabels(), getNumberOfFeatures());
       GradientDescentOptimizer optimizer = GradientDescentOptimizer.builder()
@@ -69,18 +82,16 @@ public class LinearRegression extends Regression {
       optimizer.optimize(weightParameters,
                          () -> preprocessed.stream().map(e -> e.transform(getPipeline())),
                          new GradientDescentCostFunction(new SquaredLoss(), -1),
-                         TerminationCriteria.create()
-                                            .maxIterations(p.maxIterations)
-                                            .historySize(p.historySize)
-                                            .tolerance(p.tolerance),
+                         StoppingCriteria.create()
+                                         .maxIterations(p.maxIterations)
+                                         .historySize(p.historySize)
+                                         .tolerance(p.tolerance),
                          p.weightUpdater,
                          p.verbose ? p.reportInterval : -1);
-
-      return this;
    }
 
    @Override
-   public FitParameters getDefaultFitParameters() {
+   public LinearRegression.Parameters getDefaultFitParameters() {
       return new Parameters();
    }
 
@@ -122,6 +133,12 @@ public class LinearRegression extends Regression {
          return numLabels;
       }
 
+      /**
+       * Update.
+       *
+       * @param numLabels   the num labels
+       * @param numFeatures the num features
+       */
       public void update(int numLabels, int numFeatures) {
          this.numLabels = numLabels;
          this.numFeatures = numFeatures;
@@ -133,7 +150,10 @@ public class LinearRegression extends Regression {
    }
 
 
-   public static class Parameters extends FitParameters {
+   /**
+    * The type Parameters.
+    */
+   public static class Parameters extends FitParameters<Parameters> {
       /**
        * The Batch size.
        */

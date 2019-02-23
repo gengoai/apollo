@@ -31,7 +31,7 @@ import com.gengoai.apollo.optimization.SGDUpdater;
 /**
  * @author David B. Bracewell
  */
-public class LinearRegressionTest extends BaseRegressionTest {
+public class LinearRegressionTest extends BaseRegressionTest<LinearRegression.Parameters> {
 
    public LinearRegressionTest() {
       super(new LinearRegression(new PerFeatureTransform(ZScoreTransform::new)),

@@ -30,7 +30,7 @@ import com.gengoai.apollo.statistics.measure.Measure;
  * Specialized {@link FitParameters} for {@link Clusterer}s that includes a {@link Measure} to compute distance or
  * similarity between points.
  */
-public class ClusterParameters extends FitParameters {
+public class ClusterParameters<T extends ClusterParameters> extends FitParameters<T> {
    private static final long serialVersionUID = 1L;
    /**
     * The measure used in calculating the distance or similarity between points when clustering.

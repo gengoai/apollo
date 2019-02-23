@@ -27,6 +27,7 @@ import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.Feature;
 import com.gengoai.apollo.ml.data.Dataset;
+import com.gengoai.collection.Index;
 
 import java.util.Collections;
 import java.util.Set;
@@ -47,6 +48,11 @@ public class HashingEncoder implements DiscreteVectorizer {
    @Override
    public Set<String> alphabet() {
       return Collections.emptySet();
+   }
+
+   @Override
+   public Index<String> asIndex() {
+      throw new UnsupportedOperationException();
    }
 
    @Override

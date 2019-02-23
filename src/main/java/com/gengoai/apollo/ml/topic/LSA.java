@@ -42,7 +42,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.gengoai.Validation.notNull;
 import static com.gengoai.apollo.linear.SparkLinearAlgebra.sparkSVD;
 import static com.gengoai.apollo.linear.SparkLinearAlgebra.toMatrix;
 
@@ -73,8 +72,8 @@ public class LSA extends TopicModel {
    }
 
    @Override
-   protected TopicModel fitPreprocessed(Dataset preprocessed, FitParameters fitParameters) {
-      Parameters parameters = notNull(Cast.as(fitParameters, Parameters.class));
+   protected void fitPreprocessed(Dataset preprocessed, FitParameters fitParameters) {
+      Parameters parameters = Cast.as(fitParameters);
       //Create document x word matrix
       SparkStream<Vector> stream = new SparkStream<Vector>(preprocessed.asVectorStream(getPipeline())
                                                                        .map(n -> new DenseVector(n.toDoubleArray())))
@@ -87,11 +86,10 @@ public class LSA extends TopicModel {
       for (int i = 0; i < parameters.K; i++) {
          topics.add(new LSATopic(NDArrayFactory.columnVector(topicMatrix.getVector(i, Axis.ROW).toDoubleArray())));
       }
-      return this;
    }
 
    @Override
-   public FitParameters getDefaultFitParameters() {
+   public LSA.Parameters getDefaultFitParameters() {
       return new Parameters();
    }
 

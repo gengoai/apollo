@@ -885,7 +885,7 @@ public abstract class NDArray implements Copyable<NDArray>, Serializable, JsonSe
          }
          return array.argMax(Axis.ROW).scalarValue();
       }
-      return Cast.<Number>as(label).doubleValue();
+      return Cast.<Number>as(object).doubleValue();
    }
 
    /**

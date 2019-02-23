@@ -23,7 +23,6 @@
 package com.gengoai.apollo.ml.embedding;
 
 
-import com.gengoai.apollo.linear.store.VectorStore;
 import com.gengoai.function.SerializableFunction;
 
 /**
@@ -34,6 +33,6 @@ import com.gengoai.function.SerializableFunction;
  *
  * @author David B. Bracewell
  */
-public interface Retrofitting extends SerializableFunction<VectorStore, VectorStore> {
+public interface Retrofitting extends SerializableFunction<Embedding, Embedding> {
 
 }//END OF Retrofitting

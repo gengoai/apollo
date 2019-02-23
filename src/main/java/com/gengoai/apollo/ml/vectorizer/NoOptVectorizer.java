@@ -25,6 +25,8 @@ package com.gengoai.apollo.ml.vectorizer;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.data.Dataset;
+import com.gengoai.collection.Index;
+import com.gengoai.collection.Indexes;
 
 import java.util.Collections;
 import java.util.Set;
@@ -49,6 +51,11 @@ public class NoOptVectorizer implements DiscreteVectorizer {
    @Override
    public Set<String> alphabet() {
       return Collections.emptySet();
+   }
+
+   @Override
+   public Index<String> asIndex() {
+      return Indexes.indexOf();
    }
 
    @Override

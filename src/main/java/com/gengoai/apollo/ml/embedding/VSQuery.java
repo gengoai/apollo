@@ -1,4 +1,26 @@
-package com.gengoai.apollo.linear.store;
+/*
+ * (c) 2005 David B. Bracewell
+ *
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ *
+ */
+
+package com.gengoai.apollo.ml.embedding;
 
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
@@ -18,13 +40,13 @@ import java.util.stream.Stream;
  * @author David B. Bracewell
  */
 public final class VSQuery {
-   private List<NDArray> positiveVectors = new ArrayList<>();
+   private int K = Integer.MAX_VALUE;
+   private Measure measure = Similarity.Cosine;
+   private List<String> negativeTerms = new ArrayList<>();
    private List<NDArray> negativeVectors = new ArrayList<>();
    private List<String> positiveTerms = new ArrayList<>();
-   private List<String> negativeTerms = new ArrayList<>();
-   private int K = Integer.MAX_VALUE;
+   private List<NDArray> positiveVectors = new ArrayList<>();
    private double threshold = Double.NEGATIVE_INFINITY;
-   private Measure measure = Similarity.Cosine;
 
    /**
     * Creates a new VSQuery where the query is a composite of a set of positive and negative example terms. The query is
@@ -77,6 +99,27 @@ public final class VSQuery {
    }
 
    /**
+    * Apply filters stream.
+    *
+    * @param stream the stream
+    * @return the stream
+    */
+   public Stream<NDArray> applyFilters(Stream<NDArray> stream) {
+      if (Double.isFinite(threshold())) {
+         stream = stream.filter(v -> measure().getOptimum().test(v.getWeight(), threshold()));
+      }
+      stream = stream.sorted((v1, v2) -> measure().getOptimum().compare(v1.getWeight(), v2.getWeight()));
+      Set<String> exclude = getExcludedLabels();
+      if (exclude.size() > 0) {
+         stream = stream.filter(v -> !exclude.contains(v.getLabel()));
+      }
+      if (limit() > 0 && limit() < Integer.MAX_VALUE) {
+         stream = stream.limit(limit());
+      }
+      return stream;
+   }
+
+   /**
     * Clears the query terms and example vectors
     */
    public void clearQuery() {
@@ -95,12 +138,12 @@ public final class VSQuery {
       return Sets.union(positiveTerms, negativeTerms);
    }
 
-   private NDArray getVector(List<NDArray> vectors, List<String> terms, VectorStore store) {
+   private NDArray getVector(List<NDArray> vectors, List<String> terms, Embedding store) {
       Stream<NDArray> stream;
       if (vectors.size() > 0) {
          stream = vectors.stream();
       } else {
-         stream = terms.stream().map(store::get);
+         stream = terms.stream().map(store::lookup);
       }
       return stream.reduce(NDArrayFactory.DENSE.zeros(store.dimension()), NDArray::addi);
    }
@@ -279,7 +322,7 @@ public final class VSQuery {
     * @param store the vector store that the final query vector will be for.
     * @return the query vector
     */
-   public NDArray queryVector(VectorStore store) {
+   public NDArray queryVector(Embedding store) {
       NDArray pos = getVector(positiveVectors, positiveTerms, store);
       NDArray neg = getVector(negativeVectors, negativeTerms, store);
       return pos.subi(neg);
@@ -303,22 +346,6 @@ public final class VSQuery {
     */
    public double threshold() {
       return threshold;
-   }
-
-
-   public Stream<NDArray> applyFilters(Stream<NDArray> stream) {
-      if (Double.isFinite(threshold())) {
-         stream = stream.filter(v -> measure().getOptimum().test(v.getWeight(), threshold()));
-      }
-      stream = stream.sorted((v1, v2) -> measure().getOptimum().compare(v1.getWeight(), v2.getWeight()));
-      Set<String> exclude = getExcludedLabels();
-      if (exclude.size() > 0) {
-         stream = stream.filter(v -> !exclude.contains(v.getLabel()));
-      }
-      if (limit() > 0 && limit() < Integer.MAX_VALUE) {
-         stream = stream.limit(limit());
-      }
-      return stream;
    }
 
 }//END OF VSQuery

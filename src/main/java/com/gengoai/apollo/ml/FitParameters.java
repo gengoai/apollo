@@ -32,7 +32,7 @@ import com.gengoai.Parameters;
  *
  * @author David B. Bracewell
  */
-public class FitParameters implements Parameters<FitParameters> {
+public class FitParameters<T extends FitParameters> implements Parameters<T> {
    private static final long serialVersionUID = 1L;
    /**
     * Whether or not to be verbose when fitting and transforming with the model

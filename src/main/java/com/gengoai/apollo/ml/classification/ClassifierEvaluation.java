@@ -28,13 +28,11 @@ import com.gengoai.apollo.ml.Split;
 import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.apollo.ml.vectorizer.IndexVectorizer;
 import com.gengoai.apollo.ml.vectorizer.MultiLabelBinarizer;
-import com.gengoai.conversion.Cast;
 import com.gengoai.logging.Logger;
 import com.gengoai.stream.MStream;
 
 import java.io.PrintStream;
 import java.io.Serializable;
-import java.util.function.Consumer;
 
 /**
  * <p>Defines common methods and metrics when evaluating classification models.</p>
@@ -66,25 +64,6 @@ public abstract class ClassifierEvaluation implements Serializable {
    /**
     * Performs a cross-validation of the given classifier using the given dataset
     *
-    * @param dataset    the dataset to perform cross-validation on
-    * @param classifier the classifier to train and test
-    * @param updater    the {@link FitParameters} updater to set the training parameters
-    * @param nFolds     the number of folds to perform
-    * @return the classifier evaluation
-    */
-   public static ClassifierEvaluation crossValidation(Dataset dataset,
-                                                      Classifier classifier,
-                                                      Consumer<? extends FitParameters> updater,
-                                                      int nFolds
-                                                     ) {
-      FitParameters parameters = classifier.getDefaultFitParameters();
-      updater.accept(Cast.as(parameters));
-      return crossValidation(dataset, classifier, parameters, nFolds);
-   }
-
-   /**
-    * Performs a cross-validation of the given classifier using the given dataset
-    *
     * @param dataset       the dataset to perform cross-validation on
     * @param classifier    the classifier to train and test
     * @param fitParameters the {@link FitParameters} to use for training
@@ -94,7 +73,8 @@ public abstract class ClassifierEvaluation implements Serializable {
    public static ClassifierEvaluation crossValidation(Dataset dataset,
                                                       Classifier classifier,
                                                       FitParameters fitParameters,
-                                                      int nFolds
+                                                      int nFolds,
+                                                      boolean printFoldStats
                                                      ) {
       IndexVectorizer tmp = new MultiLabelBinarizer();
       tmp.fit(dataset);
@@ -103,13 +83,13 @@ public abstract class ClassifierEvaluation implements Serializable {
                                         : new MultiClassEvaluation();
       int foldId = 0;
       for (Split split : dataset.shuffle().fold(nFolds)) {
-         if (fitParameters.verbose) {
+         if (printFoldStats) {
             foldId++;
             log.info("Running fold {0}", foldId);
          }
          classifier.fit(split.train, fitParameters);
          evaluation.evaluate(classifier, split.test);
-         if (fitParameters.verbose) {
+         if (printFoldStats) {
             log.info("Fold {0}: Cumulative Metrics(accuracy={1})", foldId, evaluation.accuracy());
          }
       }

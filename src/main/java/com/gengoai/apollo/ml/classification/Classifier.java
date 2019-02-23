@@ -43,7 +43,7 @@ import com.gengoai.function.SerializableFunction;
  *
  * @author David B. Bracewell
  */
-public abstract class Classifier extends DiscreteModel<Classifier> implements SerializableFunction<Example, Classification> {
+public abstract class Classifier extends DiscreteModel implements SerializableFunction<Example, Classification> {
    private static final long serialVersionUID = 1L;
 
 

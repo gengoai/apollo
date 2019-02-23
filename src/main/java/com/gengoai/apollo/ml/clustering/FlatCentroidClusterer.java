@@ -28,11 +28,14 @@ import com.gengoai.apollo.ml.DiscretePipeline;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
 
 /**
+ * <p>Abstract base class for {@link Clusterer}s whose resultant clustering is flat, i.e. are a set of K lists of
+ * points where K is the number of clusters and are defined via centroids, i.e. central points.</p>
+ *
  * @author David B. Bracewell
  */
 public abstract class FlatCentroidClusterer extends FlatClusterer {
    /**
-    * Instantiates a new K-Means model.
+    * Instantiates a new FlatCentroidClusterer model.
     *
     * @param preprocessors the preprocessors
     */
@@ -41,7 +44,7 @@ public abstract class FlatCentroidClusterer extends FlatClusterer {
    }
 
    /**
-    * Instantiates a new K-Means model.
+    * Instantiates a new FlatCentroidClusterer model.
     *
     * @param modelParameters the model parameters
     */
@@ -50,27 +53,15 @@ public abstract class FlatCentroidClusterer extends FlatClusterer {
    }
 
 
-   public void keepOnlyCentroids(){
-      forEach(Cluster::clear);
-   }
-
-
    @Override
    public Cluster estimate(NDArray example) {
-      Cluster best = get(0);
-      double distance = getMeasure().calculate(example, best.getCentroid());
-      for (int i = 1; i < size(); i++) {
-         double d = getMeasure().calculate(example, get(i).getCentroid());
-         if (getMeasure().getOptimum().test(d, distance)) {
-            distance = d;
-            best = get(i);
-         }
-      }
-      return best;
+      return getMeasure().getOptimum().optimum(stream().parallel(),
+                                               c -> getMeasure().calculate(example, c.getCentroid()))
+                         .orElseThrow(IllegalStateException::new);
    }
 
    @Override
-   public NDArray distances(NDArray example) {
+   public NDArray measure(NDArray example) {
       NDArray distances = NDArrayFactory.DENSE.zeros(size());
       for (int i = 0; i < size(); i++) {
          distances.set(i, getMeasure().calculate(example, get(i).getCentroid()));

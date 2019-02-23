@@ -42,8 +42,6 @@ import com.gengoai.stream.MStream;
 
 import java.io.Serializable;
 
-import static com.gengoai.Validation.notNull;
-
 /**
  * <p>A generalized linear model. This model can encompass a number models dependent on the parameters when
  * training. A linear model learns a function to estimate observations (y) from one or more independent variables (x) in
@@ -78,8 +76,8 @@ public class LinearModel extends Classifier implements Loggable {
 
 
    @Override
-   protected Classifier fitPreprocessed(Dataset preprocessed, FitParameters fitParameters) {
-      Parameters parameters = notNull(Cast.as(fitParameters, Parameters.class));
+   protected void fitPreprocessed(Dataset preprocessed, FitParameters fitParameters) {
+      Parameters parameters = Cast.as(fitParameters);
       this.weightParameters.numFeatures = getNumberOfFeatures();
       this.weightParameters.numLabels = getNumberOfLabels();
       GradientDescentOptimizer optimizer = GradientDescentOptimizer.builder()
@@ -99,15 +97,13 @@ public class LinearModel extends Classifier implements Loggable {
       optimizer.optimize(weightParameters,
                          dataSupplier,
                          new GradientDescentCostFunction(parameters.lossFunction, -1),
-                         TerminationCriteria.create()
-                                            .maxIterations(parameters.maxIterations)
-                                            .historySize(parameters.historySize)
-                                            .tolerance(parameters.tolerance),
+                         StoppingCriteria.create()
+                                         .maxIterations(parameters.maxIterations)
+                                         .historySize(parameters.historySize)
+                                         .tolerance(parameters.tolerance),
                          parameters.weightUpdater,
                          parameters.verbose ? parameters.reportInterval
                                             : -1);
-
-      return this;
    }
 
    @Override
@@ -175,8 +171,9 @@ public class LinearModel extends Classifier implements Loggable {
    /**
     * Custom fit parameters for the LinearModel
     */
-   public static class Parameters extends com.gengoai.apollo.ml.FitParameters {
+   public static class Parameters extends FitParameters<Parameters> {
       private static final long serialVersionUID = 1L;
+      public boolean verbose = false;
       /**
        * The Activation.
        */

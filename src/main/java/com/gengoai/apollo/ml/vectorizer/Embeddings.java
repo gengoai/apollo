@@ -22,27 +22,22 @@
 
 package com.gengoai.apollo.ml.vectorizer;
 
-import com.gengoai.Lazy;
-import com.gengoai.apollo.linear.store.VectorStore;
-import com.gengoai.apollo.linear.store.VectorStoreParameter;
-import com.gengoai.io.Resources;
-
 /**
  * @author David B. Bracewell
  */
 public class Embeddings {
 
-   public static final Lazy<DiscreteVectorizer> glove50D = new Lazy<>(Glove50EmbeddingVectorizer::new);
-
-   private static class Glove50EmbeddingVectorizer extends EmbeddingVectorizer {
-      private static final long serialVersionUID = 1L;
-
-      public Glove50EmbeddingVectorizer() {
-         super(VectorStore.builder(new VectorStoreParameter()
-                                      .set("location", Resources.from("/data/Downloads/glove.6B.50d.txt"))
-                                  ).build(),
-               "unk");
-      }
-   }
+//   public static final Lazy<DiscreteVectorizer> glove50D = new Lazy<>(Glove50EmbeddingVectorizer::new);
+//
+//   private static class Glove50EmbeddingVectorizer extends EmbeddingVectorizer {
+//      private static final long serialVersionUID = 1L;
+//
+//      public Glove50EmbeddingVectorizer() {
+//         super(VectorStore.builder(new VectorStoreParameter()
+//                                      .set("location", Resources.from("/data/Downloads/glove.6B.50d.txt"))
+//                                  ).build(),
+//               "unk");
+//      }
+//   }
 
 }//END OF Embeddings

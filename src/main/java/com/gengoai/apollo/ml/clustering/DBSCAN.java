@@ -25,10 +25,8 @@ package com.gengoai.apollo.ml.clustering;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.ml.DiscretePipeline;
 import com.gengoai.apollo.ml.FitParameters;
-import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
 import com.gengoai.conversion.Cast;
-import com.gengoai.function.SerializableSupplier;
 import com.gengoai.stream.MStream;
 import org.apache.commons.math3.ml.clustering.DBSCANClusterer;
 
@@ -43,6 +41,7 @@ import java.util.List;
  * @author David B. Bracewell
  */
 public class DBSCAN extends FlatCentroidClusterer {
+   private static final long serialVersionUID = 1L;
 
    /**
     * Instantiates a new Dbscan.
@@ -62,21 +61,15 @@ public class DBSCAN extends FlatCentroidClusterer {
       super(modelParameters);
    }
 
-   /**
-    * Clusters the given NDArray using DBSCAN fit parameters
-    *
-    * @param dataSupplier  the data supplier
-    * @param fitParameters the fit parameters
-    * @return the flat clustering
-    */
-   public DBSCAN fit(SerializableSupplier<MStream<NDArray>> dataSupplier, Parameters fitParameters) {
+   @Override
+   public void fit(MStream<NDArray> vectorStream, FitParameters parameters) {
+      Parameters fitParameters = Cast.as(parameters);
       setMeasure(fitParameters.measure);
       DBSCANClusterer<ApacheClusterable> clusterer = new DBSCANClusterer<>(fitParameters.eps,
                                                                            fitParameters.minPts,
                                                                            new ApacheDistanceMeasure(
                                                                               fitParameters.measure));
-      List<ApacheClusterable> apacheClusterables = dataSupplier.get()
-                                                               .parallel()
+      List<ApacheClusterable> apacheClusterables = vectorStream.parallel()
                                                                .map(ApacheClusterable::new)
                                                                .collect();
 
@@ -103,13 +96,8 @@ public class DBSCAN extends FlatCentroidClusterer {
          }
          get(index).addPoint(n);
       });
-      return this;
    }
 
-   @Override
-   public DBSCAN fitPreprocessed(Dataset dataSupplier, FitParameters fitParameters) {
-      return fit(() -> dataSupplier.asVectorStream(getPipeline()), Cast.as(fitParameters, Parameters.class));
-   }
 
    @Override
    public Parameters getDefaultFitParameters() {

@@ -22,13 +22,14 @@
 
 package com.gengoai.apollo.ml;
 
-import com.gengoai.Stopwatch;
 import com.gengoai.apollo.ml.data.Dataset;
+import com.gengoai.conversion.Cast;
 import com.gengoai.io.resource.Resource;
-import com.gengoai.logging.Logger;
 
 import java.io.Serializable;
 import java.util.function.Consumer;
+
+import static com.gengoai.Validation.notNull;
 
 /**
  * <p>
@@ -45,11 +46,9 @@ import java.util.function.Consumer;
  * output is dependent on the type model.
  * </p>
  *
- * @param <T> the return type parameter of the fit methods
  * @author David B. Bracewell
  */
-public abstract class Model<T> implements Serializable {
-   private static final Logger log = Logger.getLogger(Model.class);
+public abstract class Model implements Serializable {
    private static final long serialVersionUID = 1L;
 
    /**
@@ -71,8 +70,9 @@ public abstract class Model<T> implements Serializable {
     * @param dataset the dataset to fit the model on
     * @return the result of fitting
     */
-   public final T fit(Dataset dataset) {
-      return fit(dataset, getDefaultFitParameters());
+   public final void fit(Dataset dataset) {
+      notNull(dataset);
+      fit(dataset, getDefaultFitParameters());
    }
 
    /**
@@ -83,8 +83,12 @@ public abstract class Model<T> implements Serializable {
     * @param parameterUpdater the consumer to use to update the fit parameters
     * @return the result of fitting
     */
-   public final T fit(Dataset dataset, Consumer<? extends FitParameters> parameterUpdater) {
-      return fit(dataset, getDefaultFitParameters().update(parameterUpdater));
+   public final void fit(Dataset dataset, Consumer<? extends FitParameters> parameterUpdater) {
+      notNull(dataset);
+      notNull(parameterUpdater);
+      FitParameters parameters = getDefaultFitParameters();
+      parameterUpdater.accept(Cast.as(parameters));
+      fit(dataset, parameters);
    }
 
    /**
@@ -94,17 +98,11 @@ public abstract class Model<T> implements Serializable {
     * @param fitParameters the fit parameters
     * @return the result of fitting
     */
-   public final T fit(Dataset dataset, FitParameters fitParameters) {
-      Stopwatch sw = Stopwatch.createStarted();
-      if (fitParameters.verbose) {
-         log.info("Preprocessing...");
-      }
+   public final void fit(Dataset dataset, FitParameters fitParameters) {
+      notNull(dataset);
+      notNull(fitParameters);
       Dataset preprocessed = getPipeline().fitAndPreprocess(dataset).cache();
-      sw.stop();
-      if (fitParameters.verbose) {
-         log.info("Preprocessing completed. ({0})", sw);
-      }
-      return fitPreprocessed(preprocessed, fitParameters);
+      fitPreprocessed(preprocessed, fitParameters);
    }
 
    /**
@@ -114,21 +112,20 @@ public abstract class Model<T> implements Serializable {
     * @param fitParameters the fit parameters
     * @return the result of fitting
     */
-   protected abstract T fitPreprocessed(Dataset preprocessed, FitParameters fitParameters);
+   protected abstract void fitPreprocessed(Dataset preprocessed, FitParameters fitParameters);
 
    /**
     * Gets default fit parameters for the model.
     *
     * @return the default fit parameters
     */
-   public abstract FitParameters getDefaultFitParameters();
-
+   public abstract FitParameters<?> getDefaultFitParameters();
 
    /**
     * Gets the pipeline associated with the model. Subclasses should override the return type to match the requirements
     * of the model.
     *
-    * @return the model parameters
+    * @return shapeless.the model parameters
     */
    public abstract Pipeline getPipeline();
 

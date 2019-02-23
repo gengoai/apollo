@@ -23,12 +23,14 @@
 package com.gengoai.apollo.ml;
 
 import com.gengoai.Parameters;
+import com.gengoai.Stopwatch;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.apollo.ml.preprocess.PreprocessorList;
 import com.gengoai.apollo.ml.vectorizer.CountFeatureVectorizer;
 import com.gengoai.apollo.ml.vectorizer.DiscreteVectorizer;
 import com.gengoai.apollo.ml.vectorizer.Vectorizer;
+import com.gengoai.logging.Logger;
 
 import java.io.Serializable;
 
@@ -44,6 +46,8 @@ import java.io.Serializable;
 public abstract class Pipeline<LV extends Vectorizer,
                                  T extends Pipeline<LV, ?>> implements Parameters<T>, Serializable {
    private static final long serialVersionUID = 1L;
+   private static final Logger log = Logger.getLogger(Pipeline.class);
+
    /**
     * The label vectorizer to use to create NDArray for labels
     */
@@ -75,9 +79,13 @@ public abstract class Pipeline<LV extends Vectorizer,
     * @return the dataset with preprocessing applied
     */
    public Dataset fitAndPreprocess(Dataset dataset) {
+      Stopwatch sw = Stopwatch.createStarted();
+      log.info("Preprocessing...");
       Dataset preprocessed = preprocessorList.fitAndTransform(dataset);
       labelVectorizer.fit(preprocessed);
       featureVectorizer.fit(preprocessed);
+      sw.stop();
+      log.info("Preprocessing completed. ({0})", sw);
       return preprocessed;
    }
 

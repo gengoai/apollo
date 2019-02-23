@@ -61,17 +61,18 @@ public class RegressionEvaluation implements Serializable {
    public static RegressionEvaluation crossValidation(Dataset dataset,
                                                       Regression regression,
                                                       FitParameters fitParameters,
-                                                      int nFolds
+                                                      int nFolds,
+                                                      boolean printFoldStats
                                                      ) {
       RegressionEvaluation evaluation = new RegressionEvaluation();
       AtomicInteger foldId = new AtomicInteger(0);
       for (Split split : dataset.shuffle().fold(nFolds)) {
-         if (fitParameters.verbose) {
+         if (printFoldStats) {
             log.info("Running fold {0}", foldId.incrementAndGet());
          }
          regression.fit(split.train, fitParameters);
          evaluation.evaluate(regression, split.test);
-         if (fitParameters.verbose) {
+         if (printFoldStats) {
             log.info("Fold {0}: Cumulative Metrics(r2={1})", foldId.get(), evaluation.r2());
          }
       }

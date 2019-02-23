@@ -8,7 +8,7 @@ import com.gengoai.conversion.Cast;
 /**
  * @author David B. Bracewell
  */
-public class DBSCANTest extends BaseClustererTest {
+public class DBSCANTest extends BaseClustererTest<DBSCAN.Parameters> {
 
    public DBSCANTest() {
       super(new DBSCAN(new FilterPreprocessor("AutoColumn_0")),

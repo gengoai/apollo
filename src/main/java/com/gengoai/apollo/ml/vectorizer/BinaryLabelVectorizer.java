@@ -26,6 +26,8 @@ import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.data.Dataset;
+import com.gengoai.collection.Index;
+import com.gengoai.collection.Indexes;
 import com.gengoai.collection.Sets;
 
 import java.util.Set;
@@ -42,6 +44,11 @@ public class BinaryLabelVectorizer implements DiscreteVectorizer {
    @Override
    public Set<String> alphabet() {
       return Sets.hashSetOf(Boolean.FALSE.toString(), Boolean.TRUE.toString());
+   }
+
+   @Override
+   public Index<String> asIndex() {
+      return Indexes.indexOf(Boolean.FALSE.toString(), Boolean.TRUE.toString());
    }
 
 

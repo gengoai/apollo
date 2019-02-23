@@ -20,20 +20,36 @@
  *
  */
 
-package com.gengoai.apollo.linear.store;
+package com.gengoai.apollo.ml.embedding;
 
-import com.gengoai.Parameters;
-import com.gengoai.io.resource.Resource;
+import com.gengoai.apollo.linear.NDArray;
 
 import java.io.Serializable;
+import java.util.stream.Stream;
 
 /**
  * @author David B. Bracewell
  */
-public class VectorStoreParameter implements Parameters<VectorStoreParameter>, Serializable {
-   public int cacheSize = 5000;
-   public Resource location = null;
-   public VectorStoreType type = VectorStoreType.InMemory;
+public class DefaultVectorIndex implements VectorIndex, Serializable {
+   private static final long serialVersionUID = 1L;
+   private final NDArray[] vectors;
 
+   public DefaultVectorIndex(NDArray[] vectors) {
+      this.vectors = vectors;
+   }
 
-}//END OF VectorStoreParameter
+   @Override
+   public NDArray lookup(int index) {
+      return vectors[index].copy();
+   }
+
+   @Override
+   public Stream<NDArray> stream() {
+      return Stream.of(vectors);
+   }
+
+   @Override
+   public int dimension() {
+      return (int) vectors[0].length();
+   }
+}//END OF DefaultVectorIndex

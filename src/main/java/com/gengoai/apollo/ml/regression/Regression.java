@@ -32,7 +32,7 @@ import com.gengoai.apollo.ml.preprocess.Preprocessor;
  *
  * @author David B. Bracewell
  */
-public abstract class Regression extends Model<Regression> {
+public abstract class Regression extends Model {
    private static final long serialVersionUID = 1L;
    private final NumericPipeline modelParameters;
 

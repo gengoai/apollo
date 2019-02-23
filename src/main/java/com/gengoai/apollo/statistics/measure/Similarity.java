@@ -52,7 +52,14 @@ public enum Similarity implements SimilarityMeasure {
    Dice {
       @Override
       public double calculate(NDArray v1, NDArray v2) {
-         return 2 * v1.map(v2, Math::min).scalarSum() / v1.add(v2).scalarSum();
+         if (v1.size() == 0 && v2.size() == 0) {
+            return 1.0;
+         }
+         double norm = v1.add(v2).scalarSum();
+         if (norm == 0) {
+            return v1.scalarSumOfSquares() == 0 && v2.scalarSumOfSquares() == 0 ? 1.0 : 0.0;
+         }
+         return 2 * v1.map(v2, Math::min).scalarSum() / norm;
       }
 
       @Override
@@ -75,7 +82,7 @@ public enum Similarity implements SimilarityMeasure {
       @Override
       public double calculate(ContingencyTable table) {
          Validation.checkArgument(table.rowCount() == table.columnCount() && table.rowCount() == 2,
-                                     "Only supports 2x2 contingency tables.");
+                                  "Only supports 2x2 contingency tables.");
          return 2 * table.get(0, 0) / (table.columnSum(0) + table.rowSum(0));
       }
    },
@@ -85,13 +92,23 @@ public enum Similarity implements SimilarityMeasure {
    Cosine {
       @Override
       public double calculate(NDArray v1, NDArray v2) {
-         return v1.scalarDot(v2) / (v1.scalarNorm2() * v2.scalarNorm2());
+//         if (v1.size() == 0 && v2.size() == 0) {
+//            return 1.0;
+//         }
+         double v1Norm = v1.scalarNorm2();
+         double v2Norm = v2.scalarNorm2();
+         if (v1Norm == 0 && v2Norm == 0) {
+            return 1.0;
+         } else if (v1Norm == 0 || v2Norm == 0) {
+            return 0.0;
+         }
+         return v1.scalarDot(v2) / (v1Norm * v2Norm);
       }
 
       @Override
       public double calculate(ContingencyTable table) {
          Validation.checkArgument(table.rowCount() == table.columnCount() && table.rowCount() == 2,
-                                     "Only supports 2x2 contingency tables.");
+                                  "Only supports 2x2 contingency tables.");
          double c = Math.sqrt(Math.pow(table.get(0, 0), 2) + Math.pow(table.get(0, 1), 2));
          double r = Math.sqrt(Math.pow(table.get(0, 0), 2) + Math.pow(table.get(1, 0), 2));
          return table.get(0, 0) / (r + c);
@@ -101,26 +118,43 @@ public enum Similarity implements SimilarityMeasure {
     * Extended version of the <a href="https://en.wikipedia.org/wiki/Jaccard_index">Jaccard Index</a>, which is also
     * known as the <code>Tanimoto</code> coefficient.
     */
-   Jaccard {
+   Jaccard{
       @Override
       public double calculate(NDArray v1, NDArray v2) {
-         return v1.map(v2, Math::min).scalarSum() / v1.map(v2, Math::max).scalarSum();
+         if (v1.size() == 0 && v2.size() == 0) {
+            return 1.0;
+         }
+         double norm = v1.map(v2, Math::max).scalarSum();
+         if (norm == 0) {
+            return v1.scalarSumOfSquares() == 0 && v2.scalarSumOfSquares() == 0 ? 1.0 : 0.0;
+         }
+         return v1.map(v2, Math::min).scalarSum() / norm;
       }
 
       @Override
       public double calculate(ContingencyTable table) {
          Validation.checkArgument(table.rowCount() == table.columnCount() && table.rowCount() == 2,
-                                     "Only supports 2x2 contingency tables.");
+                                  "Only supports 2x2 contingency tables.");
          return table.get(0, 0) / (table.get(0, 0) + table.get(0, 1) + table.get(1, 0));
       }
    },
    /**
     * <a href="https://en.wikipedia.org/wiki/Overlap_coefficient">Overlap Coefficient</a>
     */
-   Overlap {
+   Overlap{
       @Override
       public double calculate(NDArray v1, NDArray v2) {
-         return Math2.clip(v1.scalarDot(v2) / Math.min(v1.scalarSumOfSquares(), v2.scalarSumOfSquares()), -1, 1);
+         if (v1.size() == 0 && v2.size() == 0) {
+            return 1.0;
+         }
+         double v1Norm = v1.scalarSumOfSquares();
+         double v2Norm = v2.scalarSumOfSquares();
+         if (v1Norm == 0 && v2Norm == 0) {
+            return 1.0;
+         } else if (v1Norm == 0 || v2Norm == 0) {
+            return 0.0;
+         }
+         return Math2.clip(v1.scalarDot(v2) / Math.min(v1Norm, v2Norm), -1, 1);
       }
 
 
@@ -128,7 +162,7 @@ public enum Similarity implements SimilarityMeasure {
       public double calculate(ContingencyTable table) {
          Validation.notNull(table);
          Validation.checkArgument(table.rowCount() == table.columnCount() && table.rowCount() == 2,
-                                     "Only supports 2x2 contingency tables.");
+                                  "Only supports 2x2 contingency tables.");
          return table.get(0, 0) / Math.min(table.columnSum(0), table.rowSum(0));
       }
    },

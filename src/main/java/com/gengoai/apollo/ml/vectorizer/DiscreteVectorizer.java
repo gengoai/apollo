@@ -22,6 +22,8 @@
 
 package com.gengoai.apollo.ml.vectorizer;
 
+import com.gengoai.collection.Index;
+
 import java.util.Set;
 
 /**
@@ -37,6 +39,8 @@ public interface DiscreteVectorizer extends Vectorizer {
     * @return the set
     */
    Set<String> alphabet();
+
+   Index<String> asIndex();
 
    /**
     * Decode t.

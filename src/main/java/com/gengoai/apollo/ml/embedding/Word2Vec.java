@@ -22,9 +22,8 @@
 
 package com.gengoai.apollo.ml.embedding;
 
+import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
-import com.gengoai.apollo.linear.store.VSBuilder;
-import com.gengoai.apollo.linear.store.VectorStore;
 import com.gengoai.apollo.ml.FitParameters;
 import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
@@ -54,7 +53,7 @@ public class Word2Vec extends Embedding {
    }
 
    @Override
-   protected VectorStore fitPreprocessed(Dataset preprocessed, FitParameters fitParameters) {
+   protected void fitPreprocessed(Dataset preprocessed, FitParameters fitParameters) {
       Parameters p = notNull(Cast.as(fitParameters, Parameters.class));
       org.apache.spark.mllib.feature.Word2Vec w2v = new org.apache.spark.mllib.feature.Word2Vec();
       w2v.setMinCount(1);
@@ -68,13 +67,17 @@ public class Word2Vec extends Embedding {
                                                 .toDistributedStream()
                                                 .map(e -> exampleToList(e, false))
                                                 .getRDD());
-      VSBuilder builder = p.vectorStoreBuilder.get();
-      mapAsJavaMap(model.getVectors()).forEach((k, v) -> builder.add(k, NDArrayFactory.rowVector(v)));
-      return builder.build();
+      NDArray[] vectors = new NDArray[model.getVectors().size()];
+      mapAsJavaMap(model.getVectors()).forEach((k, v) -> {
+         int index = getPipeline().featureVectorizer.indexOf(k);
+         vectors[index] = NDArrayFactory.rowVector(v);
+         vectors[index].setLabel(k);
+      });
+      this.vectorIndex = new DefaultVectorIndex(vectors);
    }
 
    @Override
-   public FitParameters getDefaultFitParameters() {
+   public Word2Vec.Parameters getDefaultFitParameters() {
       return new Parameters();
    }
 

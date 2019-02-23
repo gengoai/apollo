@@ -53,8 +53,6 @@ import java.util.Iterator;
 import java.util.TreeSet;
 import java.util.logging.Level;
 
-import static com.gengoai.Validation.notNull;
-
 /**
  * @author David B. Bracewell
  */
@@ -83,13 +81,13 @@ public class MalletLDA extends TopicModel {
    }
 
    @Override
-   protected TopicModel fitPreprocessed(Dataset preprocessed, FitParameters fitParameters) {
-      if (fitParameters.verbose) {
+   protected void fitPreprocessed(Dataset preprocessed, FitParameters fitParameters) {
+      Parameters p = Cast.as(fitParameters);
+      if (p.verbose) {
          ParallelTopicModel.logger.setLevel(Level.INFO);
       } else {
          ParallelTopicModel.logger.setLevel(Level.OFF);
       }
-      Parameters p = notNull(Cast.as(fitParameters, Parameters.class));
       pipes = new SerialPipes(Arrays.asList(new TargetStringToFeatures(),
                                             new InstanceToTokenSequence(),
                                             new TokenSequence2FeatureSequence()));
@@ -108,11 +106,10 @@ public class MalletLDA extends TopicModel {
       } catch (IOException e) {
          throw new RuntimeException(e);
       }
-      return this;
    }
 
    @Override
-   public FitParameters getDefaultFitParameters() {
+   public MalletLDA.Parameters getDefaultFitParameters() {
       return new Parameters();
    }
 

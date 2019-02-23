@@ -15,22 +15,22 @@ public interface Optimizer<THETA> extends Loggable {
    void optimize(THETA startingTheta,
                  SerializableSupplier<MStream<NDArray>> stream,
                  CostFunction<THETA> costFunction,
-                 TerminationCriteria terminationCriteria,
+                 StoppingCriteria stoppingCriteria,
                  WeightUpdate weightUpdate,
                  int reportInterval
                 );
 
    default boolean report(int interval,
                           int iteration,
-                          TerminationCriteria terminationCriteria,
+                          StoppingCriteria stoppingCriteria,
                           double cost,
                           String time
                          ) {
-      boolean converged = terminationCriteria.check(cost);
+      boolean converged = stoppingCriteria.check(cost);
       if (interval > 0
              && (iteration == 0
                     || (iteration + 1) % interval == 0
-                    || (iteration + 1) == terminationCriteria.maxIterations()
+                    || (iteration + 1) == stoppingCriteria.maxIterations()
                     || converged)) {
          logInfo("iteration={0}, loss={1}, time={2}", (iteration + 1), cost, time);
       }

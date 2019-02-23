@@ -37,14 +37,14 @@ public class GradientDescentOptimizer implements Optimizer<LinearModelParameters
    public void optimize(LinearModelParameters startingTheta,
                         SerializableSupplier<MStream<NDArray>> stream,
                         CostFunction<LinearModelParameters> costFunction,
-                        TerminationCriteria terminationCriteria,
+                        StoppingCriteria stoppingCriteria,
                         WeightUpdate weightUpdater,
                         int reportInterval
                        ) {
       BatchIterator iterator = new BatchIterator(stream.get().collect(),
                                                  startingTheta.numberOfLabels(),
                                                  startingTheta.numberOfFeatures());
-      for (int iteration = 0; iteration < terminationCriteria.maxIterations(); iteration++) {
+      for (int iteration = 0; iteration < stoppingCriteria.maxIterations(); iteration++) {
          cost = 0;
          iterator.shuffle();
          Stopwatch timer = Stopwatch.createStarted();
@@ -55,7 +55,7 @@ public class GradientDescentOptimizer implements Optimizer<LinearModelParameters
          }
          cost /= iterator.size();
          timer.stop();
-         if (report(reportInterval, iteration, terminationCriteria, cost, timer.toString())) {
+         if (report(reportInterval, iteration, stoppingCriteria, cost, timer.toString())) {
             break;
          }
       }

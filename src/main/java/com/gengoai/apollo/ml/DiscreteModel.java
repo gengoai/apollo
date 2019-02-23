@@ -28,10 +28,9 @@ import com.gengoai.apollo.ml.preprocess.Preprocessor;
  * <p>A model whose labels are discrete requireing a {@link com.gengoai.apollo.ml.vectorizer.DiscreteVectorizer} and
  * use a {@link DiscretePipeline}</p>
  *
- * @param <T> the type parameter
  * @author David B. Bracewell
  */
-public abstract class DiscreteModel<T> extends Model<T> {
+public abstract class DiscreteModel extends Model {
    private static final long serialVersionUID = 1L;
    private final DiscretePipeline modelParameters;
 

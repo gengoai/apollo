@@ -24,8 +24,7 @@ package com.gengoai.apollo.ml.embedding;
 
 import com.gengoai.Stopwatch;
 import com.gengoai.apollo.linear.DenseNDArray;
-import com.gengoai.apollo.linear.store.VSBuilder;
-import com.gengoai.apollo.linear.store.VectorStore;
+import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.ml.DiscretePipeline;
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.FitParameters;
@@ -44,8 +43,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
-import static com.gengoai.Validation.notNull;
-
 /**
  * @author David B. Bracewell
  */
@@ -62,8 +59,8 @@ public class Glove extends Embedding {
    }
 
    @Override
-   protected VectorStore fitPreprocessed(Dataset preprocessed, FitParameters fitParameters) {
-      Parameters p = notNull(Cast.as(fitParameters, Parameters.class));
+   protected void fitPreprocessed(Dataset preprocessed, FitParameters fitParameters) {
+      Parameters p = Cast.as(fitParameters);
       Stopwatch sw = Stopwatch.createStarted();
 
       double size = preprocessed.size();
@@ -81,8 +78,8 @@ public class Glove extends Embedding {
             }
          }
          processed++;
-         if( processed % 1000 == 0){
-            System.out.println("processed " + (100 * processed/size));
+         if (processed % 1000 == 0) {
+            System.out.println("processed " + (100 * processed / size));
          }
       }
 
@@ -93,7 +90,7 @@ public class Glove extends Embedding {
 
       List<Cooccurrence> cooccurrences = new ArrayList<>();
       counts.forEach((e, v) -> {
-         if( getPipeline().featureVectorizer.getString(e.i).equals("the")){
+         if (getPipeline().featureVectorizer.getString(e.i).equals("the")) {
             System.out.println(getPipeline().featureVectorizer.getString(e.j) + "\t" + v);
          }
          cooccurrences.add(new Cooccurrence(e.i, e.j, v));
@@ -168,13 +165,14 @@ public class Glove extends Embedding {
 
       }
 
-      VSBuilder vsBuilder = p.vectorStoreBuilder.get();
+      NDArray[] vectors = new NDArray[getNumberOfFeatures()];
       for (int i = 0; i < vocabLength; i++) {
          W[i].addi(W[i + vocabLength]);
          String k = getPipeline().featureVectorizer.getString(i);
-         vsBuilder.add(k, new DenseNDArray(W[i].toFloat()));
+         vectors[i] = new DenseNDArray(W[i].toFloat());
+         vectors[i].setLabel(k);
       }
-      return vsBuilder.build();
+      this.vectorIndex = new DefaultVectorIndex(vectors);
    }
 
    @Override

@@ -22,24 +22,24 @@
 
 package com.gengoai.apollo.ml.clustering;
 
+import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.ml.DiscretePipeline;
 import com.gengoai.apollo.ml.FitParameters;
-import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.apollo.statistics.measure.Measure;
+import com.gengoai.stream.MStream;
 
-/**
- * @author David B. Bracewell
- */
 class DummyFlatClusterer extends FlatCentroidClusterer {
    private static final long serialVersionUID = 1L;
+
 
    public DummyFlatClusterer(DiscretePipeline modelParameters, Measure measure) {
       super(modelParameters);
       setMeasure(measure);
    }
 
+
    @Override
-   protected Clusterer fitPreprocessed(Dataset preprocessed, FitParameters fitParameters) {
+   public void fit(MStream<NDArray> vectors, FitParameters fitParameters) {
       throw new UnsupportedOperationException();
    }
 

@@ -33,14 +33,24 @@ import com.gengoai.apollo.ml.preprocess.Preprocessor;
  *
  * @author David B. Bracewell
  */
-public abstract class TopicModel extends DiscreteModel<TopicModel> {
+public abstract class TopicModel extends DiscreteModel {
    private static final long serialVersionUID = 1L;
 
 
+   /**
+    * Instantiates a new Topic model.
+    *
+    * @param preprocessors the preprocessors
+    */
    public TopicModel(Preprocessor... preprocessors) {
       super(DiscretePipeline.unsupervised().update(p -> p.preprocessorList.addAll(preprocessors)));
    }
 
+   /**
+    * Instantiates a new Topic model.
+    *
+    * @param modelParameters the model parameters
+    */
    public TopicModel(DiscretePipeline modelParameters) {
       super(modelParameters);
    }
@@ -62,9 +72,20 @@ public abstract class TopicModel extends DiscreteModel<TopicModel> {
    public abstract NDArray getTopicDistribution(String feature);
 
 
+   /**
+    * Gets topic.
+    *
+    * @param topic the topic
+    * @return the topic
+    */
    public abstract Topic getTopic(int topic);
 
 
+   /**
+    * Gets number of topics.
+    *
+    * @return the number of topics
+    */
    public abstract int getNumberOfTopics();
 
 }//END OF TopicModel

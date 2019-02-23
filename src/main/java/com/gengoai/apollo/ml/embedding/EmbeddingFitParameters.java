@@ -22,10 +22,7 @@
 
 package com.gengoai.apollo.ml.embedding;
 
-import com.gengoai.apollo.linear.store.VSBuilder;
-import com.gengoai.apollo.linear.store.VectorStore;
 import com.gengoai.apollo.ml.FitParameters;
-import com.gengoai.function.SerializableSupplier;
 
 /**
  * Specialized {@link FitParameters} for embeddings, which includes a supplier to generate builders for vector stores.
@@ -34,11 +31,6 @@ import com.gengoai.function.SerializableSupplier;
  */
 public class EmbeddingFitParameters extends FitParameters {
    private static final long serialVersionUID = 1L;
-
-   /**
-    * Supplier to generate a vector store builder for storing the generated embeddings
-    */
-   public SerializableSupplier<VSBuilder> vectorStoreBuilder = VectorStore::builder;
 
 
 }//END OF EmbeddingFitParameters

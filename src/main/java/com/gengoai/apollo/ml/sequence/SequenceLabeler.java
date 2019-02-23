@@ -31,27 +31,58 @@ import com.gengoai.apollo.ml.Model;
  *
  * @author David B. Bracewell
  */
-public abstract class SequenceLabeler extends Model<SequenceLabeler> {
+public abstract class SequenceLabeler extends Model {
    private static final long serialVersionUID = 1L;
    private final SequencePipeline modelParameters;
 
+   /**
+    * Instantiates a new Sequence labeler.
+    *
+    * @param modelParameters the model parameters
+    */
    public SequenceLabeler(SequencePipeline modelParameters) {
       this.modelParameters = modelParameters.copy();
    }
 
 
+   /**
+    * Gets sequence validator.
+    *
+    * @return the sequence validator
+    */
    public SequenceValidator getSequenceValidator() {
       return modelParameters.sequenceValidator;
    }
 
+   /**
+    * Sets sequence validator.
+    *
+    * @param sequenceValidator the sequence validator
+    */
    public void setSequenceValidator(SequenceValidator sequenceValidator) {
       modelParameters.sequenceValidator = sequenceValidator;
    }
 
+   /**
+    * Is valid transition boolean.
+    *
+    * @param current  the current
+    * @param previous the previous
+    * @param example  the example
+    * @return the boolean
+    */
    protected boolean isValidTransition(String current, String previous, Example example) {
       return getSequenceValidator().isValid(current, previous, example);
    }
 
+   /**
+    * Is valid transition boolean.
+    *
+    * @param current  the current
+    * @param previous the previous
+    * @param example  the example
+    * @return the boolean
+    */
    protected boolean isValidTransition(int current, int previous, Example example) {
       return getSequenceValidator().isValid(modelParameters.labelVectorizer.getString(current),
                                             modelParameters.labelVectorizer.getString(previous),
@@ -68,6 +99,7 @@ public abstract class SequenceLabeler extends Model<SequenceLabeler> {
     * Specialized transform to predict the labels for a sequence.
     *
     * @param example the example sequence to label
+    * @return the labeling
     */
    public abstract Labeling label(Example example);
 

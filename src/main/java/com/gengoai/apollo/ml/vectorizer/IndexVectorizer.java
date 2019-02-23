@@ -29,6 +29,7 @@ import com.gengoai.collection.Index;
 import com.gengoai.collection.Sets;
 import com.gengoai.collection.Streams;
 
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -60,6 +61,16 @@ public abstract class IndexVectorizer implements DiscreteVectorizer {
       if (this.unknown != null) {
          index.add(this.unknown);
       }
+   }
+
+   @Override
+   public Index<String> asIndex() {
+      return index;
+   }
+
+   public IndexVectorizer(List<String> alphabet, String unknown) {
+      this.unknown = unknown;
+      index.addAll(alphabet);
    }
 
    @Override

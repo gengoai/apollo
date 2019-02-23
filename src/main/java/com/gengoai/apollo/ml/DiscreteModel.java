@@ -25,8 +25,8 @@ package com.gengoai.apollo.ml;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
 
 /**
- * <p>A model whose labels are discrete requireing a {@link com.gengoai.apollo.ml.vectorizer.DiscreteVectorizer} and
- * use a {@link DiscretePipeline}</p>
+ * <p>A model whose labels are discrete requiring a {@link com.gengoai.apollo.ml.vectorizer.DiscreteVectorizer} and
+ * uses a {@link DiscretePipeline}</p>
  *
  * @author David B. Bracewell
  */

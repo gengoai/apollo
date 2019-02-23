@@ -23,7 +23,9 @@
 package com.gengoai.apollo.ml.data;
 
 import com.gengoai.apollo.linear.NDArray;
-import com.gengoai.apollo.ml.*;
+import com.gengoai.apollo.ml.Example;
+import com.gengoai.apollo.ml.Pipeline;
+import com.gengoai.apollo.ml.Split;
 import com.gengoai.collection.counter.Counter;
 import com.gengoai.function.SerializableFunction;
 import com.gengoai.io.resource.Resource;
@@ -31,12 +33,10 @@ import com.gengoai.json.Json;
 import com.gengoai.stream.MStream;
 import com.gengoai.stream.StreamingContext;
 import com.gengoai.stream.accumulator.MCounterAccumulator;
-import com.gengoai.string.Strings;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
@@ -61,7 +61,6 @@ public abstract class Dataset implements Iterable<Example>, Serializable, AutoCl
    public static DatasetBuilder builder() {
       return new DatasetBuilder();
    }
-
 
    /**
     * Uses the given pipeline to create a stream of {@link NDArray} from the dataset
@@ -124,7 +123,6 @@ public abstract class Dataset implements Iterable<Example>, Serializable, AutoCl
     * @return the {@link DatasetType}
     */
    public abstract DatasetType getType();
-
 
    /**
     * Maps the examples in this dataset using the given function and creating a new dataset in the process.
@@ -265,24 +263,6 @@ public abstract class Dataset implements Iterable<Example>, Serializable, AutoCl
             writer.write("\n");
          }
       }
-   }
-
-
-   public static void main(String[] args) throws Exception {
-      Dataset dataset = DatasetType.OnDisk.create(StreamingContext.local().range(0, 100).map(i -> {
-         List<Feature> features = new ArrayList<>();
-         for (int j = 0; j < 10; j++) {
-            features.add(Feature.booleanFeature(Strings.randomHexString(3)));
-         }
-         return new Instance(Strings.randomHexString(1), features);
-      }));
-
-      dataset = dataset.map(e -> e.setLabel(Strings.randomHexString(2)));
-      dataset.forEach(System.out::println);
-      dataset = dataset.map(e -> e.setLabel(Strings.randomHexString(1)));
-      System.out.println();
-      System.out.println();
-      dataset.forEach(System.out::println);
    }
 
 }//END OF Dataset

@@ -37,15 +37,27 @@ import org.apache.spark.mllib.linalg.Vector;
 import static com.gengoai.tuple.Tuples.$;
 
 /**
+ * <p>Distributed version of KMeans using Apache Spark.</p>
+ *
  * @author David B. Bracewell
  */
 public class DistributedKMeans extends FlatCentroidClusterer {
    private static final long serialVersionUID = 1L;
 
+   /**
+    * Instantiates a new Distributed k means.
+    *
+    * @param preprocessors the preprocessors
+    */
    public DistributedKMeans(Preprocessor... preprocessors) {
       super(preprocessors);
    }
 
+   /**
+    * Instantiates a new Distributed k means.
+    *
+    * @param modelParameters the model parameters
+    */
    public DistributedKMeans(DiscretePipeline modelParameters) {
       super(modelParameters);
    }
@@ -58,7 +70,6 @@ public class DistributedKMeans extends FlatCentroidClusterer {
       kMeans.setMaxIterations(fitParameters.maxIterations);
       kMeans.setEpsilon(fitParameters.tolerance);
       setMeasure(Distance.Euclidean);
-
       KMeansModel model = kMeans.run(dataSupplier
                                         .toDistributedStream()
                                         .getRDD()

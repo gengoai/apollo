@@ -33,6 +33,8 @@ import java.io.IOException;
 import java.util.stream.Collectors;
 
 /**
+ * The type Vs text utils.
+ *
  * @author David B. Bracewell
  */
 public class VSTextUtils {
@@ -41,12 +43,13 @@ public class VSTextUtils {
       throw new IllegalAccessError();
    }
 
-   public static String vectorToLine(NDArray vec) {
-      return Streams.asStream(vec.iterator())
-                    .map(v -> Float.toString(v.getValue()))
-                    .collect(Collectors.joining(" "));
-   }
-
+   /**
+    * Convert line to vector nd array.
+    *
+    * @param line      the line
+    * @param dimension the dimension
+    * @return the nd array
+    */
    public static NDArray convertLineToVector(String line, int dimension) {
       NDArray vector = NDArrayFactory.DENSE.zeros(1, dimension);
       String[] parts = line.split("[ \t]+");
@@ -60,18 +63,13 @@ public class VSTextUtils {
       return vector;
    }
 
-   public static String determineUnknownWord(Resource r) throws IOException {
-      try (BufferedReader reader = new BufferedReader(r.reader())) {
-         String line = reader.readLine();
-         if (Strings.isNullOrBlank(line)) {
-            throw new IOException("Unexpected empty line at beginning of file: " + r);
-         } else if (line.startsWith("#")) {
-            return line.substring(1).trim();
-         }
-         return null;
-      }
-   }
-
+   /**
+    * Determine dimension int.
+    *
+    * @param r the r
+    * @return the int
+    * @throws IOException the io exception
+    */
    public static int determineDimension(Resource r) throws IOException {
       try (BufferedReader reader = new BufferedReader(r.reader())) {
          while (true) {
@@ -88,6 +86,37 @@ public class VSTextUtils {
             return Integer.parseInt(cells[1]);
          }
       }
+   }
+
+   /**
+    * Determine unknown word string.
+    *
+    * @param r the r
+    * @return the string
+    * @throws IOException the io exception
+    */
+   public static String determineUnknownWord(Resource r) throws IOException {
+      try (BufferedReader reader = new BufferedReader(r.reader())) {
+         String line = reader.readLine();
+         if (Strings.isNullOrBlank(line)) {
+            throw new IOException("Unexpected empty line at beginning of file: " + r);
+         } else if (line.startsWith("#")) {
+            return line.substring(1).trim();
+         }
+         return null;
+      }
+   }
+
+   /**
+    * Vector to line string.
+    *
+    * @param vec the vec
+    * @return the string
+    */
+   public static String vectorToLine(NDArray vec) {
+      return Streams.asStream(vec.iterator())
+                    .map(v -> Float.toString(v.getValue()))
+                    .collect(Collectors.joining(" "));
    }
 
 }//END OF VSTextUtils

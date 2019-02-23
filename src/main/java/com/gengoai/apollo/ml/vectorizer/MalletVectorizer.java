@@ -46,6 +46,10 @@ public class MalletVectorizer implements DiscreteVectorizer {
       this.isLabel = isLabel;
    }
 
+   public Alphabet getAlphabet(){
+      return alphabet;
+   }
+
    public void setAlphabet(Alphabet alphabet) {
       this.alphabet = alphabet;
    }

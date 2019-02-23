@@ -70,11 +70,6 @@ public class AgglomerativeClusterer extends HierarchicalClusterer {
       super(modelParameters);
    }
 
-   @Override
-   public NDArray measure(NDArray example) {
-      throw new UnsupportedOperationException();
-   }
-
    private void doTurn(PriorityQueue<Tuple3<Cluster, Cluster, Double>> priorityQueue,
                        List<Cluster> clusters,
                        Parameters parameters
@@ -151,6 +146,11 @@ public class AgglomerativeClusterer extends HierarchicalClusterer {
                                        t -> $(t.v1, t.v2, parameters.linkage.calculate(t.v1, t.v2, parameters.measure)))
                                     .collect(Collectors.toList()));
       return clusters;
+   }
+
+   @Override
+   public NDArray measure(NDArray example) {
+      throw new UnsupportedOperationException();
    }
 
    /**

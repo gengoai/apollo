@@ -42,7 +42,7 @@ import static com.gengoai.Validation.notNull;
 import static com.gengoai.tuple.Tuples.$;
 
 /**
- * The type Mini batch k means.
+ * <p>Implementation of KMeans using MiniBatch for better scalability.</p>
  *
  * @author David B. Bracewell
  */

@@ -68,42 +68,63 @@ public abstract class Clusterer extends DiscreteModel implements Iterable<Cluste
    }
 
    /**
+    * Calculates the total between-group variance of the clustering.
+    *
+    * @return the between-group variance
+    */
+   public double betweenGroupVariance() {
+      Variance variance = new Variance();
+      for (int i = 0; i < size(); i++) {
+         Cluster c = get(i);
+         for (int j = 0; j < size(); j++) {
+            if (i != j) {
+               variance.increment(getMeasure().calculate(c.getCentroid(), get(i).getCentroid()));
+            }
+         }
+      }
+      return variance.getResult();
+   }
+
+   /**
+    * Returns the optimal measure for the given example
+    *
+    * @param example the example to cluster
+    * @return the cluster with an optimal measure (distance / similarity) to the example
+    */
+   public Cluster estimate(Example example) {
+      return get(measure(example.transform(getPipeline())).argMax());
+   }
+
+   /**
+    * Returns the optimal measure for the given example
+    *
+    * @param example the example to cluster
+    * @return the cluster with an optimal measure (distance / similarity) to the example
+    */
+   public Cluster estimate(NDArray example) {
+      return get(measure(example).argMax());
+   }
+
+   /**
+    * Clusters the points in the given stream of vectors.
+    *
+    * @param vectors       the stream of vectors (points) to cluster
+    * @param fitParameters the fit parameters for clustering
+    */
+   public abstract void fit(MStream<NDArray> vectors, FitParameters fitParameters);
+
+   @Override
+   protected void fitPreprocessed(Dataset preprocessed, FitParameters fitParameters) {
+      fit(preprocessed.asVectorStream(getPipeline()), fitParameters);
+   }
+
+   /**
     * Gets the cluster for the given index.
     *
     * @param index the index
     * @return the cluster
     */
    public abstract Cluster get(int index);
-
-   /**
-    * Gets the root of the hierarchical cluster.
-    *
-    * @return the root
-    */
-   public Cluster getRoot() {
-      throw new UnsupportedOperationException();
-   }
-
-   /**
-    * Checks if the clustering is flat
-    *
-    * @return True if flat, False otherwise
-    */
-   public abstract boolean isFlat();
-
-   /**
-    * Checks if the clustering is hierarchical
-    *
-    * @return True if hierarchical, False otherwise
-    */
-   public abstract boolean isHierarchical();
-
-   /**
-    * The number of clusters
-    *
-    * @return the number of clusters
-    */
-   public abstract int size();
 
    /**
     * Gets the measure used to compute the distance/similarity between points.
@@ -123,65 +144,13 @@ public abstract class Clusterer extends DiscreteModel implements Iterable<Cluste
       this.measure = measure;
    }
 
-
    /**
-    * Returns the optimal measure for the given example
+    * Gets the root of the hierarchical cluster.
     *
-    * @param example the example to cluster
-    * @return the cluster with an optimal measure (distance / similarity) to the example
+    * @return the root
     */
-   public Cluster estimate(Example example) {
-      return get(measure(example.transform(getPipeline())).argMax());
-   }
-
-
-   /**
-    * Calculates the measure between the given example and each cluster
-    *
-    * @param example the example to cluster
-    * @return An NDArray of measure results per cluster index
-    */
-   public final NDArray measure(Example example) {
-      return measure(example.transform(getPipeline()));
-   }
-
-   /**
-    * Returns the optimal measure for the given example
-    *
-    * @param example the example to cluster
-    * @return the cluster with an optimal measure (distance / similarity) to the example
-    */
-   public Cluster estimate(NDArray example) {
-      return get(measure(example).argMax());
-   }
-
-   /**
-    * Calculates the measure between the given example and each cluster
-    *
-    * @param example the example to cluster
-    * @return An NDArray of measure results per cluster index
-    */
-   public abstract NDArray measure(NDArray example);
-
-   @Override
-   protected void fitPreprocessed(Dataset preprocessed, FitParameters fitParameters) {
-      fit(preprocessed.asVectorStream(getPipeline()), fitParameters);
-   }
-
-   /**
-    * Clusters the points in the given stream of vectors.
-    *
-    * @param vectors       the stream of vectors (points) to cluster
-    * @param fitParameters the fit parameters for clustering
-    * @return the clusterer
-    */
-   public abstract void fit(MStream<NDArray> vectors, FitParameters fitParameters);
-
-   /**
-    * Keeps only the centroid vectors removing all other points.
-    */
-   public void keepOnlyCentroids() {
-      forEach(Cluster::clear);
+   public Cluster getRoot() {
+      throw new UnsupportedOperationException();
    }
 
    /**
@@ -200,25 +169,57 @@ public abstract class Clusterer extends DiscreteModel implements Iterable<Cluste
       return variance.getResult();
    }
 
+   /**
+    * Checks if the clustering is flat
+    *
+    * @return True if flat, False otherwise
+    */
+   public abstract boolean isFlat();
 
    /**
-    * Calculates the total between-group variance of the clustering.
+    * Checks if the clustering is hierarchical
     *
-    * @return the between-group variance
+    * @return True if hierarchical, False otherwise
     */
-   public double betweenGroupVariance() {
-      Variance variance = new Variance();
-      for (int i = 0; i < size(); i++) {
-         Cluster c = get(i);
-         for (int j = 0; j < size(); j++) {
-            if (i != j) {
-               variance.increment(getMeasure().calculate(c.getCentroid(), get(i).getCentroid()));
-            }
-         }
-      }
-      return variance.getResult();
+   public abstract boolean isHierarchical();
+
+   /**
+    * Keeps only the centroid vectors removing all other points.
+    */
+   public void keepOnlyCentroids() {
+      forEach(Cluster::clear);
    }
 
+   /**
+    * Calculates the measure between the given example and each cluster
+    *
+    * @param example the example to cluster
+    * @return An NDArray of measure results per cluster index
+    */
+   public final NDArray measure(Example example) {
+      return measure(example.transform(getPipeline()));
+   }
+
+   /**
+    * Calculates the measure between the given example and each cluster
+    *
+    * @param example the example to cluster
+    * @return An NDArray of measure results per cluster index
+    */
+   public abstract NDArray measure(NDArray example);
+
+   /**
+    * The number of clusters
+    *
+    * @return the number of clusters
+    */
+   public abstract int size();
+
+   /**
+    * Creates a stream of the clusters
+    *
+    * @return the stream of clusters
+    */
    public Stream<Cluster> stream() {
       return Streams.asStream(this);
    }

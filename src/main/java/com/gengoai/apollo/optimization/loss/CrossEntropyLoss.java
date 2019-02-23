@@ -6,6 +6,8 @@ import com.gengoai.apollo.linear.NDArray;
 import java.io.Serializable;
 
 /**
+ * <p>Cross entropy loss</p>
+ *
  * @author David B. Bracewell
  */
 public class CrossEntropyLoss implements LossFunction, Serializable {

@@ -77,6 +77,16 @@ public enum DatasetType {
 
 
    /**
+    * Cache dataset.
+    *
+    * @param dataset the dataset
+    * @return the dataset
+    */
+   public Dataset cache(Dataset dataset) {
+      return create(dataset.stream());
+   }
+
+   /**
     * Of dataset.
     *
     * @param examples the examples
@@ -96,17 +106,6 @@ public enum DatasetType {
    /**
     * Load dataset.
     *
-    * @param location the location
-    * @return the dataset
-    * @throws IOException the io exception
-    */
-   public final Dataset read(Resource location) throws IOException {
-      return read(location, new JsonDataFormat(getStreamingContext().isDistributed()));
-   }
-
-   /**
-    * Load dataset.
-    *
     * @param location   the location
     * @param dataFormat the data source
     * @return the dataset
@@ -116,15 +115,15 @@ public enum DatasetType {
       return create(dataFormat.read(location));
    }
 
-
    /**
-    * Cache dataset.
+    * Load dataset.
     *
-    * @param dataset the dataset
+    * @param location the location
     * @return the dataset
+    * @throws IOException the io exception
     */
-   public Dataset cache(Dataset dataset) {
-      return create(dataset.stream());
+   public final Dataset read(Resource location) throws IOException {
+      return read(location, new JsonDataFormat(getStreamingContext().isDistributed()));
    }
 
 }//END OF DatasetType

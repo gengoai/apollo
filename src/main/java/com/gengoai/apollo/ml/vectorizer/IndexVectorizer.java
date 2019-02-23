@@ -40,8 +40,9 @@ import java.util.stream.Stream;
  */
 public abstract class IndexVectorizer implements DiscreteVectorizer {
    private static final long serialVersionUID = 1L;
-   private final Index<String> index = new HashMapIndex<>();
-   private final String unknown;
+   protected final Index<String> index = new HashMapIndex<>();
+   protected final String unknown;
+   protected final boolean fixed;
 
 
    /**
@@ -61,6 +62,7 @@ public abstract class IndexVectorizer implements DiscreteVectorizer {
       if (this.unknown != null) {
          index.add(this.unknown);
       }
+      this.fixed = false;
    }
 
    @Override
@@ -71,6 +73,7 @@ public abstract class IndexVectorizer implements DiscreteVectorizer {
    public IndexVectorizer(List<String> alphabet, String unknown) {
       this.unknown = unknown;
       index.addAll(alphabet);
+      this.fixed = true;
    }
 
    @Override
@@ -80,12 +83,14 @@ public abstract class IndexVectorizer implements DiscreteVectorizer {
 
    @Override
    public void fit(Dataset dataset) {
-      index.clear();
-      index.addAll(dataset.stream()
-                          .flatMap(Streams::asStream)
-                          .flatMap(this::getAlphabetSpace)
-                          .distinct()
-                          .collect());
+      if (!fixed) {
+         index.clear();
+         index.addAll(dataset.stream()
+                             .flatMap(Streams::asStream)
+                             .flatMap(this::getAlphabetSpace)
+                             .distinct()
+                             .collect());
+      }
    }
 
    /**

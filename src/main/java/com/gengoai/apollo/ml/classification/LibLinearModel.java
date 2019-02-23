@@ -90,11 +90,10 @@ public class LibLinearModel extends Classifier implements Loggable {
 
    @Override
    public Classification predict(Example example) {
-      return new Classification(
-         LibLinear.estimate(model,
-                            example.preprocessAndTransform(getPipeline()),
-                            biasIndex),
-         getPipeline().labelVectorizer);
+      return new Classification(LibLinear.estimate(model,
+                                                   example.preprocessAndTransform(getPipeline()),
+                                                   biasIndex),
+                                getPipeline().labelVectorizer);
    }
 
    /**
@@ -102,7 +101,6 @@ public class LibLinearModel extends Classifier implements Loggable {
     */
    public static class Parameters extends FitParameters<Parameters> {
       private static final long serialVersionUID = 1L;
-      public boolean verbose = false;
       /**
        * The cost parameter (default 1.0)
        */
@@ -127,6 +125,7 @@ public class LibLinearModel extends Classifier implements Loggable {
        * The Solver to use. (default L2R_LR)
        */
       public SolverType solver = SolverType.L2R_LR;
+      public boolean verbose = false;
 
    }
 }//END OF LibLinearModel

@@ -53,6 +53,4 @@ public interface Vectorizer extends Serializable {
     */
    NDArray transform(Example example);
 
-
-
 }// END OF Encoder

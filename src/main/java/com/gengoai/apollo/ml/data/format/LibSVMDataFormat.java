@@ -42,8 +42,8 @@ import java.util.List;
  */
 public class LibSVMDataFormat implements DataFormat, Serializable {
    private static final long serialVersionUID = 1L;
-   private final boolean multiClass;
    private final boolean distributed;
+   private final boolean multiClass;
 
 
    /**

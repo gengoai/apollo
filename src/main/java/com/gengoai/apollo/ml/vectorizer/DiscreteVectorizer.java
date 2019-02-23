@@ -40,6 +40,11 @@ public interface DiscreteVectorizer extends Vectorizer {
     */
    Set<String> alphabet();
 
+   /**
+    * As index index.
+    *
+    * @return the index
+    */
    Index<String> asIndex();
 
    /**

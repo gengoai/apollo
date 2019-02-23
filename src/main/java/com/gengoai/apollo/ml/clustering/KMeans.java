@@ -69,6 +69,72 @@ public class KMeans extends FlatCentroidClusterer {
       super(modelParameters);
    }
 
+   @Override
+   public void fit(MStream<NDArray> vectors, FitParameters parameters) {
+      Parameters fitParameters = Cast.as(parameters);
+      setMeasure(fitParameters.measure);
+
+      List<NDArray> instances = vectors.collect();
+      for (NDArray centroid : initCentroids(fitParameters.K, instances)) {
+         Cluster c = new Cluster();
+         c.setCentroid(centroid);
+         add(c);
+      }
+      final Measure measure = fitParameters.measure;
+
+      StoppingCriteria.create("numPointsChanged")
+                      .historySize(3)
+                      .maxIterations(fitParameters.maxIterations)
+                      .tolerance(fitParameters.tolerance)
+                      .reportInterval(1)
+                      .logger(log)
+                      .untilTermination(itr -> this.iteration(instances));
+
+      for (int i = 0; i < size(); i++) {
+         Cluster cluster = get(i);
+         cluster.setId(i);
+         if (cluster.size() > 0) {
+            cluster.getPoints().removeIf(Objects::isNull);
+            double average = cluster.getPoints()
+                                    .parallelStream()
+                                    .flatMapToDouble(p1 -> cluster.getPoints()
+                                                                  .stream()
+                                                                  .filter(p2 -> p2 != p1)
+                                                                  .mapToDouble(p2 -> measure.calculate(p1, p2)))
+                                    .summaryStatistics()
+                                    .getAverage();
+            cluster.setScore(average);
+         } else {
+            cluster.setScore(Double.MAX_VALUE);
+         }
+      }
+   }
+
+   @Override
+   public Parameters getDefaultFitParameters() {
+      return new Parameters();
+   }
+
+   private NDArray[] initCentroids(int K, List<NDArray> instances) {
+      NDArray[] clusters = IntStream.range(0, K)
+                                    .mapToObj(i -> NDArrayFactory.DEFAULT().zeros((int) instances.get(0).length()))
+                                    .toArray(NDArray[]::new);
+
+      double[] cnts = new double[K];
+      Random rnd = new Random();
+      for (NDArray ii : instances) {
+         int ci = rnd.nextInt(K);
+         clusters[ci].addi(ii);
+         cnts[ci]++;
+      }
+      for (int i = 0; i < K; i++) {
+         if (cnts[i] > 0) {
+            clusters[i].divi((float) cnts[i]);
+         }
+      }
+      return clusters;
+   }
+
    private double iteration(List<NDArray> instances) {
       //Clear the points
       keepOnlyCentroids();
@@ -118,75 +184,6 @@ public class KMeans extends FlatCentroidClusterer {
 
       return numChanged;
    }
-
-   @Override
-   public void fit(MStream<NDArray> vectors, FitParameters parameters) {
-      Parameters fitParameters = Cast.as(parameters);
-      setMeasure(fitParameters.measure);
-
-      List<NDArray> instances = vectors.collect();
-      for (NDArray centroid : initCentroids(fitParameters.K, instances)) {
-         Cluster c = new Cluster();
-         c.setCentroid(centroid);
-         add(c);
-      }
-      final Measure measure = fitParameters.measure;
-
-      StoppingCriteria.create("numPointsChanged")
-                      .historySize(3)
-                      .maxIterations(fitParameters.maxIterations)
-                      .tolerance(fitParameters.tolerance)
-                      .reportInterval(1)
-                      .logger(log)
-                      .untilTermination(itr -> this.iteration(instances));
-
-      for (int i = 0; i < size(); i++) {
-         Cluster cluster = get(i);
-         cluster.setId(i);
-         if (cluster.size() > 0) {
-            cluster.getPoints().removeIf(Objects::isNull);
-            double average = cluster.getPoints()
-                                    .parallelStream()
-                                    .flatMapToDouble(p1 -> cluster.getPoints()
-                                                                  .stream()
-                                                                  .filter(p2 -> p2 != p1)
-                                                                  .mapToDouble(p2 -> measure.calculate(p1, p2)))
-                                    .summaryStatistics()
-                                    .getAverage();
-            cluster.setScore(average);
-         } else {
-            cluster.setScore(Double.MAX_VALUE);
-         }
-      }
-   }
-
-
-   private NDArray[] initCentroids(int K, List<NDArray> instances) {
-      NDArray[] clusters = IntStream.range(0, K)
-                                    .mapToObj(i -> NDArrayFactory.DEFAULT().zeros((int) instances.get(0).length()))
-                                    .toArray(NDArray[]::new);
-
-      double[] cnts = new double[K];
-      Random rnd = new Random();
-      for (NDArray ii : instances) {
-         int ci = rnd.nextInt(K);
-         clusters[ci].addi(ii);
-         cnts[ci]++;
-      }
-      for (int i = 0; i < K; i++) {
-         if (cnts[i] > 0) {
-            clusters[i].divi((float) cnts[i]);
-         }
-      }
-      return clusters;
-   }
-
-
-   @Override
-   public Parameters getDefaultFitParameters() {
-      return new Parameters();
-   }
-
 
    /**
     * Fit Parameters for KMeans

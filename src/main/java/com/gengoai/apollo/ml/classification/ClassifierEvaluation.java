@@ -43,24 +43,6 @@ public abstract class ClassifierEvaluation implements Serializable {
    private static final Logger log = Logger.getLogger(ClassifierEvaluation.class);
    private static final long serialVersionUID = 1L;
 
-
-   /**
-    * Evaluate the given {@link Classifier}. Will perform a binary classifier evaluation if the number of labels is two
-    * or less and multi-class otherwise.
-    *
-    * @param classifier the classifier to evaluate
-    * @param dataset    the dataset to evaluate on
-    * @return the classifier evaluation
-    */
-   public static ClassifierEvaluation evaluateClassifier(Classifier classifier, Dataset dataset) {
-      ClassifierEvaluation evaluation = classifier.getNumberOfLabels() <= 2
-                                        ? new BinaryEvaluation(classifier.getPipeline().labelVectorizer)
-                                        : new MultiClassEvaluation();
-      evaluation.evaluate(classifier, dataset);
-      return evaluation;
-   }
-
-
    /**
     * Performs a cross-validation of the given classifier using the given dataset
     *
@@ -97,23 +79,20 @@ public abstract class ClassifierEvaluation implements Serializable {
    }
 
    /**
-    * Evaluate the given model using the given dataset
+    * Evaluate the given {@link Classifier}. Will perform a binary classifier evaluation if the number of labels is two
+    * or less and multi-class otherwise.
     *
-    * @param model   the model to evaluate
-    * @param dataset the dataset to evaluate over
+    * @param classifier the classifier to evaluate
+    * @param dataset    the dataset to evaluate on
+    * @return the classifier evaluation
     */
-   public final void evaluate(Classifier model, Dataset dataset) {
-      evaluate(model, dataset.stream());
+   public static ClassifierEvaluation evaluateClassifier(Classifier classifier, Dataset dataset) {
+      ClassifierEvaluation evaluation = classifier.getNumberOfLabels() <= 2
+                                        ? new BinaryEvaluation(classifier.getPipeline().labelVectorizer)
+                                        : new MultiClassEvaluation();
+      evaluation.evaluate(classifier, dataset);
+      return evaluation;
    }
-
-   /**
-    * Evaluate the given model using the given set of examples
-    *
-    * @param model   the model to evaluate
-    * @param dataset the dataset to evaluate over
-    */
-   public abstract void evaluate(Classifier model, MStream<Example> dataset);
-
 
    /**
     * <p>Calculates the accuracy, which is the percentage of items correctly classified.</p>
@@ -142,6 +121,23 @@ public abstract class ClassifierEvaluation implements Serializable {
     */
    public abstract void entry(String gold, Classification predicted);
 
+   /**
+    * Evaluate the given model using the given dataset
+    *
+    * @param model   the model to evaluate
+    * @param dataset the dataset to evaluate over
+    */
+   public final void evaluate(Classifier model, Dataset dataset) {
+      evaluate(model, dataset.stream());
+   }
+
+   /**
+    * Evaluate the given model using the given set of examples
+    *
+    * @param model   the model to evaluate
+    * @param dataset the dataset to evaluate over
+    */
+   public abstract void evaluate(Classifier model, MStream<Example> dataset);
 
    /**
     * Calculates the false negative rate, which is calculated as <code>False Positives / (True Positives + False
@@ -203,6 +199,13 @@ public abstract class ClassifierEvaluation implements Serializable {
    public abstract double falsePositives();
 
    /**
+    * Merge this evaluation with another combining the results.
+    *
+    * @param evaluation the other evaluation to combine
+    */
+   public abstract void merge(ClassifierEvaluation evaluation);
+
+   /**
     * Calculates the negative likelihood ratio, which is <code>False Positive Rate / Specificity</code>
     *
     * @return the negative likelihood ratio
@@ -223,6 +226,30 @@ public abstract class ClassifierEvaluation implements Serializable {
          return 0;
       }
       return tn / (tn + fn);
+   }
+
+   /**
+    * Outputs the results of the classification to the given <code>PrintStream</code>
+    *
+    * @param printStream          the print stream to write to
+    * @param printConfusionMatrix True print the confusion matrix, False do not print the confusion matrix.
+    */
+   public abstract void output(PrintStream printStream, boolean printConfusionMatrix);
+
+   /**
+    * Outputs the evaluation results to standard out.
+    *
+    * @param printConfusionMatrix True print the confusion matrix, False do not print the confusion matrix.
+    */
+   public void output(boolean printConfusionMatrix) {
+      output(System.out, printConfusionMatrix);
+   }
+
+   /**
+    * Outputs the evaluation results to standard out.
+    */
+   public void output() {
+      output(System.out, false);
    }
 
    /**
@@ -260,38 +287,6 @@ public abstract class ClassifierEvaluation implements Serializable {
          return 1.0;
       }
       return tn / (tn + fp);
-   }
-
-
-   /**
-    * Merge this evaluation with another combining the results.
-    *
-    * @param evaluation the other evaluation to combine
-    */
-   public abstract void merge(ClassifierEvaluation evaluation);
-
-   /**
-    * Outputs the results of the classification to the given <code>PrintStream</code>
-    *
-    * @param printStream          the print stream to write to
-    * @param printConfusionMatrix True print the confusion matrix, False do not print the confusion matrix.
-    */
-   public abstract void output(PrintStream printStream, boolean printConfusionMatrix);
-
-   /**
-    * Outputs the evaluation results to standard out.
-    *
-    * @param printConfusionMatrix True print the confusion matrix, False do not print the confusion matrix.
-    */
-   public void output(boolean printConfusionMatrix) {
-      output(System.out, printConfusionMatrix);
-   }
-
-   /**
-    * Outputs the evaluation results to standard out.
-    */
-   public void output() {
-      output(System.out, false);
    }
 
    /**

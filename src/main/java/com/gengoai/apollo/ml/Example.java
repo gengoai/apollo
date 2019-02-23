@@ -25,11 +25,13 @@ package com.gengoai.apollo.ml;
 import com.gengoai.Copyable;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.collection.Streams;
+import com.gengoai.conversion.Cast;
+import com.gengoai.conversion.Converter;
+import com.gengoai.conversion.TypeConversionException;
+import com.gengoai.reflection.Types;
 
 import java.io.Serializable;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -48,6 +50,7 @@ import static com.gengoai.apollo.ml.Feature.booleanFeature;
 public abstract class Example implements Copyable<Example>, Iterable<Example>, Serializable {
    private static final long serialVersionUID = 1L;
    private double weight = 1.0;
+   private Object label = null;
 
    /**
     * Adds an example. Will throw an <code>UnsupportedOperationException</code> if this is a not a multi-example.
@@ -133,7 +136,7 @@ public abstract class Example implements Copyable<Example>, Iterable<Example>, S
     * @throws UnsupportedOperationException If the example does not allow direct access to the label
     */
    public <T> T getLabel() {
-      throw new UnsupportedOperationException();
+      return Cast.as(label);
    }
 
    /**
@@ -144,7 +147,24 @@ public abstract class Example implements Copyable<Example>, Iterable<Example>, S
     * @throws UnsupportedOperationException If the example does not allow direct access to the label
     */
    public Example setLabel(Object label) {
-      throw new UnsupportedOperationException();
+      if (label == null) {
+         this.label = null;
+      } else if (label instanceof Number) {
+         this.label = Cast.<Number>as(label).doubleValue();
+      } else if (label instanceof CharSequence) {
+         this.label = label.toString();
+      } else if (label instanceof Iterator || label instanceof Iterable ||
+                    label instanceof Stream || label.getClass().isArray()
+      ) {
+         try {
+            this.label = Converter.convert(label, Types.parameterizedType(Set.class, String.class));
+         } catch (TypeConversionException e) {
+            throw new IllegalArgumentException("Unable to set (" + label + ") as the Instance's label");
+         }
+      } else {
+         throw new IllegalArgumentException("Unable to set (" + label + ") as the Instance's label");
+      }
+      return this;
    }
 
    /**
@@ -155,6 +175,9 @@ public abstract class Example implements Copyable<Example>, Iterable<Example>, S
     * @return the label space
     */
    public Stream<String> getLabelSpace() {
+      if (hasLabel()) {
+         return Stream.of(getLabel());
+      }
       return stream().flatMap(e -> e.getMultiLabel().stream()).distinct();
    }
 
@@ -165,7 +188,14 @@ public abstract class Example implements Copyable<Example>, Iterable<Example>, S
     * @throws UnsupportedOperationException If the example does not allow direct access to the label
     */
    public Set<String> getMultiLabel() {
-      throw new UnsupportedOperationException();
+      Object lbl = getLabel();
+      if (lbl == null) {
+         return null;
+      }
+      if (lbl instanceof Set) {
+         return Cast.as(lbl);
+      }
+      return Collections.singleton(lbl.toString());
    }
 
    /**
@@ -205,7 +235,7 @@ public abstract class Example implements Copyable<Example>, Iterable<Example>, S
     * @return True if a label is assigned, False otherwise.
     */
    public boolean hasLabel() {
-      return false;
+      return label != null;
    }
 
    /**

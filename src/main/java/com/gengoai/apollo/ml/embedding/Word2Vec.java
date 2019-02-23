@@ -86,13 +86,17 @@ public class Word2Vec extends Embedding {
     */
    public static class Parameters extends EmbeddingFitParameters {
       /**
-       * The number of iterations to train the embeddings (default = 1)
+       * The dimension of the embeddings (default = 100)
        */
-      public int numIterations = 1;
+      public int dimension = 100;
       /**
        * The learning rate (default = 0.025)
        */
       public double learningRate = 0.025;
+      /**
+       * The number of iterations to train the embeddings (default = 1)
+       */
+      public int numIterations = 1;
       /**
        * The random seed (default = current time)
        */
@@ -101,10 +105,6 @@ public class Word2Vec extends Embedding {
        * The window size (default = 5)
        */
       public int windowSize = 5;
-      /**
-       * The dimension of the embeddings (default = 100)
-       */
-      public int dimension = 100;
    }
 
 }//END OF Word2Vec

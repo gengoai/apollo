@@ -106,6 +106,18 @@ public class MultiClassEvaluation extends ClassifierEvaluation {
       return f1(precision(label), recall(label));
    }
 
+   /**
+    * Calculates the F1 measure for each class
+    *
+    * @return a Counter where the items are labels and the values are F1 scores
+    */
+   public Counter<String> f1PerClass() {
+      Counter<String> f1 = Counters.newCounter();
+      Counter<String> p = precisionPerClass();
+      Counter<String> r = recallPerClass();
+      confusionMatrix.firstKeys().forEach(k -> f1.set(k, f1(p.get(k), r.get(k))));
+      return f1;
+   }
 
    /**
     * Calculates the false negative rate of the given label
@@ -139,7 +151,6 @@ public class MultiClassEvaluation extends ClassifierEvaluation {
    public double falseNegatives(String label) {
       return confusionMatrix.get(label).sum() - confusionMatrix.get(label, label);
    }
-
 
    /**
     * Calculates the false positive rate of the given label
@@ -186,42 +197,6 @@ public class MultiClassEvaluation extends ClassifierEvaluation {
          }
       }
       return fp;
-   }
-
-
-   /**
-    * Calculates the F1 measure for each class
-    *
-    * @return a Counter where the items are labels and the values are F1 scores
-    */
-   public Counter<String> f1PerClass() {
-      Counter<String> f1 = Counters.newCounter();
-      Counter<String> p = precisionPerClass();
-      Counter<String> r = recallPerClass();
-      confusionMatrix.firstKeys().forEach(k -> f1.set(k, f1(p.get(k), r.get(k))));
-      return f1;
-   }
-
-   /**
-    * Creates a counter where the items are labels and their values are their precision
-    *
-    * @return the counter of precision values
-    */
-   public Counter<String> precisionPerClass() {
-      Counter<String> precisions = Counters.newCounter();
-      confusionMatrix.firstKeys().forEach(k -> precisions.set(k, precision(k)));
-      return precisions;
-   }
-
-   /**
-    * Creates a counter where the items are labels and their values are their recall
-    *
-    * @return the counter of recall values
-    */
-   public Counter<String> recallPerClass() {
-      Counter<String> recalls = Counters.newCounter();
-      confusionMatrix.firstKeys().forEach(k -> recalls.set(k, recall(k)));
-      return recalls;
    }
 
    /**
@@ -306,8 +281,6 @@ public class MultiClassEvaluation extends ClassifierEvaluation {
    public double negativeLikelihoodRatio(String label) {
       return falseNegativeRate(label) / specificity(label);
    }
-
-
 
    @Override
    public void output(PrintStream printStream, boolean printConfusionMatrix) {
@@ -407,6 +380,16 @@ public class MultiClassEvaluation extends ClassifierEvaluation {
       return tp / (tp + fp);
    }
 
+   /**
+    * Creates a counter where the items are labels and their values are their precision
+    *
+    * @return the counter of precision values
+    */
+   public Counter<String> precisionPerClass() {
+      Counter<String> precisions = Counters.newCounter();
+      confusionMatrix.firstKeys().forEach(k -> precisions.set(k, precision(k)));
+      return precisions;
+   }
 
    /**
     * Calculates the recall of the given label, which is <code>True Positives / (True Positives + True
@@ -424,6 +407,16 @@ public class MultiClassEvaluation extends ClassifierEvaluation {
       return tp / (tp + fn);
    }
 
+   /**
+    * Creates a counter where the items are labels and their values are their recall
+    *
+    * @return the counter of recall values
+    */
+   public Counter<String> recallPerClass() {
+      Counter<String> recalls = Counters.newCounter();
+      confusionMatrix.firstKeys().forEach(k -> recalls.set(k, recall(k)));
+      return recalls;
+   }
 
    /**
     * Calculates the sensitivity of the given label (same as the micro-averaged recall)

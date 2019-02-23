@@ -37,15 +37,27 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
+ * <p>Gaussian Mixture Model</p>
+ *
  * @author David B. Bracewell
  */
 public class GaussianMixtureModel extends FlatCentroidClusterer {
    private static final long serialVersionUID = 1L;
 
+   /**
+    * Instantiates a new Gaussian mixture model.
+    *
+    * @param preprocessors the preprocessors
+    */
    public GaussianMixtureModel(Preprocessor... preprocessors) {
       super(preprocessors);
    }
 
+   /**
+    * Instantiates a new Gaussian mixture model.
+    *
+    * @param modelParameters the model parameters
+    */
    public GaussianMixtureModel(DiscretePipeline modelParameters) {
       super(modelParameters);
    }
@@ -62,14 +74,12 @@ public class GaussianMixtureModel extends FlatCentroidClusterer {
          data[i] = vectorList.get(i).toDoubleArray();
       }
 
-      List<MultivariateNormalDistribution> components = MultivariateNormalMixtureExpectationMaximization.estimate(data,
-                                                                                                                  p.K)
-                                                                                                        .getComponents()
-                                                                                                        .stream()
-                                                                                                        .map(
-                                                                                                           Pair::getSecond)
-                                                                                                        .collect(
-                                                                                                           Collectors.toList());
+      List<MultivariateNormalDistribution> components =
+         MultivariateNormalMixtureExpectationMaximization.estimate(data, p.K)
+                                                         .getComponents()
+                                                         .stream()
+                                                         .map(Pair::getSecond)
+                                                         .collect(Collectors.toList());
 
       for (int i = 0; i < components.size(); i++) {
          Cluster cluster = new Cluster();
@@ -85,7 +95,13 @@ public class GaussianMixtureModel extends FlatCentroidClusterer {
       return new Parameters();
    }
 
+   /**
+    * The type Parameters.
+    */
    public static class Parameters extends ClusterParameters<Parameters> {
+      /**
+       * The K.
+       */
       public int K = 100;
    }
 

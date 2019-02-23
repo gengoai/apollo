@@ -105,7 +105,8 @@ public class Sequence extends Example {
       if (this == o) return true;
       if (!(o instanceof Sequence)) return false;
       Sequence examples = (Sequence) o;
-      return Objects.equals(sequence, examples.sequence);
+      return Objects.equals(sequence, examples.sequence) &&
+                Objects.equals(getLabel(), examples.getLabel());
    }
 
    @Override
@@ -125,7 +126,7 @@ public class Sequence extends Example {
 
    @Override
    public int hashCode() {
-      return Objects.hash(sequence);
+      return Objects.hash(sequence, getLabel());
    }
 
    @Override
@@ -147,19 +148,22 @@ public class Sequence extends Example {
       return "Sequence{" +
                 "sequence=" + sequence +
                 ", weight=" + getWeight() +
+                ", label=" + getLabel() +
                 '}';
    }
 
    @Override
    public NDArray transform(Pipeline pipeline) {
-      if (size() == 1) {
-         return sequence.get(0).transform(pipeline);
-      }
+      NDArray out;
       NDArray[] vectors = new NDArray[size()];
       for (int i = 0; i < size(); i++) {
          vectors[i] = sequence.get(i).transform(pipeline);
       }
-      return NDArrayFactory.DEFAULT().vstack(vectors).setWeight(getWeight()).compress();
+      out = NDArrayFactory.DEFAULT().vstack(vectors).setWeight(getWeight()).compress();
+      if (hasLabel()) {
+         out.setLabel(pipeline.labelVectorizer.transform(this));
+      }
+      return out;
    }
 
 

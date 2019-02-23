@@ -44,16 +44,28 @@ import java.util.List;
 import java.util.Objects;
 
 /**
+ * <p>Implementation of Glove.</p>
+ *
  * @author David B. Bracewell
  */
 public class Glove extends Embedding {
    private static final Logger log = Logger.getLogger(Glove.class);
    private static final long serialVersionUID = 1L;
 
+   /**
+    * Instantiates a new Glove.
+    *
+    * @param preprocessors the preprocessors
+    */
    public Glove(Preprocessor... preprocessors) {
       super(preprocessors);
    }
 
+   /**
+    * Instantiates a new Glove.
+    *
+    * @param modelParameters the model parameters
+    */
    public Glove(DiscretePipeline modelParameters) {
       super(modelParameters);
    }
@@ -136,9 +148,6 @@ public class Glove extends Embedding {
                            ? diff
                            : Math.pow(count / p.xMax, p.alpha) * diff;
 
-//            System.out.println(diff + ", " + fdiff);
-
-
             globalCost += 0.5 * fdiff * diff;
 
             fdiff *= p.learningRate;
@@ -190,11 +199,30 @@ public class Glove extends Embedding {
       return out;
    }
 
+   /**
+    * The type Cooccurrence.
+    */
    public static class Cooccurrence {
+      /**
+       * The Count.
+       */
       public final double count;
+      /**
+       * The Word 1.
+       */
       public final int word1;
+      /**
+       * The Word 2.
+       */
       public final int word2;
 
+      /**
+       * Instantiates a new Cooccurrence.
+       *
+       * @param word1 the word 1
+       * @param word2 the word 2
+       * @param count the count
+       */
       public Cooccurrence(int word1, int word2, double count) {
          this.word1 = word1;
          this.word2 = word2;
@@ -204,7 +232,13 @@ public class Glove extends Embedding {
 
    private static class IntIntPair implements Serializable {
       private static final long serialVersionUID = 1L;
+      /**
+       * The .
+       */
       final int i;
+      /**
+       * The J.
+       */
       final int j;
 
       private IntIntPair(int i, int j) {
@@ -227,12 +261,33 @@ public class Glove extends Embedding {
       }
    }
 
+   /**
+    * The type Parameters.
+    */
    public static class Parameters extends EmbeddingFitParameters {
+      /**
+       * The Alpha.
+       */
       public double alpha = 0.75;
+      /**
+       * The Dimension.
+       */
       public int dimension = 50;
+      /**
+       * The Learning rate.
+       */
       public double learningRate = 0.05;
+      /**
+       * The X max.
+       */
       public int xMax = 100;
+      /**
+       * The Max iterations.
+       */
       public int maxIterations = 25;
+      /**
+       * The Window size.
+       */
       public int windowSize = 3;
 
    }

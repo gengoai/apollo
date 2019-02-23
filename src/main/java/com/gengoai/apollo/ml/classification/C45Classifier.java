@@ -83,7 +83,7 @@ public class C45Classifier extends MalletClassifier {
    /**
     * Fit parameters for C45
     */
-   public static class Parameters extends FitParameters {
+   public static class Parameters extends FitParameters<Parameters> {
       /**
        * True - limit the depth of the tree, False let the tree get as deep as needed.
        */

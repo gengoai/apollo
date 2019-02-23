@@ -3,7 +3,7 @@ package com.gengoai.apollo.optimization.loss;
 import com.gengoai.apollo.linear.NDArray;
 
 /**
- * The interface Loss function.
+ * <p>Defines a loss function for optimization.</p>
  *
  * @author David B. Bracewell
  */

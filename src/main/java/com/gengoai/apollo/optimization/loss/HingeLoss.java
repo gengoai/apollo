@@ -5,7 +5,7 @@ import org.apache.commons.math3.util.FastMath;
 import java.io.Serializable;
 
 /**
- * The type Hinge loss.
+ * <p>Hinge Loss</p>
  *
  * @author David B. Bracewell
  */

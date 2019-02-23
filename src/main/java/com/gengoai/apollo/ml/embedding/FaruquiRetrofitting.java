@@ -22,104 +22,124 @@
 
 package com.gengoai.apollo.ml.embedding;
 
+import com.gengoai.apollo.linear.NDArray;
+import com.gengoai.apollo.ml.DiscretePipeline;
+import com.gengoai.apollo.ml.vectorizer.CountFeatureVectorizer;
+import com.gengoai.collection.Sets;
+import com.gengoai.collection.multimap.HashSetMultimap;
+import com.gengoai.collection.multimap.Multimap;
+import com.gengoai.io.resource.Resource;
+import com.gengoai.math.Math2;
+import com.gengoai.string.Strings;
+
+import java.io.IOException;
+import java.util.*;
+
 /**
  * <p>Implementation of <b>Retrofitting Word Vectors to Semantic Lexicons</b> by Faruqui et al.</p>
  *
  * @author David B. Bracewell
  */
-public class FaruquiRetrofitting
-{
-//   implements
-//} Retrofitting {
-//   private static final long serialVersionUID = 1L;
-//   private final int iterations;
-//   private final Multimap<String, String> lexicon = new HashSetMultimap<>();
-//
-//   /**
-//    * Instantiates a new Faruqui retrofitting with a maximum of 25 iterations.
-//    */
-//   public FaruquiRetrofitting() {
-//      this(25);
-//   }
-//
-//   /**
-//    * Instantiates a new Faruqui retrofitting.
-//    *
-//    * @param iterations the iterations
-//    */
-//   public FaruquiRetrofitting(int iterations) {
-//      this.iterations = iterations;
-//   }
-//
-//   @Override
-//   public Embedding<?> apply(Embedding<?> origVectors) {
-//      Set<String> sourceVocab = new HashSet<>(origVectors.keySet());
-//      Set<String> sharedVocab = Sets.intersection(sourceVocab, lexicon.keySet());
-//      Map<String, NDArray> unitNormedVectors = new HashMap<>();
-//      Map<String, NDArray> retrofittedVectors = new HashMap<>();
-//
-//      //Unit Normalize the vectors
-//      sourceVocab.forEach(w -> {
-//         NDArray v = origVectors.get(w).unitize();
-//         retrofittedVectors.put(w, v);
-//         unitNormedVectors.put(w, v.copy());
-//      });
-//
-//      for (int i = 0; i < iterations; i++) {
-//         sharedVocab.forEach(retrofitTerm -> {
-//            Set<String> similarTerms = Sets.intersection(lexicon.get(retrofitTerm), sourceVocab);
-//            if (similarTerms.size() > 0) {
-//               //Get the original unit normalized vector for the term we are retrofitting
-//               NDArray newTermVector = unitNormedVectors.get(retrofitTerm)
-//                                                        .mul(similarTerms.size());
-//
-//               //Sum the vectors of the similar terms using the retrofitted vectors
-//               //from last iteration
-//               similarTerms.forEach(similarTerm -> {
-//                  newTermVector.addi(retrofittedVectors.get(similarTerm));
-//               });
-//
-//               //Normalize and update
-//               double div = 2.0 * similarTerms.size();//v.magnitude() + 1e-6;
-//               newTermVector.divi((float) div);
-//               retrofittedVectors.put(retrofitTerm, newTermVector);
-//            }
-//         });
-//      }
-//
-//      VSBuilder newVectors = VectorStore.builder(origVectors.getParameters());
-//      retrofittedVectors.forEach(newVectors::add);
-//      return newVectors.build();
-//   }
-//
-//   private void loadLexicon(Resource resource, Multimap<String, String> lexicon) throws IOException {
-//      resource.forEach(line -> {
-//         String[] parts = line.toLowerCase().trim().split("\\s+");
-//         String word = norm(parts[0]);
-//         for (int i = 1; i < parts.length; i++) {
-//            lexicon.put(word, norm(parts[i]));
-//         }
-//      });
-//   }
-//
-//   private String norm(String string) {
-//      if (Math2.tryParseDouble(string) != null) {
-//         return "---num---";
-//      } else if (Strings.isPunctuation(string)) {
-//         return "---punc---";
-//      }
-//      return string.toLowerCase().replace('_', ' ');
-//   }
-//
-//   /**
-//    * Sets lexicon.
-//    *
-//    * @param resource the resource
-//    * @throws IOException the io exception
-//    */
-//   public void setLexicon(Resource resource) throws IOException {
-//      lexicon.clear();
-//      loadLexicon(resource, lexicon);
-//   }
+public class FaruquiRetrofitting implements Retrofitting {
+   private static final long serialVersionUID = 1L;
+   private final int iterations;
+   private final Multimap<String, String> lexicon = new HashSetMultimap<>();
+
+   /**
+    * Instantiates a new Faruqui retrofitting with a maximum of 25 iterations.
+    */
+   public FaruquiRetrofitting() {
+      this(25);
+   }
+
+   /**
+    * Instantiates a new Faruqui retrofitting.
+    *
+    * @param iterations the iterations
+    */
+   public FaruquiRetrofitting(int iterations) {
+      this.iterations = iterations;
+   }
+
+   @Override
+   public Embedding apply(Embedding origVectors) {
+      Set<String> sourceVocab = new HashSet<>(origVectors.getAlphabet());
+      Set<String> sharedVocab = Sets.intersection(sourceVocab, lexicon.keySet());
+      Map<String, NDArray> unitNormedVectors = new HashMap<>();
+      Map<String, NDArray> retrofittedVectors = new HashMap<>();
+
+      //Unit Normalize the vectors
+      sourceVocab.forEach(w -> {
+         NDArray v = origVectors.lookup(w).unitize();
+         retrofittedVectors.put(w, v);
+         unitNormedVectors.put(w, v.copy());
+      });
+
+      for (int i = 0; i < iterations; i++) {
+         sharedVocab.forEach(retrofitTerm -> {
+            Set<String> similarTerms = Sets.intersection(lexicon.get(retrofitTerm), sourceVocab);
+            if (similarTerms.size() > 0) {
+               //Get the original unit normalized vector for the term we are retrofitting
+               NDArray newTermVector = unitNormedVectors.get(retrofitTerm)
+                                                        .mul(similarTerms.size());
+
+               //Sum the vectors of the similar terms using the retrofitted vectors
+               //from last iteration
+               similarTerms.forEach(similarTerm -> {
+                  newTermVector.addi(retrofittedVectors.get(similarTerm));
+               });
+
+               //Normalize and update
+               double div = 2.0 * similarTerms.size();//v.magnitude() + 1e-6;
+               newTermVector.divi((float) div);
+               retrofittedVectors.put(retrofitTerm, newTermVector);
+            }
+         });
+      }
+
+      List<String> shared = new ArrayList<>(sharedVocab);
+      Embedding out = new Embedding(DiscretePipeline.unsupervised()
+                                                    .update(p -> {
+                                                       p.featureVectorizer = new CountFeatureVectorizer(shared, null);
+                                                       p.preprocessorList.addAll(
+                                                          origVectors.getPipeline().preprocessorList.copy());
+                                                    }));
+      NDArray[] vectors = new NDArray[shared.size()];
+      for (int i = 0; i < shared.size(); i++) {
+         vectors[i] = retrofittedVectors.get(shared.get(i));
+      }
+      out.vectorIndex = new DefaultVectorIndex(vectors);
+      return out;
+   }
+
+   private void loadLexicon(Resource resource, Multimap<String, String> lexicon) throws IOException {
+      resource.forEach(line -> {
+         String[] parts = line.toLowerCase().trim().split("\\s+");
+         String word = norm(parts[0]);
+         for (int i = 1; i < parts.length; i++) {
+            lexicon.put(word, norm(parts[i]));
+         }
+      });
+   }
+
+   private String norm(String string) {
+      if (Math2.tryParseDouble(string) != null) {
+         return "---num---";
+      } else if (Strings.isPunctuation(string)) {
+         return "---punc---";
+      }
+      return string.toLowerCase().replace('_', ' ');
+   }
+
+   /**
+    * Sets lexicon.
+    *
+    * @param resource the resource
+    * @throws IOException the io exception
+    */
+   public void setLexicon(Resource resource) throws IOException {
+      lexicon.clear();
+      loadLexicon(resource, lexicon);
+   }
 
 }//END OF FaruquiRetrofitting

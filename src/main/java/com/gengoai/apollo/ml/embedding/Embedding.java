@@ -31,6 +31,7 @@ import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.FitParameters;
 import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
+import com.gengoai.apollo.ml.vectorizer.CountFeatureVectorizer;
 import com.gengoai.collection.Streams;
 import com.gengoai.conversion.Cast;
 import com.gengoai.io.resource.Resource;
@@ -47,106 +48,42 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
+ * <p>An embedding model maps features to vectors.</p>
+ *
  * @author David B. Bracewell
  */
 public class Embedding extends DiscreteModel {
    private static final long serialVersionUID = 1L;
+   /**
+    * The Vector index.
+    */
    protected VectorIndex vectorIndex;
 
+   /**
+    * Instantiates a new Embedding.
+    *
+    * @param preprocessors the preprocessors
+    */
    protected Embedding(Preprocessor... preprocessors) {
       super(preprocessors);
    }
 
+   /**
+    * Instantiates a new Embedding.
+    *
+    * @param modelParameters the model parameters
+    */
    protected Embedding(DiscretePipeline modelParameters) {
       super(modelParameters);
    }
 
-
    /**
-    * Creates a vector using the given vector composition for the given words.
+    * Read apollo binary format embedding.
     *
-    * @param composition the composition function to use
-    * @param words       the words whose vectors we want to compose
-    * @return a composite vector consisting of the given words and calculated using the given vector composition
+    * @param resource the resource
+    * @return the embedding
+    * @throws IOException the io exception
     */
-   public NDArray compose(VectorComposition composition, String... words) {
-      if (words == null) {
-         return NDArrayFactory.DEFAULT().zeros(dimension());
-      } else if (words.length == 1) {
-         return lookup(words[0]);
-      }
-      return composition.compose(Arrays.stream(words)
-                                       .map(this::lookup)
-                                       .collect(Collectors.toList()));
-   }
-
-   /**
-    * Gets alphabet.
-    *
-    * @return the alphabet
-    */
-   public Set<String> getAlphabet() {
-      return getPipeline().featureVectorizer.alphabet();
-   }
-
-   /**
-    * Lookup nd array.
-    *
-    * @param key the key
-    * @return the nd array
-    */
-   public NDArray lookup(String key) {
-      int index = getPipeline().featureVectorizer.indexOf(key);
-      if (index < 0) {
-         return NDArrayFactory.DENSE.zeros(dimension());
-      }
-      return vectorIndex.lookup(index);
-   }
-
-   /**
-    * Queries the vector store to find similar vectors to the given {@link VSQuery}.
-    *
-    * @param query the query to use find similar vectors
-    * @return Stream of vectors matching the query
-    */
-   public Stream<NDArray> query(VSQuery query) {
-      NDArray queryVector = query.queryVector(this);
-      return query.applyFilters(vectorIndex.stream()
-                                           .parallel()
-                                           .map(v -> v.copy().setWeight(query.measure().calculate(v, queryVector))));
-   }
-
-   /**
-    * Size int.
-    *
-    * @return the int
-    */
-   public int size() {
-      return getPipeline().featureVectorizer.size();
-   }
-
-
-   @Override
-   protected void fitPreprocessed(Dataset preprocessed, FitParameters fitParameters) {
-      throw new NotSupportedException();
-   }
-
-   @Override
-   public FitParameters<?> getDefaultFitParameters() {
-      return new FitParameters<>();
-   }
-
-
-   /**
-    * The dimension of the vectors in the store
-    *
-    * @return the dimension of the vectors
-    */
-   public int dimension() {
-      return vectorIndex.dimension();
-   }
-
-
    public static Embedding readApolloBinaryFormat(Resource resource) throws IOException {
       try {
          return Cast.as(resource.readObject(), Embedding.class);
@@ -178,6 +115,7 @@ public class Embedding extends DiscreteModel {
       int dimension = VSTextUtils.determineDimension(resource);
       List<NDArray> ndArrays = new ArrayList<>();
       List<String> keys = new ArrayList<>();
+
       try (BufferedReader reader = new BufferedReader(resource.reader())) {
          String line;
          while ((line = reader.readLine()) != null) {
@@ -191,8 +129,37 @@ public class Embedding extends DiscreteModel {
             }
          }
       }
-//      return new Embedding(keys, ndArrays.toArray(new NDArray[0]));
-      return null;
+      Embedding e = new Embedding(DiscretePipeline.unsupervised()
+      .update(p -> p.featureVectorizer = new CountFeatureVectorizer(keys, unknownWord)));
+      e.vectorIndex = new DefaultVectorIndex(ndArrays.toArray(new NDArray[0]));
+      return e;
+   }
+
+   /**
+    * Creates a vector using the given vector composition for the given words.
+    *
+    * @param composition the composition function to use
+    * @param words       the words whose vectors we want to compose
+    * @return a composite vector consisting of the given words and calculated using the given vector composition
+    */
+   public NDArray compose(VectorComposition composition, String... words) {
+      if (words == null) {
+         return NDArrayFactory.DEFAULT().zeros(dimension());
+      } else if (words.length == 1) {
+         return lookup(words[0]);
+      }
+      return composition.compose(Arrays.stream(words)
+                                       .map(this::lookup)
+                                       .collect(Collectors.toList()));
+   }
+
+   /**
+    * The dimension of the vectors in the store
+    *
+    * @return the dimension of the vectors
+    */
+   public int dimension() {
+      return vectorIndex.dimension();
    }
 
    /**
@@ -227,6 +194,61 @@ public class Embedding extends DiscreteModel {
                                    }))
                     .filter(Strings::isNotNullOrBlank)
                     .collect(Collectors.toList());
+   }
+
+   @Override
+   protected void fitPreprocessed(Dataset preprocessed, FitParameters fitParameters) {
+      throw new NotSupportedException();
+   }
+
+   /**
+    * Gets the alphabet associated with the vectors.
+    *
+    * @return the alphabet
+    */
+   public Set<String> getAlphabet() {
+      return getPipeline().featureVectorizer.alphabet();
+   }
+
+   @Override
+   public FitParameters<?> getDefaultFitParameters() {
+      return new FitParameters<>();
+   }
+
+   /**
+    * Looks up the NDArray associated with the given feature name
+    *
+    * @param feature the feature name whose NDArray we want
+    * @return the NDArray for the given feature, zero vector or unknown vector if feature is not valid.
+    */
+   public NDArray lookup(String feature) {
+      int index = getPipeline().featureVectorizer.indexOf(feature);
+      if (index < 0) {
+         return NDArrayFactory.DENSE.zeros(dimension());
+      }
+      return vectorIndex.lookup(index);
+   }
+
+   /**
+    * Queries the vector store to find similar vectors to the given {@link VSQuery}.
+    *
+    * @param query the query to use find similar vectors
+    * @return Stream of vectors matching the query
+    */
+   public Stream<NDArray> query(VSQuery query) {
+      NDArray queryVector = query.queryVector(this);
+      return query.applyFilters(vectorIndex.stream()
+                                           .parallel()
+                                           .map(v -> v.copy().setWeight(query.measure().calculate(v, queryVector))));
+   }
+
+   /**
+    * The number of vectors in the embedding
+    *
+    * @return the number of vectors in the embedding
+    */
+   public int size() {
+      return getPipeline().featureVectorizer.size();
    }
 
 }//END OF Embedding

@@ -6,6 +6,8 @@ import org.apache.commons.math3.util.FastMath;
 import java.io.Serializable;
 
 /**
+ * <p>Log loss</p>
+ *
  * @author David B. Bracewell
  */
 public class LogLoss implements LossFunction, Serializable {

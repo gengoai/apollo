@@ -47,9 +47,9 @@ import java.util.Arrays;
  */
 public class NaiveBayes extends Classifier {
    private static final long serialVersionUID = 1L;
+   private double[][] conditionals;
    private ModelType modelType;
    private double[] priors;
-   private double[][] conditionals;
 
    /**
     * Instantiates a new Naive bayes.
@@ -135,16 +135,6 @@ public class NaiveBayes extends Classifier {
                                 getPipeline().labelVectorizer);
    }
 
-
-   /**
-    * Custom {@link FitParameters} for Naive Bayes.
-    */
-   public static class Parameters extends FitParameters {
-      /**
-       * The type of Naive Bayes model to train.
-       */
-      public ModelType modelType = ModelType.Bernoulli;
-   }
 
    /**
     * Three types of Naive Bayes  are supported each of which have their own potential pros and cons and may work better
@@ -234,5 +224,15 @@ public class NaiveBayes extends Classifier {
          return (conditionalCount + 1) / (totalLabelCount + V);
       }
 
+   }
+
+   /**
+    * Custom {@link FitParameters} for Naive Bayes.
+    */
+   public static class Parameters extends FitParameters {
+      /**
+       * The type of Naive Bayes model to train.
+       */
+      public ModelType modelType = ModelType.Bernoulli;
    }
 }//END OF NaiveBayes

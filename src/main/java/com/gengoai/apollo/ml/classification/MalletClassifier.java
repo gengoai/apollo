@@ -85,13 +85,15 @@ public abstract class MalletClassifier extends Classifier {
    @Override
    protected void fitPreprocessed(Dataset preprocessed, FitParameters fitParameters) {
       Pipe pipe = createPipe();
+      pipe.setDataAlphabet(Cast.<MalletVectorizer>as(getPipeline().featureVectorizer).getAlphabet());
       InstanceList trainingData = new InstanceList(pipe);
       preprocessed.forEach(
          example -> trainingData.addThruPipe(new cc.mallet.types.Instance(example, example.getLabel(), null, null)));
+
       ClassifierTrainer<?> trainer = getTrainer(fitParameters);
       model = trainer.train(trainingData);
       MalletVectorizer labelVectorizer = Cast.as(getPipeline().labelVectorizer);
-      labelVectorizer.setAlphabet(model.getLabelAlphabet());
+      labelVectorizer.setAlphabet(model.getInstancePipe().getTargetAlphabet());
    }
 
    /**

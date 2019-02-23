@@ -117,6 +117,66 @@ public class LinearModel extends Classifier implements Loggable {
                                 getPipeline().labelVectorizer);
    }
 
+   /**
+    * Custom fit parameters for the LinearModel
+    */
+   public static class Parameters extends FitParameters<Parameters> {
+      private static final long serialVersionUID = 1L;
+      /**
+       * The Activation.
+       */
+      public Activation activation = Activation.SIGMOID;
+      /**
+       * The Batch size.
+       */
+      public int batchSize = 20;
+      /**
+       * The Cache data.
+       */
+      public boolean cacheData = true;
+      /**
+       * The History size.
+       */
+      public int historySize = 3;
+      /**
+       * The Loss function.
+       */
+      public LossFunction lossFunction = new LogLoss();
+      /**
+       * The Max iterations.
+       */
+      public int maxIterations = 300;
+      /**
+       * The Report interval.
+       */
+      public int reportInterval = 100;
+      /**
+       * The Tolerance.
+       */
+      public double tolerance = 1e-9;
+      public boolean verbose = false;
+      /**
+       * The Weight updater.
+       */
+      public WeightUpdate weightUpdater = SGDUpdater.builder().build();
+
+      @Override
+      public String toString() {
+         return "Parameters{" +
+                   "activation=" + activation +
+                   ", batchSize=" + batchSize +
+                   ", cacheData=" + cacheData +
+                   ", historySize=" + historySize +
+                   ", lossFunction=" + lossFunction +
+                   ", maxIterations=" + maxIterations +
+                   ", tolerance=" + tolerance +
+                   ", weightUpdater=" + weightUpdater +
+                   ", verbose=" + verbose +
+                   ", reportInterval=" + reportInterval +
+                   '}';
+      }
+   }
+
    private static class WeightParameters implements LinearModelParameters, Serializable, Copyable<WeightParameters> {
       private static final long serialVersionUID = 1L;
       private Activation activation = Activation.SIGMOID;
@@ -165,66 +225,6 @@ public class LinearModel extends Classifier implements Loggable {
          this.activation = parameters.activation;
          this.weights = NDArrayFactory.DEFAULT().create(NDArrayInitializer.rand, numL, numFeatures);
          this.bias = NDArrayFactory.DEFAULT().zeros(numL);
-      }
-   }
-
-   /**
-    * Custom fit parameters for the LinearModel
-    */
-   public static class Parameters extends FitParameters<Parameters> {
-      private static final long serialVersionUID = 1L;
-      public boolean verbose = false;
-      /**
-       * The Activation.
-       */
-      public Activation activation = Activation.SIGMOID;
-      /**
-       * The Batch size.
-       */
-      public int batchSize = 20;
-      /**
-       * The Cache data.
-       */
-      public boolean cacheData = true;
-      /**
-       * The History size.
-       */
-      public int historySize = 3;
-      /**
-       * The Loss function.
-       */
-      public LossFunction lossFunction = new LogLoss();
-      /**
-       * The Max iterations.
-       */
-      public int maxIterations = 300;
-      /**
-       * The Report interval.
-       */
-      public int reportInterval = 100;
-      /**
-       * The Tolerance.
-       */
-      public double tolerance = 1e-9;
-      /**
-       * The Weight updater.
-       */
-      public WeightUpdate weightUpdater = SGDUpdater.builder().build();
-
-      @Override
-      public String toString() {
-         return "Parameters{" +
-                   "activation=" + activation +
-                   ", batchSize=" + batchSize +
-                   ", cacheData=" + cacheData +
-                   ", historySize=" + historySize +
-                   ", lossFunction=" + lossFunction +
-                   ", maxIterations=" + maxIterations +
-                   ", tolerance=" + tolerance +
-                   ", weightUpdater=" + weightUpdater +
-                   ", verbose=" + verbose +
-                   ", reportInterval=" + reportInterval +
-                   '}';
       }
    }
 

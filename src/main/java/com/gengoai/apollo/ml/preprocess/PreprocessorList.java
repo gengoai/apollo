@@ -22,6 +22,7 @@
 
 package com.gengoai.apollo.ml.preprocess;
 
+import com.gengoai.Copyable;
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.function.SerializableFunction;
@@ -36,7 +37,7 @@ import java.util.Collections;
  *
  * @author David B. Bracewell
  */
-public class PreprocessorList extends ArrayList<Preprocessor> implements SerializableFunction<Example, Example> {
+public class PreprocessorList extends ArrayList<Preprocessor> implements SerializableFunction<Example, Example>, Copyable<PreprocessorList> {
    private static final long serialVersionUID = 1L;
 
 
@@ -65,6 +66,11 @@ public class PreprocessorList extends ArrayList<Preprocessor> implements Seriali
          example = preprocessor.apply(example);
       }
       return example;
+   }
+
+   @Override
+   public PreprocessorList copy() {
+      return Copyable.deepCopy(this);
    }
 
    /**

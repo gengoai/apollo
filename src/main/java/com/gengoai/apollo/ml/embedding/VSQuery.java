@@ -35,7 +35,7 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 /**
- * Fluent class for constructing vector space queries for use by {@link VectorStore}s.
+ * Fluent class for constructing vector space queries for use by {@link Embedding}s.
  *
  * @author David B. Bracewell
  */

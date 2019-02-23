@@ -57,6 +57,13 @@ public final class Feature implements Serializable, Comparable<Feature>, Copyabl
    private double value;
 
    private Feature(String name, double value) {
+      this(null, name, value);
+   }
+
+   private Feature(String prefix, String name, double value) {
+      if (Strings.isNotNullOrBlank(prefix)) {
+         name = prefix + "=" + name;
+      }
       this.name = featureInterner.intern(name);
       this.value = value;
    }
@@ -79,7 +86,7 @@ public final class Feature implements Serializable, Comparable<Feature>, Copyabl
     * @return the feature
     */
    public static Feature booleanFeature(String prefix, String name) {
-      return new Feature(prefix + "=" + name, 1.0);
+      return new Feature(prefix, name, 1.0);
    }
 
    /**
@@ -170,7 +177,7 @@ public final class Feature implements Serializable, Comparable<Feature>, Copyabl
     * @return the feature
     */
    public static Feature realFeature(String prefix, String name, double value) {
-      return new Feature(prefix + "=" + name, value);
+      return new Feature(prefix, name, value);
    }
 
    @Override

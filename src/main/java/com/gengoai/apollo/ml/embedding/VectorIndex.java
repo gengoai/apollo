@@ -27,32 +27,40 @@ import com.gengoai.apollo.linear.NDArray;
 import java.util.stream.Stream;
 
 /**
- * The interface Vector index.
+ * <p>An integer indexable array of NDArray.</p>
  *
  * @author David B. Bracewell
  */
-public interface VectorIndex  {
+public interface VectorIndex {
 
    /**
-    * Lookup nd array.
+    * Retrieves the NDArray for the given index
     *
-    * @param index the index
-    * @return the nd array
+    * @param index the index of the NDArray
+    * @return the NDArray of the given index
     */
    NDArray lookup(int index);
 
    /**
-    * Stream stream.
+    * Stream of NDArray in in the index
     *
     * @return the stream
     */
    Stream<NDArray> stream();
 
    /**
-    * Dimension int.
+    * the dimension of the vectors in the index
     *
-    * @return the int
+    * @return the dimension
     */
    int dimension();
+
+
+   /**
+    * the number of vectors in the index
+    *
+    * @return the number of vectors in the index
+    */
+   int size();
 
 }//END OF VectorIndex

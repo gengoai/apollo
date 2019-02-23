@@ -51,8 +51,8 @@ import static java.util.Arrays.asList;
  */
 public class BinaryEvaluation extends ClassifierEvaluation {
    private static final long serialVersionUID = 1L;
-   private final String trueLabel;
    private final DoubleArrayList[] prob = {new DoubleArrayList(), new DoubleArrayList()};
+   private final String trueLabel;
    private double fn = 0;
    private double fp = 0;
    private double negative = 0d;

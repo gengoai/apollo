@@ -6,7 +6,7 @@ import org.apache.commons.math3.util.FastMath;
 import java.io.Serializable;
 
 /**
- * The type Squared loss.
+ * <p>Squared loss</p>
  *
  * @author David B. Bracewell
  */

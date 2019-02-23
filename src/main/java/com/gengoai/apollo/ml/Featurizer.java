@@ -94,6 +94,13 @@ public abstract class Featurizer<I> implements FeatureExtractor<I>, Serializable
    }
 
 
+   /**
+    * Featurizer that counts the strings in an Iterable prepending the given feature prefix to the string.
+    *
+    * @param featurePrefix the feature prefix
+    * @param normalize     True - normalize the counts by dividing by the sum.
+    * @return the featurizer
+    */
    public static Featurizer<Iterable<String>> countFeaturizer(String featurePrefix, boolean normalize) {
       return new RealExtractor<>(itreable -> {
          Counter<String> cntr = Counters.newCounter();

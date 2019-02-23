@@ -24,16 +24,11 @@ package com.gengoai.apollo.ml;
 
 import com.gengoai.Validation;
 import com.gengoai.apollo.linear.NDArray;
-import com.gengoai.conversion.Cast;
-import com.gengoai.conversion.Converter;
-import com.gengoai.conversion.TypeConversionException;
-import com.gengoai.reflection.Types;
 import com.gengoai.string.Strings;
 
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static com.gengoai.apollo.ml.Feature.booleanFeature;
 
@@ -47,7 +42,6 @@ import static com.gengoai.apollo.ml.Feature.booleanFeature;
 public class Instance extends Example {
    private static final long serialVersionUID = 1L;
    private final List<Feature> features;
-   private Object label;
 
 
    /**
@@ -55,7 +49,6 @@ public class Instance extends Example {
     */
    public Instance() {
       this.features = new ArrayList<>();
-      this.label = null;
    }
 
    /**
@@ -120,7 +113,7 @@ public class Instance extends Example {
 
    @Override
    public Example copy() {
-      Instance copy = new Instance(label, features);
+      Instance copy = new Instance(getLabel(), features);
       copy.setWeight(getWeight());
       return copy;
    }
@@ -131,7 +124,7 @@ public class Instance extends Example {
       if (!(o instanceof Instance)) return false;
       Instance instance = (Instance) o;
       return Objects.equals(features, instance.features) &&
-                Objects.equals(label, instance.label);
+                Objects.equals(getLabel(), instance.getLabel());
    }
 
    @Override
@@ -153,28 +146,10 @@ public class Instance extends Example {
       return features;
    }
 
-   @Override
-   public <T> T getLabel() {
-      return Cast.as(label);
-   }
-
-   @Override
-   public Set<String> getMultiLabel() {
-      Object lbl = getLabel();
-      if (lbl instanceof Set) {
-         return Cast.as(lbl);
-      }
-      return Collections.singleton(lbl.toString());
-   }
-
-   @Override
-   public boolean hasLabel() {
-      return label != null;
-   }
 
    @Override
    public int hashCode() {
-      return Objects.hash(features, label);
+      return Objects.hash(features, getLabel());
    }
 
    @Override
@@ -184,11 +159,11 @@ public class Instance extends Example {
 
    @Override
    public Instance mapFeatures(Function<? super Feature, Optional<Feature>> mapper) {
-      Instance ii = new Instance(label, features.stream()
-                                                .map(mapper)
-                                                .filter(Optional::isPresent)
-                                                .map(Optional::get)
-                                                .collect(Collectors.toList()));
+      Instance ii = new Instance(getLabel(), features.stream()
+                                                     .map(mapper)
+                                                     .filter(Optional::isPresent)
+                                                     .map(Optional::get)
+                                                     .collect(Collectors.toList()));
       ii.setWeight(getWeight());
       return ii;
    }
@@ -196,28 +171,6 @@ public class Instance extends Example {
    @Override
    public Example mapInstance(Function<Instance, Instance> mapper) {
       return mapper.apply(this);
-   }
-
-   @Override
-   public Example setLabel(Object label) {
-      if (label == null) {
-         this.label = null;
-      } else if (label instanceof Number) {
-         this.label = Cast.<Number>as(label).doubleValue();
-      } else if (label instanceof CharSequence) {
-         this.label = label.toString();
-      } else if (label instanceof Iterator || label instanceof Iterable ||
-                    label instanceof Stream || label.getClass().isArray()
-      ) {
-         try {
-            this.label = Converter.convert(label, Types.parameterizedType(Set.class, String.class));
-         } catch (TypeConversionException e) {
-            throw new IllegalArgumentException("Unable to set (" + label + ") as the Instance's label");
-         }
-      } else {
-         throw new IllegalArgumentException("Unable to set (" + label + ") as the Instance's label");
-      }
-      return this;
    }
 
    @Override
@@ -229,7 +182,7 @@ public class Instance extends Example {
    public String toString() {
       return "Instance{" +
                 "features=" + features +
-                ", label=" + label +
+                ", label=" + getLabel() +
                 ", weight=" + getWeight() +
                 '}';
    }

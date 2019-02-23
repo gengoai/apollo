@@ -46,9 +46,9 @@ import static com.gengoai.tuple.Tuples.$;
  */
 public class SilhouetteEvaluation implements ClusteringEvaluation, Serializable {
    private static final long serialVersionUID = 1L;
+   private final Measure measure;
    private double avgSilhouette = 0;
    private Map<Integer, Double> silhouette;
-   private final Measure measure;
 
    /**
     * Instantiates a new Silhouette evaluation.
@@ -72,6 +72,37 @@ public class SilhouetteEvaluation implements ClusteringEvaluation, Serializable 
 
    }
 
+   /**
+    * Gets the average silhouette score.
+    *
+    * @return the average silhouette score
+    */
+   public double getAvgSilhouette() {
+      return avgSilhouette;
+   }
+
+   /**
+    * Gets the silhouette score for the given cluster id.
+    *
+    * @param id the id of the cluster
+    * @return the silhouette score for the cluster with the given id
+    */
+   public double getSilhouette(int id) {
+      return silhouette.get(id);
+   }
+
+   @Override
+   public void output(PrintStream printStream) {
+      TableFormatter formatter = new TableFormatter();
+      formatter.title("Silhouette Cluster Evaluation");
+      formatter.header(Arrays.asList("Cluster", "Silhouette Score"));
+      silhouette.keySet()
+                .stream()
+                .sorted()
+                .forEach(id -> formatter.content(Arrays.asList(id, silhouette.get(id))));
+      formatter.footer(Arrays.asList("Avg. Score", avgSilhouette));
+      formatter.print(printStream);
+   }
 
    private double silhouette(Map<Integer, Cluster> clusters, int index, Measure distanceMeasure) {
       Cluster c1 = clusters.get(index);
@@ -103,38 +134,6 @@ public class SilhouetteEvaluation implements ClusteringEvaluation, Serializable 
       }
 
       return s / c1.size();
-   }
-
-   @Override
-   public void output(PrintStream printStream) {
-      TableFormatter formatter = new TableFormatter();
-      formatter.title("Silhouette Cluster Evaluation");
-      formatter.header(Arrays.asList("Cluster", "Silhouette Score"));
-      silhouette.keySet()
-                .stream()
-                .sorted()
-                .forEach(id -> formatter.content(Arrays.asList(id, silhouette.get(id))));
-      formatter.footer(Arrays.asList("Avg. Score", avgSilhouette));
-      formatter.print(printStream);
-   }
-
-   /**
-    * Gets the average silhouette score.
-    *
-    * @return the average silhouette score
-    */
-   public double getAvgSilhouette() {
-      return avgSilhouette;
-   }
-
-   /**
-    * Gets the silhouette score for the given cluster id.
-    *
-    * @param id the id of the cluster
-    * @return the silhouette score for the cluster with the given id
-    */
-   public double getSilhouette(int id) {
-      return silhouette.get(id);
    }
 
 

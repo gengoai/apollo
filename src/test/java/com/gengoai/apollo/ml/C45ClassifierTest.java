@@ -20,48 +20,26 @@
  *
  */
 
-package com.gengoai.apollo.ml.embedding;
+package com.gengoai.apollo.ml;
 
-import com.gengoai.apollo.linear.NDArray;
-
-import java.io.Serializable;
-import java.util.stream.Stream;
+import com.gengoai.apollo.ml.classification.C45Classifier;
+import com.gengoai.apollo.ml.classification.ClassifierEvaluation;
+import com.gengoai.apollo.ml.classification.MultiClassEvaluation;
+import com.gengoai.conversion.Cast;
 
 /**
- * Default VectorIndex storing vectors in memory.
- *
  * @author David B. Bracewell
  */
-public class DefaultVectorIndex implements VectorIndex, Serializable {
-   private static final long serialVersionUID = 1L;
-   private final NDArray[] vectors;
+public class C45ClassifierTest extends BaseClassifierTest<C45Classifier.Parameters> {
 
-   /**
-    * Instantiates a new Default vector index.
-    *
-    * @param vectors the vectors
-    */
-   public DefaultVectorIndex(NDArray[] vectors) {
-      this.vectors = vectors;
+   public C45ClassifierTest() {
+      super(new C45Classifier(),
+            new C45Classifier.Parameters().set("verbose", false));
    }
 
    @Override
-   public NDArray lookup(int index) {
-      return vectors[index].copy();
+   public boolean passes(ClassifierEvaluation evaluation) {
+      MultiClassEvaluation mce = Cast.as(evaluation);
+      return mce.microF1() >= 0.85;
    }
-
-   @Override
-   public Stream<NDArray> stream() {
-      return Stream.of(vectors);
-   }
-
-   @Override
-   public int dimension() {
-      return (int) vectors[0].length();
-   }
-
-   @Override
-   public int size() {
-      return vectors.length;
-   }
-}//END OF DefaultVectorIndex
+}//END OF LinearModelTest

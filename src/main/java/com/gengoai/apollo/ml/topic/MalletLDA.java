@@ -57,19 +57,13 @@ import java.util.logging.Level;
  * @author David B. Bracewell
  */
 public class MalletLDA extends TopicModel {
+   private static final long serialVersionUID = 1L;
    private volatile transient TopicInferencer inferencer;
    private SerialPipes pipes;
    private ParallelTopicModel topicModel;
 
    public MalletLDA(Preprocessor... preprocessors) {
-      super(createModelParameters(preprocessors));
-   }
-
-   private static DiscretePipeline createModelParameters(Preprocessor... preprocessors) {
-      DiscretePipeline p = DiscretePipeline.create(new MalletVectorizer(true, new Alphabet()));
-      p.featureVectorizer = new MalletVectorizer(false, new Alphabet());
-      p.preprocessorList.addAll(preprocessors);
-      return p;
+      super(DiscretePipeline.unsupervised(new MalletVectorizer(new Alphabet()), preprocessors));
    }
 
    @Override

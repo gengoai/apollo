@@ -176,7 +176,7 @@ public abstract class Example implements Copyable<Example>, Iterable<Example>, S
     */
    public Stream<String> getLabelSpace() {
       if (hasLabel()) {
-         return Stream.of(getLabel());
+         return getMultiLabel().stream();
       }
       return stream().flatMap(e -> e.getMultiLabel().stream()).distinct();
    }

@@ -11,18 +11,29 @@ import java.io.Serializable;
 import static com.gengoai.tuple.Tuples.$;
 
 /**
+ * The type Sgd updater.
+ *
  * @author David B. Bracewell
  */
 public class SGDUpdater implements WeightUpdate, Serializable {
    private static final long serialVersionUID = 1L;
-   private double learningRate = 0.01;
-   private double decayRate = 0.01;
-   private double momentum = 0.90;
-   private double l1 = 0.0;
-   private double l2 = 0.0;
+   private double learningRate;
+   private double decayRate;
+   private double momentum;
+   private double l1;
+   private double l2;
    private transient NDArray v;
 
-   @java.beans.ConstructorProperties({"learningRate", "decayRate", "momentum", "l1", "l2", "v"})
+   /**
+    * Instantiates a new Sgd updater.
+    *
+    * @param learningRate the learning rate
+    * @param decayRate    the decay rate
+    * @param momentum     the momentum
+    * @param l1           the l 1
+    * @param l2           the l 2
+    * @param v            the v
+    */
    public SGDUpdater(double learningRate, double decayRate, double momentum, double l1, double l2, NDArray v) {
       this.learningRate = learningRate;
       this.decayRate = decayRate;
@@ -32,6 +43,11 @@ public class SGDUpdater implements WeightUpdate, Serializable {
       this.v = v;
    }
 
+   /**
+    * Builder sgd updater builder.
+    *
+    * @return the sgd updater builder
+    */
    public static SGDUpdaterBuilder builder() {
       return new SGDUpdaterBuilder();
    }
@@ -41,6 +57,15 @@ public class SGDUpdater implements WeightUpdate, Serializable {
       return toBuilder().build();
    }
 
+   /**
+    * L 1 update double.
+    *
+    * @param weights      the weights
+    * @param learningRate the learning rate
+    * @param l1           the l 1
+    * @param iteration    the iteration
+    * @return the double
+    */
    public static double l1Update(NDArray weights, double learningRate, double l1, int iteration) {
       if (l1 > 0) {
          AtomicDouble cost = new AtomicDouble(0);
@@ -58,6 +83,13 @@ public class SGDUpdater implements WeightUpdate, Serializable {
       return 0;
    }
 
+   /**
+    * L 2 update double.
+    *
+    * @param gradient the gradient
+    * @param l2       the l 2
+    * @return the double
+    */
    public static double l2Update(NDArray gradient, double l2) {
       if (l2 > 0) {
          AtomicDouble addedCost = new AtomicDouble(0d);
@@ -76,6 +108,11 @@ public class SGDUpdater implements WeightUpdate, Serializable {
       v = null;
    }
 
+   /**
+    * To builder sgd updater builder.
+    *
+    * @return the sgd updater builder
+    */
    public SGDUpdaterBuilder toBuilder() {
       return new SGDUpdaterBuilder().learningRate(this.learningRate).decayRate(this.decayRate).momentum(
          this.momentum).l1(this.l1).l2(this.l2).v(this.v);
@@ -100,9 +137,9 @@ public class SGDUpdater implements WeightUpdate, Serializable {
                       : null;
 
       NDArray dw = delta.mmul(input.T())
-                    .divi(input.numCols());
+                        .divi(input.numCols());
       NDArray db = delta.sum(Axis.ROW)
-                    .divi(input.numCols());
+                        .divi(input.numCols());
 
       addedCost += l2Update(dw, l2);
 
@@ -141,6 +178,9 @@ public class SGDUpdater implements WeightUpdate, Serializable {
       return addedCost;
    }
 
+   /**
+    * The type Sgd updater builder.
+    */
    public static class SGDUpdaterBuilder {
 
       private double learningRate = 0.01;
@@ -150,53 +190,116 @@ public class SGDUpdater implements WeightUpdate, Serializable {
       private double l2 = 0.0;
       private NDArray v;
 
+      /**
+       * Instantiates a new Sgd updater builder.
+       */
       SGDUpdaterBuilder() {
       }
 
+      /**
+       * Build sgd updater.
+       *
+       * @return the sgd updater
+       */
       public SGDUpdater build() {
          return new SGDUpdater(learningRate, decayRate, momentum, l1, l2, v);
       }
 
+      /**
+       * Decay rate sgd updater builder.
+       *
+       * @param decayRate the decay rate
+       * @return the sgd updater builder
+       */
       public SGDUpdaterBuilder decayRate(double decayRate) {
          this.decayRate = decayRate;
          return this;
       }
 
+      /**
+       * Gets learning rate.
+       *
+       * @return the learning rate
+       */
       public double getLearningRate() {
          return learningRate;
       }
 
+      /**
+       * Gets decay rate.
+       *
+       * @return the decay rate
+       */
       public double getDecayRate() {
          return decayRate;
       }
 
+      /**
+       * Gets momentum.
+       *
+       * @return the momentum
+       */
       public double getMomentum() {
          return momentum;
       }
 
+      /**
+       * Gets l 1.
+       *
+       * @return the l 1
+       */
       public double getL1() {
          return l1;
       }
 
+      /**
+       * Gets l 2.
+       *
+       * @return the l 2
+       */
       public double getL2() {
          return l2;
       }
 
+      /**
+       * L 1 sgd updater builder.
+       *
+       * @param l1 the l 1
+       * @return the sgd updater builder
+       */
       public SGDUpdaterBuilder l1(double l1) {
          this.l1 = l1;
          return this;
       }
 
+      /**
+       * L 2 sgd updater builder.
+       *
+       * @param l2 the l 2
+       * @return the sgd updater builder
+       */
       public SGDUpdaterBuilder l2(double l2) {
          this.l2 = l2;
          return this;
       }
 
+      /**
+       * Learning rate sgd updater builder.
+       *
+       * @param learningRate the learning rate
+       * @return the sgd updater builder
+       */
       public SGDUpdaterBuilder learningRate(double learningRate) {
          this.learningRate = learningRate;
          return this;
       }
 
+      /**
+       * Momentum sgd updater builder.
+       *
+       * @param momentum the momentum
+       * @return the sgd updater builder
+       */
       public SGDUpdaterBuilder momentum(double momentum) {
          this.momentum = momentum;
          return this;
@@ -209,6 +312,12 @@ public class SGDUpdater implements WeightUpdate, Serializable {
                                                                                                                                                                                                   .getMomentum() + ", v=" + this.v + ")";
       }
 
+      /**
+       * V sgd updater builder.
+       *
+       * @param v the v
+       * @return the sgd updater builder
+       */
       public SGDUpdaterBuilder v(NDArray v) {
          this.v = v;
          return this;

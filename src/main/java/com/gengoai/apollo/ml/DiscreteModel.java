@@ -40,7 +40,7 @@ public abstract class DiscreteModel extends Model {
     * @param preprocessors the preprocessors
     */
    public DiscreteModel(Preprocessor... preprocessors) {
-      this(DiscretePipeline.multiclass().update(p -> p.preprocessorList.addAll(preprocessors)));
+      this(DiscretePipeline.multiClass().update(p -> p.preprocessorList.addAll(preprocessors)));
    }
 
    /**

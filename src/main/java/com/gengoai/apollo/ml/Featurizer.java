@@ -123,7 +123,7 @@ public abstract class Featurizer<I> implements FeatureExtractor<I>, Serializable
     */
    @SafeVarargs
    public static <I> Featurizer<I> chain(Featurizer<? super I>... featurizers) {
-      return new ChainFeaturizer<I>(Arrays.asList(featurizers));
+      return new ChainFeaturizer<>(Arrays.asList(featurizers));
    }
 
    /**

@@ -23,8 +23,6 @@
 package com.gengoai.apollo.ml.embedding;
 
 import com.gengoai.apollo.linear.NDArray;
-import com.gengoai.apollo.ml.DiscretePipeline;
-import com.gengoai.apollo.ml.vectorizer.CountFeatureVectorizer;
 import com.gengoai.collection.Sets;
 import com.gengoai.collection.multimap.HashSetMultimap;
 import com.gengoai.collection.multimap.Multimap;
@@ -33,7 +31,10 @@ import com.gengoai.math.Math2;
 import com.gengoai.string.Strings;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * <p>Implementation of <b>Retrofitting Word Vectors to Semantic Lexicons</b> by Faruqui et al.</p>
@@ -85,9 +86,7 @@ public class FaruquiRetrofitting implements Retrofitting {
 
                //Sum the vectors of the similar terms using the retrofitted vectors
                //from last iteration
-               similarTerms.forEach(similarTerm -> {
-                  newTermVector.addi(retrofittedVectors.get(similarTerm));
-               });
+               similarTerms.forEach(similarTerm -> newTermVector.addi(retrofittedVectors.get(similarTerm)));
 
                //Normalize and update
                double div = 2.0 * similarTerms.size();//v.magnitude() + 1e-6;
@@ -97,16 +96,15 @@ public class FaruquiRetrofitting implements Retrofitting {
          });
       }
 
-      List<String> shared = new ArrayList<>(sharedVocab);
-      Embedding out = new Embedding(DiscretePipeline.unsupervised()
-                                                    .update(p -> {
-                                                       p.featureVectorizer = new CountFeatureVectorizer(shared, null);
-                                                       p.preprocessorList.addAll(
-                                                          origVectors.getPipeline().preprocessorList.copy());
-                                                    }));
-      NDArray[] vectors = new NDArray[shared.size()];
-      for (int i = 0; i < shared.size(); i++) {
-         vectors[i] = retrofittedVectors.get(shared.get(i));
+      Embedding out = new Embedding(origVectors.getPipeline().copy());
+      NDArray[] vectors = new NDArray[origVectors.getNumberOfFeatures()];
+      for (String key : origVectors.getAlphabet()) {
+         int i = out.getPipeline().featureVectorizer.indexOf(key);
+         if (retrofittedVectors.containsKey(key)) {
+            vectors[i] = retrofittedVectors.get(key).unitize();
+         } else {
+            vectors[i] = origVectors.lookup(key).unitize();
+         }
       }
       out.vectorIndex = new DefaultVectorIndex(vectors);
       return out;

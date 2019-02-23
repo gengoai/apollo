@@ -37,7 +37,6 @@ import com.gengoai.conversion.Cast;
 import com.gengoai.io.resource.Resource;
 import com.gengoai.string.Strings;
 
-import javax.ws.rs.NotSupportedException;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -64,7 +63,7 @@ public class Embedding extends DiscreteModel {
     *
     * @param preprocessors the preprocessors
     */
-   protected Embedding(Preprocessor... preprocessors) {
+   public Embedding(Preprocessor... preprocessors) {
       super(preprocessors);
    }
 
@@ -73,7 +72,7 @@ public class Embedding extends DiscreteModel {
     *
     * @param modelParameters the model parameters
     */
-   protected Embedding(DiscretePipeline modelParameters) {
+   public Embedding(DiscretePipeline modelParameters) {
       super(modelParameters);
    }
 
@@ -104,6 +103,16 @@ public class Embedding extends DiscreteModel {
    }
 
    /**
+    * Checks if the feature / word / key has an embedding
+    *
+    * @param feature the feature to check
+    * @return True if an embedding exists (or an unknown word is set), False otherwise
+    */
+   public boolean contains(String feature) {
+      return getPipeline().featureVectorizer.indexOf(feature) != -1;
+   }
+
+   /**
     * Read embedding.
     *
     * @param resource    the resource
@@ -130,7 +139,8 @@ public class Embedding extends DiscreteModel {
          }
       }
       Embedding e = new Embedding(DiscretePipeline.unsupervised()
-      .update(p -> p.featureVectorizer = new CountFeatureVectorizer(keys, unknownWord)));
+                                                  .update(p -> p.featureVectorizer = new CountFeatureVectorizer(keys,
+                                                                                                                unknownWord)));
       e.vectorIndex = new DefaultVectorIndex(ndArrays.toArray(new NDArray[0]));
       return e;
    }
@@ -198,7 +208,7 @@ public class Embedding extends DiscreteModel {
 
    @Override
    protected void fitPreprocessed(Dataset preprocessed, FitParameters fitParameters) {
-      throw new NotSupportedException();
+      throw new UnsupportedOperationException();
    }
 
    /**

@@ -317,7 +317,7 @@ public final class VSQuery {
    }
 
    /**
-    * Generates a query vector for the given {@link VectorStore}
+    * Generates a query vector for the given {@link Embedding}
     *
     * @param store the vector store that the final query vector will be for.
     * @return the query vector

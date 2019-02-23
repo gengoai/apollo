@@ -11,8 +11,8 @@ import java.util.Iterator;
  * @author David B. Bracewell
  */
 public class GradientDescentOptimizer implements Optimizer<LinearModelParameters> {
-   double cost = Double.POSITIVE_INFINITY;
-   int batchSize = 32;
+   double cost;
+   int batchSize;
 
    @java.beans.ConstructorProperties({"cost", "batchSize"})
    GradientDescentOptimizer(double cost, int batchSize) {

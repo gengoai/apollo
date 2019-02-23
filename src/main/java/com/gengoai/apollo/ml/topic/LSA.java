@@ -46,16 +46,28 @@ import static com.gengoai.apollo.linear.SparkLinearAlgebra.sparkSVD;
 import static com.gengoai.apollo.linear.SparkLinearAlgebra.toMatrix;
 
 /**
+ * The type Lsa.
+ *
  * @author David B. Bracewell
  */
 public class LSA extends TopicModel {
    private static final long serialVersionUID = 1L;
    private List<LSATopic> topics = new ArrayList<>();
 
+   /**
+    * Instantiates a new Lsa.
+    *
+    * @param preprocessors the preprocessors
+    */
    public LSA(Preprocessor... preprocessors) {
       super(preprocessors);
    }
 
+   /**
+    * Instantiates a new Lsa.
+    *
+    * @param modelParameters the model parameters
+    */
    public LSA(DiscretePipeline modelParameters) {
       super(modelParameters);
    }
@@ -93,7 +105,13 @@ public class LSA extends TopicModel {
       return new Parameters();
    }
 
+   /**
+    * The type Parameters.
+    */
    public static class Parameters extends FitParameters {
+      /**
+       * The K.
+       */
       public int K = 100;
    }
 
@@ -120,10 +138,18 @@ public class LSA extends TopicModel {
       return topics.size();
    }
 
+   /**
+    * The type Lsa topic.
+    */
    public class LSATopic implements Topic, Serializable {
       private static final long serialVersionUID = 1L;
       private final NDArray vector;
 
+      /**
+       * Instantiates a new Lsa topic.
+       *
+       * @param vector the vector
+       */
       public LSATopic(NDArray vector) {
          this.vector = vector;
       }

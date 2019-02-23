@@ -66,8 +66,8 @@ public abstract class MalletClassifier extends Classifier {
    }
 
    private static DiscretePipeline createModelParameters(Preprocessor... preprocessors) {
-      DiscretePipeline p = DiscretePipeline.create(new MalletVectorizer(true, new Alphabet()));
-      p.featureVectorizer = new MalletVectorizer(false, new Alphabet());
+      DiscretePipeline p = DiscretePipeline.create(new MalletVectorizer(new Alphabet()));
+      p.featureVectorizer = new MalletVectorizer(new Alphabet());
       p.preprocessorList.addAll(preprocessors);
       return p;
    }

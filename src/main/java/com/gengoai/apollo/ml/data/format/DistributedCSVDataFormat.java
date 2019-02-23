@@ -33,7 +33,6 @@ import com.gengoai.stream.StreamingContext;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SQLContext;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -85,7 +84,7 @@ public class DistributedCSVDataFormat extends CSVDataFormat {
    }
 
    @Override
-   public MStream<Example> read(Resource location) throws IOException {
+   public MStream<Example> read(Resource location) {
       SQLContext sqlContext = new SQLContext(StreamingContext.distributed().sparkSession());
       org.apache.spark.sql.Dataset<Row> rows = sqlContext.read()
                                                          .option("delimiter", csv.getDelimiter())

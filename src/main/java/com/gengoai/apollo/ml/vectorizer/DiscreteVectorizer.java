@@ -22,6 +22,7 @@
 
 package com.gengoai.apollo.ml.vectorizer;
 
+import com.gengoai.Copyable;
 import com.gengoai.collection.Index;
 
 import java.util.Set;
@@ -31,7 +32,7 @@ import java.util.Set;
  *
  * @author David B. Bracewell
  */
-public interface DiscreteVectorizer extends Vectorizer {
+public interface DiscreteVectorizer extends Vectorizer, Copyable<DiscreteVectorizer> {
 
    /**
     * Alphabet set.
@@ -70,5 +71,10 @@ public interface DiscreteVectorizer extends Vectorizer {
     * @return the number of features / labels in the vectorizer.
     */
    int size();
+
+   @Override
+   default DiscreteVectorizer copy() {
+      return Copyable.deepCopy(this);
+   }
 
 }//END OF DiscreteVectorizer

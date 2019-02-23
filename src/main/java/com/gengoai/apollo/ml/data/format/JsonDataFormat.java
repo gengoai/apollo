@@ -32,8 +32,6 @@ import com.gengoai.json.JsonEntry;
 import com.gengoai.stream.MStream;
 import com.gengoai.stream.StreamingContext;
 
-import java.io.IOException;
-
 /**
  * <p>
  * Creates examples from Json serialized versions.
@@ -54,7 +52,7 @@ public class JsonDataFormat implements DataFormat {
    }
 
    @Override
-   public MStream<Example> read(Resource location) throws IOException {
+   public MStream<Example> read(Resource location) {
       return StreamingContext.get(distributed)
                              .textFile(location)
                              .map(Unchecked.function(json -> {

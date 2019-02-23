@@ -120,7 +120,7 @@ public abstract class ContextFeaturizer<I> implements FeatureExtractor<I>, Seria
    }
 
    private static class SingleContextFeaturizer<I> extends ContextFeaturizer<I> {
-      private static final Pattern featurePattern = Pattern.compile("^(.+?)\\[([-+]?\\d+)\\]$");
+      private static final Pattern featurePattern = Pattern.compile("^(.+?)\\[([-+]?\\d+)]$");
       private static final long serialVersionUID = 1L;
       private final String featurePrefix;
       private final boolean ignoreEmptyContext;

@@ -37,6 +37,7 @@ import com.gengoai.tuple.Tuple3;
 import java.util.List;
 import java.util.PrimitiveIterator;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static com.gengoai.Validation.notNull;
 import static com.gengoai.tuple.Tuples.$;
@@ -111,11 +112,12 @@ public class MiniBatchKMeans extends FlatCentroidClusterer {
 
       if (p.retainPoints) {
          //Assign examples to clusters
+         final Integer[] locks = IntStream.range(0, p.K).boxed().toArray(Integer[]::new);
          stream.parallelStream()
                .forEach(v -> {
                   Tuple2<Integer, Double> best = best(v);
                   final Cluster c = get(best.v1);
-                  synchronized (c) {
+                  synchronized (locks[c.getId()]) {
                      c.addPoint(v);
                   }
                });

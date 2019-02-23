@@ -32,7 +32,7 @@ public enum Agreement implements ContingencyTableCalculator {
       @Override
       public double calculate(ContingencyTable table) {
          Validation.checkArgument(table.columnCount() == 2
-                                        && table.rowCount() == 2,
+                                     && table.rowCount() == 2,
                                   "Only 2x2 tables supported");
          double sum = table.getSum();
          double sumSq = sum * sum;
@@ -41,7 +41,7 @@ public enum Agreement implements ContingencyTableCalculator {
                         + ((table.columnSum(1) * table.rowSum(1)) / sumSq);
          return (Po - Pe) / (1.0 - Pe);
       }
-   };
+   }
 
 
 }// END OF Agreement

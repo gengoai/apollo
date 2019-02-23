@@ -96,7 +96,7 @@ public enum Correlation implements CorrelationMeasure {
       public double calculate(double[] v1, double[] v2) {
          return FastMath.pow(Pearson.calculate(v1, v2), 2d);
       }
-   };
+   }
 
 
 

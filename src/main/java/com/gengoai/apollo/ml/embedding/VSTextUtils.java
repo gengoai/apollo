@@ -32,12 +32,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.stream.Collectors;
 
-/**
- * The type Vs text utils.
- *
- * @author David B. Bracewell
- */
-public class VSTextUtils {
+class VSTextUtils {
 
    private VSTextUtils() {
       throw new IllegalAccessError();

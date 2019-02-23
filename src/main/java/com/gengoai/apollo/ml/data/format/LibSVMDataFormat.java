@@ -30,7 +30,6 @@ import com.gengoai.stream.MStream;
 import com.gengoai.stream.StreamingContext;
 import com.gengoai.string.Strings;
 
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -88,7 +87,7 @@ public class LibSVMDataFormat implements DataFormat, Serializable {
    }
 
    @Override
-   public MStream<Example> read(Resource location) throws IOException {
+   public MStream<Example> read(Resource location) {
       return StreamingContext.get(distributed)
                              .textFile(location)
                              .filter(Strings::isNotNullOrBlank)

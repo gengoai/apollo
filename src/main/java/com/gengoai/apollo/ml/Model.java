@@ -22,9 +22,11 @@
 
 package com.gengoai.apollo.ml;
 
+import com.gengoai.Stopwatch;
 import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.conversion.Cast;
 import com.gengoai.io.resource.Resource;
+import com.gengoai.logging.Logger;
 
 import java.io.Serializable;
 import java.util.function.Consumer;
@@ -49,6 +51,7 @@ import static com.gengoai.Validation.notNull;
  * @author David B. Bracewell
  */
 public abstract class Model implements Serializable {
+   private static final Logger log = Logger.getLogger(Model.class);
    private static final long serialVersionUID = 1L;
 
    /**
@@ -68,7 +71,6 @@ public abstract class Model implements Serializable {
     * Fits the model on the given {@link Dataset} using the model's default {@link FitParameters}.
     *
     * @param dataset the dataset to fit the model on
-    * @return the result of fitting
     */
    public final void fit(Dataset dataset) {
       notNull(dataset);
@@ -81,7 +83,6 @@ public abstract class Model implements Serializable {
     *
     * @param dataset          the dataset
     * @param parameterUpdater the consumer to use to update the fit parameters
-    * @return the result of fitting
     */
    public final void fit(Dataset dataset, Consumer<? extends FitParameters> parameterUpdater) {
       notNull(dataset);
@@ -96,12 +97,19 @@ public abstract class Model implements Serializable {
     *
     * @param dataset       the dataset
     * @param fitParameters the fit parameters
-    * @return the result of fitting
     */
    public final void fit(Dataset dataset, FitParameters fitParameters) {
       notNull(dataset);
       notNull(fitParameters);
+      Stopwatch sw = Stopwatch.createStarted();
+      if (fitParameters.verbose) {
+         log.info("Preprocessing...");
+      }
       Dataset preprocessed = getPipeline().fitAndPreprocess(dataset).cache();
+      sw.stop();
+      if (fitParameters.verbose) {
+         log.info("Preprocessing completed. ({0})", sw);
+      }
       fitPreprocessed(preprocessed, fitParameters);
    }
 
@@ -110,7 +118,6 @@ public abstract class Model implements Serializable {
     *
     * @param preprocessed  the preprocessed dataset
     * @param fitParameters the fit parameters
-    * @return the result of fitting
     */
    protected abstract void fitPreprocessed(Dataset preprocessed, FitParameters fitParameters);
 

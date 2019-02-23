@@ -39,14 +39,12 @@ import java.util.Set;
 public class MalletVectorizer implements DiscreteVectorizer {
    private static final long serialVersionUID = 1L;
    protected Alphabet alphabet;
-   private final boolean isLabel;
 
-   public MalletVectorizer(boolean isLabel, Alphabet alphabet) {
+   public MalletVectorizer(Alphabet alphabet) {
       this.alphabet = alphabet;
-      this.isLabel = isLabel;
    }
 
-   public Alphabet getAlphabet(){
+   public Alphabet getAlphabet() {
       return alphabet;
    }
 

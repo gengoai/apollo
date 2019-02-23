@@ -216,6 +216,6 @@ public enum Association implements ContingencyTableCalculator {
          NormalDistribution distribution = new NormalDistribution(0, 1);
          return 1.0 - distribution.cumulativeProbability(Math.log(calculate(table)));
       }
-   };
+   }
 
 }//END OF AssociationMeasures

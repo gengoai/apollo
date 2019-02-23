@@ -90,7 +90,7 @@ public class Crf extends SequenceLabeler implements Serializable {
       trainer.set("c1", Double.toString(fitParameters.c1));
       trainer.set("epsilon", Double.toString(fitParameters.eps));
       trainer.set("feature.minfreq", Integer.toString(fitParameters.minFeatureFreq));
-      modelFile = Resources.temporaryFile().asFile().get().getAbsolutePath();
+      modelFile = Resources.temporaryFile().asFile().orElseThrow(IllegalArgumentException::new).getAbsolutePath();
       trainer.train(modelFile, -1);
       trainer.clear();
       tagger = new CrfTagger(modelFile);
@@ -112,14 +112,14 @@ public class Crf extends SequenceLabeler implements Serializable {
       return new Labeling(tagger.tag(toItemSequence(getPipeline().preprocessorList.apply(sequence)).v1));
    }
 
-   private void readObject(java.io.ObjectInputStream stream) throws IOException, ClassNotFoundException {
+   private void readObject(java.io.ObjectInputStream stream) throws Exception {
       CrfSuiteLoader.INSTANCE.load();
       Resource tmp = Resources.temporaryFile();
       int length = stream.readInt();
       byte[] bytes = new byte[length];
       stream.readFully(bytes);
       tmp.write(Base64.getDecoder().decode(bytes));
-      this.modelFile = tmp.asFile().get().getAbsolutePath();
+      this.modelFile = tmp.asFile().orElseThrow(IllegalArgumentException::new).getAbsolutePath();
       this.tagger = new CrfTagger(modelFile);
    }
 

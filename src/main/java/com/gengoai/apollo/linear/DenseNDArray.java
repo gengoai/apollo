@@ -252,9 +252,8 @@ public class DenseNDArray extends NDArray {
    private NDArray mapTensorFloatMatrix(DenseNDArray out, NDArray tensor, BinaryOperator<FloatMatrix> operator) {
       checkArgument(numSlices() == tensor.numSlices(),
                     "Number of slices does not match. (" + numSlices() + ") != (" + tensor.numSlices() + ")");
-      IntStream.range(0, data.length).parallel().forEach(slice -> {
-         out.setSlice(slice, operator.apply(data[slice], tensor.getSlice(slice).toFloatMatrix()));
-      });
+      IntStream.range(0, data.length).parallel().forEach(
+         slice -> out.setSlice(slice, operator.apply(data[slice], tensor.getSlice(slice).toFloatMatrix())));
       return out;
    }
 

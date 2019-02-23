@@ -35,10 +35,10 @@ public class ContingencyTable {
 
    private final int numberOfRows;
    private final int numberOfColumns;
-   private final double table[][];
+   private final double[][] table;
    private double sum = 0;
-   private double rowSums[];
-   private double columnSums[];
+   private double[] rowSums;
+   private double[] columnSums;
 
    /**
     * Instantiates a new Contingency table.

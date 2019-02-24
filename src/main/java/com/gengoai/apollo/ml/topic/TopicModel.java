@@ -28,6 +28,9 @@ import com.gengoai.apollo.ml.DiscretePipeline;
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * <p>A model to estimates topics for examples.</p>
  *
@@ -35,7 +38,10 @@ import com.gengoai.apollo.ml.preprocess.Preprocessor;
  */
 public abstract class TopicModel extends DiscreteModel {
    private static final long serialVersionUID = 1L;
-
+   /**
+    * The Topics.
+    */
+   protected final List<Topic> topics = new ArrayList<>();
 
    /**
     * Instantiates a new Topic model.
@@ -73,12 +79,29 @@ public abstract class TopicModel extends DiscreteModel {
 
 
    /**
-    * Gets topic.
+    * Gets the topic by its id.
     *
-    * @param topic the topic
+    * @param id the id of the topic to retrieve
     * @return the topic
+    * @throws IndexOutOfBoundsException if the id is invalid
     */
-   public abstract Topic getTopic(int topic);
+   public Topic getTopic(int id) {
+      return topics.get(id);
+   }
+
+   /**
+    * Gets the topic by its name.
+    *
+    * @param name the name of the topic
+    * @return the topic
+    * @throws IndexOutOfBoundsException if the name is invalid
+    */
+   public Topic getTopic(String name) {
+      return topics.stream()
+                   .filter(t -> name.equals(t.getName()))
+                   .findFirst()
+                   .orElseThrow(IndexOutOfBoundsException::new);
+   }
 
 
    /**
@@ -86,6 +109,8 @@ public abstract class TopicModel extends DiscreteModel {
     *
     * @return the number of topics
     */
-   public abstract int getNumberOfTopics();
+   public int size() {
+      return topics.size();
+   }
 
 }//END OF TopicModel

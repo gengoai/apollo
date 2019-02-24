@@ -46,7 +46,6 @@ import com.gengoai.collection.counter.Counters;
 import com.gengoai.conversion.Cast;
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -54,6 +53,10 @@ import java.util.TreeSet;
 import java.util.logging.Level;
 
 /**
+ * <p>Wrapper around Mallet's implementation of <a href="https://en.wikipedia.org/wiki/Latent_Dirichlet_allocation">Latent
+ * Dirichlet allocation</a> topic model. Documents are represented by examples and words are by features in the
+ * Example.</p>
+ *
  * @author David B. Bracewell
  */
 public class MalletLDA extends TopicModel {
@@ -62,6 +65,11 @@ public class MalletLDA extends TopicModel {
    private SerialPipes pipes;
    private ParallelTopicModel topicModel;
 
+   /**
+    * Instantiates a new MalletLDA.
+    *
+    * @param preprocessors the preprocessors
+    */
    public MalletLDA(Preprocessor... preprocessors) {
       super(DiscretePipeline.unsupervised(new MalletVectorizer(new Alphabet()), preprocessors));
    }
@@ -100,6 +108,9 @@ public class MalletLDA extends TopicModel {
       } catch (IOException e) {
          throw new RuntimeException(e);
       }
+      for (int i = 0; i < p.K; i++) {
+         topics.add(createTopic(i));
+      }
    }
 
    @Override
@@ -119,12 +130,8 @@ public class MalletLDA extends TopicModel {
       return inferencer;
    }
 
-   public int getNumberOfTopics() {
-      return topicModel.numTopics;
-   }
 
-   @Override
-   public Topic getTopic(int topic) {
+   private Topic createTopic(int topic) {
       final Alphabet alphabet = pipes.getDataAlphabet();
       final ArrayList<TreeSet<IDSorter>> topicWords = topicModel.getSortedWords();
       double[][] termScores = topicModel.getTopicWords(true, true);
@@ -135,8 +142,9 @@ public class MalletLDA extends TopicModel {
          info = (IDSorter) iterator.next();
          topicWordScores.set(alphabet.lookupObject(info.getID()).toString(), termScores[topic][info.getID()]);
       }
-      return new MalletTopic(topicWordScores);
+      return new Topic(topic, topicWordScores);
    }
+
 
    @Override
    public NDArray getTopicDistribution(String feature) {
@@ -153,25 +161,30 @@ public class MalletLDA extends TopicModel {
       return NDArrayFactory.rowVector(dist);
    }
 
+   /**
+    * The type Parameters.
+    */
    public static class Parameters extends FitParameters {
+      /**
+       * The K.
+       */
       public int K = 100;
+      /**
+       * The Burn in.
+       */
       public int burnIn = 500;
+      /**
+       * The Max iterations.
+       */
       public int maxIterations = 2000;
+      /**
+       * The Optimization interval.
+       */
       public int optimizationInterval = 100;
+      /**
+       * The Symmetric alpha.
+       */
       public boolean symmetricAlpha = false;
-   }
-
-   private class MalletTopic implements Topic, Serializable {
-      private final Counter<String> dist;
-
-      private MalletTopic(Counter<String> dist) {
-         this.dist = dist;
-      }
-
-      @Override
-      public Counter<String> featureDistribution() {
-         return dist;
-      }
    }
 
 }//END OF MalletLDA

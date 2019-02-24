@@ -52,14 +52,35 @@ import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 
 /**
+ * The type Sampling.
+ *
  * @author David B. Bracewell
  */
 public final class Sampling {
 
+   /**
+    * Uniform ints int stream.
+    *
+    * @param N               the n
+    * @param lower           the lower
+    * @param upper           the upper
+    * @param withReplacement the with replacement
+    * @return the int stream
+    */
    public static IntStream uniformInts(int N, int lower, int upper, boolean withReplacement) {
       return uniformInts(N, lower, upper, withReplacement, ThreadLocalRandom.current());
    }
 
+   /**
+    * Uniform ints int stream.
+    *
+    * @param N               the n
+    * @param lower           the lower
+    * @param upper           the upper
+    * @param withReplacement the with replacement
+    * @param random          the random
+    * @return the int stream
+    */
    public static IntStream uniformInts(int N, int lower, int upper, boolean withReplacement, Random random) {
       IntStream ints = random.ints(lower, upper);
       if (withReplacement) {
@@ -74,10 +95,29 @@ public final class Sampling {
    }
 
 
+   /**
+    * Uniform longs long [ ].
+    *
+    * @param N               the n
+    * @param lower           the lower
+    * @param upper           the upper
+    * @param withReplacement the with replacement
+    * @return the long [ ]
+    */
    public static long[] uniformLongs(int N, long lower, long upper, boolean withReplacement) {
       return uniformLongs(N, lower, upper, withReplacement, ThreadLocalRandom.current());
    }
 
+   /**
+    * Uniform longs long [ ].
+    *
+    * @param N               the n
+    * @param lower           the lower
+    * @param upper           the upper
+    * @param withReplacement the with replacement
+    * @param random          the random
+    * @return the long [ ]
+    */
    public static long[] uniformLongs(int N, long lower, long upper, boolean withReplacement, Random random) {
       LongStream longs = random.longs(lower, upper);
       if (withReplacement) {

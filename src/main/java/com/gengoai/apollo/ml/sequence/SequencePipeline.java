@@ -28,12 +28,22 @@ import com.gengoai.apollo.ml.vectorizer.MultiLabelBinarizer;
 import com.gengoai.conversion.Cast;
 
 /**
+ * The type Sequence pipeline.
+ *
  * @author David B. Bracewell
  */
 public class SequencePipeline extends Pipeline<DiscreteVectorizer, SequencePipeline> {
+   /**
+    * The Sequence validator.
+    */
    public SequenceValidator sequenceValidator = SequenceValidator.ALWAYS_TRUE;
 
 
+   /**
+    * Instantiates a new Sequence pipeline.
+    *
+    * @param labelVectorizer the label vectorizer
+    */
    protected SequencePipeline(DiscreteVectorizer labelVectorizer) {
       super(labelVectorizer);
    }
@@ -44,11 +54,22 @@ public class SequencePipeline extends Pipeline<DiscreteVectorizer, SequencePipel
    }
 
 
+   /**
+    * Create sequence pipeline.
+    *
+    * @return the sequence pipeline
+    */
    public static SequencePipeline create() {
       return new SequencePipeline(new MultiLabelBinarizer());
    }
 
 
+   /**
+    * Create sequence pipeline.
+    *
+    * @param labelVectorizer the label vectorizer
+    * @return the sequence pipeline
+    */
    public static SequencePipeline create(DiscreteVectorizer labelVectorizer) {
       return new SequencePipeline(labelVectorizer);
    }

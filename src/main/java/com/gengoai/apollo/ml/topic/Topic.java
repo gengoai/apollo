@@ -27,18 +27,63 @@ import com.gengoai.collection.counter.Counter;
 import java.io.Serializable;
 
 /**
+ * Defines a topic in a Topic Model
+ *
  * @author David B. Bracewell
  */
-public interface Topic extends Serializable {
+public class Topic implements Serializable {
+   private static final long serialVersionUID = 1L;
+   private final int id;
+   private final Counter<String> featureDistribution;
+   private String name;
 
+   /**
+    * Instantiates a new Topic.
+    *
+    * @param id                  the id
+    * @param featureDistribution the feature distribution
+    */
+   public Topic(int id, Counter<String> featureDistribution) {
+      this.id = id;
+      this.featureDistribution = featureDistribution;
+   }
 
    /**
     * Gets the feature and their probabilities for a given topic
     *
     * @return the feature distribution
     */
+   public Counter<String> getFeatureDistribution() {
+      return featureDistribution;
+   }
 
-   Counter<String> featureDistribution();
+   /**
+    * Gets the id of the topic.
+    *
+    * @return the id
+    */
+   public int getId() {
+      return id;
+   }
+
+
+   /**
+    * Gets the name of the topic.
+    *
+    * @return the name of the topic or null if not one
+    */
+   public String getName() {
+      return name;
+   }
+
+   /**
+    * Sets the name of the topic.
+    *
+    * @param name the name of the topic
+    */
+   public void setName(String name) {
+      this.name = name;
+   }
 
 
 }//END OF Topic

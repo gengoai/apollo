@@ -38,7 +38,6 @@ import org.apache.spark.mllib.linalg.DenseVector;
 import org.apache.spark.mllib.linalg.Vector;
 import org.apache.spark.mllib.linalg.distributed.RowMatrix;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -46,13 +45,14 @@ import static com.gengoai.apollo.linear.SparkLinearAlgebra.sparkSVD;
 import static com.gengoai.apollo.linear.SparkLinearAlgebra.toMatrix;
 
 /**
- * The type Lsa.
+ * <p>Distributed version of <a href="https://en.wikipedia.org/wiki/Latent_semantic_analysis">Latent Semantic
+ * Analysis</a> using Apache Spark. Documents are represented by examples and words are by features in the Example.</p>
  *
  * @author David B. Bracewell
  */
 public class LSA extends TopicModel {
    private static final long serialVersionUID = 1L;
-   private List<LSATopic> topics = new ArrayList<>();
+   private List<NDArray> topicVectors = new ArrayList<>();
 
    /**
     * Instantiates a new Lsa.
@@ -77,7 +77,7 @@ public class LSA extends TopicModel {
       double[] scores = new double[topics.size()];
       NDArray vector = example.preprocessAndTransform(getPipeline());
       for (int i = 0; i < topics.size(); i++) {
-         double score = vector.scalarDot(getTopic(i).vector);
+         double score = vector.scalarDot(topicVectors.get(i));
          scores[i] = score;
       }
       return scores;
@@ -96,7 +96,12 @@ public class LSA extends TopicModel {
       // Transpose V to get component (topics) x words
       NDArray topicMatrix = toMatrix(sparkSVD(mat, parameters.K).V().transpose());
       for (int i = 0; i < parameters.K; i++) {
-         topics.add(new LSATopic(NDArrayFactory.columnVector(topicMatrix.getVector(i, Axis.ROW).toDoubleArray())));
+         Counter<String> featureDist = Counters.newCounter();
+         NDArray dist = NDArrayFactory.columnVector(topicMatrix.getVector(i, Axis.ROW).toDoubleArray());
+         dist.forEachSparse(
+            e -> featureDist.set(getPipeline().featureVectorizer.getString(e.getIndex()), e.getValue()));
+         topics.add(new Topic(i, featureDist));
+         topicVectors.add(dist);
       }
    }
 
@@ -123,44 +128,9 @@ public class LSA extends TopicModel {
       }
       double[] dist = new double[topics.size()];
       for (int i1 = 0; i1 < topics.size(); i1++) {
-         dist[i1] = getTopic(i1).vector.get(i);
+         dist[i1] = topicVectors.get(i1).get(i);
       }
       return NDArrayFactory.rowVector(dist);
-   }
-
-   @Override
-   public LSATopic getTopic(int topic) {
-      return topics.get(topic);
-   }
-
-   @Override
-   public int getNumberOfTopics() {
-      return topics.size();
-   }
-
-   /**
-    * The type Lsa topic.
-    */
-   public class LSATopic implements Topic, Serializable {
-      private static final long serialVersionUID = 1L;
-      private final NDArray vector;
-
-      /**
-       * Instantiates a new Lsa topic.
-       *
-       * @param vector the vector
-       */
-      public LSATopic(NDArray vector) {
-         this.vector = vector;
-      }
-
-
-      @Override
-      public Counter<String> featureDistribution() {
-         Counter<String> c = Counters.newCounter();
-         vector.forEachSparse(e -> c.set(getPipeline().featureVectorizer.getString(e.getIndex()), e.getValue()));
-         return c;
-      }
    }
 
 

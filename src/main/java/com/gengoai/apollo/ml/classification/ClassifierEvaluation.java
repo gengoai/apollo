@@ -26,7 +26,6 @@ import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.FitParameters;
 import com.gengoai.apollo.ml.Split;
 import com.gengoai.apollo.ml.data.Dataset;
-import com.gengoai.apollo.ml.params.ParamValuePair;
 import com.gengoai.apollo.ml.vectorizer.IndexVectorizer;
 import com.gengoai.apollo.ml.vectorizer.MultiLabelBinarizer;
 import com.gengoai.logging.Logger;
@@ -55,9 +54,9 @@ public abstract class ClassifierEvaluation implements Serializable {
     */
    public static ClassifierEvaluation crossValidation(Dataset dataset,
                                                       Classifier classifier,
+                                                      FitParameters fitParameters,
                                                       int nFolds,
-                                                      boolean printFoldStats,
-                                                      ParamValuePair... fitParameters
+                                                      boolean printFoldStats
                                                      ) {
       IndexVectorizer tmp = new MultiLabelBinarizer();
       tmp.fit(dataset);

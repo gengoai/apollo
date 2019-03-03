@@ -26,11 +26,11 @@ import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.ml.DiscretePipeline;
 import com.gengoai.apollo.ml.Example;
+import com.gengoai.apollo.ml.FitParameters;
 import com.gengoai.apollo.ml.data.Dataset;
-import com.gengoai.apollo.ml.params.Param;
-import com.gengoai.apollo.ml.params.ParamMap;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
 import com.gengoai.collection.Iterables;
+import com.gengoai.conversion.Cast;
 
 import java.util.Arrays;
 
@@ -46,9 +46,6 @@ import java.util.Arrays;
  * @author David B. Bracewell
  */
 public class NaiveBayes extends Classifier {
-   public static final Param<ModelType> nbModelType = new Param<>("nbModelType",
-                                                                  ModelType.class,
-                                                                  "The type of Naive Bayes model to train.");
    private static final long serialVersionUID = 1L;
    private double[][] conditionals;
    private ModelType modelType;
@@ -73,10 +70,11 @@ public class NaiveBayes extends Classifier {
    }
 
    @Override
-   protected void fitPreprocessed(Dataset preprocessed, ParamMap parameters) {
+   protected void fitPreprocessed(Dataset preprocessed, FitParameters fitParameters) {
+      Parameters parameters = Cast.as(fitParameters);
       conditionals = new double[getNumberOfFeatures()][getNumberOfLabels()];
       priors = new double[getNumberOfLabels()];
-      modelType = parameters.get(nbModelType);
+      modelType = parameters.modelType;
       double[] labelCounts = new double[getNumberOfLabels()];
 
       double N = 0;
@@ -125,9 +123,8 @@ public class NaiveBayes extends Classifier {
    }
 
    @Override
-   public ParamMap getFitParameters() {
-      return new ParamMap(verbose.set(false),
-                          nbModelType.set(ModelType.Bernoulli));
+   public Parameters getDefaultFitParameters() {
+      return new Parameters();
    }
 
    @Override
@@ -229,4 +226,13 @@ public class NaiveBayes extends Classifier {
 
    }
 
+   /**
+    * Custom {@link FitParameters} for Naive Bayes.
+    */
+   public static class Parameters extends FitParameters {
+      /**
+       * The type of Naive Bayes model to train.
+       */
+      public ModelType modelType = ModelType.Bernoulli;
+   }
 }//END OF NaiveBayes

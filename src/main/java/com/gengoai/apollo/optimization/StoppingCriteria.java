@@ -1,8 +1,6 @@
 package com.gengoai.apollo.optimization;
 
 import com.gengoai.Stopwatch;
-import com.gengoai.apollo.ml.Model;
-import com.gengoai.apollo.ml.params.ParamMap;
 import com.gengoai.logging.Logger;
 
 import java.io.Serializable;
@@ -26,14 +24,6 @@ public final class StoppingCriteria implements Serializable {
 
    private StoppingCriteria(String criteriaName) {
       this.criteriaName = criteriaName;
-   }
-
-   private StoppingCriteria(String criteriaName, ParamMap paramMap) {
-      this.criteriaName = criteriaName;
-      reportInterval(paramMap.getOrDefault(Model.reportInterval, -1));
-      historySize(paramMap.getOrDefault(Model.historySize, 5));
-      tolerance(paramMap.getOrDefault(Model.tolerance, 1e-6));
-      maxIterations(paramMap.getOrDefault(Model.maxIterations,100));
    }
 
    /**
@@ -179,9 +169,7 @@ public final class StoppingCriteria implements Serializable {
          loss = iteration.applyAsDouble(i);
          sw.stop();
          if (check(loss)) {
-            if (reportInterval > 0) {
-               logger.info("iteration {0}: {1}={2}, time={3}, Converged", (i + 1), criteriaName, loss, sw);
-            }
+            logger.info("iteration {0}: {1}={2}, time={3}, Converged", (i + 1), criteriaName, loss, sw);
             return i;
          }
          if (reportInterval > 0 && (i + 1) % reportInterval == 0) {

@@ -24,14 +24,12 @@ package com.gengoai.apollo.ml;
 
 import com.gengoai.Stopwatch;
 import com.gengoai.apollo.ml.data.Dataset;
-import com.gengoai.apollo.ml.params.*;
-import com.gengoai.apollo.optimization.WeightUpdate;
-import com.gengoai.apollo.optimization.activation.Activation;
-import com.gengoai.apollo.optimization.loss.LossFunction;
+import com.gengoai.conversion.Cast;
 import com.gengoai.io.resource.Resource;
 import com.gengoai.logging.Logger;
 
 import java.io.Serializable;
+import java.util.function.Consumer;
 
 import static com.gengoai.Validation.notNull;
 
@@ -53,43 +51,6 @@ import static com.gengoai.Validation.notNull;
  * @author David B. Bracewell
  */
 public abstract class Model implements Serializable {
-   public static final BoolParam verbose = new BoolParam("verbose",
-                                                         "Determines if information about the fitting of the model is displayed during training.");
-
-   public static final IntParam maxIterations = new IntParam("maxIterations",
-                                                             "The maximum number of iterations to perform training",
-                                                             i -> i > 0);
-
-   public static final Param<Activation> activation = new Param<>("activation",
-                                                                  Activation.class,
-                                                                  "The activation function to use");
-   public static final Param<LossFunction> lossFunction = new Param<>("lossFunction",
-                                                                      LossFunction.class,
-                                                                      "The loss function function to use");
-   public static final Param<WeightUpdate> weightUpdater = new Param<>("weightUpdater",
-                                                                       WeightUpdate.class,
-                                                                       "The weight update function to use.");
-   public static final IntParam batchSize = new IntParam("batchSize",
-                                                         "The number of examples per batch.",
-                                                         i -> i > 0);
-   public static final IntParam reportInterval = new IntParam("reportInterval",
-                                                              "The number of iterations between reporting fit updates.",
-                                                              i -> i >= 0);
-   public static final IntParam historySize = new IntParam("history",
-                                                           "The number of consecutive iterations to terminate early when the criteria hasn't changed within the given tolerance.",
-                                                           i -> i >= 0);
-   public static final DoubleParam tolerance = new DoubleParam("tolerance",
-                                                               "The amount of change in criteria between iterations to be considered converged",
-                                                               i -> i >= 0);
-
-   public static final BoolParam cacheData = new BoolParam("cacheData",
-                                                           "Whether to cache the data during fitting.");
-
-
-   public static ParamValuePair<Boolean> verbose(boolean isVerbose) {
-      return verbose.set(isVerbose);
-   }
-
    private static final Logger log = Logger.getLogger(Model.class);
    private static final long serialVersionUID = 1L;
 
@@ -105,29 +66,51 @@ public abstract class Model implements Serializable {
       return resource.readObject();
    }
 
+
+   /**
+    * Fits the model on the given {@link Dataset} using the model's default {@link FitParameters}.
+    *
+    * @param dataset the dataset to fit the model on
+    */
+   public final void fit(Dataset dataset) {
+      notNull(dataset);
+      fit(dataset, getDefaultFitParameters());
+   }
+
+   /**
+    * Fits the model on the given {@link Dataset} using the given consumer to modify the model's default {@link
+    * FitParameters}.
+    *
+    * @param dataset          the dataset
+    * @param parameterUpdater the consumer to use to update the fit parameters
+    */
+   public final void fit(Dataset dataset, Consumer<? extends FitParameters> parameterUpdater) {
+      notNull(dataset);
+      notNull(parameterUpdater);
+      FitParameters parameters = getDefaultFitParameters();
+      parameterUpdater.accept(Cast.as(parameters));
+      fit(dataset, parameters);
+   }
+
    /**
     * Fits the model on the given {@link Dataset} using the given {@link FitParameters}.
     *
     * @param dataset       the dataset
     * @param fitParameters the fit parameters
     */
-   public final void fit(Dataset dataset, ParamValuePair... fitParameters) {
+   public final void fit(Dataset dataset, FitParameters fitParameters) {
       notNull(dataset);
-      ParamMap parameters = getFitParameters();
-      parameters.update(fitParameters);
+      notNull(fitParameters);
       Stopwatch sw = Stopwatch.createStarted();
-      boolean isVerbose = parameters.getOrDefault(verbose, false);
-
-      if (isVerbose) {
+      if (fitParameters.verbose) {
          log.info("Preprocessing...");
       }
       Dataset preprocessed = getPipeline().fitAndPreprocess(dataset).cache();
       sw.stop();
-
-      if (isVerbose) {
+      if (fitParameters.verbose) {
          log.info("Preprocessing completed. ({0})", sw);
       }
-      fitPreprocessed(preprocessed, parameters);
+      fitPreprocessed(preprocessed, fitParameters);
    }
 
    /**
@@ -136,14 +119,14 @@ public abstract class Model implements Serializable {
     * @param preprocessed  the preprocessed dataset
     * @param fitParameters the fit parameters
     */
-   protected abstract void fitPreprocessed(Dataset preprocessed, ParamMap fitParameters);
+   protected abstract void fitPreprocessed(Dataset preprocessed, FitParameters fitParameters);
 
    /**
     * Gets default fit parameters for the model.
     *
     * @return the default fit parameters
     */
-   public abstract ParamMap getFitParameters();
+   public abstract FitParameters<?> getDefaultFitParameters();
 
    /**
     * Gets the pipeline associated with the model. Subclasses should override the return type to match the requirements

@@ -32,8 +32,8 @@ import cc.mallet.types.Labeling;
 import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.ml.DiscretePipeline;
 import com.gengoai.apollo.ml.Example;
+import com.gengoai.apollo.ml.FitParameters;
 import com.gengoai.apollo.ml.data.Dataset;
-import com.gengoai.apollo.ml.params.ParamMap;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
 import com.gengoai.apollo.ml.vectorizer.MalletVectorizer;
 import com.gengoai.apollo.ml.vectorizer.VectorToTokensPipe;
@@ -62,11 +62,14 @@ public abstract class MalletClassifier extends Classifier {
     * @param preprocessors the preprocessors
     */
    public MalletClassifier(Preprocessor... preprocessors) {
-      super(DiscretePipeline.create(new MalletVectorizer(new Alphabet()))
-                            .update(p -> {
-                               p.featureVectorizer = new MalletVectorizer(new Alphabet());
-                               p.preprocessorList.addAll(preprocessors);
-                            }));
+      super(createModelParameters(preprocessors));
+   }
+
+   private static DiscretePipeline createModelParameters(Preprocessor... preprocessors) {
+      DiscretePipeline p = DiscretePipeline.create(new MalletVectorizer(new Alphabet()));
+      p.featureVectorizer = new MalletVectorizer(new Alphabet());
+      p.preprocessorList.addAll(preprocessors);
+      return p;
    }
 
    /**
@@ -80,7 +83,7 @@ public abstract class MalletClassifier extends Classifier {
    }
 
    @Override
-   protected void fitPreprocessed(Dataset preprocessed, ParamMap fitParameters) {
+   protected void fitPreprocessed(Dataset preprocessed, FitParameters fitParameters) {
       Pipe pipe = createPipe();
       pipe.setDataAlphabet(Cast.<MalletVectorizer>as(getPipeline().featureVectorizer).getAlphabet());
       InstanceList trainingData = new InstanceList(pipe);
@@ -99,7 +102,7 @@ public abstract class MalletClassifier extends Classifier {
     * @param parameters the parameters
     * @return the trainer
     */
-   protected abstract ClassifierTrainer<?> getTrainer(ParamMap parameters);
+   protected abstract ClassifierTrainer<?> getTrainer(FitParameters parameters);
 
    @Override
    public Classification predict(Example example) {

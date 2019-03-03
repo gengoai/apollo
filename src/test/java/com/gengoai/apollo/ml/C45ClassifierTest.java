@@ -30,10 +30,11 @@ import com.gengoai.conversion.Cast;
 /**
  * @author David B. Bracewell
  */
-public class C45ClassifierTest extends BaseClassifierTest {
+public class C45ClassifierTest extends BaseClassifierTest<C45Classifier.Parameters> {
 
    public C45ClassifierTest() {
-      super(new C45Classifier(), Model.verbose.set(false));
+      super(new C45Classifier(),
+            new C45Classifier.Parameters().set("verbose", false));
    }
 
    @Override

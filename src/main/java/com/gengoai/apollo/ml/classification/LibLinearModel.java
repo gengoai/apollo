@@ -24,17 +24,17 @@ package com.gengoai.apollo.ml.classification;
 
 import com.gengoai.apollo.ml.DiscretePipeline;
 import com.gengoai.apollo.ml.Example;
+import com.gengoai.apollo.ml.FitParameters;
 import com.gengoai.apollo.ml.LibLinear;
 import com.gengoai.apollo.ml.data.Dataset;
-import com.gengoai.apollo.ml.params.BoolParam;
-import com.gengoai.apollo.ml.params.DoubleParam;
-import com.gengoai.apollo.ml.params.Param;
-import com.gengoai.apollo.ml.params.ParamMap;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
+import com.gengoai.conversion.Cast;
 import com.gengoai.logging.Loggable;
 import de.bwaldvogel.liblinear.Model;
 import de.bwaldvogel.liblinear.Parameter;
 import de.bwaldvogel.liblinear.SolverType;
+
+import static com.gengoai.Validation.notNull;
 
 /**
  * <p>
@@ -45,28 +45,8 @@ import de.bwaldvogel.liblinear.SolverType;
  */
 public class LibLinearModel extends Classifier implements Loggable {
    private static final long serialVersionUID = 1L;
-
-   public static final DoubleParam C = new DoubleParam("C",
-                                                       "The cost parameter.",
-                                                       d -> d >= 0);
-
-   public static final BoolParam bias = new BoolParam("bias",
-                                                      "Use a bias feature or not.");
-
-   public static final DoubleParam eps = new DoubleParam("eps",
-                                                         "The tolerance for termination.",
-                                                         d -> d >= 0);
-
-   public static final DoubleParam p = new DoubleParam("p",
-                                                       "The epsilon in loss function of epsilon-SVR.",
-                                                       d -> d >= 0);
-
-   public static final Param<SolverType> solver = new Param<>("solver", SolverType.class,
-                                                              "The Solver to use.");
-
    private int biasIndex = -1;
    private Model model;
-
 
    /**
     * Instantiates a new Lib linear model.
@@ -88,31 +68,24 @@ public class LibLinearModel extends Classifier implements Loggable {
 
 
    @Override
-   protected void fitPreprocessed(Dataset preprocessed, ParamMap parameters) {
-      biasIndex = (parameters.get(bias) ? getNumberOfFeatures() + 1 : -1);
+   protected void fitPreprocessed(Dataset preprocessed, FitParameters parameters) {
+      Parameters fitParameters = notNull(Cast.as(parameters, Parameters.class));
+      biasIndex = (fitParameters.bias ? getNumberOfFeatures() + 1 : -1);
       model = LibLinear.fit(() -> preprocessed.asVectorStream(getPipeline()),
-                            new Parameter(parameters.get(solver),
-                                          parameters.get(C),
-                                          parameters.get(eps),
-                                          parameters.get(maxIterations),
-                                          parameters.get(p)),
-                            parameters.get(verbose),
+                            new Parameter(fitParameters.solver,
+                                          fitParameters.C,
+                                          fitParameters.eps,
+                                          fitParameters.maxIterations,
+                                          fitParameters.p),
+                            fitParameters.verbose,
                             getNumberOfFeatures(),
                             biasIndex
                            );
    }
 
    @Override
-   public ParamMap getFitParameters() {
-      return new ParamMap(
-         maxIterations.set(1000),
-         bias.set(false),
-         C.set(1.0),
-         eps.set(1e-4),
-         p.set(0.1),
-         solver.set(SolverType.L2R_LR),
-         verbose.set(false)
-      );
+   public Parameters getDefaultFitParameters() {
+      return new Parameters();
    }
 
    @Override
@@ -123,5 +96,36 @@ public class LibLinearModel extends Classifier implements Loggable {
                                 getPipeline().labelVectorizer);
    }
 
+   /**
+    * Custom fit parameters for LibLinear
+    */
+   public static class Parameters extends FitParameters<Parameters> {
+      private static final long serialVersionUID = 1L;
+      /**
+       * The cost parameter (default 1.0)
+       */
+      public double C = 1.0;
+      /**
+       * Use a bias feature or not. (default false)
+       */
+      public boolean bias = false;
+      /**
+       * The tolerance for termination.(default 0.0001)
+       */
+      public double eps = 0.0001;
+      /**
+       * The maximum number of iterations to run the trainer (Default 1000)
+       */
+      public int maxIterations = 1000;
+      /**
+       * The epsilon in loss function of epsilon-SVR (default 0.1)
+       */
+      public double p = 0.1;
+      /**
+       * The Solver to use. (default L2R_LR)
+       */
+      public SolverType solver = SolverType.L2R_LR;
+      public boolean verbose = false;
 
+   }
 }//END OF LibLinearModel

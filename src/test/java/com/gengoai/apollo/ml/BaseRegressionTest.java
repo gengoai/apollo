@@ -4,7 +4,6 @@ import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.apollo.ml.data.DatasetType;
 import com.gengoai.apollo.ml.data.format.CSVDataFormat;
 import com.gengoai.apollo.ml.data.format.DataFormat;
-import com.gengoai.apollo.ml.params.ParamValuePair;
 import com.gengoai.apollo.ml.regression.Regression;
 import com.gengoai.apollo.ml.regression.RegressionEvaluation;
 import com.gengoai.io.CSV;
@@ -18,13 +17,13 @@ import static junit.framework.TestCase.assertTrue;
 /**
  * @author David B. Bracewell
  */
-public abstract class BaseRegressionTest {
+public abstract class BaseRegressionTest<T extends FitParameters> {
    private final Regression regression;
-   private final ParamValuePair[] fitParameters;
+   private final T fitParameters;
 
 
    public BaseRegressionTest(Regression regression,
-                             ParamValuePair... fitParameters
+                             T fitParameters
                             ) {
       this.regression = regression;
       this.fitParameters = fitParameters;
@@ -34,7 +33,8 @@ public abstract class BaseRegressionTest {
    public void fitAndEvaluate() {
       assertTrue(passes(RegressionEvaluation.crossValidation(airfoilDataset(),
                                                              regression,
-                                                             3, false, fitParameters)));
+                                                             fitParameters,
+                                                             3, false)));
    }
 
 

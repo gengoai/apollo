@@ -24,11 +24,15 @@ package com.gengoai.apollo.ml.embedding;
 
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
+import com.gengoai.apollo.ml.FitParameters;
 import com.gengoai.apollo.ml.data.Dataset;
-import com.gengoai.apollo.ml.params.ParamMap;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
+import com.gengoai.conversion.Cast;
 import org.apache.spark.mllib.feature.Word2VecModel;
 
+import java.util.Date;
+
+import static com.gengoai.Validation.notNull;
 import static scala.collection.JavaConversions.mapAsJavaMap;
 
 /**
@@ -49,13 +53,15 @@ public class Word2Vec extends Embedding {
    }
 
    @Override
-   protected void fitPreprocessed(Dataset preprocessed, ParamMap p) {
+   protected void fitPreprocessed(Dataset preprocessed, FitParameters fitParameters) {
+      Parameters p = notNull(Cast.as(fitParameters, Parameters.class));
       org.apache.spark.mllib.feature.Word2Vec w2v = new org.apache.spark.mllib.feature.Word2Vec();
       w2v.setMinCount(1);
-      w2v.setVectorSize(p.get(dimension));
-      w2v.setLearningRate(p.get(learningRate));
-      w2v.setNumIterations(p.get(maxIterations));
-      w2v.setWindowSize(p.get(windowSize));
+      w2v.setVectorSize(p.dimension);
+      w2v.setLearningRate(p.learningRate);
+      w2v.setNumIterations(p.numIterations);
+      w2v.setWindowSize(p.windowSize);
+      w2v.setSeed(p.randomSeed);
       w2v.setMinCount(1);
       Word2VecModel model = w2v.fit(preprocessed.stream()
                                                 .toDistributedStream()
@@ -71,15 +77,34 @@ public class Word2Vec extends Embedding {
    }
 
    @Override
-   public ParamMap getFitParameters() {
-      return new ParamMap(
-         dimension.set(100),
-         learningRate.set(0.025),
-         maxIterations.set(1),
-         windowSize.set(5),
-         verbose.set(false)
-      );
+   public Word2Vec.Parameters getDefaultFitParameters() {
+      return new Parameters();
    }
 
+   /**
+    * FitParameters for Word2Vec
+    */
+   public static class Parameters extends EmbeddingFitParameters {
+      /**
+       * The dimension of the embeddings (default = 100)
+       */
+      public int dimension = 100;
+      /**
+       * The learning rate (default = 0.025)
+       */
+      public double learningRate = 0.025;
+      /**
+       * The number of iterations to train the embeddings (default = 1)
+       */
+      public int numIterations = 1;
+      /**
+       * The random seed (default = current time)
+       */
+      public long randomSeed = new Date().getTime();
+      /**
+       * The window size (default = 5)
+       */
+      public int windowSize = 5;
+   }
 
 }//END OF Word2Vec

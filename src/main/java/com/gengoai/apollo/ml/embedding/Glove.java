@@ -27,13 +27,12 @@ import com.gengoai.apollo.linear.DenseNDArray;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.ml.DiscretePipeline;
 import com.gengoai.apollo.ml.Example;
+import com.gengoai.apollo.ml.FitParameters;
 import com.gengoai.apollo.ml.data.Dataset;
-import com.gengoai.apollo.ml.params.DoubleParam;
-import com.gengoai.apollo.ml.params.IntParam;
-import com.gengoai.apollo.ml.params.ParamMap;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
 import com.gengoai.collection.counter.Counter;
 import com.gengoai.collection.counter.Counters;
+import com.gengoai.conversion.Cast;
 import com.gengoai.logging.Logger;
 import org.jblas.DoubleMatrix;
 import org.jblas.MatrixFunctions;
@@ -51,30 +50,7 @@ import java.util.Objects;
  */
 public class Glove extends Embedding {
    private static final Logger log = Logger.getLogger(Glove.class);
-   public static final DoubleParam alpha = new DoubleParam("alpha",
-                                                           "Controls the influence of coocurrence counts",
-                                                           i -> i > 0);
-   public static final IntParam xMax = new IntParam("xMax",
-                                                    "The maximum cooccurrence count",
-                                                    i -> i > 0);
-
-
    private static final long serialVersionUID = 1L;
-
-
-   @Override
-   public ParamMap getFitParameters() {
-      return new ParamMap(
-         verbose.set(false),
-         dimension.set(50),
-         windowSize.set(10),
-         maxIterations.set(25),
-         alpha.set(0.75),
-         xMax.set(100),
-         learningRate.set(0.05)
-      );
-   }
-
 
    /**
     * Instantiates a new Glove.
@@ -95,9 +71,9 @@ public class Glove extends Embedding {
    }
 
    @Override
-   protected void fitPreprocessed(Dataset preprocessed, ParamMap p) {
+   protected void fitPreprocessed(Dataset preprocessed, FitParameters fitParameters) {
+      Parameters p = Cast.as(fitParameters);
       Stopwatch sw = Stopwatch.createStarted();
-      final boolean isVerbose = p.get(verbose);
 
       double size = preprocessed.size();
       double processed = 0;
@@ -106,7 +82,7 @@ public class Glove extends Embedding {
          List<Integer> ids = toIndices(example);
          for (int i = 1; i < ids.size(); i++) {
             int iW = ids.get(i);
-            for (int j = Math.max(0, i - p.get(windowSize)); j < i; j++) {
+            for (int j = Math.max(0, i - p.windowSize); j < i; j++) {
                int jW = ids.get(j);
                double incrementBy = 1.0 / (i - j);
                counts.increment(new IntIntPair(iW, jW), incrementBy);
@@ -120,7 +96,7 @@ public class Glove extends Embedding {
       }
 
       sw.stop();
-      if (isVerbose) {
+      if (p.verbose) {
          log.info("Cooccurrence Matrix computed in {0}", sw);
       }
 
@@ -133,25 +109,21 @@ public class Glove extends Embedding {
       });
       counts.clear();
 
-      final int dimension = p.get(Embedding.dimension);
+
       DoubleMatrix[] W = new DoubleMatrix[getNumberOfFeatures() * 2];
       DoubleMatrix[] gradSq = new DoubleMatrix[getNumberOfFeatures() * 2];
       for (int i = 0; i < getNumberOfFeatures() * 2; i++) {
-         W[i] = DoubleMatrix.rand(dimension).sub(0.5f).divi(dimension);
-         gradSq[i] = DoubleMatrix.ones(dimension);
+         W[i] = DoubleMatrix.rand(p.dimension).sub(0.5f).divi(p.dimension);
+         gradSq[i] = DoubleMatrix.ones(p.dimension);
       }
 
-      DoubleMatrix biases = DoubleMatrix.rand(getNumberOfFeatures() * 2).sub(0.5f).divi(dimension);
+      DoubleMatrix biases = DoubleMatrix.rand(getNumberOfFeatures() * 2).sub(0.5f).divi(p.dimension);
       DoubleMatrix gradSqBiases = DoubleMatrix.ones(getNumberOfFeatures() * 2);
 
 
       int vocabLength = getNumberOfFeatures();
 
-      final int xMax = p.get(Glove.xMax);
-      final double alpha = p.get(Glove.alpha);
-      final double learningRate = p.get(Glove.learningRate);
-
-      for (int itr = 0; itr < p.get(maxIterations); itr++) {
+      for (int itr = 0; itr < p.maxIterations; itr++) {
          double globalCost = 0d;
          Collections.shuffle(cooccurrences);
 
@@ -172,13 +144,13 @@ public class Glove extends Embedding {
 
 
             double diff = v_main.dot(v_context) + b_main + b_context - Math.log(count);
-            double fdiff = count > xMax
+            double fdiff = count > p.xMax
                            ? diff
-                           : Math.pow(count / xMax, alpha) * diff;
+                           : Math.pow(count / p.xMax, p.alpha) * diff;
 
             globalCost += 0.5 * fdiff * diff;
 
-            fdiff *= learningRate;
+            fdiff *= p.learningRate;
             //Gradients for word vector terms
             DoubleMatrix grad_main = v_context.mmul(fdiff);
             DoubleMatrix grad_context = v_main.mmul(fdiff);
@@ -196,7 +168,7 @@ public class Glove extends Embedding {
             gradSqBiases.put(iContext, gradSqBiases.get(iContext) + fdiff);
          }
 
-         if (isVerbose) {
+         if (p.verbose) {
             log.info("Iteration: {0},  cost:{1}", (itr + 1), globalCost / cooccurrences.size());
          }
 
@@ -210,6 +182,11 @@ public class Glove extends Embedding {
          vectors[i].setLabel(k);
       }
       this.vectorIndex = new DefaultVectorIndex(vectors);
+   }
+
+   @Override
+   public Parameters getDefaultFitParameters() {
+      return new Parameters();
    }
 
    private List<Integer> toIndices(Example sequence) {
@@ -284,5 +261,34 @@ public class Glove extends Embedding {
       }
    }
 
+   /**
+    * The type Parameters.
+    */
+   public static class Parameters extends EmbeddingFitParameters {
+      /**
+       * The Alpha.
+       */
+      public double alpha = 0.75;
+      /**
+       * The Dimension.
+       */
+      public int dimension = 50;
+      /**
+       * The Learning rate.
+       */
+      public double learningRate = 0.05;
+      /**
+       * The X max.
+       */
+      public int xMax = 100;
+      /**
+       * The Max iterations.
+       */
+      public int maxIterations = 25;
+      /**
+       * The Window size.
+       */
+      public int windowSize = 3;
 
+   }
 }//END OF Glove

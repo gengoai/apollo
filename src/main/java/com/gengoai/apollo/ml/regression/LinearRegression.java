@@ -27,15 +27,18 @@ import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.linear.NDArrayInitializer;
 import com.gengoai.apollo.ml.Example;
+import com.gengoai.apollo.ml.FitParameters;
 import com.gengoai.apollo.ml.NumericPipeline;
 import com.gengoai.apollo.ml.data.Dataset;
-import com.gengoai.apollo.ml.params.ParamMap;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
 import com.gengoai.apollo.optimization.*;
 import com.gengoai.apollo.optimization.activation.Activation;
 import com.gengoai.apollo.optimization.loss.SquaredLoss;
+import com.gengoai.conversion.Cast;
 
 import java.io.Serializable;
+
+import static com.gengoai.Validation.notNull;
 
 /**
  * The type Linear regression.
@@ -70,34 +73,26 @@ public class LinearRegression extends Regression {
    }
 
    @Override
-   protected void fitPreprocessed(Dataset preprocessed, ParamMap p) {
+   protected void fitPreprocessed(Dataset preprocessed, FitParameters fitParameters) {
+      Parameters p = notNull(Cast.as(fitParameters, Parameters.class));
       weightParameters.update(getNumberOfLabels(), getNumberOfFeatures());
       GradientDescentOptimizer optimizer = GradientDescentOptimizer.builder()
-                                                                   .batchSize(p.get(batchSize)).build();
+                                                                   .batchSize(p.batchSize).build();
 
       optimizer.optimize(weightParameters,
                          () -> preprocessed.stream().map(e -> e.transform(getPipeline())),
                          new GradientDescentCostFunction(new SquaredLoss(), -1),
                          StoppingCriteria.create()
-                                         .maxIterations(p.get(maxIterations))
-                                         .historySize(p.get(historySize))
-                                         .tolerance(p.get(tolerance)),
-                         p.get(weightUpdater),
-                         p.get(verbose) ? p.get(reportInterval) : -1);
+                                         .maxIterations(p.maxIterations)
+                                         .historySize(p.historySize)
+                                         .tolerance(p.tolerance),
+                         p.weightUpdater,
+                         p.verbose ? p.reportInterval : -1);
    }
 
    @Override
-   public ParamMap getFitParameters() {
-      return new ParamMap(
-         verbose.set(false),
-         maxIterations.set(100),
-         batchSize.set(32),
-         historySize.set(3),
-         tolerance.set(1e-5),
-         reportInterval.set(50),
-         cacheData.set(true),
-         weightUpdater.set(SGDUpdater.builder().build())
-      );
+   public LinearRegression.Parameters getDefaultFitParameters() {
+      return new Parameters();
    }
 
    private static class WeightParameters implements LinearModelParameters, Serializable, Copyable<WeightParameters> {
@@ -154,5 +149,40 @@ public class LinearRegression extends Regression {
       }
    }
 
+
+   /**
+    * The type Parameters.
+    */
+   public static class Parameters extends FitParameters<Parameters> {
+      /**
+       * The Batch size.
+       */
+      public int batchSize = 20;
+      /**
+       * The Cache data.
+       */
+      public boolean cacheData = true;
+      /**
+       * The History size.
+       */
+      public int historySize = 3;
+      /**
+       * The Max iterations.
+       */
+      public int maxIterations = 300;
+      /**
+       * The Report interval.
+       */
+      public int reportInterval = 100;
+      /**
+       * The Tolerance.
+       */
+      public double tolerance = 1e-9;
+      /**
+       * The Weight updater.
+       */
+      public WeightUpdate weightUpdater = SGDUpdater.builder().build();
+
+   }
 
 }//END OF LinearRegression

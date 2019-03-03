@@ -24,11 +24,9 @@ package com.gengoai.apollo.ml.clustering;
 
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.ml.DiscretePipeline;
-import com.gengoai.apollo.ml.params.DoubleParam;
-import com.gengoai.apollo.ml.params.IntParam;
-import com.gengoai.apollo.ml.params.ParamMap;
+import com.gengoai.apollo.ml.FitParameters;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
-import com.gengoai.apollo.statistics.measure.Distance;
+import com.gengoai.conversion.Cast;
 import com.gengoai.stream.MStream;
 import org.apache.commons.math3.ml.clustering.DBSCANClusterer;
 
@@ -43,12 +41,6 @@ import java.util.List;
  * @author David B. Bracewell
  */
 public class DBSCAN extends FlatCentroidClusterer {
-   public static final IntParam minPts = new IntParam("minPts",
-                                                      "the minimum number of points to form  a dense region",
-                                                      i -> i > 0);
-   public static final DoubleParam eps = new DoubleParam("eps",
-                                                         "the maximum distance between two vectors to be in the same region",
-                                                         i -> i > 0);
    private static final long serialVersionUID = 1L;
 
    /**
@@ -70,11 +62,13 @@ public class DBSCAN extends FlatCentroidClusterer {
    }
 
    @Override
-   public void fit(MStream<NDArray> vectorStream, ParamMap parameters) {
-      setMeasure(parameters.get(clusterMeasure));
-      DBSCANClusterer<ApacheClusterable> clusterer = new DBSCANClusterer<>(parameters.get(eps),
-                                                                           parameters.get(minPts),
-                                                                           new ApacheDistanceMeasure(getMeasure()));
+   public void fit(MStream<NDArray> vectorStream, FitParameters parameters) {
+      Parameters fitParameters = Cast.as(parameters);
+      setMeasure(fitParameters.measure);
+      DBSCANClusterer<ApacheClusterable> clusterer = new DBSCANClusterer<>(fitParameters.eps,
+                                                                           fitParameters.minPts,
+                                                                           new ApacheDistanceMeasure(
+                                                                              fitParameters.measure));
       List<ApacheClusterable> apacheClusterables = vectorStream.parallel()
                                                                .map(ApacheClusterable::new)
                                                                .collect();
@@ -91,11 +85,11 @@ public class DBSCAN extends FlatCentroidClusterer {
       apacheClusterables.forEach(a -> {
          NDArray n = a.getVector();
          int index = -1;
-         double score = getMeasure().getOptimum().startingValue();
+         double score = fitParameters.measure.getOptimum().startingValue();
          for (int i = 0; i < size(); i++) {
             Cluster c = get(i);
-            double s = getMeasure().calculate(n, c.getCentroid());
-            if (getMeasure().getOptimum().test(s, score)) {
+            double s = fitParameters.measure.calculate(n, c.getCentroid());
+            if (fitParameters.measure.getOptimum().test(s, score)) {
                index = i;
                score = s;
             }
@@ -106,13 +100,22 @@ public class DBSCAN extends FlatCentroidClusterer {
 
 
    @Override
-   public ParamMap getFitParameters() {
-      return new ParamMap(
-         verbose.set(false),
-         clusterMeasure.set(Distance.Euclidean),
-         eps.set(1.0),
-         minPts.set(2)
-      );
+   public Parameters getDefaultFitParameters() {
+      return new Parameters();
+   }
+
+   /**
+    * FitParameters for DBSCAN
+    */
+   public static class Parameters extends ClusterParameters {
+      /**
+       * the maximum distance between two vectors to be in the same region
+       */
+      public double eps = 1.0;
+      /**
+       * the minimum number of points to form  a dense region
+       */
+      public int minPts = 2;
    }
 
 }//END OF DBSCAN

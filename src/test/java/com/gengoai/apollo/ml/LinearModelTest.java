@@ -8,10 +8,13 @@ import com.gengoai.conversion.Cast;
 /**
  * @author David B. Bracewell
  */
-public class LinearModelTest extends BaseClassifierTest {
+public class LinearModelTest extends BaseClassifierTest<LinearModel.Parameters> {
 
    public LinearModelTest() {
-      super(new LinearModel(), Model.verbose.set(false), Model.maxIterations.set(100));
+      super(new LinearModel(),
+            new LinearModel.Parameters()
+               .set("verbose", false)
+               .set("maxIterations", 100));
    }
 
    @Override

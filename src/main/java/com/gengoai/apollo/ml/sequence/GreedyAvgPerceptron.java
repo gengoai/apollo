@@ -22,10 +22,11 @@
 
 package com.gengoai.apollo.ml.sequence;
 
+import com.gengoai.Stopwatch;
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.Feature;
+import com.gengoai.apollo.ml.FitParameters;
 import com.gengoai.apollo.ml.data.Dataset;
-import com.gengoai.apollo.ml.params.ParamMap;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
 import com.gengoai.apollo.ml.preprocess.PreprocessorList;
 import com.gengoai.apollo.ml.vectorizer.IndexVectorizer;
@@ -39,13 +40,12 @@ import com.gengoai.collection.counter.Counter;
 import com.gengoai.collection.counter.Counters;
 import com.gengoai.collection.counter.MultiCounter;
 import com.gengoai.collection.counter.MultiCounters;
+import com.gengoai.conversion.Cast;
 import com.gengoai.logging.Loggable;
-import com.gengoai.logging.Logger;
 
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * <p>A greedy sequence labeler that uses an Averaged Perceptron for classification. First-ordered transitions are
@@ -55,7 +55,6 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class GreedyAvgPerceptron extends SequenceLabeler implements Loggable {
    private static final long serialVersionUID = 1L;
-   private static final Logger log = Logger.getLogger(GreedyAvgPerceptron.class);
    private static final Feature BIAS_FEATURE = Feature.booleanFeature("******BIAS******");
    private Set<String> labelSet;
    private MultiCounter<String, String> featureWeights;
@@ -119,7 +118,8 @@ public class GreedyAvgPerceptron extends SequenceLabeler implements Loggable {
    }
 
    @Override
-   protected void fitPreprocessed(Dataset preprocessed, ParamMap parameters) {
+   protected void fitPreprocessed(Dataset preprocessed, FitParameters fitParameters) {
+      Parameters parameters = Cast.as(fitParameters);
       IndexVectorizer vectorizer = new MultiLabelBinarizer();
       vectorizer.fit(preprocessed);
       this.labelSet = new HashSet<>(vectorizer.alphabet());
@@ -132,107 +132,62 @@ public class GreedyAvgPerceptron extends SequenceLabeler implements Loggable {
       final Table<String, String, Integer> fTimestamps = new HashBasedTable<>();
       final Table<String, String, Integer> tTimestamps = new HashBasedTable<>();
 
-      final AtomicInteger instances = new AtomicInteger(0);
-      StoppingCriteria.create("pct_error")
-                      .historySize(parameters.get(historySize))
-                      .maxIterations(parameters.get(maxIterations))
-                      .tolerance(parameters.get(tolerance))
-                      .logger(log)
-                      .reportInterval(parameters.get(verbose)
-                                      ? parameters.get(reportInterval)
-                                      : -1)
-                      .untilTermination(i -> {
-                         double total = 0;
-                         double correct = 0;
+      int instances = 0;
+      StoppingCriteria stoppingCriteria = StoppingCriteria.create("pct_error")
+                                                          .historySize(parameters.historySize)
+                                                          .maxIterations(parameters.maxIterations)
+                                                          .tolerance(parameters.eps);
 
-                         for (Example sequence : preprocessed.shuffle().stream()) {
-                            String pLabel = "<BOS>";
-                            for (int j = 0; j < sequence.size(); j++) {
-                               total++;
-                               instances.incrementAndGet();
-                               Example instance = sequence.getExample(j);
-                               String y = instance.getDiscreteLabel();
-                               String predicted = distribution(instance, pLabel).max();
+      for (int i = 0; i < stoppingCriteria.maxIterations(); i++) {
+         Stopwatch sw = Stopwatch.createStarted();
+         double total = 0;
+         double correct = 0;
 
-                               if (predicted == null) {
-                                  predicted = vectorizer.getString(0);
-                               }
+         for (Example sequence : preprocessed.shuffle().stream()) {
+            String pLabel = "<BOS>";
+            for (int j = 0; j < sequence.size(); j++) {
+               total++;
+               instances++;
+               Example instance = sequence.getExample(j);
+               String y = instance.getDiscreteLabel();
+               String predicted = distribution(instance, pLabel).max();
 
-                               if (!y.equals(predicted)) {
-                                  for (Feature feature : expandFeatures(instance)) {
-                                     update(y, feature.getName(), 1.0, instances.get(), featureWeights, fTimestamps,
-                                            fTotals);
-                                     update(predicted, feature.getName(), -1.0, instances.get(), featureWeights,
-                                            fTimestamps, fTotals);
-                                  }
-                                  update(y, pLabel, 1.0, instances.get(), transitionWeights, fTimestamps, fTotals);
-                                  update(predicted, pLabel, -1.0, instances.get(), transitionWeights, fTimestamps,
-                                         fTotals);
-                               } else {
-                                  correct++;
-                               }
-                               pLabel = y;
-                            }
-                         }
-                         return 1d - (correct / total);
-                      });
+               if (predicted == null) {
+                  predicted = vectorizer.getString(0);
+               }
 
-//      for (int i = 0; i < stoppingCriteria.maxIterations(); i++) {
-//         Stopwatch sw = Stopwatch.createStarted();
-//         double total = 0;
-//         double correct = 0;
-//
-//         for (Example sequence : preprocessed.shuffle().stream()) {
-//            String pLabel = "<BOS>";
-//            for (int j = 0; j < sequence.size(); j++) {
-//               total++;
-//               instances++;
-//               Example instance = sequence.getExample(j);
-//               String y = instance.getDiscreteLabel();
-//               String predicted = distribution(instance, pLabel).max();
-//
-//               if (predicted == null) {
-//                  predicted = vectorizer.getString(0);
-//               }
-//
-//               if (!y.equals(predicted)) {
-//                  for (Feature feature : expandFeatures(instance)) {
-//                     update(y, feature.getName(), 1.0, instances, featureWeights, fTimestamps, fTotals);
-//                     update(predicted, feature.getName(), -1.0, instances, featureWeights, fTimestamps, fTotals);
-//                  }
-//                  update(y, pLabel, 1.0, instances, transitionWeights, fTimestamps, fTotals);
-//                  update(predicted, pLabel, -1.0, instances, transitionWeights, fTimestamps, fTotals);
-//               } else {
-//                  correct++;
-//               }
-//               pLabel = y;
-//            }
-//         }
-//         double error = 1d - (correct / total);
-//
-//         sw.stop();
-//         if (parameters.verbose) {
-//            logInfo("Iteration {0}: Accuracy={1,number,#.####}, time to complete={2}", i + 1, (1d - error), sw);
-//         }
-//
-//         if (stoppingCriteria.check(error)) {
-//            break;
-//         }
-//      }
+               if (!y.equals(predicted)) {
+                  for (Feature feature : expandFeatures(instance)) {
+                     update(y, feature.getName(), 1.0, instances, featureWeights, fTimestamps, fTotals);
+                     update(predicted, feature.getName(), -1.0, instances, featureWeights, fTimestamps, fTotals);
+                  }
+                  update(y, pLabel, 1.0, instances, transitionWeights, fTimestamps, fTotals);
+                  update(predicted, pLabel, -1.0, instances, transitionWeights, fTimestamps, fTotals);
+               } else {
+                  correct++;
+               }
+               pLabel = y;
+            }
+         }
+         double error = 1d - (correct / total);
 
-      average(instances.get(), featureWeights, fTimestamps, fTotals);
-      average(instances.get(), transitionWeights, tTimestamps, tTotals);
+         sw.stop();
+         if (parameters.verbose) {
+            logInfo("Iteration {0}: Accuracy={1,number,#.####}, time to complete={2}", i + 1, (1d - error), sw);
+         }
+
+         if (stoppingCriteria.check(error)) {
+            break;
+         }
+      }
+
+      average(instances, featureWeights, fTimestamps, fTotals);
+      average(instances, transitionWeights, tTimestamps, tTotals);
    }
 
    @Override
-   public ParamMap getFitParameters() {
-      return new ParamMap(
-         verbose.set(false),
-         tolerance.set(1e-5),
-         historySize.set(3),
-         maxIterations.set(100),
-         reportInterval.set(1)
-      );
+   public Parameters getDefaultFitParameters() {
+      return new Parameters();
    }
 
    @Override
@@ -296,6 +251,26 @@ public class GreedyAvgPerceptron extends SequenceLabeler implements Loggable {
                 });
          weights.set(feature, newWeights);
       }
+   }
+
+
+   /**
+    * Custom fit parameters for the GreedyAveragePerceptron
+    */
+   public static class Parameters extends FitParameters {
+      private static final long serialVersionUID = 1L;
+      /**
+       * The epsilon to use for checking for convergence.
+       */
+      public double eps = 1e-4;
+      /**
+       * The number of iterations to use for determining convergence
+       */
+      public int historySize = 3;
+      /**
+       * The maximum number of iterations to run for
+       */
+      public int maxIterations = 100;
    }
 
 

@@ -105,7 +105,7 @@ public class LinearModel extends Classifier implements Loggable {
    }
 
    @Override
-   public Parameters getDefaultFitParameters() {
+   public Parameters getFitParameters() {
       return new Parameters();
    }
 

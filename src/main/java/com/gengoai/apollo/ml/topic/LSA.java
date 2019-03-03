@@ -54,7 +54,7 @@ public class LSA extends TopicModel {
    private List<NDArray> topicVectors = new ArrayList<>();
 
    @Override
-   public ParamMap getDefaultFitParameters() {
+   public ParamMap getFitParameters() {
       return new ParamMap(
          verbose.set(false),
          K.set(100)

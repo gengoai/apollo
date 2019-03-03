@@ -106,7 +106,7 @@ public class Crf extends SequenceLabeler implements Serializable {
    }
 
    @Override
-   public ParamMap getDefaultFitParameters() {
+   public ParamMap getFitParameters() {
       return new ParamMap(
          verbose.set(false),
          maxIterations.set(100),

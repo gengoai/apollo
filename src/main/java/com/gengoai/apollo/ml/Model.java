@@ -113,7 +113,7 @@ public abstract class Model implements Serializable {
     */
    public final void fit(Dataset dataset, ParamValuePair... fitParameters) {
       notNull(dataset);
-      ParamMap parameters = getDefaultFitParameters();
+      ParamMap parameters = getFitParameters();
       parameters.update(fitParameters);
       Stopwatch sw = Stopwatch.createStarted();
       boolean isVerbose = parameters.getOrDefault(verbose, false);
@@ -143,7 +143,7 @@ public abstract class Model implements Serializable {
     *
     * @return the default fit parameters
     */
-   public abstract ParamMap getDefaultFitParameters();
+   public abstract ParamMap getFitParameters();
 
    /**
     * Gets the pipeline associated with the model. Subclasses should override the return type to match the requirements

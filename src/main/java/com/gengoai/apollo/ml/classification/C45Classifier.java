@@ -68,7 +68,7 @@ public class C45Classifier extends MalletClassifier {
    }
 
    @Override
-   public ParamMap getDefaultFitParameters() {
+   public ParamMap getFitParameters() {
       return new ParamMap(verbose.set(false),
                           depthLimited.set(false),
                           doPruning.set(true),

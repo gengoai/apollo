@@ -125,7 +125,7 @@ public class NaiveBayes extends Classifier {
    }
 
    @Override
-   public ParamMap getDefaultFitParameters() {
+   public ParamMap getFitParameters() {
       return new ParamMap(verbose.set(false),
                           nbModelType.set(ModelType.Bernoulli));
    }

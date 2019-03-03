@@ -71,7 +71,7 @@ public class Word2Vec extends Embedding {
    }
 
    @Override
-   public ParamMap getDefaultFitParameters() {
+   public ParamMap getFitParameters() {
       return new ParamMap(
          dimension.set(100),
          learningRate.set(0.025),

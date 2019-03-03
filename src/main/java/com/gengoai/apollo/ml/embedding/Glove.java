@@ -63,7 +63,7 @@ public class Glove extends Embedding {
 
 
    @Override
-   public ParamMap getDefaultFitParameters() {
+   public ParamMap getFitParameters() {
       return new ParamMap(
          verbose.set(false),
          dimension.set(50),

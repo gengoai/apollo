@@ -92,7 +92,7 @@ public class DistributedKMeans extends FlatCentroidClusterer {
 
 
    @Override
-   public ParamMap getDefaultFitParameters() {
+   public ParamMap getFitParameters() {
       return new ParamMap(
          verbose.set(false),
          K.set(2),

@@ -232,7 +232,7 @@ public class Embedding extends DiscreteModel {
    }
 
    @Override
-   public ParamMap getDefaultFitParameters() {
+   public ParamMap getFitParameters() {
       throw new UnsupportedOperationException();
    }
 

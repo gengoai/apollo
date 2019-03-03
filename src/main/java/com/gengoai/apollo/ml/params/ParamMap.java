@@ -85,6 +85,23 @@ public class ParamMap implements Serializable, Copyable<ParamMap> {
                           (ParamValuePair<?> pvp, Param<?> p) -> pvp.param.name.compareTo(p.name));
    }
 
+
+   public void merge(ParamMap other) {
+      for (ParamValuePair paramValuePair : other.map) {
+         set(paramValuePair);
+      }
+   }
+
+   public ParamMap set(ParamValuePair paramValuePair) {
+      int idx = indexOf(paramValuePair.param);
+      if (idx < 0) {
+         log.warn("Invalid Parameter: {0}" + paramValuePair.param.name);
+         return this;
+      }
+      map[idx] = paramValuePair;
+      return this;
+   }
+
    /**
     * Updates the values in the parameter map.
     *
@@ -92,12 +109,7 @@ public class ParamMap implements Serializable, Copyable<ParamMap> {
     */
    public void update(ParamValuePair... pvp) {
       for (ParamValuePair paramValuePair : pvp) {
-         int idx = indexOf(paramValuePair.param);
-         if (idx < 0) {
-            log.warn("Invalid Parameter: {0}" + paramValuePair.param.name);
-            continue;
-         }
-         map[idx] = paramValuePair;
+         set(paramValuePair);
       }
    }
 
@@ -109,12 +121,14 @@ public class ParamMap implements Serializable, Copyable<ParamMap> {
     * @param value the value
     */
    @SuppressWarnings("unchecked")
-   public void set(String name, Object value) {
+   public ParamMap set(String name, Object value) {
       int idx = binarySearch(map, name, (pvp, s) -> pvp.param.name.compareTo(s));
       if (idx < 0) {
          log.warn("Invalid Parameter: {0}" + name);
+         return this;
       }
       map[idx] = map[idx].param.set(value);
+      return this;
    }
 
 

@@ -119,7 +119,7 @@ public abstract class Clusterer extends DiscreteModel implements Iterable<Cluste
     * @param fitParameters the fit parameters for clustering
     */
    public final void fit(MStream<NDArray> vectors, ParamValuePair... fitParameters) {
-      ParamMap paramMap = getDefaultFitParameters();
+      ParamMap paramMap = getFitParameters();
       paramMap.update(fitParameters);
       fit(vectors, paramMap);
    }

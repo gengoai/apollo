@@ -87,7 +87,7 @@ public class LinearRegression extends Regression {
    }
 
    @Override
-   public ParamMap getDefaultFitParameters() {
+   public ParamMap getFitParameters() {
       return new ParamMap(
          verbose.set(false),
          maxIterations.set(100),

@@ -103,7 +103,7 @@ public class LibLinearModel extends Classifier implements Loggable {
    }
 
    @Override
-   public ParamMap getDefaultFitParameters() {
+   public ParamMap getFitParameters() {
       return new ParamMap(
          maxIterations.set(1000),
          bias.set(false),

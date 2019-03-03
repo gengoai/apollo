@@ -134,7 +134,7 @@ public class MalletLDA extends TopicModel {
    }
 
    @Override
-   public ParamMap getDefaultFitParameters() {
+   public ParamMap getFitParameters() {
       return new ParamMap(
          K.set(100),
          maxIterations.set(2000),

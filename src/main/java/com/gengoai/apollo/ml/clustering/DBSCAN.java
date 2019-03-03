@@ -106,7 +106,7 @@ public class DBSCAN extends FlatCentroidClusterer {
 
 
    @Override
-   public ParamMap getDefaultFitParameters() {
+   public ParamMap getFitParameters() {
       return new ParamMap(
          verbose.set(false),
          clusterMeasure.set(Distance.Euclidean),

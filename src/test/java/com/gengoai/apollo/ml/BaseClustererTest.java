@@ -35,7 +35,7 @@ public abstract class BaseClustererTest {
 
    @Test
    public void fitAndEvaluate() {
-      ParamMap pm = clusterer.getDefaultFitParameters();
+      ParamMap pm = clusterer.getFitParameters();
       pm.update(fitParameters);
       SilhouetteEvaluation evaluation = new SilhouetteEvaluation(pm.get(Clusterer.clusterMeasure));
       clusterer.fit(loadWaterData(), fitParameters);

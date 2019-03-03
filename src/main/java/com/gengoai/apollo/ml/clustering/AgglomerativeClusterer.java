@@ -127,7 +127,7 @@ public class AgglomerativeClusterer extends HierarchicalClusterer {
    }
 
    @Override
-   public ParamMap getDefaultFitParameters() {
+   public ParamMap getFitParameters() {
       return new ParamMap(
          verbose.set(false),
          linkage.set(Linkage.Complete),

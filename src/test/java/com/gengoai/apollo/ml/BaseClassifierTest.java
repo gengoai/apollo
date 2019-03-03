@@ -6,6 +6,7 @@ import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.apollo.ml.data.DatasetType;
 import com.gengoai.apollo.ml.data.format.CSVDataFormat;
 import com.gengoai.apollo.ml.data.format.DataFormat;
+import com.gengoai.apollo.ml.params.ParamValuePair;
 import com.gengoai.io.CSV;
 import com.gengoai.io.Resources;
 import org.junit.Test;
@@ -17,14 +18,14 @@ import static org.junit.Assert.*;
 /**
  * @author David B. Bracewell
  */
-public abstract class BaseClassifierTest<T extends FitParameters> {
+public abstract class BaseClassifierTest {
 
    private final Classifier classifier;
-   private final T fitParameters;
+   private final ParamValuePair[] fitParameters;
 
 
    public BaseClassifierTest(Classifier classifier,
-                             T fitParameters
+                             ParamValuePair... fitParameters
                             ) {
       this.classifier = classifier;
       this.fitParameters = fitParameters;
@@ -34,8 +35,7 @@ public abstract class BaseClassifierTest<T extends FitParameters> {
    public void fitAndEvaluate() {
       assertTrue(passes(ClassifierEvaluation.crossValidation(irisDataset(),
                                                              classifier,
-                                                             fitParameters,
-                                                             10, false)));
+                                                             10, false, fitParameters)));
    }
 
 

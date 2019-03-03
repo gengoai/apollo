@@ -25,10 +25,9 @@ package com.gengoai.apollo.ml.clustering;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.ml.DiscretePipeline;
-import com.gengoai.apollo.ml.FitParameters;
+import com.gengoai.apollo.ml.params.ParamMap;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
 import com.gengoai.apollo.statistics.measure.Distance;
-import com.gengoai.conversion.Cast;
 import com.gengoai.stream.MStream;
 import org.apache.spark.mllib.clustering.KMeansModel;
 import org.apache.spark.mllib.linalg.DenseVector;
@@ -63,12 +62,11 @@ public class DistributedKMeans extends FlatCentroidClusterer {
    }
 
    @Override
-   public void fit(MStream<NDArray> dataSupplier, FitParameters parameters) {
-      Parameters fitParameters = Cast.as(parameters);
+   public void fit(MStream<NDArray> dataSupplier, ParamMap parameters) {
       org.apache.spark.mllib.clustering.KMeans kMeans = new org.apache.spark.mllib.clustering.KMeans();
-      kMeans.setK(fitParameters.K);
-      kMeans.setMaxIterations(fitParameters.maxIterations);
-      kMeans.setEpsilon(fitParameters.tolerance);
+      kMeans.setK(parameters.get(K));
+      kMeans.setMaxIterations(parameters.get(maxIterations));
+      kMeans.setEpsilon(parameters.get(tolerance));
       setMeasure(Distance.Euclidean);
       KMeansModel model = kMeans.run(dataSupplier
                                         .toDistributedStream()
@@ -94,26 +92,13 @@ public class DistributedKMeans extends FlatCentroidClusterer {
 
 
    @Override
-   public DistributedKMeans.Parameters getDefaultFitParameters() {
-      return new Parameters();
+   public ParamMap getDefaultFitParameters() {
+      return new ParamMap(
+         verbose.set(false),
+         K.set(2),
+         maxIterations.set(100),
+         tolerance.set(1e-3)
+      );
    }
 
-   /**
-    * Fit Parameters for KMeans
-    */
-   public static class Parameters extends ClusterParameters {
-      /**
-       * The number of clusters
-       */
-      public int K = 2;
-      /**
-       * The maximum number of iterations to run the clusterer for
-       */
-      public int maxIterations = 100;
-      /**
-       * The tolerance in change of in-group variance for determining if k-means has converged
-       */
-      public double tolerance = 1e-3;
-
-   }
 }//END OF DistributedKMeans

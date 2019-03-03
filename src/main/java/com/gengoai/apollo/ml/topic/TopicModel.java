@@ -26,6 +26,7 @@ import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.ml.DiscreteModel;
 import com.gengoai.apollo.ml.DiscretePipeline;
 import com.gengoai.apollo.ml.Example;
+import com.gengoai.apollo.ml.params.IntParam;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
 
 import java.util.ArrayList;
@@ -38,6 +39,7 @@ import java.util.List;
  */
 public abstract class TopicModel extends DiscreteModel {
    private static final long serialVersionUID = 1L;
+   public static final IntParam K = new IntParam("K", "The number of topics.");
    /**
     * The Topics.
     */

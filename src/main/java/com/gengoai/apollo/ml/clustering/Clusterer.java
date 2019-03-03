@@ -26,8 +26,11 @@ import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.ml.DiscreteModel;
 import com.gengoai.apollo.ml.DiscretePipeline;
 import com.gengoai.apollo.ml.Example;
-import com.gengoai.apollo.ml.FitParameters;
 import com.gengoai.apollo.ml.data.Dataset;
+import com.gengoai.apollo.ml.params.IntParam;
+import com.gengoai.apollo.ml.params.Param;
+import com.gengoai.apollo.ml.params.ParamMap;
+import com.gengoai.apollo.ml.params.ParamValuePair;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
 import com.gengoai.apollo.statistics.measure.Measure;
 import com.gengoai.collection.Streams;
@@ -46,6 +49,10 @@ import java.util.stream.Stream;
  * @author David B. Bracewell
  */
 public abstract class Clusterer extends DiscreteModel implements Iterable<Cluster> {
+   public static final IntParam K = new IntParam("K", "The number of clusters.");
+   public static final Param<Measure> clusterMeasure = new Param<>("measure", Measure.class,
+                                                                   "The measure to use for determining if two points should be in a cluster.");
+
    private static final long serialVersionUID = 1L;
    private Measure measure;
 
@@ -111,10 +118,16 @@ public abstract class Clusterer extends DiscreteModel implements Iterable<Cluste
     * @param vectors       the stream of vectors (points) to cluster
     * @param fitParameters the fit parameters for clustering
     */
-   public abstract void fit(MStream<NDArray> vectors, FitParameters fitParameters);
+   public final void fit(MStream<NDArray> vectors, ParamValuePair... fitParameters) {
+      ParamMap paramMap = getDefaultFitParameters();
+      paramMap.update(fitParameters);
+      fit(vectors, paramMap);
+   }
+
+   protected abstract void fit(MStream<NDArray> vectors, ParamMap fitParameters);
 
    @Override
-   protected void fitPreprocessed(Dataset preprocessed, FitParameters fitParameters) {
+   protected void fitPreprocessed(Dataset preprocessed, ParamMap fitParameters) {
       fit(preprocessed.asVectorStream(getPipeline()), fitParameters);
    }
 

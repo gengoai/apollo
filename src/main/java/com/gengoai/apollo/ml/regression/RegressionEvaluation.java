@@ -23,9 +23,9 @@
 package com.gengoai.apollo.ml.regression;
 
 import com.gengoai.apollo.ml.Example;
-import com.gengoai.apollo.ml.FitParameters;
 import com.gengoai.apollo.ml.Split;
 import com.gengoai.apollo.ml.data.Dataset;
+import com.gengoai.apollo.ml.params.ParamValuePair;
 import com.gengoai.logging.Logger;
 import com.gengoai.stream.MStream;
 import com.gengoai.string.TableFormatter;
@@ -60,9 +60,9 @@ public class RegressionEvaluation implements Serializable {
     */
    public static RegressionEvaluation crossValidation(Dataset dataset,
                                                       Regression regression,
-                                                      FitParameters fitParameters,
                                                       int nFolds,
-                                                      boolean printFoldStats
+                                                      boolean printFoldStats,
+                                                      ParamValuePair... fitParameters
                                                      ) {
       RegressionEvaluation evaluation = new RegressionEvaluation();
       AtomicInteger foldId = new AtomicInteger(0);

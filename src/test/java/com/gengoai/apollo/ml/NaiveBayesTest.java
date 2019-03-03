@@ -10,11 +10,10 @@ import com.gengoai.conversion.Cast;
 /**
  * @author David B. Bracewell
  */
-public class NaiveBayesTest extends BaseClassifierTest<NaiveBayes.Parameters> {
+public class NaiveBayesTest extends BaseClassifierTest {
 
    public NaiveBayesTest() {
-      super(new NaiveBayes(new PerFeatureTransform(ZScoreTransform::new)),
-            new NaiveBayes.Parameters());
+      super(new NaiveBayes(new PerFeatureTransform(ZScoreTransform::new)));
    }
 
    @Override

@@ -8,11 +8,10 @@ import com.gengoai.conversion.Cast;
 /**
  * @author David B. Bracewell
  */
-public class LibLinearClassifierTest extends BaseClassifierTest<LibLinearModel.Parameters> {
+public class LibLinearClassifierTest extends BaseClassifierTest {
 
    public LibLinearClassifierTest() {
-      super(new LibLinearModel(),
-            new LibLinearModel.Parameters());
+      super(new LibLinearModel(), Model.verbose.set(false));
    }
 
    @Override

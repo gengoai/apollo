@@ -25,9 +25,8 @@ package com.gengoai.apollo.ml.clustering;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.ml.DiscretePipeline;
-import com.gengoai.apollo.ml.FitParameters;
+import com.gengoai.apollo.ml.params.ParamMap;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
-import com.gengoai.conversion.Cast;
 import com.gengoai.stream.MStream;
 import org.apache.commons.math3.distribution.MultivariateNormalDistribution;
 import org.apache.commons.math3.distribution.fitting.MultivariateNormalMixtureExpectationMaximization;
@@ -64,8 +63,7 @@ public class GaussianMixtureModel extends FlatCentroidClusterer {
 
 
    @Override
-   public void fit(MStream<NDArray> vectors, FitParameters fp) {
-      Parameters p = Cast.as(fp);
+   public void fit(MStream<NDArray> vectors, ParamMap p) {
       List<NDArray> vectorList = vectors.collect();
       int numberOfFeatures = getNumberOfFeatures();
       int numberOfDataPoints = vectorList.size();
@@ -75,7 +73,7 @@ public class GaussianMixtureModel extends FlatCentroidClusterer {
       }
 
       List<MultivariateNormalDistribution> components =
-         MultivariateNormalMixtureExpectationMaximization.estimate(data, p.K)
+         MultivariateNormalMixtureExpectationMaximization.estimate(data, p.get(K))
                                                          .getComponents()
                                                          .stream()
                                                          .map(Pair::getSecond)
@@ -91,18 +89,12 @@ public class GaussianMixtureModel extends FlatCentroidClusterer {
    }
 
    @Override
-   public Parameters getDefaultFitParameters() {
-      return new Parameters();
+   public ParamMap getDefaultFitParameters() {
+      return new ParamMap(
+         verbose.set(false),
+         K.set(2)
+      );
    }
 
-   /**
-    * The type Parameters.
-    */
-   public static class Parameters extends ClusterParameters<Parameters> {
-      /**
-       * The K.
-       */
-      public int K = 100;
-   }
 
 }//END OF GaussianMixtureModel

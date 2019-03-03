@@ -24,7 +24,7 @@ package com.gengoai.apollo.ml.clustering;
 
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.ml.DiscretePipeline;
-import com.gengoai.apollo.ml.FitParameters;
+import com.gengoai.apollo.ml.params.ParamMap;
 import com.gengoai.apollo.statistics.measure.Measure;
 import com.gengoai.stream.MStream;
 
@@ -39,12 +39,12 @@ class DummyFlatClusterer extends FlatCentroidClusterer {
 
 
    @Override
-   public void fit(MStream<NDArray> vectors, FitParameters fitParameters) {
+   public void fit(MStream<NDArray> vectors, ParamMap fitParameters) {
       throw new UnsupportedOperationException();
    }
 
    @Override
-   public FitParameters getDefaultFitParameters() {
+   public ParamMap getDefaultFitParameters() {
       throw new UnsupportedOperationException();
    }
 

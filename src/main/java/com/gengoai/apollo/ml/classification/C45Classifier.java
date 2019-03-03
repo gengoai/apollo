@@ -27,9 +27,10 @@ import cc.mallet.classify.C45Trainer;
 import cc.mallet.classify.ClassifierTrainer;
 import cc.mallet.types.GainRatio;
 import cc.mallet.util.MalletLogger;
-import com.gengoai.apollo.ml.FitParameters;
+import com.gengoai.apollo.ml.params.BoolParam;
+import com.gengoai.apollo.ml.params.IntParam;
+import com.gengoai.apollo.ml.params.ParamMap;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
-import com.gengoai.conversion.Cast;
 
 import java.util.logging.Level;
 
@@ -43,6 +44,18 @@ import java.util.logging.Level;
  * @author David B. Bracewell
  */
 public class C45Classifier extends MalletClassifier {
+   public static final BoolParam depthLimited = new BoolParam("depthLimited",
+                                                              "True - limit the depth of the tree, False let the tree get as deep as needed.");
+
+   public static final BoolParam doPruning = new BoolParam("doPruning",
+                                                           "True - prune the tree, False no pruning");
+
+   public static final IntParam minInstances = new IntParam("minInstances",
+                                                            "The minimum number of instances a leaf in the tree must contain",
+                                                            i -> i > 0);
+   public static final IntParam maxDepth = new IntParam("maxDepth",
+                                                        "The maximum depth the tree can grow if depth limited.",
+                                                        i -> i > 0);
    private static final long serialVersionUID = 1L;
 
    /**
@@ -55,15 +68,18 @@ public class C45Classifier extends MalletClassifier {
    }
 
    @Override
-   public Parameters getDefaultFitParameters() {
-      return new Parameters();
+   public ParamMap getDefaultFitParameters() {
+      return new ParamMap(verbose.set(false),
+                          depthLimited.set(false),
+                          doPruning.set(true),
+                          minInstances.set(2),
+                          maxDepth.set(4));
    }
 
    @Override
-   protected ClassifierTrainer<?> getTrainer(FitParameters parameters) {
+   protected ClassifierTrainer<?> getTrainer(ParamMap parameters) {
       C45Trainer trainer = new C45Trainer();
-      Parameters fitParameters = Cast.as(parameters);
-      if (fitParameters.verbose) {
+      if (parameters.getOrDefault(verbose, false)) {
          MalletLogger.getLogger(C45Trainer.class.getName()).setLevel(Level.INFO);
          MalletLogger.getLogger(GainRatio.class.getName()).setLevel(Level.INFO);
          MalletLogger.getLogger(C45.class.getName()).setLevel(Level.INFO);
@@ -72,34 +88,11 @@ public class C45Classifier extends MalletClassifier {
          MalletLogger.getLogger(GainRatio.class.getName()).setLevel(Level.OFF);
          MalletLogger.getLogger(C45.class.getName()).setLevel(Level.OFF);
       }
-      trainer.setDepthLimited(fitParameters.depthLimited);
-      trainer.setDoPruning(fitParameters.doPruning);
-      trainer.setMaxDepth(fitParameters.maxDepth);
-      trainer.setMinNumInsts(fitParameters.minInstances);
+      trainer.setDepthLimited(parameters.get(depthLimited));
+      trainer.setDoPruning(parameters.get(doPruning));
+      trainer.setMaxDepth(parameters.get(maxDepth));
+      trainer.setMinNumInsts(parameters.get(minInstances));
       return trainer;
-   }
-
-
-   /**
-    * Fit parameters for C45
-    */
-   public static class Parameters extends FitParameters<Parameters> {
-      /**
-       * True - limit the depth of the tree, False let the tree get as deep as needed.
-       */
-      public boolean depthLimited = false;
-      /**
-       * True - prune the tree, False no pruning
-       */
-      public boolean doPruning = true;
-      /**
-       * The maximum depth the tree can grow if depth limited.
-       */
-      public int maxDepth = 4;
-      /**
-       * The minimum number of instances a leaf in the tree must contain
-       */
-      public int minInstances = 2;
    }
 
 }//END OF C45Classifier

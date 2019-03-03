@@ -28,14 +28,13 @@ import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.linear.NDArrayInitializer;
 import com.gengoai.apollo.ml.DiscretePipeline;
 import com.gengoai.apollo.ml.Example;
-import com.gengoai.apollo.ml.FitParameters;
+import com.gengoai.apollo.ml.Model;
 import com.gengoai.apollo.ml.data.Dataset;
+import com.gengoai.apollo.ml.params.ParamMap;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
 import com.gengoai.apollo.optimization.*;
 import com.gengoai.apollo.optimization.activation.Activation;
 import com.gengoai.apollo.optimization.loss.LogLoss;
-import com.gengoai.apollo.optimization.loss.LossFunction;
-import com.gengoai.conversion.Cast;
 import com.gengoai.function.SerializableSupplier;
 import com.gengoai.logging.Loggable;
 import com.gengoai.stream.MStream;
@@ -52,6 +51,7 @@ import java.io.Serializable;
  */
 public class LinearModel extends Classifier implements Loggable {
    private static final long serialVersionUID = 1L;
+
    private final WeightParameters weightParameters;
 
    /**
@@ -76,16 +76,15 @@ public class LinearModel extends Classifier implements Loggable {
 
 
    @Override
-   protected void fitPreprocessed(Dataset preprocessed, FitParameters fitParameters) {
-      Parameters parameters = Cast.as(fitParameters);
+   protected void fitPreprocessed(Dataset preprocessed, ParamMap fitParameters) {
       this.weightParameters.numFeatures = getNumberOfFeatures();
       this.weightParameters.numLabels = getNumberOfLabels();
       GradientDescentOptimizer optimizer = GradientDescentOptimizer.builder()
-                                                                   .batchSize(parameters.batchSize).build();
+                                                                   .batchSize(fitParameters.get(batchSize)).build();
 
       final SerializableSupplier<MStream<NDArray>> dataSupplier;
-      if (parameters.cacheData) {
-         if (parameters.verbose) {
+      if (fitParameters.get(cacheData)) {
+         if (fitParameters.get(verbose)) {
             logInfo("Caching dataset...");
          }
          final MStream<NDArray> cached = preprocessed.asVectorStream(getPipeline()).cache();
@@ -93,22 +92,48 @@ public class LinearModel extends Classifier implements Loggable {
       } else {
          dataSupplier = () -> preprocessed.asVectorStream(getPipeline());
       }
-      this.weightParameters.update(parameters);
+      this.weightParameters.update(fitParameters);
       optimizer.optimize(weightParameters,
                          dataSupplier,
-                         new GradientDescentCostFunction(parameters.lossFunction, -1),
+                         new GradientDescentCostFunction(fitParameters.get(lossFunction), -1),
                          StoppingCriteria.create()
-                                         .maxIterations(parameters.maxIterations)
-                                         .historySize(parameters.historySize)
-                                         .tolerance(parameters.tolerance),
-                         parameters.weightUpdater,
-                         parameters.verbose ? parameters.reportInterval
-                                            : -1);
+                                         .maxIterations(fitParameters.get(maxIterations))
+                                         .historySize(fitParameters.get(historySize))
+                                         .tolerance(fitParameters.get(tolerance)),
+                         fitParameters.get(weightUpdater),
+                         fitParameters.get(verbose) ? fitParameters.get(reportInterval) : -1);
    }
 
    @Override
    public Parameters getDefaultFitParameters() {
       return new Parameters();
+   }
+
+   public static class Parameters extends ParamMap {
+
+      public Parameters() {
+         super(verbose.set(false),
+               maxIterations.set(100),
+               activation.set(Activation.SIGMOID),
+               batchSize.set(32),
+               historySize.set(3),
+               tolerance.set(1e-5),
+               reportInterval.set(50),
+               cacheData.set(true),
+               lossFunction.set(new LogLoss()),
+               weightUpdater.set(SGDUpdater.builder().build()));
+      }
+
+      public Parameters verbose(boolean isVerbose) {
+         update(verbose.set(isVerbose));
+         return this;
+      }
+
+      public Parameters maxIterations(int maxIterations) {
+         update(Model.maxIterations.set(maxIterations));
+         return this;
+      }
+
    }
 
    @Override
@@ -117,65 +142,6 @@ public class LinearModel extends Classifier implements Loggable {
                                 getPipeline().labelVectorizer);
    }
 
-   /**
-    * Custom fit parameters for the LinearModel
-    */
-   public static class Parameters extends FitParameters<Parameters> {
-      private static final long serialVersionUID = 1L;
-      /**
-       * The Activation.
-       */
-      public Activation activation = Activation.SIGMOID;
-      /**
-       * The Batch size.
-       */
-      public int batchSize = 20;
-      /**
-       * The Cache data.
-       */
-      public boolean cacheData = true;
-      /**
-       * The History size.
-       */
-      public int historySize = 3;
-      /**
-       * The Loss function.
-       */
-      public LossFunction lossFunction = new LogLoss();
-      /**
-       * The Max iterations.
-       */
-      public int maxIterations = 300;
-      /**
-       * The Report interval.
-       */
-      public int reportInterval = 100;
-      /**
-       * The Tolerance.
-       */
-      public double tolerance = 1e-9;
-      public boolean verbose = false;
-      /**
-       * The Weight updater.
-       */
-      public WeightUpdate weightUpdater = SGDUpdater.builder().build();
-
-      @Override
-      public String toString() {
-         return "Parameters{" +
-                   "activation=" + activation +
-                   ", batchSize=" + batchSize +
-                   ", cacheData=" + cacheData +
-                   ", historySize=" + historySize +
-                   ", lossFunction=" + lossFunction +
-                   ", maxIterations=" + maxIterations +
-                   ", tolerance=" + tolerance +
-                   ", weightUpdater=" + weightUpdater +
-                   ", verbose=" + verbose +
-                   ", reportInterval=" + reportInterval +
-                   '}';
-      }
-   }
 
    private static class WeightParameters implements LinearModelParameters, Serializable, Copyable<WeightParameters> {
       private static final long serialVersionUID = 1L;
@@ -220,9 +186,9 @@ public class LinearModel extends Classifier implements Loggable {
        *
        * @param parameters the fit parameters
        */
-      public void update(Parameters parameters) {
+      public void update(ParamMap parameters) {
          int numL = numLabels <= 2 ? 1 : numLabels;
-         this.activation = parameters.activation;
+         this.activation = parameters.get(Model.activation);
          this.weights = NDArrayFactory.DEFAULT().create(NDArrayInitializer.rand, numL, numFeatures);
          this.bias = NDArrayFactory.DEFAULT().zeros(numL);
       }

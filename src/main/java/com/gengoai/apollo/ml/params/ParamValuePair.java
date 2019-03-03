@@ -20,25 +20,36 @@
  *
  */
 
-package com.gengoai.apollo.ml;
+package com.gengoai.apollo.ml.params;
 
-import com.gengoai.apollo.ml.classification.C45Classifier;
-import com.gengoai.apollo.ml.classification.ClassifierEvaluation;
-import com.gengoai.apollo.ml.classification.MultiClassEvaluation;
-import com.gengoai.conversion.Cast;
+import java.io.Serializable;
 
 /**
+ * Encapsulates a {@link Param} and validated value. Should only be created via {@link Param#set(Object)}
+ *
+ * @param <T> the type parameter
  * @author David B. Bracewell
  */
-public class C45ClassifierTest extends BaseClassifierTest {
+public class ParamValuePair<T> implements Serializable {
+   private static final long serialVersionUID = 1L;
+   /**
+    * The Param.
+    */
+   public final Param<T> param;
+   /**
+    * The Value.
+    */
+   public final T value;
 
-   public C45ClassifierTest() {
-      super(new C45Classifier(), Model.verbose.set(false));
+   /**
+    * Instantiates a new Param value pair.
+    *
+    * @param param the param
+    * @param value the value
+    */
+   protected ParamValuePair(Param<T> param, T value) {
+      this.param = param;
+      this.value = value;
    }
 
-   @Override
-   public boolean passes(ClassifierEvaluation evaluation) {
-      MultiClassEvaluation mce = Cast.as(evaluation);
-      return mce.microF1() >= 0.85;
-   }
-}//END OF LinearModelTest
+}//END OF ParamValuePair

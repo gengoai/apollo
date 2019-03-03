@@ -36,14 +36,15 @@ import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.ml.DiscretePipeline;
 import com.gengoai.apollo.ml.Example;
-import com.gengoai.apollo.ml.FitParameters;
 import com.gengoai.apollo.ml.data.Dataset;
+import com.gengoai.apollo.ml.params.BoolParam;
+import com.gengoai.apollo.ml.params.IntParam;
+import com.gengoai.apollo.ml.params.ParamMap;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
 import com.gengoai.apollo.ml.vectorizer.InstanceToTokenSequence;
 import com.gengoai.apollo.ml.vectorizer.MalletVectorizer;
 import com.gengoai.collection.counter.Counter;
 import com.gengoai.collection.counter.Counters;
-import com.gengoai.conversion.Cast;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -60,6 +61,12 @@ import java.util.logging.Level;
  * @author David B. Bracewell
  */
 public class MalletLDA extends TopicModel {
+   public static final IntParam burnIn = new IntParam("burnIn",
+                                                      "The burn-in period");
+   public static final IntParam optimizationInterval = new IntParam("optimizationInterval",
+                                                                    "Interval between optimization update");
+   public static final BoolParam symmetricAlpha = new BoolParam("symmetricAlpha",
+                                                                "Whether or not a symmetric or asymmetric alpha is used.");
    private static final long serialVersionUID = 1L;
    private volatile transient TopicInferencer inferencer;
    private SerialPipes pipes;
@@ -73,63 +80,6 @@ public class MalletLDA extends TopicModel {
    public MalletLDA(Preprocessor... preprocessors) {
       super(DiscretePipeline.unsupervised(new MalletVectorizer(new Alphabet()), preprocessors));
    }
-
-   @Override
-   public double[] estimate(Example example) {
-      InstanceList instances = new InstanceList(pipes);
-      instances.addThruPipe(
-         new cc.mallet.types.Instance(getPipeline().preprocessorList.apply(example), "", null, null));
-      return getInferencer().getSampledDistribution(instances.get(0), 800, 5, 100);
-   }
-
-   @Override
-   protected void fitPreprocessed(Dataset preprocessed, FitParameters fitParameters) {
-      Parameters p = Cast.as(fitParameters);
-      if (p.verbose) {
-         ParallelTopicModel.logger.setLevel(Level.INFO);
-      } else {
-         ParallelTopicModel.logger.setLevel(Level.OFF);
-      }
-      pipes = new SerialPipes(Arrays.asList(new TargetStringToFeatures(),
-                                            new InstanceToTokenSequence(),
-                                            new TokenSequence2FeatureSequence()));
-      InstanceList trainingData = new InstanceList(pipes);
-      preprocessed.forEach(i -> trainingData.addThruPipe(
-         new Instance(i, i.getLabel() == null ? "" : i.getLabel().toString(), null, null)));
-      topicModel = new ParallelTopicModel(p.K);
-      topicModel.addInstances(trainingData);
-      topicModel.setNumIterations(p.maxIterations);
-      topicModel.setNumThreads(SystemInfo.NUMBER_OF_PROCESSORS - 1);
-      topicModel.setBurninPeriod(p.burnIn);
-      topicModel.setOptimizeInterval(p.optimizationInterval);
-      topicModel.setSymmetricAlpha(p.symmetricAlpha);
-      try {
-         topicModel.estimate();
-      } catch (IOException e) {
-         throw new RuntimeException(e);
-      }
-      for (int i = 0; i < p.K; i++) {
-         topics.add(createTopic(i));
-      }
-   }
-
-   @Override
-   public MalletLDA.Parameters getDefaultFitParameters() {
-      return new Parameters();
-   }
-
-   private TopicInferencer getInferencer() {
-      if (inferencer == null) {
-         synchronized (this) {
-            if (inferencer == null) {
-               inferencer = topicModel.getInferencer();
-               inferencer.setRandomSeed(1234);
-            }
-         }
-      }
-      return inferencer;
-   }
-
 
    private Topic createTopic(int topic) {
       final Alphabet alphabet = pipes.getDataAlphabet();
@@ -145,6 +95,67 @@ public class MalletLDA extends TopicModel {
       return new Topic(topic, topicWordScores);
    }
 
+   @Override
+   public double[] estimate(Example example) {
+      InstanceList instances = new InstanceList(pipes);
+      instances.addThruPipe(
+         new cc.mallet.types.Instance(getPipeline().preprocessorList.apply(example), "", null, null));
+      return getInferencer().getSampledDistribution(instances.get(0), 800, 5, 100);
+   }
+
+   @Override
+   protected void fitPreprocessed(Dataset preprocessed, ParamMap p) {
+      if (p.get(verbose)) {
+         ParallelTopicModel.logger.setLevel(Level.INFO);
+      } else {
+         ParallelTopicModel.logger.setLevel(Level.OFF);
+      }
+      pipes = new SerialPipes(Arrays.asList(new TargetStringToFeatures(),
+                                            new InstanceToTokenSequence(),
+                                            new TokenSequence2FeatureSequence()));
+      InstanceList trainingData = new InstanceList(pipes);
+      preprocessed.forEach(i -> trainingData.addThruPipe(
+         new Instance(i, i.getLabel() == null ? "" : i.getLabel().toString(), null, null)));
+      topicModel = new ParallelTopicModel(p.get(K));
+      topicModel.addInstances(trainingData);
+      topicModel.setNumIterations(p.get(maxIterations));
+      topicModel.setNumThreads(SystemInfo.NUMBER_OF_PROCESSORS - 1);
+      topicModel.setBurninPeriod(p.get(burnIn));
+      topicModel.setOptimizeInterval(p.get(optimizationInterval));
+      topicModel.setSymmetricAlpha(p.get(symmetricAlpha));
+      try {
+         topicModel.estimate();
+      } catch (IOException e) {
+         throw new RuntimeException(e);
+      }
+      for (int i = 0; i < p.get(K); i++) {
+         topics.add(createTopic(i));
+      }
+   }
+
+   @Override
+   public ParamMap getDefaultFitParameters() {
+      return new ParamMap(
+         K.set(100),
+         maxIterations.set(2000),
+         verbose.set(false),
+         symmetricAlpha.set(false),
+         burnIn.set(500),
+         optimizationInterval.set(100)
+      );
+   }
+
+   private TopicInferencer getInferencer() {
+      if (inferencer == null) {
+         synchronized (this) {
+            if (inferencer == null) {
+               inferencer = topicModel.getInferencer();
+               inferencer.setRandomSeed(1234);
+            }
+         }
+      }
+      return inferencer;
+   }
 
    @Override
    public NDArray getTopicDistribution(String feature) {
@@ -161,30 +172,5 @@ public class MalletLDA extends TopicModel {
       return NDArrayFactory.rowVector(dist);
    }
 
-   /**
-    * The type Parameters.
-    */
-   public static class Parameters extends FitParameters {
-      /**
-       * The K.
-       */
-      public int K = 100;
-      /**
-       * The Burn in.
-       */
-      public int burnIn = 500;
-      /**
-       * The Max iterations.
-       */
-      public int maxIterations = 2000;
-      /**
-       * The Optimization interval.
-       */
-      public int optimizationInterval = 100;
-      /**
-       * The Symmetric alpha.
-       */
-      public boolean symmetricAlpha = false;
-   }
 
 }//END OF MalletLDA

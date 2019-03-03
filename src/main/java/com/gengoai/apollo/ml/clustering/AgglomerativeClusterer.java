@@ -24,10 +24,12 @@ package com.gengoai.apollo.ml.clustering;
 
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.ml.DiscretePipeline;
-import com.gengoai.apollo.ml.FitParameters;
+import com.gengoai.apollo.ml.params.Param;
+import com.gengoai.apollo.ml.params.ParamMap;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
+import com.gengoai.apollo.statistics.measure.Distance;
+import com.gengoai.apollo.statistics.measure.Measure;
 import com.gengoai.collection.Iterables;
-import com.gengoai.conversion.Cast;
 import com.gengoai.stream.MStream;
 import com.gengoai.tuple.Tuple3;
 
@@ -49,6 +51,8 @@ import static com.gengoai.tuple.Tuples.$;
  * @author David B. Bracewell
  */
 public class AgglomerativeClusterer extends HierarchicalClusterer {
+   public static final Param<Linkage> linkage = new Param<>("linkage", Linkage.class,
+                                                            "The linkage to use for computing the distance between clusters");
    private static final long serialVersionUID = 1L;
    private final AtomicInteger idGenerator = new AtomicInteger();
 
@@ -72,7 +76,8 @@ public class AgglomerativeClusterer extends HierarchicalClusterer {
 
    private void doTurn(PriorityQueue<Tuple3<Cluster, Cluster, Double>> priorityQueue,
                        List<Cluster> clusters,
-                       Parameters parameters
+                       Linkage linkage,
+                       Measure measure
                       ) {
       Tuple3<Cluster, Cluster, Double> minC = priorityQueue.remove();
       if (minC != null) {
@@ -96,7 +101,7 @@ public class AgglomerativeClusterer extends HierarchicalClusterer {
 
          priorityQueue.addAll(clusters.parallelStream()
                                       .map(c2 -> $(cprime, c2,
-                                                   parameters.linkage.calculate(cprime, c2, parameters.measure)))
+                                                   linkage.calculate(cprime, c2, measure)))
                                       .collect(Collectors.toList()));
 
          clusters.add(cprime);
@@ -105,27 +110,35 @@ public class AgglomerativeClusterer extends HierarchicalClusterer {
    }
 
    @Override
-   public void fit(MStream<NDArray> stream, FitParameters fitParameters) {
-      Parameters parameters = Cast.as(fitParameters);
+   public void fit(MStream<NDArray> stream, ParamMap parameters) {
       idGenerator.set(0);
       List<NDArray> instances = stream.collect();
       PriorityQueue<Tuple3<Cluster, Cluster, Double>> priorityQueue = new PriorityQueue<>(
          Comparator.comparingDouble(Tuple3::getV3));
-      List<Cluster> clusters = initDistanceMatrix(instances, priorityQueue, parameters);
+
+      Linkage linkage = parameters.get(AgglomerativeClusterer.linkage);
+      Measure measure = parameters.get(Clusterer.clusterMeasure);
+
+      List<Cluster> clusters = initDistanceMatrix(instances, priorityQueue, linkage, measure);
       while (clusters.size() > 1) {
-         doTurn(priorityQueue, clusters, parameters);
+         doTurn(priorityQueue, clusters, linkage, measure);
       }
       root = clusters.get(0);
    }
 
    @Override
-   public AgglomerativeClusterer.Parameters getDefaultFitParameters() {
-      return new Parameters();
+   public ParamMap getDefaultFitParameters() {
+      return new ParamMap(
+         verbose.set(false),
+         linkage.set(Linkage.Complete),
+         clusterMeasure.set(Distance.Euclidean)
+      );
    }
 
    private List<Cluster> initDistanceMatrix(List<NDArray> instances,
                                             PriorityQueue<Tuple3<Cluster, Cluster, Double>> priorityQueue,
-                                            Parameters parameters
+                                            Linkage linkage,
+                                            Measure measure
                                            ) {
       List<Cluster> clusters = new ArrayList<>();
       for (NDArray item : instances) {
@@ -143,7 +156,7 @@ public class AgglomerativeClusterer extends HierarchicalClusterer {
                                                            .map(j -> $(clusters.get(i), clusters.get(j))))
                                     .parallel()
                                     .map(
-                                       t -> $(t.v1, t.v2, parameters.linkage.calculate(t.v1, t.v2, parameters.measure)))
+                                       t -> $(t.v1, t.v2, linkage.calculate(t.v1, t.v2, measure)))
                                     .collect(Collectors.toList()));
       return clusters;
    }
@@ -153,15 +166,5 @@ public class AgglomerativeClusterer extends HierarchicalClusterer {
       throw new UnsupportedOperationException();
    }
 
-   /**
-    * {@link FitParameters} for Agglomerative Clustering
-    */
-   public static class Parameters extends ClusterParameters {
-      private static final long serialVersionUID = 1L;
-      /**
-       * The linkage to use for computing the distance between clusters
-       */
-      public Linkage linkage = Linkage.Complete;
-   }
 
 }//END OF AgglomerativeClusterer

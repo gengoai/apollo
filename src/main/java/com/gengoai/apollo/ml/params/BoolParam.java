@@ -20,25 +20,24 @@
  *
  */
 
-package com.gengoai.apollo.ml;
-
-import com.gengoai.apollo.ml.classification.C45Classifier;
-import com.gengoai.apollo.ml.classification.ClassifierEvaluation;
-import com.gengoai.apollo.ml.classification.MultiClassEvaluation;
-import com.gengoai.conversion.Cast;
+package com.gengoai.apollo.ml.params;
 
 /**
+ * A specialized Parameter for Boolean parameters
+ *
  * @author David B. Bracewell
  */
-public class C45ClassifierTest extends BaseClassifierTest {
+public class BoolParam extends Param<Boolean> {
+   private static final long serialVersionUID = 1L;
 
-   public C45ClassifierTest() {
-      super(new C45Classifier(), Model.verbose.set(false));
+   /**
+    * Instantiates a new Boolean parameter.
+    *
+    * @param name        the name
+    * @param description the description
+    */
+   public BoolParam(String name, String description) {
+      super(name, Boolean.class, description);
    }
 
-   @Override
-   public boolean passes(ClassifierEvaluation evaluation) {
-      MultiClassEvaluation mce = Cast.as(evaluation);
-      return mce.microF1() >= 0.85;
-   }
-}//END OF LinearModelTest
+}//END OF BoolParam

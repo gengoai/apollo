@@ -31,14 +31,13 @@ import com.gengoai.apollo.optimization.SGDUpdater;
 /**
  * @author David B. Bracewell
  */
-public class LinearRegressionTest extends BaseRegressionTest<LinearRegression.Parameters> {
+public class LinearRegressionTest extends BaseRegressionTest {
 
    public LinearRegressionTest() {
       super(new LinearRegression(new PerFeatureTransform(ZScoreTransform::new)),
-            new LinearRegression.Parameters()
-               .set("maxIterations", 20)
-               .set("weightUpdater", SGDUpdater.builder().momentum(0d).build())
-               .set("tolerance", 1e-10));
+            Model.maxIterations.set(20),
+            Model.weightUpdater.set(SGDUpdater.builder().momentum(0d).build()),
+            Model.tolerance.set(1e-10));
    }
 
    @Override

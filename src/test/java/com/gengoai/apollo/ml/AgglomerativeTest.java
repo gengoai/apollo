@@ -10,11 +10,10 @@ import com.gengoai.conversion.Cast;
 /**
  * @author David B. Bracewell
  */
-public class AgglomerativeTest extends BaseClustererTest<AgglomerativeClusterer.Parameters> {
+public class AgglomerativeTest extends BaseClustererTest {
 
    public AgglomerativeTest() {
-      super(new AgglomerativeClusterer(new FilterPreprocessor("AutoColumn_0")),
-            new AgglomerativeClusterer.Parameters());
+      super(new AgglomerativeClusterer(new FilterPreprocessor("AutoColumn_0")));
    }
 
 

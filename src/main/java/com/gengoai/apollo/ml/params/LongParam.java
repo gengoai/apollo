@@ -20,25 +20,37 @@
  *
  */
 
-package com.gengoai.apollo.ml;
+package com.gengoai.apollo.ml.params;
 
-import com.gengoai.apollo.ml.classification.C45Classifier;
-import com.gengoai.apollo.ml.classification.ClassifierEvaluation;
-import com.gengoai.apollo.ml.classification.MultiClassEvaluation;
-import com.gengoai.conversion.Cast;
+import java.util.function.Predicate;
 
 /**
+ * A specialized Parameter for Long parameters
+ *
  * @author David B. Bracewell
  */
-public class C45ClassifierTest extends BaseClassifierTest {
+public class LongParam extends Param<Long> {
+   private static final long serialVersionUID = 1L;
 
-   public C45ClassifierTest() {
-      super(new C45Classifier(), Model.verbose.set(false));
+   /**
+    * Instantiates a new IntParam
+    *
+    * @param name        the name
+    * @param description the description
+    */
+   public LongParam(String name, String description) {
+      super(name, Long.class, description);
    }
 
-   @Override
-   public boolean passes(ClassifierEvaluation evaluation) {
-      MultiClassEvaluation mce = Cast.as(evaluation);
-      return mce.microF1() >= 0.85;
+   /**
+    * Instantiates a new IntParam.
+    *
+    * @param name        the name
+    * @param description the description
+    * @param validator   the validator
+    */
+   public LongParam(String name, String description, Predicate<? super Long> validator) {
+      super(name, Long.class, description, validator);
    }
-}//END OF LinearModelTest
+
+}//END OF IntParam

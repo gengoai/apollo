@@ -24,12 +24,14 @@ package com.gengoai.apollo.ml.sequence;
 
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.Feature;
-import com.gengoai.apollo.ml.FitParameters;
 import com.gengoai.apollo.ml.data.Dataset;
+import com.gengoai.apollo.ml.params.DoubleParam;
+import com.gengoai.apollo.ml.params.IntParam;
+import com.gengoai.apollo.ml.params.Param;
+import com.gengoai.apollo.ml.params.ParamMap;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
 import com.gengoai.apollo.ml.preprocess.PreprocessorList;
 import com.gengoai.apollo.ml.vectorizer.NoOptVectorizer;
-import com.gengoai.conversion.Cast;
 import com.gengoai.io.Resources;
 import com.gengoai.io.resource.Resource;
 import com.gengoai.tuple.Tuple2;
@@ -48,9 +50,17 @@ import static com.gengoai.tuple.Tuples.$;
  * @author David B. Bracewell
  */
 public class Crf extends SequenceLabeler implements Serializable {
+   public static final Param<CrfSolver> crfSolver = new Param<>("crfSolver", CrfSolver.class,
+                                                                "The type of solver to use.");
+   public static final DoubleParam C1 = new DoubleParam("c1", "The coefficient for L1 regularization ", i -> i >= 0);
+   public static final DoubleParam C2 = new DoubleParam("c2", "The coefficient for L2 regularization ", i -> i >= 0);
+   public static final IntParam minFeatureFreq = new IntParam("minFeatureFreq",
+                                                              "The minimumn number of times a feature must appear to be kept",
+                                                              i -> i >= 0);
    private static final long serialVersionUID = 1L;
    private String modelFile;
    private volatile CrfTagger tagger;
+
 
    /**
     * Instantiates a new Crf with the given preprocessors.
@@ -76,20 +86,19 @@ public class Crf extends SequenceLabeler implements Serializable {
    }
 
    @Override
-   protected void fitPreprocessed(Dataset dataset, FitParameters parameters) {
-      Parameters fitParameters = Cast.as(parameters);
+   protected void fitPreprocessed(Dataset dataset, ParamMap fitParameters) {
       CrfSuiteLoader.INSTANCE.load();
       Trainer trainer = new Trainer();
       dataset.forEach(sequence -> {
          Tuple2<ItemSequence, StringList> instance = toItemSequence(sequence);
          trainer.append(instance.v1, instance.v2, 0);
       });
-      trainer.select(fitParameters.crfSolver.parameterSetting, "crf1d");
-      trainer.set("max_iterations", Integer.toString(fitParameters.maxIterations));
-      trainer.set("c2", Double.toString(fitParameters.c2));
-      trainer.set("c1", Double.toString(fitParameters.c1));
-      trainer.set("epsilon", Double.toString(fitParameters.eps));
-      trainer.set("feature.minfreq", Integer.toString(fitParameters.minFeatureFreq));
+      trainer.select(fitParameters.get(crfSolver).parameterSetting, "crf1d");
+      trainer.set("max_iterations", Integer.toString(fitParameters.get(maxIterations)));
+      trainer.set("c2", Double.toString(fitParameters.get(C2)));
+      trainer.set("c1", Double.toString(fitParameters.get(C1)));
+      trainer.set("epsilon", Double.toString(fitParameters.get(tolerance)));
+      trainer.set("feature.minfreq", Integer.toString(fitParameters.get(minFeatureFreq)));
       modelFile = Resources.temporaryFile().asFile().orElseThrow(IllegalArgumentException::new).getAbsolutePath();
       trainer.train(modelFile, -1);
       trainer.clear();
@@ -97,8 +106,17 @@ public class Crf extends SequenceLabeler implements Serializable {
    }
 
    @Override
-   public Parameters getDefaultFitParameters() {
-      return new Crf.Parameters();
+   public ParamMap getDefaultFitParameters() {
+      return new ParamMap(
+         verbose.set(false),
+         maxIterations.set(100),
+         tolerance.set(1e-4),
+         minFeatureFreq.set(0),
+         C1.set(0.0),
+         C2.set(1.0),
+         crfSolver.set(CrfSolver.LBFGS),
+         tolerance.set(1e-4)
+      );
    }
 
    @Override
@@ -145,37 +163,5 @@ public class Crf extends SequenceLabeler implements Serializable {
       stream.write(modelBytes);
    }
 
-   /**
-    * Specialized Fit Parameters for use with CRFSuite.
-    */
-   public static class Parameters extends FitParameters {
-      private static final long serialVersionUID = 1L;
-      /**
-       * The coefficient for L1 regularization (default 0.0 - not used)
-       */
-      public double c1 = 0;
-      /**
-       * The coefficient for L2 regularization (default 1.0)
-       */
-      public double c2 = 1.0;
-      /**
-       * The type of solver to use (defaults to LBFGS)
-       */
-      public CrfSolver crfSolver = CrfSolver.LBFGS;
-      /**
-       * The epsilon parameter to determine convergence (default is 1e-5)
-       */
-      public double eps = 1e-5;
-      /**
-       * The maximum number of iterations (defaults to 200)
-       */
-      public int maxIterations = 200;
-      /**
-       * The minimumn number of times a feature must appear to be kept (default 0 - keep all)
-       */
-      public int minFeatureFreq = 0;
-
-
-   }
 
 }//END OF Crf

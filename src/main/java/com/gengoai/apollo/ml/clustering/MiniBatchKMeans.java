@@ -24,11 +24,12 @@ package com.gengoai.apollo.ml.clustering;
 
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.ml.DiscretePipeline;
-import com.gengoai.apollo.ml.FitParameters;
+import com.gengoai.apollo.ml.Model;
+import com.gengoai.apollo.ml.params.ParamMap;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
 import com.gengoai.apollo.optimization.StoppingCriteria;
 import com.gengoai.apollo.statistics.Sampling;
-import com.gengoai.conversion.Cast;
+import com.gengoai.apollo.statistics.measure.Distance;
 import com.gengoai.logging.Logger;
 import com.gengoai.stream.MStream;
 import com.gengoai.tuple.Tuple2;
@@ -39,7 +40,6 @@ import java.util.PrimitiveIterator;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static com.gengoai.Validation.notNull;
 import static com.gengoai.tuple.Tuples.$;
 
 /**
@@ -93,35 +93,39 @@ public class MiniBatchKMeans extends FlatCentroidClusterer {
    }
 
    @Override
-   public void fit(MStream<NDArray> vectors, FitParameters fitParameters) {
-      Parameters p = notNull(Cast.as(fitParameters, Parameters.class));
-      setMeasure(p.measure);
+   public void fit(MStream<NDArray> vectors, ParamMap p) {
+      setMeasure(p.get(clusterMeasure));
 
       List<NDArray> stream = vectors.collect();
-
-      PrimitiveIterator.OfInt itr = Sampling.uniformInts(p.K, 0, stream.size(), false).iterator();
-      for (int i = 0; i < p.K; i++) {
+      final int K = p.get(Clusterer.K);
+      PrimitiveIterator.OfInt itr = Sampling.uniformInts(K, 0, stream.size(), false).iterator();
+      for (int i = 0; i < K; i++) {
          Cluster c = new Cluster();
          c.setId(i);
          c.setCentroid(stream.get(itr.nextInt()).copy());
          add(c);
       }
 
-      final int[] counts = new int[p.K];
-      p.stoppingCriteria.untilTermination(iteration -> iteration(stream, counts, p.batchSize));
+      final int[] counts = new int[K];
+      final int batchSize = p.get(Model.batchSize);
+      StoppingCriteria.create("avg_distance")
+                      .historySize(p.get(historySize))
+                      .maxIterations(p.get(maxIterations))
+                      .tolerance(p.get(tolerance))
+                      .logger(log)
+                      .reportInterval(p.get(verbose) ? p.get(reportInterval) : -1)
+                      .untilTermination(iteration -> iteration(stream, counts, batchSize));
 
-      if (p.retainPoints) {
-         //Assign examples to clusters
-         final Integer[] locks = IntStream.range(0, p.K).boxed().toArray(Integer[]::new);
-         stream.parallelStream()
-               .forEach(v -> {
-                  Tuple2<Integer, Double> best = best(v);
-                  final Cluster c = get(best.v1);
-                  synchronized (locks[c.getId()]) {
-                     c.addPoint(v);
-                  }
-               });
-      }
+      //Assign examples to clusters
+      final Integer[] locks = IntStream.range(0, K).boxed().toArray(Integer[]::new);
+      stream.parallelStream()
+            .forEach(v -> {
+               Tuple2<Integer, Double> best = best(v);
+               final Cluster c = get(best.v1);
+               synchronized (locks[c.getId()]) {
+                  c.addPoint(v);
+               }
+            });
    }
 
    private Tuple2<Integer, Double> best(NDArray v) {
@@ -138,30 +142,18 @@ public class MiniBatchKMeans extends FlatCentroidClusterer {
    }
 
    @Override
-   public MiniBatchKMeans.Parameters getDefaultFitParameters() {
-      return new Parameters();
+   public ParamMap getDefaultFitParameters() {
+      return new ParamMap(
+         verbose.set(false),
+         K.set(2),
+         maxIterations.set(10_000),
+         tolerance.set(1e-3),
+         clusterMeasure.set(Distance.Euclidean),
+         batchSize.set(1000),
+         historySize.set(10),
+         tolerance.set(1e-7),
+         reportInterval.set(50)
+      );
    }
 
-   /**
-    * Fit Parameters for KMeans
-    */
-   public static class Parameters extends ClusterParameters {
-      /**
-       * The number of clusters
-       */
-      public int K = 2;
-      /**
-       * The Batch size.
-       */
-      public int batchSize = 1000;
-
-      public final StoppingCriteria stoppingCriteria = StoppingCriteria.create("avg_distance")
-                                                                       .historySize(10)
-                                                                       .tolerance(1e-7)
-                                                                       .reportInterval(50)
-                                                                       .logger(log)
-                                                                       .maxIterations(1000);
-
-      public boolean retainPoints = true;
-   }
 }//END OF MiniBatchKMeans

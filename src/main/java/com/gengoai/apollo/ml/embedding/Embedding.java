@@ -28,8 +28,10 @@ import com.gengoai.apollo.linear.VectorComposition;
 import com.gengoai.apollo.ml.DiscreteModel;
 import com.gengoai.apollo.ml.DiscretePipeline;
 import com.gengoai.apollo.ml.Example;
-import com.gengoai.apollo.ml.FitParameters;
 import com.gengoai.apollo.ml.data.Dataset;
+import com.gengoai.apollo.ml.params.DoubleParam;
+import com.gengoai.apollo.ml.params.IntParam;
+import com.gengoai.apollo.ml.params.ParamMap;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
 import com.gengoai.apollo.ml.vectorizer.CountFeatureVectorizer;
 import com.gengoai.collection.Streams;
@@ -53,6 +55,15 @@ import java.util.stream.Stream;
  */
 public class Embedding extends DiscreteModel {
    private static final long serialVersionUID = 1L;
+   public static final IntParam dimension = new IntParam("dimension",
+                                                         "The dimension of the generated embedding vectors.",
+                                                         i -> i > 0);
+   public static final IntParam windowSize = new IntParam("windowSize",
+                                                          "The size of the contextual window.",
+                                                          i -> i > 0);
+   public static final DoubleParam learningRate = new DoubleParam("learningRate",
+                                                                  "The learning rate",
+                                                                  i -> i > 0);
    /**
     * The Vector index.
     */
@@ -207,7 +218,7 @@ public class Embedding extends DiscreteModel {
    }
 
    @Override
-   protected void fitPreprocessed(Dataset preprocessed, FitParameters fitParameters) {
+   protected void fitPreprocessed(Dataset preprocessed, ParamMap fitParameters) {
       throw new UnsupportedOperationException();
    }
 
@@ -221,8 +232,8 @@ public class Embedding extends DiscreteModel {
    }
 
    @Override
-   public FitParameters<?> getDefaultFitParameters() {
-      return new FitParameters<>();
+   public ParamMap getDefaultFitParameters() {
+      throw new UnsupportedOperationException();
    }
 
    /**

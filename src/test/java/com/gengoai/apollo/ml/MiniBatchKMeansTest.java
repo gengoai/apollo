@@ -24,7 +24,6 @@ package com.gengoai.apollo.ml;
 
 import com.gengoai.apollo.ml.clustering.MiniBatchKMeans;
 import com.gengoai.apollo.ml.clustering.SilhouetteEvaluation;
-import com.gengoai.conversion.Cast;
 
 /**
  * @author David B. Bracewell
@@ -32,15 +31,16 @@ import com.gengoai.conversion.Cast;
 public class MiniBatchKMeansTest extends BaseClustererTest<MiniBatchKMeans.Parameters> {
 
    public MiniBatchKMeansTest() {
-      super(new MiniBatchKMeans(),
-            Cast.as(new MiniBatchKMeans.Parameters()
-                       .set("K", 10)
-                       .set("maxIterations", 1000)));
+      super(new MiniBatchKMeans(), new MiniBatchKMeans.Parameters()
+                                      .update(p -> {
+                                         p.K = 10;
+                                         p.stoppingCriteria.maxIterations(100)
+                                                           .reportInterval(10);
+                                      }));
    }
 
    @Override
    public boolean passes(SilhouetteEvaluation mce) {
-      mce.output();
       return mce.getAvgSilhouette() >= 0.9;
    }
 

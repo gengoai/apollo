@@ -145,7 +145,7 @@ public class MiniBatchKMeans extends FlatCentroidClusterer {
    /**
     * Fit Parameters for KMeans
     */
-   public static class Parameters extends ClusterParameters {
+   public static class Parameters extends ClusterParameters<Parameters> {
       /**
        * The number of clusters
        */

@@ -185,7 +185,7 @@ public class Glove extends Embedding {
    }
 
    @Override
-   public Parameters getDefaultFitParameters() {
+   public Parameters getFitParameters() {
       return new Parameters();
    }
 

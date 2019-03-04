@@ -138,7 +138,7 @@ public class MiniBatchKMeans extends FlatCentroidClusterer {
    }
 
    @Override
-   public MiniBatchKMeans.Parameters getDefaultFitParameters() {
+   public MiniBatchKMeans.Parameters getFitParameters() {
       return new Parameters();
    }
 

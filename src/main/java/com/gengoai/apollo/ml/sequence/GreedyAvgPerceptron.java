@@ -186,7 +186,7 @@ public class GreedyAvgPerceptron extends SequenceLabeler implements Loggable {
    }
 
    @Override
-   public Parameters getDefaultFitParameters() {
+   public Parameters getFitParameters() {
       return new Parameters();
    }
 

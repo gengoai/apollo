@@ -28,6 +28,7 @@ import cc.mallet.classify.ClassifierTrainer;
 import cc.mallet.types.GainRatio;
 import cc.mallet.util.MalletLogger;
 import com.gengoai.apollo.ml.FitParameters;
+import com.gengoai.apollo.ml.Params;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
 import com.gengoai.conversion.Cast;
 
@@ -55,15 +56,15 @@ public class C45Classifier extends MalletClassifier {
    }
 
    @Override
-   public Parameters getDefaultFitParameters() {
+   public Parameters getFitParameters() {
       return new Parameters();
    }
 
    @Override
-   protected ClassifierTrainer<?> getTrainer(FitParameters parameters) {
+   protected ClassifierTrainer<?> getTrainer(FitParameters<?> parameters) {
       C45Trainer trainer = new C45Trainer();
       Parameters fitParameters = Cast.as(parameters);
-      if (fitParameters.verbose) {
+      if (fitParameters.verbose.value()) {
          MalletLogger.getLogger(C45Trainer.class.getName()).setLevel(Level.INFO);
          MalletLogger.getLogger(GainRatio.class.getName()).setLevel(Level.INFO);
          MalletLogger.getLogger(C45.class.getName()).setLevel(Level.INFO);
@@ -72,10 +73,10 @@ public class C45Classifier extends MalletClassifier {
          MalletLogger.getLogger(GainRatio.class.getName()).setLevel(Level.OFF);
          MalletLogger.getLogger(C45.class.getName()).setLevel(Level.OFF);
       }
-      trainer.setDepthLimited(fitParameters.depthLimited);
-      trainer.setDoPruning(fitParameters.doPruning);
-      trainer.setMaxDepth(fitParameters.maxDepth);
-      trainer.setMinNumInsts(fitParameters.minInstances);
+      trainer.setDepthLimited(fitParameters.depthLimited.value());
+      trainer.setDoPruning(fitParameters.doPruning.value());
+      trainer.setMaxDepth(fitParameters.maxDepth.value());
+      trainer.setMinNumInsts(fitParameters.minInstances.value());
       return trainer;
    }
 
@@ -84,22 +85,11 @@ public class C45Classifier extends MalletClassifier {
     * Fit parameters for C45
     */
    public static class Parameters extends FitParameters<Parameters> {
-      /**
-       * True - limit the depth of the tree, False let the tree get as deep as needed.
-       */
-      public boolean depthLimited = false;
-      /**
-       * True - prune the tree, False no pruning
-       */
-      public boolean doPruning = true;
-      /**
-       * The maximum depth the tree can grow if depth limited.
-       */
-      public int maxDepth = 4;
-      /**
-       * The minimum number of instances a leaf in the tree must contain
-       */
-      public int minInstances = 2;
+      private static final long serialVersionUID = 1L;
+      public final Parameter<Boolean> depthLimited = parameter(Params.Tree.depthLimited, false);
+      public final Parameter<Boolean> doPruning = parameter(Params.Tree.prune, true);
+      public final Parameter<Integer> maxDepth = parameter(Params.Tree.maxDepth, 4);
+      public final Parameter<Integer> minInstances = parameter(Params.Tree.minInstances, 2);
    }
 
 }//END OF C45Classifier

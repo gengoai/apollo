@@ -29,6 +29,7 @@ import com.gengoai.apollo.linear.NDArrayInitializer;
 import com.gengoai.apollo.ml.DiscretePipeline;
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.FitParameters;
+import com.gengoai.apollo.ml.Params;
 import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
 import com.gengoai.apollo.optimization.*;
@@ -81,11 +82,11 @@ public class LinearModel extends Classifier implements Loggable {
       this.weightParameters.numFeatures = getNumberOfFeatures();
       this.weightParameters.numLabels = getNumberOfLabels();
       GradientDescentOptimizer optimizer = GradientDescentOptimizer.builder()
-                                                                   .batchSize(parameters.batchSize).build();
+                                                                   .batchSize(parameters.batchSize.value()).build();
 
       final SerializableSupplier<MStream<NDArray>> dataSupplier;
-      if (parameters.cacheData) {
-         if (parameters.verbose) {
+      if (parameters.cacheData.value()) {
+         if (parameters.verbose.value()) {
             logInfo("Caching dataset...");
          }
          final MStream<NDArray> cached = preprocessed.asVectorStream(getPipeline()).cache();
@@ -96,18 +97,18 @@ public class LinearModel extends Classifier implements Loggable {
       this.weightParameters.update(parameters);
       optimizer.optimize(weightParameters,
                          dataSupplier,
-                         new GradientDescentCostFunction(parameters.lossFunction, -1),
+                         new GradientDescentCostFunction(parameters.lossFunction.value(), -1),
                          StoppingCriteria.create()
-                                         .maxIterations(parameters.maxIterations)
-                                         .historySize(parameters.historySize)
-                                         .tolerance(parameters.tolerance),
-                         parameters.weightUpdater,
-                         parameters.verbose ? parameters.reportInterval
-                                            : -1);
+                                         .maxIterations(parameters.maxIterations.value())
+                                         .historySize(parameters.historySize.value())
+                                         .tolerance(parameters.tolerance.value()),
+                         parameters.weightUpdater.value(),
+                         parameters.verbose.value() ? parameters.reportInterval.value()
+                                                    : -1);
    }
 
    @Override
-   public Parameters getDefaultFitParameters() {
+   public Parameters getFitParameters() {
       return new Parameters();
    }
 
@@ -122,59 +123,17 @@ public class LinearModel extends Classifier implements Loggable {
     */
    public static class Parameters extends FitParameters<Parameters> {
       private static final long serialVersionUID = 1L;
-      /**
-       * The Activation.
-       */
-      public Activation activation = Activation.SIGMOID;
-      /**
-       * The Batch size.
-       */
-      public int batchSize = 20;
-      /**
-       * The Cache data.
-       */
-      public boolean cacheData = true;
-      /**
-       * The History size.
-       */
-      public int historySize = 3;
-      /**
-       * The Loss function.
-       */
-      public LossFunction lossFunction = new LogLoss();
-      /**
-       * The Max iterations.
-       */
-      public int maxIterations = 300;
-      /**
-       * The Report interval.
-       */
-      public int reportInterval = 100;
-      /**
-       * The Tolerance.
-       */
-      public double tolerance = 1e-9;
-      public boolean verbose = false;
-      /**
-       * The Weight updater.
-       */
-      public WeightUpdate weightUpdater = SGDUpdater.builder().build();
+      public final Parameter<Activation> activation = parameter(Params.Optimizable.activation, Activation.SIGMOID);
+      public final Parameter<Integer> batchSize = parameter(Params.Optimizable.batchSize, 32);
+      public final Parameter<Integer> historySize = parameter(Params.Optimizable.historySize, 3);
+      public final Parameter<Integer> maxIterations = parameter(Params.Optimizable.maxIterations, 100);
+      public final Parameter<Integer> reportInterval = parameter(Params.Optimizable.reportInterval, 100);
+      public final Parameter<Double> tolerance = parameter(Params.Optimizable.tolerance, 1e-9);
+      public final Parameter<LossFunction> lossFunction = parameter(Params.Optimizable.lossFunction, new LogLoss());
+      public final Parameter<Boolean> cacheData = parameter(Params.Optimizable.cacheData, true);
+      public final Parameter<WeightUpdate> weightUpdater = parameter(Params.Optimizable.weightUpdate,
+                                                                     SGDUpdater.builder().build());
 
-      @Override
-      public String toString() {
-         return "Parameters{" +
-                   "activation=" + activation +
-                   ", batchSize=" + batchSize +
-                   ", cacheData=" + cacheData +
-                   ", historySize=" + historySize +
-                   ", lossFunction=" + lossFunction +
-                   ", maxIterations=" + maxIterations +
-                   ", tolerance=" + tolerance +
-                   ", weightUpdater=" + weightUpdater +
-                   ", verbose=" + verbose +
-                   ", reportInterval=" + reportInterval +
-                   '}';
-      }
    }
 
    private static class WeightParameters implements LinearModelParameters, Serializable, Copyable<WeightParameters> {
@@ -222,7 +181,7 @@ public class LinearModel extends Classifier implements Loggable {
        */
       public void update(Parameters parameters) {
          int numL = numLabels <= 2 ? 1 : numLabels;
-         this.activation = parameters.activation;
+         this.activation = parameters.activation.value();
          this.weights = NDArrayFactory.DEFAULT().create(NDArrayInitializer.rand, numL, numFeatures);
          this.bias = NDArrayFactory.DEFAULT().zeros(numL);
       }

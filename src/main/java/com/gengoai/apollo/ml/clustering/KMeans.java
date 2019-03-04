@@ -111,7 +111,7 @@ public class KMeans extends FlatCentroidClusterer {
    }
 
    @Override
-   public Parameters getDefaultFitParameters() {
+   public Parameters getFitParameters() {
       return new Parameters();
    }
 

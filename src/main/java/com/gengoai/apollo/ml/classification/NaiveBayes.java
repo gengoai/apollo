@@ -123,7 +123,7 @@ public class NaiveBayes extends Classifier {
    }
 
    @Override
-   public Parameters getDefaultFitParameters() {
+   public Parameters getFitParameters() {
       return new Parameters();
    }
 
@@ -229,7 +229,7 @@ public class NaiveBayes extends Classifier {
    /**
     * Custom {@link FitParameters} for Naive Bayes.
     */
-   public static class Parameters extends FitParameters {
+   public static class Parameters extends FitParameters<Parameters> {
       /**
        * The type of Naive Bayes model to train.
        */

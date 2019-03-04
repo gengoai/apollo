@@ -14,13 +14,13 @@ import java.util.function.IntToDoubleFunction;
  * @author David B. Bracewell
  */
 public final class StoppingCriteria implements Serializable {
-   private final LinkedList<Double> history = new LinkedList<>();
-   private int maxIterations = 100;
-   private int historySize = 5;
-   private double tolerance = 1e-6;
    private final String criteriaName;
-   private int reportInterval = -1;
+   private final LinkedList<Double> history = new LinkedList<>();
+   private int historySize = 5;
    private Logger logger = Logger.getGlobalLogger();
+   private int maxIterations = 100;
+   private int reportInterval = -1;
+   private double tolerance = 1e-6;
 
    private StoppingCriteria(String criteriaName) {
       this.criteriaName = criteriaName;
@@ -64,6 +64,10 @@ public final class StoppingCriteria implements Serializable {
       return converged;
    }
 
+   public String criteriaName() {
+      return this.criteriaName;
+   }
+
    /**
     * History size int.
     *
@@ -93,6 +97,14 @@ public final class StoppingCriteria implements Serializable {
       return history.getFirst();
    }
 
+   public Logger logger() {
+      return logger;
+   }
+
+   public StoppingCriteria logger(Logger logger) {
+      this.logger = logger == null ? Logger.getGlobalLogger() : logger;
+      return this;
+   }
 
    /**
     * Max iterations int.
@@ -111,6 +123,15 @@ public final class StoppingCriteria implements Serializable {
     */
    public StoppingCriteria maxIterations(int maxIterations) {
       this.maxIterations = maxIterations;
+      return this;
+   }
+
+   public int reportInterval() {
+      return reportInterval;
+   }
+
+   public StoppingCriteria reportInterval(int reportInterval) {
+      this.reportInterval = reportInterval;
       return this;
    }
 
@@ -133,32 +154,6 @@ public final class StoppingCriteria implements Serializable {
       this.tolerance = tolerance;
       return this;
    }
-
-
-   public String criteriaName() {
-      return this.criteriaName;
-   }
-
-
-   public int reportInterval() {
-      return reportInterval;
-   }
-
-   public StoppingCriteria reportInterval(int reportInterval) {
-      this.reportInterval = reportInterval;
-      return this;
-   }
-
-
-   public Logger logger() {
-      return logger;
-   }
-
-   public StoppingCriteria logger(Logger logger) {
-      this.logger = logger == null ? Logger.getGlobalLogger() : logger;
-      return this;
-   }
-
 
    public int untilTermination(IntToDoubleFunction iteration) {
       Stopwatch sw = Stopwatch.createStopped();

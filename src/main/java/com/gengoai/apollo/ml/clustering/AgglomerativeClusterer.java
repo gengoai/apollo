@@ -119,7 +119,7 @@ public class AgglomerativeClusterer extends HierarchicalClusterer {
    }
 
    @Override
-   public AgglomerativeClusterer.Parameters getDefaultFitParameters() {
+   public AgglomerativeClusterer.Parameters getFitParameters() {
       return new Parameters();
    }
 

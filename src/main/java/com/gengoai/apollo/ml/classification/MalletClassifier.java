@@ -102,7 +102,7 @@ public abstract class MalletClassifier extends Classifier {
     * @param parameters the parameters
     * @return the trainer
     */
-   protected abstract ClassifierTrainer<?> getTrainer(FitParameters parameters);
+   protected abstract ClassifierTrainer<?> getTrainer(FitParameters<?> parameters);
 
    @Override
    public Classification predict(Example example) {

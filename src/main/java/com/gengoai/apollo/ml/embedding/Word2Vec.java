@@ -77,7 +77,7 @@ public class Word2Vec extends Embedding {
    }
 
    @Override
-   public Word2Vec.Parameters getDefaultFitParameters() {
+   public Word2Vec.Parameters getFitParameters() {
       return new Parameters();
    }
 

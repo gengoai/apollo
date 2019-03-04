@@ -106,7 +106,7 @@ public class LSA extends TopicModel {
    }
 
    @Override
-   public LSA.Parameters getDefaultFitParameters() {
+   public LSA.Parameters getFitParameters() {
       return new Parameters();
    }
 

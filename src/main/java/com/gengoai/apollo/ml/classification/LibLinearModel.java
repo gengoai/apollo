@@ -77,14 +77,14 @@ public class LibLinearModel extends Classifier implements Loggable {
                                           fitParameters.eps,
                                           fitParameters.maxIterations,
                                           fitParameters.p),
-                            fitParameters.verbose,
+                            fitParameters.verbose.value(),
                             getNumberOfFeatures(),
                             biasIndex
                            );
    }
 
    @Override
-   public Parameters getDefaultFitParameters() {
+   public Parameters getFitParameters() {
       return new Parameters();
    }
 
@@ -125,7 +125,6 @@ public class LibLinearModel extends Classifier implements Loggable {
        * The Solver to use. (default L2R_LR)
        */
       public SolverType solver = SolverType.L2R_LR;
-      public boolean verbose = false;
 
    }
 }//END OF LibLinearModel

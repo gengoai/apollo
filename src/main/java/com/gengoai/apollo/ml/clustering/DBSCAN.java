@@ -100,7 +100,7 @@ public class DBSCAN extends FlatCentroidClusterer {
 
 
    @Override
-   public Parameters getDefaultFitParameters() {
+   public Parameters getFitParameters() {
       return new Parameters();
    }
 

@@ -91,7 +91,7 @@ public class LinearRegression extends Regression {
    }
 
    @Override
-   public LinearRegression.Parameters getDefaultFitParameters() {
+   public LinearRegression.Parameters getFitParameters() {
       return new Parameters();
    }
 

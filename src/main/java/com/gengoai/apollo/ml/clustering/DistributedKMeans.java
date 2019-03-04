@@ -94,7 +94,7 @@ public class DistributedKMeans extends FlatCentroidClusterer {
 
 
    @Override
-   public DistributedKMeans.Parameters getDefaultFitParameters() {
+   public DistributedKMeans.Parameters getFitParameters() {
       return new Parameters();
    }
 

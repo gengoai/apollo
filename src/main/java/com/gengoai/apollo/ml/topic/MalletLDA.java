@@ -114,7 +114,7 @@ public class MalletLDA extends TopicModel {
    }
 
    @Override
-   public MalletLDA.Parameters getDefaultFitParameters() {
+   public MalletLDA.Parameters getFitParameters() {
       return new Parameters();
    }
 

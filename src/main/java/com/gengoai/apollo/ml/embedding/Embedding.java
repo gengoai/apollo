@@ -221,7 +221,7 @@ public class Embedding extends DiscreteModel {
    }
 
    @Override
-   public FitParameters<?> getDefaultFitParameters() {
+   public FitParameters<?> getFitParameters() {
       return new FitParameters<>();
    }
 

@@ -44,7 +44,7 @@ class DummyFlatClusterer extends FlatCentroidClusterer {
    }
 
    @Override
-   public FitParameters getDefaultFitParameters() {
+   public FitParameters getFitParameters() {
       throw new UnsupportedOperationException();
    }
 

@@ -22,7 +22,7 @@
 
 package com.gengoai.apollo.ml;
 
-import com.gengoai.Parameters;
+import com.gengoai.ParamMap;
 
 /**
  * <p>
@@ -32,16 +32,12 @@ import com.gengoai.Parameters;
  *
  * @author David B. Bracewell
  */
-public class FitParameters<T extends FitParameters> implements Parameters<T> {
+public class FitParameters<T extends FitParameters> extends ParamMap<T> {
    private static final long serialVersionUID = 1L;
    /**
     * Whether or not to be verbose when fitting and transforming with the model
     */
-   public boolean verbose = false;
+   public final Parameter<Boolean> verbose = parameter(Params.verbose, false);
 
 
-   @Override
-   public String toString() {
-      return asString();
-   }
 }//END OF FitParameters

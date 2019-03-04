@@ -97,7 +97,7 @@ public class Crf extends SequenceLabeler implements Serializable {
    }
 
    @Override
-   public Parameters getDefaultFitParameters() {
+   public Parameters getFitParameters() {
       return new Crf.Parameters();
    }
 

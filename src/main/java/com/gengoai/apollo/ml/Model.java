@@ -74,7 +74,7 @@ public abstract class Model implements Serializable {
     */
    public final void fit(Dataset dataset) {
       notNull(dataset);
-      fit(dataset, getDefaultFitParameters());
+      fit(dataset, getFitParameters());
    }
 
    /**
@@ -87,7 +87,7 @@ public abstract class Model implements Serializable {
    public final void fit(Dataset dataset, Consumer<? extends FitParameters> parameterUpdater) {
       notNull(dataset);
       notNull(parameterUpdater);
-      FitParameters parameters = getDefaultFitParameters();
+      FitParameters parameters = getFitParameters();
       parameterUpdater.accept(Cast.as(parameters));
       fit(dataset, parameters);
    }
@@ -98,16 +98,16 @@ public abstract class Model implements Serializable {
     * @param dataset       the dataset
     * @param fitParameters the fit parameters
     */
-   public final void fit(Dataset dataset, FitParameters fitParameters) {
+   public final void fit(Dataset dataset, FitParameters<?> fitParameters) {
       notNull(dataset);
       notNull(fitParameters);
       Stopwatch sw = Stopwatch.createStarted();
-      if (fitParameters.verbose) {
+      if (fitParameters.verbose.value()) {
          log.info("Preprocessing...");
       }
       Dataset preprocessed = getPipeline().fitAndPreprocess(dataset).cache();
       sw.stop();
-      if (fitParameters.verbose) {
+      if (fitParameters.verbose.value()) {
          log.info("Preprocessing completed. ({0})", sw);
       }
       fitPreprocessed(preprocessed, fitParameters);
@@ -126,7 +126,7 @@ public abstract class Model implements Serializable {
     *
     * @return the default fit parameters
     */
-   public abstract FitParameters<?> getDefaultFitParameters();
+   public abstract FitParameters<?> getFitParameters();
 
    /**
     * Gets the pipeline associated with the model. Subclasses should override the return type to match the requirements

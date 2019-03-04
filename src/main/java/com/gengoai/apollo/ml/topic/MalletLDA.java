@@ -31,12 +31,14 @@ import cc.mallet.types.Alphabet;
 import cc.mallet.types.IDSorter;
 import cc.mallet.types.Instance;
 import cc.mallet.types.InstanceList;
+import com.gengoai.Param;
 import com.gengoai.SystemInfo;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.ml.DiscretePipeline;
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.FitParameters;
+import com.gengoai.apollo.ml.Params;
 import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
 import com.gengoai.apollo.ml.vectorizer.InstanceToTokenSequence;
@@ -85,7 +87,7 @@ public class MalletLDA extends TopicModel {
    @Override
    protected void fitPreprocessed(Dataset preprocessed, FitParameters fitParameters) {
       Parameters p = Cast.as(fitParameters);
-      if (p.verbose) {
+      if (p.verbose.value()) {
          ParallelTopicModel.logger.setLevel(Level.INFO);
       } else {
          ParallelTopicModel.logger.setLevel(Level.OFF);
@@ -96,19 +98,19 @@ public class MalletLDA extends TopicModel {
       InstanceList trainingData = new InstanceList(pipes);
       preprocessed.forEach(i -> trainingData.addThruPipe(
          new Instance(i, i.getLabel() == null ? "" : i.getLabel().toString(), null, null)));
-      topicModel = new ParallelTopicModel(p.K);
+      topicModel = new ParallelTopicModel(p.K.value());
       topicModel.addInstances(trainingData);
-      topicModel.setNumIterations(p.maxIterations);
+      topicModel.setNumIterations(p.maxIterations.value());
       topicModel.setNumThreads(SystemInfo.NUMBER_OF_PROCESSORS - 1);
-      topicModel.setBurninPeriod(p.burnIn);
-      topicModel.setOptimizeInterval(p.optimizationInterval);
-      topicModel.setSymmetricAlpha(p.symmetricAlpha);
+      topicModel.setBurninPeriod(p.burnIn.value());
+      topicModel.setOptimizeInterval(p.optimizationInterval.value());
+      topicModel.setSymmetricAlpha(p.symmetricAlpha.value());
       try {
          topicModel.estimate();
       } catch (IOException e) {
          throw new RuntimeException(e);
       }
-      for (int i = 0; i < p.K; i++) {
+      for (int i = 0; i < p.K.value(); i++) {
          topics.add(createTopic(i));
       }
    }
@@ -161,30 +163,35 @@ public class MalletLDA extends TopicModel {
       return NDArrayFactory.rowVector(dist);
    }
 
+
+   public static final Param<Integer> burnIn = Param.intParam("burnIn");
+   public static final Param<Integer> optimizationInterval = Param.intParam("optimizationInterval");
+   public static final Param<Boolean> symmetricAlpha = Param.boolParam("symmetricAlpha");
+
    /**
     * The type Parameters.
     */
-   public static class Parameters extends FitParameters {
+   public static class Parameters extends FitParameters<Parameters> {
       /**
        * The K.
        */
-      public int K = 100;
+      public final Parameter<Integer> K = parameter(Params.Clustering.K, 100);
       /**
        * The Burn in.
        */
-      public int burnIn = 500;
+      public final Parameter<Integer> burnIn = parameter(MalletLDA.burnIn, 500);
       /**
        * The Max iterations.
        */
-      public int maxIterations = 2000;
+      public final Parameter<Integer> maxIterations = parameter(Params.Optimizable.maxIterations, 2000);
       /**
        * The Optimization interval.
        */
-      public int optimizationInterval = 100;
+      public final Parameter<Integer> optimizationInterval = parameter(MalletLDA.optimizationInterval, 100);
       /**
        * The Symmetric alpha.
        */
-      public boolean symmetricAlpha = false;
+      public final Parameter<Boolean> symmetricAlpha = parameter(MalletLDA.symmetricAlpha, false);
    }
 
 }//END OF MalletLDA

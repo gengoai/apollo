@@ -26,6 +26,7 @@ import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.ml.DiscretePipeline;
 import com.gengoai.apollo.ml.FitParameters;
+import com.gengoai.apollo.ml.Params;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
 import com.gengoai.apollo.statistics.measure.Distance;
 import com.gengoai.conversion.Cast;
@@ -66,9 +67,9 @@ public class DistributedKMeans extends FlatCentroidClusterer {
    public void fit(MStream<NDArray> dataSupplier, FitParameters parameters) {
       Parameters fitParameters = Cast.as(parameters);
       org.apache.spark.mllib.clustering.KMeans kMeans = new org.apache.spark.mllib.clustering.KMeans();
-      kMeans.setK(fitParameters.K);
-      kMeans.setMaxIterations(fitParameters.maxIterations);
-      kMeans.setEpsilon(fitParameters.tolerance);
+      kMeans.setK(fitParameters.K.value());
+      kMeans.setMaxIterations(fitParameters.maxIterations.value());
+      kMeans.setEpsilon(fitParameters.tolerance.value());
       setMeasure(Distance.Euclidean);
       KMeansModel model = kMeans.run(dataSupplier
                                         .toDistributedStream()
@@ -101,19 +102,19 @@ public class DistributedKMeans extends FlatCentroidClusterer {
    /**
     * Fit Parameters for KMeans
     */
-   public static class Parameters extends ClusterParameters {
+   public static class Parameters extends ClusterParameters<Parameters> {
       /**
        * The number of clusters
        */
-      public int K = 2;
+      public final Parameter<Integer> K = parameter(Params.Clustering.K, 2);
       /**
        * The maximum number of iterations to run the clusterer for
        */
-      public int maxIterations = 100;
+      public final Parameter<Integer> maxIterations = parameter(Params.Optimizable.maxIterations, 100);
       /**
        * The tolerance in change of in-group variance for determining if k-means has converged
        */
-      public double tolerance = 1e-3;
+      public final Parameter<Double> tolerance = parameter(Params.Optimizable.tolerance, 1e-3);
 
    }
 }//END OF DistributedKMeans

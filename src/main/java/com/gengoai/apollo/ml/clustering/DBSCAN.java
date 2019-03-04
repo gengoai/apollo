@@ -22,6 +22,7 @@
 
 package com.gengoai.apollo.ml.clustering;
 
+import com.gengoai.Param;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.ml.DiscretePipeline;
 import com.gengoai.apollo.ml.FitParameters;
@@ -64,11 +65,11 @@ public class DBSCAN extends FlatCentroidClusterer {
    @Override
    public void fit(MStream<NDArray> vectorStream, FitParameters parameters) {
       Parameters fitParameters = Cast.as(parameters);
-      setMeasure(fitParameters.measure);
-      DBSCANClusterer<ApacheClusterable> clusterer = new DBSCANClusterer<>(fitParameters.eps,
-                                                                           fitParameters.minPts,
+      setMeasure(fitParameters.measure.value());
+      DBSCANClusterer<ApacheClusterable> clusterer = new DBSCANClusterer<>(fitParameters.eps.value(),
+                                                                           fitParameters.minPts.value(),
                                                                            new ApacheDistanceMeasure(
-                                                                              fitParameters.measure));
+                                                                              fitParameters.measure.value()));
       List<ApacheClusterable> apacheClusterables = vectorStream.parallel()
                                                                .map(ApacheClusterable::new)
                                                                .collect();
@@ -85,11 +86,11 @@ public class DBSCAN extends FlatCentroidClusterer {
       apacheClusterables.forEach(a -> {
          NDArray n = a.getVector();
          int index = -1;
-         double score = fitParameters.measure.getOptimum().startingValue();
+         double score = fitParameters.measure.value().getOptimum().startingValue();
          for (int i = 0; i < size(); i++) {
             Cluster c = get(i);
-            double s = fitParameters.measure.calculate(n, c.getCentroid());
-            if (fitParameters.measure.getOptimum().test(s, score)) {
+            double s = fitParameters.measure.value().calculate(n, c.getCentroid());
+            if (fitParameters.measure.value().getOptimum().test(s, score)) {
                index = i;
                score = s;
             }
@@ -104,18 +105,21 @@ public class DBSCAN extends FlatCentroidClusterer {
       return new Parameters();
    }
 
+   public static final Param<Double> eps = Param.doubleParam("eps");
+   public static final Param<Integer> minPts = Param.intParam("minPts");
+
    /**
     * FitParameters for DBSCAN
     */
-   public static class Parameters extends ClusterParameters {
+   public static class Parameters extends ClusterParameters<Parameters> {
       /**
        * the maximum distance between two vectors to be in the same region
        */
-      public double eps = 1.0;
+      public final Parameter<Double> eps = parameter(DBSCAN.eps, 1.0);
       /**
        * the minimum number of points to form  a dense region
        */
-      public int minPts = 2;
+      public final Parameter<Integer> minPts = parameter(DBSCAN.minPts, 2);
    }
 
 }//END OF DBSCAN

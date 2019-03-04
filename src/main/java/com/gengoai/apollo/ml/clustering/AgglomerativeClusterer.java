@@ -25,6 +25,7 @@ package com.gengoai.apollo.ml.clustering;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.ml.DiscretePipeline;
 import com.gengoai.apollo.ml.FitParameters;
+import com.gengoai.apollo.ml.Params;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
 import com.gengoai.collection.Iterables;
 import com.gengoai.conversion.Cast;
@@ -96,7 +97,9 @@ public class AgglomerativeClusterer extends HierarchicalClusterer {
 
          priorityQueue.addAll(clusters.parallelStream()
                                       .map(c2 -> $(cprime, c2,
-                                                   parameters.linkage.calculate(cprime, c2, parameters.measure)))
+                                                   parameters.linkage.value()
+                                                                     .calculate(cprime, c2,
+                                                                                parameters.measure.value())))
                                       .collect(Collectors.toList()));
 
          clusters.add(cprime);
@@ -143,7 +146,9 @@ public class AgglomerativeClusterer extends HierarchicalClusterer {
                                                            .map(j -> $(clusters.get(i), clusters.get(j))))
                                     .parallel()
                                     .map(
-                                       t -> $(t.v1, t.v2, parameters.linkage.calculate(t.v1, t.v2, parameters.measure)))
+                                       t -> $(t.v1, t.v2,
+                                              parameters.linkage.value()
+                                                                .calculate(t.v1, t.v2, parameters.measure.value())))
                                     .collect(Collectors.toList()));
       return clusters;
    }
@@ -156,12 +161,12 @@ public class AgglomerativeClusterer extends HierarchicalClusterer {
    /**
     * {@link FitParameters} for Agglomerative Clustering
     */
-   public static class Parameters extends ClusterParameters {
+   public static class Parameters extends ClusterParameters<Parameters> {
       private static final long serialVersionUID = 1L;
       /**
        * The linkage to use for computing the distance between clusters
        */
-      public Linkage linkage = Linkage.Complete;
+      public final Parameter<Linkage> linkage = parameter(Params.Clustering.linkage, Linkage.Complete);
    }
 
 }//END OF AgglomerativeClusterer

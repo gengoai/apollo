@@ -22,6 +22,7 @@
 
 package com.gengoai.apollo.ml.classification;
 
+import com.gengoai.Param;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.ml.DiscretePipeline;
@@ -74,7 +75,7 @@ public class NaiveBayes extends Classifier {
       Parameters parameters = Cast.as(fitParameters);
       conditionals = new double[getNumberOfFeatures()][getNumberOfLabels()];
       priors = new double[getNumberOfLabels()];
-      modelType = parameters.modelType;
+      modelType = parameters.modelType.value();
       double[] labelCounts = new double[getNumberOfLabels()];
 
       double N = 0;
@@ -226,6 +227,8 @@ public class NaiveBayes extends Classifier {
 
    }
 
+   public static final Param<ModelType> modelTypeParam = new Param<>("modelType", ModelType.class);
+
    /**
     * Custom {@link FitParameters} for Naive Bayes.
     */
@@ -233,6 +236,6 @@ public class NaiveBayes extends Classifier {
       /**
        * The type of Naive Bayes model to train.
        */
-      public ModelType modelType = ModelType.Bernoulli;
+      public final Parameter<ModelType> modelType = parameter(modelTypeParam, ModelType.Bernoulli);
    }
 }//END OF NaiveBayes

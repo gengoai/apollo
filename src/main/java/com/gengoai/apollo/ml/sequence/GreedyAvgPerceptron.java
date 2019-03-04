@@ -172,7 +172,7 @@ public class GreedyAvgPerceptron extends SequenceLabeler implements Loggable {
          double error = 1d - (correct / total);
 
          sw.stop();
-         if (parameters.verbose) {
+         if (parameters.verbose.value()) {
             logInfo("Iteration {0}: Accuracy={1,number,#.####}, time to complete={2}", i + 1, (1d - error), sw);
          }
 
@@ -257,7 +257,7 @@ public class GreedyAvgPerceptron extends SequenceLabeler implements Loggable {
    /**
     * Custom fit parameters for the GreedyAveragePerceptron
     */
-   public static class Parameters extends FitParameters {
+   public static class Parameters extends FitParameters<Parameters> {
       private static final long serialVersionUID = 1L;
       /**
        * The epsilon to use for checking for convergence.

@@ -28,6 +28,7 @@ import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.ml.DiscretePipeline;
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.FitParameters;
+import com.gengoai.apollo.ml.Params;
 import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
 import com.gengoai.collection.counter.Counter;
@@ -94,8 +95,8 @@ public class LSA extends TopicModel {
       //since we have document x word, V is the word x component matrix
       // U = document x component, E = singular components, V = word x component
       // Transpose V to get component (topics) x words
-      NDArray topicMatrix = toMatrix(sparkSVD(mat, parameters.K).V().transpose());
-      for (int i = 0; i < parameters.K; i++) {
+      NDArray topicMatrix = toMatrix(sparkSVD(mat, parameters.K.value()).V().transpose());
+      for (int i = 0; i < parameters.K.value(); i++) {
          Counter<String> featureDist = Counters.newCounter();
          NDArray dist = NDArrayFactory.columnVector(topicMatrix.getVector(i, Axis.ROW).toDoubleArray());
          dist.forEachSparse(
@@ -113,11 +114,11 @@ public class LSA extends TopicModel {
    /**
     * The type Parameters.
     */
-   public static class Parameters extends FitParameters {
+   public static class Parameters extends FitParameters<Parameters> {
       /**
        * The K.
        */
-      public int K = 100;
+      public final Parameter<Integer> K = parameter(Params.Clustering.K, 100);
    }
 
    @Override

@@ -22,12 +22,14 @@
 
 package com.gengoai.apollo.ml.embedding;
 
+import com.gengoai.Param;
 import com.gengoai.Stopwatch;
 import com.gengoai.apollo.linear.DenseNDArray;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.ml.DiscretePipeline;
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.FitParameters;
+import com.gengoai.apollo.ml.Params;
 import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
 import com.gengoai.collection.counter.Counter;
@@ -82,7 +84,7 @@ public class Glove extends Embedding {
          List<Integer> ids = toIndices(example);
          for (int i = 1; i < ids.size(); i++) {
             int iW = ids.get(i);
-            for (int j = Math.max(0, i - p.windowSize); j < i; j++) {
+            for (int j = Math.max(0, i - p.windowSize.value()); j < i; j++) {
                int jW = ids.get(j);
                double incrementBy = 1.0 / (i - j);
                counts.increment(new IntIntPair(iW, jW), incrementBy);
@@ -96,7 +98,7 @@ public class Glove extends Embedding {
       }
 
       sw.stop();
-      if (p.verbose) {
+      if (p.verbose.value()) {
          log.info("Cooccurrence Matrix computed in {0}", sw);
       }
 
@@ -113,17 +115,17 @@ public class Glove extends Embedding {
       DoubleMatrix[] W = new DoubleMatrix[getNumberOfFeatures() * 2];
       DoubleMatrix[] gradSq = new DoubleMatrix[getNumberOfFeatures() * 2];
       for (int i = 0; i < getNumberOfFeatures() * 2; i++) {
-         W[i] = DoubleMatrix.rand(p.dimension).sub(0.5f).divi(p.dimension);
-         gradSq[i] = DoubleMatrix.ones(p.dimension);
+         W[i] = DoubleMatrix.rand(p.dimension.value()).sub(0.5f).divi(p.dimension.value());
+         gradSq[i] = DoubleMatrix.ones(p.dimension.value());
       }
 
-      DoubleMatrix biases = DoubleMatrix.rand(getNumberOfFeatures() * 2).sub(0.5f).divi(p.dimension);
+      DoubleMatrix biases = DoubleMatrix.rand(getNumberOfFeatures() * 2).sub(0.5f).divi(p.dimension.value());
       DoubleMatrix gradSqBiases = DoubleMatrix.ones(getNumberOfFeatures() * 2);
 
 
       int vocabLength = getNumberOfFeatures();
 
-      for (int itr = 0; itr < p.maxIterations; itr++) {
+      for (int itr = 0; itr < p.maxIterations.value(); itr++) {
          double globalCost = 0d;
          Collections.shuffle(cooccurrences);
 
@@ -144,13 +146,13 @@ public class Glove extends Embedding {
 
 
             double diff = v_main.dot(v_context) + b_main + b_context - Math.log(count);
-            double fdiff = count > p.xMax
+            double fdiff = count > p.xMax.value()
                            ? diff
-                           : Math.pow(count / p.xMax, p.alpha) * diff;
+                           : Math.pow(count / p.xMax.value(), p.alpha.value()) * diff;
 
             globalCost += 0.5 * fdiff * diff;
 
-            fdiff *= p.learningRate;
+            fdiff *= p.learningRate.value();
             //Gradients for word vector terms
             DoubleMatrix grad_main = v_context.mmul(fdiff);
             DoubleMatrix grad_context = v_main.mmul(fdiff);
@@ -168,7 +170,7 @@ public class Glove extends Embedding {
             gradSqBiases.put(iContext, gradSqBiases.get(iContext) + fdiff);
          }
 
-         if (p.verbose) {
+         if (p.verbose.value()) {
             log.info("Iteration: {0},  cost:{1}", (itr + 1), globalCost / cooccurrences.size());
          }
 
@@ -261,34 +263,28 @@ public class Glove extends Embedding {
       }
    }
 
+   public static final Param<Double> alpha = Param.doubleParam("alpha");
+   public static final Param<Integer> xMax = Param.intParam("xMax");
+
    /**
     * The type Parameters.
     */
-   public static class Parameters extends EmbeddingFitParameters {
+   public static class Parameters extends EmbeddingFitParameters<Parameters> {
       /**
        * The Alpha.
        */
-      public double alpha = 0.75;
-      /**
-       * The Dimension.
-       */
-      public int dimension = 50;
+      public final Parameter<Double> alpha = parameter(Glove.alpha, 0.75);
       /**
        * The Learning rate.
        */
-      public double learningRate = 0.05;
+      public final Parameter<Double> learningRate = parameter(Params.Optimizable.learningRate, 0.05);
       /**
        * The X max.
        */
-      public int xMax = 100;
+      public final Parameter<Integer> xMax = parameter(Glove.xMax, 100);
       /**
        * The Max iterations.
        */
-      public int maxIterations = 25;
-      /**
-       * The Window size.
-       */
-      public int windowSize = 3;
-
+      public final Parameter<Integer> maxIterations = parameter(Params.Optimizable.maxIterations, 25);
    }
 }//END OF Glove

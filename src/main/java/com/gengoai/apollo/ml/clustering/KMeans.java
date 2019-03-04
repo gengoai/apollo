@@ -27,6 +27,7 @@ import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.linear.NDArrayInitializer;
 import com.gengoai.apollo.ml.DiscretePipeline;
 import com.gengoai.apollo.ml.FitParameters;
+import com.gengoai.apollo.ml.Params;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
 import com.gengoai.apollo.optimization.StoppingCriteria;
 import com.gengoai.apollo.statistics.measure.Measure;
@@ -72,20 +73,20 @@ public class KMeans extends FlatCentroidClusterer {
    @Override
    public void fit(MStream<NDArray> vectors, FitParameters parameters) {
       Parameters fitParameters = Cast.as(parameters);
-      setMeasure(fitParameters.measure);
+      setMeasure(fitParameters.measure.value());
 
       List<NDArray> instances = vectors.collect();
-      for (NDArray centroid : initCentroids(fitParameters.K, instances)) {
+      for (NDArray centroid : initCentroids(fitParameters.K.value(), instances)) {
          Cluster c = new Cluster();
          c.setCentroid(centroid);
          add(c);
       }
-      final Measure measure = fitParameters.measure;
+      final Measure measure = fitParameters.measure.value();
 
       StoppingCriteria.create("numPointsChanged")
                       .historySize(3)
-                      .maxIterations(fitParameters.maxIterations)
-                      .tolerance(fitParameters.tolerance)
+                      .maxIterations(fitParameters.maxIterations.value())
+                      .tolerance(fitParameters.tolerance.value())
                       .reportInterval(1)
                       .logger(log)
                       .untilTermination(itr -> this.iteration(instances));
@@ -192,15 +193,14 @@ public class KMeans extends FlatCentroidClusterer {
       /**
        * The number of clusters
        */
-      public int K = 2;
+      public final Parameter<Integer> K = parameter(Params.Clustering.K, 2);
       /**
        * The maximum number of iterations to run the clusterer for
        */
-      public int maxIterations = 100;
+      public final Parameter<Integer> maxIterations = parameter(Params.Optimizable.maxIterations, 100);
       /**
        * The tolerance in change of in-group variance for determining if k-means has converged
        */
-      public double tolerance = 1e-3;
-
+      public final Parameter<Double> tolerance = parameter(Params.Optimizable.tolerance, 1e-3);
    }
 }//END OF KMeans

@@ -18,7 +18,7 @@ import static org.junit.Assert.*;
 /**
  * @author David B. Bracewell
  */
-public abstract class BaseClustererTest<T extends ClusterParameters> {
+public abstract class BaseClustererTest<T extends ClusterParameters<T>> {
    private final Clusterer  clusterer;
    private final T fitParameters;
 
@@ -34,7 +34,7 @@ public abstract class BaseClustererTest<T extends ClusterParameters> {
 
    @Test
    public void fitAndEvaluate() {
-      SilhouetteEvaluation evaluation = new SilhouetteEvaluation(fitParameters.measure);
+      SilhouetteEvaluation evaluation = new SilhouetteEvaluation(fitParameters.measure.value());
       clusterer.fit(loadWaterData(), fitParameters);
       evaluation.evaluate(convertClustering(clusterer));
       assertTrue(passes(evaluation));

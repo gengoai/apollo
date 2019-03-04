@@ -23,6 +23,7 @@
 package com.gengoai.apollo.ml;
 
 import com.gengoai.Param;
+import com.gengoai.apollo.ml.clustering.Linkage;
 import com.gengoai.apollo.optimization.WeightUpdate;
 import com.gengoai.apollo.optimization.activation.Activation;
 import com.gengoai.apollo.optimization.loss.LossFunction;
@@ -41,6 +42,7 @@ public final class Params {
       public static final Param<Integer> historySize = Param.intParam("historySize");
       public static final Param<Integer> batchSize = Param.intParam("batchSize");
       public static final Param<Double> tolerance = Param.doubleParam("tolerance");
+      public static final Param<Double> learningRate = Param.doubleParam("learningRate");
       public static final Param<Activation> activation = new Param<>("activation", Activation.class);
       public static final Param<LossFunction> lossFunction = new Param<>("lossFunction", LossFunction.class);
       public static final Param<Boolean> cacheData = Param.boolParam("cacheData");
@@ -57,10 +59,12 @@ public final class Params {
    public static final class Clustering {
       public static final Param<Integer> K = Param.intParam("K");
       public static final Param<Measure> measure = new Param<>("measure", Measure.class);
+      public static final Param<Linkage> linkage = new Param<>("linkage", Linkage.class);
    }
 
    public static final class Embedding {
       public static final Param<Integer> dimension = Param.intParam("dimension");
+      public static final Param<Integer> windowSize = Param.intParam("windowSize");
    }
 
 

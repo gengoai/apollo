@@ -25,6 +25,7 @@ package com.gengoai.apollo.ml.embedding;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.ml.FitParameters;
+import com.gengoai.apollo.ml.Params;
 import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
 import com.gengoai.conversion.Cast;
@@ -57,11 +58,11 @@ public class Word2Vec extends Embedding {
       Parameters p = notNull(Cast.as(fitParameters, Parameters.class));
       org.apache.spark.mllib.feature.Word2Vec w2v = new org.apache.spark.mllib.feature.Word2Vec();
       w2v.setMinCount(1);
-      w2v.setVectorSize(p.dimension);
-      w2v.setLearningRate(p.learningRate);
-      w2v.setNumIterations(p.numIterations);
-      w2v.setWindowSize(p.windowSize);
-      w2v.setSeed(p.randomSeed);
+      w2v.setVectorSize(p.dimension.value());
+      w2v.setLearningRate(p.learningRate.value());
+      w2v.setNumIterations(p.maxIterations.value());
+      w2v.setWindowSize(p.windowSize.value());
+      w2v.setSeed(new Date().getTime());
       w2v.setMinCount(1);
       Word2VecModel model = w2v.fit(preprocessed.stream()
                                                 .toDistributedStream()
@@ -84,27 +85,15 @@ public class Word2Vec extends Embedding {
    /**
     * FitParameters for Word2Vec
     */
-   public static class Parameters extends EmbeddingFitParameters {
+   public static class Parameters extends EmbeddingFitParameters<Parameters> {
       /**
-       * The dimension of the embeddings (default = 100)
+       * The Learning rate.
        */
-      public int dimension = 100;
+      public final Parameter<Double> learningRate = parameter(Params.Optimizable.learningRate, 0.025);
       /**
-       * The learning rate (default = 0.025)
+       * The Max iterations.
        */
-      public double learningRate = 0.025;
-      /**
-       * The number of iterations to train the embeddings (default = 1)
-       */
-      public int numIterations = 1;
-      /**
-       * The random seed (default = current time)
-       */
-      public long randomSeed = new Date().getTime();
-      /**
-       * The window size (default = 5)
-       */
-      public int windowSize = 5;
+      public final Parameter<Integer> maxIterations = parameter(Params.Optimizable.maxIterations, 1);
    }
 
 }//END OF Word2Vec

@@ -26,6 +26,7 @@ import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.ml.DiscretePipeline;
 import com.gengoai.apollo.ml.FitParameters;
+import com.gengoai.apollo.ml.Params;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
 import com.gengoai.conversion.Cast;
 import com.gengoai.stream.MStream;
@@ -75,7 +76,7 @@ public class GaussianMixtureModel extends FlatCentroidClusterer {
       }
 
       List<MultivariateNormalDistribution> components =
-         MultivariateNormalMixtureExpectationMaximization.estimate(data, p.K)
+         MultivariateNormalMixtureExpectationMaximization.estimate(data, p.K.value())
                                                          .getComponents()
                                                          .stream()
                                                          .map(Pair::getSecond)
@@ -102,7 +103,7 @@ public class GaussianMixtureModel extends FlatCentroidClusterer {
       /**
        * The K.
        */
-      public int K = 100;
+      public final Parameter<Integer> K = parameter(Params.Clustering.K, 100);
    }
 
 }//END OF GaussianMixtureModel

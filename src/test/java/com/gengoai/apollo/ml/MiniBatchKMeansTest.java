@@ -32,11 +32,9 @@ public class MiniBatchKMeansTest extends BaseClustererTest<MiniBatchKMeans.Param
 
    public MiniBatchKMeansTest() {
       super(new MiniBatchKMeans(), new MiniBatchKMeans.Parameters()
-                                      .update(p -> {
-                                         p.K = 10;
-                                         p.stoppingCriteria.maxIterations(100)
-                                                           .reportInterval(10);
-                                      }));
+                                      .K.set(10)
+                                      .maxIterations.set(100)
+                                      .reportInterval.set(10));
    }
 
    @Override

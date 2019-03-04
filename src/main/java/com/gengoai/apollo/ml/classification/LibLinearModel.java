@@ -22,10 +22,8 @@
 
 package com.gengoai.apollo.ml.classification;
 
-import com.gengoai.apollo.ml.DiscretePipeline;
-import com.gengoai.apollo.ml.Example;
-import com.gengoai.apollo.ml.FitParameters;
-import com.gengoai.apollo.ml.LibLinear;
+import com.gengoai.Param;
+import com.gengoai.apollo.ml.*;
 import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
 import com.gengoai.conversion.Cast;
@@ -44,6 +42,10 @@ import static com.gengoai.Validation.notNull;
  * @author David B. Bracewell
  */
 public class LibLinearModel extends Classifier implements Loggable {
+   public static final Param<Double> C = Param.doubleParam("C");
+   public static final Param<Boolean> bias = Param.boolParam("bias");
+   public static final Param<Double> eps = Param.doubleParam("eps");
+   public static final Param<SolverType> solver = new Param<>("solver", SolverType.class);
    private static final long serialVersionUID = 1L;
    private int biasIndex = -1;
    private Model model;
@@ -57,6 +59,7 @@ public class LibLinearModel extends Classifier implements Loggable {
       super(preprocessors);
    }
 
+
    /**
     * Instantiates a new Lib linear model.
     *
@@ -66,17 +69,16 @@ public class LibLinearModel extends Classifier implements Loggable {
       super(modelParameters);
    }
 
-
    @Override
    protected void fitPreprocessed(Dataset preprocessed, FitParameters parameters) {
       Parameters fitParameters = notNull(Cast.as(parameters, Parameters.class));
-      biasIndex = (fitParameters.bias ? getNumberOfFeatures() + 1 : -1);
+      biasIndex = (fitParameters.bias.value() ? getNumberOfFeatures() + 1 : -1);
       model = LibLinear.fit(() -> preprocessed.asVectorStream(getPipeline()),
-                            new Parameter(fitParameters.solver,
-                                          fitParameters.C,
-                                          fitParameters.eps,
-                                          fitParameters.maxIterations,
-                                          fitParameters.p),
+                            new Parameter(fitParameters.solver.value(),
+                                          fitParameters.C.value(),
+                                          fitParameters.tolerance.value(),
+                                          fitParameters.maxIterations.value(),
+                                          fitParameters.eps.value()),
                             fitParameters.verbose.value(),
                             getNumberOfFeatures(),
                             biasIndex
@@ -104,27 +106,26 @@ public class LibLinearModel extends Classifier implements Loggable {
       /**
        * The cost parameter (default 1.0)
        */
-      public double C = 1.0;
+      public final Parameter<Double> C = parameter(LibLinearModel.C, 1.0);
       /**
        * Use a bias feature or not. (default false)
        */
-      public boolean bias = false;
-      /**
-       * The tolerance for termination.(default 0.0001)
-       */
-      public double eps = 0.0001;
-      /**
-       * The maximum number of iterations to run the trainer (Default 1000)
-       */
-      public int maxIterations = 1000;
+      public final Parameter<Boolean> bias = parameter(LibLinearModel.bias, false);
       /**
        * The epsilon in loss function of epsilon-SVR (default 0.1)
        */
-      public double p = 0.1;
+      public final Parameter<Double> eps = parameter(LibLinearModel.eps, 0.1);
+      /**
+       * The maximum number of iterations to run the trainer (Default 1000)
+       */
+      public final Parameter<Integer> maxIterations = parameter(Params.Optimizable.maxIterations, 1000);
       /**
        * The Solver to use. (default L2R_LR)
        */
-      public SolverType solver = SolverType.L2R_LR;
-
+      public final Parameter<SolverType> solver = parameter(LibLinearModel.solver, SolverType.L2R_LR);
+      /**
+       * The tolerance for termination.(default 0.0001)
+       */
+      public final Parameter<Double> tolerance = parameter(Params.Optimizable.tolerance, 1e-4);
    }
 }//END OF LibLinearModel

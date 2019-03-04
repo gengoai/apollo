@@ -25,6 +25,7 @@ package com.gengoai.apollo.ml.clustering;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.ml.DiscretePipeline;
 import com.gengoai.apollo.ml.FitParameters;
+import com.gengoai.apollo.ml.Params;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
 import com.gengoai.apollo.optimization.StoppingCriteria;
 import com.gengoai.apollo.statistics.Sampling;
@@ -95,33 +96,33 @@ public class MiniBatchKMeans extends FlatCentroidClusterer {
    @Override
    public void fit(MStream<NDArray> vectors, FitParameters fitParameters) {
       Parameters p = notNull(Cast.as(fitParameters, Parameters.class));
-      setMeasure(p.measure);
+      setMeasure(p.measure.value());
 
       List<NDArray> stream = vectors.collect();
 
-      PrimitiveIterator.OfInt itr = Sampling.uniformInts(p.K, 0, stream.size(), false).iterator();
-      for (int i = 0; i < p.K; i++) {
+      PrimitiveIterator.OfInt itr = Sampling.uniformInts(p.K.value(), 0, stream.size(), false).iterator();
+      for (int i = 0; i < p.K.value(); i++) {
          Cluster c = new Cluster();
          c.setId(i);
          c.setCentroid(stream.get(itr.nextInt()).copy());
          add(c);
       }
 
-      final int[] counts = new int[p.K];
-      p.stoppingCriteria.untilTermination(iteration -> iteration(stream, counts, p.batchSize));
+      final int[] counts = new int[p.K.value()];
+      StoppingCriteria.create("avg_distance", fitParameters)
+                      .logger(log)
+                      .untilTermination(iteration -> iteration(stream, counts, p.batchSize.value()));
 
-      if (p.retainPoints) {
-         //Assign examples to clusters
-         final Integer[] locks = IntStream.range(0, p.K).boxed().toArray(Integer[]::new);
-         stream.parallelStream()
-               .forEach(v -> {
-                  Tuple2<Integer, Double> best = best(v);
-                  final Cluster c = get(best.v1);
-                  synchronized (locks[c.getId()]) {
-                     c.addPoint(v);
-                  }
-               });
-      }
+      //Assign examples to clusters
+      final Integer[] locks = IntStream.range(0, p.K.value()).boxed().toArray(Integer[]::new);
+      stream.parallelStream()
+            .forEach(v -> {
+               Tuple2<Integer, Double> best = best(v);
+               final Cluster c = get(best.v1);
+               synchronized (locks[c.getId()]) {
+                  c.addPoint(v);
+               }
+            });
    }
 
    private Tuple2<Integer, Double> best(NDArray v) {
@@ -149,19 +150,28 @@ public class MiniBatchKMeans extends FlatCentroidClusterer {
       /**
        * The number of clusters
        */
-      public int K = 2;
+      public final Parameter<Integer> K = parameter(Params.Clustering.K, 2);
+      /**
+       * The maximum number of iterations to run the clusterer for
+       */
+      public final Parameter<Integer> maxIterations = parameter(Params.Optimizable.maxIterations, 100);
+      /**
+       * The tolerance in change of in-group variance for determining if k-means has converged
+       */
+      public final Parameter<Double> tolerance = parameter(Params.Optimizable.tolerance, 1e-3);
       /**
        * The Batch size.
        */
-      public int batchSize = 1000;
+      public final Parameter<Integer> batchSize = parameter(Params.Optimizable.batchSize, 1000);
 
-      public final StoppingCriteria stoppingCriteria = StoppingCriteria.create("avg_distance")
-                                                                       .historySize(10)
-                                                                       .tolerance(1e-7)
-                                                                       .reportInterval(50)
-                                                                       .logger(log)
-                                                                       .maxIterations(1000);
+      /**
+       * The History size.
+       */
+      public final Parameter<Integer> historySize = parameter(Params.Optimizable.historySize, 10);
+      /**
+       * The Report interval.
+       */
+      public final Parameter<Integer> reportInterval = parameter(Params.Optimizable.reportInterval, 50);
 
-      public boolean retainPoints = true;
    }
 }//END OF MiniBatchKMeans

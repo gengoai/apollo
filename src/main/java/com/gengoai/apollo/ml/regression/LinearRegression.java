@@ -29,12 +29,14 @@ import com.gengoai.apollo.linear.NDArrayInitializer;
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.FitParameters;
 import com.gengoai.apollo.ml.NumericPipeline;
+import com.gengoai.apollo.ml.Params;
 import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
 import com.gengoai.apollo.optimization.*;
 import com.gengoai.apollo.optimization.activation.Activation;
 import com.gengoai.apollo.optimization.loss.SquaredLoss;
 import com.gengoai.conversion.Cast;
+import com.gengoai.logging.Logger;
 
 import java.io.Serializable;
 
@@ -77,17 +79,16 @@ public class LinearRegression extends Regression {
       Parameters p = notNull(Cast.as(fitParameters, Parameters.class));
       weightParameters.update(getNumberOfLabels(), getNumberOfFeatures());
       GradientDescentOptimizer optimizer = GradientDescentOptimizer.builder()
-                                                                   .batchSize(p.batchSize).build();
+                                                                   .batchSize(p.batchSize.value()).build();
 
       optimizer.optimize(weightParameters,
-                         () -> preprocessed.stream().map(e -> e.transform(getPipeline())),
+                         () -> preprocessed.stream()
+                                           .map(e -> e.transform(getPipeline())),
                          new GradientDescentCostFunction(new SquaredLoss(), -1),
-                         StoppingCriteria.create()
-                                         .maxIterations(p.maxIterations)
-                                         .historySize(p.historySize)
-                                         .tolerance(p.tolerance),
-                         p.weightUpdater,
-                         p.verbose ? p.reportInterval : -1);
+                         StoppingCriteria.create("loss", p)
+                                         .logger(Logger.getLogger(LinearRegression.class)),
+                         p.weightUpdater.value(),
+                         p.verbose.value() ? p.reportInterval.value() : -1);
    }
 
    @Override
@@ -154,34 +155,14 @@ public class LinearRegression extends Regression {
     * The type Parameters.
     */
    public static class Parameters extends FitParameters<Parameters> {
-      /**
-       * The Batch size.
-       */
-      public int batchSize = 20;
-      /**
-       * The Cache data.
-       */
-      public boolean cacheData = true;
-      /**
-       * The History size.
-       */
-      public int historySize = 3;
-      /**
-       * The Max iterations.
-       */
-      public int maxIterations = 300;
-      /**
-       * The Report interval.
-       */
-      public int reportInterval = 100;
-      /**
-       * The Tolerance.
-       */
-      public double tolerance = 1e-9;
-      /**
-       * The Weight updater.
-       */
-      public WeightUpdate weightUpdater = SGDUpdater.builder().build();
+      private static final long serialVersionUID = 1L;
+      public final Parameter<Integer> batchSize = parameter(Params.Optimizable.batchSize, 32);
+      public final Parameter<Integer> historySize = parameter(Params.Optimizable.historySize, 3);
+      public final Parameter<Integer> maxIterations = parameter(Params.Optimizable.maxIterations, 100);
+      public final Parameter<Integer> reportInterval = parameter(Params.Optimizable.reportInterval, 100);
+      public final Parameter<Double> tolerance = parameter(Params.Optimizable.tolerance, 1e-9);
+      public final Parameter<WeightUpdate> weightUpdater = parameter(Params.Optimizable.weightUpdate,
+                                                                     SGDUpdater.builder().build());
 
    }
 

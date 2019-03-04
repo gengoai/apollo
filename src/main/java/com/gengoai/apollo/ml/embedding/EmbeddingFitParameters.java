@@ -23,14 +23,18 @@
 package com.gengoai.apollo.ml.embedding;
 
 import com.gengoai.apollo.ml.FitParameters;
+import com.gengoai.apollo.ml.Params;
 
 /**
  * Specialized {@link FitParameters} for embeddings, which includes a supplier to generate builders for vector stores.
  *
  * @author David B. Bracewell
  */
-public class EmbeddingFitParameters extends FitParameters {
+public class EmbeddingFitParameters<T extends EmbeddingFitParameters> extends FitParameters<T> {
    private static final long serialVersionUID = 1L;
+
+   public final Parameter<Integer> dimension = parameter(Params.Embedding.dimension, 100);
+   public final Parameter<Integer> windowSize = parameter(Params.Embedding.windowSize, 10);
 
 
 }//END OF EmbeddingFitParameters

@@ -23,6 +23,7 @@
 package com.gengoai.apollo.ml.clustering;
 
 import com.gengoai.apollo.ml.FitParameters;
+import com.gengoai.apollo.ml.Params;
 import com.gengoai.apollo.statistics.measure.Distance;
 import com.gengoai.apollo.statistics.measure.Measure;
 
@@ -35,6 +36,6 @@ public class ClusterParameters<T extends ClusterParameters> extends FitParameter
    /**
     * The measure used in calculating the distance or similarity between points when clustering.
     */
-   public Measure measure = Distance.Euclidean;
+   public final Parameter<Measure> measure = parameter(Params.Clustering.measure, Distance.Euclidean);
 
 }//END OF ClusterParameters

@@ -1,5 +1,6 @@
 package com.gengoai.apollo.linear;
 
+import com.gengoai.Stopwatch;
 import com.gengoai.Validation;
 import com.gengoai.conversion.Cast;
 import com.gengoai.tuple.Tuple2;
@@ -77,6 +78,20 @@ public class DenseNDArray extends NDArray {
                                FloatMatrix::add);
       }
       return super.add(other);
+   }
+
+   public static void main(String[] args) throws Exception {
+      DenseNDArray n1 = new DenseNDArray(new FloatMatrix(1000, 1000));
+      DenseNDArray n2 = new DenseNDArray(new FloatMatrix(1000, 1000));
+      for (int i = 0; i < 10000; i++) {
+         n1.add(n2);
+      }
+      Stopwatch sw = Stopwatch.createStarted();
+      for (int i = 0; i < 10000; i++) {
+         n1.add(n2);
+      }
+      sw.stop();
+      System.out.println(sw);
    }
 
    @Override

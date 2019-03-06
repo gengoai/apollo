@@ -23,8 +23,8 @@
 package com.gengoai.apollo.linear;
 
 import com.gengoai.Copyable;
-import scala.Serializable;
 
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -41,6 +41,7 @@ public class Shape implements Serializable, Copyable<Shape> {
     * The Shape.
     */
    final int[] shape;
+   public final int length;
 
 
    /**
@@ -52,6 +53,13 @@ public class Shape implements Serializable, Copyable<Shape> {
       this.shape = new int[4];
       if (dimensions != null && dimensions.length > 0) {
          System.arraycopy(dimensions, 0, shape, shape.length - dimensions.length, dimensions.length);
+         this.length = IntStream.of(shape)
+                                .filter(i -> i > 0)
+                                .reduce(1, (i1, i2) -> i1 * i2);
+      } else {
+         this.shape[2] = 1;
+         this.shape[3] = 1;
+         this.length = 1;
       }
    }
 
@@ -120,7 +128,7 @@ public class Shape implements Serializable, Copyable<Shape> {
     * @return the boolean
     */
    public boolean isScalar() {
-      return shape[0] == 0 && shape[1] == 0 && shape[2] == 0 && shape[3] == 0;
+      return shape[0] == 0 && shape[1] == 0 && shape[2] == 1 && shape[3] == 1;
    }
 
    /**
@@ -142,6 +150,16 @@ public class Shape implements Serializable, Copyable<Shape> {
                 && (shape[2] > 0 ^ shape[3] > 0);
    }
 
+   public boolean isRowVector() {
+      return (shape[0] == 0 && shape[1] == 0)
+                && (shape[2] == 1 && shape[3] > 1);
+   }
+
+   public boolean isColumnVector() {
+      return (shape[0] == 0 && shape[1] == 0)
+                && (shape[2] > 1 && shape[3] == 1);
+   }
+
    /**
     * Kernels int.
     *
@@ -159,7 +177,7 @@ public class Shape implements Serializable, Copyable<Shape> {
    public int order() {
       int order = 0;
       for (int i1 : shape) {
-         order += i1 > 0 ? 1 : 0;
+         order += i1 > 1 ? 1 : 0;
       }
       return order;
    }

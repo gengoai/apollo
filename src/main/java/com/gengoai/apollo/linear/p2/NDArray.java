@@ -27,58 +27,111 @@ import com.gengoai.apollo.linear.Shape;
 /**
  * @author David B. Bracewell
  */
-public abstract class NDArray {
-   protected final Shape shape;
+public interface NDArray {
+
+   double scalar();
+
+   NDArray add(double value);
+
+   NDArray addi(double value);
+
+   NDArray add(NDArray rhs);
+
+   NDArray addColumnVector(NDArray rhs);
+
+   NDArray addRowVector(NDArray rhs);
+
+   NDArray addi(NDArray rhs);
+
+   NDArray addiColumnVector(NDArray rhs);
+
+   NDArray addiRowVector(NDArray rhs);
+
+   NDArray div(NDArray rhs);
+
+   NDArray divColumnVector(NDArray rhs);
+
+   NDArray divRowVector(NDArray rhs);
+
+   NDArray divi(NDArray rhs);
+
+   NDArray diviColumnVector(NDArray rhs);
+
+   NDArray diviRowVector(NDArray rhs);
+
+   void forEach(EntryConsumer consumer);
+
+   void forEachSparse(EntryConsumer consumer);
+
+   double get(long i);
+
+   double get(int row, int col);
+
+   boolean isDense();
+
+   NDArray mul(NDArray rhs);
+
+   NDArray mulColumnVector(NDArray rhs);
+
+   NDArray mulRowVector(NDArray rhs);
+
+   NDArray muli(NDArray rhs);
+
+   NDArray muliColumnVector(NDArray rhs);
+
+   NDArray muliRowVector(NDArray rhs);
+
+   NDArray rdiv(NDArray rhs);
+
+   NDArray rdivColumnVector(NDArray rhs);
+
+   NDArray rdivRowVector(NDArray rhs);
+
+   NDArray rdivi(NDArray rhs);
+
+   NDArray rdiviColumnVector(NDArray rhs);
+
+   NDArray rdiviRowVector(NDArray rhs);
+
+   NDArray rsub(NDArray rhs);
+
+   NDArray rsubColumnVector(NDArray rhs);
+
+   NDArray rsubRowVector(NDArray rhs);
+
+   NDArray rsubi(NDArray rhs);
+
+   NDArray rsubiColumnVector(NDArray rhs);
+
+   NDArray rsubiRowVector(NDArray rhs);
+
+   void set(long i, double value);
+
+   void set(int row, int col, double value);
+
+   Shape shape();
+
+   NDArray slice(int slice);
+
+   NDArray sub(NDArray rhs);
+
+   NDArray subColumnVector(NDArray rhs);
+
+   NDArray subRowVector(NDArray rhs);
+
+   NDArray subi(NDArray rhs);
+
+   NDArray subiColumnVector(NDArray rhs);
+
+   NDArray subiRowVector(NDArray rhs);
+
+   NDArray zeroLike();
 
    @FunctionalInterface
-   public interface EntryConsumer {
+   interface EntryConsumer {
 
-      void apply(int index, double value);
+      void apply(long index, double value);
 
    }
-
-   protected NDArray(Shape shape) {
-      this.shape = shape;
-   }
-
-   public abstract NDArray zeroLike();
-
-   public NDArray add(NDArray rhs) {
-      return addi(rhs, zeroLike());
-   }
-
-   public abstract NDArray addRowVector(NDArray rhs);
-
-   public abstract NDArray addColumnVector(NDArray rhs);
-
-   public NDArray addi(NDArray rhs) {
-      return addi(rhs, this);
-   }
-
-   public abstract NDArray addiRowVector(NDArray rhs);
-
-   public abstract NDArray addiColumnVector(NDArray rhs);
-
-   protected NDArray addi(NDArray rhs, NDArray out) {
-      rhs.forEachSparse((index, value) -> out.set(index, value + get(index)));
-      return out;
-   }
-
-   public abstract double get(int i);
-
-   public abstract double get(int row, int col);
-
-   public abstract void set(int i, double value);
-
-   public abstract void set(int row, int col, double value);
-
-   protected abstract void forEach(EntryConsumer consumer);
-
-   protected abstract void forEachSparse(EntryConsumer consumer);
-
-
-   public abstract boolean isDense();
-
-   public abstract DenseNDArray asDense();
 
 }//END OF NDArray

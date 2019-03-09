@@ -41,8 +41,8 @@ public class Shape implements Serializable, Copyable<Shape> {
     * The Shape.
     */
    final int[] shape;
-   public final int length;
-
+   public final int matrixLength;
+   public final int sliceLength;
 
    /**
     * Instantiates a new Shape.
@@ -53,13 +53,13 @@ public class Shape implements Serializable, Copyable<Shape> {
       this.shape = new int[4];
       if (dimensions != null && dimensions.length > 0) {
          System.arraycopy(dimensions, 0, shape, shape.length - dimensions.length, dimensions.length);
-         this.length = IntStream.of(shape)
-                                .filter(i -> i > 0)
-                                .reduce(1, (i1, i2) -> i1 * i2);
+         this.sliceLength = Math.max(1, shape[0] * shape[1]);
+         this.matrixLength = Math.max(1, shape[2] * shape[3]);
       } else {
          this.shape[2] = 1;
          this.shape[3] = 1;
-         this.length = 1;
+         this.sliceLength = 1;
+         this.matrixLength = 1;
       }
    }
 
@@ -158,6 +158,26 @@ public class Shape implements Serializable, Copyable<Shape> {
    public boolean isColumnVector() {
       return (shape[0] == 0 && shape[1] == 0)
                 && (shape[2] > 1 && shape[3] == 1);
+   }
+
+   public boolean isSameLength(Shape other) {
+      return other.kernels() == kernels() && other.channels() == channels() && matrixLength == other.matrixLength;
+   }
+
+
+   public boolean isRowBroadcastable(Shape other) {
+      return other.kernels() == kernels() && other.channels() == channels() && columns() == other.matrixLength;
+   }
+
+   public boolean isColumnBroadcastable(Shape other) {
+      return other.kernels() == kernels() && other.channels() == channels() && rows() == other.matrixLength;
+   }
+
+   public boolean isMultiBroadcastable(Shape other) {
+      return other.kernels() == kernels() &&
+                other.channels() == channels() &&
+                rows() == other.columns() &&
+                columns() == other.rows();
    }
 
    /**

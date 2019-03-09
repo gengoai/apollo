@@ -59,10 +59,21 @@ public abstract class Matrix implements NDArray {
 
    @Override
    public NDArray add(NDArray rhs) {
+      return map(rhs, Operator::add);
+   }
+
+
+   public NDArray map(NDArray rhs, DoubleBinaryOperator operator) {
       checkLength(shape, rhs.shape());
       NDArray out = zeroLike();
-      forEach((index, value) -> out.set(index, value + rhs.get(index)));
+      forEach((index, value) -> out.set(index, operator.applyAsDouble(value, rhs.get(index))));
       return out;
+   }
+
+   public NDArray mapi(NDArray rhs, DoubleBinaryOperator operator) {
+      checkLength(shape, rhs.shape());
+      forEach((index, value) -> set(index, operator.applyAsDouble(value, rhs.get(index))));
+      return this;
    }
 
    @Override
@@ -103,31 +114,12 @@ public abstract class Matrix implements NDArray {
 
    @Override
    public NDArray addiColumnVector(NDArray rhs) {
-      checkLength(shape.rows(), rhs.shape());
-      for (int column = 0; column < shape.columns(); column++) {
-         final int c = column;
-         rhs.forEachSparse((row, value) -> set((int) row, c, get((int) row, c) + value));
-      }
-      return this;
+      return mapiSparseColumn(rhs, Operator::add);
    }
 
    @Override
    public NDArray addiRowVector(NDArray rhs) {
-      checkLength(shape.columns(), rhs.shape());
-      rhs.forEachSparse((column, value) -> {
-         for (int row = 0; row < shape.rows(); row++) {
-            set(row, (int) column, get(row, (int) column) + rhs.get(column));
-         }
-      });
-      return this;
-   }
-
-   public abstract DenseMatrix asDense();
-
-   public void checkLength(int l) {
-      if (shape.matrixLength != l) {
-         throw new IllegalArgumentException("Length Mismatch: " + shape.matrixLength + " != " + l);
-      }
+      return mapiSparseRow(rhs, Operator::add);
    }
 
    @Override
@@ -140,12 +132,12 @@ public abstract class Matrix implements NDArray {
 
    @Override
    public NDArray divColumnVector(NDArray rhs) {
-      return null;
+      return mapColumn(rhs, Operator::divide);
    }
 
    @Override
    public NDArray divRowVector(NDArray rhs) {
-      return null;
+      return mapRow(rhs, Operator::divide);
    }
 
    @Override
@@ -157,12 +149,28 @@ public abstract class Matrix implements NDArray {
 
    @Override
    public NDArray diviColumnVector(NDArray rhs) {
-      return null;
+      return mapiColumn(rhs, Operator::divide);
    }
 
    @Override
    public NDArray diviRowVector(NDArray rhs) {
-      return null;
+      return mapiRow(rhs, Operator::divide);
+   }
+
+   @Override
+   public double get(int channel, int row, int col) {
+      if (channel == 0) {
+         return get(row, col);
+      }
+      throw new IndexOutOfBoundsException();
+   }
+
+   @Override
+   public double get(int kernel, int channel, int row, int col) {
+      if (channel == 0 && kernel == 0) {
+         return get(row, col);
+      }
+      throw new IndexOutOfBoundsException();
    }
 
    @Override
@@ -190,6 +198,49 @@ public abstract class Matrix implements NDArray {
    }
 
    @Override
+   public NDArray mapiColumn(NDArray rhs, final DoubleBinaryOperator operator) {
+      checkLength(shape.rows(), rhs.shape());
+      for (int column = 0; column < shape.columns(); column++) {
+         for (int row = 0; row < shape.rows(); row++) {
+            set(row, column, operator.applyAsDouble(get(row, column), rhs.get(row)));
+         }
+      }
+      return this;
+   }
+
+   @Override
+   public NDArray mapiRow(NDArray rhs, DoubleBinaryOperator operator) {
+      checkLength(shape.columns(), rhs.shape());
+      for (int column = 0; column < shape.columns(); column++) {
+         for (int row = 0; row < shape.rows(); row++) {
+            set(row, column, operator.applyAsDouble(get(row, column), rhs.get(column)));
+         }
+      }
+      return this;
+   }
+
+   @Override
+   public NDArray mapiSparseColumn(NDArray rhs, final DoubleBinaryOperator operator) {
+      checkLength(shape.rows(), rhs.shape());
+      for (int column = 0; column < shape.columns(); column++) {
+         final int c = column;
+         rhs.forEachSparse((row, value) -> set((int) row, c, operator.applyAsDouble(get((int) row, c), value)));
+      }
+      return this;
+   }
+
+   @Override
+   public NDArray mapiSparseRow(NDArray rhs, DoubleBinaryOperator operator) {
+      checkLength(shape.columns(), rhs.shape());
+      rhs.forEachSparse((column, value) -> {
+         for (int row = 0; row < shape.rows(); row++) {
+            set(row, (int) column, get(row, (int) column) + rhs.get(column));
+         }
+      });
+      return this;
+   }
+
+   @Override
    public NDArray mul(NDArray rhs) {
       checkLength(shape, rhs.shape());
       NDArray out = zeroLike();
@@ -199,12 +250,12 @@ public abstract class Matrix implements NDArray {
 
    @Override
    public NDArray mulColumnVector(NDArray rhs) {
-      return null;
+      return mapColumn(rhs, Operator::multiply);
    }
 
    @Override
    public NDArray mulRowVector(NDArray rhs) {
-      return null;
+      return mapRow(rhs, Operator::multiply);
    }
 
    @Override
@@ -216,12 +267,12 @@ public abstract class Matrix implements NDArray {
 
    @Override
    public NDArray muliColumnVector(NDArray rhs) {
-      return null;
+      return mapiColumn(rhs, Operator::multiply);
    }
 
    @Override
    public NDArray muliRowVector(NDArray rhs) {
-      return null;
+      return mapiRow(rhs, Operator::multiply);
    }
 
    @Override
@@ -234,12 +285,12 @@ public abstract class Matrix implements NDArray {
 
    @Override
    public NDArray rdivColumnVector(NDArray rhs) {
-      return null;
+      return mapColumn(rhs, (v1, v2) -> v2 / v1);
    }
 
    @Override
    public NDArray rdivRowVector(NDArray rhs) {
-      return null;
+      return mapRow(rhs, (v1, v2) -> v2 / v1);
    }
 
    @Override
@@ -251,12 +302,12 @@ public abstract class Matrix implements NDArray {
 
    @Override
    public NDArray rdiviColumnVector(NDArray rhs) {
-      return null;
+      return mapiColumn(rhs, (v1, v2) -> v2 / v1);
    }
 
    @Override
    public NDArray rdiviRowVector(NDArray rhs) {
-      return null;
+      return mapiRow(rhs, (v1, v2) -> v2 / v1);
    }
 
    @Override
@@ -269,12 +320,12 @@ public abstract class Matrix implements NDArray {
 
    @Override
    public NDArray rsubColumnVector(NDArray rhs) {
-      return null;
+      return mapColumn(rhs, (v1, v2) -> v2 - v1);
    }
 
    @Override
    public NDArray rsubRowVector(NDArray rhs) {
-      return null;
+      return mapRow(rhs, (v1, v2) -> v2 - v1);
    }
 
    @Override
@@ -286,12 +337,28 @@ public abstract class Matrix implements NDArray {
 
    @Override
    public NDArray rsubiColumnVector(NDArray rhs) {
-      return null;
+      return mapiColumn(rhs, (v1, v2) -> v2 - v1);
    }
 
    @Override
    public NDArray rsubiRowVector(NDArray rhs) {
-      return null;
+      return mapiRow(rhs, (v1, v2) -> v2 - v1);
+   }
+
+   @Override
+   public void set(int channel, int row, int col, double value) {
+      if (channel == 0) {
+         set(row, col, value);
+      }
+      throw new IndexOutOfBoundsException();
+   }
+
+   @Override
+   public void set(int kernel, int channel, int row, int col, double value) {
+      if (channel == 0 && kernel == 0) {
+         set(row, col, value);
+      }
+      throw new IndexOutOfBoundsException();
    }
 
    @Override
@@ -314,12 +381,12 @@ public abstract class Matrix implements NDArray {
 
    @Override
    public NDArray subColumnVector(NDArray rhs) {
-      return null;
+      return mapColumn(rhs, Operator::subtract);
    }
 
    @Override
    public NDArray subRowVector(NDArray rhs) {
-      return null;
+      return mapRow(rhs, Operator::subtract);
    }
 
    @Override
@@ -331,17 +398,27 @@ public abstract class Matrix implements NDArray {
 
    @Override
    public NDArray subiColumnVector(NDArray rhs) {
-      return null;
+      return mapiSparseColumn(rhs, Operator::subtract);
    }
 
    @Override
    public NDArray subiRowVector(NDArray rhs) {
-      return null;
+      return mapiSparseRow(rhs, Operator::subtract);
    }
 
    @Override
-   public NDArray zeroLike() {
-      return null;
+   public NDArray fill(double value) {
+      for (int i = 0; i < shape.matrixLength; i++) {
+         set(i, value);
+      }
+      return this;
+   }
+
+   @Override
+   public void forEach(EntryConsumer consumer) {
+      for (int i = 0; i < shape.matrixLength; i++) {
+         consumer.apply(i, get(i));
+      }
    }
 
 

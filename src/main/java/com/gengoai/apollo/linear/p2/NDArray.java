@@ -34,19 +34,15 @@ import java.util.function.DoubleBinaryOperator;
  */
 public interface NDArray extends Serializable, Copyable<NDArray> {
 
-   default double scalar() {
-      return get(0);
-   }
-
    NDArray add(double value);
-
-   NDArray addi(double value);
 
    NDArray add(NDArray rhs);
 
    NDArray addColumnVector(NDArray rhs);
 
    NDArray addRowVector(NDArray rhs);
+
+   NDArray addi(double value);
 
    NDArray addi(NDArray rhs);
 
@@ -66,6 +62,8 @@ public interface NDArray extends Serializable, Copyable<NDArray> {
 
    NDArray diviRowVector(NDArray rhs);
 
+   NDArray fill(double value);
+
    void forEach(EntryConsumer consumer);
 
    void forEachSparse(EntryConsumer consumer);
@@ -74,7 +72,27 @@ public interface NDArray extends Serializable, Copyable<NDArray> {
 
    double get(int row, int col);
 
+   double get(int channel, int row, int col);
+
+   double get(int kernel, int channel, int row, int col);
+
    boolean isDense();
+
+   NDArray map(NDArray rhs, DoubleBinaryOperator operator);
+
+   NDArray mapi(NDArray rhs, DoubleBinaryOperator operator);
+
+   NDArray mapColumn(NDArray rhs, final DoubleBinaryOperator operator);
+
+   NDArray mapiColumn(NDArray rhs, final DoubleBinaryOperator operator);
+
+   NDArray mapiSparseColumn(NDArray rhs, final DoubleBinaryOperator operator);
+
+   NDArray mapRow(NDArray rhs, final DoubleBinaryOperator operator);
+
+   NDArray mapiRow(NDArray rhs, final DoubleBinaryOperator operator);
+
+   NDArray mapiSparseRow(NDArray rhs, final DoubleBinaryOperator operator);
 
    NDArray mul(NDArray rhs);
 
@@ -112,9 +130,17 @@ public interface NDArray extends Serializable, Copyable<NDArray> {
 
    NDArray rsubiRowVector(NDArray rhs);
 
+   default double scalar() {
+      return get(0);
+   }
+
    void set(long i, double value);
 
    void set(int row, int col, double value);
+
+   void set(int channel, int row, int col, double value);
+
+   void set(int kernel, int channel, int row, int col, double value);
 
    Shape shape();
 
@@ -132,9 +158,14 @@ public interface NDArray extends Serializable, Copyable<NDArray> {
 
    NDArray subiRowVector(NDArray rhs);
 
+   DoubleMatrix[] toDoubleMatrix();
+
+   default NDArray zero() {
+      return fill(0d);
+   }
+
    NDArray zeroLike();
 
-   DoubleMatrix[] toDoubleMatrix();
 
    @FunctionalInterface
    interface EntryConsumer {
@@ -143,15 +174,6 @@ public interface NDArray extends Serializable, Copyable<NDArray> {
 
    }
 
-   NDArray fill(double value);
-
-   default NDArray zero() {
-      return fill(0d);
-   }
-
-   NDArray mapColumn(NDArray rhs, final DoubleBinaryOperator operator);
-
-
-   NDArray mapRow(NDArray rhs, final DoubleBinaryOperator operator);
+   NDArray T();
 
 }//END OF NDArray

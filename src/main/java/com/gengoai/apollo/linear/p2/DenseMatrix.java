@@ -49,11 +49,13 @@ public class DenseMatrix extends Matrix {
 
    public static void loop() {
       DenseMatrix n1 = rand(1000, 1000);
+      DenseMatrix n4 = rand(1000, 1000);
       DenseMatrix n2 = rand(1, 1000);
       DenseMatrix n3 = rand(1000, 1);
       for (int i = 0; i < 10_000; i++) {
-//         n1.addColumnVector(n3);
+//         n1.addiColumnVector(n3);
 //         n1.addiRowVector(n2);
+         n1.addi(n4);
       }
    }
 
@@ -68,6 +70,11 @@ public class DenseMatrix extends Matrix {
 
    public static DenseMatrix rand(int rows, int columns) {
       return new DenseMatrix(DoubleMatrix.rand(rows, columns));
+   }
+
+   @Override
+   public NDArray T() {
+      return new DenseMatrix(matrix.transpose());
    }
 
    @Override
@@ -96,7 +103,6 @@ public class DenseMatrix extends Matrix {
       return super.addiColumnVector(rhs);
    }
 
-
    @Override
    public NDArray addiRowVector(NDArray rhs) {
       if (rhs.isDense()) {
@@ -104,10 +110,6 @@ public class DenseMatrix extends Matrix {
          return this;
       }
       return super.addiRowVector(rhs);
-   }
-
-   public DenseMatrix asDense() {
-      return this;
    }
 
    @Override
@@ -137,7 +139,6 @@ public class DenseMatrix extends Matrix {
       return super.add(rhs);
    }
 
-
    @Override
    public NDArray diviColumnVector(NDArray rhs) {
       if (rhs.isDense()) {
@@ -146,7 +147,6 @@ public class DenseMatrix extends Matrix {
       }
       return super.diviColumnVector(rhs);
    }
-
 
    @Override
    public NDArray diviRowVector(NDArray rhs) {

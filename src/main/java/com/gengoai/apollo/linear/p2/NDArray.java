@@ -22,14 +22,21 @@
 
 package com.gengoai.apollo.linear.p2;
 
+import com.gengoai.Copyable;
 import com.gengoai.apollo.linear.Shape;
+import org.jblas.DoubleMatrix;
+
+import java.io.Serializable;
+import java.util.function.DoubleBinaryOperator;
 
 /**
  * @author David B. Bracewell
  */
-public interface NDArray {
+public interface NDArray extends Serializable, Copyable<NDArray> {
 
-   double scalar();
+   default double scalar() {
+      return get(0);
+   }
 
    NDArray add(double value);
 
@@ -127,11 +134,24 @@ public interface NDArray {
 
    NDArray zeroLike();
 
+   DoubleMatrix[] toDoubleMatrix();
+
    @FunctionalInterface
    interface EntryConsumer {
 
       void apply(long index, double value);
 
    }
+
+   NDArray fill(double value);
+
+   default NDArray zero() {
+      return fill(0d);
+   }
+
+   NDArray mapColumn(NDArray rhs, final DoubleBinaryOperator operator);
+
+
+   NDArray mapRow(NDArray rhs, final DoubleBinaryOperator operator);
 
 }//END OF NDArray

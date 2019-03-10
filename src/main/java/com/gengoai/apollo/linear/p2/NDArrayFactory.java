@@ -101,43 +101,16 @@ public enum NDArrayFactory {
    }
 
    public NDArray rand(int... dims) {
-      NDArray ndArray = array(dims);
-      for (int i = 0; i < ndArray.shape().sliceLength; i++) {
-         NDArray slice = ndArray.slice(i);
-         for (int mi = 0; mi < slice.shape().matrixLength; mi++) {
-            if (slice.isDense() || Math.random() > SPARSE.getSparsity()) {
-               slice.set(mi, Math.random());
-            }
-         }
-      }
-      return ndArray;
+      return array(dims).mapi(v -> Math.random());
    }
 
    public NDArray uniform(double lower, double upper, Shape shape) {
-      NDArray ndArray = array(shape);
-      for (int i = 0; i < ndArray.shape().sliceLength; i++) {
-         NDArray slice = ndArray.slice(i);
-         for (int mi = 0; mi < slice.shape().matrixLength; mi++) {
-            if (slice.isDense() || Math.random() > SPARSE.getSparsity()) {
-               slice.set(mi, ThreadLocalRandom.current().nextDouble(lower, upper));
-            }
-         }
-      }
-      return ndArray;
+      return array(shape).mapi(v -> ThreadLocalRandom.current().nextDouble(lower, upper));
    }
 
    public NDArray randn(int... dims) {
       final Random rnd = new Random();
-      NDArray ndArray = array(dims);
-      for (int i = 0; i < ndArray.shape().sliceLength; i++) {
-         NDArray slice = ndArray.slice(i);
-         for (int mi = 0; mi < slice.shape().matrixLength; mi++) {
-            if (slice.isDense() || Math.random() > SPARSE.getSparsity()) {
-               slice.set(mi, rnd.nextGaussian());
-            }
-         }
-      }
-      return ndArray;
+      return array(dims).mapi(v -> rnd.nextGaussian());
    }
 
    public NDArray scalar(double value) {

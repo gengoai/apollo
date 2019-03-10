@@ -28,6 +28,7 @@ import org.jblas.DoubleMatrix;
 
 import java.io.Serializable;
 import java.util.function.DoubleBinaryOperator;
+import java.util.function.DoubleUnaryOperator;
 
 /**
  * @author David B. Bracewell
@@ -75,6 +76,10 @@ public interface NDArray extends Serializable, Copyable<NDArray> {
    double get(int kernel, int channel, int row, int col);
 
    boolean isDense();
+
+   NDArray map(DoubleUnaryOperator operator);
+
+   NDArray mapi(DoubleUnaryOperator operator);
 
    NDArray map(double value, DoubleBinaryOperator operator);
 
@@ -163,5 +168,88 @@ public interface NDArray extends Serializable, Copyable<NDArray> {
    }
 
    NDArray zeroLike();
+
+   double sum();
+
+   NDArray sliceSums();
+
+   NDArray rowSums();
+
+   NDArray columnSums();
+
+   default double mean() {
+      return sum() / (shape().matrixLength * shape().sliceLength);
+   }
+
+   NDArray sliceMeans();
+
+   NDArray div(double value);
+
+   NDArray divi(double value);
+
+   NDArray rdiv(double value);
+
+   NDArray rdivi(double value);
+
+   NDArray mul(double value);
+
+   NDArray muli(double value);
+
+   NDArray sub(double value);
+
+   NDArray subi(double value);
+
+   NDArray rsub(double value);
+
+   NDArray rsubi(double value);
+
+
+   default NDArray rowMeans() {
+      return rowSums().divi(shape().columns());
+   }
+
+   default NDArray columnMeans() {
+      return columnSums().divi(shape().rows());
+   }
+
+   double min();
+
+   NDArray sliceMins();
+
+   NDArray rowMins();
+
+   NDArray columnMins();
+
+   double max();
+
+   NDArray sliceMaxs();
+
+   NDArray rowMaxs();
+
+   NDArray columnMaxs();
+
+   double argmin();
+
+   NDArray sliceArgmins();
+
+   NDArray rowArgmins();
+
+   NDArray columnArgmins();
+
+   double argmax();
+
+   NDArray sliceArgmaxs();
+
+   NDArray rowArgmaxs();
+
+   NDArray columnArgmaxs();
+
+   NDArray diag();
+
+   long size();
+
+   long length();
+
+   NDArray mmul(NDArray rhs);
 
 }//END OF NDArray

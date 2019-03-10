@@ -165,24 +165,8 @@ public class Shape implements Serializable, Copyable<Shape> {
                 && (shape[2] > 1 && shape[3] == 1);
    }
 
-   public boolean isSameLength(Shape other) {
-      return other.kernels() == kernels() && other.channels() == channels() && matrixLength == other.matrixLength;
-   }
-
-
-   public boolean isRowBroadcastable(Shape other) {
-      return other.kernels() == kernels() && other.channels() == channels() && columns() == other.matrixLength;
-   }
-
-   public boolean isColumnBroadcastable(Shape other) {
-      return other.kernels() == kernels() && other.channels() == channels() && rows() == other.matrixLength;
-   }
-
-   public boolean isMultiBroadcastable(Shape other) {
-      return other.kernels() == kernels() &&
-                other.channels() == channels() &&
-                rows() == other.columns() &&
-                columns() == other.rows();
+   public boolean isSquare() {
+      return shape[0] == 0 && shape[1] == 0 && shape[2] == shape[3];
    }
 
    /**
@@ -237,5 +221,6 @@ public class Shape implements Serializable, Copyable<Shape> {
                             .mapToObj(Integer::toString)
                             .collect(Collectors.joining(", ")) + ")";
    }
+
 
 }//END OF Shape

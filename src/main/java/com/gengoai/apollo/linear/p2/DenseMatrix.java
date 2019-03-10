@@ -29,6 +29,7 @@ import com.gengoai.conversion.Cast;
 import org.jblas.DoubleMatrix;
 
 import java.util.function.DoubleBinaryOperator;
+import java.util.function.DoubleUnaryOperator;
 
 /**
  * @author David B. Bracewell
@@ -51,10 +52,10 @@ public class DenseMatrix extends Matrix {
    }
 
    public static void loop() {
-      NDArray n1 = NDArrayFactory.DENSE.rand(1000, 1000);
-      NDArray n4 = NDArrayFactory.DENSE.rand(1000, 1000);
+      NDArray n1 = NDArrayFactory.SPARSE.rand(1000, 1000);
+      NDArray n4 = NDArrayFactory.SPARSE.rand(1000, 1000);
       for (int i = 0; i < 10_000; i++) {
-         n1.add(n4);
+         n1.argmax();
       }
    }
 
@@ -65,6 +66,11 @@ public class DenseMatrix extends Matrix {
       Stopwatch sw = Stopwatch.createStarted();
       loop();
       System.out.println(sw);
+   }
+
+   @Override
+   public NDArray mmul(NDArray rhs) {
+      return new DenseMatrix(matrix.mmul(rhs.toDoubleMatrix()[0]));
    }
 
    @Override
@@ -263,6 +269,22 @@ public class DenseMatrix extends Matrix {
       return super.rsubi(rhs);
    }
 
+   @Override
+   public NDArray map(DoubleUnaryOperator operator) {
+      DenseMatrix dm = new DenseMatrix(matrix.rows, matrix.columns);
+      for (int i = 0; i < matrix.length; i++) {
+         dm.matrix.data[i] = operator.applyAsDouble(matrix.data[i]);
+      }
+      return dm;
+   }
+
+   @Override
+   public NDArray mapi(DoubleUnaryOperator operator) {
+      for (int i = 0; i < matrix.length; i++) {
+         matrix.data[i] = operator.applyAsDouble(matrix.data[i]);
+      }
+      return this;
+   }
 
    @Override
    public void set(long i, double value) {
@@ -321,4 +343,38 @@ public class DenseMatrix extends Matrix {
       return new DenseMatrix(shape);
    }
 
+   @Override
+   public double sum() {
+      return matrix.sum();
+   }
+
+   @Override
+   public NDArray rowSums() {
+      return new DenseMatrix(matrix.rowSums());
+   }
+
+   @Override
+   public NDArray columnSums() {
+      return new DenseMatrix(matrix.columnSums());
+   }
+
+   @Override
+   public double min() {
+      return matrix.min();
+   }
+
+   @Override
+   public double max() {
+      return matrix.max();
+   }
+
+   @Override
+   public double argmin() {
+      return matrix.argmin();
+   }
+
+   @Override
+   public double argmax() {
+      return matrix.argmax();
+   }
 }//END OF DenseTwoDArray

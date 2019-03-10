@@ -401,4 +401,297 @@ public abstract class Matrix implements NDArray {
    }
 
 
+   @Override
+   public NDArray div(double value) {
+      return map(value, Operator::divide);
+   }
+
+   @Override
+   public NDArray divi(double value) {
+      return mapi(value, Operator::divide);
+   }
+
+   @Override
+   public NDArray rdiv(double value) {
+      return map(value, (v1, v2) -> v2 / v1);
+   }
+
+   @Override
+   public NDArray rdivi(double value) {
+      return mapi(value, (v1, v2) -> v2 / v1);
+   }
+
+   @Override
+   public NDArray mul(double value) {
+      return map(value, Operator::multiply);
+   }
+
+   @Override
+   public NDArray muli(double value) {
+      return mapi(value, Operator::multiply);
+   }
+
+
+   @Override
+   public NDArray rsub(double value) {
+      return map(value, (v1, v2) -> v2 - v1);
+   }
+
+   @Override
+   public NDArray rsubi(double value) {
+      return mapi(value, (v1, v2) -> v2 - v1);
+   }
+
+
+   @Override
+   public NDArray sub(double value) {
+      return map(value, Operator::subtract);
+   }
+
+   @Override
+   public NDArray subi(double value) {
+      return mapi(value, Operator::subtract);
+   }
+
+   @Override
+   public NDArray sliceSums() {
+      return NDArrayFactory.DENSE.scalar(sum());
+   }
+
+   @Override
+   public NDArray sliceMeans() {
+      return NDArrayFactory.DENSE.scalar(mean());
+   }
+
+   @Override
+   public NDArray rowSums() {
+      NDArray array = new DenseMatrix(shape.rows(), 1);
+      for (int r = 0; r < shape.rows(); r++) {
+         double sum = 0;
+         for (int c = 0; c < shape.columns(); c++) {
+            sum += get(r, c);
+         }
+         array.set(r, sum);
+      }
+      return array;
+   }
+
+   @Override
+   public NDArray columnSums() {
+      NDArray array = new DenseMatrix(1, shape.columns());
+      for (int c = 0; c < shape.columns(); c++) {
+         double sum = 0;
+         for (int r = 0; r < shape.rows(); r++) {
+            sum += get(r, c);
+         }
+         array.set(c, sum);
+      }
+      return array;
+   }
+
+
+   @Override
+   public NDArray sliceMins() {
+      return NDArrayFactory.DENSE.scalar(min());
+   }
+
+   @Override
+   public NDArray rowMins() {
+      NDArray array = new DenseMatrix(shape.rows(), 1);
+      for (int r = 0; r < shape.rows(); r++) {
+         double min = Double.POSITIVE_INFINITY;
+         for (int c = 0; c < shape.columns(); c++) {
+            min = Math.min(min, get(r, c));
+         }
+         array.set(r, min);
+      }
+      return array;
+   }
+
+   @Override
+   public NDArray columnMins() {
+      NDArray array = new DenseMatrix(1, shape.columns());
+      for (int c = 0; c < shape.columns(); c++) {
+         double min = Double.POSITIVE_INFINITY;
+         for (int r = 0; r < shape.rows(); r++) {
+            min = Math.min(min, get(r, c));
+         }
+         array.set(c, min);
+      }
+      return array;
+   }
+
+
+   @Override
+   public NDArray sliceMaxs() {
+      return NDArrayFactory.DENSE.scalar(max());
+   }
+
+   @Override
+   public NDArray rowMaxs() {
+      NDArray array = new DenseMatrix(shape.rows(), 1);
+      for (int r = 0; r < shape.rows(); r++) {
+         double max = Double.NEGATIVE_INFINITY;
+         for (int c = 0; c < shape.columns(); c++) {
+            max = Math.max(max, get(r, c));
+         }
+         array.set(r, max);
+      }
+      return array;
+   }
+
+   @Override
+   public NDArray columnMaxs() {
+      NDArray array = new DenseMatrix(1, shape.columns());
+      for (int c = 0; c < shape.columns(); c++) {
+         double max = Double.NEGATIVE_INFINITY;
+         for (int r = 0; r < shape.rows(); r++) {
+            max = Math.max(max, get(r, c));
+         }
+         array.set(c, max);
+      }
+      return array;
+   }
+
+   @Override
+   public NDArray sliceArgmins() {
+      return NDArrayFactory.DENSE.scalar(argmin());
+   }
+
+   @Override
+   public NDArray rowArgmins() {
+      NDArray array = new DenseMatrix(shape.rows(), 1);
+      for (int r = 0; r < shape.rows(); r++) {
+         double min = Double.POSITIVE_INFINITY;
+         int index = -1;
+         for (int c = 0; c < shape.columns(); c++) {
+            double v = get(r, c);
+            if (v < min) {
+               index = c;
+               min = v;
+            }
+         }
+         array.set(r, index);
+      }
+      return array;
+   }
+
+   @Override
+   public NDArray columnArgmins() {
+      NDArray array = new DenseMatrix(1, shape.columns());
+      for (int c = 0; c < shape.columns(); c++) {
+         double min = Double.POSITIVE_INFINITY;
+         int index = -1;
+         for (int r = 0; r < shape.rows(); r++) {
+            double v = get(r, c);
+            if (v < min) {
+               min = v;
+               index = r;
+            }
+         }
+         array.set(c, index);
+      }
+      return array;
+   }
+
+   @Override
+   public NDArray sliceArgmaxs() {
+      return NDArrayFactory.DENSE.scalar(argmax());
+   }
+
+   @Override
+   public NDArray rowArgmaxs() {
+      NDArray array = new DenseMatrix(shape.rows(), 1);
+      for (int r = 0; r < shape.rows(); r++) {
+         double max = Double.NEGATIVE_INFINITY;
+         int index = -1;
+         for (int c = 0; c < shape.columns(); c++) {
+            double v = get(r, c);
+            if (v > max) {
+               max = v;
+               index = c;
+            }
+         }
+         array.set(r, index);
+      }
+      return array;
+   }
+
+   @Override
+   public NDArray columnArgmaxs() {
+      NDArray array = new DenseMatrix(1, shape.columns());
+      for (int c = 0; c < shape.columns(); c++) {
+         double max = Double.NEGATIVE_INFINITY;
+         int index = -1;
+         for (int r = 0; r < shape.rows(); r++) {
+            double v = get(r, c);
+            if (v > max) {
+               max = v;
+               index = r;
+            }
+         }
+         array.set(c, index);
+      }
+      return array;
+   }
+
+   @Override
+   public NDArray diag() {
+      if (shape.isScalar()) {
+         return copy();
+      }
+
+      if (shape.isRowVector()) {
+         NDArray out = NDArrayFactory.ND.array(shape.columns(), shape.columns());
+         for (int i = 0; i < shape.columns(); i++) {
+            out.set(i, i, get(i));
+         }
+         return out;
+      }
+
+      if (shape.isColumnVector()) {
+         NDArray out = NDArrayFactory.ND.array(shape.rows(), shape.rows());
+         for (int i = 0; i < shape.rows(); i++) {
+            out.set(i, i, get(i));
+         }
+         return out;
+      }
+
+      if (shape.isSquare()) {
+         NDArray out = zeroLike();
+         for (int r = 0; r < shape.rows(); r++) {
+            if (r < shape.columns()) {
+               out.set(r, r, get(r, r));
+            }
+         }
+      }
+
+      throw new IllegalStateException("Rectangular slices are not supported");
+   }
+
+   @Override
+   public double argmin() {
+      return toDoubleMatrix()[0].argmin();
+   }
+
+   @Override
+   public double argmax() {
+      return toDoubleMatrix()[0].argmax();
+   }
+
+   @Override
+   public long size() {
+      return length();
+   }
+
+   @Override
+   public long length() {
+      return shape.matrixLength;
+   }
+
+   @Override
+   public NDArray mmul(NDArray rhs) {
+      return null;
+   }
+
 }//END OF NDArray

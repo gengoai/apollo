@@ -25,8 +25,12 @@ package com.gengoai.apollo.linear.p2;
 import com.gengoai.Copyable;
 import com.gengoai.apollo.linear.Shape;
 import com.gengoai.conversion.Cast;
+import com.gengoai.math.Math2;
+import com.gengoai.math.Optimum;
 import org.apache.mahout.math.map.OpenIntDoubleHashMap;
 import org.jblas.DoubleMatrix;
+
+import java.util.function.DoubleUnaryOperator;
 
 /**
  * @author David B. Bracewell
@@ -61,6 +65,23 @@ public class SparseMatrix extends Matrix {
          }
       }
       return matrix;
+   }
+
+   @Override
+   public NDArray map(DoubleUnaryOperator operator) {
+      NDArray out = zeroLike();
+      for (int i = 0; i < shape.matrixLength; i++) {
+         out.set(i, operator.applyAsDouble(get(i)));
+      }
+      return out;
+   }
+
+   @Override
+   public NDArray mapi(DoubleUnaryOperator operator) {
+      for (int i = 0; i < shape.matrixLength; i++) {
+         set(i, operator.applyAsDouble(get(i)));
+      }
+      return this;
    }
 
    @Override
@@ -148,7 +169,11 @@ public class SparseMatrix extends Matrix {
 
    @Override
    public void set(long i, double value) {
-      map.put((int) i, value);
+      if (value == 0) {
+         map.removeKey((int) i);
+      } else {
+         map.put((int) i, value);
+      }
    }
 
    @Override
@@ -178,7 +203,7 @@ public class SparseMatrix extends Matrix {
          t = new SparseMatrix(this);
          t.shape.reshape(shape.columns(), shape.rows());
       } else {
-         t = new SparseMatrix();
+         t = new SparseMatrix(shape.columns(), shape.rows());
          map.forEachPair((i, v) -> {
             int row = i % shape.rows();
             int col = i / shape.rows();
@@ -187,5 +212,34 @@ public class SparseMatrix extends Matrix {
          });
       }
       return t;
+   }
+
+   @Override
+   public double sum() {
+      return Math2.sum(map.values().elements());
+   }
+
+   @Override
+   public double min() {
+      double min = Optimum.MINIMUM.optimumValue(map.values().elements());
+      if (map.size() == shape.matrixLength) {
+         return min;
+      }
+      return Math.min(0, min);
+   }
+
+   @Override
+   public double max() {
+      double max = Optimum.MAXIMUM.optimumValue(map.values().elements());
+      if (map.size() == shape.matrixLength) {
+         return max;
+      }
+      return Math.max(0, max);
+   }
+
+
+   @Override
+   public long size() {
+      return map.size();
    }
 }//END OF SparseMatrix

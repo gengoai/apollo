@@ -25,7 +25,10 @@ package com.gengoai.apollo.linear.p2;
 import com.gengoai.Stopwatch;
 import com.gengoai.apollo.linear.Shape;
 import com.gengoai.concurrent.Threads;
+import com.gengoai.conversion.Cast;
 import org.jblas.DoubleMatrix;
+
+import java.util.function.DoubleBinaryOperator;
 
 /**
  * @author David B. Bracewell
@@ -55,7 +58,7 @@ public class DenseMatrix extends Matrix {
       for (int i = 0; i < 10_000; i++) {
 //         n1.addiColumnVector(n3);
 //         n1.addiRowVector(n2);
-         n1.addi(n4);
+         n1.add(n4);
       }
    }
 
@@ -66,6 +69,23 @@ public class DenseMatrix extends Matrix {
       Stopwatch sw = Stopwatch.createStarted();
       loop();
       System.out.println(sw);
+   }
+
+   @Override
+   public NDArray map(NDArray rhs, DoubleBinaryOperator operator) {
+      DenseMatrix out = Cast.as(zeroLike());
+      for (int i = 0; i < shape.matrixLength; i++) {
+         out.matrix.data[i] = operator.applyAsDouble(matrix.data[i], rhs.get(i));
+      }
+      return out;
+   }
+
+   @Override
+   public NDArray mapi(NDArray rhs, DoubleBinaryOperator operator) {
+      for (int i = 0; i < shape.matrixLength; i++) {
+         matrix.data[i] = operator.applyAsDouble(matrix.data[i], rhs.get(i));
+      }
+      return this;
    }
 
    public static DenseMatrix rand(int rows, int columns) {
@@ -122,21 +142,19 @@ public class DenseMatrix extends Matrix {
 
    @Override
    public NDArray div(NDArray rhs) {
-      checkLength(shape, rhs.shape());
       if (rhs.isDense()) {
          return new DenseMatrix(matrix.div(rhs.toDoubleMatrix()[0]));
       }
-      return super.add(rhs);
+      return super.div(rhs);
    }
 
    @Override
    public NDArray divi(NDArray rhs) {
-      checkLength(shape, rhs.shape());
       if (rhs.isDense()) {
          matrix.divi(rhs.toDoubleMatrix()[0]);
          return this;
       }
-      return super.add(rhs);
+      return super.divi(rhs);
    }
 
    @Override
@@ -161,13 +179,6 @@ public class DenseMatrix extends Matrix {
    public NDArray fill(double value) {
       matrix.fill(value);
       return this;
-   }
-
-   @Override
-   public void forEach(EntryConsumer consumer) {
-      for (int i = 0; i < matrix.length; i++) {
-         consumer.apply(i, matrix.data[i]);
-      }
    }
 
    @Override
@@ -200,7 +211,7 @@ public class DenseMatrix extends Matrix {
       if (rhs.isDense()) {
          return new DenseMatrix(matrix.mul(rhs.toDoubleMatrix()[0]));
       }
-      return super.add(rhs);
+      return super.mul(rhs);
    }
 
    @Override
@@ -210,7 +221,7 @@ public class DenseMatrix extends Matrix {
          matrix.muli(rhs.toDoubleMatrix()[0]);
          return this;
       }
-      return super.add(rhs);
+      return super.muli(rhs);
    }
 
    @Override
@@ -237,7 +248,7 @@ public class DenseMatrix extends Matrix {
       if (rhs.isDense()) {
          return new DenseMatrix(matrix.rdiv(rhs.toDoubleMatrix()[0]));
       }
-      return super.add(rhs);
+      return super.rdiv(rhs);
    }
 
    @Override
@@ -247,7 +258,7 @@ public class DenseMatrix extends Matrix {
          matrix.rdivi(rhs.toDoubleMatrix()[0]);
          return this;
       }
-      return super.add(rhs);
+      return super.rdivi(rhs);
    }
 
    @Override
@@ -256,7 +267,7 @@ public class DenseMatrix extends Matrix {
       if (rhs.isDense()) {
          return new DenseMatrix(matrix.rsub(rhs.toDoubleMatrix()[0]));
       }
-      return super.add(rhs);
+      return super.rsub(rhs);
    }
 
    @Override
@@ -266,8 +277,10 @@ public class DenseMatrix extends Matrix {
          matrix.rsubi(rhs.toDoubleMatrix()[0]);
          return this;
       }
-      return super.add(rhs);
+      return super.rsubi(rhs);
    }
+
+
 
    @Override
    public void set(long i, double value) {
@@ -285,7 +298,7 @@ public class DenseMatrix extends Matrix {
       if (rhs.isDense()) {
          return new DenseMatrix(matrix.sub(rhs.toDoubleMatrix()[0]));
       }
-      return super.add(rhs);
+      return super.sub(rhs);
    }
 
    @Override
@@ -295,7 +308,7 @@ public class DenseMatrix extends Matrix {
          matrix.subi(rhs.toDoubleMatrix()[0]);
          return this;
       }
-      return super.add(rhs);
+      return super.subi(rhs);
    }
 
    @Override

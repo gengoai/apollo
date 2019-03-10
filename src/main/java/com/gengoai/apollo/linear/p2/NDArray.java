@@ -64,8 +64,6 @@ public interface NDArray extends Serializable, Copyable<NDArray> {
 
    NDArray fill(double value);
 
-   void forEach(EntryConsumer consumer);
-
    void forEachSparse(EntryConsumer consumer);
 
    double get(long i);
@@ -77,6 +75,10 @@ public interface NDArray extends Serializable, Copyable<NDArray> {
    double get(int kernel, int channel, int row, int col);
 
    boolean isDense();
+
+   NDArray mapi(double value, DoubleBinaryOperator operator);
+
+   NDArray map(double value, DoubleBinaryOperator operator);
 
    NDArray map(NDArray rhs, DoubleBinaryOperator operator);
 

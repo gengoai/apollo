@@ -66,24 +66,23 @@ public class SparseMatrix extends Matrix {
             matrix.set(i, Math.random());
          }
       }
-      System.out.println(matrix.map.size());
       return matrix;
    }
 
    public static void loop() {
-      SparseMatrix n1 = rand(1000, 1000);
-      SparseMatrix n4 = rand(1000, 1000);
+      SparseMatrix n1 = rand(100, 100);
+      SparseMatrix n4 = rand(100, 100);
       SparseMatrix n2 = rand(1, 1000);
       SparseMatrix n3 = rand(1000, 1);
       for (int i = 0; i < 10_000; i++) {
 //         n1.addiColumnVector(n3);
 //         n1.addiRowVector(n2);
-         n1.addi(n4);
+         n1.add(n4);
       }
    }
 
    public static void loop2() {
-      com.gengoai.apollo.linear.NDArray n1 = NDArrayFactory.SPARSE.create(NDArrayInitializer.rand,1000, 1000);
+      com.gengoai.apollo.linear.NDArray n1 = NDArrayFactory.SPARSE.create(NDArrayInitializer.rand, 1000, 1000);
       com.gengoai.apollo.linear.NDArray n4 = NDArrayFactory.SPARSE.create(NDArrayInitializer.rand, 1000, 1000);
       for (int i = 0; i < 10_000; i++) {
 //         n1.addiColumnVector(n3);
@@ -94,11 +93,11 @@ public class SparseMatrix extends Matrix {
 
 
    public static void main(String[] args) throws Exception {
-      loop2();
+      loop();
       System.gc();
       Threads.sleep(10_000);
       Stopwatch sw = Stopwatch.createStarted();
-      loop2();
+      loop();
       System.out.println(sw);
    }
 

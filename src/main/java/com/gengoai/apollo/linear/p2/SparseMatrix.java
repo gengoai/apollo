@@ -22,11 +22,9 @@
 
 package com.gengoai.apollo.linear.p2;
 
-import com.gengoai.Stopwatch;
-import com.gengoai.apollo.linear.NDArrayFactory;
-import com.gengoai.apollo.linear.NDArrayInitializer;
+import com.gengoai.Copyable;
 import com.gengoai.apollo.linear.Shape;
-import com.gengoai.concurrent.Threads;
+import com.gengoai.conversion.Cast;
 import org.apache.mahout.math.map.OpenIntDoubleHashMap;
 import org.jblas.DoubleMatrix;
 
@@ -47,16 +45,12 @@ public class SparseMatrix extends Matrix {
 
    protected SparseMatrix(SparseMatrix toCopy) {
       super(toCopy.shape);
-      this.map = new OpenIntDoubleHashMap();
-      toCopy.map.forEachPair((i, v) -> {
-         this.map.put(i, v);
-         return true;
-      });
+      this.map = Copyable.deepCopy(toCopy.map);
    }
 
 
    public static SparseMatrix rand(int rows, int cols) {
-      return rand(rows, cols, 0.5);
+      return rand(rows, cols, 0.95);
    }
 
    public static SparseMatrix rand(int rows, int cols, double sparsity) {
@@ -69,51 +63,68 @@ public class SparseMatrix extends Matrix {
       return matrix;
    }
 
-   public static void loop() {
-      SparseMatrix n1 = rand(100, 100);
-      SparseMatrix n4 = rand(100, 100);
-      SparseMatrix n2 = rand(1, 1000);
-      SparseMatrix n3 = rand(1000, 1);
-      for (int i = 0; i < 10_000; i++) {
-//         n1.addiColumnVector(n3);
-//         n1.addiRowVector(n2);
-         n1.add(n4);
-      }
-   }
-
-   public static void loop2() {
-      com.gengoai.apollo.linear.NDArray n1 = NDArrayFactory.SPARSE.create(NDArrayInitializer.rand, 1000, 1000);
-      com.gengoai.apollo.linear.NDArray n4 = NDArrayFactory.SPARSE.create(NDArrayInitializer.rand, 1000, 1000);
-      for (int i = 0; i < 10_000; i++) {
-//         n1.addiColumnVector(n3);
-//         n1.addiRowVector(n2);
-         n1.addi(n4);
-      }
-   }
-
-
-   public static void main(String[] args) throws Exception {
-      loop();
-      System.gc();
-      Threads.sleep(10_000);
-      Stopwatch sw = Stopwatch.createStarted();
-      loop();
-      System.out.println(sw);
-   }
-
    @Override
    public NDArray copy() {
       SparseMatrix sm = new SparseMatrix(this);
       return sm;
    }
 
+   @Override
+   public NDArray add(NDArray rhs) {
+      return copy().addi(rhs);
+   }
 
    @Override
-   public void forEachSparse(EntryConsumer consumer) {
+   public NDArray div(NDArray rhs) {
+      return copy().divi(rhs);
+   }
+
+   @Override
+   public NDArray mul(NDArray rhs) {
+      return copy().muli(rhs);
+   }
+
+   @Override
+   public NDArray sub(NDArray rhs) {
+      return copy().subi(rhs);
+   }
+
+   @Override
+   public NDArray addi(NDArray rhs) {
+      if (!rhs.isDense()) {
+         checkLength(shape, rhs.shape());
+         SparseMatrix sm = Cast.as(rhs);
+         sm.map.forEachPair((i, v) -> {
+            map.adjustOrPutValue(i, v, v);
+            return true;
+         });
+         return this;
+      }
+      return super.addi(rhs);
+   }
+
+   @Override
+   public NDArray subi(NDArray rhs) {
+      if (!rhs.isDense()) {
+         checkLength(shape, rhs.shape());
+         SparseMatrix sm = Cast.as(rhs);
+         sm.map.forEachPair((i, v) -> {
+            map.adjustOrPutValue(i, v, -v);
+            return true;
+         });
+         return this;
+      }
+      return super.addi(rhs);
+   }
+
+   @Override
+   public NDArray muli(NDArray rhs) {
+      checkLength(shape, rhs.shape());
       map.forEachPair((i, v) -> {
-         consumer.apply(i, v);
+         map.put(i, v * rhs.get(i));
          return true;
       });
+      return this;
    }
 
    @Override
@@ -147,7 +158,12 @@ public class SparseMatrix extends Matrix {
 
    @Override
    public DoubleMatrix[] toDoubleMatrix() {
-      return new DoubleMatrix[0];
+      DoubleMatrix m = new DoubleMatrix(shape.rows(), shape.columns());
+      map.forEachPair((i, v) -> {
+         m.data[i] = v;
+         return true;
+      });
+      return new DoubleMatrix[]{m};
    }
 
    @Override
@@ -163,10 +179,11 @@ public class SparseMatrix extends Matrix {
          t.shape.reshape(shape.columns(), shape.rows());
       } else {
          t = new SparseMatrix();
-         forEachSparse((i, v) -> {
-            int row = (int) i % shape.rows();
-            int col = (int) i / shape.rows();
+         map.forEachPair((i, v) -> {
+            int row = i % shape.rows();
+            int col = i / shape.rows();
             t.set(col, row, v);
+            return true;
          });
       }
       return t;

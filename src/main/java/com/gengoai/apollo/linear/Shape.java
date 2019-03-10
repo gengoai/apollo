@@ -44,6 +44,11 @@ public class Shape implements Serializable, Copyable<Shape> {
    public final int matrixLength;
    public final int sliceLength;
 
+
+   public static Shape shape(int... dims) {
+      return new Shape(dims);
+   }
+
    /**
     * Instantiates a new Shape.
     *

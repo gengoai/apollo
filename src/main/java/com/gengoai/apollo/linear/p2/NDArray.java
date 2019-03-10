@@ -34,6 +34,8 @@ import java.util.function.DoubleBinaryOperator;
  */
 public interface NDArray extends Serializable, Copyable<NDArray> {
 
+   NDArray T();
+
    NDArray add(double value);
 
    NDArray add(NDArray rhs);
@@ -64,8 +66,6 @@ public interface NDArray extends Serializable, Copyable<NDArray> {
 
    NDArray fill(double value);
 
-   void forEachSparse(EntryConsumer consumer);
-
    double get(long i);
 
    double get(int row, int col);
@@ -76,25 +76,21 @@ public interface NDArray extends Serializable, Copyable<NDArray> {
 
    boolean isDense();
 
-   NDArray mapi(double value, DoubleBinaryOperator operator);
-
    NDArray map(double value, DoubleBinaryOperator operator);
 
    NDArray map(NDArray rhs, DoubleBinaryOperator operator);
 
-   NDArray mapi(NDArray rhs, DoubleBinaryOperator operator);
-
    NDArray mapColumn(NDArray rhs, final DoubleBinaryOperator operator);
-
-   NDArray mapiColumn(NDArray rhs, final DoubleBinaryOperator operator);
-
-   NDArray mapiSparseColumn(NDArray rhs, final DoubleBinaryOperator operator);
 
    NDArray mapRow(NDArray rhs, final DoubleBinaryOperator operator);
 
-   NDArray mapiRow(NDArray rhs, final DoubleBinaryOperator operator);
+   NDArray mapi(double value, DoubleBinaryOperator operator);
 
-   NDArray mapiSparseRow(NDArray rhs, final DoubleBinaryOperator operator);
+   NDArray mapi(NDArray rhs, DoubleBinaryOperator operator);
+
+   NDArray mapiColumn(NDArray rhs, final DoubleBinaryOperator operator);
+
+   NDArray mapiRow(NDArray rhs, final DoubleBinaryOperator operator);
 
    NDArray mul(NDArray rhs);
 
@@ -167,15 +163,5 @@ public interface NDArray extends Serializable, Copyable<NDArray> {
    }
 
    NDArray zeroLike();
-
-
-   @FunctionalInterface
-   interface EntryConsumer {
-
-      void apply(long index, double value);
-
-   }
-
-   NDArray T();
 
 }//END OF NDArray

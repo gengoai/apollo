@@ -37,10 +37,23 @@ public final class StoppingCriteria implements Serializable {
       return new StoppingCriteria("loss");
    }
 
+   /**
+    * Create stopping criteria.
+    *
+    * @param criteriaName the criteria name
+    * @return the stopping criteria
+    */
    public static StoppingCriteria create(String criteriaName) {
       return new StoppingCriteria(criteriaName);
    }
 
+   /**
+    * Create stopping criteria.
+    *
+    * @param criteriaName the criteria name
+    * @param p            the p
+    * @return the stopping criteria
+    */
    public static StoppingCriteria create(String criteriaName, FitParameters<?> p) {
       StoppingCriteria sc = new StoppingCriteria(criteriaName);
       sc.reportInterval = p.verbose.value()
@@ -77,6 +90,11 @@ public final class StoppingCriteria implements Serializable {
       return converged;
    }
 
+   /**
+    * Criteria name string.
+    *
+    * @return the string
+    */
    public String criteriaName() {
       return this.criteriaName;
    }
@@ -110,10 +128,21 @@ public final class StoppingCriteria implements Serializable {
       return history.getFirst();
    }
 
+   /**
+    * Logger logger.
+    *
+    * @return the logger
+    */
    public Logger logger() {
       return logger;
    }
 
+   /**
+    * Logger stopping criteria.
+    *
+    * @param logger the logger
+    * @return the stopping criteria
+    */
    public StoppingCriteria logger(Logger logger) {
       this.logger = logger == null ? Logger.getGlobalLogger() : logger;
       return this;
@@ -139,10 +168,21 @@ public final class StoppingCriteria implements Serializable {
       return this;
    }
 
+   /**
+    * Report interval int.
+    *
+    * @return the int
+    */
    public int reportInterval() {
       return reportInterval;
    }
 
+   /**
+    * Report interval stopping criteria.
+    *
+    * @param reportInterval the report interval
+    * @return the stopping criteria
+    */
    public StoppingCriteria reportInterval(int reportInterval) {
       this.reportInterval = reportInterval;
       return this;
@@ -168,6 +208,12 @@ public final class StoppingCriteria implements Serializable {
       return this;
    }
 
+   /**
+    * Until termination int.
+    *
+    * @param iteration the iteration
+    * @return the int
+    */
    public int untilTermination(IntToDoubleFunction iteration) {
       Stopwatch sw = Stopwatch.createStopped();
       double loss = 0;

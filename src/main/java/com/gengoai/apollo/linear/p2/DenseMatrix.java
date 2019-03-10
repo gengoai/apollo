@@ -51,13 +51,9 @@ public class DenseMatrix extends Matrix {
    }
 
    public static void loop() {
-      DenseMatrix n1 = rand(1000, 1000);
-      DenseMatrix n4 = rand(1000, 1000);
-      DenseMatrix n2 = rand(1, 1000);
-      DenseMatrix n3 = rand(1000, 1);
+      NDArray n1 = NDArrayFactory.DENSE.rand(1000, 1000);
+      NDArray n4 = NDArrayFactory.DENSE.rand(1000, 1000);
       for (int i = 0; i < 10_000; i++) {
-//         n1.addiColumnVector(n3);
-//         n1.addiRowVector(n2);
          n1.add(n4);
       }
    }
@@ -69,27 +65,6 @@ public class DenseMatrix extends Matrix {
       Stopwatch sw = Stopwatch.createStarted();
       loop();
       System.out.println(sw);
-   }
-
-   @Override
-   public NDArray map(NDArray rhs, DoubleBinaryOperator operator) {
-      DenseMatrix out = Cast.as(zeroLike());
-      for (int i = 0; i < shape.matrixLength; i++) {
-         out.matrix.data[i] = operator.applyAsDouble(matrix.data[i], rhs.get(i));
-      }
-      return out;
-   }
-
-   @Override
-   public NDArray mapi(NDArray rhs, DoubleBinaryOperator operator) {
-      for (int i = 0; i < shape.matrixLength; i++) {
-         matrix.data[i] = operator.applyAsDouble(matrix.data[i], rhs.get(i));
-      }
-      return this;
-   }
-
-   public static DenseMatrix rand(int rows, int columns) {
-      return new DenseMatrix(DoubleMatrix.rand(rows, columns));
    }
 
    @Override
@@ -182,15 +157,6 @@ public class DenseMatrix extends Matrix {
    }
 
    @Override
-   public void forEachSparse(EntryConsumer consumer) {
-      for (int i = 0; i < matrix.length; i++) {
-         if (matrix.data[i] != 0) {
-            consumer.apply(i, matrix.data[i]);
-         }
-      }
-   }
-
-   @Override
    public double get(long i) {
       return matrix.get((int) i);
    }
@@ -203,6 +169,23 @@ public class DenseMatrix extends Matrix {
    @Override
    public boolean isDense() {
       return true;
+   }
+
+   @Override
+   public NDArray map(NDArray rhs, DoubleBinaryOperator operator) {
+      DenseMatrix out = Cast.as(zeroLike());
+      for (int i = 0; i < shape.matrixLength; i++) {
+         out.matrix.data[i] = operator.applyAsDouble(matrix.data[i], rhs.get(i));
+      }
+      return out;
+   }
+
+   @Override
+   public NDArray mapi(NDArray rhs, DoubleBinaryOperator operator) {
+      for (int i = 0; i < shape.matrixLength; i++) {
+         matrix.data[i] = operator.applyAsDouble(matrix.data[i], rhs.get(i));
+      }
+      return this;
    }
 
    @Override
@@ -279,7 +262,6 @@ public class DenseMatrix extends Matrix {
       }
       return super.rsubi(rhs);
    }
-
 
 
    @Override

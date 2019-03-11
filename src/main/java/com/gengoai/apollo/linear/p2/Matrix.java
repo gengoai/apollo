@@ -26,7 +26,10 @@ import com.gengoai.Validation;
 import com.gengoai.apollo.linear.Shape;
 import com.gengoai.math.Operator;
 
+import java.util.Arrays;
 import java.util.function.DoubleBinaryOperator;
+import java.util.function.DoublePredicate;
+import java.util.stream.IntStream;
 
 /**
  * @author David B. Bracewell
@@ -694,4 +697,210 @@ public abstract class Matrix implements NDArray {
       return null;
    }
 
+   @Override
+   public double norm1() {
+      double sum = 0;
+      for (int i = 0; i < shape.matrixLength; i++) {
+         sum += Math.abs(get(i));
+      }
+      return sum;
+   }
+
+   @Override
+   public NDArray sliceNorm1() {
+      return NDArrayFactory.DENSE.scalar(norm1());
+   }
+
+   @Override
+   public double sumOfSquares() {
+      double sum = 0;
+      for (int i = 0; i < shape.matrixLength; i++) {
+         sum += Math.pow(get(i), 2);
+      }
+      return sum;
+   }
+
+   @Override
+   public NDArray sliceSumOfSquares() {
+      return NDArrayFactory.DENSE.scalar(sumOfSquares());
+   }
+
+   @Override
+   public double norm2() {
+      return Math.sqrt(sumOfSquares());
+   }
+
+   @Override
+   public NDArray sliceNorm2() {
+      return NDArrayFactory.DENSE.scalar(norm2());
+   }
+
+   @Override
+   public NDArray sliceDot(NDArray rhs) {
+      return NDArrayFactory.DENSE.scalar(dot(rhs));
+   }
+
+   @Override
+   public NDArray test(DoublePredicate predicate) {
+      return map(v -> {
+         if (predicate.test(v)) {
+            return 1.0;
+         }
+         return 0d;
+      });
+   }
+
+   @Override
+   public NDArray test(NDArray rhs, DoubleBinaryPredicate predicate) {
+      checkLength(shape, rhs.shape());
+      return map(rhs, (v1, v2) -> {
+         if (predicate.test(v1, v2)) {
+            return 1.0;
+         }
+         return 0d;
+      });
+   }
+
+   @Override
+   public NDArray testi(DoublePredicate predicate) {
+      return mapi(v -> {
+         if (predicate.test(v)) {
+            return 1.0;
+         }
+         return 0d;
+      });
+   }
+
+   @Override
+   public NDArray testi(NDArray rhs, DoubleBinaryPredicate predicate) {
+      checkLength(shape, rhs.shape());
+      return mapi(rhs, (v1, v2) -> {
+         if (predicate.test(v1, v2)) {
+            return 1.0;
+         }
+         return 0d;
+      });
+   }
+
+   @Override
+   public NDArray pivot() {
+      if (shape.isSquare()) {
+         NDArray p = NDArrayFactory.ND.eye(shape.rows());
+         for (int i = 0; i < shape.rows(); i++) {
+            double max = get(i, i);
+            int row = i;
+            for (int j = i; j < shape.rows(); j++) {
+               double v = get(j, i);
+               if (v > max) {
+                  max = v;
+                  row = j;
+               }
+            }
+            if (i != row) {
+               NDArray v = getRow(i);
+               p.setRow(i, p.getRow(row));
+               p.setRow(row, v);
+            }
+         }
+         return p;
+      }
+      throw new IllegalArgumentException("Only square slices supported");
+   }
+
+
+   @Override
+   public NDArray select(NDArray rhs) {
+      return map(rhs, (v1, v2) -> v2 == 1.0 ? 1.0 : 0.0);
+   }
+
+   @Override
+   public NDArray selecti(NDArray rhs) {
+      return mapi(rhs, (v1, v2) -> v2 == 1.0 ? 1.0 : 0.0);
+   }
+
+
+   @Override
+   public NDArray getChannels(int from, int to) {
+      if (from > 0 || to > 1) {
+         throw new IllegalArgumentException("Illegal Slice Range: "
+                                               + "(" + from + ", " + to + ") "
+                                               + shape.sliceLength);
+      }
+      return this.copy();
+   }
+
+
+   @Override
+   public NDArray getChannels(int[] channels) {
+      return getKernels(channels);
+   }
+
+   @Override
+   public NDArray getKernels(int from, int to) {
+      return getChannels(from, to);
+   }
+
+   private boolean validateAllZero(int[] a) {
+      a = IntStream.of(a).distinct().sorted().toArray();
+      if (a.length == 0) {
+         return false;
+      }
+      if (IntStream.of(a)
+                   .anyMatch(c -> c > 0)) {
+         throw new IllegalArgumentException("Illegal Slice Range: "
+                                               + Arrays.toString(a)
+                                               + shape.sliceLength);
+      }
+      return true;
+   }
+
+   @Override
+   public NDArray getKernels(int[] kernels) {
+      if (validateAllZero(kernels)) {
+         return this.copy();
+      }
+      return NDArrayFactory.DENSE.empty();
+   }
+
+   @Override
+   public NDArray getRows(int[] rows) {
+      rows = IntStream.of(rows).distinct().sorted().toArray();
+      NDArray out = NDArrayFactory.ND.array(rows.length, shape.columns());
+      for (int i = 0; i < rows.length; i++) {
+         out.setRow(i, getRow(rows[i]));
+      }
+      return out;
+   }
+
+   @Override
+   public NDArray getColumns(int[] columns) {
+      columns = IntStream.of(columns).distinct().sorted().toArray();
+      NDArray out = NDArrayFactory.ND.array(shape.rows(), columns.length);
+      for (int i = 0; i < columns.length; i++) {
+         out.setColumn(i, getColumn(columns[i]));
+      }
+      return out;
+   }
+
+   @Override
+   public NDArray getRows(int from, int to) {
+      NDArray out = NDArrayFactory.ND.array((to - from), shape.columns());
+      int index = 0;
+      for (int i = from; i < to; i++) {
+         out.setRow(index, getRow(i));
+         index++;
+      }
+      return out;
+   }
+
+   @Override
+   public NDArray getColumns(int from, int to) {
+      NDArray out = NDArrayFactory.ND.array(shape.rows(), (to - from));
+      int index = 0;
+      for (int i = from; i < to; i++) {
+         out.setColumn(index, getColumn(i));
+         index++;
+      }
+      return out;
+   }
 }//END OF NDArray

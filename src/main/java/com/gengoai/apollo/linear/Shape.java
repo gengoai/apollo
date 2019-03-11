@@ -23,6 +23,7 @@
 package com.gengoai.apollo.linear;
 
 import com.gengoai.Copyable;
+import com.gengoai.Validation;
 
 import java.io.Serializable;
 import java.util.Arrays;
@@ -45,6 +46,13 @@ public class Shape implements Serializable, Copyable<Shape> {
    public final int sliceLength;
 
 
+   public static Shape empty() {
+      Shape s = new Shape();
+      s.shape[2] = 0;
+      s.shape[3] = 0;
+      return s;
+   }
+
    public static Shape shape(int... dims) {
       return new Shape(dims);
    }
@@ -66,6 +74,10 @@ public class Shape implements Serializable, Copyable<Shape> {
          this.sliceLength = 1;
          this.matrixLength = 1;
       }
+      Validation.checkArgument(shape[0] >= 0, "Invalid Kernel: " + shape[0]);
+      Validation.checkArgument(shape[1] >= 0, "Invalid Channel: " + shape[1]);
+      Validation.checkArgument(shape[2] >= 0, "Invalid Row: " + shape[2]);
+      Validation.checkArgument(shape[3] >= 0, "Invalid Column: " + shape[3]);
    }
 
    /**
@@ -198,9 +210,11 @@ public class Shape implements Serializable, Copyable<Shape> {
     */
    public void reshape(int... dimensions) {
       Shape out = new Shape(dimensions);
-      if ((out.kernels() + out.channels() != kernels() + channels())
-             || (out.columns() + out.rows() != rows() + columns())) {
-         throw new IllegalArgumentException("Invalid reshaping");
+      if (sliceLength != out.sliceLength) {
+         throw new IllegalArgumentException("Invalid slice length: " + sliceLength + " != " + out.sliceLength);
+      }
+      if (matrixLength != out.matrixLength) {
+         throw new IllegalArgumentException("Invalid matrix length: " + matrixLength + " != " + out.matrixLength);
       }
       System.arraycopy(out.shape, 0, shape, 0, shape.length);
    }

@@ -22,9 +22,7 @@
 
 package com.gengoai.apollo.linear.p2;
 
-import com.gengoai.Stopwatch;
 import com.gengoai.apollo.linear.Shape;
-import com.gengoai.concurrent.Threads;
 import com.gengoai.conversion.Cast;
 import org.jblas.DoubleMatrix;
 
@@ -52,20 +50,32 @@ public class DenseMatrix extends Matrix {
    }
 
    public static void loop() {
-      NDArray n1 = NDArrayFactory.SPARSE.rand(1000, 1000);
+      NDArray n1 = NDArrayFactory.DENSE.rand(1000, 1000);
       NDArray n4 = NDArrayFactory.SPARSE.rand(1000, 1000);
       for (int i = 0; i < 10_000; i++) {
-         n1.argmax();
+         n1.dot(n4);
+      }
+   }
+
+   @Override
+   public double dot(NDArray rhs) {
+      if (rhs.isDense()) {
+         checkLength(shape, rhs.shape());
+         return matrix.dot(rhs.toDoubleMatrix()[0]);
+      } else {
+         return rhs.dot(this);
       }
    }
 
    public static void main(String[] args) throws Exception {
-      loop();
-      System.gc();
-      Threads.sleep(10_000);
-      Stopwatch sw = Stopwatch.createStarted();
-      loop();
-      System.out.println(sw);
+//      loop();
+//      System.gc();
+//      Threads.sleep(10_000);
+//      Stopwatch sw = Stopwatch.createStarted();
+//      loop();
+//      System.out.println(sw);
+
+      DoubleMatrix m = new DoubleMatrix(4,4);
    }
 
    @Override
@@ -376,5 +386,36 @@ public class DenseMatrix extends Matrix {
    @Override
    public double argmax() {
       return matrix.argmax();
+   }
+
+   @Override
+   public NDArray getRow(int row) {
+      return new DenseMatrix(matrix.getRow(row));
+   }
+
+   @Override
+   public NDArray getColumn(int column) {
+      return new DenseMatrix(matrix.getColumn(column));
+   }
+
+   @Override
+   public NDArray setColumn(int column, NDArray array) {
+      checkLength(shape.rows(), array.shape());
+      matrix.putColumn(column, array.toDoubleMatrix()[0]);
+      return this;
+   }
+
+   @Override
+   public NDArray setRow(int row, NDArray array) {
+      checkLength(shape.columns(), array.shape());
+      matrix.putRow(row, array.toDoubleMatrix()[0]);
+      return this;
+   }
+
+   @Override
+   public NDArray reshape(int... dims) {
+      shape.reshape(dims);
+      matrix.reshape(shape.rows(), shape.columns());
+      return this;
    }
 }//END OF DenseTwoDArray

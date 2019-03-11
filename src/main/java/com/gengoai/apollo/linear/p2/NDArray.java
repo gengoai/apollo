@@ -28,6 +28,7 @@ import org.jblas.DoubleMatrix;
 
 import java.io.Serializable;
 import java.util.function.DoubleBinaryOperator;
+import java.util.function.DoublePredicate;
 import java.util.function.DoubleUnaryOperator;
 
 /**
@@ -53,7 +54,29 @@ public interface NDArray extends Serializable, Copyable<NDArray> {
 
    NDArray addiRowVector(NDArray rhs);
 
+   double argmax();
+
+   double argmin();
+
+   NDArray columnArgmaxs();
+
+   NDArray columnArgmins();
+
+   NDArray columnMaxs();
+
+   default NDArray columnMeans() {
+      return columnSums().divi(shape().rows());
+   }
+
+   NDArray columnMins();
+
+   NDArray columnSums();
+
+   NDArray diag();
+
    NDArray div(NDArray rhs);
+
+   NDArray div(double value);
 
    NDArray divColumnVector(NDArray rhs);
 
@@ -61,11 +84,47 @@ public interface NDArray extends Serializable, Copyable<NDArray> {
 
    NDArray divi(NDArray rhs);
 
+   NDArray divi(double value);
+
    NDArray diviColumnVector(NDArray rhs);
 
    NDArray diviRowVector(NDArray rhs);
 
+   double dot(NDArray rhs);
+
+   default NDArray eq(double value) {
+      return testi(v -> v == value);
+   }
+
+   default NDArray eq(NDArray rhs) {
+      return testi(rhs, (v, value) -> v == value);
+   }
+
+   default NDArray eqi(double value) {
+      return testi(v -> v == value);
+   }
+
+   default NDArray eqi(NDArray rhs) {
+      return testi(rhs, (v, value) -> v == value);
+   }
+
    NDArray fill(double value);
+
+   default NDArray ge(double value) {
+      return test(v -> v >= value);
+   }
+
+   default NDArray ge(NDArray rhs) {
+      return test(rhs, (v, value) -> v >= value);
+   }
+
+   default NDArray gei(double value) {
+      return testi(v -> v >= value);
+   }
+
+   default NDArray gei(NDArray rhs) {
+      return testi(rhs, (v, value) -> v >= value);
+   }
 
    double get(long i);
 
@@ -75,11 +134,63 @@ public interface NDArray extends Serializable, Copyable<NDArray> {
 
    double get(int kernel, int channel, int row, int col);
 
+   NDArray getColumn(int column);
+
+   NDArray getRow(int row);
+
+   default NDArray gt(double value) {
+      return test(v -> v > value);
+   }
+
+   default NDArray gt(NDArray rhs) {
+      return test(rhs, (v, value) -> v > value);
+   }
+
+   default NDArray gti(double value) {
+      return testi(v -> v > value);
+   }
+
+   default NDArray gti(NDArray rhs) {
+      return testi(rhs, (v, value) -> v > value);
+   }
+
    boolean isDense();
 
-   NDArray map(DoubleUnaryOperator operator);
+   default NDArray le(double value) {
+      return test(v -> v <= value);
+   }
 
-   NDArray mapi(DoubleUnaryOperator operator);
+   default NDArray le(NDArray rhs) {
+      return test(rhs, (v, value) -> v <= value);
+   }
+
+   default NDArray lei(double value) {
+      return testi(v -> v <= value);
+   }
+
+   default NDArray lei(NDArray rhs) {
+      return testi(rhs, (v, value) -> v <= value);
+   }
+
+   long length();
+
+   default NDArray lt(double value) {
+      return test(v -> v < value);
+   }
+
+   default NDArray lt(NDArray rhs) {
+      return test(rhs, (v, value) -> v < value);
+   }
+
+   default NDArray lti(double value) {
+      return testi(v -> v < value);
+   }
+
+   default NDArray lti(NDArray rhs) {
+      return testi(rhs, (v, value) -> v < value);
+   }
+
+   NDArray map(DoubleUnaryOperator operator);
 
    NDArray map(double value, DoubleBinaryOperator operator);
 
@@ -89,6 +200,8 @@ public interface NDArray extends Serializable, Copyable<NDArray> {
 
    NDArray mapRow(NDArray rhs, final DoubleBinaryOperator operator);
 
+   NDArray mapi(DoubleUnaryOperator operator);
+
    NDArray mapi(double value, DoubleBinaryOperator operator);
 
    NDArray mapi(NDArray rhs, DoubleBinaryOperator operator);
@@ -97,7 +210,19 @@ public interface NDArray extends Serializable, Copyable<NDArray> {
 
    NDArray mapiRow(NDArray rhs, final DoubleBinaryOperator operator);
 
+   double max();
+
+   default double mean() {
+      return sum() / (shape().matrixLength * shape().sliceLength);
+   }
+
+   double min();
+
+   NDArray mmul(NDArray rhs);
+
    NDArray mul(NDArray rhs);
+
+   NDArray mul(double value);
 
    NDArray mulColumnVector(NDArray rhs);
 
@@ -105,11 +230,37 @@ public interface NDArray extends Serializable, Copyable<NDArray> {
 
    NDArray muli(NDArray rhs);
 
+   NDArray muli(double value);
+
    NDArray muliColumnVector(NDArray rhs);
 
    NDArray muliRowVector(NDArray rhs);
 
+   default NDArray neq(double value) {
+      return testi(v -> v != value);
+   }
+
+   default NDArray neq(NDArray rhs) {
+      return testi(rhs, (v, value) -> v != value);
+   }
+
+   default NDArray neqi(double value) {
+      return testi(v -> v != value);
+   }
+
+   default NDArray neqi(NDArray rhs) {
+      return testi(rhs, (v, value) -> v != value);
+   }
+
+   double norm1();
+
+   double norm2();
+
+   NDArray pivot();
+
    NDArray rdiv(NDArray rhs);
+
+   NDArray rdiv(double value);
 
    NDArray rdivColumnVector(NDArray rhs);
 
@@ -117,17 +268,39 @@ public interface NDArray extends Serializable, Copyable<NDArray> {
 
    NDArray rdivi(NDArray rhs);
 
+   NDArray rdivi(double value);
+
    NDArray rdiviColumnVector(NDArray rhs);
 
    NDArray rdiviRowVector(NDArray rhs);
 
+   NDArray reshape(int... dims);
+
+   NDArray rowArgmaxs();
+
+   NDArray rowArgmins();
+
+   NDArray rowMaxs();
+
+   default NDArray rowMeans() {
+      return rowSums().divi(shape().columns());
+   }
+
+   NDArray rowMins();
+
+   NDArray rowSums();
+
    NDArray rsub(NDArray rhs);
+
+   NDArray rsub(double value);
 
    NDArray rsubColumnVector(NDArray rhs);
 
    NDArray rsubRowVector(NDArray rhs);
 
    NDArray rsubi(NDArray rhs);
+
+   NDArray rsubi(double value);
 
    NDArray rsubiColumnVector(NDArray rhs);
 
@@ -137,6 +310,10 @@ public interface NDArray extends Serializable, Copyable<NDArray> {
       return get(0);
    }
 
+   NDArray select(NDArray rhs);
+
+   NDArray selecti(NDArray rhs);
+
    void set(long i, double value);
 
    void set(int row, int col, double value);
@@ -145,11 +322,39 @@ public interface NDArray extends Serializable, Copyable<NDArray> {
 
    void set(int kernel, int channel, int row, int col, double value);
 
+   NDArray setColumn(int column, NDArray array);
+
+   NDArray setRow(int row, NDArray array);
+
    Shape shape();
+
+   long size();
 
    NDArray slice(int slice);
 
+   NDArray sliceArgmaxs();
+
+   NDArray sliceArgmins();
+
+   NDArray sliceDot(NDArray rhs);
+
+   NDArray sliceMaxs();
+
+   NDArray sliceMeans();
+
+   NDArray sliceMins();
+
+   NDArray sliceNorm1();
+
+   NDArray sliceNorm2();
+
+   NDArray sliceSumOfSquares();
+
+   NDArray sliceSums();
+
    NDArray sub(NDArray rhs);
+
+   NDArray sub(double value);
 
    NDArray subColumnVector(NDArray rhs);
 
@@ -157,9 +362,23 @@ public interface NDArray extends Serializable, Copyable<NDArray> {
 
    NDArray subi(NDArray rhs);
 
+   NDArray subi(double value);
+
    NDArray subiColumnVector(NDArray rhs);
 
    NDArray subiRowVector(NDArray rhs);
+
+   double sum();
+
+   double sumOfSquares();
+
+   NDArray test(DoublePredicate predicate);
+
+   NDArray test(NDArray rhs, DoubleBinaryPredicate predicate);
+
+   NDArray testi(DoublePredicate predicate);
+
+   NDArray testi(NDArray rhs, DoubleBinaryPredicate predicate);
 
    DoubleMatrix[] toDoubleMatrix();
 
@@ -169,87 +388,28 @@ public interface NDArray extends Serializable, Copyable<NDArray> {
 
    NDArray zeroLike();
 
-   double sum();
+   NDArray getChannels(int from, int to);
 
-   NDArray sliceSums();
+   NDArray getChannels(int[] channels);
 
-   NDArray rowSums();
+   NDArray getKernels(int from, int to);
 
-   NDArray columnSums();
+   NDArray getKernels(int[] kernels);
 
-   default double mean() {
-      return sum() / (shape().matrixLength * shape().sliceLength);
+   NDArray getRows(int[] rows);
+
+   NDArray getColumns(int[] columns);
+
+   NDArray getRows(int from, int to);
+
+   NDArray getColumns(int from, int to);
+
+
+   @FunctionalInterface
+   interface DoubleBinaryPredicate {
+
+      boolean test(double v1, double v2);
    }
 
-   NDArray sliceMeans();
-
-   NDArray div(double value);
-
-   NDArray divi(double value);
-
-   NDArray rdiv(double value);
-
-   NDArray rdivi(double value);
-
-   NDArray mul(double value);
-
-   NDArray muli(double value);
-
-   NDArray sub(double value);
-
-   NDArray subi(double value);
-
-   NDArray rsub(double value);
-
-   NDArray rsubi(double value);
-
-
-   default NDArray rowMeans() {
-      return rowSums().divi(shape().columns());
-   }
-
-   default NDArray columnMeans() {
-      return columnSums().divi(shape().rows());
-   }
-
-   double min();
-
-   NDArray sliceMins();
-
-   NDArray rowMins();
-
-   NDArray columnMins();
-
-   double max();
-
-   NDArray sliceMaxs();
-
-   NDArray rowMaxs();
-
-   NDArray columnMaxs();
-
-   double argmin();
-
-   NDArray sliceArgmins();
-
-   NDArray rowArgmins();
-
-   NDArray columnArgmins();
-
-   double argmax();
-
-   NDArray sliceArgmaxs();
-
-   NDArray rowArgmaxs();
-
-   NDArray columnArgmaxs();
-
-   NDArray diag();
-
-   long size();
-
-   long length();
-
-   NDArray mmul(NDArray rhs);
 
 }//END OF NDArray

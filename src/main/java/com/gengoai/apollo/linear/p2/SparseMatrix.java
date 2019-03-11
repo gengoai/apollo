@@ -24,6 +24,7 @@ package com.gengoai.apollo.linear.p2;
 
 import com.gengoai.Copyable;
 import com.gengoai.apollo.linear.Shape;
+import com.gengoai.concurrent.AtomicDouble;
 import com.gengoai.conversion.Cast;
 import com.gengoai.math.Math2;
 import com.gengoai.math.Optimum;
@@ -237,9 +238,79 @@ public class SparseMatrix extends Matrix {
       return Math.max(0, max);
    }
 
+   @Override
+   public double norm1() {
+      double sum = 0;
+      for (double element : map.values().elements()) {
+         sum += Math.abs(element);
+      }
+      return sum;
+   }
+
+   @Override
+   public double sumOfSquares() {
+      double sum = 0;
+      for (double element : map.values().elements()) {
+         sum += element * element;
+      }
+      return sum;
+   }
+
+   @Override
+   public double dot(NDArray rhs) {
+      checkLength(shape, rhs.shape());
+      final AtomicDouble dot = new AtomicDouble(0d);
+      map.forEachPair((i, v) -> {
+         dot.addAndGet(rhs.get(i) * v);
+         return true;
+      });
+      return dot.get();
+   }
 
    @Override
    public long size() {
       return map.size();
+   }
+
+   @Override
+   public NDArray getRow(int row) {
+      SparseMatrix sm = new SparseMatrix(1, shape.columns());
+      for (int i = 0; i < shape.rows(); i++) {
+         sm.set(row, i, get(row, i));
+      }
+      return sm;
+   }
+
+   @Override
+   public NDArray getColumn(int column) {
+      SparseMatrix sm = new SparseMatrix(shape.rows(), 1);
+      for (int i = 0; i < shape.columns(); i++) {
+         sm.set(i, column, get(i, column));
+      }
+      return sm;
+   }
+
+   @Override
+   public NDArray setColumn(int column, NDArray array) {
+      checkLength(shape.rows(), array.shape());
+      for (int i = 0; i < array.shape().matrixLength; i++) {
+         set(i, column, array.get(i));
+      }
+      return this;
+   }
+
+   @Override
+   public NDArray setRow(int row, NDArray array) {
+      checkLength(shape.columns(), array.shape());
+      for (int i = 0; i < array.shape().matrixLength; i++) {
+         set(row, i, array.get(i));
+      }
+      return this;
+   }
+
+   @Override
+   public NDArray reshape(int... dims) {
+      shape.reshape(dims);
+      return this;
    }
 }//END OF SparseMatrix

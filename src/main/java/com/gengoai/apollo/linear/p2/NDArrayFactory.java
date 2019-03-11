@@ -81,6 +81,17 @@ public enum NDArrayFactory {
       }
    };
 
+   public NDArray eye(int size) {
+      NDArray ndArray = array(size, size);
+      for (int i = 0; i < size; i++) {
+         ndArray.set(i, i, 1);
+      }
+      return ndArray;
+   }
+
+   public final NDArray empty() {
+      return array(Shape.empty());
+   }
 
    public final NDArray array(int... dims) {
       return array(new Shape(dims));

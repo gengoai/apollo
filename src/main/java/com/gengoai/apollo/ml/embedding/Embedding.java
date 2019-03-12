@@ -22,9 +22,9 @@
 
 package com.gengoai.apollo.ml.embedding;
 
-import com.gengoai.apollo.linear.NDArray;
-import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.linear.VectorComposition;
+import com.gengoai.apollo.linear.p2.NDArray;
+import com.gengoai.apollo.linear.p2.NDArrayFactory;
 import com.gengoai.apollo.ml.DiscreteModel;
 import com.gengoai.apollo.ml.DiscretePipeline;
 import com.gengoai.apollo.ml.Example;
@@ -131,7 +131,7 @@ public class Embedding extends DiscreteModel {
             if (Strings.isNotNullOrBlank(line) && !line.startsWith("#")) {
                NDArray v = VSTextUtils.convertLineToVector(line, dimension);
                ndArrays.add(v);
-               if (v.scalarNorm2() == 0) {
+               if (v.norm2() == 0) {
                   System.out.println(line);
                }
                keys.add(v.getLabel());

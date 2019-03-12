@@ -23,14 +23,13 @@
 package com.gengoai.apollo.ml.classification;
 
 import com.gengoai.Param;
-import com.gengoai.apollo.linear.NDArray;
-import com.gengoai.apollo.linear.NDArrayFactory;
+import com.gengoai.apollo.linear.p2.NDArray;
+import com.gengoai.apollo.linear.p2.NDArrayFactory;
 import com.gengoai.apollo.ml.DiscretePipeline;
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.FitParameters;
 import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
-import com.gengoai.collection.Iterables;
 import com.gengoai.conversion.Cast;
 
 import java.util.Arrays;
@@ -83,13 +82,12 @@ public class NaiveBayes extends Classifier {
          if (instance.hasLabel()) {
             N++;
             NDArray vector = instance.transform(getPipeline());
-            int ci = vector.getLabelAsNDArray().argMax();
+            int ci = (int) vector.getLabelAsNDArray().argmax();
             priors[ci] += instance.getWeight();
-            for (NDArray.Entry entry : Iterables.asIterable(vector.sparseIterator())) {
-               labelCounts[ci] += entry.getValue();
-               conditionals[(int) entry.getIndex()][ci] += instance.getWeight() * modelType.convertValue(
-                  entry.getValue());
-            }
+            vector.forEachSparse((index, value) -> {
+               labelCounts[ci] += value;
+               conditionals[(int) index][ci] += instance.getWeight() * modelType.convertValue(value);
+            });
          }
       }
 
@@ -162,13 +160,14 @@ public class NaiveBayes extends Classifier {
 
          @Override
          NDArray distribution(NDArray instance, double[] priors, double[][] conditionals) {
-            NDArray distribution = NDArrayFactory.columnVector(priors);
+            NDArray distribution = NDArrayFactory.ND.columnVector(priors);
             for (int i = 0; i < priors.length; i++) {
                for (int f = 0; f < conditionals.length; f++) {
+                  double value = distribution.get(i);
                   if (instance.get(f) != 0) {
-                     distribution.increment(i, Math.log(conditionals[f][i]));
+                     distribution.set(i, value + Math.log(conditionals[f][i]));
                   } else {
-                     distribution.increment(i, Math.log(1 - conditionals[f][i]));
+                     distribution.set(i, value + Math.log(1 - conditionals[f][i]));
                   }
                }
             }
@@ -202,11 +201,12 @@ public class NaiveBayes extends Classifier {
        * @return the distribution as an array
        */
       NDArray distribution(NDArray instance, double[] priors, double[][] conditionals) {
-         NDArray distribution = NDArrayFactory.columnVector(priors);
-         instance.forEachSparse(entry -> {
+         NDArray distribution = NDArrayFactory.ND.columnVector(priors);
+         instance.forEachSparse((index, value) -> {
             for (int i = 0; i < priors.length; i++) {
-               distribution.decrement(i, entry.getValue() * conditionals[(int) entry.getIndex()][i]);
+               distribution.set(i, distribution.get(i) - value * conditionals[(int) index][i]);
             }
+
          });
          return distribution.mapi(Math::exp);
       }

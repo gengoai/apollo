@@ -1,13 +1,13 @@
 package com.gengoai.apollo.optimization;
 
-import com.gengoai.apollo.linear.Axis;
-import com.gengoai.apollo.linear.NDArray;
+import com.gengoai.apollo.linear.p2.NDArray;
 import com.gengoai.concurrent.AtomicDouble;
 import com.gengoai.tuple.Tuple2;
 import org.apache.commons.math3.util.FastMath;
 
 import java.io.Serializable;
 
+import static com.gengoai.apollo.linear.p2.NDArrayFactory.ND;
 import static com.gengoai.tuple.Tuples.$;
 
 /**
@@ -127,7 +127,7 @@ public class SGDUpdater implements WeightUpdate, Serializable {
                                          boolean calculateOutDelta
                                         ) {
       if (momentum > 0 && v == null) {
-         v = weights.getWeights().getFactory().zeros(output.numRows(), input.numRows());
+         v = ND.array(output.rows(), input.rows());
       }
       double lr = learningRate / (1.0 + decayRate * iteration);
 
@@ -137,9 +137,9 @@ public class SGDUpdater implements WeightUpdate, Serializable {
                       : null;
 
       NDArray dw = delta.mmul(input.T())
-                        .divi(input.numCols());
-      NDArray db = delta.sum(Axis.ROW)
-                        .divi(input.numCols());
+                        .divi(input.columns());
+      NDArray db = delta.rowSums()
+                        .divi(input.columns());
 
       addedCost += l2Update(dw, l2);
 
@@ -159,8 +159,7 @@ public class SGDUpdater implements WeightUpdate, Serializable {
    @Override
    public double update(LinearModelParameters weights, GradientParameter gradient, int iteration) {
       if (momentum > 0 && v == null) {
-         v = weights.getWeights().getFactory().zeros(weights.getWeights().numRows(),
-                                                     weights.getWeights().numCols());
+         v = ND.array(weights.getWeights().rows(), weights.getWeights().columns());
       }
       double lr = learningRate / (1.0 + decayRate * iteration);
       double addedCost = 0;
@@ -173,7 +172,7 @@ public class SGDUpdater implements WeightUpdate, Serializable {
          weights.getWeights().subi(gradient.getWeightGradient().muli(lr));
       }
 
-      weights.getBias().subi(gradient.getBiasGradient().sum(Axis.ROW).muli(lr));
+      weights.getBias().subi(gradient.getBiasGradient().rowSums().muli(lr));
       addedCost += l1Update(weights.getWeights(), lr, l1, iteration);
       return addedCost;
    }

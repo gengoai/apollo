@@ -22,11 +22,12 @@
 
 package com.gengoai.apollo.statistics.measure;
 
-import com.gengoai.apollo.linear.NDArray;
-import com.gengoai.apollo.linear.NDArrayFactory;
+import com.gengoai.apollo.linear.p2.NDArray;
 import com.gengoai.math.Optimum;
 
 import java.io.Serializable;
+
+import static com.gengoai.apollo.linear.p2.NDArrayFactory.ND;
 
 /**
  * <p>Calculates a metric between items, such as distance and similarity.</p>
@@ -43,7 +44,7 @@ public interface Measure extends Serializable {
     * @return the metric result
     */
    default double calculate(double[] v1, double[] v2) {
-      return calculate(NDArrayFactory.columnVector(v1), NDArrayFactory.columnVector(v2));
+      return calculate(ND.columnVector(v1), ND.columnVector(v2));
    }
 
    /**

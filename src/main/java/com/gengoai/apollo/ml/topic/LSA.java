@@ -22,17 +22,14 @@
 
 package com.gengoai.apollo.ml.topic;
 
-import com.gengoai.apollo.linear.Axis;
-import com.gengoai.apollo.linear.NDArray;
-import com.gengoai.apollo.linear.NDArrayFactory;
+import com.gengoai.apollo.linear.p2.NDArray;
+import com.gengoai.apollo.linear.p2.NDArrayFactory;
 import com.gengoai.apollo.ml.DiscretePipeline;
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.FitParameters;
 import com.gengoai.apollo.ml.Params;
 import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
-import com.gengoai.collection.counter.Counter;
-import com.gengoai.collection.counter.Counters;
 import com.gengoai.conversion.Cast;
 import com.gengoai.stream.SparkStream;
 import org.apache.spark.mllib.linalg.DenseVector;
@@ -41,9 +38,6 @@ import org.apache.spark.mllib.linalg.distributed.RowMatrix;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static com.gengoai.apollo.linear.SparkLinearAlgebra.sparkSVD;
-import static com.gengoai.apollo.linear.SparkLinearAlgebra.toMatrix;
 
 /**
  * <p>Distributed version of <a href="https://en.wikipedia.org/wiki/Latent_semantic_analysis">Latent Semantic
@@ -78,7 +72,7 @@ public class LSA extends TopicModel {
       double[] scores = new double[topics.size()];
       NDArray vector = example.preprocessAndTransform(getPipeline());
       for (int i = 0; i < topics.size(); i++) {
-         double score = vector.scalarDot(topicVectors.get(i));
+         double score = vector.dot(topicVectors.get(i));
          scores[i] = score;
       }
       return scores;
@@ -95,15 +89,15 @@ public class LSA extends TopicModel {
       //since we have document x word, V is the word x component matrix
       // U = document x component, E = singular components, V = word x component
       // Transpose V to get component (topics) x words
-      NDArray topicMatrix = toMatrix(sparkSVD(mat, parameters.K.value()).V().transpose());
-      for (int i = 0; i < parameters.K.value(); i++) {
-         Counter<String> featureDist = Counters.newCounter();
-         NDArray dist = NDArrayFactory.columnVector(topicMatrix.getVector(i, Axis.ROW).toDoubleArray());
-         dist.forEachSparse(
-            e -> featureDist.set(getPipeline().featureVectorizer.getString(e.getIndex()), e.getValue()));
-         topics.add(new Topic(i, featureDist));
-         topicVectors.add(dist);
-      }
+//      NDArray topicMatrix = toMatrix(sparkSVD(mat, parameters.K.value()).V().transpose());
+//      for (int i = 0; i < parameters.K.value(); i++) {
+//         Counter<String> featureDist = Counters.newCounter();
+//         NDArray dist = NDArrayFactory.columnVector(topicMatrix.getVector(i, Axis.ROW).toDoubleArray());
+//         dist.forEachSparse(
+//            e -> featureDist.set(getPipeline().featureVectorizer.getString(e.getIndex()), e.getValue()));
+//         topics.add(new Topic(i, featureDist));
+//         topicVectors.add(dist);
+//      }
    }
 
    @Override
@@ -125,13 +119,13 @@ public class LSA extends TopicModel {
    public NDArray getTopicDistribution(String feature) {
       int i = getPipeline().featureVectorizer.indexOf(feature);
       if (i == -1) {
-         return NDArrayFactory.rowVector(new double[topics.size()]);
+         return NDArrayFactory.ND.rowVector(new double[topics.size()]);
       }
       double[] dist = new double[topics.size()];
       for (int i1 = 0; i1 < topics.size(); i1++) {
          dist[i1] = topicVectors.get(i1).get(i);
       }
-      return NDArrayFactory.rowVector(dist);
+      return NDArrayFactory.ND.rowVector(dist);
    }
 
 

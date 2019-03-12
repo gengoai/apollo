@@ -23,7 +23,7 @@
 package com.gengoai.apollo.ml;
 
 import com.gengoai.Validation;
-import com.gengoai.apollo.linear.NDArray;
+import com.gengoai.apollo.linear.p2.NDArray;
 import com.gengoai.string.Strings;
 
 import java.util.*;
@@ -193,6 +193,6 @@ public class Instance extends Example {
       if (hasLabel()) {
          array.setLabel(pipeline.labelVectorizer.transform(this));
       }
-      return array.setWeight(getWeight()).compress();
+      return array.setWeight(getWeight()).trimToSize();
    }
 }//END OF Instance

@@ -22,15 +22,16 @@
 
 package com.gengoai.apollo.ml;
 
-import com.gengoai.apollo.linear.NDArray;
-import com.gengoai.apollo.linear.NDArrayFactory;
+import com.gengoai.apollo.linear.p2.NDArray;
 import com.gengoai.function.SerializableSupplier;
 import com.gengoai.stream.MStream;
 import de.bwaldvogel.liblinear.Feature;
-import de.bwaldvogel.liblinear.*;
 import de.bwaldvogel.liblinear.Model;
+import de.bwaldvogel.liblinear.*;
 
-import java.util.Iterator;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static com.gengoai.apollo.linear.p2.NDArrayFactory.ND;
 
 /**
  * <p>Helper functions for working with LibLinear</p>
@@ -54,11 +55,11 @@ public final class LibLinear {
    public static Feature[] toFeature(NDArray vector, int biasIndex) {
       int size = (int) vector.size() + (biasIndex > 0 ? 1 : 0);
       final Feature[] feature = new Feature[size];
-      int index = 0;
-      for (Iterator<NDArray.Entry> itr = vector.sparseOrderedIterator(); itr.hasNext(); index++) {
-         NDArray.Entry entry = itr.next();
-         feature[index] = new FeatureNode(entry.matrixIndex() + 1, entry.getValue());
-      }
+      AtomicInteger ai = new AtomicInteger(0);
+      vector.forEachSparse((index, value) -> {
+         feature[ai.getAndIncrement()] = new FeatureNode((int) index + 1, value);
+
+      });
       if (biasIndex > 0) {
          feature[size - 1] = new FeatureNode(biasIndex, 1.0);
       }
@@ -87,7 +88,7 @@ public final class LibLinear {
       for (int i = 0; i < labels.length; i++) {
          prime[labels[i]] = p[i];
       }
-      return NDArrayFactory.rowVector(prime);
+      return ND.rowVector(prime);
    }
 
    /**

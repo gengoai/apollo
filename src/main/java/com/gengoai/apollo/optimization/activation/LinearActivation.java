@@ -1,6 +1,8 @@
 package com.gengoai.apollo.optimization.activation;
 
-import com.gengoai.apollo.linear.NDArray;
+import com.gengoai.apollo.linear.p2.NDArray;
+
+import static com.gengoai.apollo.linear.p2.NDArrayFactory.ND;
 
 /**
  * The type Linear function.
@@ -22,7 +24,7 @@ public class LinearActivation implements Activation {
 
    @Override
    public NDArray gradient(NDArray in) {
-      return in.getFactory().ones(in.numRows(), in.numCols());
+      return ND.ones(in.rows(), in.columns());
    }
 
    @Override
@@ -32,6 +34,6 @@ public class LinearActivation implements Activation {
 
    @Override
    public NDArray valueGradient(NDArray activated) {
-      return activated.getFactory().ones(activated.numRows(), activated.numCols());
+      return ND.ones(activated.rows(), activated.columns());
    }
 }// END OF LinearActivation

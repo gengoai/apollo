@@ -169,17 +169,19 @@ public class SparseMatrix extends Matrix {
    }
 
    @Override
-   public void set(long i, double value) {
+   public NDArray set(long i, double value) {
       if (value == 0) {
          map.removeKey((int) i);
       } else {
          map.put((int) i, value);
       }
+      return this;
    }
 
    @Override
-   public void set(int row, int col, double value) {
+   public NDArray set(int row, int col, double value) {
       map.put(index(row, col), value);
+      return this;
    }
 
    @Override
@@ -193,8 +195,32 @@ public class SparseMatrix extends Matrix {
    }
 
    @Override
+   public NDArray trimToSize() {
+      map.trimToSize();
+      return this;
+   }
+
+   @Override
    public NDArray zeroLike() {
       return new SparseMatrix();
+   }
+
+   @Override
+   public double[] toDoubleArray() {
+      double[] array = new double[(int) length()];
+      map.forEachPair((i, v) -> {
+         array[i] = v;
+         return true;
+      });
+      return array;
+   }
+
+   @Override
+   public void forEachSparse(EntryConsumer consumer) {
+      map.forEachPair((i, v) -> {
+         consumer.apply(i, v);
+         return true;
+      });
    }
 
    @Override

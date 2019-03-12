@@ -23,9 +23,7 @@
 package com.gengoai.apollo.ml.regression;
 
 import com.gengoai.Copyable;
-import com.gengoai.apollo.linear.NDArray;
-import com.gengoai.apollo.linear.NDArrayFactory;
-import com.gengoai.apollo.linear.NDArrayInitializer;
+import com.gengoai.apollo.linear.p2.NDArray;
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.FitParameters;
 import com.gengoai.apollo.ml.NumericPipeline;
@@ -41,6 +39,7 @@ import com.gengoai.logging.Logger;
 import java.io.Serializable;
 
 import static com.gengoai.Validation.notNull;
+import static com.gengoai.apollo.linear.p2.NDArrayFactory.ND;
 
 /**
  * The type Linear regression.
@@ -71,7 +70,7 @@ public class LinearRegression extends Regression {
 
    @Override
    public double estimate(Example vector) {
-      return weightParameters.activate(vector.preprocessAndTransform(getPipeline())).scalarValue();
+      return weightParameters.activate(vector.preprocessAndTransform(getPipeline())).scalar();
    }
 
    @Override
@@ -145,8 +144,8 @@ public class LinearRegression extends Regression {
          this.numFeatures = numFeatures;
          int numL = numLabels <= 2 ? 1 : numLabels;
          this.activation = Activation.LINEAR;
-         this.weights = NDArrayFactory.DEFAULT().create(NDArrayInitializer.rand, numL, numFeatures);
-         this.bias = NDArrayFactory.DEFAULT().zeros(numL);
+         this.weights = ND.rand(numL, numFeatures);
+         this.bias = ND.array(numL);
       }
    }
 

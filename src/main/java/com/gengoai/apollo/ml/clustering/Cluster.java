@@ -22,7 +22,7 @@
 
 package com.gengoai.apollo.ml.clustering;
 
-import com.gengoai.apollo.linear.NDArray;
+import com.gengoai.apollo.linear.p2.NDArray;
 
 import java.io.Serializable;
 import java.util.ArrayList;

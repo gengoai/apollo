@@ -1,7 +1,6 @@
 package com.gengoai.apollo.optimization.activation;
 
-import com.gengoai.apollo.linear.Axis;
-import com.gengoai.apollo.linear.NDArray;
+import com.gengoai.apollo.linear.p2.NDArray;
 import org.apache.commons.math3.util.FastMath;
 
 /**
@@ -17,16 +16,15 @@ public class SoftmaxActivation implements Activation {
 
    @Override
    public NDArray apply(NDArray x) {
-      if (x.isVector()) {
-         double max = x.scalarMax();
+      if (x.shape().isVector()) {
+         double max = x.max();
          x.mapi(d -> FastMath.exp(d - max));
-         NDArray sum = x.sum();
-         return x.divi(sum);
+         return x.divi(x.sum());
       }
-      NDArray max = x.max(Axis.COLUMN);
-      x.mapi(max, Axis.ROW, (d1, m) -> FastMath.exp(d1 - m));
-      NDArray sum = x.sum(Axis.COLUMN);
-      return x.divi(sum, Axis.ROW);
+      NDArray max = x.columnMaxs();
+      x.mapiRow(max, (d1, m) -> FastMath.exp(d1 - m));
+      NDArray sum = x.columnSums();
+      return x.diviRowVector(sum);
    }
 
    @Override

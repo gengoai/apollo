@@ -22,7 +22,6 @@
 
 package com.gengoai.apollo.linear.p2;
 
-import com.gengoai.Validation;
 import com.gengoai.apollo.linear.Shape;
 import com.gengoai.math.Operator;
 
@@ -34,12 +33,12 @@ import java.util.stream.IntStream;
 /**
  * @author David B. Bracewell
  */
-public abstract class Matrix implements NDArray {
-   protected final Shape shape;
+public abstract class Matrix extends NDArray {
+   private static final long serialVersionUID = 1L;
+
 
    protected Matrix(Shape shape) {
-      Validation.notNull(shape);
-      this.shape = shape.copy();
+      super(shape);
    }
 
    protected static void checkLength(Shape s1, Shape s2) {
@@ -348,17 +347,17 @@ public abstract class Matrix implements NDArray {
    }
 
    @Override
-   public void set(int channel, int row, int col, double value) {
+   public NDArray set(int channel, int row, int col, double value) {
       if (channel == 0) {
-         set(row, col, value);
+         return set(row, col, value);
       }
       throw new IndexOutOfBoundsException();
    }
 
    @Override
-   public void set(int kernel, int channel, int row, int col, double value) {
+   public NDArray set(int kernel, int channel, int row, int col, double value) {
       if (channel == 0 && kernel == 0) {
-         set(row, col, value);
+         return set(row, col, value);
       }
       throw new IndexOutOfBoundsException();
    }

@@ -1,7 +1,6 @@
 package com.gengoai.apollo.optimization;
 
-import com.gengoai.apollo.linear.Axis;
-import com.gengoai.apollo.linear.NDArray;
+import com.gengoai.apollo.linear.p2.NDArray;
 import com.gengoai.apollo.optimization.activation.Activation;
 
 /**
@@ -10,7 +9,9 @@ import com.gengoai.apollo.optimization.activation.Activation;
 public interface LinearModelParameters {
 
    default NDArray activate(NDArray input) {
-      return getActivation().apply(getWeights().mmul(input).addi(getBias(), Axis.COLUMN));
+      return getActivation().apply(getWeights()
+                                      .mmul(input)
+                                      .addiColumnVector(getBias()));
    }
 
    Activation getActivation();

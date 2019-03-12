@@ -22,7 +22,7 @@
 
 package com.gengoai.apollo.ml.clustering;
 
-import com.gengoai.apollo.linear.NDArray;
+import com.gengoai.apollo.linear.p2.NDArray;
 import com.gengoai.apollo.ml.DiscreteModel;
 import com.gengoai.apollo.ml.DiscretePipeline;
 import com.gengoai.apollo.ml.Example;
@@ -92,7 +92,7 @@ public abstract class Clusterer extends DiscreteModel implements Iterable<Cluste
     * @return the cluster with an optimal measure (distance / similarity) to the example
     */
    public Cluster estimate(Example example) {
-      return get(measure(example.transform(getPipeline())).argMax());
+      return get((int) measure(example.transform(getPipeline())).argmax());
    }
 
    /**
@@ -102,7 +102,7 @@ public abstract class Clusterer extends DiscreteModel implements Iterable<Cluste
     * @return the cluster with an optimal measure (distance / similarity) to the example
     */
    public Cluster estimate(NDArray example) {
-      return get(measure(example).argMax());
+      return get((int) measure(example).argmax());
    }
 
    /**

@@ -1,12 +1,12 @@
 package com.gengoai.apollo.optimization;
 
-import com.gengoai.apollo.linear.Axis;
-import com.gengoai.apollo.linear.NDArray;
+import com.gengoai.apollo.linear.p2.NDArray;
 import com.gengoai.tuple.Tuple2;
 import org.apache.commons.math3.util.FastMath;
 
 import java.io.Serializable;
 
+import static com.gengoai.apollo.linear.p2.NDArrayFactory.ND;
 import static com.gengoai.tuple.Tuples.$;
 
 /**
@@ -40,12 +40,10 @@ public class AdamUpdater implements WeightUpdate, Serializable {
                         int iteration
                        ) {
       if (m == null) {
-         m = weights.getWeights().getFactory().zeros(gradient.getWeightGradient().numRows(),
-                                                     gradient.getWeightGradient().numCols());
+         m = ND.array(gradient.getWeightGradient().rows(), gradient.getWeightGradient().columns());
       }
       if (v == null) {
-         v = weights.getWeights().getFactory().zeros(gradient.getWeightGradient().numRows(),
-                                                     gradient.getWeightGradient().numCols());
+         v = ND.array(gradient.getWeightGradient().rows(), gradient.getWeightGradient().columns());
       }
       double addedCost = 0d;
 
@@ -63,7 +61,7 @@ public class AdamUpdater implements WeightUpdate, Serializable {
       }
 
       weights.getWeights().subi(m.mul(lr_t).div(v.map(x -> Math.sqrt(x) + eps)));
-      weights.getBias().subi(gradient.getBiasGradient().sum(Axis.ROW).muli(lr_t));
+      weights.getBias().subi(gradient.getBiasGradient().rowSums().muli(lr_t));
       return addedCost;
    }
 
@@ -76,10 +74,10 @@ public class AdamUpdater implements WeightUpdate, Serializable {
                                          boolean calculateOutDelta
                                         ) {
       if (m == null) {
-         m = weights.getWeights().getFactory().zeros(output.numRows(), input.numRows());
+         m = ND.array(output.rows(), input.rows());
       }
       if (v == null) {
-         v = weights.getWeights().getFactory().zeros(output.numRows(), input.numRows());
+         v = ND.array(output.rows(), input.rows());
       }
       double addedCost = 0d;
 
@@ -91,7 +89,7 @@ public class AdamUpdater implements WeightUpdate, Serializable {
                       : null;
 
       NDArray dw = delta.mmul(input.T())
-                        .divi(input.numCols());
+                        .divi(input.columns());
 
       m = m.mul(beta1).add(dw.mul(1d - beta1));
       v = v.mul(beta2).add(dw.map(x -> (x * x) * (1 - beta2)));
@@ -105,7 +103,7 @@ public class AdamUpdater implements WeightUpdate, Serializable {
       }
 
       weights.getWeights().subi(m.mul(lr_t).div(v.map(x -> Math.sqrt(x) + eps)));
-      NDArray db = delta.sum(Axis.ROW).divi(input.numCols());
+      NDArray db = delta.rowSums().divi(input.columns());
       weights.getBias().subi(db.muli(lr_t));
       return $(dzOut, addedCost);
    }

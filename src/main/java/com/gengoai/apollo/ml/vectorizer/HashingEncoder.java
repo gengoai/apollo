@@ -22,8 +22,8 @@
 
 package com.gengoai.apollo.ml.vectorizer;
 
-import com.gengoai.apollo.linear.NDArray;
-import com.gengoai.apollo.linear.NDArrayFactory;
+import com.gengoai.apollo.linear.p2.NDArray;
+import com.gengoai.apollo.linear.p2.NDArrayFactory;
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.Feature;
 import com.gengoai.apollo.ml.data.Dataset;
@@ -72,13 +72,13 @@ public class HashingEncoder implements DiscreteVectorizer {
 
    @Override
    public NDArray transform(Example example) {
-      NDArray ndArray = NDArrayFactory.DEFAULT().zeros(size());
+      NDArray ndArray = NDArrayFactory.ND.array(size());
       for (Feature feature : example.getFeatures()) {
          int fi = indexOf(feature.getName());
          if (isBinary) {
             ndArray.set(fi, 1.0);
          } else {
-            ndArray.increment(fi, feature.getValue());
+            ndArray.set(fi, ndArray.get(fi) + feature.getValue());
          }
       }
       return ndArray;

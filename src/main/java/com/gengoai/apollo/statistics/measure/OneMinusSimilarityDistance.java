@@ -22,7 +22,7 @@
 
 package com.gengoai.apollo.statistics.measure;
 
-import com.gengoai.apollo.linear.NDArray;
+import com.gengoai.apollo.linear.p2.NDArray;
 
 /**
  * <p>Distance measure implementation that is the one minus the value of a similarity measure</p>

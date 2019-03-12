@@ -23,7 +23,7 @@
 package com.gengoai.apollo.statistics.measure;
 
 import com.gengoai.Validation;
-import com.gengoai.apollo.linear.NDArray;
+import com.gengoai.apollo.linear.p2.NDArray;
 import com.gengoai.math.Math2;
 
 /**
@@ -38,7 +38,7 @@ public enum Similarity implements SimilarityMeasure {
    DotProduct {
       @Override
       public double calculate(NDArray v1, NDArray v2) {
-         return v1.scalarDot(v2);
+         return v1.dot(v2);
       }
 
       @Override
@@ -55,11 +55,11 @@ public enum Similarity implements SimilarityMeasure {
          if (v1.size() == 0 && v2.size() == 0) {
             return 1.0;
          }
-         double norm = v1.add(v2).scalarSum();
+         double norm = v1.add(v2).sum();
          if (norm == 0) {
-            return v1.scalarSumOfSquares() == 0 && v2.scalarSumOfSquares() == 0 ? 1.0 : 0.0;
+            return v1.sumOfSquares() == 0 && v2.sumOfSquares() == 0 ? 1.0 : 0.0;
          }
-         return 2 * v1.map(v2, Math::min).scalarSum() / norm;
+         return 2 * v1.map(v2, Math::min).sum() / norm;
       }
 
       @Override
@@ -76,7 +76,7 @@ public enum Similarity implements SimilarityMeasure {
    DiceGen2 {
       @Override
       public double calculate(NDArray v1, NDArray v2) {
-         return v1.scalarDot(v2) / (v1.scalarSum() + v2.scalarSum());
+         return v1.dot(v2) / (v1.sum() + v2.sum());
       }
 
       @Override
@@ -95,14 +95,14 @@ public enum Similarity implements SimilarityMeasure {
 //         if (v1.size() == 0 && v2.size() == 0) {
 //            return 1.0;
 //         }
-         double v1Norm = v1.scalarNorm2();
-         double v2Norm = v2.scalarNorm2();
+         double v1Norm = v1.norm2();
+         double v2Norm = v2.norm2();
          if (v1Norm == 0 && v2Norm == 0) {
             return 1.0;
          } else if (v1Norm == 0 || v2Norm == 0) {
             return 0.0;
          }
-         return v1.scalarDot(v2) / (v1Norm * v2Norm);
+         return v1.dot(v2) / (v1Norm * v2Norm);
       }
 
       @Override
@@ -118,17 +118,17 @@ public enum Similarity implements SimilarityMeasure {
     * Extended version of the <a href="https://en.wikipedia.org/wiki/Jaccard_index">Jaccard Index</a>, which is also
     * known as the <code>Tanimoto</code> coefficient.
     */
-   Jaccard{
+   Jaccard {
       @Override
       public double calculate(NDArray v1, NDArray v2) {
          if (v1.size() == 0 && v2.size() == 0) {
             return 1.0;
          }
-         double norm = v1.map(v2, Math::max).scalarSum();
+         double norm = v1.map(v2, Math::max).sum();
          if (norm == 0) {
-            return v1.scalarSumOfSquares() == 0 && v2.scalarSumOfSquares() == 0 ? 1.0 : 0.0;
+            return v1.sumOfSquares() == 0 && v2.sumOfSquares() == 0 ? 1.0 : 0.0;
          }
-         return v1.map(v2, Math::min).scalarSum() / norm;
+         return v1.map(v2, Math::min).sum() / norm;
       }
 
       @Override
@@ -141,20 +141,20 @@ public enum Similarity implements SimilarityMeasure {
    /**
     * <a href="https://en.wikipedia.org/wiki/Overlap_coefficient">Overlap Coefficient</a>
     */
-   Overlap{
+   Overlap {
       @Override
       public double calculate(NDArray v1, NDArray v2) {
          if (v1.size() == 0 && v2.size() == 0) {
             return 1.0;
          }
-         double v1Norm = v1.scalarSumOfSquares();
-         double v2Norm = v2.scalarSumOfSquares();
+         double v1Norm = v1.sumOfSquares();
+         double v2Norm = v2.sumOfSquares();
          if (v1Norm == 0 && v2Norm == 0) {
             return 1.0;
          } else if (v1Norm == 0 || v2Norm == 0) {
             return 0.0;
          }
-         return Math2.clip(v1.scalarDot(v2) / Math.min(v1Norm, v2Norm), -1, 1);
+         return Math2.clip(v1.dot(v2) / Math.min(v1Norm, v2Norm), -1, 1);
       }
 
 

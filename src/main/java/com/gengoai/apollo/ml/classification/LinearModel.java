@@ -23,9 +23,7 @@
 package com.gengoai.apollo.ml.classification;
 
 import com.gengoai.Copyable;
-import com.gengoai.apollo.linear.NDArray;
-import com.gengoai.apollo.linear.NDArrayFactory;
-import com.gengoai.apollo.linear.NDArrayInitializer;
+import com.gengoai.apollo.linear.p2.NDArray;
 import com.gengoai.apollo.ml.DiscretePipeline;
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.FitParameters;
@@ -42,6 +40,8 @@ import com.gengoai.logging.Loggable;
 import com.gengoai.stream.MStream;
 
 import java.io.Serializable;
+
+import static com.gengoai.apollo.linear.p2.NDArrayFactory.ND;
 
 /**
  * <p>A generalized linear model. This model can encompass a number models dependent on the parameters when
@@ -182,8 +182,8 @@ public class LinearModel extends Classifier implements Loggable {
       public void update(Parameters parameters) {
          int numL = numLabels <= 2 ? 1 : numLabels;
          this.activation = parameters.activation.value();
-         this.weights = NDArrayFactory.DEFAULT().create(NDArrayInitializer.rand, numL, numFeatures);
-         this.bias = NDArrayFactory.DEFAULT().zeros(numL);
+         this.weights = ND.rand(numL, numFeatures);
+         this.bias = ND.array(numL);
       }
    }
 

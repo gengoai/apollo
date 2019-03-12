@@ -75,7 +75,7 @@ public class DenseMatrix extends Matrix {
 //      loop();
 //      System.out.println(sw);
 
-      DoubleMatrix m = new DoubleMatrix(4,4);
+      DoubleMatrix m = new DoubleMatrix(4, 4);
    }
 
    @Override
@@ -112,6 +112,18 @@ public class DenseMatrix extends Matrix {
          return this;
       }
       return super.addiColumnVector(rhs);
+   }
+
+   @Override
+   public double[] toDoubleArray() {
+      return matrix.toArray();
+   }
+
+   @Override
+   public void forEachSparse(EntryConsumer consumer) {
+      for (int i = 0; i < matrix.length; i++) {
+         consumer.apply(i, matrix.data[i]);
+      }
    }
 
    @Override
@@ -297,13 +309,20 @@ public class DenseMatrix extends Matrix {
    }
 
    @Override
-   public void set(long i, double value) {
-      matrix.put((int) i, value);
+   public NDArray trimToSize() {
+      return this;
    }
 
    @Override
-   public void set(int row, int col, double value) {
+   public NDArray set(long i, double value) {
+      matrix.put((int) i, value);
+      return this;
+   }
+
+   @Override
+   public NDArray set(int row, int col, double value) {
       matrix.put(row, col, value);
+      return this;
    }
 
    @Override

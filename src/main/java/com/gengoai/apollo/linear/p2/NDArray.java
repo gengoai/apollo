@@ -23,7 +23,9 @@
 package com.gengoai.apollo.linear.p2;
 
 import com.gengoai.Copyable;
+import com.gengoai.Validation;
 import com.gengoai.apollo.linear.Shape;
+import com.gengoai.conversion.Cast;
 import org.jblas.DoubleMatrix;
 
 import java.io.Serializable;
@@ -34,375 +36,551 @@ import java.util.function.DoubleUnaryOperator;
 /**
  * @author David B. Bracewell
  */
-public interface NDArray extends Serializable, Copyable<NDArray> {
+public abstract class NDArray implements Serializable, Copyable<NDArray> {
+   private Object label = null;
+   private Object predicted = null;
+   private double weight = 1d;
+   protected final Shape shape;
 
-   NDArray T();
+   protected NDArray(Shape shape) {
+      Validation.notNull(shape);
+      this.shape = shape.copy();
+   }
 
-   NDArray add(double value);
+   private double asDouble(Object object) {
+      if (object == null) {
+         return Double.NaN;
+      } else if (object instanceof NDArray) {
+         NDArray array = Cast.as(object);
+         if (array.shape.isScalar()) {
+            return array.scalar();
+         }
+         return array.max();
+      }
+      return Cast.<Number>as(object).doubleValue();
+   }
 
-   NDArray add(NDArray rhs);
+   private NDArray asNDArray(Object o, int dimension) {
+      if (o == null) {
+         return NDArrayFactory.ND.empty();
+      } else if (o instanceof Number) {
+         Number numLabel = Cast.as(o);
+         if (dimension == 1) {
+            return NDArrayFactory.ND.scalar(numLabel.floatValue());
+         }
+         return NDArrayFactory.ND.array(dimension).set(numLabel.intValue(), 1f);
+      }
+      NDArray nd = Cast.as(o, NDArray.class);
+      Validation.notNull(nd, "Cannot create NDArray from object.");
+      return nd;
+   }
 
-   NDArray addColumnVector(NDArray rhs);
+   public abstract NDArray trimToSize();
 
-   NDArray addRowVector(NDArray rhs);
+   /**
+    * Gets the weight associated with the NDArray.
+    *
+    * @return the weight
+    */
+   public double getWeight() {
+      return weight;
+   }
 
-   NDArray addi(double value);
+   /**
+    * Sets the weight associated with the NDArray.
+    *
+    * @param weight the weight
+    * @return this NDArray
+    */
+   public NDArray setWeight(double weight) {
+      this.weight = (float) weight;
+      return this;
+   }
 
-   NDArray addi(NDArray rhs);
+   /**
+    * Gets the label associated with the NDArray as a double value.
+    *
+    * @return the label as double
+    */
+   public double getLabelAsDouble() {
+      return asDouble(label);
+   }
 
-   NDArray addiColumnVector(NDArray rhs);
+   /**
+    * Gets the label associated with the NDArray as an NDArray
+    *
+    * @return the label as NDArray
+    */
+   public NDArray getLabelAsNDArray() {
+      return getLabelAsNDArray(1);
+   }
 
-   NDArray addiRowVector(NDArray rhs);
+   /**
+    * Gets the label associated with this NDArray as an NDArray (vector) with desired dimension.
+    *
+    * @param dimension the dimension
+    * @return the label as nd array
+    */
+   public NDArray getLabelAsNDArray(int dimension) {
+      return asNDArray(label, dimension);
+   }
 
-   double argmax();
+   /**
+    * Gets the predicted label associated with this NDArray.
+    *
+    * @param <T> the type parameter
+    * @return the predicted label
+    */
+   public <T> T getPredicted() {
+      return Cast.as(predicted);
+   }
 
-   double argmin();
+   /**
+    * Sets the predicted label for this NDArray.
+    *
+    * @param predicted the predicted label
+    * @return this NDArray
+    */
+   public NDArray setPredicted(Object predicted) {
+      this.predicted = predicted;
+      return this;
+   }
 
-   NDArray columnArgmaxs();
+   /**
+    * Gets the predicted label associated with the NDArray as a double value.
+    *
+    * @return the predicted label as double
+    */
+   public double getPredictedAsDouble() {
+      return asDouble(predicted);
+   }
 
-   NDArray columnArgmins();
+   /**
+    * Gets the predicted label associated with the NDArray as an NDArray
+    *
+    * @return the predicted label as NDArray
+    */
+   public NDArray getPredictedAsNDArray() {
+      return asNDArray(predicted, 1);
+   }
 
-   NDArray columnMaxs();
+   /**
+    * Gets the predicted label associated with this NDArray as an NDArray (vector) with desired dimension.
+    *
+    * @param dimension the dimension
+    * @return the predicted label as NDArray
+    */
+   public NDArray getPredictedAsNDArray(int dimension) {
+      return asNDArray(predicted, dimension);
+   }
 
-   default NDArray columnMeans() {
+
+   /**
+    * Gets the label associated with the NDArray
+    *
+    * @param <T> the type of the label
+    * @return the label
+    */
+   public <T> T getLabel() {
+      return Cast.as(label);
+   }
+
+   /**
+    * Sets the label associated with the NDArray
+    *
+    * @param label the label
+    * @return This NDArray
+    */
+   public NDArray setLabel(Object label) {
+      this.label = label;
+      return this;
+   }
+
+   public abstract NDArray T();
+
+   public abstract NDArray add(double value);
+
+   public abstract NDArray add(NDArray rhs);
+
+   public abstract NDArray addColumnVector(NDArray rhs);
+
+   public abstract NDArray addRowVector(NDArray rhs);
+
+   public abstract NDArray addi(double value);
+
+   public abstract NDArray addi(NDArray rhs);
+
+   public abstract NDArray addiColumnVector(NDArray rhs);
+
+   public abstract NDArray addiRowVector(NDArray rhs);
+
+   public abstract double argmax();
+
+   public abstract double argmin();
+
+   public abstract NDArray columnArgmaxs();
+
+   public abstract NDArray columnArgmins();
+
+   public abstract NDArray columnMaxs();
+
+   public NDArray columnMeans() {
       return columnSums().divi(shape().rows());
    }
 
-   NDArray columnMins();
+   public abstract NDArray columnMins();
 
-   NDArray columnSums();
+   public abstract NDArray columnSums();
 
-   NDArray diag();
+   public abstract NDArray diag();
 
-   NDArray div(NDArray rhs);
+   public abstract NDArray div(NDArray rhs);
 
-   NDArray div(double value);
+   public abstract NDArray div(double value);
 
-   NDArray divColumnVector(NDArray rhs);
+   public abstract NDArray divColumnVector(NDArray rhs);
 
-   NDArray divRowVector(NDArray rhs);
+   public abstract NDArray divRowVector(NDArray rhs);
 
-   NDArray divi(NDArray rhs);
+   public abstract NDArray divi(NDArray rhs);
 
-   NDArray divi(double value);
+   public abstract NDArray divi(double value);
 
-   NDArray diviColumnVector(NDArray rhs);
+   public abstract NDArray diviColumnVector(NDArray rhs);
 
-   NDArray diviRowVector(NDArray rhs);
+   public abstract NDArray diviRowVector(NDArray rhs);
 
-   double dot(NDArray rhs);
+   public abstract double dot(NDArray rhs);
 
-   default NDArray eq(double value) {
+   public NDArray eq(double value) {
       return testi(v -> v == value);
    }
 
-   default NDArray eq(NDArray rhs) {
+   public NDArray eq(NDArray rhs) {
       return testi(rhs, (v, value) -> v == value);
    }
 
-   default NDArray eqi(double value) {
+   public NDArray eqi(double value) {
       return testi(v -> v == value);
    }
 
-   default NDArray eqi(NDArray rhs) {
+   public NDArray eqi(NDArray rhs) {
       return testi(rhs, (v, value) -> v == value);
    }
 
-   NDArray fill(double value);
+   public abstract NDArray fill(double value);
 
-   default NDArray ge(double value) {
+   public NDArray ge(double value) {
       return test(v -> v >= value);
    }
 
-   default NDArray ge(NDArray rhs) {
+   public NDArray ge(NDArray rhs) {
       return test(rhs, (v, value) -> v >= value);
    }
 
-   default NDArray gei(double value) {
+   public NDArray gei(double value) {
       return testi(v -> v >= value);
    }
 
-   default NDArray gei(NDArray rhs) {
+   public NDArray gei(NDArray rhs) {
       return testi(rhs, (v, value) -> v >= value);
    }
 
-   double get(long i);
+   public abstract double get(long i);
 
-   double get(int row, int col);
+   public abstract double get(int row, int col);
 
-   double get(int channel, int row, int col);
+   public abstract double get(int channel, int row, int col);
 
-   double get(int kernel, int channel, int row, int col);
+   public abstract double get(int kernel, int channel, int row, int col);
 
-   NDArray getColumn(int column);
+   public abstract NDArray getColumn(int column);
 
-   NDArray getRow(int row);
+   public abstract NDArray getRow(int row);
 
-   default NDArray gt(double value) {
+   public NDArray gt(double value) {
       return test(v -> v > value);
    }
 
-   default NDArray gt(NDArray rhs) {
+   public NDArray gt(NDArray rhs) {
       return test(rhs, (v, value) -> v > value);
    }
 
-   default NDArray gti(double value) {
+   public NDArray gti(double value) {
       return testi(v -> v > value);
    }
 
-   default NDArray gti(NDArray rhs) {
+   public NDArray gti(NDArray rhs) {
       return testi(rhs, (v, value) -> v > value);
    }
 
-   boolean isDense();
+   public abstract boolean isDense();
 
-   default NDArray le(double value) {
+   public NDArray le(double value) {
       return test(v -> v <= value);
    }
 
-   default NDArray le(NDArray rhs) {
+   public NDArray le(NDArray rhs) {
       return test(rhs, (v, value) -> v <= value);
    }
 
-   default NDArray lei(double value) {
+   public NDArray lei(double value) {
       return testi(v -> v <= value);
    }
 
-   default NDArray lei(NDArray rhs) {
+   public NDArray lei(NDArray rhs) {
       return testi(rhs, (v, value) -> v <= value);
    }
 
-   long length();
+   public long length() {
+      return shape.sliceLength * shape.matrixLength;
+   }
 
-   default NDArray lt(double value) {
+   public int rows() {
+      return shape.rows();
+   }
+
+   public int columns() {
+      return shape.columns();
+   }
+
+   public int kernels() {
+      return shape.kernels();
+   }
+
+   public int channels() {
+      return shape.channels();
+   }
+
+   public NDArray lt(double value) {
       return test(v -> v < value);
    }
 
-   default NDArray lt(NDArray rhs) {
+   public NDArray lt(NDArray rhs) {
       return test(rhs, (v, value) -> v < value);
    }
 
-   default NDArray lti(double value) {
+   public NDArray lti(double value) {
       return testi(v -> v < value);
    }
 
-   default NDArray lti(NDArray rhs) {
+   public NDArray lti(NDArray rhs) {
       return testi(rhs, (v, value) -> v < value);
    }
 
-   NDArray map(DoubleUnaryOperator operator);
+   public abstract NDArray map(DoubleUnaryOperator operator);
 
-   NDArray map(double value, DoubleBinaryOperator operator);
+   public abstract NDArray map(double value, DoubleBinaryOperator operator);
 
-   NDArray map(NDArray rhs, DoubleBinaryOperator operator);
+   public abstract NDArray map(NDArray rhs, DoubleBinaryOperator operator);
 
-   NDArray mapColumn(NDArray rhs, final DoubleBinaryOperator operator);
+   public abstract NDArray mapColumn(NDArray rhs, final DoubleBinaryOperator operator);
 
-   NDArray mapRow(NDArray rhs, final DoubleBinaryOperator operator);
+   public abstract NDArray mapRow(NDArray rhs, final DoubleBinaryOperator operator);
 
-   NDArray mapi(DoubleUnaryOperator operator);
+   public abstract NDArray mapi(DoubleUnaryOperator operator);
 
-   NDArray mapi(double value, DoubleBinaryOperator operator);
+   public abstract NDArray mapi(double value, DoubleBinaryOperator operator);
 
-   NDArray mapi(NDArray rhs, DoubleBinaryOperator operator);
+   public abstract NDArray mapi(NDArray rhs, DoubleBinaryOperator operator);
 
-   NDArray mapiColumn(NDArray rhs, final DoubleBinaryOperator operator);
+   public abstract NDArray mapiColumn(NDArray rhs, final DoubleBinaryOperator operator);
 
-   NDArray mapiRow(NDArray rhs, final DoubleBinaryOperator operator);
+   public abstract NDArray mapiRow(NDArray rhs, final DoubleBinaryOperator operator);
 
-   double max();
+   public abstract double max();
 
-   default double mean() {
+   public double mean() {
       return sum() / (shape().matrixLength * shape().sliceLength);
    }
 
-   double min();
+   public abstract double min();
 
-   NDArray mmul(NDArray rhs);
+   public abstract NDArray mmul(NDArray rhs);
 
-   NDArray mul(NDArray rhs);
+   public abstract NDArray mul(NDArray rhs);
 
-   NDArray mul(double value);
+   public abstract NDArray mul(double value);
 
-   NDArray mulColumnVector(NDArray rhs);
+   public abstract NDArray mulColumnVector(NDArray rhs);
 
-   NDArray mulRowVector(NDArray rhs);
+   public abstract NDArray mulRowVector(NDArray rhs);
 
-   NDArray muli(NDArray rhs);
+   public abstract NDArray muli(NDArray rhs);
 
-   NDArray muli(double value);
+   public abstract NDArray muli(double value);
 
-   NDArray muliColumnVector(NDArray rhs);
+   public abstract NDArray muliColumnVector(NDArray rhs);
 
-   NDArray muliRowVector(NDArray rhs);
+   public abstract NDArray muliRowVector(NDArray rhs);
 
-   default NDArray neq(double value) {
+   public NDArray neq(double value) {
       return testi(v -> v != value);
    }
 
-   default NDArray neq(NDArray rhs) {
+   public NDArray neq(NDArray rhs) {
       return testi(rhs, (v, value) -> v != value);
    }
 
-   default NDArray neqi(double value) {
+   public NDArray neqi(double value) {
       return testi(v -> v != value);
    }
 
-   default NDArray neqi(NDArray rhs) {
+   public NDArray neqi(NDArray rhs) {
       return testi(rhs, (v, value) -> v != value);
    }
 
-   double norm1();
+   public abstract double norm1();
 
-   double norm2();
+   public abstract double norm2();
 
-   NDArray pivot();
+   public abstract NDArray pivot();
 
-   NDArray rdiv(NDArray rhs);
+   public abstract NDArray rdiv(NDArray rhs);
 
-   NDArray rdiv(double value);
+   public abstract NDArray rdiv(double value);
 
-   NDArray rdivColumnVector(NDArray rhs);
+   public abstract NDArray rdivColumnVector(NDArray rhs);
 
-   NDArray rdivRowVector(NDArray rhs);
+   public abstract NDArray rdivRowVector(NDArray rhs);
 
-   NDArray rdivi(NDArray rhs);
+   public abstract NDArray rdivi(NDArray rhs);
 
-   NDArray rdivi(double value);
+   public abstract NDArray rdivi(double value);
 
-   NDArray rdiviColumnVector(NDArray rhs);
+   public abstract NDArray rdiviColumnVector(NDArray rhs);
 
-   NDArray rdiviRowVector(NDArray rhs);
+   public abstract NDArray rdiviRowVector(NDArray rhs);
 
-   NDArray reshape(int... dims);
+   public abstract NDArray reshape(int... dims);
 
-   NDArray rowArgmaxs();
+   public abstract NDArray rowArgmaxs();
 
-   NDArray rowArgmins();
+   public abstract NDArray rowArgmins();
 
-   NDArray rowMaxs();
+   public abstract NDArray rowMaxs();
 
-   default NDArray rowMeans() {
+   public NDArray rowMeans() {
       return rowSums().divi(shape().columns());
    }
 
-   NDArray rowMins();
+   public abstract NDArray rowMins();
 
-   NDArray rowSums();
+   public abstract NDArray rowSums();
 
-   NDArray rsub(NDArray rhs);
+   public abstract NDArray rsub(NDArray rhs);
 
-   NDArray rsub(double value);
+   public abstract NDArray rsub(double value);
 
-   NDArray rsubColumnVector(NDArray rhs);
+   public abstract NDArray rsubColumnVector(NDArray rhs);
 
-   NDArray rsubRowVector(NDArray rhs);
+   public abstract NDArray rsubRowVector(NDArray rhs);
 
-   NDArray rsubi(NDArray rhs);
+   public abstract NDArray rsubi(NDArray rhs);
 
-   NDArray rsubi(double value);
+   public abstract NDArray rsubi(double value);
 
-   NDArray rsubiColumnVector(NDArray rhs);
+   public abstract NDArray rsubiColumnVector(NDArray rhs);
 
-   NDArray rsubiRowVector(NDArray rhs);
+   public abstract NDArray rsubiRowVector(NDArray rhs);
 
-   default double scalar() {
+   public double scalar() {
       return get(0);
    }
 
-   NDArray select(NDArray rhs);
+   public abstract NDArray select(NDArray rhs);
 
-   NDArray selecti(NDArray rhs);
+   public abstract NDArray selecti(NDArray rhs);
 
-   void set(long i, double value);
+   public abstract NDArray set(long i, double value);
 
-   void set(int row, int col, double value);
+   public abstract NDArray set(int row, int col, double value);
 
-   void set(int channel, int row, int col, double value);
+   public abstract NDArray set(int channel, int row, int col, double value);
 
-   void set(int kernel, int channel, int row, int col, double value);
+   public abstract NDArray set(int kernel, int channel, int row, int col, double value);
 
-   NDArray setColumn(int column, NDArray array);
+   public abstract NDArray setColumn(int column, NDArray array);
 
-   NDArray setRow(int row, NDArray array);
+   public abstract NDArray setRow(int row, NDArray array);
 
-   Shape shape();
+   public abstract Shape shape();
 
-   long size();
+   public abstract long size();
 
-   NDArray slice(int slice);
+   public abstract NDArray slice(int slice);
 
-   NDArray sliceArgmaxs();
+   public abstract NDArray sliceArgmaxs();
 
-   NDArray sliceArgmins();
+   public abstract NDArray sliceArgmins();
 
-   NDArray sliceDot(NDArray rhs);
+   public abstract NDArray sliceDot(NDArray rhs);
 
-   NDArray sliceMaxs();
+   public abstract NDArray sliceMaxs();
 
-   NDArray sliceMeans();
+   public abstract NDArray sliceMeans();
 
-   NDArray sliceMins();
+   public abstract NDArray sliceMins();
 
-   NDArray sliceNorm1();
+   public abstract NDArray sliceNorm1();
 
-   NDArray sliceNorm2();
+   public abstract NDArray sliceNorm2();
 
-   NDArray sliceSumOfSquares();
+   public abstract NDArray sliceSumOfSquares();
 
-   NDArray sliceSums();
+   public abstract NDArray sliceSums();
 
-   NDArray sub(NDArray rhs);
+   public abstract NDArray sub(NDArray rhs);
 
-   NDArray sub(double value);
+   public abstract NDArray sub(double value);
 
-   NDArray subColumnVector(NDArray rhs);
+   public abstract NDArray subColumnVector(NDArray rhs);
 
-   NDArray subRowVector(NDArray rhs);
+   public abstract NDArray subRowVector(NDArray rhs);
 
-   NDArray subi(NDArray rhs);
+   public abstract NDArray subi(NDArray rhs);
 
-   NDArray subi(double value);
+   public abstract NDArray subi(double value);
 
-   NDArray subiColumnVector(NDArray rhs);
+   public abstract NDArray subiColumnVector(NDArray rhs);
 
-   NDArray subiRowVector(NDArray rhs);
+   public abstract NDArray subiRowVector(NDArray rhs);
 
-   double sum();
+   public abstract double sum();
 
-   double sumOfSquares();
+   public abstract double sumOfSquares();
 
-   NDArray test(DoublePredicate predicate);
+   public abstract NDArray test(DoublePredicate predicate);
 
-   NDArray test(NDArray rhs, DoubleBinaryPredicate predicate);
+   public abstract NDArray test(NDArray rhs, DoubleBinaryPredicate predicate);
 
-   NDArray testi(DoublePredicate predicate);
+   public abstract NDArray testi(DoublePredicate predicate);
 
-   NDArray testi(NDArray rhs, DoubleBinaryPredicate predicate);
+   public abstract NDArray testi(NDArray rhs, DoubleBinaryPredicate predicate);
 
-   DoubleMatrix[] toDoubleMatrix();
+   public abstract DoubleMatrix[] toDoubleMatrix();
 
-   default NDArray zero() {
+   public NDArray zero() {
       return fill(0d);
    }
 
-   NDArray zeroLike();
+   public abstract NDArray zeroLike();
 
-   NDArray getChannels(int from, int to);
+   public abstract NDArray getChannels(int from, int to);
 
-   NDArray getChannels(int[] channels);
+   public abstract NDArray getChannels(int[] channels);
 
-   NDArray getKernels(int from, int to);
+   public abstract NDArray getKernels(int from, int to);
 
-   NDArray getKernels(int[] kernels);
+   public abstract NDArray getKernels(int[] kernels);
 
-   NDArray getRows(int[] rows);
+   public abstract NDArray getRows(int[] rows);
 
-   NDArray getColumns(int[] columns);
+   public abstract NDArray getColumns(int[] columns);
 
-   NDArray getRows(int from, int to);
+   public abstract NDArray getRows(int from, int to);
 
-   NDArray getColumns(int from, int to);
+   public abstract NDArray getColumns(int from, int to);
 
 
    @FunctionalInterface
@@ -411,5 +589,15 @@ public interface NDArray extends Serializable, Copyable<NDArray> {
       boolean test(double v1, double v2);
    }
 
+   @FunctionalInterface
+   public interface EntryConsumer {
 
+      void apply(long index, double value);
+
+   }
+
+
+   public abstract double[] toDoubleArray();
+
+   public abstract void forEachSparse(EntryConsumer consumer);
 }//END OF NDArray

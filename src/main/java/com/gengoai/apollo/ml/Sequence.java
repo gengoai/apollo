@@ -22,8 +22,8 @@
 
 package com.gengoai.apollo.ml;
 
-import com.gengoai.apollo.linear.NDArray;
-import com.gengoai.apollo.linear.NDArrayFactory;
+import com.gengoai.apollo.linear.p2.NDArrayFactory;
+import com.gengoai.apollo.linear.p2.NDArray;
 import com.gengoai.conversion.Cast;
 
 import java.util.ArrayList;
@@ -159,7 +159,7 @@ public class Sequence extends Example {
       for (int i = 0; i < size(); i++) {
          vectors[i] = sequence.get(i).transform(pipeline);
       }
-      out = NDArrayFactory.DEFAULT().vstack(vectors).setWeight(getWeight()).compress();
+      out = NDArrayFactory.ND.vstack(vectors).setWeight(getWeight()).trimToSize();
       if (hasLabel()) {
          out.setLabel(pipeline.labelVectorizer.transform(this));
       }

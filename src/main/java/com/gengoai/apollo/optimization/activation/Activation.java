@@ -1,6 +1,6 @@
 package com.gengoai.apollo.optimization.activation;
 
-import com.gengoai.apollo.linear.NDArray;
+import com.gengoai.apollo.linear.p2.NDArray;
 
 import java.io.Serializable;
 
@@ -29,7 +29,7 @@ public interface Activation extends Serializable {
     * @param x the x
     * @return the vector
     */
-   default NDArray apply( NDArray x) {
+   default NDArray apply(NDArray x) {
       return x.mapi(this::apply);
    }
 
@@ -40,7 +40,7 @@ public interface Activation extends Serializable {
     * @param in the in
     * @return the vector
     */
-   default NDArray gradient( NDArray in) {
+   default NDArray gradient(NDArray in) {
       return valueGradient(apply(in));
    }
 
@@ -77,7 +77,7 @@ public interface Activation extends Serializable {
     * @param activated the activated
     * @return the vector
     */
-   default NDArray valueGradient( NDArray activated) {
+   default NDArray valueGradient(NDArray activated) {
       return activated.map(this::valueGradient);
    }
 

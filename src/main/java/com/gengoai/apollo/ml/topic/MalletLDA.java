@@ -33,8 +33,8 @@ import cc.mallet.types.Instance;
 import cc.mallet.types.InstanceList;
 import com.gengoai.Param;
 import com.gengoai.SystemInfo;
-import com.gengoai.apollo.linear.NDArray;
-import com.gengoai.apollo.linear.NDArrayFactory;
+import com.gengoai.apollo.linear.p2.NDArray;
+import com.gengoai.apollo.linear.p2.NDArrayFactory;
 import com.gengoai.apollo.ml.DiscretePipeline;
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.FitParameters;
@@ -153,14 +153,14 @@ public class MalletLDA extends TopicModel {
       final Alphabet alphabet = pipes.getDataAlphabet();
       int index = alphabet.lookupIndex(feature, false);
       if (index == -1) {
-         return NDArrayFactory.DEFAULT().zeros(topicModel.numTopics);
+         return NDArrayFactory.ND.array(topicModel.numTopics);
       }
       double[] dist = new double[topicModel.numTopics];
       double[][] termScores = topicModel.getTopicWords(true, true);
       for (int i = 0; i < topicModel.numTopics; i++) {
          dist[i] = termScores[i][index];
       }
-      return NDArrayFactory.rowVector(dist);
+      return NDArrayFactory.ND.rowVector(dist);
    }
 
 

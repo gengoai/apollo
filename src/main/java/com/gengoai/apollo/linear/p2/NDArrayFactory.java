@@ -24,7 +24,10 @@ package com.gengoai.apollo.linear.p2;
 
 import com.gengoai.apollo.linear.Shape;
 import com.gengoai.config.Config;
+import org.jblas.DoubleMatrix;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -46,6 +49,16 @@ public enum NDArrayFactory {
             }
          }
          return factory;
+      }
+
+      @Override
+      public NDArray columnVector(double[] data) {
+         return new DenseMatrix(new DoubleMatrix(data.length, 1, data));
+      }
+
+      @Override
+      public NDArray rowVector(double[] data) {
+         return new DenseMatrix(new DoubleMatrix(1, data.length, data));
       }
 
       @Override
@@ -130,5 +143,54 @@ public enum NDArrayFactory {
       return ndArray;
    }
 
+   public NDArray vstack(NDArray... rows) {
+      return vstack(Arrays.asList(rows));
+   }
+
+   public NDArray vstack(Collection<NDArray> rows) {
+      if (rows.size() == 0) {
+         return empty();
+      }
+      Shape shape = rows.iterator().next().shape();
+      NDArray toReturn = array(rows.size(), shape.matrixLength);
+      int globalAxisIndex = 0;
+      for (NDArray array : rows) {
+         toReturn.setRow(globalAxisIndex, array);
+      }
+      return toReturn;
+   }
+
+   public NDArray hstack(NDArray... columns) {
+      return hstack(Arrays.asList(columns));
+   }
+
+   public NDArray hstack(Collection<NDArray> columns) {
+      if (columns.size() == 0) {
+         return empty();
+      }
+      Shape shape = columns.iterator().next().shape();
+      NDArray toReturn = array(shape.matrixLength, columns.size());
+      int globalAxisIndex = 0;
+      for (NDArray array : columns) {
+         toReturn.setColumn(globalAxisIndex, array);
+      }
+      return toReturn;
+   }
+
+   public NDArray columnVector(double[] data) {
+      NDArray vector = array(data.length, 1);
+      for (int i = 0; i < data.length; i++) {
+         vector.set(i, data[i]);
+      }
+      return vector;
+   }
+
+   public NDArray rowVector(double[] data) {
+      NDArray vector = array(1, data.length);
+      for (int i = 0; i < data.length; i++) {
+         vector.set(i, data[i]);
+      }
+      return vector;
+   }
 
 }//END OF NDArrayFactory

@@ -22,8 +22,8 @@
 
 package com.gengoai.apollo.ml.vectorizer;
 
-import com.gengoai.apollo.linear.NDArray;
-import com.gengoai.apollo.linear.NDArrayFactory;
+import com.gengoai.apollo.linear.p2.NDArray;
+import com.gengoai.apollo.linear.p2.NDArrayFactory;
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.data.Dataset;
 
@@ -46,7 +46,7 @@ public class NumericVectorizer implements Vectorizer {
 
    @Override
    public NDArray transform(Example example) {
-      NDArray labels = NDArrayFactory.DEFAULT().zeros(1, example.size());
+      NDArray labels = NDArrayFactory.ND.array(1, example.size());
       for (int i = 0; i < example.size(); i++) {
          Example ii = example.getExample(i);
          if (ii.hasLabel()) {

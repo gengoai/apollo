@@ -29,7 +29,7 @@ import cc.mallet.pipe.Target2Label;
 import cc.mallet.types.Alphabet;
 import cc.mallet.types.InstanceList;
 import cc.mallet.types.Labeling;
-import com.gengoai.apollo.linear.NDArrayFactory;
+import com.gengoai.apollo.linear.p2.NDArrayFactory;
 import com.gengoai.apollo.ml.DiscretePipeline;
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.FitParameters;
@@ -113,7 +113,7 @@ public abstract class MalletClassifier extends Classifier {
       for (int i = 0; i < getNumberOfLabels(); i++) {
          result[i] = labeling.value(i);
       }
-      return new Classification(NDArrayFactory.rowVector(result), getPipeline().labelVectorizer);
+      return new Classification(NDArrayFactory.ND.rowVector(result), getPipeline().labelVectorizer);
    }
 
 

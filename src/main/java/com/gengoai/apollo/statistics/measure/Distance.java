@@ -23,7 +23,7 @@
 package com.gengoai.apollo.statistics.measure;
 
 
-import com.gengoai.apollo.linear.NDArray;
+import com.gengoai.apollo.linear.p2.NDArray;
 import com.gengoai.math.Math2;
 
 /**
@@ -38,7 +38,7 @@ public enum Distance implements DistanceMeasure {
    Euclidean {
       @Override
       public double calculate(NDArray v1, NDArray v2) {
-         return Math.sqrt((v1.scalarDot(v1) + v2.scalarDot(v2)) - (2.0 * v1.scalarDot(v2)));
+         return Math.sqrt((v1.dot(v1) + v2.dot(v2)) - (2.0 * v1.dot(v2)));
       }
    },
    /**
@@ -47,7 +47,7 @@ public enum Distance implements DistanceMeasure {
    SquaredEuclidean {
       @Override
       public double calculate(NDArray v1, NDArray v2) {
-         return (v1.scalarDot(v1) + v2.scalarDot(v2)) - (2.0 * v1.scalarDot(v2));
+         return (v1.dot(v1) + v2.dot(v2)) - (2.0 * v1.dot(v2));
       }
 
    },
@@ -57,7 +57,7 @@ public enum Distance implements DistanceMeasure {
    Manhattan {
       @Override
       public double calculate(NDArray v1, NDArray v2) {
-         return v1.sub(v2).scalarNorm1();
+         return v1.sub(v2).norm1();
       }
 
 
@@ -68,7 +68,7 @@ public enum Distance implements DistanceMeasure {
    Hamming {
       @Override
       public double calculate(NDArray v1, NDArray v2) {
-         return v1.map(v2, (d1, d2) -> d1 != d2 ? 1 : 0).scalarSum();
+         return v1.map(v2, (d1, d2) -> d1 != d2 ? 1 : 0).sum();
       }
    },
    /**
@@ -95,7 +95,7 @@ public enum Distance implements DistanceMeasure {
    Chebyshev {
       @Override
       public double calculate(NDArray v1, NDArray v2) {
-         return v1.map(v2, (d1, d2) -> Math.abs(d1 - d2)).scalarMax();
+         return v1.map(v2, (d1, d2) -> Math.abs(d1 - d2)).max();
       }
    },
    /**
@@ -104,7 +104,7 @@ public enum Distance implements DistanceMeasure {
    KLDivergence {
       @Override
       public double calculate(NDArray v1, NDArray v2) {
-         return v1.map(v2, (d1, d2) -> d1 * Math2.safeLog(d1 / d2)).scalarSum();
+         return v1.map(v2, (d1, d2) -> d1 * Math2.safeLog(d1 / d2)).sum();
       }
    },
    /**

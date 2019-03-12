@@ -22,14 +22,13 @@
 
 package com.gengoai.apollo.ml.vectorizer;
 
-import com.gengoai.apollo.linear.NDArray;
-import com.gengoai.apollo.linear.NDArrayFactory;
+import com.gengoai.apollo.linear.p2.NDArray;
+import com.gengoai.apollo.linear.p2.NDArrayFactory;
 import com.gengoai.apollo.ml.Example;
 
 import java.util.stream.Stream;
 
 /**
- *
  * @author David B. Bracewell
  */
 public class MultiLabelBinarizer extends IndexVectorizer {
@@ -43,7 +42,7 @@ public class MultiLabelBinarizer extends IndexVectorizer {
 
    @Override
    public NDArray transform(Example example) {
-      final NDArray ndArray = NDArrayFactory.DEFAULT().zeros(size());
+      final NDArray ndArray = NDArrayFactory.ND.array(size());
       example.getMultiLabel()
              .stream()
              .mapToInt(this::indexOf)

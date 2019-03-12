@@ -1,6 +1,6 @@
 package com.gengoai.apollo.optimization.loss;
 
-import com.gengoai.apollo.linear.NDArray;
+import com.gengoai.apollo.linear.p2.NDArray;
 import org.apache.commons.math3.util.FastMath;
 
 import java.io.Serializable;
@@ -25,7 +25,7 @@ public class SquaredLoss implements LossFunction, Serializable {
 
    @Override
    public double loss(NDArray predictedValue, NDArray trueValue) {
-      return trueValue.sub(predictedValue).mapi(x -> x * x).scalarSum();
+      return trueValue.sub(predictedValue).mapi(x -> x * x).sum();
    }
 
    @Override

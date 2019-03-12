@@ -1,6 +1,6 @@
 package com.gengoai.apollo.optimization.loss;
 
-import com.gengoai.apollo.linear.NDArray;
+import com.gengoai.apollo.linear.p2.NDArray;
 
 /**
  * <p>Defines a loss function for optimization.</p>
@@ -37,7 +37,7 @@ public interface LossFunction {
     * @return the double
     */
    default double loss(NDArray predictedValue, NDArray trueValue) {
-      return predictedValue.map(trueValue, this::loss).scalarSum();
+      return predictedValue.map(trueValue, this::loss).sum();
    }
 
    /**

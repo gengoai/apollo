@@ -23,7 +23,7 @@
 package com.gengoai.apollo.ml;
 
 import com.gengoai.Copyable;
-import com.gengoai.apollo.linear.NDArray;
+import com.gengoai.apollo.linear.p2.NDArray;
 import com.gengoai.collection.Streams;
 import com.gengoai.conversion.Cast;
 import com.gengoai.conversion.Converter;

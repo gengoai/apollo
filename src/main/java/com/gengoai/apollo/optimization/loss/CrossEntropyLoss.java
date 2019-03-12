@@ -1,7 +1,7 @@
 package com.gengoai.apollo.optimization.loss;
 
 import com.gengoai.math.Math2;
-import com.gengoai.apollo.linear.NDArray;
+import com.gengoai.apollo.linear.p2.NDArray;
 
 import java.io.Serializable;
 
@@ -20,7 +20,7 @@ public class CrossEntropyLoss implements LossFunction, Serializable {
 
    @Override
    public double loss(NDArray predictedValue, NDArray trueValue) {
-      return -trueValue.mapSparse(predictedValue, (d1, d2) -> d1 * Math2.safeLog(d2)).scalarSum();
+      return -trueValue.map(predictedValue, (d1, d2) -> d1 * Math2.safeLog(d2)).sum();
    }
 
    @Override

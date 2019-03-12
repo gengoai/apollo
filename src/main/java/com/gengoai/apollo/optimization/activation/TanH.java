@@ -1,6 +1,6 @@
 package com.gengoai.apollo.optimization.activation;
 
-import com.gengoai.apollo.linear.NDArray;
+import com.gengoai.apollo.linear.p2.NDArray;
 import org.apache.commons.math3.util.FastMath;
 
 /**
@@ -18,8 +18,8 @@ public class TanH implements Activation {
 
    @Override
    public NDArray apply(NDArray m) {
-      NDArray ez = m.exp();
-      NDArray ezn = m.neg().exp();
+      NDArray ez = m.map(FastMath::exp);
+      NDArray ezn = m.map(v -> FastMath.exp(-v));
       return (ez.sub(ezn)).divi(ez.add(ezn));
    }
 

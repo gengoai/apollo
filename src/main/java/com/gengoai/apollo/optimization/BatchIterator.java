@@ -1,7 +1,7 @@
 package com.gengoai.apollo.optimization;
 
-import com.gengoai.apollo.linear.NDArray;
-import com.gengoai.apollo.linear.NDArrayFactory;
+import com.gengoai.apollo.linear.p2.NDArray;
+import com.gengoai.apollo.linear.p2.NDArrayFactory;
 
 import java.io.Serializable;
 import java.util.*;
@@ -51,7 +51,7 @@ public class BatchIterator implements Serializable {
          concat[mi] = cols.get(indicies[c]);
          mi++;
       }
-      return NDArrayFactory.DEFAULT().hstack(concat);
+      return NDArrayFactory.ND.hstack(concat);
    }
 
    public Iterator<NDArray> iterator(final int batchSize) {

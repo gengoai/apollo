@@ -36,7 +36,7 @@ public class LinearRegressionTest extends BaseRegressionTest<LinearRegression.Pa
    public LinearRegressionTest() {
       super(new LinearRegression(new PerFeatureTransform(ZScoreTransform::new)),
             new LinearRegression.Parameters()
-               .maxIterations.set(5000)
+               .maxIterations.set(20)
                .weightUpdater.set(SGDUpdater.builder().momentum(0d).build())
                .tolerance.set(1e-10));
    }

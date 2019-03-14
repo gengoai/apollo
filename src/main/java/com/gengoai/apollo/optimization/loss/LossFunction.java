@@ -1,6 +1,6 @@
 package com.gengoai.apollo.optimization.loss;
 
-import com.gengoai.apollo.linear.p2.NDArray;
+import com.gengoai.apollo.linear.NDArray;
 
 /**
  * <p>Defines a loss function for optimization.</p>

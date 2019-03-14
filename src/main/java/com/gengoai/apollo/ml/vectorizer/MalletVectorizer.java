@@ -23,7 +23,7 @@
 package com.gengoai.apollo.ml.vectorizer;
 
 import cc.mallet.types.Alphabet;
-import com.gengoai.apollo.linear.p2.NDArray;
+import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.collection.Index;

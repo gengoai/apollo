@@ -22,7 +22,7 @@
 
 package com.gengoai.apollo.ml;
 
-import com.gengoai.apollo.linear.p2.NDArray;
+import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.function.SerializableSupplier;
 import com.gengoai.stream.MStream;
 import de.bwaldvogel.liblinear.Feature;
@@ -31,7 +31,7 @@ import de.bwaldvogel.liblinear.*;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.gengoai.apollo.linear.p2.NDArrayFactory.ND;
+import static com.gengoai.apollo.linear.NDArrayFactory.ND;
 
 /**
  * <p>Helper functions for working with LibLinear</p>

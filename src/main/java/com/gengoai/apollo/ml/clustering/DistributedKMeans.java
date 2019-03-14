@@ -81,7 +81,7 @@ public class DistributedKMeans extends FlatCentroidClusterer {
       for (int i = 0; i < model.clusterCenters().length; i++) {
          Cluster cluster = new Cluster();
          cluster.setId(i);
-         cluster.setCentroid(NDArrayFactory.rowVector(model.clusterCenters()[i].toArray()));
+         cluster.setCentroid(NDArrayFactory.ND.rowVector(model.clusterCenters()[i].toArray()));
          add(cluster);
       }
 

@@ -1,10 +1,11 @@
 package com.gengoai.apollo.linear.decompose;
 
 import com.gengoai.Validation;
-import com.gengoai.apollo.linear.DenseNDArray;
+import com.gengoai.apollo.linear.DenseMatrix;
 import com.gengoai.apollo.linear.NDArray;
+import com.gengoai.apollo.linear.NDArrayFactory;
 import org.jblas.Decompose;
-import org.jblas.FloatMatrix;
+import org.jblas.DoubleMatrix;
 
 import java.io.Serializable;
 
@@ -18,17 +19,17 @@ public class LUDecomposition implements Decomposition, Serializable {
    private static final long serialVersionUID = 1L;
 
    public NDArray[] decompose(NDArray m) {
-      Validation.checkArgument(m.isSquare(), "Only square matrices are supported");
-      if (m instanceof DenseNDArray) {
-         Decompose.LUDecomposition<FloatMatrix> r = Decompose.lu(m.toFloatMatrix());
-         return new NDArray[]{new DenseNDArray(r.l),
-            new DenseNDArray(r.u),
-            new DenseNDArray(r.p)};
+      Validation.checkArgument(m.shape().isSquare(), "Only square matrices are supported");
+      if (m instanceof DenseMatrix) {
+         Decompose.LUDecomposition<DoubleMatrix> r = Decompose.lu(m.toDoubleMatrix()[0]);
+         return new NDArray[]{new DenseMatrix(r.l),
+            new DenseMatrix(r.u),
+            new DenseMatrix(r.p)};
       }
 
-      int nr = m.numRows();
-      NDArray L = m.getFactory().zeros(nr, nr);
-      NDArray U = m.getFactory().zeros(nr, nr);
+      int nr = m.rows();
+      NDArray L = NDArrayFactory.ND.array(nr, nr);
+      NDArray U = NDArrayFactory.ND.array(nr, nr);
       NDArray P = m.pivot();
       NDArray A2 = P.mmul(m);
 

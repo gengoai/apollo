@@ -22,14 +22,16 @@
 
 package com.gengoai.apollo.ml.embedding;
 
+import com.gengoai.apollo.linear.DenseMatrix;
 import com.gengoai.apollo.linear.NDArray;
-import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.ml.FitParameters;
 import com.gengoai.apollo.ml.Params;
 import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
 import com.gengoai.conversion.Cast;
 import org.apache.spark.mllib.feature.Word2VecModel;
+import org.jblas.FloatMatrix;
+import org.jblas.MatrixFunctions;
 
 import java.util.Date;
 
@@ -71,7 +73,7 @@ public class Word2Vec extends Embedding {
       NDArray[] vectors = new NDArray[model.getVectors().size()];
       mapAsJavaMap(model.getVectors()).forEach((k, v) -> {
          int index = getPipeline().featureVectorizer.indexOf(k);
-         vectors[index] = NDArrayFactory.rowVector(v);
+         vectors[index] = new DenseMatrix(MatrixFunctions.floatToDouble(new FloatMatrix(1, v.length, v)));
          vectors[index].setLabel(k);
       });
       this.vectorIndex = new DefaultVectorIndex(vectors);

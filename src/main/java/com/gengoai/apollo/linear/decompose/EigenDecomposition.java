@@ -1,10 +1,10 @@
 package com.gengoai.apollo.linear.decompose;
 
-import com.gengoai.apollo.linear.DenseNDArray;
+import com.gengoai.apollo.linear.DenseMatrix;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.linear.RealMatrixWrapper;
-import org.jblas.ComplexFloatMatrix;
+import org.jblas.ComplexDoubleMatrix;
 import org.jblas.Eigen;
 
 import java.io.Serializable;
@@ -20,19 +20,19 @@ public class EigenDecomposition implements Decomposition, Serializable {
 
    @Override
    public NDArray[] decompose(NDArray input) {
-      if (input instanceof DenseNDArray) {
-         ComplexFloatMatrix[] r = Eigen.eigenvectors(input.toFloatMatrix());
+      if (input instanceof DenseMatrix) {
+         ComplexDoubleMatrix[] r = Eigen.eigenvectors(input.toDoubleMatrix()[0]);
          NDArray[] toReturn = new NDArray[r.length];
          for (int i = 0; i < r.length; i++) {
-            toReturn[i] = new DenseNDArray(r[i].getReal());
+            toReturn[i] = new DenseMatrix(r[i].getReal());
          }
          return toReturn;
       }
       org.apache.commons.math3.linear.EigenDecomposition decomposition =
          new org.apache.commons.math3.linear.EigenDecomposition(new RealMatrixWrapper(input));
       return new NDArray[]{
-         NDArrayFactory.matrix(decomposition.getV().getData()),
-         NDArrayFactory.matrix(decomposition.getD().getData())
+         NDArrayFactory.ND.array(decomposition.getV().getData()),
+         NDArrayFactory.ND.array(decomposition.getD().getData())
       };
    }
 }// END OF EigenDecomposition

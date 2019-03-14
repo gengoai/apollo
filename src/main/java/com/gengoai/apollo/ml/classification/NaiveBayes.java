@@ -23,14 +23,16 @@
 package com.gengoai.apollo.ml.classification;
 
 import com.gengoai.Param;
-import com.gengoai.apollo.linear.p2.NDArray;
-import com.gengoai.apollo.linear.p2.NDArrayFactory;
+import com.gengoai.apollo.linear.NDArray;
+import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.ml.DiscretePipeline;
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.FitParameters;
 import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
 import com.gengoai.conversion.Cast;
+import com.gengoai.math.Math2;
+import org.apache.commons.math3.util.FastMath;
 
 import java.util.Arrays;
 
@@ -104,10 +106,11 @@ public class NaiveBayes extends Classifier {
                      nC += labelCounts[j];
                   }
                }
-               conditionals[featureIndex][labelIndex] = Math.log(
+
+               conditionals[featureIndex][labelIndex] = Math2.safeLog(
                   modelType.normalize(nCi, priors[labelIndex], nC, V));
             } else {
-               conditionals[featureIndex][labelIndex] = Math.log(
+               conditionals[featureIndex][labelIndex] = Math2.safeLog(
                   modelType.normalize(conditionals[featureIndex][labelIndex], priors[labelIndex],
                                       labelCounts[labelIndex], V));
             }
@@ -165,13 +168,13 @@ public class NaiveBayes extends Classifier {
                for (int f = 0; f < conditionals.length; f++) {
                   double value = distribution.get(i);
                   if (instance.get(f) != 0) {
-                     distribution.set(i, value + Math.log(conditionals[f][i]));
+                     distribution.set(i, value + Math2.safeLog(conditionals[f][i]));
                   } else {
-                     distribution.set(i, value + Math.log(1 - conditionals[f][i]));
+                     distribution.set(i, value + Math2.safeLog(1 - conditionals[f][i]));
                   }
                }
             }
-            distribution.mapi(Math::exp);
+            distribution.mapi(FastMath::exp);
             return distribution;
          }
       },

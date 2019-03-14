@@ -23,7 +23,7 @@
 package com.gengoai.apollo.ml.regression;
 
 import com.gengoai.Copyable;
-import com.gengoai.apollo.linear.p2.NDArray;
+import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.FitParameters;
 import com.gengoai.apollo.ml.NumericPipeline;
@@ -39,7 +39,7 @@ import com.gengoai.logging.Logger;
 import java.io.Serializable;
 
 import static com.gengoai.Validation.notNull;
-import static com.gengoai.apollo.linear.p2.NDArrayFactory.ND;
+import static com.gengoai.apollo.linear.NDArrayFactory.ND;
 
 /**
  * The type Linear regression.
@@ -78,7 +78,8 @@ public class LinearRegression extends Regression {
       Parameters p = notNull(Cast.as(fitParameters, Parameters.class));
       weightParameters.update(getNumberOfLabels(), getNumberOfFeatures());
       GradientDescentOptimizer optimizer = GradientDescentOptimizer.builder()
-                                                                   .batchSize(p.batchSize.value()).build();
+                                                                   .batchSize(p.batchSize.value())
+                                                                   .build();
 
       optimizer.optimize(weightParameters,
                          () -> preprocessed.stream()
@@ -155,7 +156,7 @@ public class LinearRegression extends Regression {
     */
    public static class Parameters extends FitParameters<Parameters> {
       private static final long serialVersionUID = 1L;
-      public final Parameter<Integer> batchSize = parameter(Params.Optimizable.batchSize, 32);
+      public final Parameter<Integer> batchSize = parameter(Params.Optimizable.batchSize, 20);
       public final Parameter<Integer> historySize = parameter(Params.Optimizable.historySize, 3);
       public final Parameter<Integer> maxIterations = parameter(Params.Optimizable.maxIterations, 100);
       public final Parameter<Integer> reportInterval = parameter(Params.Optimizable.reportInterval, 100);

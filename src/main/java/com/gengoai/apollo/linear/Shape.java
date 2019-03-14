@@ -66,8 +66,11 @@ public class Shape implements Serializable, Copyable<Shape> {
       this.shape = new int[4];
       if (dimensions != null && dimensions.length > 0) {
          System.arraycopy(dimensions, 0, shape, shape.length - dimensions.length, dimensions.length);
+         this.shape[2] = Math.max(1, this.shape[2]);
+         this.shape[3] = Math.max(1, this.shape[3]);
          this.sliceLength = Math.max(1, shape[0] * shape[1]);
          this.matrixLength = Math.max(1, shape[2] * shape[3]);
+
       } else {
          this.shape[2] = 1;
          this.shape[3] = 1;

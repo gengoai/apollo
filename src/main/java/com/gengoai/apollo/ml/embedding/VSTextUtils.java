@@ -24,13 +24,11 @@ package com.gengoai.apollo.ml.embedding;
 
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
-import com.gengoai.collection.Streams;
 import com.gengoai.io.resource.Resource;
 import com.gengoai.string.Strings;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.util.stream.Collectors;
 
 class VSTextUtils {
 
@@ -46,7 +44,7 @@ class VSTextUtils {
     * @return the nd array
     */
    public static NDArray convertLineToVector(String line, int dimension) {
-      NDArray vector = NDArrayFactory.DENSE.zeros(1, dimension);
+      NDArray vector = NDArrayFactory.DENSE.array(1, dimension);
       String[] parts = line.split("[ \t]+");
       if (parts.length < dimension + 1) {
          throw new IllegalStateException("Invalid Line: " + line);
@@ -109,9 +107,13 @@ class VSTextUtils {
     * @return the string
     */
    public static String vectorToLine(NDArray vec) {
-      return Streams.asStream(vec.iterator())
-                    .map(v -> Float.toString(v.getValue()))
-                    .collect(Collectors.joining(" "));
+      double[] array = vec.toDoubleArray();
+      StringBuilder builder = new StringBuilder();
+      builder.append(String.format("%.3f", array[0]));
+      for (int i = 1; i < array.length; i++) {
+         builder.append(" ").append(String.format("%.3f", array[i]));
+      }
+      return builder.toString();
    }
 
 }//END OF VSTextUtils

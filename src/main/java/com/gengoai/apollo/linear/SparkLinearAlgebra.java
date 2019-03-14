@@ -105,7 +105,7 @@ public final class SparkLinearAlgebra {
     * @return the diagonal matrix
     */
    public static NDArray toDiagonalMatrix(org.apache.spark.mllib.linalg.Vector v) {
-      return new DenseNDArray(DoubleMatrix.diag(new DoubleMatrix(v.toArray())));
+      return new DenseMatrix(DoubleMatrix.diag(new DoubleMatrix(v.toArray())));
    }
 
    /**
@@ -121,7 +121,7 @@ public final class SparkLinearAlgebra {
        .zipWithIndex()
        .toLocalIterator()
        .forEachRemaining(t -> mprime.putRow(t._2().intValue(), new DoubleMatrix(1, t._1.size(), t._1.toArray())));
-      return new DenseNDArray(mprime);
+      return new DenseMatrix(mprime);
    }
 
    /**
@@ -131,14 +131,14 @@ public final class SparkLinearAlgebra {
     * @return the Apollo matrix
     */
    public static NDArray toMatrix(org.apache.spark.mllib.linalg.Matrix m) {
-      return NDArrayFactory.DENSE.matrix(m.numRows(), m.numCols(), m.toArray());
+      return NDArrayFactory.DENSE.array(m.numRows(), m.numCols(), m.toArray());
    }
 
    public static RowMatrix toRowMatrix(NDArray matrix) {
       JavaRDD<Vector> rdd = StreamingContext
                                .distributed()
-                               .range(0, matrix.numRows())
-                               .map(r -> Vectors.dense(matrix.getVector(r, Axis.ROW).toDoubleArray()))
+                               .range(0, matrix.rows())
+                               .map(r -> Vectors.dense(matrix.getRow(r).toDoubleArray()))
                                .cache()
                                .getRDD();
       return new RowMatrix(rdd.rdd());

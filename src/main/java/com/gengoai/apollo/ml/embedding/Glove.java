@@ -24,7 +24,7 @@ package com.gengoai.apollo.ml.embedding;
 
 import com.gengoai.Param;
 import com.gengoai.Stopwatch;
-import com.gengoai.apollo.linear.DenseNDArray;
+import com.gengoai.apollo.linear.DenseMatrix;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.ml.DiscretePipeline;
 import com.gengoai.apollo.ml.Example;
@@ -180,7 +180,7 @@ public class Glove extends Embedding {
       for (int i = 0; i < vocabLength; i++) {
          W[i].addi(W[i + vocabLength]);
          String k = getPipeline().featureVectorizer.getString(i);
-         vectors[i] = new DenseNDArray(W[i].toFloat());
+         vectors[i] = new DenseMatrix(W[i]);
          vectors[i].setLabel(k);
       }
       this.vectorIndex = new DefaultVectorIndex(vectors);

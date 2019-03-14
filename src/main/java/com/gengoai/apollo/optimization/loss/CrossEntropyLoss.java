@@ -1,7 +1,7 @@
 package com.gengoai.apollo.optimization.loss;
 
 import com.gengoai.math.Math2;
-import com.gengoai.apollo.linear.p2.NDArray;
+import com.gengoai.apollo.linear.NDArray;
 
 import java.io.Serializable;
 

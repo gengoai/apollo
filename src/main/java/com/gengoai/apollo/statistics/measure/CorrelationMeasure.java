@@ -23,7 +23,7 @@
 package com.gengoai.apollo.statistics.measure;
 
 import com.gengoai.Validation;
-import com.gengoai.apollo.linear.p2.NDArray;
+import com.gengoai.apollo.linear.NDArray;
 import org.apache.commons.math3.distribution.TDistribution;
 import org.apache.commons.math3.util.FastMath;
 

@@ -1,9 +1,9 @@
 package com.gengoai.apollo.linear.decompose;
 
-import com.gengoai.apollo.linear.DenseNDArray;
+import com.gengoai.apollo.linear.DenseMatrix;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.SparkLinearAlgebra;
-import org.jblas.FloatMatrix;
+import org.jblas.DoubleMatrix;
 import org.jblas.Singular;
 
 import java.io.Serializable;
@@ -11,7 +11,6 @@ import java.io.Serializable;
 /**
  * <p>Performs <a href="https://en.wikipedia.org/wiki/Singular_value_decomposition">Singular Value Decomposition</a> on
  * the given input NDArray. The returned array is in order {U, S, V}</p>
- *
  *
  * @author David B. Bracewell
  */
@@ -64,26 +63,26 @@ public class SingularValueDecomposition implements Decomposition, Serializable {
    @Override
    public NDArray[] decompose(NDArray input) {
       if (distributed) {
-         return SparkLinearAlgebra.svd(input, K <= 0 ? input.numCols() : K);
+         return SparkLinearAlgebra.svd(input, K <= 0 ? input.columns() : K);
       }
 
       NDArray[] result;
-      FloatMatrix[] r;
+      DoubleMatrix[] r;
       if (sparse) {
-         r = Singular.sparseSVD(input.toFloatMatrix());
+         r = Singular.sparseSVD(input.toDoubleMatrix()[0]);
       } else {
-         r = Singular.fullSVD(input.toFloatMatrix());
+         r = Singular.fullSVD(input.toDoubleMatrix()[0]);
       }
       result = new NDArray[]{
-         new DenseNDArray(r[0]),
-         new DenseNDArray(FloatMatrix.diag(r[1])),
-         new DenseNDArray(r[2]),
+         new DenseMatrix(r[0]),
+         new DenseMatrix(DoubleMatrix.diag(r[1])),
+         new DenseMatrix(r[2]),
       };
 
       if (K > 0) {
-         result[0] = result[0].slice(0, result[0].numRows(), 0, K);
-         result[1] = result[1].slice(0, K, 0, K);
-         result[2] = result[2].slice(0, result[2].numRows(), 0, K);
+         result[0] = result[0].getSubMatrix(0, result[0].rows(), 0, K);
+         result[1] = result[1].getSubMatrix(0, K, 0, K);
+         result[2] = result[2].getSubMatrix(0, result[2].rows(), 0, K);
       }
 
       return result;

@@ -1,7 +1,7 @@
 package com.gengoai.apollo.optimization;
 
 import com.gengoai.Copyable;
-import com.gengoai.apollo.linear.p2.NDArray;
+import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.tuple.Tuple2;
 
 /**

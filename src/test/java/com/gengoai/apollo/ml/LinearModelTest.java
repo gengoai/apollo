@@ -14,7 +14,7 @@ public class LinearModelTest extends BaseClassifierTest<LinearModel.Parameters> 
       super(new LinearModel(),
             new LinearModel.Parameters()
                .set("verbose", false)
-               .set("maxIterations", 100));
+               .set("maxIterations", 500));
    }
 
    @Override

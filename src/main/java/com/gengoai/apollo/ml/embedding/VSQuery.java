@@ -145,7 +145,7 @@ public final class VSQuery {
       } else {
          stream = terms.stream().map(store::lookup);
       }
-      return stream.reduce(NDArrayFactory.DENSE.zeros(store.dimension()), NDArray::addi);
+      return stream.reduce(NDArrayFactory.DENSE.array(store.dimension()), NDArray::addi);
    }
 
    /**

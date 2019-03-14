@@ -26,7 +26,7 @@ public enum VectorCompositions implements VectorComposition {
       @Override
       public NDArray compose(Collection<NDArray> vectors) {
          if (vectors.size() == 0) {
-            return NDArrayFactory.DEFAULT().empty();
+            return NDArrayFactory.ND.empty();
          }
          NDArray toReturn = null;
          for (NDArray v : vectors) {
@@ -46,7 +46,7 @@ public enum VectorCompositions implements VectorComposition {
       @Override
       public NDArray compose(Collection<NDArray> vectors) {
          if (vectors.size() == 0) {
-            return NDArrayFactory.DEFAULT().empty();
+            return NDArrayFactory.ND.empty();
          }
          NDArray toReturn = null;
          for (NDArray v : vectors) {
@@ -66,7 +66,7 @@ public enum VectorCompositions implements VectorComposition {
       @Override
       public NDArray compose(Collection<NDArray> vectors) {
          if (vectors.size() == 0) {
-            return NDArrayFactory.DEFAULT().empty();
+            return NDArrayFactory.ND.empty();
          }
          NDArray toReturn = null;
          for (NDArray v : vectors) {
@@ -86,7 +86,7 @@ public enum VectorCompositions implements VectorComposition {
       @Override
       public NDArray compose(Collection<NDArray> vectors) {
          if (vectors.size() == 0) {
-            return NDArrayFactory.DEFAULT().empty();
+            return NDArrayFactory.ND.empty();
          }
          NDArray toReturn = null;
          for (NDArray v : vectors) {
@@ -108,9 +108,9 @@ public enum VectorCompositions implements VectorComposition {
       @Override
       public NDArray compose(Collection<NDArray> vectors) {
          if (vectors.size() == 0) {
-            return NDArrayFactory.DEFAULT().empty();
+            return NDArrayFactory.ND.empty();
          }
-         return svd.decompose(NDArrayFactory.DENSE.vstack(vectors))[2].getVector(0, Axis.ROW);
+         return svd.decompose(NDArrayFactory.DENSE.vstack(vectors))[2].getRow(0);
       }
    }
 

@@ -23,8 +23,8 @@
 package com.gengoai.apollo.ml.embedding;
 
 import com.gengoai.apollo.linear.VectorComposition;
-import com.gengoai.apollo.linear.p2.NDArray;
-import com.gengoai.apollo.linear.p2.NDArrayFactory;
+import com.gengoai.apollo.linear.NDArray;
+import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.ml.DiscreteModel;
 import com.gengoai.apollo.ml.DiscretePipeline;
 import com.gengoai.apollo.ml.Example;
@@ -154,7 +154,7 @@ public class Embedding extends DiscreteModel {
     */
    public NDArray compose(VectorComposition composition, String... words) {
       if (words == null) {
-         return NDArrayFactory.DEFAULT().zeros(dimension());
+         return NDArrayFactory.ND.array(dimension());
       } else if (words.length == 1) {
          return lookup(words[0]);
       }
@@ -234,7 +234,7 @@ public class Embedding extends DiscreteModel {
    public NDArray lookup(String feature) {
       int index = getPipeline().featureVectorizer.indexOf(feature);
       if (index < 0) {
-         return NDArrayFactory.DENSE.zeros(dimension());
+         return NDArrayFactory.ND.array(dimension());
       }
       return vectorIndex.lookup(index);
    }

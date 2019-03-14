@@ -32,12 +32,12 @@ public class RealMatrixWrapper extends AbstractRealMatrix implements Serializabl
 
    @Override
    public RealMatrix createMatrix(int i, int i1) throws NotStrictlyPositiveException {
-      return new RealMatrixWrapper(array.getFactory().zeros(i, i1));
+      return new RealMatrixWrapper(NDArrayFactory.ND.array(i, i1));
    }
 
    @Override
    public int getColumnDimension() {
-      return array.numCols();
+      return array.columns();
    }
 
    @Override
@@ -47,7 +47,7 @@ public class RealMatrixWrapper extends AbstractRealMatrix implements Serializabl
 
    @Override
    public int getRowDimension() {
-      return array.numRows();
+      return array.rows();
    }
 
    @Override

@@ -85,7 +85,7 @@ public class GaussianMixtureModel extends FlatCentroidClusterer {
       for (int i = 0; i < components.size(); i++) {
          Cluster cluster = new Cluster();
          cluster.setId(i);
-         cluster.setCentroid(NDArrayFactory.columnVector(components.get(i).sample()));
+         cluster.setCentroid(NDArrayFactory.ND.columnVector(components.get(i).sample()));
          add(cluster);
       }
 

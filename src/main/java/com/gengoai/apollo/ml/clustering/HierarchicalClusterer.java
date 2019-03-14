@@ -67,7 +67,7 @@ public abstract class HierarchicalClusterer extends Clusterer {
       FlatClusterer clustering = new DummyFlatClusterer(getPipeline(), getMeasure());
       process(root, clustering, threshold);
       for (int i = 0; i < clustering.size(); i++) {
-         NDArray centroid = NDArrayFactory.DEFAULT().zeros(clustering.get(i).getPoints().get(0).shape());
+         NDArray centroid = NDArrayFactory.ND.array(clustering.get(i).getPoints().get(0).shape());
          clustering.get(i).getPoints().forEach(centroid::addi);
          centroid.divi(clustering.get(i).size());
          clustering.get(i).setCentroid(centroid);

@@ -36,13 +36,14 @@ public class LinearRegressionTest extends BaseRegressionTest<LinearRegression.Pa
    public LinearRegressionTest() {
       super(new LinearRegression(new PerFeatureTransform(ZScoreTransform::new)),
             new LinearRegression.Parameters()
-               .maxIterations.set(20)
+               .maxIterations.set(5000)
                .weightUpdater.set(SGDUpdater.builder().momentum(0d).build())
                .tolerance.set(1e-10));
    }
 
    @Override
    public boolean passes(RegressionEvaluation mce) {
+      System.out.println(mce.r2());
       return mce.r2() >= 0.9;
    }
 }//END OF LibLinearRegressionTest

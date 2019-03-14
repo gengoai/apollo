@@ -23,7 +23,7 @@
 package com.gengoai.apollo.ml;
 
 import com.gengoai.Validation;
-import com.gengoai.apollo.linear.p2.NDArray;
+import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.string.Strings;
 
 import java.util.*;

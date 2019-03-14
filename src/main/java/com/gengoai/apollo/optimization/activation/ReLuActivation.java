@@ -1,7 +1,7 @@
 package com.gengoai.apollo.optimization.activation;
 
 
-import com.gengoai.apollo.linear.p2.NDArray;
+import com.gengoai.apollo.linear.NDArray;
 
 /**
  * @author David B. Bracewell

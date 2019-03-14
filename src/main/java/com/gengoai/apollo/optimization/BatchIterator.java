@@ -1,7 +1,7 @@
 package com.gengoai.apollo.optimization;
 
-import com.gengoai.apollo.linear.p2.NDArray;
-import com.gengoai.apollo.linear.p2.NDArrayFactory;
+import com.gengoai.apollo.linear.NDArray;
+import com.gengoai.apollo.linear.NDArrayFactory;
 
 import java.io.Serializable;
 import java.util.*;

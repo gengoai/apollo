@@ -23,7 +23,7 @@
 package com.gengoai.apollo.statistics.measure;
 
 import com.gengoai.Validation;
-import com.gengoai.apollo.linear.p2.NDArray;
+import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.math.Math2;
 
 /**

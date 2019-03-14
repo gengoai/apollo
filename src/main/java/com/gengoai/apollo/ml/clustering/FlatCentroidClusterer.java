@@ -62,7 +62,7 @@ public abstract class FlatCentroidClusterer extends FlatClusterer {
 
    @Override
    public NDArray measure(NDArray example) {
-      NDArray distances = NDArrayFactory.DENSE.zeros(size());
+      NDArray distances = NDArrayFactory.DENSE.array(size());
       for (int i = 0; i < size(); i++) {
          distances.set(i, getMeasure().calculate(example, get(i).getCentroid()));
       }

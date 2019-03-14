@@ -22,8 +22,8 @@
 
 package com.gengoai.apollo.ml.vectorizer;
 
-import com.gengoai.apollo.linear.p2.NDArray;
-import com.gengoai.apollo.linear.p2.NDArrayFactory;
+import com.gengoai.apollo.linear.NDArray;
+import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.ml.Example;
 
 import java.util.stream.Stream;
@@ -34,6 +34,12 @@ import java.util.stream.Stream;
 public class MultiLabelBinarizer extends IndexVectorizer {
    private static final long serialVersionUID = 1L;
 
+   @Override
+   public String toString() {
+      return "MultiLabelBinarizer{" +
+                "index=" + index +
+                '}';
+   }
 
    @Override
    protected Stream<String> getAlphabetSpace(Example example) {

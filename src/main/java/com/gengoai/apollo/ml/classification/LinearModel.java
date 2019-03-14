@@ -23,7 +23,7 @@
 package com.gengoai.apollo.ml.classification;
 
 import com.gengoai.Copyable;
-import com.gengoai.apollo.linear.p2.NDArray;
+import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.ml.DiscretePipeline;
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.FitParameters;
@@ -41,7 +41,7 @@ import com.gengoai.stream.MStream;
 
 import java.io.Serializable;
 
-import static com.gengoai.apollo.linear.p2.NDArrayFactory.ND;
+import static com.gengoai.apollo.linear.NDArrayFactory.ND;
 
 /**
  * <p>A generalized linear model. This model can encompass a number models dependent on the parameters when

@@ -14,7 +14,8 @@ public class NaiveBayesTest extends BaseClassifierTest<NaiveBayes.Parameters> {
 
    public NaiveBayesTest() {
       super(new NaiveBayes(new PerFeatureTransform(ZScoreTransform::new)),
-            new NaiveBayes.Parameters());
+            new NaiveBayes.Parameters()
+               .modelType.set(NaiveBayes.ModelType.Multinomial));
    }
 
    @Override

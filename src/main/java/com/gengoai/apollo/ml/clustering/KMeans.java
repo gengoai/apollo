@@ -24,7 +24,7 @@ package com.gengoai.apollo.ml.clustering;
 
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
-import com.gengoai.apollo.linear.NDArrayInitializer;
+import com.gengoai.apollo.linear.Shape;
 import com.gengoai.apollo.ml.DiscretePipeline;
 import com.gengoai.apollo.ml.FitParameters;
 import com.gengoai.apollo.ml.Params;
@@ -118,7 +118,7 @@ public class KMeans extends FlatCentroidClusterer {
 
    private NDArray[] initCentroids(int K, List<NDArray> instances) {
       NDArray[] clusters = IntStream.range(0, K)
-                                    .mapToObj(i -> NDArrayFactory.DEFAULT().zeros((int) instances.get(0).length()))
+                                    .mapToObj(i -> NDArrayFactory.ND.array((int) instances.get(0).length()))
                                     .toArray(NDArray[]::new);
 
       double[] cnts = new double[K];
@@ -159,9 +159,9 @@ public class KMeans extends FlatCentroidClusterer {
 
          //Calculate the new centroid, randomly generating a new vector when the custer has 0 members
          if (cluster.size() == 0) {
-            centroid = NDArrayFactory.DEFAULT().create(NDArrayInitializer.rand(-1, 1), (int) instances.get(0).length());
+            centroid = NDArrayFactory.ND.uniform(-1, 1, Shape.shape((int) instances.get(0).length()));
          } else {
-            centroid = NDArrayFactory.DENSE.zeros(getNumberOfFeatures());
+            centroid = NDArrayFactory.ND.array(getNumberOfFeatures());
             for (NDArray point : cluster.getPoints()) {
                centroid.addi(point);
             }

@@ -22,7 +22,7 @@
 
 package com.gengoai.apollo.ml.classification;
 
-import com.gengoai.apollo.linear.p2.NDArray;
+import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.ml.vectorizer.DiscreteVectorizer;
 import com.gengoai.collection.counter.Counter;
 import com.gengoai.collection.counter.Counters;

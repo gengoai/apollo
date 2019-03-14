@@ -22,8 +22,8 @@
 
 package com.gengoai.apollo.ml;
 
-import com.gengoai.apollo.linear.p2.NDArrayFactory;
-import com.gengoai.apollo.linear.p2.NDArray;
+import com.gengoai.apollo.linear.NDArrayFactory;
+import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.conversion.Cast;
 
 import java.util.ArrayList;

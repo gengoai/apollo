@@ -1,12 +1,12 @@
 package com.gengoai.apollo.optimization;
 
-import com.gengoai.apollo.linear.p2.NDArray;
+import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.tuple.Tuple2;
 import org.apache.commons.math3.util.FastMath;
 
 import java.io.Serializable;
 
-import static com.gengoai.apollo.linear.p2.NDArrayFactory.ND;
+import static com.gengoai.apollo.linear.NDArrayFactory.ND;
 import static com.gengoai.tuple.Tuples.$;
 
 /**

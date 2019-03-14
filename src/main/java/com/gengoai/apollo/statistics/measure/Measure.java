@@ -22,12 +22,12 @@
 
 package com.gengoai.apollo.statistics.measure;
 
-import com.gengoai.apollo.linear.p2.NDArray;
+import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.math.Optimum;
 
 import java.io.Serializable;
 
-import static com.gengoai.apollo.linear.p2.NDArrayFactory.ND;
+import static com.gengoai.apollo.linear.NDArrayFactory.ND;
 
 /**
  * <p>Calculates a metric between items, such as distance and similarity.</p>

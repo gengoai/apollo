@@ -203,6 +203,7 @@ public abstract class Matrix extends NDArray {
       return out;
    }
 
+
    @Override
    public NDArray mapColumn(NDArray rhs, final DoubleBinaryOperator operator) {
       if (rhs.shape().isScalar()) {
@@ -711,7 +712,7 @@ public abstract class Matrix extends NDArray {
 
    @Override
    public NDArray mmul(NDArray rhs) {
-      return null;
+      return new DenseMatrix(toDoubleMatrix()[0].mmul(rhs.toDoubleMatrix()[0]));
    }
 
    @Override

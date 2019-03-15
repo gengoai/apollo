@@ -183,6 +183,7 @@ public enum NDArrayFactory {
       int globalAxisIndex = 0;
       for (NDArray array : rows) {
          toReturn.setRow(globalAxisIndex, array);
+         globalAxisIndex++;
       }
       return toReturn;
    }
@@ -200,6 +201,7 @@ public enum NDArrayFactory {
       int globalAxisIndex = 0;
       for (NDArray array : columns) {
          toReturn.setColumn(globalAxisIndex, array);
+         globalAxisIndex++;
       }
       return toReturn;
    }

@@ -130,7 +130,7 @@ public class SparseMatrix extends Matrix {
          checkLength(shape, rhs.shape());
          SparseMatrix sm = Cast.as(rhs);
          sm.map.forEachPair((i, v) -> {
-            map.adjustOrPutValue(i, v, -v);
+            map.adjustOrPutValue(i, -v, -v);
             return true;
          });
          return this;
@@ -300,7 +300,7 @@ public class SparseMatrix extends Matrix {
    @Override
    public NDArray getRow(int row) {
       SparseMatrix sm = new SparseMatrix(1, shape.columns());
-      for (int i = 0; i < shape.rows(); i++) {
+      for (int i = 0; i < shape.columns(); i++) {
          sm.set(row, i, get(row, i));
       }
       return sm;

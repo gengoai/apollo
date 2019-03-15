@@ -51,6 +51,7 @@ public class BatchIterator implements Serializable {
          concat[mi] = cols.get(indicies[c]);
          mi++;
       }
+
       return NDArrayFactory.ND.hstack(concat);
    }
 

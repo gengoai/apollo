@@ -58,14 +58,12 @@ public abstract class BaseNDArrayTest {
 
    @Test
    public void diag() throws Exception {
-//      assertEquals(factory.array(4, 4)
-//                          .set(1, 1, 1)
-//                          .set(2, 2, 4)
-//                          .set(3, 3, 3),
-//                   v1.diag()
-//                  );
-
-
+      assertEquals(factory.array(4, 4)
+                          .set(1, 1, 1)
+                          .set(2, 2, 4)
+                          .set(3, 3, 3),
+                   v1.diag()
+                  );
 
       assertEquals(factory.array(4, 4)
                           .set(1, 1, 1)
@@ -146,168 +144,168 @@ public abstract class BaseNDArrayTest {
       assertEquals(factory.array(1, 4), mins.slice(0));
 
    }
-//
-//   @Test
-//   public void mmul() throws Exception {
-//      assertEquals(
-//         factory.array(3, 3, new double[]{70.0, 80.0, 90.0, 158.0, 184.0, 210.0, 246.0, 288.0, 330.0}), m1.mmul(m2));
-//   }
-//
-//   @Test
-//   public void mul() throws Exception {
-//      assertEquals(factory.array(1, 4, new double[]{0.0, 1.0, 4.0, 3.0}), v1.mul(1));
-//      assertEquals(factory.array(1, 4, new double[]{0.0, 1.0, 4.0, 3.0}), v1.copy().muli(1));
-//      assertEquals(factory.array(1, 4, new double[]{0.0, 2.0, 0.0, 12.0}), v1.mul(v2));
-//      assertEquals(factory.array(1, 4, new double[]{0.0, 2.0, 0.0, 12.0}), v1.copy().muli(v2));
-//      assertEquals(
-//         factory.array(3, 4, new double[]{1.0, 10.0, 27.0, 8.0, 30.0, 60.0, 21.0, 56.0, 99.0, 40.0, 88.0, 144.0}),
-//         m1.mul(m2.T()));
-//      assertEquals(
-//         factory.array(3, 4, new double[]{0.0, 0.0, 0.0, 4.0, 5.0, 6.0, 28.0, 32.0, 36.0, 30.0, 33.0, 36.0}),
-//         m1.mul(v1, Axis.ROW));
-//      assertEquals(
-//         factory.array(3, 4, new double[]{1.0, 4.0, 12.0, 4.0, 10.0, 24.0, 7.0, 16.0, 36.0, 10.0, 22.0, 48.0}),
-//         m1.mul(v3, Axis.COLUMN));
-//      assertEquals(
-//         factory.array(3, 4, new double[]{0.0, 0.0, 0.0, 4.0, 5.0, 6.0, 28.0, 32.0, 36.0, 30.0, 33.0, 36.0}),
-//         m1.copy().muli(v1, Axis.ROW));
-//      assertEquals(
-//         factory.array(3, 4, new double[]{1.0, 4.0, 12.0, 4.0, 10.0, 24.0, 7.0, 16.0, 36.0, 10.0, 22.0, 48.0}),
-//         m1.copy().muli(v3, Axis.COLUMN));
-//   }
-//
-//   @Test
-//   public void pow() throws Exception {
-//      assertEquals(factory.ones(1, 4), v1.pow(0));
-//      assertEquals(factory.ones(1, 4), v1.copy().powi(0));
-//      assertEquals(v1, v1.pow(1));
-//      assertEquals(v1, v1.copy().powi(1));
-//      assertEquals(factory.array(1, 4, new double[]{0.0, 1.0, 16.0, 9.0}), v1.pow(2));
-//      assertEquals(factory.array(1, 4, new double[]{0.0, 1.0, 16.0, 9.0}), v1.copy().powi(2));
-//   }
-//
-//   @Test
-//   public void rdiv() throws Exception {
-//      assertEquals(factory.array(1, 4, new double[]{Double.POSITIVE_INFINITY, 1.0, 0.25, 0.3333333333333333}),
-//                   v1.rdiv(1));
-//      assertEquals(factory.array(1, 4, new double[]{Double.POSITIVE_INFINITY, 1.0, 0.25, 0.3333333333333333}),
-//                   v1.copy().rdivi(1));
-//      assertEquals(factory.array(1, 4, new double[]{0.0, 0.5, Double.POSITIVE_INFINITY, 0.75}), v2.rdiv(v1));
-//      assertEquals(factory.array(1, 4, new double[]{0.0, 0.5, Double.POSITIVE_INFINITY, 0.75}), v2.copy().rdivi(v1));
-//      assertEquals(
-//         factory.array(3, 4,
-//                       new double[]{1.0, 0.4, 0.3333333333333333, 2.0, 0.8333333333333334, 0.6, 2.3333333333333335, 1.1428571428571428, 0.8181818181818182, 2.5, 1.375, 1.0}),
-//         m2.T().rdiv(m1));
-//      assertEquals(
-//         factory.array(3, 4,
-//                       new double[]{0.0, 0.0, 0.0, 0.25, 0.2, 0.16666666666666666, 0.5714285714285714, 0.5, 0.4444444444444444, 0.3, 0.2727272727272727, 0.25}),
-//         m1.rdiv(v1, Axis.ROW));
-//      assertEquals(
-//         factory.array(3, 4,
-//                       new double[]{1.0, 1.0, 1.3333333333333333, 0.25, 0.4, 0.6666666666666666, 0.14285714285714285, 0.25, 0.4444444444444444, 0.1, 0.18181818181818182, 0.3333333333333333}),
-//         m1.rdiv(v3, Axis.COLUMN));
-//      assertEquals(
-//         factory.array(3, 4,
-//                       new double[]{0.0, 0.0, 0.0, 0.25, 0.2, 0.16666666666666666, 0.5714285714285714, 0.5, 0.4444444444444444, 0.3, 0.2727272727272727, 0.25}),
-//         m1.copy().rdivi(v1, Axis.ROW));
-//      assertEquals(
-//         factory.array(3, 4,
-//                       new double[]{1.0, 1.0, 1.3333333333333333, 0.25, 0.4, 0.6666666666666666, 0.14285714285714285, 0.25, 0.4444444444444444, 0.1, 0.18181818181818182, 0.3333333333333333}),
-//         m1.copy().rdivi(v3, Axis.COLUMN));
-//   }
-//
-//   @Test
-//   public void rsub() throws Exception {
-//      assertEquals(factory.array(1, 4, new double[]{1.0, 0.0, -3.0, -2.0}), v1.rsub(1));
-//      assertEquals(factory.array(1, 4, new double[]{1.0, 0.0, -3.0, -2.0}), v1.copy().rsubi(1));
-//      assertEquals(factory.array(1, 4, new double[]{-1.0, -1.0, 4.0, -1.0}), v2.copy().rsubi(v1));
-//      assertEquals(
-//         factory.array(3, 4, new double[]{0.0, -3.0, -6.0, 2.0, -1.0, -4.0, 4.0, 1.0, -2.0, 6.0, 3.0, 0.0}),
-//         m2.T().rsub(m1));
-//      assertEquals(
-//         factory.array(3, 4, new double[]{-1.0, -2.0, -3.0, -3.0, -4.0, -5.0, -3.0, -4.0, -5.0, -7.0, -8.0, -9.0}),
-//         m1.rsub(v1, Axis.ROW));
-//      assertEquals(
-//         factory.array(3, 4, new double[]{0.0, 0.0, 1.0, -3.0, -3.0, -2.0, -6.0, -6.0, -5.0, -9.0, -9.0, -8.0}),
-//         m1.rsub(v3, Axis.COLUMN));
-//      assertEquals(
-//         factory.array(3, 4, new double[]{-1.0, -2.0, -3.0, -3.0, -4.0, -5.0, -3.0, -4.0, -5.0, -7.0, -8.0, -9.0}),
-//         m1.copy().rsubi(v1, Axis.ROW));
-//      assertEquals(
-//         factory.array(3, 4, new double[]{0.0, 0.0, 1.0, -3.0, -3.0, -2.0, -6.0, -6.0, -5.0, -9.0, -9.0, -8.0}),
-//         m1.copy().rsubi(v3, Axis.COLUMN));
-//   }
-//
-//   @Test
-//   public void setAndGet() throws Exception {
-//      double value = v1.get(0);
-//      assertEquals(0, value, 0d);
-//      v1.set(0, 20);
-//      assertEquals(20, v1.get(0), 0d);
-//      v1.set(0, 0f);
-////      assertEquals(0, v1.get(Axis.ROW, 0, Axis.COLUMN, 0), 0d);
-//
-//
-//      v1.set(0, 0, 10f);
-//      v1.set(0, 0, 0f);
-//
-//      value = m1.get(0, 0);
-//      assertEquals(1, value, 0d);
-//      m1.set(0, 0, 20);
-//      assertEquals(20, m1.get(0, 0), 0d);
-//      m1.set(0, 0, 1f);
-////      assertEquals(1, m1.get(Axis.ROW, 0, Axis.COLUMN, 0), 0d);
-//
-//      m1.set(0, 0, 100f);
-//      m1.set(0, 0, 1);
-//   }
-//
-//
-//   @Test
-//   public void slice() throws Exception {
-//      assertEquals(factory.scalar(0).scalarValue(), v1.getSlice(0).scalarValue(), 0d);
-////      assertEquals(factory.create(1, 4, new double[]{1.0, 4.0, 7.0, 10.0}), m1.slice(0, 1, 0, 4));
-////      assertEquals(factory.create(1, 4, new double[]{1.0, 4.0, 7.0, 10.0}), m1.slice(Axis.ROW, 0));
-//   }
-//
-//   @Test
-//   public void stats() throws Exception {
-//      assertEquals(8, v1.scalarSum(), 0d);
-//      assertEquals(factory.scalar(8), v1.sum(Axis.ROW));
-//      assertEquals(factory.array(1, 4, new double[]{6, 15, 24, 33}), m1.sum(Axis.COLUMN));
-//   }
-//
-//   @Test
-//   public void sub() throws Exception {
-//      assertEquals(factory.array(1, 4, new double[]{-1.0, 0.0, 3.0, 2.0}), v1.sub(1));
-//      assertEquals(factory.array(1, 4, new double[]{-1.0, 0.0, 3.0, 2.0}), v1.copy().subi(1));
-//      assertEquals(factory.array(1, 4, new double[]{-1.0, -1.0, 4.0, -1.0}), v1.sub(v2));
-//      assertEquals(factory.array(1, 4, new double[]{-1.0, -1.0, 4.0, -1.0}), v1.copy().subi(v2));
-//      assertEquals(
-//         factory.array(3, 4, new double[]{0.0, -3.0, -6.0, 2.0, -1.0, -4.0, 4.0, 1.0, -2.0, 6.0, 3.0, 0.0}),
-//         m1.sub(m2.T()));
-//      assertEquals(
-//         factory.array(3, 4, new double[]{1.0, 2.0, 3.0, 3.0, 4.0, 5.0, 3.0, 4.0, 5.0, 7.0, 8.0, 9.0}),
-//         m1.sub(v1, Axis.ROW));
-//      assertEquals(
-//         factory.array(3, 4, new double[]{0.0, 0.0, -1.0, 3.0, 3.0, 2.0, 6.0, 6.0, 5.0, 9.0, 9.0, 8.0}),
-//         m1.sub(v3, Axis.COLUMN));
-//      assertEquals(
-//         factory.array(3, 4, new double[]{1.0, 2.0, 3.0, 3.0, 4.0, 5.0, 3.0, 4.0, 5.0, 7.0, 8.0, 9.0}),
-//         m1.copy().subi(v1, Axis.ROW));
-//      assertEquals(
-//         factory.array(3, 4, new double[]{0.0, 0.0, -1.0, 3.0, 3.0, 2.0, 6.0, 6.0, 5.0, 9.0, 9.0, 8.0}),
-//         m1.copy().subi(v3, Axis.COLUMN));
-//   }
-//
-//   @Test
-//   public void test() throws Exception {
-//      assertEquals(factory.array(1, 4, new double[]{1, 0, 0, 0}), v1.test(d -> d == 0));
-//      assertEquals(factory.array(1, 4, new double[]{1, 0, 0, 0}), v1.copy().testi(d -> d == 0));
-//   }
-//
-//   @Test
-//   public void zero() throws Exception {
-//      assertEquals(0, v1.copy().zero().scalarSum(), 0d);
-//   }
+
+   @Test
+   public void mmul() throws Exception {
+      assertEquals(
+         factory.array(3, 3, new double[]{70.0, 80.0, 90.0, 158.0, 184.0, 210.0, 246.0, 288.0, 330.0}), m1.mmul(m2));
+   }
+
+   @Test
+   public void mul() throws Exception {
+      assertEquals(factory.array(1, 4, new double[]{0.0, 1.0, 4.0, 3.0}), v1.mul(1));
+      assertEquals(factory.array(1, 4, new double[]{0.0, 1.0, 4.0, 3.0}), v1.copy().muli(1));
+      assertEquals(factory.array(1, 4, new double[]{0.0, 2.0, 0.0, 12.0}), v1.mul(v2));
+      assertEquals(factory.array(1, 4, new double[]{0.0, 2.0, 0.0, 12.0}), v1.copy().muli(v2));
+      assertEquals(
+         factory.array(3, 4, new double[]{1.0, 10.0, 27.0, 8.0, 30.0, 60.0, 21.0, 56.0, 99.0, 40.0, 88.0, 144.0}),
+         m1.mul(m2.T()));
+      assertEquals(
+         factory.array(3, 4, new double[]{0.0, 0.0, 0.0, 4.0, 5.0, 6.0, 28.0, 32.0, 36.0, 30.0, 33.0, 36.0}),
+         m1.mulRowVector(v1));
+      assertEquals(
+         factory.array(3, 4, new double[]{1.0, 4.0, 12.0, 4.0, 10.0, 24.0, 7.0, 16.0, 36.0, 10.0, 22.0, 48.0}),
+         m1.mulColumnVector(v3));
+      assertEquals(
+         factory.array(3, 4, new double[]{0.0, 0.0, 0.0, 4.0, 5.0, 6.0, 28.0, 32.0, 36.0, 30.0, 33.0, 36.0}),
+         m1.copy().muliRowVector(v1));
+      assertEquals(
+         factory.array(3, 4, new double[]{1.0, 4.0, 12.0, 4.0, 10.0, 24.0, 7.0, 16.0, 36.0, 10.0, 22.0, 48.0}),
+         m1.copy().muliColumnVector(v3));
+   }
+
+   @Test
+   public void pow() throws Exception {
+      assertEquals(factory.ones(1, 4), v1.map(x -> Math.pow(x, 0)));
+      assertEquals(factory.ones(1, 4), v1.copy().mapi(x -> Math.pow(x, 0)));
+      assertEquals(v1, v1.map(x -> Math.pow(x, 1)));
+      assertEquals(v1, v1.copy().mapi(x -> Math.pow(x, 1)));
+      assertEquals(factory.array(1, 4, new double[]{0.0, 1.0, 16.0, 9.0}), v1.map(x -> Math.pow(x, 2)));
+      assertEquals(factory.array(1, 4, new double[]{0.0, 1.0, 16.0, 9.0}), v1.copy().mapi(x -> Math.pow(x, 2)));
+   }
+
+   @Test
+   public void rdiv() throws Exception {
+      assertEquals(factory.array(1, 4, new double[]{Double.POSITIVE_INFINITY, 1.0, 0.25, 0.3333333333333333}),
+                   v1.rdiv(1));
+      assertEquals(factory.array(1, 4, new double[]{Double.POSITIVE_INFINITY, 1.0, 0.25, 0.3333333333333333}),
+                   v1.copy().rdivi(1));
+      assertEquals(factory.array(1, 4, new double[]{0.0, 0.5, Double.POSITIVE_INFINITY, 0.75}), v2.rdiv(v1));
+      assertEquals(factory.array(1, 4, new double[]{0.0, 0.5, Double.POSITIVE_INFINITY, 0.75}), v2.copy().rdivi(v1));
+      assertEquals(
+         factory.array(3, 4,
+                       new double[]{1.0, 0.4, 0.3333333333333333, 2.0, 0.8333333333333334, 0.6, 2.3333333333333335, 1.1428571428571428, 0.8181818181818182, 2.5, 1.375, 1.0}),
+         m2.T().rdiv(m1));
+      assertEquals(
+         factory.array(3, 4,
+                       new double[]{0.0, 0.0, 0.0, 0.25, 0.2, 0.16666666666666666, 0.5714285714285714, 0.5, 0.4444444444444444, 0.3, 0.2727272727272727, 0.25}),
+         m1.rdivRowVector(v1));
+      assertEquals(
+         factory.array(3, 4,
+                       new double[]{1.0, 1.0, 1.3333333333333333, 0.25, 0.4, 0.6666666666666666, 0.14285714285714285, 0.25, 0.4444444444444444, 0.1, 0.18181818181818182, 0.3333333333333333}),
+         m1.rdivColumnVector(v3));
+      assertEquals(
+         factory.array(3, 4,
+                       new double[]{0.0, 0.0, 0.0, 0.25, 0.2, 0.16666666666666666, 0.5714285714285714, 0.5, 0.4444444444444444, 0.3, 0.2727272727272727, 0.25}),
+         m1.copy().rdiviRowVector(v1));
+      assertEquals(
+         factory.array(3, 4,
+                       new double[]{1.0, 1.0, 1.3333333333333333, 0.25, 0.4, 0.6666666666666666, 0.14285714285714285, 0.25, 0.4444444444444444, 0.1, 0.18181818181818182, 0.3333333333333333}),
+         m1.copy().rdiviColumnVector(v3));
+   }
+
+   @Test
+   public void rsub() throws Exception {
+      assertEquals(factory.array(1, 4, new double[]{1.0, 0.0, -3.0, -2.0}), v1.rsub(1));
+      assertEquals(factory.array(1, 4, new double[]{1.0, 0.0, -3.0, -2.0}), v1.copy().rsubi(1));
+      assertEquals(factory.array(1, 4, new double[]{-1.0, -1.0, 4.0, -1.0}), v2.copy().rsubi(v1));
+      assertEquals(
+         factory.array(3, 4, new double[]{0.0, -3.0, -6.0, 2.0, -1.0, -4.0, 4.0, 1.0, -2.0, 6.0, 3.0, 0.0}),
+         m2.T().rsub(m1));
+      assertEquals(
+         factory.array(3, 4, new double[]{-1.0, -2.0, -3.0, -3.0, -4.0, -5.0, -3.0, -4.0, -5.0, -7.0, -8.0, -9.0}),
+         m1.rsubRowVector(v1));
+      assertEquals(
+         factory.array(3, 4, new double[]{0.0, 0.0, 1.0, -3.0, -3.0, -2.0, -6.0, -6.0, -5.0, -9.0, -9.0, -8.0}),
+         m1.rsubColumnVector(v3));
+      assertEquals(
+         factory.array(3, 4, new double[]{-1.0, -2.0, -3.0, -3.0, -4.0, -5.0, -3.0, -4.0, -5.0, -7.0, -8.0, -9.0}),
+         m1.copy().rsubiRowVector(v1));
+      assertEquals(
+         factory.array(3, 4, new double[]{0.0, 0.0, 1.0, -3.0, -3.0, -2.0, -6.0, -6.0, -5.0, -9.0, -9.0, -8.0}),
+         m1.copy().rsubiColumnVector(v3));
+   }
+
+   @Test
+   public void setAndGet() throws Exception {
+      double value = v1.get(0);
+      assertEquals(0, value, 0d);
+      v1.set(0, 20);
+      assertEquals(20, v1.get(0), 0d);
+      v1.set(0, 0f);
+      assertEquals(0, v1.get(0, 0), 0d);
+
+
+      v1.set(0, 0, 10f);
+      v1.set(0, 0, 0f);
+
+      value = m1.get(0, 0);
+      assertEquals(1, value, 0d);
+      m1.set(0, 0, 20);
+      assertEquals(20, m1.get(0, 0), 0d);
+      m1.set(0, 0, 1f);
+      assertEquals(1, m1.get(0, 0), 0d);
+
+      m1.set(0, 0, 100f);
+      m1.set(0, 0, 1);
+   }
+
+
+   @Test
+   public void slice() throws Exception {
+      assertEquals(factory.scalar(0).scalar(), v1.slice(0).scalar(), 0d);
+      assertEquals(factory.array(1, 4, new double[]{1.0, 4.0, 7.0, 10.0}), m1.getSubMatrix(0, 1, 0, 4));
+      assertEquals(factory.array(1, 4, new double[]{1.0, 4.0, 7.0, 10.0}), m1.getRow(0));
+   }
+
+   @Test
+   public void stats() throws Exception {
+      assertEquals(8, v1.sum(), 0d);
+      assertEquals(factory.scalar(8), v1.rowSums());
+      assertEquals(factory.array(1, 4, new double[]{6, 15, 24, 33}), m1.columnSums());
+   }
+
+   @Test
+   public void sub() throws Exception {
+      assertEquals(factory.array(1, 4, new double[]{-1.0, 0.0, 3.0, 2.0}), v1.sub(1));
+      assertEquals(factory.array(1, 4, new double[]{-1.0, 0.0, 3.0, 2.0}), v1.copy().subi(1));
+      assertEquals(factory.array(1, 4, new double[]{-1.0, -1.0, 4.0, -1.0}), v1.sub(v2));
+      assertEquals(factory.array(1, 4, new double[]{-1.0, -1.0, 4.0, -1.0}), v1.copy().subi(v2));
+      assertEquals(
+         factory.array(3, 4, new double[]{0.0, -3.0, -6.0, 2.0, -1.0, -4.0, 4.0, 1.0, -2.0, 6.0, 3.0, 0.0}),
+         m1.sub(m2.T()));
+      assertEquals(
+         factory.array(3, 4, new double[]{1.0, 2.0, 3.0, 3.0, 4.0, 5.0, 3.0, 4.0, 5.0, 7.0, 8.0, 9.0}),
+         m1.subRowVector(v1));
+      assertEquals(
+         factory.array(3, 4, new double[]{0.0, 0.0, -1.0, 3.0, 3.0, 2.0, 6.0, 6.0, 5.0, 9.0, 9.0, 8.0}),
+         m1.subColumnVector(v3));
+      assertEquals(
+         factory.array(3, 4, new double[]{1.0, 2.0, 3.0, 3.0, 4.0, 5.0, 3.0, 4.0, 5.0, 7.0, 8.0, 9.0}),
+         m1.copy().subiRowVector(v1));
+      assertEquals(
+         factory.array(3, 4, new double[]{0.0, 0.0, -1.0, 3.0, 3.0, 2.0, 6.0, 6.0, 5.0, 9.0, 9.0, 8.0}),
+         m1.copy().subiColumnVector(v3));
+   }
+
+   @Test
+   public void test() throws Exception {
+      assertEquals(factory.array(1, 4, new double[]{1, 0, 0, 0}), v1.test(d -> d == 0));
+      assertEquals(factory.array(1, 4, new double[]{1, 0, 0, 0}), v1.copy().testi(d -> d == 0));
+   }
+
+   @Test
+   public void zero() throws Exception {
+      assertEquals(0, v1.copy().zero().sum(), 0d);
+   }
 }// END OF BaseNDArrayTest

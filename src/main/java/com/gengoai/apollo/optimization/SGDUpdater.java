@@ -171,6 +171,8 @@ public class SGDUpdater implements WeightUpdate, Serializable {
       } else {
          weights.getWeights().subi(gradient.getWeightGradient().muli(lr));
       }
+
+
       weights.getBias().subi(gradient.getBiasGradient().rowSums().muli(lr));
       addedCost += l1Update(weights.getWeights(), lr, l1, iteration);
       return addedCost;

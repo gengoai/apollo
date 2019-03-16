@@ -85,12 +85,6 @@ public class SparseMatrix extends Matrix {
    }
 
    @Override
-   public NDArray copy() {
-      SparseMatrix sm = new SparseMatrix(this);
-      return sm;
-   }
-
-   @Override
    public NDArray add(NDArray rhs) {
       return copy().addi(rhs);
    }
@@ -165,6 +159,13 @@ public class SparseMatrix extends Matrix {
    @Override
    public boolean isDense() {
       return false;
+   }
+
+   @Override
+   public NDArray zero() {
+      map.clear();
+      map.trimToSize();
+      return this;
    }
 
    @Override

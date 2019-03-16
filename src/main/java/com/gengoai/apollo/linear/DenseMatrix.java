@@ -142,14 +142,6 @@ public class DenseMatrix extends Matrix {
    }
 
    @Override
-   public NDArray copy() {
-      DenseMatrix dm = new DenseMatrix(matrix.dup());
-
-
-      return dm;
-   }
-
-   @Override
    public NDArray div(NDArray rhs) {
       if (rhs.isDense()) {
          return new DenseMatrix(matrix.div(rhs.toDoubleMatrix()[0]));

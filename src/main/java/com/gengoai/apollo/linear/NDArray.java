@@ -25,9 +25,13 @@ package com.gengoai.apollo.linear;
 import com.gengoai.Copyable;
 import com.gengoai.Validation;
 import com.gengoai.conversion.Cast;
+import com.gengoai.json.JsonEntry;
+import com.gengoai.json.JsonSerializable;
 import org.jblas.DoubleMatrix;
 
 import java.io.Serializable;
+import java.lang.reflect.Type;
+import java.util.Iterator;
 import java.util.function.DoubleBinaryOperator;
 import java.util.function.DoublePredicate;
 import java.util.function.DoubleUnaryOperator;
@@ -37,14 +41,42 @@ import java.util.function.DoubleUnaryOperator;
  *
  * @author David B. Bracewell
  */
-public abstract class NDArray implements Serializable, Copyable<NDArray> {
+public abstract class NDArray implements Serializable, Copyable<NDArray>, JsonSerializable {
+   protected final Shape shape;
    private Object label = null;
    private Object predicted = null;
    private double weight = 1d;
-   /**
-    * The Shape.
-    */
-   protected final Shape shape;
+
+
+   @Override
+   public JsonEntry toJson() {
+      JsonEntry entry = JsonEntry.object()
+                                 .addProperty("shape", shape.shape)
+                                 .addProperty("dense", isDense())
+                                 .addProperty("label", label)
+                                 .addProperty("weight", weight);
+      JsonEntry data = JsonEntry.array();
+      for (int i = 0; i < shape.sliceLength; i++) {
+         data.addValue(slice(i).toDoubleArray());
+      }
+      return entry.addProperty("data", data);
+   }
+
+   public static NDArray fromJson(JsonEntry entry, Type... types) {
+      NDArrayFactory ND = entry.getBooleanProperty("dense", true) ? NDArrayFactory.DENSE : NDArrayFactory.SPARSE;
+      NDArray array = ND.array(entry.getProperty("shape", int[].class));
+      array.setWeight(entry.getDoubleProperty("weight", 1.0));
+      array.setLabel(entry.getProperty("label", null));
+
+      Iterator<JsonEntry> dataItr = entry.getProperty("data").elementIterator();
+      for (int i = 0; i < array.shape.sliceLength; i++) {
+         array.setSlice(i, ND.array(array.shape.rows(),
+                                    array.shape.columns(),
+                                    dataItr.next().getAsDoubleArray()));
+      }
+
+      return array;
+   }
 
    /**
     * Instantiates a new NDArray.
@@ -56,176 +88,9 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
       this.shape = shape.copy();
    }
 
-   private double asDouble(Object object) {
-      if (object == null) {
-         return Double.NaN;
-      } else if (object instanceof NDArray) {
-         NDArray array = Cast.as(object);
-         if (array.shape.isScalar()) {
-            return array.scalar();
-         }
-         return array.argmax();
-      }
-      return Cast.<Number>as(object).doubleValue();
-   }
-
-   private NDArray asNDArray(Object o, int dimension) {
-      if (o == null) {
-         return com.gengoai.apollo.linear.NDArrayFactory.ND.empty();
-      } else if (o instanceof Number) {
-         Number numLabel = Cast.as(o);
-         if (dimension == 1) {
-            return com.gengoai.apollo.linear.NDArrayFactory.ND.scalar(numLabel.floatValue());
-         }
-         return com.gengoai.apollo.linear.NDArrayFactory.ND.array(dimension).set(numLabel.intValue(), 1f);
-      }
-      NDArray nd = Cast.as(o, NDArray.class);
-      Validation.notNull(nd, "Cannot create NDArray from object.");
-      return nd;
-   }
-
-   /**
-    * Compacts the memory usages of sparse NDArrays.
-    *
-    * @return this NDArray
-    */
-   public abstract NDArray compact();
-
-   /**
-    * Gets the weight associated with the NDArray.
-    *
-    * @return the weight
-    */
-   public double getWeight() {
-      return weight;
-   }
-
-   /**
-    * Sets the weight associated with the NDArray.
-    *
-    * @param weight the weight
-    * @return this NDArray
-    */
-   public NDArray setWeight(double weight) {
-      this.weight = (float) weight;
-      return this;
-   }
-
-   /**
-    * Creates a new NDArray made up of sub-portions of the slices.
-    *
-    * @param fromRow the index of the row to start slicing from
-    * @param toRow   the index of the row to end the slicing at
-    * @param fromCol the index of the column to start slicing from
-    * @param toCol   the index of the column to end slicing at
-    * @return the NDArray
-    */
-   public abstract NDArray getSubMatrix(int fromRow, int toRow, int fromCol, int toCol);
-
-   /**
-    * Gets the label associated with the NDArray as a double value.
-    *
-    * @return the label as double
-    */
-   public double getLabelAsDouble() {
-      return asDouble(label);
-   }
-
-   /**
-    * Gets the label associated with the NDArray as an NDArray
-    *
-    * @return the label as NDArray
-    */
-   public NDArray getLabelAsNDArray() {
-      return getLabelAsNDArray(1);
-   }
-
-   /**
-    * Gets the label associated with this NDArray as an NDArray (vector) with desired dimension.
-    *
-    * @param dimension the dimension
-    * @return the label as nd array
-    */
-   public NDArray getLabelAsNDArray(int dimension) {
-      return asNDArray(label, dimension);
-   }
-
-   /**
-    * Gets the predicted label associated with this NDArray.
-    *
-    * @param <T> the type parameter
-    * @return the predicted label
-    */
-   public <T> T getPredicted() {
-      return Cast.as(predicted);
-   }
-
-   /**
-    * Sets the predicted label for this NDArray.
-    *
-    * @param predicted the predicted label
-    * @return this NDArray
-    */
-   public NDArray setPredicted(Object predicted) {
-      this.predicted = predicted;
-      return this;
-   }
-
-   /**
-    * Gets the predicted label associated with the NDArray as a double value.
-    *
-    * @return the predicted label as double
-    */
-   public double getPredictedAsDouble() {
-      return asDouble(predicted);
-   }
-
-   /**
-    * Gets the predicted label associated with the NDArray as an NDArray
-    *
-    * @return the predicted label as NDArray
-    */
-   public NDArray getPredictedAsNDArray() {
-      return asNDArray(predicted, 1);
-   }
-
-   /**
-    * Gets the predicted label associated with this NDArray as an NDArray (vector) with desired dimension.
-    *
-    * @param dimension the dimension
-    * @return the predicted label as NDArray
-    */
-   public NDArray getPredictedAsNDArray(int dimension) {
-      return asNDArray(predicted, dimension);
-   }
-
-
-   /**
-    * Unitizes the NDArray by dividing the values by L2 Norm (per slice)
-    *
-    * @return Unitized version of this NDArray
-    */
-   public abstract NDArray unitize();
-
-   /**
-    * Gets the label associated with the NDArray
-    *
-    * @param <T> the type of the label
-    * @return the label
-    */
-   public <T> T getLabel() {
-      return Cast.as(label);
-   }
-
-   /**
-    * Sets the label associated with the NDArray
-    *
-    * @param label the label
-    * @return This NDArray
-    */
-   public NDArray setLabel(Object label) {
-      this.label = label;
-      return this;
+   @Override
+   public NDArray copy() {
+      return Copyable.deepCopy(this);
    }
 
    /**
@@ -313,6 +178,43 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     */
    public abstract long argmin();
 
+   private double asDouble(Object object) {
+      if (object == null) {
+         return Double.NaN;
+      } else if (object instanceof NDArray) {
+         NDArray array = Cast.as(object);
+         if (array.shape.isScalar()) {
+            return array.scalar();
+         }
+         return array.argmax();
+      }
+      return Cast.<Number>as(object).doubleValue();
+   }
+
+   private NDArray asNDArray(Object o, int dimension) {
+      if (o == null) {
+         return com.gengoai.apollo.linear.NDArrayFactory.ND.empty();
+      } else if (o instanceof Number) {
+         Number numLabel = Cast.as(o);
+         if (dimension == 1) {
+            return com.gengoai.apollo.linear.NDArrayFactory.ND.scalar(numLabel.floatValue());
+         }
+         return com.gengoai.apollo.linear.NDArrayFactory.ND.array(dimension).set(numLabel.intValue(), 1f);
+      }
+      NDArray nd = Cast.as(o, NDArray.class);
+      Validation.notNull(nd, "Cannot create NDArray from object.");
+      return nd;
+   }
+
+   /**
+    * Number of channels in the NDArray
+    *
+    * @return the number of channels in the NDArray
+    */
+   public int channels() {
+      return shape.channels();
+   }
+
    /**
     * Calculates the index of maximum values per column in the NDArray.
     *
@@ -356,6 +258,22 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return the NDArray of sums per column.
     */
    public abstract NDArray columnSums();
+
+   /**
+    * Number of columns in the NDArray
+    *
+    * @return the number of columns in the NDArray
+    */
+   public int columns() {
+      return shape.columns();
+   }
+
+   /**
+    * Compacts the memory usages of sparse NDArrays.
+    *
+    * @return this NDArray
+    */
+   public abstract NDArray compact();
 
    /**
     * Generates a diagonal matrix per slice.
@@ -486,6 +404,13 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
    public abstract NDArray fill(double value);
 
    /**
+    * Processes the sparse entries in this NDArray
+    *
+    * @param consumer the consumer
+    */
+   public abstract void forEachSparse(EntryConsumer consumer);
+
+   /**
     * Creates a new NDArray with elements equal to <code>1.0</code> if its value is greater than or equal to the given
     * value.
     *
@@ -577,6 +502,122 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
    public abstract NDArray getColumn(int column);
 
    /**
+    * Creates an NDArray made up of only the columns given.
+    *
+    * @param columns the rows to extract
+    * @return the new NDArray
+    */
+   public abstract NDArray getColumns(int[] columns);
+
+   /**
+    * Creates an NDArray made up of the columns starting at the given from index and ending at (not-including) the to
+    * index.
+    *
+    * @param from the starting index
+    * @param to   the ending index
+    * @return the new NDArray
+    */
+   public abstract NDArray getColumns(int from, int to);
+
+   /**
+    * Gets the label associated with the NDArray
+    *
+    * @param <T> the type of the label
+    * @return the label
+    */
+   public <T> T getLabel() {
+      return Cast.as(label);
+   }
+
+   /**
+    * Sets the label associated with the NDArray
+    *
+    * @param label the label
+    * @return This NDArray
+    */
+   public NDArray setLabel(Object label) {
+      this.label = label;
+      return this;
+   }
+
+   /**
+    * Gets the label associated with the NDArray as a double value.
+    *
+    * @return the label as double
+    */
+   public double getLabelAsDouble() {
+      return asDouble(label);
+   }
+
+   /**
+    * Gets the label associated with the NDArray as an NDArray
+    *
+    * @return the label as NDArray
+    */
+   public NDArray getLabelAsNDArray() {
+      return getLabelAsNDArray(1);
+   }
+
+   /**
+    * Gets the label associated with this NDArray as an NDArray (vector) with desired dimension.
+    *
+    * @param dimension the dimension
+    * @return the label as nd array
+    */
+   public NDArray getLabelAsNDArray(int dimension) {
+      return asNDArray(label, dimension);
+   }
+
+   /**
+    * Gets the predicted label associated with this NDArray.
+    *
+    * @param <T> the type parameter
+    * @return the predicted label
+    */
+   public <T> T getPredicted() {
+      return Cast.as(predicted);
+   }
+
+   /**
+    * Sets the predicted label for this NDArray.
+    *
+    * @param predicted the predicted label
+    * @return this NDArray
+    */
+   public NDArray setPredicted(Object predicted) {
+      this.predicted = predicted;
+      return this;
+   }
+
+   /**
+    * Gets the predicted label associated with the NDArray as a double value.
+    *
+    * @return the predicted label as double
+    */
+   public double getPredictedAsDouble() {
+      return asDouble(predicted);
+   }
+
+   /**
+    * Gets the predicted label associated with the NDArray as an NDArray
+    *
+    * @return the predicted label as NDArray
+    */
+   public NDArray getPredictedAsNDArray() {
+      return asNDArray(predicted, 1);
+   }
+
+   /**
+    * Gets the predicted label associated with this NDArray as an NDArray (vector) with desired dimension.
+    *
+    * @param dimension the dimension
+    * @return the predicted label as NDArray
+    */
+   public NDArray getPredictedAsNDArray(int dimension) {
+      return asNDArray(predicted, dimension);
+   }
+
+   /**
     * Creates an NDArray made up of the row at the given index for each slice. (Note modifications to the new NDArray do
     * not effect this one).
     *
@@ -584,6 +625,55 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return the row NDArray
     */
    public abstract NDArray getRow(int row);
+
+   /**
+    * Creates an NDArray made up of only the rows given.
+    *
+    * @param rows the rows to extract
+    * @return the new NDArray
+    */
+   public abstract NDArray getRows(int[] rows);
+
+   /**
+    * Creates an NDArray made up of the rows starting at the given from index and ending at (not-including) the to
+    * index.
+    *
+    * @param from the starting index
+    * @param to   the ending index
+    * @return the new NDArray
+    */
+   public abstract NDArray getRows(int from, int to);
+
+   /**
+    * Creates a new NDArray made up of sub-portions of the slices.
+    *
+    * @param fromRow the index of the row to start slicing from
+    * @param toRow   the index of the row to end the slicing at
+    * @param fromCol the index of the column to start slicing from
+    * @param toCol   the index of the column to end slicing at
+    * @return the NDArray
+    */
+   public abstract NDArray getSubMatrix(int fromRow, int toRow, int fromCol, int toCol);
+
+   /**
+    * Gets the weight associated with the NDArray.
+    *
+    * @return the weight
+    */
+   public double getWeight() {
+      return weight;
+   }
+
+   /**
+    * Sets the weight associated with the NDArray.
+    *
+    * @param weight the weight
+    * @return this NDArray
+    */
+   public NDArray setWeight(double weight) {
+      this.weight = (float) weight;
+      return this;
+   }
 
    /**
     * Creates a new NDArray with elements equal to <code>1.0</code> if its value is greater than  to the given value.
@@ -633,6 +723,15 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return True if the NDArray is made up of dense slices, False otherwise
     */
    public abstract boolean isDense();
+
+   /**
+    * Number of kernels in the NDArray
+    *
+    * @return the number of kernels in the NDArray
+    */
+   public int kernels() {
+      return shape.kernels();
+   }
 
    /**
     * Creates a new NDArray with elements equal to <code>1.0</code> if its value is less than or equal to the given
@@ -687,42 +786,6 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
    }
 
    /**
-    * Number of rows in the NDArray
-    *
-    * @return the number of rows in the NDArray
-    */
-   public int rows() {
-      return shape.rows();
-   }
-
-   /**
-    * Number of columns in the NDArray
-    *
-    * @return the number of columns in the NDArray
-    */
-   public int columns() {
-      return shape.columns();
-   }
-
-   /**
-    * Number of kernels in the NDArray
-    *
-    * @return the number of kernels in the NDArray
-    */
-   public int kernels() {
-      return shape.kernels();
-   }
-
-   /**
-    * Number of channels in the NDArray
-    *
-    * @return the number of channels in the NDArray
-    */
-   public int channels() {
-      return shape.channels();
-   }
-
-   /**
     * Creates a new NDArray with elements equal to <code>1.0</code> if its value is less than to the given value.
     *
     * @param value the value to test
@@ -771,7 +834,6 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return the transformed NDArray
     */
    public abstract NDArray map(DoubleUnaryOperator operator);
-
 
    /**
     * Creates a new NDArray with values from this NDArray evaluated by the given binary operation with the given value.
@@ -999,7 +1061,6 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     */
    public abstract double norm1();
 
-
    /**
     * Calculates the L2 norm of the NDArray
     *
@@ -1090,7 +1151,6 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     */
    public abstract NDArray reshape(int... dims);
 
-
    /**
     * Calculates the index of maximum values per row in the NDArray.
     *
@@ -1134,6 +1194,15 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return the NDArray of sum per row.
     */
    public abstract NDArray rowSums();
+
+   /**
+    * Number of rows in the NDArray
+    *
+    * @return the number of rows in the NDArray
+    */
+   public int rows() {
+      return shape.rows();
+   }
 
    /**
     * Subtracts the values in the this NDArray from the other NDArray.
@@ -1212,7 +1281,6 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
       return get(0);
    }
 
-
    /**
     * Selects all values matching the given predicate.
     *
@@ -1222,20 +1290,20 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
    public abstract NDArray select(DoublePredicate predicate);
 
    /**
-    * Selects all values matching the given predicate in-place.
-    *
-    * @param predicate the predicate to test
-    * @return this NDArray with values passing the given predicate and zeros elsewhere
-    */
-   public abstract NDArray selecti(DoublePredicate predicate);
-
-   /**
     * Selects all values for which the corresponding element in the given NDArray has a value of <code>1.0</code>.
     *
     * @param rhs the NDArray used to determine which values are selected
     * @return the selected NDArray
     */
    public abstract NDArray select(NDArray rhs);
+
+   /**
+    * Selects all values matching the given predicate in-place.
+    *
+    * @param predicate the predicate to test
+    * @return this NDArray with values passing the given predicate and zeros elsewhere
+    */
+   public abstract NDArray selecti(DoublePredicate predicate);
 
    /**
     * Selects all values for which the corresponding element in the given NDArray has a value of <code>1.0</code>
@@ -1298,6 +1366,18 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
    public abstract NDArray setColumn(int i, NDArray array);
 
    /**
+    * Sets the matrix associated with the given kernel and channel.
+    *
+    * @param kernel  the kernel index
+    * @param channel the channel index
+    * @param array   the matrix
+    * @return this NDArray
+    */
+   public NDArray setMatrix(int kernel, int channel, NDArray array) {
+      return setSlice(shape.sliceIndex(kernel, channel), array);
+   }
+
+   /**
     * Sets the values of the <code>ith</code> row to those in the given NDArray.
     *
     * @param i     the row index
@@ -1305,6 +1385,15 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return this NDArray
     */
    public abstract NDArray setRow(int i, NDArray array);
+
+   /**
+    * Sets the slice at the given index.
+    *
+    * @param slice the slice index
+    * @param array the NDArray of values for the new slice
+    * @return this NDArray
+    */
+   public abstract NDArray setSlice(int slice, NDArray array);
 
    /**
     * Gets the shape of the NDArray.
@@ -1319,28 +1408,6 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return the number of sparse entries.
     */
    public abstract long size();
-
-   /**
-    * Sets the slice at the given index.
-    *
-    * @param slice the slice index
-    * @param array the NDArray of values for the new slice
-    * @return this NDArray
-    */
-   public abstract NDArray setSlice(int slice, NDArray array);
-
-   /**
-    * Sets the matrix associated with the given kernel and channel.
-    *
-    * @param kernel  the kernel index
-    * @param channel the channel index
-    * @param array   the matrix
-    * @return this NDArray
-    */
-   public NDArray setMatrix(int kernel, int channel, NDArray array) {
-      return setSlice(shape.sliceIndex(kernel, channel), array);
-   }
-
 
    /**
     * Returns a  view of a single slice of this NDArray. Note that changes to the slice will effect this NDArray.
@@ -1422,233 +1489,183 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
    public abstract NDArray sliceSums();
 
    /**
-    * Sub nd array.
+    * Subtracts the values in the other NDArray to this one.
     *
-    * @param rhs the rhs
-    * @return the nd array
+    * @param rhs the other NDArray whose values will be subtracted
+    * @return the new NDArray with the result of this - other
     */
    public abstract NDArray sub(NDArray rhs);
 
    /**
-    * Sub nd array.
+    * Subtracts a scalar value to each element in the NDArray
     *
-    * @param value the value
-    * @return the nd array
+    * @param value the value to subtract
+    * @return the new NDArray with the scalar value subtracted
     */
    public abstract NDArray sub(double value);
 
    /**
-    * Sub column vector nd array.
+    * Performs a column vector subtraction subtracting the values in the other NDArray to each column in this NDArray.
     *
-    * @param rhs the rhs
-    * @return the nd array
+    * @param rhs the other NDArray whose values will be subtracted
+    * @return the new NDArray with the result of this - other
     */
    public abstract NDArray subColumnVector(NDArray rhs);
 
    /**
-    * Sub row vector nd array.
+    * Performs a row vector subtraction subtracting the values in the other NDArray to each row in this NDArray.
     *
-    * @param rhs the rhs
-    * @return the nd array
+    * @param rhs the other NDArray whose values will be subtracted
+    * @return the new NDArray with the result of this - other
     */
    public abstract NDArray subRowVector(NDArray rhs);
 
    /**
-    * Subi nd array.
+    * Subtracts the values in the other NDArray to this one in-place.
     *
-    * @param rhs the rhs
-    * @return the nd array
+    * @param rhs the other NDArray whose values will be subtracted
+    * @return the new NDArray with the result of this - other
     */
    public abstract NDArray subi(NDArray rhs);
 
    /**
-    * Subi nd array.
+    * Subtracts a scalar value to each element in the NDArray in-place.
     *
-    * @param value the value
-    * @return the nd array
+    * @param value the value to subtract
+    * @return the new NDArray with the scalar value subtracted
     */
    public abstract NDArray subi(double value);
 
    /**
-    * Subi column vector nd array.
+    * Performs a column vector subtraction subtracting the values in the other NDArray to each column in this NDArray
+    * in-place.
     *
-    * @param rhs the rhs
-    * @return the nd array
+    * @param rhs the other NDArray whose values will be subtracted
+    * @return the new NDArray with the result of this - other
     */
    public abstract NDArray subiColumnVector(NDArray rhs);
 
    /**
-    * Subi row vector nd array.
+    * Performs a row vector subtraction subtracting the values in the other NDArray to each row in this NDArray
+    * in-place.
     *
-    * @param rhs the rhs
-    * @return the nd array
+    * @param rhs the other NDArray whose values will be subtracted
+    * @return the new NDArray with the result of this - other
     */
    public abstract NDArray subiRowVector(NDArray rhs);
 
    /**
-    * Sum double.
+    * Calculates the sum of all values in the NDArray
     *
-    * @return the double
+    * @return the sum
     */
    public abstract double sum();
 
    /**
-    * Sum of squares double.
+    * Calculates the sum of squares for all values in the NDArray
     *
-    * @return the double
+    * @return the sum of squares
     */
    public abstract double sumOfSquares();
 
    /**
-    * Test nd array.
+    * Tests the given predicate on the values in the NDArray returning 1 when TRUE and 0 when FALSE
     *
-    * @param predicate the predicate
-    * @return the nd array
+    * @param predicate the predicate to test
+    * @return new NDArray with test results
     */
    public abstract NDArray test(DoublePredicate predicate);
 
    /**
-    * Test nd array.
+    * Compares entries in this NDArray with the given NDArray using the given comparison, setting entries to
+    * <code>1.0</code> if the comparison returns true and <code>0.0</code> otherwise.
     *
-    * @param rhs       the rhs
+    * @param rhs       the other NDArray
     * @param predicate the predicate
-    * @return the nd array
+    * @return the NDArray with test results
     */
    public abstract NDArray test(NDArray rhs, DoubleBinaryPredicate predicate);
 
    /**
-    * Testi nd array.
+    * Tests the given predicate on the values in the NDArray returning 1 when TRUE and 0 when FALSE. (in-place)
     *
-    * @param predicate the predicate
-    * @return the nd array
+    * @param predicate the predicate to test
+    * @return new NDArray with test results
     */
    public abstract NDArray testi(DoublePredicate predicate);
 
    /**
-    * Testi nd array.
+    * Compares entries in this NDArray with the given NDArray using the given comparison, setting entries to
+    * <code>1.0</code> if the comparison returns true and <code>0.0</code> otherwise. (in-place)
     *
-    * @param rhs       the rhs
+    * @param rhs       the other NDArray
     * @param predicate the predicate
-    * @return the nd array
+    * @return the NDArray with test results
     */
    public abstract NDArray testi(NDArray rhs, DoubleBinaryPredicate predicate);
 
    /**
-    * To double matrix double matrix [ ].
+    * Converts the NDArray to double array
     *
-    * @return the double matrix [ ]
+    * @return the double array
+    */
+   public abstract double[] toDoubleArray();
+
+   /**
+    * Converts the NDArray into an array of DoubleMatrix. (one per slice)
+    *
+    * @return the array of DoubleMatrix
     */
    public abstract DoubleMatrix[] toDoubleMatrix();
 
    /**
-    * Zero nd array.
+    * Unitizes the NDArray by dividing the values by L2 Norm (per slice)
     *
-    * @return the nd array
+    * @return Unitized version of this NDArray
+    */
+   public abstract NDArray unitize();
+
+   /**
+    * Zeros out the entries of the NDArray
+    *
+    * @return this NDArray
     */
    public NDArray zero() {
       return fill(0d);
    }
 
    /**
-    * Zero like nd array.
+    * Creates a new NDArray with zero values with the same shape as this NDArray.
     *
-    * @return the nd array
+    * @return the new zero valued NDArray
     */
    public abstract NDArray zeroLike();
 
-   /**
-    * Gets channels.
-    *
-    * @param from the from
-    * @param to   the to
-    * @return the channels
-    */
-   public abstract NDArray getChannels(int from, int to);
 
    /**
-    * Gets channels.
-    *
-    * @param channels the channels
-    * @return the channels
-    */
-   public abstract NDArray getChannels(int[] channels);
-
-   /**
-    * Gets kernels.
-    *
-    * @param from the from
-    * @param to   the to
-    * @return the kernels
-    */
-   public abstract NDArray getKernels(int from, int to);
-
-   /**
-    * Gets kernels.
-    *
-    * @param kernels the kernels
-    * @return the kernels
-    */
-   public abstract NDArray getKernels(int[] kernels);
-
-   /**
-    * Gets rows.
-    *
-    * @param rows the rows
-    * @return the rows
-    */
-   public abstract NDArray getRows(int[] rows);
-
-   /**
-    * Gets columns.
-    *
-    * @param columns the columns
-    * @return the columns
-    */
-   public abstract NDArray getColumns(int[] columns);
-
-   /**
-    * Gets rows.
-    *
-    * @param from the from
-    * @param to   the to
-    * @return the rows
-    */
-   public abstract NDArray getRows(int from, int to);
-
-   /**
-    * Gets columns.
-    *
-    * @param from the from
-    * @param to   the to
-    * @return the columns
-    */
-   public abstract NDArray getColumns(int from, int to);
-
-
-   /**
-    * The interface Double binary predicate.
+    * Interface for testing two double values
     */
    @FunctionalInterface
    interface DoubleBinaryPredicate {
 
       /**
-       * Test boolean.
+       * Tests a relation between two double values
        *
-       * @param v1 the v 1
-       * @param v2 the v 2
-       * @return the boolean
+       * @param v1 the first value
+       * @param v2 the second value
+       * @return True if the predicate evaluates to True, False otherwise
        */
       boolean test(double v1, double v2);
    }
 
    /**
-    * The interface Entry consumer.
+    * Interface for processing individual entries of an NDArray
     */
    @FunctionalInterface
    public interface EntryConsumer {
 
       /**
-       * Apply.
+       * Consumes the value of the given index
        *
        * @param index the index
        * @param value the value
@@ -1656,19 +1673,4 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
       void apply(long index, double value);
 
    }
-
-
-   /**
-    * To double array double [ ].
-    *
-    * @return the double [ ]
-    */
-   public abstract double[] toDoubleArray();
-
-   /**
-    * For each sparse.
-    *
-    * @param consumer the consumer
-    */
-   public abstract void forEachSparse(EntryConsumer consumer);
 }//END OF NDArray

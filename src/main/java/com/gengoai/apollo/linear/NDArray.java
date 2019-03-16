@@ -311,7 +311,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     *
     * @return the index with minimum value
     */
-   public abstract double argmin();
+   public abstract long argmin();
 
    /**
     * Calculates the index of maximum values per column in the NDArray.
@@ -1015,369 +1015,409 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
    public abstract NDArray pivot();
 
    /**
-    * Rdiv nd array.
+    * Divides the values in the this NDArray from the other NDArray.
     *
-    * @param rhs the rhs
-    * @return the nd array
+    * @param rhs the other NDArray whose values will be divided from
+    * @return the new NDArray with the result of other / this
     */
    public abstract NDArray rdiv(NDArray rhs);
 
    /**
-    * Rdiv nd array.
+    * Divides each element's value from the given scalar (e.g. scalar - element)
     *
-    * @param value the value
-    * @return the nd array
+    * @param value the value to divide
+    * @return the new NDArray with the scalar value divided
     */
    public abstract NDArray rdiv(double value);
 
    /**
-    * Rdiv column vector nd array.
+    * Performs a column vector division dividing the values in this NDArray from the other NDArray to each column in
+    * this NDArray.
     *
-    * @param rhs the rhs
-    * @return the nd array
+    * @param rhs the other NDArray whose values will be divided
+    * @return the new NDArray with the result of this / other
     */
    public abstract NDArray rdivColumnVector(NDArray rhs);
 
    /**
-    * Rdiv row vector nd array.
+    * Performs a row vector division dividing the values in this NDArray from the other NDArray to each row in this
+    * NDArray.
     *
-    * @param rhs the rhs
-    * @return the nd array
+    * @param rhs the other NDArray whose values will be divided
+    * @return the new NDArray with the result of this / other
     */
    public abstract NDArray rdivRowVector(NDArray rhs);
 
    /**
-    * Rdivi nd array.
+    * Divides the values in the this NDArray from the other NDArray in-place.
     *
-    * @param rhs the rhs
-    * @return the nd array
+    * @param rhs the other NDArray whose values will be divided from
+    * @return the new NDArray with the result of other / this
     */
    public abstract NDArray rdivi(NDArray rhs);
 
    /**
-    * Rdivi nd array.
+    * Divides each element's value from the given scalar (e.g. scalar - element) in-place
     *
-    * @param value the value
-    * @return the nd array
+    * @param value the value to divide
+    * @return the new NDArray with the scalar value divided
     */
    public abstract NDArray rdivi(double value);
 
    /**
-    * Rdivi column vector nd array.
+    * Performs a column vector division dividing the values in this NDArray from the other NDArray to each column in
+    * this NDArray in-place.
     *
-    * @param rhs the rhs
-    * @return the nd array
+    * @param rhs the other NDArray whose values will be divided
+    * @return the new NDArray with the result of this / other
     */
    public abstract NDArray rdiviColumnVector(NDArray rhs);
 
    /**
-    * Rdivi row vector nd array.
+    * Performs a row vector division dividing the values in this NDArray from the other NDArray to each row in this
+    * NDArray in-place.
     *
-    * @param rhs the rhs
-    * @return the nd array
+    * @param rhs the other NDArray whose values will be divided
+    * @return the new NDArray with the result of this / other
     */
    public abstract NDArray rdiviRowVector(NDArray rhs);
 
    /**
-    * Reshape nd array.
+    * Reshapes the NDArray
     *
-    * @param dims the dims
-    * @return the nd array
+    * @param dims the new dimensions of the NDArray
+    * @return this NDArray with new shape
     */
    public abstract NDArray reshape(int... dims);
 
+
    /**
-    * Row argmaxs nd array.
+    * Calculates the index of maximum values per row in the NDArray.
     *
-    * @return the nd array
+    * @return the NDArray of row indexes with maximum value.
     */
    public abstract NDArray rowArgmaxs();
 
    /**
-    * Row argmins nd array.
+    * Calculates the index of minimum values per row in the NDArray.
     *
-    * @return the nd array
+    * @return the NDArray of row indexes with minimum value.
     */
    public abstract NDArray rowArgmins();
 
    /**
-    * Row maxs nd array.
+    * Calculates the maximum values per row in the NDArray.
     *
-    * @return the nd array
+    * @return the NDArray of maximum values per row.
     */
    public abstract NDArray rowMaxs();
 
    /**
-    * Row means nd array.
+    * Calculates the mean values per row in the NDArray.
     *
-    * @return the nd array
+    * @return the NDArray of mean values per row.
     */
    public NDArray rowMeans() {
       return rowSums().divi(shape().columns());
    }
 
    /**
-    * Row mins nd array.
+    * Calculates the minimum values per row in the NDArray.
     *
-    * @return the nd array
+    * @return the NDArray of minimum values per row.
     */
    public abstract NDArray rowMins();
 
    /**
-    * Row sums nd array.
+    * Calculates the sum per row in the NDArray.
     *
-    * @return the nd array
+    * @return the NDArray of sum per row.
     */
    public abstract NDArray rowSums();
 
    /**
-    * Rsub nd array.
+    * Subtracts the values in the this NDArray from the other NDArray.
     *
-    * @param rhs the rhs
-    * @return the nd array
+    * @param rhs the other NDArray whose values will be subtracted from
+    * @return the new NDArray with the result of other - this
     */
    public abstract NDArray rsub(NDArray rhs);
 
    /**
-    * Rsub nd array.
+    * Subtracts each element's value from the given scalar (e.g. scalar - element)
     *
-    * @param value the value
-    * @return the nd array
+    * @param value the value to subtract
+    * @return the new NDArray with the scalar value subtracted
     */
    public abstract NDArray rsub(double value);
 
    /**
-    * Rsub column vector nd array.
+    * Performs a column vector subtraction subtracting the values in this NDArray from the other NDArray to each column
+    * in this NDArray.
     *
-    * @param rhs the rhs
-    * @return the nd array
+    * @param rhs the other NDArray whose values will be subtracted
+    * @return the new NDArray with the result of this - other
     */
    public abstract NDArray rsubColumnVector(NDArray rhs);
 
    /**
-    * Rsub row vector nd array.
+    * Performs a row vector subtraction subtracting the values in this NDArray from the other NDArray to each row in
+    * this NDArray.
     *
-    * @param rhs the rhs
-    * @return the nd array
+    * @param rhs the other NDArray whose values will be subtracted
+    * @return the new NDArray with the result of this - other
     */
    public abstract NDArray rsubRowVector(NDArray rhs);
 
    /**
-    * Rsubi nd array.
+    * Subtracts the values in the this NDArray from the other NDArray in-place.
     *
-    * @param rhs the rhs
-    * @return the nd array
+    * @param rhs the other NDArray whose values will be subtracted from
+    * @return the new NDArray with the result of other - this
     */
    public abstract NDArray rsubi(NDArray rhs);
 
    /**
-    * Rsubi nd array.
+    * Subtracts each element's value from the given scalar (e.g. scalar - element) in-place
     *
-    * @param value the value
-    * @return the nd array
+    * @param value the value to subtract
+    * @return the new NDArray with the scalar value subtracted
     */
    public abstract NDArray rsubi(double value);
 
    /**
-    * Rsubi column vector nd array.
+    * Performs a column vector subtraction subtracting the values in this NDArray from the other NDArray to each column
+    * in this NDArray in-place.
     *
-    * @param rhs the rhs
-    * @return the nd array
+    * @param rhs the other NDArray whose values will be subtracted
+    * @return the new NDArray with the result of this - other
     */
    public abstract NDArray rsubiColumnVector(NDArray rhs);
 
    /**
-    * Rsubi row vector nd array.
+    * Performs a row vector subtraction subtracting the values in this NDArray from the other NDArray to each row in
+    * this NDArray in-place.
     *
-    * @param rhs the rhs
-    * @return the nd array
+    * @param rhs the other NDArray whose values will be subtracted
+    * @return the new NDArray with the result of this - other
     */
    public abstract NDArray rsubiRowVector(NDArray rhs);
 
    /**
-    * Scalar double.
+    * Returns the scalar value of this NDArray (value at <code>(0,0,0,0)</code>)
     *
-    * @return the double
+    * @return the scalar value
     */
    public double scalar() {
       return get(0);
    }
 
+
    /**
-    * Select nd array.
+    * Selects all values matching the given predicate.
     *
-    * @param rhs the rhs
-    * @return the nd array
+    * @param predicate the predicate to test
+    * @return new NDArray with values passing the given predicate and zeros elsewhere
+    */
+   public abstract NDArray select(DoublePredicate predicate);
+
+   /**
+    * Selects all values matching the given predicate in-place.
+    *
+    * @param predicate the predicate to test
+    * @return this NDArray with values passing the given predicate and zeros elsewhere
+    */
+   public abstract NDArray selecti(DoublePredicate predicate);
+
+   /**
+    * Selects all values for which the corresponding element in the given NDArray has a value of <code>1.0</code>.
+    *
+    * @param rhs the NDArray used to determine which values are selected
+    * @return the selected NDArray
     */
    public abstract NDArray select(NDArray rhs);
 
    /**
-    * Selecti nd array.
+    * Selects all values for which the corresponding element in the given NDArray has a value of <code>1.0</code>
+    * in-place.
     *
-    * @param rhs the rhs
-    * @return the nd array
+    * @param rhs the NDArray used to determine which values are selected
+    * @return the selected NDArray
     */
    public abstract NDArray selecti(NDArray rhs);
 
    /**
-    * Set nd array.
+    * Sets the value of the element at the given index. (row/column if vector, entry if other)
     *
-    * @param i     the
+    * @param i     the index
     * @param value the value
-    * @return the nd array
+    * @return this NDArray
     */
    public abstract NDArray set(long i, double value);
 
    /**
-    * Set nd array.
+    * Sets the value of the element at the given row and column (assumes kernel and channel are 0).
     *
-    * @param row   the row
-    * @param col   the col
+    * @param row   the row index
+    * @param col   the column index
     * @param value the value
-    * @return the nd array
+    * @return this NDArray
     */
    public abstract NDArray set(int row, int col, double value);
 
    /**
-    * Set nd array.
+    * Sets the value of the element at the given channel, row, and column (assumes kernel is 0).
     *
-    * @param channel the channel
-    * @param row     the row
-    * @param col     the col
+    * @param channel the channel index
+    * @param row     the row index
+    * @param col     the column index
     * @param value   the value
-    * @return the nd array
+    * @return this NDArray
     */
    public abstract NDArray set(int channel, int row, int col, double value);
 
    /**
-    * Set nd array.
+    * Sets the value of the element at the given kernel, channel, row, and column
     *
-    * @param kernel  the kernel
-    * @param channel the channel
-    * @param row     the row
-    * @param col     the col
+    * @param kernel  the kernel index
+    * @param channel the channel index
+    * @param row     the row index
+    * @param col     the column index
     * @param value   the value
-    * @return the nd array
+    * @return this NDArray
     */
    public abstract NDArray set(int kernel, int channel, int row, int col, double value);
 
    /**
-    * Sets column.
+    * Sets the values of the <code>ith</code> column to those in the given NDArray.
     *
-    * @param column the column
-    * @param array  the array
-    * @return the column
+    * @param i     the column index
+    * @param array the array of new column values
+    * @return this NDArray
     */
-   public abstract NDArray setColumn(int column, NDArray array);
+   public abstract NDArray setColumn(int i, NDArray array);
 
    /**
-    * Sets row.
+    * Sets the values of the <code>ith</code> row to those in the given NDArray.
     *
-    * @param row   the row
-    * @param array the array
-    * @return the row
+    * @param i     the row index
+    * @param array the array of new row values
+    * @return this NDArray
     */
-   public abstract NDArray setRow(int row, NDArray array);
+   public abstract NDArray setRow(int i, NDArray array);
 
    /**
-    * Shape shape.
+    * Gets the shape of the NDArray.
     *
     * @return the shape
     */
    public abstract Shape shape();
 
    /**
-    * Size long.
+    * Then number of sparse entries (dense NDArray will have <code>size()=length()</code>)
     *
-    * @return the long
+    * @return the number of sparse entries.
     */
    public abstract long size();
 
    /**
-    * Sets slice.
+    * Sets the slice at the given index.
     *
-    * @param slice the slice
-    * @param array the array
-    * @return the slice
+    * @param slice the slice index
+    * @param array the NDArray of values for the new slice
+    * @return this NDArray
     */
    public abstract NDArray setSlice(int slice, NDArray array);
 
    /**
-    * Slice nd array.
+    * Sets the matrix associated with the given kernel and channel.
     *
-    * @param slice the slice
-    * @return the nd array
+    * @param kernel  the kernel index
+    * @param channel the channel index
+    * @param array   the matrix
+    * @return this NDArray
+    */
+   public NDArray setMatrix(int kernel, int channel, NDArray array) {
+      return setSlice(shape.sliceIndex(kernel, channel), array);
+   }
+
+
+   /**
+    * Returns a  view of a single slice of this NDArray. Note that changes to the slice will effect this NDArray.
+    *
+    * @param slice the slice index
+    * @return the NDArray for the slice
     */
    public abstract NDArray slice(int slice);
 
    /**
-    * Slice argmaxs nd array.
+    * Calculates the index of the per-slice maximum values.
     *
-    * @return the nd array
+    * @return the per-slice argmax
     */
    public abstract NDArray sliceArgmaxs();
 
    /**
-    * Slice argmins nd array.
+    * Calculates the index of the per-slice minimum values.
     *
-    * @return the nd array
+    * @return the per-slice argmin
     */
    public abstract NDArray sliceArgmins();
 
    /**
-    * Slice dot nd array.
+    * Calculates the dot product between each slice of this and the given NDArray
     *
-    * @param rhs the rhs
-    * @return the nd array
+    * @param rhs the NDArray to calculate the dot product with
+    * @return the per-slice dot product
     */
    public abstract NDArray sliceDot(NDArray rhs);
 
    /**
-    * Slice maxs nd array.
+    * Calculates the  per-slice maximum values.
     *
-    * @return the nd array
+    * @return the per-slice maximum values
     */
    public abstract NDArray sliceMaxs();
 
    /**
-    * Slice means nd array.
+    * Calculates the  per-slice mean values.
     *
-    * @return the nd array
+    * @return the per-slice mean values
     */
    public abstract NDArray sliceMeans();
 
    /**
-    * Slice mins nd array.
+    * Calculates the  per-slice minimum values.
     *
-    * @return the nd array
+    * @return the per-slice minimum values
     */
    public abstract NDArray sliceMins();
 
    /**
-    * Slice norm 1 nd array.
+    * Calculates the  per-slice L1 norm values.
     *
-    * @return the nd array
+    * @return the per-slice L1 norm  values
     */
    public abstract NDArray sliceNorm1();
 
    /**
-    * Slice norm 2 nd array.
+    * Calculates the  per-slice L2 norm values.
     *
-    * @return the nd array
+    * @return the per-slice L2 norm  values
     */
    public abstract NDArray sliceNorm2();
 
    /**
-    * Slice sum of squares nd array.
+    * Calculates the  per-slice sum of square values.
     *
-    * @return the nd array
+    * @return the per-slice sum of square  values
     */
    public abstract NDArray sliceSumOfSquares();
 
    /**
-    * Slice sums nd array.
+    * Calculates the  per-slice sums.
     *
-    * @return the nd array
+    * @return the per-slice sums
     */
    public abstract NDArray sliceSums();
 

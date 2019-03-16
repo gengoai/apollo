@@ -57,6 +57,16 @@ public class Shape implements Serializable, Copyable<Shape> {
       return new Shape(dims);
    }
 
+
+   public int sliceIndex(int kernel, int channel) {
+      return kernel + (shape[0] * channel);
+   }
+
+   public int matrixIndex(int row, int column) {
+      return row + (shape[2] * column);
+   }
+
+
    /**
     * Instantiates a new Shape.
     *

@@ -404,12 +404,12 @@ public class DenseMatrix extends Matrix {
    }
 
    @Override
-   public double argmin() {
+   public long argmin() {
       return matrix.argmin();
    }
 
    @Override
-   public double argmax() {
+   public long argmax() {
       if( matrix.argmax() < 0 ){
          System.out.println(matrix);
       }

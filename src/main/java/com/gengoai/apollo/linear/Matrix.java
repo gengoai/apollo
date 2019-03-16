@@ -692,12 +692,12 @@ public abstract class Matrix extends NDArray {
    }
 
    @Override
-   public double argmin() {
+   public long argmin() {
       return toDoubleMatrix()[0].argmin();
    }
 
    @Override
-   public double argmax() {
+   public long argmax() {
       return toDoubleMatrix()[0].argmax();
    }
 
@@ -836,6 +836,16 @@ public abstract class Matrix extends NDArray {
       throw new IllegalArgumentException("Only square slices supported");
    }
 
+
+   @Override
+   public NDArray select(DoublePredicate predicate) {
+      return map(v -> predicate.test(v) ? v : 0.0);
+   }
+
+   @Override
+   public NDArray selecti(DoublePredicate predicate) {
+      return mapi(v -> predicate.test(v) ? v : 0.0);
+   }
 
    @Override
    public NDArray select(NDArray rhs) {

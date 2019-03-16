@@ -58,6 +58,23 @@ public class Shape implements Serializable, Copyable<Shape> {
    }
 
 
+   public int toSliceIndex(long index) {
+      return (int) (index % sliceLength);
+   }
+
+   public int toMatrixIndex(long index) {
+      return (int) (index / sliceLength);
+   }
+
+
+   public int toKernel(int sliceIndex) {
+      return sliceIndex % shape[0];
+   }
+
+   public int toChannel(int sliceIndex) {
+      return sliceIndex / shape[0];
+   }
+
    public int sliceIndex(int kernel, int channel) {
       return kernel + (shape[0] * channel);
    }

@@ -32,9 +32,14 @@ import java.util.Random;
 import static com.gengoai.apollo.linear.Shape.shape;
 
 /**
+ * The enum Nd array factory.
+ *
  * @author David B. Bracewell
  */
 public enum NDArrayFactory {
+   /**
+    * The Nd.
+    */
    ND {
       private NDArrayFactory factory;
 
@@ -64,6 +69,9 @@ public enum NDArrayFactory {
          return getFactory().array(shape);
       }
    },
+   /**
+    * The Dense.
+    */
    DENSE {
       @Override
       public NDArray array(Shape shape) {
@@ -71,6 +79,9 @@ public enum NDArrayFactory {
       }
 
    },
+   /**
+    * The Sparse.
+    */
    SPARSE {
       private Double sparsity = null;
 
@@ -92,26 +103,42 @@ public enum NDArrayFactory {
       }
    };
 
-   public NDArray eye(int size) {
-      NDArray ndArray = array(size, size);
-      for (int i = 0; i < size; i++) {
-         ndArray.set(i, i, 1);
-      }
-      return ndArray;
+   public NDArray array(NDArray[] slices) {
+      return null;
    }
 
-   public final NDArray empty() {
-      return array(Shape.empty());
+   public NDArray array(int kernels, int channels, NDArray[] slices) {
+      return null;
    }
 
+   /**
+    * Array nd array.
+    *
+    * @param dims the dims
+    * @return the nd array
+    */
    public final NDArray array(int... dims) {
       return array(new Shape(dims));
    }
 
+   /**
+    * Array nd array.
+    *
+    * @param data the data
+    * @return the nd array
+    */
    public final NDArray array(double[] data) {
       return rowVector(data);
    }
 
+   /**
+    * Array nd array.
+    *
+    * @param rows    the rows
+    * @param columns the columns
+    * @param data    the data
+    * @return the nd array
+    */
    public final NDArray array(int rows, int columns, double[] data) {
       NDArray out = array(rows, columns);
       for (int i = 0; i < data.length; i++) {
@@ -120,7 +147,12 @@ public enum NDArrayFactory {
       return out;
    }
 
-
+   /**
+    * Array nd array.
+    *
+    * @param data the data
+    * @return the nd array
+    */
    public final NDArray array(double[][] data) {
       if (data.length == 0) {
          return empty();
@@ -132,66 +164,100 @@ public enum NDArrayFactory {
       return array;
    }
 
+   /**
+    * Array nd array.
+    *
+    * @param shape the shape
+    * @return the nd array
+    */
    public abstract NDArray array(Shape shape);
 
+   /**
+    * Array nd array.
+    *
+    * @param initializer the initializer
+    * @param shape       the shape
+    * @return the nd array
+    */
    public NDArray array(NDArrayInitializer initializer, Shape shape) {
       NDArray array = array(shape);
       initializer.accept(array);
       return array;
    }
 
+   /**
+    * Column vector nd array.
+    *
+    * @param data the data
+    * @return the nd array
+    */
+   public NDArray columnVector(double[] data) {
+      NDArray vector = array(data.length, 1);
+      for (int i = 0; i < data.length; i++) {
+         vector.set(i, data[i]);
+      }
+      return vector;
+   }
+
+   /**
+    * Constant nd array.
+    *
+    * @param value the value
+    * @param shape the shape
+    * @return the nd array
+    */
    public NDArray constant(double value, Shape shape) {
       return array(shape).fill(value);
    }
 
+   /**
+    * Empty nd array.
+    *
+    * @return the nd array
+    */
+   public final NDArray empty() {
+      return array(Shape.empty());
+   }
+
+   /**
+    * Eye nd array.
+    *
+    * @param size the size
+    * @return the nd array
+    */
+   public NDArray eye(int size) {
+      NDArray ndArray = array(size, size);
+      for (int i = 0; i < size; i++) {
+         ndArray.set(i, i, 1);
+      }
+      return ndArray;
+   }
+
+   /**
+    * Gets sparsity.
+    *
+    * @return the sparsity
+    */
    public double getSparsity() {
       return 0d;
    }
 
-   public NDArray ones(int... dims) {
-      return constant(1d, shape(dims));
-   }
-
-   public NDArray rand(int... dims) {
-      return array(NDArrayInitializer.rand, shape(dims));
-   }
-
-   public NDArray uniform(int lower, int upper, Shape shape) {
-      return array(NDArrayInitializer.rand(lower, upper), shape);
-   }
-
-   public NDArray randn(int... dims) {
-      return array(NDArrayInitializer.randn(new Random()), Shape.shape(dims));
-   }
-
-   public NDArray scalar(double value) {
-      NDArray ndArray = array();
-      ndArray.set(0, value);
-      return ndArray;
-   }
-
-   public NDArray vstack(NDArray... rows) {
-      return vstack(Arrays.asList(rows));
-   }
-
-   public NDArray vstack(Collection<NDArray> rows) {
-      if (rows.size() == 0) {
-         return empty();
-      }
-      Shape shape = rows.iterator().next().shape();
-      NDArray toReturn = array(rows.size(), shape.matrixLength);
-      int globalAxisIndex = 0;
-      for (NDArray array : rows) {
-         toReturn.setRow(globalAxisIndex, array);
-         globalAxisIndex++;
-      }
-      return toReturn;
-   }
-
+   /**
+    * Hstack nd array.
+    *
+    * @param columns the columns
+    * @return the nd array
+    */
    public NDArray hstack(NDArray... columns) {
       return hstack(Arrays.asList(columns));
    }
 
+   /**
+    * Hstack nd array.
+    *
+    * @param columns the columns
+    * @return the nd array
+    */
    public NDArray hstack(Collection<NDArray> columns) {
       if (columns.size() == 0) {
          return empty();
@@ -206,20 +272,102 @@ public enum NDArrayFactory {
       return toReturn;
    }
 
-   public NDArray columnVector(double[] data) {
-      NDArray vector = array(data.length, 1);
-      for (int i = 0; i < data.length; i++) {
-         vector.set(i, data[i]);
-      }
-      return vector;
+   /**
+    * Ones nd array.
+    *
+    * @param dims the dims
+    * @return the nd array
+    */
+   public NDArray ones(int... dims) {
+      return constant(1d, shape(dims));
    }
 
+   /**
+    * Rand nd array.
+    *
+    * @param dims the dims
+    * @return the nd array
+    */
+   public NDArray rand(int... dims) {
+      return array(NDArrayInitializer.rand, shape(dims));
+   }
+
+   /**
+    * Randn nd array.
+    *
+    * @param dims the dims
+    * @return the nd array
+    */
+   public NDArray randn(int... dims) {
+      return array(NDArrayInitializer.randn(new Random()), Shape.shape(dims));
+   }
+
+   /**
+    * Row vector nd array.
+    *
+    * @param data the data
+    * @return the nd array
+    */
    public NDArray rowVector(double[] data) {
       NDArray vector = array(1, data.length);
       for (int i = 0; i < data.length; i++) {
          vector.set(i, data[i]);
       }
       return vector;
+   }
+
+   /**
+    * Scalar nd array.
+    *
+    * @param value the value
+    * @return the nd array
+    */
+   public NDArray scalar(double value) {
+      NDArray ndArray = array();
+      ndArray.set(0, value);
+      return ndArray;
+   }
+
+   /**
+    * Uniform nd array.
+    *
+    * @param lower the lower
+    * @param upper the upper
+    * @param shape the shape
+    * @return the nd array
+    */
+   public NDArray uniform(int lower, int upper, Shape shape) {
+      return array(NDArrayInitializer.rand(lower, upper), shape);
+   }
+
+   /**
+    * Vstack nd array.
+    *
+    * @param rows the rows
+    * @return the nd array
+    */
+   public NDArray vstack(NDArray... rows) {
+      return vstack(Arrays.asList(rows));
+   }
+
+   /**
+    * Vstack nd array.
+    *
+    * @param rows the rows
+    * @return the nd array
+    */
+   public NDArray vstack(Collection<NDArray> rows) {
+      if (rows.size() == 0) {
+         return empty();
+      }
+      Shape shape = rows.iterator().next().shape();
+      NDArray toReturn = array(rows.size(), shape.matrixLength);
+      int globalAxisIndex = 0;
+      for (NDArray array : rows) {
+         toReturn.setRow(globalAxisIndex, array);
+         globalAxisIndex++;
+      }
+      return toReturn;
    }
 
 }//END OF NDArrayFactory

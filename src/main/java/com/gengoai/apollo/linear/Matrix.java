@@ -32,15 +32,23 @@ import java.util.function.DoublePredicate;
 import java.util.stream.IntStream;
 
 /**
+ * Specialized NDArray for vectors and matrices.
+ *
  * @author David B. Bracewell
  */
 public abstract class Matrix extends NDArray {
    private static final long serialVersionUID = 1L;
 
-   protected Matrix(Shape shape) {
+   private Matrix(Shape shape) {
       super(shape);
    }
 
+   /**
+    * Checks that the two shapes have the same length.
+    *
+    * @param s1 the first shape
+    * @param s2 the second shape
+    */
    protected static void checkLength(Shape s1, Shape s2) {
       if (s2.sliceLength > 1 || s1.sliceLength > 1) {
          throw new IllegalArgumentException("Slice Mismatch: " + s1.sliceLength + " != " + s2.sliceLength);
@@ -50,6 +58,12 @@ public abstract class Matrix extends NDArray {
       }
    }
 
+   /**
+    * Checks that the length of the second shape is equal to the given dimension.
+    *
+    * @param dim the dimension to check
+    * @param s2  the shape to check
+    */
    protected static void checkLength(int dim, Shape s2) {
       if (s2.sliceLength > 1) {
          throw new IllegalArgumentException("Slice Mismatch: " + s2.sliceLength + " != 1");
@@ -107,12 +121,30 @@ public abstract class Matrix extends NDArray {
 
    @Override
    public long argmax() {
-      return toDoubleMatrix()[0].argmax();
+      long index = -1;
+      double max = Double.NEGATIVE_INFINITY;
+      for (int i = 0; i < shape.matrixLength; i++) {
+         double v = get(i);
+         if (v > max) {
+            max = v;
+            index = i;
+         }
+      }
+      return index;
    }
 
    @Override
    public long argmin() {
-      return toDoubleMatrix()[0].argmin();
+      long index = -1;
+      double min = Double.POSITIVE_INFINITY;
+      for (int i = 0; i < shape.matrixLength; i++) {
+         double v = get(i);
+         if (v < min) {
+            min = v;
+            index = i;
+         }
+      }
+      return index;
    }
 
    @Override

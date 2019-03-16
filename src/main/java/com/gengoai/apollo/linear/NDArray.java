@@ -37,7 +37,7 @@ import java.util.function.DoublePredicate;
 import java.util.function.DoubleUnaryOperator;
 
 /**
- * An n-dimension array of float values used for vectors, matrices, and tensors.
+ * An n-dimension array of double values used for vectors, matrices, and tensors.
  *
  * @author David B. Bracewell
  */
@@ -47,36 +47,6 @@ public abstract class NDArray implements Serializable, Copyable<NDArray>, JsonSe
    private Object predicted = null;
    private double weight = 1d;
 
-
-   @Override
-   public JsonEntry toJson() {
-      JsonEntry entry = JsonEntry.object()
-                                 .addProperty("shape", shape.shape)
-                                 .addProperty("dense", isDense())
-                                 .addProperty("label", label)
-                                 .addProperty("weight", weight);
-      JsonEntry data = JsonEntry.array();
-      for (int i = 0; i < shape.sliceLength; i++) {
-         data.addValue(slice(i).toDoubleArray());
-      }
-      return entry.addProperty("data", data);
-   }
-
-   public static NDArray fromJson(JsonEntry entry, Type... types) {
-      NDArrayFactory ND = entry.getBooleanProperty("dense", true) ? NDArrayFactory.DENSE : NDArrayFactory.SPARSE;
-      NDArray array = ND.array(entry.getProperty("shape", int[].class));
-      array.setWeight(entry.getDoubleProperty("weight", 1.0));
-      array.setLabel(entry.getProperty("label", null));
-
-      Iterator<JsonEntry> dataItr = entry.getProperty("data").elementIterator();
-      for (int i = 0; i < array.shape.sliceLength; i++) {
-         array.setSlice(i, ND.array(array.shape.rows(),
-                                    array.shape.columns(),
-                                    dataItr.next().getAsDoubleArray()));
-      }
-
-      return array;
-   }
 
    /**
     * Instantiates a new NDArray.
@@ -88,9 +58,25 @@ public abstract class NDArray implements Serializable, Copyable<NDArray>, JsonSe
       this.shape = shape.copy();
    }
 
-   @Override
-   public NDArray copy() {
-      return Copyable.deepCopy(this);
+   /**
+    * Deserialize the NDArray from the given JsonEntry.
+    *
+    * @param entry the JSon entry
+    * @param types the parameter types
+    * @return the NDArray
+    */
+   public static NDArray fromJson(JsonEntry entry, Type... types) {
+      NDArrayFactory ND = entry.getBooleanProperty("dense", true) ? NDArrayFactory.DENSE : NDArrayFactory.SPARSE;
+      NDArray array = ND.array(entry.getProperty("shape").getAsIntArray());
+      array.setWeight(entry.getDoubleProperty("weight", 1.0));
+      array.setLabel(entry.getProperty("label", null));
+      Iterator<JsonEntry> dataItr = entry.getProperty("data").elementIterator();
+      for (int i = 0; i < array.shape.sliceLength; i++) {
+         array.setSlice(i, ND.array(array.shape.rows(),
+                                    array.shape.columns(),
+                                    dataItr.next().getAsDoubleArray()));
+      }
+      return array;
    }
 
    /**
@@ -274,6 +260,11 @@ public abstract class NDArray implements Serializable, Copyable<NDArray>, JsonSe
     * @return this NDArray
     */
    public abstract NDArray compact();
+
+   @Override
+   public NDArray copy() {
+      return Copyable.deepCopy(this);
+   }
 
    /**
     * Generates a diagonal matrix per slice.
@@ -1617,6 +1608,20 @@ public abstract class NDArray implements Serializable, Copyable<NDArray>, JsonSe
     * @return the array of DoubleMatrix
     */
    public abstract DoubleMatrix[] toDoubleMatrix();
+
+   @Override
+   public JsonEntry toJson() {
+      JsonEntry entry = JsonEntry.object()
+                                 .addProperty("shape", shape.shape)
+                                 .addProperty("dense", isDense())
+                                 .addProperty("label", label)
+                                 .addProperty("weight", weight);
+      JsonEntry data = JsonEntry.array();
+      for (int i = 0; i < shape.sliceLength; i++) {
+         data.addValue(slice(i).toDoubleArray());
+      }
+      return entry.addProperty("data", data);
+   }
 
    /**
     * Unitizes the NDArray by dividing the values by L2 Norm (per slice)

@@ -193,6 +193,6 @@ public class Instance extends Example {
       if (hasLabel()) {
          array.setLabel(pipeline.labelVectorizer.transform(this));
       }
-      return array.setWeight(getWeight()).trimToSize();
+      return array.setWeight(getWeight()).compact();
    }
 }//END OF Instance

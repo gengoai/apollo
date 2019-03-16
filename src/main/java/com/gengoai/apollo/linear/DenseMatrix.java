@@ -315,7 +315,7 @@ public class DenseMatrix extends Matrix {
    }
 
    @Override
-   public NDArray trimToSize() {
+   public NDArray compact() {
       return this;
    }
 

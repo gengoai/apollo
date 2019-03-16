@@ -159,7 +159,7 @@ public class Sequence extends Example {
       for (int i = 0; i < size(); i++) {
          vectors[i] = sequence.get(i).transform(pipeline);
       }
-      out = NDArrayFactory.ND.vstack(vectors).setWeight(getWeight()).trimToSize();
+      out = NDArrayFactory.ND.vstack(vectors).setWeight(getWeight()).compact();
       if (hasLabel()) {
          out.setLabel(pipeline.labelVectorizer.transform(this));
       }

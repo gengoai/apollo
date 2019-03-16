@@ -194,7 +194,7 @@ public class SparseMatrix extends Matrix {
    }
 
    @Override
-   public NDArray trimToSize() {
+   public NDArray compact() {
       map.trimToSize();
       return this;
    }

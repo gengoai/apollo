@@ -22,6 +22,7 @@
 
 package com.gengoai.apollo.linear;
 
+import com.gengoai.Validation;
 import com.gengoai.conversion.Cast;
 import com.gengoai.math.Operator;
 
@@ -736,6 +737,16 @@ public abstract class Matrix extends NDArray {
          sum += Math.pow(get(i), 2);
       }
       return sum;
+   }
+
+   @Override
+   public NDArray setSlice(int slice, NDArray array) {
+      Validation.checkArgument(slice == 0, "Invalid Slice: " + slice);
+      checkLength(shape, array.shape);
+      for (int i = 0; i < array.shape.matrixLength; i++) {
+         set(i, array.get(i));
+      }
+      return this;
    }
 
    @Override

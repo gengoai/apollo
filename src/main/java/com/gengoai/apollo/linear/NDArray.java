@@ -27,10 +27,13 @@ import com.gengoai.Validation;
 import com.gengoai.conversion.Cast;
 import com.gengoai.json.JsonEntry;
 import com.gengoai.json.JsonSerializable;
+import com.gengoai.math.Operator;
 import org.jblas.DoubleMatrix;
 
 import java.io.Serializable;
 import java.lang.reflect.Type;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.Iterator;
 import java.util.function.DoubleBinaryOperator;
 import java.util.function.DoublePredicate;
@@ -42,6 +45,7 @@ import java.util.function.DoubleUnaryOperator;
  * @author David B. Bracewell
  */
 public abstract class NDArray implements Serializable, Copyable<NDArray>, JsonSerializable {
+   protected static final NumberFormat decimalFormatter = new DecimalFormat(" 0.000000;-0");
    protected final Shape shape;
    private Object label = null;
    private Object predicted = null;
@@ -92,7 +96,12 @@ public abstract class NDArray implements Serializable, Copyable<NDArray>, JsonSe
     * @param value the value to add
     * @return the new NDArray with the scalar value added
     */
-   public abstract NDArray add(double value);
+   public NDArray add(double value) {
+      if (value == 0) {
+         return copy();
+      }
+      return map(value, Operator::add);
+   }
 
    /**
     * Adds the values in the other NDArray to this one.
@@ -100,7 +109,9 @@ public abstract class NDArray implements Serializable, Copyable<NDArray>, JsonSe
     * @param rhs the other NDArray whose values will be added
     * @return the new NDArray with the result of this + other
     */
-   public abstract NDArray add(NDArray rhs);
+   public NDArray add(NDArray rhs) {
+      return map(rhs, Operator::add);
+   }
 
    /**
     * Adds the values in the other NDArray to each column in this one.
@@ -108,7 +119,9 @@ public abstract class NDArray implements Serializable, Copyable<NDArray>, JsonSe
     * @param rhs the other NDArray whose values will be added
     * @return the new NDArray
     */
-   public abstract NDArray addColumnVector(NDArray rhs);
+   public NDArray addColumnVector(NDArray rhs) {
+      return mapColumn(rhs, Operator::add);
+   }
 
    /**
     * Adds the values in the other NDArray to each row in this one.
@@ -116,7 +129,9 @@ public abstract class NDArray implements Serializable, Copyable<NDArray>, JsonSe
     * @param rhs the other NDArray whose values will be added
     * @return the new NDArray
     */
-   public abstract NDArray addRowVector(NDArray rhs);
+   public NDArray addRowVector(NDArray rhs) {
+      return mapRow(rhs, Operator::add);
+   }
 
    /**
     * Adds a scalar value to each element in the NDArray in-place
@@ -124,7 +139,12 @@ public abstract class NDArray implements Serializable, Copyable<NDArray>, JsonSe
     * @param value the value to add
     * @return this NDArray with the scalar value added
     */
-   public abstract NDArray addi(double value);
+   public NDArray addi(double value) {
+      if (value != 0) {
+         return mapi(value, Operator::add);
+      }
+      return this;
+   }
 
    /**
     * Adds the values in the other NDArray to this one in-place.
@@ -132,7 +152,9 @@ public abstract class NDArray implements Serializable, Copyable<NDArray>, JsonSe
     * @param rhs the other NDArray whose values will be added
     * @return this NDArray with the result of this + other
     */
-   public abstract NDArray addi(NDArray rhs);
+   public NDArray addi(NDArray rhs) {
+      return mapi(rhs, Operator::add);
+   }
 
    /**
     * Performs a column vector addition adding the values in the other NDArray to each column in this NDArray.
@@ -140,7 +162,9 @@ public abstract class NDArray implements Serializable, Copyable<NDArray>, JsonSe
     * @param rhs the other NDArray whose values will be added
     * @return this NDArray with the result of this + other
     */
-   public abstract NDArray addiColumnVector(NDArray rhs);
+   public NDArray addiColumnVector(NDArray rhs) {
+      return mapiColumn(rhs, Operator::add);
+   }
 
    /**
     * Performs a row vector addition adding the values in the other NDArray to each row in this NDArray.
@@ -148,7 +172,9 @@ public abstract class NDArray implements Serializable, Copyable<NDArray>, JsonSe
     * @param rhs the other NDArray whose values will be added
     * @return this NDArray with the result of this + other
     */
-   public abstract NDArray addiRowVector(NDArray rhs);
+   public NDArray addiRowVector(NDArray rhs) {
+      return mapiRow(rhs, Operator::add);
+   }
 
    /**
     * Calculates the index in the NDArray with maximum value.
@@ -279,7 +305,9 @@ public abstract class NDArray implements Serializable, Copyable<NDArray>, JsonSe
     * @param rhs the other NDArray whose values will be divided
     * @return the new NDArray with the result of this / other
     */
-   public abstract NDArray div(NDArray rhs);
+   public NDArray div(NDArray rhs) {
+      return map(rhs, Operator::divide);
+   }
 
    /**
     * Divides a scalar value to each element in the NDArray
@@ -287,7 +315,9 @@ public abstract class NDArray implements Serializable, Copyable<NDArray>, JsonSe
     * @param value the value to divide
     * @return the new NDArray with the scalar value divided
     */
-   public abstract NDArray div(double value);
+   public NDArray div(double value) {
+      return map(value, Operator::divide);
+   }
 
    /**
     * Divides a column vector element division dividing the values in the other NDArray to each column in this NDArray.
@@ -295,7 +325,9 @@ public abstract class NDArray implements Serializable, Copyable<NDArray>, JsonSe
     * @param rhs the other NDArray whose values will be divided
     * @return the new NDArray with the result of this / other
     */
-   public abstract NDArray divColumnVector(NDArray rhs);
+   public NDArray divColumnVector(NDArray rhs) {
+      return mapColumn(rhs, Operator::divide);
+   }
 
    /**
     * Divides a row vector element division dividing the values in the other NDArray to each row in this NDArray.
@@ -303,7 +335,9 @@ public abstract class NDArray implements Serializable, Copyable<NDArray>, JsonSe
     * @param rhs the other NDArray whose values will be divided
     * @return the new NDArray with the result of this / other
     */
-   public abstract NDArray divRowVector(NDArray rhs);
+   public NDArray divRowVector(NDArray rhs) {
+      return mapRow(rhs, Operator::divide);
+   }
 
    /**
     * Divides a scalar value to each element in the NDArray in-place.
@@ -311,7 +345,9 @@ public abstract class NDArray implements Serializable, Copyable<NDArray>, JsonSe
     * @param rhs the value to divide
     * @return this NDArray with the scalar value divided
     */
-   public abstract NDArray divi(NDArray rhs);
+   public NDArray divi(NDArray rhs) {
+      return mapi(rhs, Operator::divide);
+   }
 
    /**
     * Divides a scalar value to each element in the NDArray in-place.
@@ -319,7 +355,9 @@ public abstract class NDArray implements Serializable, Copyable<NDArray>, JsonSe
     * @param value the value to divide
     * @return this NDArray with the scalar value divided
     */
-   public abstract NDArray divi(double value);
+   public NDArray divi(double value) {
+      return mapi(value, Operator::divide);
+   }
 
    /**
     * Divides a column vector element division dividing the values in the other NDArray to each column in this NDArray.
@@ -327,7 +365,9 @@ public abstract class NDArray implements Serializable, Copyable<NDArray>, JsonSe
     * @param rhs the other NDArray whose values will be divided
     * @return this NDArray with the result of this / other
     */
-   public abstract NDArray diviColumnVector(NDArray rhs);
+   public NDArray diviColumnVector(NDArray rhs) {
+      return mapiColumn(rhs, Operator::divide);
+   }
 
    /**
     * Divides a row vector element division dividing the values in the other NDArray to each row in this NDArray.
@@ -335,7 +375,9 @@ public abstract class NDArray implements Serializable, Copyable<NDArray>, JsonSe
     * @param rhs the other NDArray whose values will be divided
     * @return this NDArray with the result of this / other
     */
-   public abstract NDArray diviRowVector(NDArray rhs);
+   public NDArray diviRowVector(NDArray rhs) {
+      return mapiRow(rhs, Operator::divide);
+   }
 
    /**
     * Calculates the dot product between this and the given other NDArray per slice.
@@ -941,7 +983,9 @@ public abstract class NDArray implements Serializable, Copyable<NDArray>, JsonSe
     * @param rhs the other NDArray whose values will be multiplied
     * @return the new NDArray with the result of this * other
     */
-   public abstract NDArray mul(NDArray rhs);
+   public NDArray mul(NDArray rhs) {
+      return map(rhs, Operator::multiply);
+   }
 
    /**
     * Multiplies a scalar value to each element in the NDArray
@@ -949,7 +993,9 @@ public abstract class NDArray implements Serializable, Copyable<NDArray>, JsonSe
     * @param value the value to multiplied
     * @return the new NDArray with the scalar value multiplied
     */
-   public abstract NDArray mul(double value);
+   public NDArray mul(double value) {
+      return map(value, Operator::multiply);
+   }
 
    /**
     * Performs a column vector element multiplication multiplying the values in the other NDArray to each  in this
@@ -958,7 +1004,9 @@ public abstract class NDArray implements Serializable, Copyable<NDArray>, JsonSe
     * @param rhs the other NDArray whose values will be multiplied
     * @return the new NDArray with the result of this * other
     */
-   public abstract NDArray mulColumnVector(NDArray rhs);
+   public NDArray mulColumnVector(NDArray rhs) {
+      return mapColumn(rhs, Operator::multiply);
+   }
 
    /**
     * Performs a row vector element multiplication multiplying the values in the other NDArray to each row  in this
@@ -967,7 +1015,10 @@ public abstract class NDArray implements Serializable, Copyable<NDArray>, JsonSe
     * @param rhs the other NDArray whose values will be multiplied
     * @return the new NDArray with the result of this * other
     */
-   public abstract NDArray mulRowVector(NDArray rhs);
+   public NDArray mulRowVector(NDArray rhs) {
+      return mapRow(rhs, Operator::multiply);
+   }
+
 
    /**
     * Multiplies the values in the other NDArray to this one element by element in-place.
@@ -975,7 +1026,9 @@ public abstract class NDArray implements Serializable, Copyable<NDArray>, JsonSe
     * @param rhs the other NDArray whose values will be multiplied
     * @return this NDArray with the result of this * other
     */
-   public abstract NDArray muli(NDArray rhs);
+   public NDArray muli(NDArray rhs) {
+      return mapi(rhs, Operator::multiply);
+   }
 
    /**
     * Multiplies a scalar value to each element in the NDArray in-place.
@@ -983,7 +1036,9 @@ public abstract class NDArray implements Serializable, Copyable<NDArray>, JsonSe
     * @param value the value to multiplied
     * @return this NDArray with the scalar value multiplied
     */
-   public abstract NDArray muli(double value);
+   public NDArray muli(double value) {
+      return mapi(value, Operator::multiply);
+   }
 
    /**
     * Performs a column vector element multiplication multiplying the values in the other NDArray to each  in this
@@ -992,7 +1047,9 @@ public abstract class NDArray implements Serializable, Copyable<NDArray>, JsonSe
     * @param rhs the other NDArray whose values will be multiplied
     * @return the new NDArray with the result of this * other
     */
-   public abstract NDArray muliColumnVector(NDArray rhs);
+   public NDArray muliColumnVector(NDArray rhs) {
+      return mapiColumn(rhs, Operator::multiply);
+   }
 
    /**
     * Performs a row vector element multiplication multiplying the values in the other NDArray to each row  in this
@@ -1001,7 +1058,9 @@ public abstract class NDArray implements Serializable, Copyable<NDArray>, JsonSe
     * @param rhs the other NDArray whose values will be multiplied
     * @return the new NDArray with the result of this * other
     */
-   public abstract NDArray muliRowVector(NDArray rhs);
+   public NDArray muliRowVector(NDArray rhs) {
+      return mapiRow(rhs, Operator::multiply);
+   }
 
    /**
     * Creates a new NDArray with elements equal to <code>1.0</code> if its value is not equal to the given value.
@@ -1069,10 +1128,12 @@ public abstract class NDArray implements Serializable, Copyable<NDArray>, JsonSe
    /**
     * Divides the values in the this NDArray from the other NDArray.
     *
-    * @param rhs the other NDArray whose values will be divided from
+    * @param lhs the other NDArray whose values will be divided from
     * @return the new NDArray with the result of other / this
     */
-   public abstract NDArray rdiv(NDArray rhs);
+   public NDArray rdiv(NDArray lhs) {
+      return map(lhs, (v1, v2) -> v2 / v1);
+   }
 
    /**
     * Divides each element's value from the given scalar (e.g. scalar - element)
@@ -1080,33 +1141,41 @@ public abstract class NDArray implements Serializable, Copyable<NDArray>, JsonSe
     * @param value the value to divide
     * @return the new NDArray with the scalar value divided
     */
-   public abstract NDArray rdiv(double value);
+   public NDArray rdiv(double value) {
+      return map(value, (v1, v2) -> v2 / v1);
+   }
 
    /**
     * Performs a column vector division dividing the values in this NDArray from the other NDArray to each column in
     * this NDArray.
     *
-    * @param rhs the other NDArray whose values will be divided
+    * @param lhs the other NDArray whose values will be divided
     * @return the new NDArray with the result of this / other
     */
-   public abstract NDArray rdivColumnVector(NDArray rhs);
+   public NDArray rdivColumnVector(NDArray lhs) {
+      return mapColumn(lhs, (v1, v2) -> v2 / v1);
+   }
 
    /**
     * Performs a row vector division dividing the values in this NDArray from the other NDArray to each row in this
     * NDArray.
     *
-    * @param rhs the other NDArray whose values will be divided
+    * @param lhs the other NDArray whose values will be divided
     * @return the new NDArray with the result of this / other
     */
-   public abstract NDArray rdivRowVector(NDArray rhs);
+   public NDArray rdivRowVector(NDArray lhs) {
+      return mapRow(lhs, (v1, v2) -> v2 / v1);
+   }
 
    /**
     * Divides the values in the this NDArray from the other NDArray in-place.
     *
-    * @param rhs the other NDArray whose values will be divided from
+    * @param lhs the other NDArray whose values will be divided from
     * @return the new NDArray with the result of other / this
     */
-   public abstract NDArray rdivi(NDArray rhs);
+   public NDArray rdivi(NDArray lhs) {
+      return mapi(lhs, (v1, v2) -> v2 / v1);
+   }
 
    /**
     * Divides each element's value from the given scalar (e.g. scalar - element) in-place
@@ -1114,25 +1183,31 @@ public abstract class NDArray implements Serializable, Copyable<NDArray>, JsonSe
     * @param value the value to divide
     * @return the new NDArray with the scalar value divided
     */
-   public abstract NDArray rdivi(double value);
+   public NDArray rdivi(double value) {
+      return mapi(value, (v1, v2) -> v2 / v1);
+   }
 
    /**
     * Performs a column vector division dividing the values in this NDArray from the other NDArray to each column in
     * this NDArray in-place.
     *
-    * @param rhs the other NDArray whose values will be divided
+    * @param lhs the other NDArray whose values will be divided
     * @return the new NDArray with the result of this / other
     */
-   public abstract NDArray rdiviColumnVector(NDArray rhs);
+   public NDArray rdiviColumnVector(NDArray lhs) {
+      return mapiColumn(lhs, (v1, v2) -> v2 / v1);
+   }
 
    /**
     * Performs a row vector division dividing the values in this NDArray from the other NDArray to each row in this
     * NDArray in-place.
     *
-    * @param rhs the other NDArray whose values will be divided
+    * @param lhs the other NDArray whose values will be divided
     * @return the new NDArray with the result of this / other
     */
-   public abstract NDArray rdiviRowVector(NDArray rhs);
+   public NDArray rdiviRowVector(NDArray lhs) {
+      return mapiRow(lhs, (v1, v2) -> v2 / v1);
+   }
 
    /**
     * Reshapes the NDArray
@@ -1198,10 +1273,12 @@ public abstract class NDArray implements Serializable, Copyable<NDArray>, JsonSe
    /**
     * Subtracts the values in the this NDArray from the other NDArray.
     *
-    * @param rhs the other NDArray whose values will be subtracted from
+    * @param lhs the other NDArray whose values will be subtracted from
     * @return the new NDArray with the result of other - this
     */
-   public abstract NDArray rsub(NDArray rhs);
+   public NDArray rsub(NDArray lhs) {
+      return map(lhs, (v1, v2) -> v2 - v1);
+   }
 
    /**
     * Subtracts each element's value from the given scalar (e.g. scalar - element)
@@ -1209,33 +1286,41 @@ public abstract class NDArray implements Serializable, Copyable<NDArray>, JsonSe
     * @param value the value to subtract
     * @return the new NDArray with the scalar value subtracted
     */
-   public abstract NDArray rsub(double value);
+   public NDArray rsub(double value) {
+      return map(value, (v1, v2) -> v2 - v1);
+   }
 
    /**
     * Performs a column vector subtraction subtracting the values in this NDArray from the other NDArray to each column
     * in this NDArray.
     *
-    * @param rhs the other NDArray whose values will be subtracted
+    * @param lhs the other NDArray whose values will be subtracted
     * @return the new NDArray with the result of this - other
     */
-   public abstract NDArray rsubColumnVector(NDArray rhs);
+   public NDArray rsubColumnVector(NDArray lhs) {
+      return mapColumn(lhs, (v1, v2) -> v2 - v1);
+   }
 
    /**
     * Performs a row vector subtraction subtracting the values in this NDArray from the other NDArray to each row in
     * this NDArray.
     *
-    * @param rhs the other NDArray whose values will be subtracted
+    * @param lhs the other NDArray whose values will be subtracted
     * @return the new NDArray with the result of this - other
     */
-   public abstract NDArray rsubRowVector(NDArray rhs);
+   public NDArray rsubRowVector(NDArray lhs) {
+      return mapRow(lhs, (v1, v2) -> v2 - v1);
+   }
 
    /**
     * Subtracts the values in the this NDArray from the other NDArray in-place.
     *
-    * @param rhs the other NDArray whose values will be subtracted from
+    * @param lhs the other NDArray whose values will be subtracted from
     * @return the new NDArray with the result of other - this
     */
-   public abstract NDArray rsubi(NDArray rhs);
+   public NDArray rsubi(NDArray lhs) {
+      return mapi(lhs, (v1, v2) -> v2 - v1);
+   }
 
    /**
     * Subtracts each element's value from the given scalar (e.g. scalar - element) in-place
@@ -1243,25 +1328,31 @@ public abstract class NDArray implements Serializable, Copyable<NDArray>, JsonSe
     * @param value the value to subtract
     * @return the new NDArray with the scalar value subtracted
     */
-   public abstract NDArray rsubi(double value);
+   public NDArray rsubi(double value) {
+      return mapi(value, (v1, v2) -> v2 - v1);
+   }
 
    /**
     * Performs a column vector subtraction subtracting the values in this NDArray from the other NDArray to each column
     * in this NDArray in-place.
     *
-    * @param rhs the other NDArray whose values will be subtracted
+    * @param lhs the other NDArray whose values will be subtracted
     * @return the new NDArray with the result of this - other
     */
-   public abstract NDArray rsubiColumnVector(NDArray rhs);
+   public NDArray rsubiColumnVector(NDArray lhs) {
+      return mapiColumn(lhs, (v1, v2) -> v2 - v1);
+   }
 
    /**
     * Performs a row vector subtraction subtracting the values in this NDArray from the other NDArray to each row in
     * this NDArray in-place.
     *
-    * @param rhs the other NDArray whose values will be subtracted
+    * @param lhs the other NDArray whose values will be subtracted
     * @return the new NDArray with the result of this - other
     */
-   public abstract NDArray rsubiRowVector(NDArray rhs);
+   public NDArray rsubiRowVector(NDArray lhs) {
+      return mapiRow(lhs, (v1, v2) -> v2 - v1);
+   }
 
    /**
     * Returns the scalar value of this NDArray (value at <code>(0,0,0,0)</code>)
@@ -1278,7 +1369,9 @@ public abstract class NDArray implements Serializable, Copyable<NDArray>, JsonSe
     * @param predicate the predicate to test
     * @return new NDArray with values passing the given predicate and zeros elsewhere
     */
-   public abstract NDArray select(DoublePredicate predicate);
+   public NDArray select(DoublePredicate predicate) {
+      return map(v -> predicate.test(v) ? v : 0.0);
+   }
 
    /**
     * Selects all values for which the corresponding element in the given NDArray has a value of <code>1.0</code>.
@@ -1286,7 +1379,9 @@ public abstract class NDArray implements Serializable, Copyable<NDArray>, JsonSe
     * @param rhs the NDArray used to determine which values are selected
     * @return the selected NDArray
     */
-   public abstract NDArray select(NDArray rhs);
+   public NDArray select(NDArray rhs) {
+      return map(rhs, (v1, v2) -> v2 == 1.0 ? 1.0 : 0.0);
+   }
 
    /**
     * Selects all values matching the given predicate in-place.
@@ -1294,7 +1389,9 @@ public abstract class NDArray implements Serializable, Copyable<NDArray>, JsonSe
     * @param predicate the predicate to test
     * @return this NDArray with values passing the given predicate and zeros elsewhere
     */
-   public abstract NDArray selecti(DoublePredicate predicate);
+   public NDArray selecti(DoublePredicate predicate) {
+      return mapi(v -> predicate.test(v) ? v : 0.0);
+   }
 
    /**
     * Selects all values for which the corresponding element in the given NDArray has a value of <code>1.0</code>
@@ -1303,7 +1400,9 @@ public abstract class NDArray implements Serializable, Copyable<NDArray>, JsonSe
     * @param rhs the NDArray used to determine which values are selected
     * @return the selected NDArray
     */
-   public abstract NDArray selecti(NDArray rhs);
+   public NDArray selecti(NDArray rhs) {
+      return mapi(rhs, (v1, v2) -> v2 == 1.0 ? 1.0 : 0.0);
+   }
 
    /**
     * Sets the value of the element at the given index. (row/column if vector, entry if other)
@@ -1391,14 +1490,18 @@ public abstract class NDArray implements Serializable, Copyable<NDArray>, JsonSe
     *
     * @return the shape
     */
-   public abstract Shape shape();
+   public final Shape shape() {
+      return shape;
+   }
 
    /**
     * Then number of sparse entries (dense NDArray will have <code>size()=length()</code>)
     *
     * @return the number of sparse entries.
     */
-   public abstract long size();
+   public long size() {
+      return length();
+   }
 
    /**
     * Returns a  view of a single slice of this NDArray. Note that changes to the slice will effect this NDArray.
@@ -1485,7 +1588,9 @@ public abstract class NDArray implements Serializable, Copyable<NDArray>, JsonSe
     * @param rhs the other NDArray whose values will be subtracted
     * @return the new NDArray with the result of this - other
     */
-   public abstract NDArray sub(NDArray rhs);
+   public NDArray sub(NDArray rhs) {
+      return map(rhs, Operator::subtract);
+   }
 
    /**
     * Subtracts a scalar value to each element in the NDArray
@@ -1493,7 +1598,9 @@ public abstract class NDArray implements Serializable, Copyable<NDArray>, JsonSe
     * @param value the value to subtract
     * @return the new NDArray with the scalar value subtracted
     */
-   public abstract NDArray sub(double value);
+   public NDArray sub(double value) {
+      return map(value, Operator::subtract);
+   }
 
    /**
     * Performs a column vector subtraction subtracting the values in the other NDArray to each column in this NDArray.
@@ -1501,7 +1608,9 @@ public abstract class NDArray implements Serializable, Copyable<NDArray>, JsonSe
     * @param rhs the other NDArray whose values will be subtracted
     * @return the new NDArray with the result of this - other
     */
-   public abstract NDArray subColumnVector(NDArray rhs);
+   public NDArray subColumnVector(NDArray rhs) {
+      return mapColumn(rhs, Operator::subtract);
+   }
 
    /**
     * Performs a row vector subtraction subtracting the values in the other NDArray to each row in this NDArray.
@@ -1509,7 +1618,9 @@ public abstract class NDArray implements Serializable, Copyable<NDArray>, JsonSe
     * @param rhs the other NDArray whose values will be subtracted
     * @return the new NDArray with the result of this - other
     */
-   public abstract NDArray subRowVector(NDArray rhs);
+   public NDArray subRowVector(NDArray rhs) {
+      return mapRow(rhs, Operator::subtract);
+   }
 
    /**
     * Subtracts the values in the other NDArray to this one in-place.
@@ -1517,7 +1628,9 @@ public abstract class NDArray implements Serializable, Copyable<NDArray>, JsonSe
     * @param rhs the other NDArray whose values will be subtracted
     * @return the new NDArray with the result of this - other
     */
-   public abstract NDArray subi(NDArray rhs);
+   public NDArray subi(NDArray rhs) {
+      return mapi(rhs, Operator::subtract);
+   }
 
    /**
     * Subtracts a scalar value to each element in the NDArray in-place.
@@ -1525,7 +1638,9 @@ public abstract class NDArray implements Serializable, Copyable<NDArray>, JsonSe
     * @param value the value to subtract
     * @return the new NDArray with the scalar value subtracted
     */
-   public abstract NDArray subi(double value);
+   public NDArray subi(double value) {
+      return mapi(value, Operator::subtract);
+   }
 
    /**
     * Performs a column vector subtraction subtracting the values in the other NDArray to each column in this NDArray
@@ -1534,7 +1649,9 @@ public abstract class NDArray implements Serializable, Copyable<NDArray>, JsonSe
     * @param rhs the other NDArray whose values will be subtracted
     * @return the new NDArray with the result of this - other
     */
-   public abstract NDArray subiColumnVector(NDArray rhs);
+   public NDArray subiColumnVector(NDArray rhs) {
+      return mapiColumn(rhs, Operator::subtract);
+   }
 
    /**
     * Performs a row vector subtraction subtracting the values in the other NDArray to each row in this NDArray
@@ -1543,7 +1660,9 @@ public abstract class NDArray implements Serializable, Copyable<NDArray>, JsonSe
     * @param rhs the other NDArray whose values will be subtracted
     * @return the new NDArray with the result of this - other
     */
-   public abstract NDArray subiRowVector(NDArray rhs);
+   public NDArray subiRowVector(NDArray rhs) {
+      return mapiRow(rhs, Operator::subtract);
+   }
 
    /**
     * Calculates the sum of all values in the NDArray
@@ -1565,7 +1684,14 @@ public abstract class NDArray implements Serializable, Copyable<NDArray>, JsonSe
     * @param predicate the predicate to test
     * @return new NDArray with test results
     */
-   public abstract NDArray test(DoublePredicate predicate);
+   public NDArray test(DoublePredicate predicate) {
+      return map(v -> {
+         if (predicate.test(v)) {
+            return 1.0;
+         }
+         return 0d;
+      });
+   }
 
    /**
     * Compares entries in this NDArray with the given NDArray using the given comparison, setting entries to
@@ -1575,7 +1701,14 @@ public abstract class NDArray implements Serializable, Copyable<NDArray>, JsonSe
     * @param predicate the predicate
     * @return the NDArray with test results
     */
-   public abstract NDArray test(NDArray rhs, DoubleBinaryPredicate predicate);
+   public NDArray test(NDArray rhs, DoubleBinaryPredicate predicate) {
+      return map(rhs, (v1, v2) -> {
+         if (predicate.test(v1, v2)) {
+            return 1.0;
+         }
+         return 0d;
+      });
+   }
 
    /**
     * Tests the given predicate on the values in the NDArray returning 1 when TRUE and 0 when FALSE. (in-place)
@@ -1583,7 +1716,14 @@ public abstract class NDArray implements Serializable, Copyable<NDArray>, JsonSe
     * @param predicate the predicate to test
     * @return new NDArray with test results
     */
-   public abstract NDArray testi(DoublePredicate predicate);
+   public NDArray testi(DoublePredicate predicate) {
+      return mapi(v -> {
+         if (predicate.test(v)) {
+            return 1.0;
+         }
+         return 0d;
+      });
+   }
 
    /**
     * Compares entries in this NDArray with the given NDArray using the given comparison, setting entries to
@@ -1593,7 +1733,15 @@ public abstract class NDArray implements Serializable, Copyable<NDArray>, JsonSe
     * @param predicate the predicate
     * @return the NDArray with test results
     */
-   public abstract NDArray testi(NDArray rhs, DoubleBinaryPredicate predicate);
+   public NDArray testi(NDArray rhs, DoubleBinaryPredicate predicate) {
+      return mapi(rhs, (v1, v2) -> {
+         if (predicate.test(v1, v2)) {
+            return 1.0;
+         }
+         return 0d;
+      });
+   }
+
 
    /**
     * Converts the NDArray to double array
@@ -1678,4 +1826,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray>, JsonSe
       void apply(long index, double value);
 
    }
+
+   public abstract String toString(int maxSlices, int maxRows, int maxColumns);
+
 }//END OF NDArray

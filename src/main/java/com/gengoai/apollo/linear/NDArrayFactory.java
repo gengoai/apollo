@@ -23,7 +23,6 @@
 package com.gengoai.apollo.linear;
 
 import com.gengoai.config.Config;
-import org.jblas.DoubleMatrix;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -56,12 +55,12 @@ public enum NDArrayFactory {
 
       @Override
       public NDArray columnVector(double[] data) {
-         return new DenseMatrix(new DoubleMatrix(data.length, 1, data));
+         return getFactory().columnVector(data);
       }
 
       @Override
       public NDArray rowVector(double[] data) {
-         return new DenseMatrix(new DoubleMatrix(1, data.length, data));
+         return getFactory().rowVector(data);
       }
 
       @Override
@@ -75,6 +74,13 @@ public enum NDArrayFactory {
    DENSE {
       @Override
       public NDArray array(Shape shape) {
+         if (shape.isTensor()) {
+            Tensor tensor = new Tensor(shape);
+            for (int i = 0; i < shape.sliceLength; i++) {
+               tensor.slices[i] = new DenseMatrix(shape.rows(), shape.columns());
+            }
+            return tensor;
+         }
          return new DenseMatrix(shape);
       }
 
@@ -99,16 +105,24 @@ public enum NDArrayFactory {
 
       @Override
       public NDArray array(Shape shape) {
+         if (shape.isTensor()) {
+            Tensor tensor = new Tensor(shape);
+            for (int i = 0; i < shape.sliceLength; i++) {
+               tensor.slices[i] = new SparseMatrix(shape.rows(), shape.columns());
+            }
+            return tensor;
+         }
          return new SparseMatrix(shape);
       }
+
    };
 
-   public NDArray array(NDArray[] slices) {
-      return null;
+   public final NDArray array(NDArray[] slices) {
+      return array(0, slices.length, slices);
    }
 
    public NDArray array(int kernels, int channels, NDArray[] slices) {
-      return null;
+      return new Tensor(kernels, channels, slices);
    }
 
    /**

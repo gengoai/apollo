@@ -97,7 +97,6 @@ public class Shape implements Serializable, Copyable<Shape> {
          this.shape[3] = Math.max(1, this.shape[3]);
          this.sliceLength = Math.max(1, shape[0] * shape[1]);
          this.matrixLength = Math.max(1, shape[2] * shape[3]);
-
       } else {
          this.shape[2] = 1;
          this.shape[3] = 1;

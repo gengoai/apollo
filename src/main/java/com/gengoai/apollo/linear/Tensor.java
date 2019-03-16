@@ -22,11 +22,14 @@
 
 package com.gengoai.apollo.linear;
 
+import com.gengoai.Validation;
+import com.gengoai.string.Strings;
 import org.jblas.DoubleMatrix;
 
+import java.util.function.BiFunction;
 import java.util.function.DoubleBinaryOperator;
-import java.util.function.DoublePredicate;
 import java.util.function.DoubleUnaryOperator;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 /**
@@ -41,115 +44,14 @@ public class Tensor extends NDArray {
       this.slices = slices;
    }
 
-   private Tensor(Shape shape) {
+   public Tensor(Shape shape) {
       super(shape);
       this.slices = new NDArray[shape.sliceLength];
    }
 
    @Override
    public NDArray T() {
-      Tensor tensor = new Tensor(Shape.shape(kernels(), channels(), columns(), rows()));
-      for (int i = 0; i < slices.length; i++) {
-         tensor.slices[i] = slices[i].T();
-      }
-      return tensor;
-   }
-
-
-   private void check(Shape shape) {
-      if (shape.sliceLength > 1 && shape.sliceLength != shape().sliceLength) {
-         throw new IllegalArgumentException(
-            "Invalid Slice Length: " + shape.sliceLength + " != " + shape().sliceLength);
-      }
-      if (shape.matrixLength != shape().matrixLength) {
-         throw new IllegalArgumentException(
-            "Invalid Matrix Length: " + shape.matrixLength + " != " + shape().matrixLength);
-      }
-   }
-
-   private void check(int target, Shape shape) {
-      if (shape.sliceLength > 1 && shape.sliceLength != shape().sliceLength) {
-         throw new IllegalArgumentException(
-            "Invalid Slice Length: " + shape.sliceLength + " != " + shape().sliceLength);
-      }
-      if (shape.matrixLength != target) {
-         throw new IllegalArgumentException(
-            "Invalid Matrix Length: " + shape.matrixLength + " != " + target);
-      }
-   }
-
-   @Override
-   public NDArray add(double value) {
-      Tensor tensor = new Tensor(shape);
-      for (int i = 0; i < slices.length; i++) {
-         tensor.slices[i] = slices[i].add(value);
-      }
-      return tensor;
-   }
-
-   @Override
-   public NDArray add(NDArray rhs) {
-      check(rhs.shape);
-      Tensor tensor = new Tensor(shape);
-      for (int i = 0; i < slices.length; i++) {
-         tensor.slices[i] = slices[i].add(rhs.slice(i));
-      }
-      return tensor;
-   }
-
-   @Override
-   public NDArray addColumnVector(NDArray rhs) {
-      check(shape.rows(), rhs.shape);
-      Tensor tensor = new Tensor(shape);
-      for (int i = 0; i < slices.length; i++) {
-         tensor.slices[i] = slices[i].addColumnVector(rhs.slice(i));
-      }
-      return tensor;
-   }
-
-   @Override
-   public NDArray addRowVector(NDArray rhs) {
-      check(shape.columns(), rhs.shape);
-      Tensor tensor = new Tensor(shape);
-      for (int i = 0; i < slices.length; i++) {
-         tensor.slices[i] = slices[i].addRowVector(rhs.slice(i));
-      }
-      return tensor;
-   }
-
-   @Override
-   public NDArray addi(double value) {
-      for (NDArray slice : slices) {
-         slice.addi(value);
-      }
-      return this;
-   }
-
-   @Override
-   public NDArray addi(NDArray rhs) {
-      check(rhs.shape);
-      for (int i = 0; i < slices.length; i++) {
-         slices[i].addi(rhs.slice(i));
-      }
-      return this;
-   }
-
-   @Override
-   public NDArray addiColumnVector(NDArray rhs) {
-      check(rows(), rhs.shape);
-      for (int i = 0; i < slices.length; i++) {
-         slices[i].addiColumnVector(rhs.slice(i));
-      }
-      return this;
-   }
-
-   @Override
-   public NDArray addiRowVector(NDArray rhs) {
-      check(columns(), rhs.shape);
-      for (int i = 0; i < slices.length; i++) {
-         slices[i].addiRowVector(rhs.slice(i));
-      }
-      return this;
+      return mapSlices(NDArray::T);
    }
 
    @Override
@@ -182,141 +84,66 @@ public class Tensor extends NDArray {
       return index;
    }
 
+   private void check(Shape shape) {
+      if (shape.sliceLength > 1 && shape.sliceLength != shape().sliceLength) {
+         throw new IllegalArgumentException(
+            "Invalid Slice Length: " + shape.sliceLength + " != " + shape().sliceLength);
+      }
+      if (shape.matrixLength != shape().matrixLength) {
+         throw new IllegalArgumentException(
+            "Invalid Matrix Length: " + shape.matrixLength + " != " + shape().matrixLength);
+      }
+   }
+
+   private void check(int target, Shape shape) {
+      if (shape.sliceLength > 1 && shape.sliceLength != shape().sliceLength) {
+         throw new IllegalArgumentException(
+            "Invalid Slice Length: " + shape.sliceLength + " != " + shape().sliceLength);
+      }
+      if (shape.matrixLength != target) {
+         throw new IllegalArgumentException(
+            "Invalid Matrix Length: " + shape.matrixLength + " != " + target);
+      }
+   }
+
    @Override
    public NDArray columnArgmaxs() {
-      Tensor tensor = new Tensor(Shape.shape(kernels(), channels(), 1, columns()));
-      for (int i = 0; i < slices.length; i++) {
-         tensor.slices[i] = slices[i].columnArgmaxs();
-      }
-      return tensor;
+      return mapSlices(NDArray::columnArgmaxs);
    }
 
    @Override
    public NDArray columnArgmins() {
-      Tensor tensor = new Tensor(Shape.shape(kernels(), channels(), 1, columns()));
-      for (int i = 0; i < slices.length; i++) {
-         tensor.slices[i] = slices[i].columnArgmins();
-      }
-      return tensor;
+      return mapSlices(NDArray::columnArgmins);
    }
 
    @Override
    public NDArray columnMaxs() {
-      Tensor tensor = new Tensor(Shape.shape(kernels(), channels(), 1, columns()));
-      for (int i = 0; i < slices.length; i++) {
-         tensor.slices[i] = slices[i].columnMaxs();
-      }
-      return tensor;
+      return mapSlices(NDArray::columnMaxs);
    }
 
    @Override
    public NDArray columnMins() {
-      Tensor tensor = new Tensor(Shape.shape(kernels(), channels(), 1, columns()));
-      for (int i = 0; i < slices.length; i++) {
-         tensor.slices[i] = slices[i].columnMins();
-      }
-      return tensor;
+      return mapSlices(NDArray::columnMins);
    }
 
    @Override
    public NDArray columnSums() {
-      Tensor tensor = new Tensor(Shape.shape(kernels(), channels(), 1, columns()));
-      for (int i = 0; i < slices.length; i++) {
-         tensor.slices[i] = slices[i].columnSums();
-      }
-      return tensor;
+      return mapSlices(NDArray::columnSums);
    }
 
    @Override
    public NDArray compact() {
-      for (int i = 0; i < slices.length; i++) {
-         slices[i].compact();
+      for (NDArray slice : slices) {
+         slice.compact();
       }
       return this;
    }
 
    @Override
    public NDArray diag() {
-      Tensor tensor = new Tensor(Shape.shape(kernels(), channels(), rows(), columns()));
-      for (int i = 0; i < slices.length; i++) {
-         tensor.slices[i] = slices[i].diag();
-      }
-      return tensor;
+      return mapSlices(NDArray::diag);
    }
 
-   @Override
-   public NDArray div(NDArray rhs) {
-      check(rhs.shape);
-      Tensor tensor = new Tensor(shape);
-      for (int i = 0; i < slices.length; i++) {
-         tensor.slices[i] = slices[i].div(rhs.slice(i));
-      }
-      return tensor;
-   }
-
-   @Override
-   public NDArray div(double value) {
-      Tensor tensor = new Tensor(shape);
-      for (int i = 0; i < slices.length; i++) {
-         tensor.slices[i] = slices[i].div(value);
-      }
-      return tensor;
-   }
-
-   @Override
-   public NDArray divColumnVector(NDArray rhs) {
-      check(rows(), rhs.shape);
-      Tensor tensor = new Tensor(shape);
-      for (int i = 0; i < slices.length; i++) {
-         tensor.slices[i] = slices[i].divColumnVector(rhs.slice(i));
-      }
-      return tensor;
-   }
-
-   @Override
-   public NDArray divRowVector(NDArray rhs) {
-      check(rows(), rhs.shape);
-      Tensor tensor = new Tensor(shape);
-      for (int i = 0; i < slices.length; i++) {
-         tensor.slices[i] = slices[i].divRowVector(rhs.slice(i));
-      }
-      return tensor;
-   }
-
-   @Override
-   public NDArray divi(NDArray rhs) {
-      check(rhs.shape);
-      for (int i = 0; i < slices.length; i++) {
-         slices[i].divi(rhs.slice(i));
-      }
-      return this;
-   }
-
-   @Override
-   public NDArray divi(double value) {
-      for (NDArray slice : slices) {
-         slice.divi(value);
-      }
-      return this;
-   }
-
-   @Override
-   public NDArray diviColumnVector(NDArray rhs) {
-      check(rows(), rhs.shape);
-      for (int i = 0; i < slices.length; i++) {
-         slices[i].diviColumnVector(rhs.slice(i));
-      }
-      return this;
-   }
-
-   @Override
-   public NDArray diviRowVector(NDArray rhs) {
-      check(columns(), rhs.shape);
-      for (int i = 0; i < slices.length; i++) {
-         slices[i].diviRowVector(rhs.slice(i));
-      }
-      return this;
-   }
 
    @Override
    public double dot(NDArray rhs) {
@@ -330,10 +157,7 @@ public class Tensor extends NDArray {
 
    @Override
    public NDArray fill(double value) {
-      for (NDArray slice : slices) {
-         slice.fill(value);
-      }
-      return this;
+      return mapiSlices(v -> v.fill(value));
    }
 
    @Override
@@ -366,65 +190,37 @@ public class Tensor extends NDArray {
 
    @Override
    public NDArray getColumn(int column) {
-      Tensor tensor = new Tensor(Shape.shape(kernels(), channels(), rows(), 1));
-      for (int i = 0; i < slices.length; i++) {
-         tensor.slices[i] = slices[i].getColumn(column);
-      }
-      return tensor;
+      return mapSlices(n -> n.getRow(column));
    }
 
    @Override
    public NDArray getColumns(int[] columns) {
-      NDArray[] out = new NDArray[shape.sliceLength];
-      for (int i = 0; i < slices.length; i++) {
-         out[i] = slices[i].getColumns(columns);
-      }
-      return new Tensor(kernels(), channels(), out);
+      return mapSlices(n -> n.getColumns(columns));
    }
 
    @Override
    public NDArray getColumns(int from, int to) {
-      NDArray[] out = new NDArray[shape.sliceLength];
-      for (int i = 0; i < slices.length; i++) {
-         out[i] = slices[i].getColumns(from, to);
-      }
-      return new Tensor(kernels(), channels(), out);
+      return mapSlices(n -> n.getColumns(from, to));
    }
 
    @Override
    public NDArray getRow(int row) {
-      NDArray[] out = new NDArray[shape.sliceLength];
-      for (int i = 0; i < slices.length; i++) {
-         out[i] = slices[i].getRow(row);
-      }
-      return new Tensor(kernels(), channels(), out);
+      return mapSlices(n -> n.getRow(row));
    }
 
    @Override
    public NDArray getRows(int[] rows) {
-      NDArray[] out = new NDArray[shape.sliceLength];
-      for (int i = 0; i < slices.length; i++) {
-         out[i] = slices[i].getRows(rows);
-      }
-      return new Tensor(kernels(), channels(), out);
+      return mapSlices(n -> n.getRows(rows));
    }
 
    @Override
    public NDArray getRows(int from, int to) {
-      NDArray[] out = new NDArray[shape.sliceLength];
-      for (int i = 0; i < slices.length; i++) {
-         out[i] = slices[i].getRows(from, to);
-      }
-      return new Tensor(kernels(), channels(), out);
+      return mapSlices(n -> n.getRows(from, to));
    }
 
    @Override
    public NDArray getSubMatrix(int fromRow, int toRow, int fromCol, int toCol) {
-      NDArray[] out = new NDArray[shape.sliceLength];
-      for (int i = 0; i < slices.length; i++) {
-         out[i] = slices[i].getSubMatrix(fromRow, toRow, fromCol, toCol);
-      }
-      return new Tensor(kernels(), channels(), out);
+      return mapSlices(n -> n.getSubMatrix(fromRow, toRow, fromCol, toCol));
    }
 
    @Override
@@ -480,6 +276,23 @@ public class Tensor extends NDArray {
       return new Tensor(kernels(), channels(), out);
    }
 
+   private NDArray mapSlices(Function<NDArray, NDArray> operator) {
+      NDArray[] out = new NDArray[shape.sliceLength];
+      for (int i = 0; i < slices.length; i++) {
+         out[i] = operator.apply(slices[i]);
+      }
+      return new Tensor(kernels(), channels(), out);
+   }
+
+   private NDArray mapSlices(NDArray o, BiFunction<NDArray, NDArray, NDArray> operator) {
+      check(o.shape);
+      NDArray[] out = new NDArray[shape.sliceLength];
+      for (int i = 0; i < slices.length; i++) {
+         out[i] = operator.apply(slices[i], o.slice(i));
+      }
+      return new Tensor(kernels(), channels(), out);
+   }
+
    @Override
    public NDArray mapi(DoubleUnaryOperator operator) {
       for (NDArray slice : slices) {
@@ -523,6 +336,13 @@ public class Tensor extends NDArray {
       return this;
    }
 
+   private NDArray mapiSlices(Function<NDArray, NDArray> operator) {
+      for (NDArray slice : slices) {
+         operator.apply(slice);
+      }
+      return this;
+   }
+
    @Override
    public double max() {
       return Stream.of(slices).mapToDouble(NDArray::max).max().orElse(Double.NEGATIVE_INFINITY);
@@ -535,86 +355,7 @@ public class Tensor extends NDArray {
 
    @Override
    public NDArray mmul(NDArray rhs) {
-      check(rhs.shape);
-      NDArray[] out = new NDArray[shape.sliceLength];
-      for (int i = 0; i < slices.length; i++) {
-         out[i] = slices[i].mmul(rhs.slice(i));
-      }
-      return new Tensor(kernels(), channels(), out);
-   }
-
-   @Override
-   public NDArray mul(NDArray rhs) {
-      check(rhs.shape);
-      NDArray[] out = new NDArray[shape.sliceLength];
-      for (int i = 0; i < slices.length; i++) {
-         out[i] = slices[i].mul(rhs.slice(i));
-      }
-      return new Tensor(kernels(), channels(), out);
-   }
-
-   @Override
-   public NDArray mul(double value) {
-      NDArray[] out = new NDArray[shape.sliceLength];
-      for (int i = 0; i < slices.length; i++) {
-         out[i] = slices[i].mul(value);
-      }
-      return new Tensor(kernels(), channels(), out);
-   }
-
-   @Override
-   public NDArray mulColumnVector(NDArray rhs) {
-      check(rows(), rhs.shape);
-      NDArray[] out = new NDArray[shape.sliceLength];
-      for (int i = 0; i < slices.length; i++) {
-         out[i] = slices[i].mulColumnVector(rhs.slice(i));
-      }
-      return new Tensor(kernels(), channels(), out);
-   }
-
-   @Override
-   public NDArray mulRowVector(NDArray rhs) {
-      check(columns(), rhs.shape);
-      NDArray[] out = new NDArray[shape.sliceLength];
-      for (int i = 0; i < slices.length; i++) {
-         out[i] = slices[i].mulRowVector(rhs.slice(i));
-      }
-      return new Tensor(kernels(), channels(), out);
-   }
-
-   @Override
-   public NDArray muli(NDArray rhs) {
-      check(rhs.shape);
-      for (int i = 0; i < slices.length; i++) {
-         slices[i].muli(rhs.slice(i));
-      }
-      return this;
-   }
-
-   @Override
-   public NDArray muli(double value) {
-      for (NDArray slice : slices) {
-         slice.muli(value);
-      }
-      return this;
-   }
-
-   @Override
-   public NDArray muliColumnVector(NDArray rhs) {
-      check(rows(), rhs.shape);
-      for (int i = 0; i < slices.length; i++) {
-         slices[i].muliColumnVector(rhs.slice(i));
-      }
-      return this;
-   }
-
-   @Override
-   public NDArray muliRowVector(NDArray rhs) {
-      check(columns(), rhs.shape);
-      for (int i = 0; i < slices.length; i++) {
-         slices[i].muliRowVector(rhs.slice(i));
-      }
-      return this;
+      return mapSlices(rhs, NDArray::mmul);
    }
 
    @Override
@@ -629,51 +370,7 @@ public class Tensor extends NDArray {
 
    @Override
    public NDArray pivot() {
-      NDArray[] out = new NDArray[shape.sliceLength];
-      for (int i = 0; i < slices.length; i++) {
-         out[i] = slices[i].pivot();
-      }
-      return new Tensor(kernels(), channels(), out);
-   }
-
-   @Override
-   public NDArray rdiv(NDArray rhs) {
-      return null;
-   }
-
-   @Override
-   public NDArray rdiv(double value) {
-      return null;
-   }
-
-   @Override
-   public NDArray rdivColumnVector(NDArray rhs) {
-      return null;
-   }
-
-   @Override
-   public NDArray rdivRowVector(NDArray rhs) {
-      return null;
-   }
-
-   @Override
-   public NDArray rdivi(NDArray rhs) {
-      return null;
-   }
-
-   @Override
-   public NDArray rdivi(double value) {
-      return null;
-   }
-
-   @Override
-   public NDArray rdiviColumnVector(NDArray rhs) {
-      return null;
-   }
-
-   @Override
-   public NDArray rdiviRowVector(NDArray rhs) {
-      return null;
+      return mapSlices(NDArray::pivot);
    }
 
    @Override
@@ -683,276 +380,205 @@ public class Tensor extends NDArray {
 
    @Override
    public NDArray rowArgmaxs() {
-      return null;
+      return mapSlices(NDArray::rowArgmaxs);
    }
 
    @Override
    public NDArray rowArgmins() {
-      return null;
+      return mapSlices(NDArray::rowArgmins);
    }
 
    @Override
    public NDArray rowMaxs() {
-      return null;
+      return mapSlices(NDArray::rowMaxs);
    }
 
    @Override
    public NDArray rowMins() {
-      return null;
+      return mapSlices(NDArray::rowMins);
    }
 
    @Override
    public NDArray rowSums() {
-      return null;
-   }
-
-   @Override
-   public NDArray rsub(NDArray rhs) {
-      return null;
-   }
-
-   @Override
-   public NDArray rsub(double value) {
-      return null;
-   }
-
-   @Override
-   public NDArray rsubColumnVector(NDArray rhs) {
-      return null;
-   }
-
-   @Override
-   public NDArray rsubRowVector(NDArray rhs) {
-      return null;
-   }
-
-   @Override
-   public NDArray rsubi(NDArray rhs) {
-      return null;
-   }
-
-   @Override
-   public NDArray rsubi(double value) {
-      return null;
-   }
-
-   @Override
-   public NDArray rsubiColumnVector(NDArray rhs) {
-      return null;
-   }
-
-   @Override
-   public NDArray rsubiRowVector(NDArray rhs) {
-      return null;
-   }
-
-   @Override
-   public NDArray select(DoublePredicate predicate) {
-      return null;
-   }
-
-   @Override
-   public NDArray select(NDArray rhs) {
-      return null;
-   }
-
-   @Override
-   public NDArray selecti(DoublePredicate predicate) {
-      return null;
-   }
-
-   @Override
-   public NDArray selecti(NDArray rhs) {
-      return null;
+      return mapSlices(NDArray::rowSums);
    }
 
    @Override
    public NDArray set(long i, double value) {
-      return null;
+      return slices[shape.toSliceIndex(i)].set(shape.toMatrixIndex(i), value);
    }
 
    @Override
    public NDArray set(int row, int col, double value) {
-      return null;
+      return slices[0].set(row, col, value);
    }
 
    @Override
    public NDArray set(int channel, int row, int col, double value) {
-      return null;
+      return slices[shape.sliceIndex(0, channel)].set(row, col, value);
    }
 
    @Override
    public NDArray set(int kernel, int channel, int row, int col, double value) {
-      return null;
+      return slices[shape.sliceIndex(kernel, channel)].set(row, col, value);
    }
 
    @Override
    public NDArray setColumn(int i, NDArray array) {
-      return null;
+      check(rows(), array.shape);
+      for (int j = 0; j < slices.length; j++) {
+         slices[j].setColumn(i, array.slice(j));
+      }
+      return this;
    }
 
    @Override
    public NDArray setRow(int i, NDArray array) {
-      return null;
+      check(columns(), array.shape);
+      for (int j = 0; j < slices.length; j++) {
+         slices[j].setRow(i, array.slice(j));
+      }
+      return this;
    }
 
    @Override
    public NDArray setSlice(int slice, NDArray array) {
-      return null;
-   }
-
-   @Override
-   public Shape shape() {
-      return null;
-   }
-
-   @Override
-   public long size() {
-      return 0;
+      Validation.checkArgument(array.shape.sliceLength == 1,
+                               "Invalid Slice Length: " + array.shape.sliceLength + " > 1");
+      check(array.shape);
+      return slices[slice] = array;
    }
 
    @Override
    public NDArray slice(int slice) {
-      return null;
+      return slices[slice];
    }
 
    @Override
    public NDArray sliceArgmaxs() {
-      return null;
+      return mapSlices(NDArray::sliceArgmaxs);
    }
 
    @Override
    public NDArray sliceArgmins() {
-      return null;
+      return mapSlices(NDArray::sliceArgmins);
    }
 
    @Override
    public NDArray sliceDot(NDArray rhs) {
-      return null;
+      return mapSlices(rhs, NDArray::sliceDot);
    }
 
    @Override
    public NDArray sliceMaxs() {
-      return null;
+      return mapSlices(NDArray::sliceMaxs);
    }
 
    @Override
    public NDArray sliceMeans() {
-      return null;
+      return mapSlices(NDArray::sliceMeans);
    }
 
    @Override
    public NDArray sliceMins() {
-      return null;
+      return mapSlices(NDArray::sliceMeans);
    }
 
    @Override
    public NDArray sliceNorm1() {
-      return null;
+      return mapSlices(NDArray::sliceNorm1);
    }
 
    @Override
    public NDArray sliceNorm2() {
-      return null;
+      return mapSlices(NDArray::sliceNorm2);
    }
 
    @Override
    public NDArray sliceSumOfSquares() {
-      return null;
+      return mapSlices(NDArray::sliceSumOfSquares);
    }
 
    @Override
    public NDArray sliceSums() {
-      return null;
-   }
-
-   @Override
-   public NDArray sub(NDArray rhs) {
-      return null;
-   }
-
-   @Override
-   public NDArray sub(double value) {
-      return null;
-   }
-
-   @Override
-   public NDArray subColumnVector(NDArray rhs) {
-      return null;
-   }
-
-   @Override
-   public NDArray subRowVector(NDArray rhs) {
-      return null;
-   }
-
-   @Override
-   public NDArray subi(NDArray rhs) {
-      return null;
-   }
-
-   @Override
-   public NDArray subi(double value) {
-      return null;
-   }
-
-   @Override
-   public NDArray subiColumnVector(NDArray rhs) {
-      return null;
-   }
-
-   @Override
-   public NDArray subiRowVector(NDArray rhs) {
-      return null;
+      return mapSlices(NDArray::sliceSums);
    }
 
    @Override
    public double sum() {
-      return 0;
+      return Stream.of(slices).mapToDouble(NDArray::sum).sum();
    }
 
    @Override
    public double sumOfSquares() {
-      return 0;
-   }
-
-   @Override
-   public NDArray test(DoublePredicate predicate) {
-      return null;
-   }
-
-   @Override
-   public NDArray test(NDArray rhs, DoubleBinaryPredicate predicate) {
-      return null;
-   }
-
-   @Override
-   public NDArray testi(DoublePredicate predicate) {
-      return null;
-   }
-
-   @Override
-   public NDArray testi(NDArray rhs, DoubleBinaryPredicate predicate) {
-      return null;
+      return Stream.of(slices).mapToDouble(NDArray::sumOfSquares).sum();
    }
 
    @Override
    public double[] toDoubleArray() {
-      return new double[0];
+      throw new UnsupportedOperationException();
    }
 
    @Override
    public DoubleMatrix[] toDoubleMatrix() {
-      return new DoubleMatrix[0];
+      DoubleMatrix[] out = new DoubleMatrix[shape.sliceLength];
+      for (int i = 0; i < slices.length; i++) {
+         out[i] = slices[i].toDoubleMatrix()[0];
+      }
+      return out;
    }
 
    @Override
    public NDArray unitize() {
-      return null;
+      return mapiSlices(NDArray::unitize);
    }
 
    @Override
    public NDArray zeroLike() {
-      return null;
+      return isDense() ? NDArrayFactory.DENSE.array(shape) : NDArrayFactory.SPARSE.array(shape);
    }
+
+
+   @Override
+   public String toString() {
+      return toString(Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE);
+   }
+
+   /**
+    * Creates string representation of the NDArray with the given number of max slices, rows, and columns
+    *
+    * @param maxSlices  the max slices
+    * @param maxRows    the max rows
+    * @param maxColumns the max columns
+    * @return the string
+    */
+   public String toString(int maxSlices, int maxRows, int maxColumns) {
+      StringBuilder builder = new StringBuilder("[");
+      builder.append(slice(0).toString(1, maxRows, maxColumns));
+      int half = maxSlices / 2;
+      boolean firstHalf = true;
+      for (int i = 1; i < shape.sliceLength; i++) {
+         builder.append(",");
+         if (i > half && firstHalf) {
+            firstHalf = false;
+            int ni = Math.max(shape.sliceLength - half, i + 1);
+            if (ni > i + 1) {
+               String outDot = Strings.repeat(Strings.padStart(".", 8, ' '), Math.min(columns(), maxColumns + 2));
+               builder.append(System.lineSeparator())
+                      .append(System.lineSeparator()).append(outDot)
+                      .append(System.lineSeparator()).append(outDot)
+                      .append(System.lineSeparator()).append(outDot)
+                      .append(System.lineSeparator())
+                      .append(System.lineSeparator());
+            }
+            i = ni;
+         }
+         builder.append(System.lineSeparator())
+                .append(" ")
+                .append(slice(0).toString(1, maxRows, maxColumns));
+      }
+      return builder.append("]").toString();
+   }
+
+
 }//END OF Tensor

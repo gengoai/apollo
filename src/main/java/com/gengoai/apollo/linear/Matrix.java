@@ -24,11 +24,9 @@ package com.gengoai.apollo.linear;
 
 import com.gengoai.Validation;
 import com.gengoai.conversion.Cast;
-import com.gengoai.math.Operator;
 
 import java.util.Arrays;
 import java.util.function.DoubleBinaryOperator;
-import java.util.function.DoublePredicate;
 import java.util.stream.IntStream;
 
 /**
@@ -71,52 +69,6 @@ public abstract class Matrix extends NDArray {
       if (dim != s2.matrixLength) {
          throw new IllegalArgumentException("Length Mismatch: " + s2.matrixLength + " != " + dim);
       }
-   }
-
-   @Override
-   public NDArray add(NDArray rhs) {
-      return map(rhs, Operator::add);
-   }
-
-   @Override
-   public NDArray add(double value) {
-      if (value == 0) {
-         return copy();
-      }
-      return map(value, Operator::add);
-   }
-
-   @Override
-   public NDArray addColumnVector(NDArray rhs) {
-      return mapColumn(rhs, Operator::add);
-   }
-
-   @Override
-   public NDArray addRowVector(NDArray rhs) {
-      return mapRow(rhs, Operator::add);
-   }
-
-   @Override
-   public NDArray addi(NDArray rhs) {
-      return mapi(rhs, Operator::add);
-   }
-
-   @Override
-   public NDArray addi(double value) {
-      if (value == 0) {
-         return this;
-      }
-      return mapi(value, Operator::add);
-   }
-
-   @Override
-   public NDArray addiColumnVector(NDArray rhs) {
-      return mapiColumn(rhs, Operator::add);
-   }
-
-   @Override
-   public NDArray addiRowVector(NDArray rhs) {
-      return mapiRow(rhs, Operator::add);
    }
 
    @Override
@@ -258,46 +210,6 @@ public abstract class Matrix extends NDArray {
    }
 
    @Override
-   public NDArray div(NDArray rhs) {
-      return map(rhs, Operator::divide);
-   }
-
-   @Override
-   public NDArray div(double value) {
-      return map(value, Operator::divide);
-   }
-
-   @Override
-   public NDArray divColumnVector(NDArray rhs) {
-      return mapColumn(rhs, Operator::divide);
-   }
-
-   @Override
-   public NDArray divRowVector(NDArray rhs) {
-      return mapRow(rhs, Operator::divide);
-   }
-
-   @Override
-   public NDArray divi(NDArray rhs) {
-      return mapi(rhs, Operator::divide);
-   }
-
-   @Override
-   public NDArray divi(double value) {
-      return mapi(value, Operator::divide);
-   }
-
-   @Override
-   public NDArray diviColumnVector(NDArray rhs) {
-      return mapiColumn(rhs, Operator::divide);
-   }
-
-   @Override
-   public NDArray diviRowVector(NDArray rhs) {
-      return mapiRow(rhs, Operator::divide);
-   }
-
-   @Override
    public boolean equals(Object o) {
       if (o instanceof Matrix) {
          return Arrays.equals(toDoubleArray(), Cast.<Matrix>as(o).toDoubleArray());
@@ -307,6 +219,9 @@ public abstract class Matrix extends NDArray {
 
    @Override
    public NDArray fill(double value) {
+      if (value == 0) {
+         return zero();
+      }
       for (int i = 0; i < shape.matrixLength; i++) {
          set(i, value);
       }
@@ -482,46 +397,6 @@ public abstract class Matrix extends NDArray {
    }
 
    @Override
-   public NDArray mul(NDArray rhs) {
-      return map(rhs, Operator::multiply);
-   }
-
-   @Override
-   public NDArray mul(double value) {
-      return map(value, Operator::multiply);
-   }
-
-   @Override
-   public NDArray mulColumnVector(NDArray rhs) {
-      return mapColumn(rhs, Operator::multiply);
-   }
-
-   @Override
-   public NDArray mulRowVector(NDArray rhs) {
-      return mapRow(rhs, Operator::multiply);
-   }
-
-   @Override
-   public NDArray muli(NDArray rhs) {
-      return mapi(rhs, Operator::multiply);
-   }
-
-   @Override
-   public NDArray muli(double value) {
-      return mapi(value, Operator::multiply);
-   }
-
-   @Override
-   public NDArray muliColumnVector(NDArray rhs) {
-      return mapiColumn(rhs, Operator::multiply);
-   }
-
-   @Override
-   public NDArray muliRowVector(NDArray rhs) {
-      return mapiRow(rhs, Operator::multiply);
-   }
-
-   @Override
    public double norm1() {
       double sum = 0;
       for (int i = 0; i < shape.matrixLength; i++) {
@@ -558,46 +433,6 @@ public abstract class Matrix extends NDArray {
          return p;
       }
       throw new IllegalArgumentException("Only square slices supported");
-   }
-
-   @Override
-   public NDArray rdiv(NDArray lhs) {
-      return map(lhs, (v1, v2) -> v2 / v1);
-   }
-
-   @Override
-   public NDArray rdiv(double value) {
-      return map(value, (v1, v2) -> v2 / v1);
-   }
-
-   @Override
-   public NDArray rdivColumnVector(NDArray rhs) {
-      return mapColumn(rhs, (v1, v2) -> v2 / v1);
-   }
-
-   @Override
-   public NDArray rdivRowVector(NDArray rhs) {
-      return mapRow(rhs, (v1, v2) -> v2 / v1);
-   }
-
-   @Override
-   public NDArray rdivi(NDArray lhs) {
-      return mapi(lhs, (v1, v2) -> v2 / v1);
-   }
-
-   @Override
-   public NDArray rdivi(double value) {
-      return mapi(value, (v1, v2) -> v2 / v1);
-   }
-
-   @Override
-   public NDArray rdiviColumnVector(NDArray rhs) {
-      return mapiColumn(rhs, (v1, v2) -> v2 / v1);
-   }
-
-   @Override
-   public NDArray rdiviRowVector(NDArray rhs) {
-      return mapiRow(rhs, (v1, v2) -> v2 / v1);
    }
 
    @Override
@@ -675,65 +510,6 @@ public abstract class Matrix extends NDArray {
       return array;
    }
 
-   @Override
-   public NDArray rsub(NDArray lhs) {
-      return map(lhs, (v1, v2) -> v2 - v1);
-   }
-
-   @Override
-   public NDArray rsub(double value) {
-      return map(value, (v1, v2) -> v2 - v1);
-   }
-
-   @Override
-   public NDArray rsubColumnVector(NDArray rhs) {
-      return mapColumn(rhs, (v1, v2) -> v2 - v1);
-   }
-
-   @Override
-   public NDArray rsubRowVector(NDArray rhs) {
-      return mapRow(rhs, (v1, v2) -> v2 - v1);
-   }
-
-   @Override
-   public NDArray rsubi(NDArray lhs) {
-      return mapi(lhs, (v1, v2) -> v2 - v1);
-   }
-
-   @Override
-   public NDArray rsubi(double value) {
-      return mapi(value, (v1, v2) -> v2 - v1);
-   }
-
-   @Override
-   public NDArray rsubiColumnVector(NDArray rhs) {
-      return mapiColumn(rhs, (v1, v2) -> v2 - v1);
-   }
-
-   @Override
-   public NDArray rsubiRowVector(NDArray rhs) {
-      return mapiRow(rhs, (v1, v2) -> v2 - v1);
-   }
-
-   @Override
-   public NDArray select(DoublePredicate predicate) {
-      return map(v -> predicate.test(v) ? v : 0.0);
-   }
-
-   @Override
-   public NDArray select(NDArray rhs) {
-      return map(rhs, (v1, v2) -> v2 == 1.0 ? 1.0 : 0.0);
-   }
-
-   @Override
-   public NDArray selecti(DoublePredicate predicate) {
-      return mapi(v -> predicate.test(v) ? v : 0.0);
-   }
-
-   @Override
-   public NDArray selecti(NDArray rhs) {
-      return mapi(rhs, (v1, v2) -> v2 == 1.0 ? 1.0 : 0.0);
-   }
 
    @Override
    public NDArray set(int channel, int row, int col, double value) {
@@ -761,15 +537,6 @@ public abstract class Matrix extends NDArray {
       return this;
    }
 
-   @Override
-   public Shape shape() {
-      return shape;
-   }
-
-   @Override
-   public long size() {
-      return length();
-   }
 
    @Override
    public NDArray slice(int slice) {
@@ -827,46 +594,6 @@ public abstract class Matrix extends NDArray {
    }
 
    @Override
-   public NDArray sub(NDArray rhs) {
-      return map(rhs, Operator::subtract);
-   }
-
-   @Override
-   public NDArray sub(double value) {
-      return map(value, Operator::subtract);
-   }
-
-   @Override
-   public NDArray subColumnVector(NDArray rhs) {
-      return mapColumn(rhs, Operator::subtract);
-   }
-
-   @Override
-   public NDArray subRowVector(NDArray rhs) {
-      return mapRow(rhs, Operator::subtract);
-   }
-
-   @Override
-   public NDArray subi(NDArray rhs) {
-      return mapi(rhs, Operator::subtract);
-   }
-
-   @Override
-   public NDArray subi(double value) {
-      return mapi(value, Operator::subtract);
-   }
-
-   @Override
-   public NDArray subiColumnVector(NDArray rhs) {
-      return mapiColumn(rhs, Operator::subtract);
-   }
-
-   @Override
-   public NDArray subiRowVector(NDArray rhs) {
-      return mapiRow(rhs, Operator::subtract);
-   }
-
-   @Override
    public double sumOfSquares() {
       double sum = 0;
       for (int i = 0; i < shape.matrixLength; i++) {
@@ -875,51 +602,10 @@ public abstract class Matrix extends NDArray {
       return sum;
    }
 
-   @Override
-   public NDArray test(DoublePredicate predicate) {
-      return map(v -> {
-         if (predicate.test(v)) {
-            return 1.0;
-         }
-         return 0d;
-      });
-   }
-
-   @Override
-   public NDArray test(NDArray rhs, DoubleBinaryPredicate predicate) {
-      checkLength(shape, rhs.shape());
-      return map(rhs, (v1, v2) -> {
-         if (predicate.test(v1, v2)) {
-            return 1.0;
-         }
-         return 0d;
-      });
-   }
-
-   @Override
-   public NDArray testi(DoublePredicate predicate) {
-      return mapi(v -> {
-         if (predicate.test(v)) {
-            return 1.0;
-         }
-         return 0d;
-      });
-   }
-
-   @Override
-   public NDArray testi(NDArray rhs, DoubleBinaryPredicate predicate) {
-      checkLength(shape, rhs.shape());
-      return mapi(rhs, (v1, v2) -> {
-         if (predicate.test(v1, v2)) {
-            return 1.0;
-         }
-         return 0d;
-      });
-   }
 
    @Override
    public String toString() {
-      return Arrays.toString(toDoubleArray());
+      return toString(Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE);
    }
 
    @Override
@@ -939,6 +625,62 @@ public abstract class Matrix extends NDArray {
                                                + shape.sliceLength);
       }
       return true;
+   }
+
+
+   @Override
+   public String toString(int maxSlices, int maxRows, int maxColumns) {
+      StringBuilder builder = new StringBuilder("[");
+
+      if (shape.isVector()) {
+         for (long i = 0; i < length(); i++) {
+            if (i > 0) {
+               builder.append(", ");
+            }
+            builder.append(get((int) i));
+         }
+         return builder.append("]").toString();
+      }
+
+      builder.append(rowToString(0, maxColumns));
+      int half = maxRows / 2;
+      boolean firstHalf = true;
+      for (int i = 1; i < rows(); i++) {
+         builder.append(",");
+         if (i > half && firstHalf) {
+            firstHalf = false;
+            int ni = Math.max(rows() - half, i + 1);
+            if (ni > i + 1) {
+               builder.append(System.lineSeparator())
+                      .append("     ...")
+                      .append(System.lineSeparator());
+            }
+            i = ni;
+         }
+         builder.append(System.lineSeparator())
+                .append("  ")
+                .append(rowToString(i, maxColumns));
+      }
+      return builder.append("]").toString();
+   }
+
+   private String rowToString(int i, int maxC) {
+      StringBuilder builder = new StringBuilder("[");
+      builder.append(decimalFormatter.format(get(i, 0)));
+      int half = maxC / 2;
+      boolean firstHalf = true;
+      for (int j = 1; j < columns(); j++) {
+         if (j > half && firstHalf) {
+            firstHalf = false;
+            int nj = Math.max(columns() - half, j + 1);
+            if (nj > j + 1) {
+               builder.append(", ...");
+            }
+            j = nj;
+         }
+         builder.append(", ").append(decimalFormatter.format(get(i, j)));
+      }
+      return builder.append("]").toString();
    }
 
 }//END OF NDArray

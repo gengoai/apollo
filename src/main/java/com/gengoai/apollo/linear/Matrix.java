@@ -39,7 +39,7 @@ import java.util.stream.IntStream;
 public abstract class Matrix extends NDArray {
    private static final long serialVersionUID = 1L;
 
-   private Matrix(Shape shape) {
+   protected Matrix(Shape shape) {
       super(shape);
    }
 

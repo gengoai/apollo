@@ -22,9 +22,9 @@
 
 package com.gengoai.apollo.ml.embedding;
 
-import com.gengoai.apollo.linear.VectorComposition;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
+import com.gengoai.apollo.linear.VectorComposition;
 import com.gengoai.apollo.ml.DiscreteModel;
 import com.gengoai.apollo.ml.DiscretePipeline;
 import com.gengoai.apollo.ml.Example;
@@ -32,6 +32,7 @@ import com.gengoai.apollo.ml.FitParameters;
 import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
 import com.gengoai.apollo.ml.vectorizer.CountFeatureVectorizer;
+import com.gengoai.apollo.ml.vectorizer.NoOptVectorizer;
 import com.gengoai.collection.Streams;
 import com.gengoai.conversion.Cast;
 import com.gengoai.io.resource.Resource;
@@ -74,6 +75,11 @@ public class Embedding extends DiscreteModel {
     */
    public Embedding(DiscretePipeline modelParameters) {
       super(modelParameters);
+   }
+
+   public Embedding(int dim) {
+      super(DiscretePipeline.unsupervised(NoOptVectorizer.INSTANCE));
+      this.vectorIndex = new DefaultVectorIndex(dim);
    }
 
    /**

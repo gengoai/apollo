@@ -35,6 +35,7 @@ import java.util.stream.Stream;
 public class DefaultVectorIndex implements VectorIndex, Serializable {
    private static final long serialVersionUID = 1L;
    private final NDArray[] vectors;
+   private final int dimension;
 
    /**
     * Instantiates a new Default vector index.
@@ -43,7 +44,14 @@ public class DefaultVectorIndex implements VectorIndex, Serializable {
     */
    public DefaultVectorIndex(NDArray[] vectors) {
       this.vectors = vectors;
+      this.dimension = (int) vectors[0].length();
    }
+
+   public DefaultVectorIndex(int dimension) {
+      this.dimension = dimension;
+      this.vectors = new NDArray[0];
+   }
+
 
    @Override
    public NDArray lookup(int index) {
@@ -57,7 +65,7 @@ public class DefaultVectorIndex implements VectorIndex, Serializable {
 
    @Override
    public int dimension() {
-      return (int) vectors[0].length();
+      return dimension;
    }
 
    @Override

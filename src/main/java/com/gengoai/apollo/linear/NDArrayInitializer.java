@@ -17,7 +17,7 @@
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
- *  
+ *
  */
 
 package com.gengoai.apollo.linear;
@@ -59,10 +59,12 @@ public interface NDArrayInitializer extends SerializableConsumer<NDArray> {
       return (m) -> m.mapi(d -> rnd.nextDouble());
    }
 
+   Random rnd = new Random(123);
+
    /**
     * Rand nd array initializer.
     */
-   NDArrayInitializer rand = (m) -> m.mapi(d -> Math.random());
+   NDArrayInitializer rand = (m) -> m.mapi(d -> rnd.nextDouble());
 
    /**
     * Rand nd array initializer.

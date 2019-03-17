@@ -5,19 +5,21 @@ import com.gengoai.apollo.linear.NDArray;
 import org.jblas.Decompose;
 import org.jblas.DoubleMatrix;
 
-import java.io.Serializable;
-
 /**
  * <p>Performs <a href="https://en.wikipedia.org/wiki/QR_decomposition">QR Decomposition</a> on the given input
  * NDArray. The returned array is in order {Q,R}</p>
  *
  * @author David B. Bracewell
  */
-public class QRDecomposition implements Decomposition, Serializable {
+public class QRDecomposition extends Decomposition {
    private static final long serialVersionUID = 1L;
 
+   public QRDecomposition() {
+      super(2);
+   }
+
    @Override
-   public NDArray[] decompose(NDArray m) {
+   protected NDArray[] onMatrix(NDArray m) {
       Decompose.QRDecomposition<DoubleMatrix> r = Decompose.qr(m.toDoubleMatrix()[0]);
       return new NDArray[]{new DenseMatrix(r.q), new DenseMatrix(r.r)};
    }

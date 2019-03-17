@@ -6,15 +6,13 @@ import com.gengoai.apollo.linear.SparkLinearAlgebra;
 import org.jblas.DoubleMatrix;
 import org.jblas.Singular;
 
-import java.io.Serializable;
-
 /**
  * <p>Performs <a href="https://en.wikipedia.org/wiki/Singular_value_decomposition">Singular Value Decomposition</a> on
  * the given input NDArray. The returned array is in order {U, S, V}</p>
  *
  * @author David B. Bracewell
  */
-public class SingularValueDecomposition implements Decomposition, Serializable {
+public class SingularValueDecomposition extends Decomposition {
    private static final long serialVersionUID = 1L;
 
    private final boolean distributed;
@@ -55,13 +53,14 @@ public class SingularValueDecomposition implements Decomposition, Serializable {
     * @param K           the number of components to truncate the SVD to
     */
    public SingularValueDecomposition(boolean distributed, boolean sparse, int K) {
+      super(3);
       this.distributed = distributed;
       this.sparse = sparse;
       this.K = K;
    }
 
    @Override
-   public NDArray[] decompose(NDArray input) {
+   protected NDArray[] onMatrix(NDArray input) {
       if (distributed) {
          return SparkLinearAlgebra.svd(input, K <= 0 ? input.columns() : K);
       }

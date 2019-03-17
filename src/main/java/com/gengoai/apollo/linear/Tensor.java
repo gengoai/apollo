@@ -541,7 +541,7 @@ public class Tensor extends NDArray {
 
    @Override
    public String toString() {
-      return toString(Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE);
+      return toString(10, 10, 10);
    }
 
    /**
@@ -575,7 +575,7 @@ public class Tensor extends NDArray {
          }
          builder.append(System.lineSeparator())
                 .append(" ")
-                .append(slice(0).toString(1, maxRows, maxColumns));
+                .append(slice(i).toString(1, maxRows, maxColumns));
       }
       return builder.append("]").toString();
    }

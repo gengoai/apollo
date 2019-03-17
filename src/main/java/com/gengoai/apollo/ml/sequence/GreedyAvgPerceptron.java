@@ -26,6 +26,7 @@ import com.gengoai.Stopwatch;
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.Feature;
 import com.gengoai.apollo.ml.FitParameters;
+import com.gengoai.apollo.ml.Params;
 import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
 import com.gengoai.apollo.ml.preprocess.PreprocessorList;
@@ -133,11 +134,7 @@ public class GreedyAvgPerceptron extends SequenceLabeler implements Loggable {
       final Table<String, String, Integer> tTimestamps = new HashBasedTable<>();
 
       int instances = 0;
-      StoppingCriteria stoppingCriteria = StoppingCriteria.create("pct_error")
-                                                          .historySize(parameters.historySize)
-                                                          .maxIterations(parameters.maxIterations)
-                                                          .tolerance(parameters.eps);
-
+      StoppingCriteria stoppingCriteria = StoppingCriteria.create("pct_error", parameters);
       for (int i = 0; i < stoppingCriteria.maxIterations(); i++) {
          Stopwatch sw = Stopwatch.createStarted();
          double total = 0;
@@ -262,15 +259,15 @@ public class GreedyAvgPerceptron extends SequenceLabeler implements Loggable {
       /**
        * The epsilon to use for checking for convergence.
        */
-      public double eps = 1e-4;
+      public final Parameter<Double> tolerance = parameter(Params.Optimizable.tolerance, 1e-3);
       /**
        * The number of iterations to use for determining convergence
        */
-      public int historySize = 3;
+      public final Parameter<Integer> historySize = parameter(Params.Optimizable.historySize, 3);
       /**
        * The maximum number of iterations to run for
        */
-      public int maxIterations = 100;
+      public final Parameter<Integer> maxIterations = parameter(Params.Optimizable.maxIterations, 100);
    }
 
 

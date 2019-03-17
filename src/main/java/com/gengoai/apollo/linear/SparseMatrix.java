@@ -107,7 +107,7 @@ public class SparseMatrix extends Matrix {
    @Override
    public NDArray addi(NDArray rhs) {
       if (!rhs.isDense()) {
-         checkLength(shape, rhs.shape());
+         checkLength(rhs.shape);
          SparseMatrix sm = Cast.as(rhs);
          sm.map.forEachPair((i, v) -> {
             map.adjustOrPutValue(i, v, v);
@@ -121,7 +121,7 @@ public class SparseMatrix extends Matrix {
    @Override
    public NDArray subi(NDArray rhs) {
       if (!rhs.isDense()) {
-         checkLength(shape, rhs.shape());
+         checkLength(rhs.shape());
          SparseMatrix sm = Cast.as(rhs);
          sm.map.forEachPair((i, v) -> {
             map.adjustOrPutValue(i, -v, -v);
@@ -134,7 +134,7 @@ public class SparseMatrix extends Matrix {
 
    @Override
    public NDArray muli(NDArray rhs) {
-      checkLength(shape, rhs.shape());
+      checkLength(rhs.shape());
       map.forEachPair((i, v) -> {
          map.put(i, v * rhs.get(i));
          return true;
@@ -284,7 +284,7 @@ public class SparseMatrix extends Matrix {
 
    @Override
    public double dot(NDArray rhs) {
-      checkLength(shape, rhs.shape());
+      checkLength(rhs.shape());
       final AtomicDouble dot = new AtomicDouble(0d);
       map.forEachPair((i, v) -> {
          dot.addAndGet(rhs.get(i) * v);

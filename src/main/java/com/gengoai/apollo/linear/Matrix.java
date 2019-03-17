@@ -44,15 +44,14 @@ public abstract class Matrix extends NDArray {
    /**
     * Checks that the two shapes have the same length.
     *
-    * @param s1 the first shape
     * @param s2 the second shape
     */
-   protected static void checkLength(Shape s1, Shape s2) {
-      if (s2.sliceLength > 1 || s1.sliceLength > 1) {
-         throw new IllegalArgumentException("Slice Mismatch: " + s1.sliceLength + " != " + s2.sliceLength);
+   protected void checkLength(Shape s2) {
+      if (s2.sliceLength > 1) {
+         throw new IllegalArgumentException("Slice Mismatch: " + s2.sliceLength + " != 1");
       }
-      if (s1.matrixLength != s2.matrixLength) {
-         throw new IllegalArgumentException("Length Mismatch: " + s1 + " != " + s2);
+      if (shape().matrixLength != s2.matrixLength) {
+         throw new IllegalArgumentException("Length Mismatch: " + shape().matrixLength + " != " + s2.matrixLength);
       }
    }
 
@@ -305,7 +304,7 @@ public abstract class Matrix extends NDArray {
       if (rhs.shape().isScalar()) {
          return map(rhs.scalar(), operator);
       }
-      checkLength(shape, rhs.shape());
+      checkLength(rhs.shape());
       NDArray out = zeroLike();
       for (int i = 0; i < shape.matrixLength; i++) {
          out.set(i, operator.applyAsDouble(get(i), rhs.get(i)));
@@ -356,7 +355,7 @@ public abstract class Matrix extends NDArray {
       if (rhs.shape().isScalar()) {
          return mapi(rhs.scalar(), operator);
       }
-      checkLength(shape, rhs.shape());
+      checkLength(rhs.shape());
       for (int i = 0; i < shape.matrixLength; i++) {
          set(i, operator.applyAsDouble(get(i), rhs.get(i)));
       }
@@ -530,7 +529,7 @@ public abstract class Matrix extends NDArray {
    @Override
    public NDArray setSlice(int slice, NDArray array) {
       Validation.checkArgument(slice == 0, "Invalid Slice: " + slice);
-      checkLength(shape, array.shape);
+      checkLength(array.shape);
       for (int i = 0; i < array.shape.matrixLength; i++) {
          set(i, array.get(i));
       }

@@ -23,6 +23,7 @@
 package com.gengoai.apollo.linear;
 
 import com.gengoai.config.Config;
+import org.jblas.DoubleMatrix;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -82,6 +83,12 @@ public enum NDArrayFactory {
             return tensor;
          }
          return new DenseMatrix(shape);
+      }
+
+
+      @Override
+      public NDArray array(double[][] data) {
+         return new DenseMatrix(new DoubleMatrix(data));
       }
 
    },
@@ -167,7 +174,7 @@ public enum NDArrayFactory {
     * @param data the data
     * @return the nd array
     */
-   public final NDArray array(double[][] data) {
+   public NDArray array(double[][] data) {
       if (data.length == 0) {
          return empty();
       }

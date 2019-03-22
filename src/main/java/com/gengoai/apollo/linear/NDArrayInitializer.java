@@ -27,6 +27,8 @@ import com.gengoai.function.SerializableConsumer;
 import java.util.Random;
 
 /**
+ * Encapsulates logic for initializing an {@link NDArray} with initial values.
+ *
  * @author David B. Bracewell
  */
 public interface NDArrayInitializer extends SerializableConsumer<NDArray> {
@@ -50,69 +52,68 @@ public interface NDArrayInitializer extends SerializableConsumer<NDArray> {
    };
 
    /**
-    * Rand nd array initializer.
+    * Initializes the values to <code>1.0</code>
+    */
+   NDArrayInitializer ones = (m) -> m.mapi(x -> 1d);
+   /**
+    * Random gaussian initializer
+    */
+   NDArrayInitializer randn = randn(new Random());
+   /**
+    * Default Random object to use
+    */
+   Random rnd = new Random(123);
+   /**
+    * Random initializer using <code>Random#nextDouble()</code>
+    */
+   NDArrayInitializer rand = (m) -> m.mapi(d -> rnd.nextDouble());
+   /**
+    * Zero-Value Initializer
+    */
+   NDArrayInitializer zeroes = (m) -> m.mapi(x -> 0d);
+
+   /**
+    * Random initializer using <code>Random#nextDouble()</code> that takes a Random object to use
     *
-    * @param rnd the rnd
-    * @return the nd array initializer
+    * @param rnd the Random to use for generating values
+    * @return the NDArrayInitializer
     */
    static NDArrayInitializer rand(Random rnd) {
       return (m) -> m.mapi(d -> rnd.nextDouble());
    }
 
-   Random rnd = new Random(123);
-
    /**
-    * Rand nd array initializer.
-    */
-   NDArrayInitializer rand = (m) -> m.mapi(d -> rnd.nextDouble());
-
-   /**
-    * Rand nd array initializer.
+    * Uniform random initializer
     *
-    * @param rnd the rnd
-    * @param min the min
-    * @param max the max
-    * @return the nd array initializer
+    * @param rnd the Random object to use for generating random values
+    * @param min the minimum or lower bound of the numbers to generate
+    * @param max the maximum or upper bound of the numbers to generate
+    * @return the NDArrayInitializer
     */
    static NDArrayInitializer rand(Random rnd, int min, int max) {
       return (m) -> m.mapi(d -> min + rnd.nextDouble() * max);
    }
 
    /**
-    * Rand nd array initializer.
+    * Uniform random initializer
     *
-    * @param min the min
-    * @param max the max
-    * @return the nd array initializer
+    * @param min the minimum or lower bound of the numbers to generate
+    * @param max the maximum or upper bound of the numbers to generate
+    * @return the NDArrayInitializer
     */
    static NDArrayInitializer rand(int min, int max) {
       return rand(new Random(), min, max);
    }
 
    /**
-    * Randn nd array initializer.
+    * Random gaussian initializer
     *
-    * @param rnd the rnd
-    * @return the nd array initializer
+    * @param rnd the Random object to use for generating random values
+    * @return the NDArrayInitializer
     */
    static NDArrayInitializer randn(Random rnd) {
       return (m) -> m.mapi(d -> rnd.nextGaussian());
    }
-
-   /**
-    * Randn nd array initializer.
-    */
-   NDArrayInitializer randn = randn(new Random());
-
-   /**
-    * The constant ZEROES.
-    */
-   NDArrayInitializer zeroes = (m) -> m.mapi(x -> 0d);
-
-   /**
-    * The constant Ones.
-    */
-   NDArrayInitializer ones = (m) -> m.mapi(x -> 1d);
 
 
 }//END OF NDArrayInitializer

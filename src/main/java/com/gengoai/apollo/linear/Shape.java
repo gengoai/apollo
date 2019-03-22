@@ -32,56 +32,24 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
- * The type Shape.
+ * Encapsulates the dimensions, i.e. shape, of an {@link NDArray}.
  *
  * @author David B. Bracewell
  */
 public class Shape implements Serializable, Copyable<Shape> {
    private static final long serialVersionUID = 1L;
    /**
+    * The total length (rows * columns) of the matrix elements
+    */
+   public final int matrixLength;
+   /**
+    * The total number of slices (kernels * channels)
+    */
+   public final int sliceLength;
+   /**
     * The Shape.
     */
    final int[] shape;
-   public final int matrixLength;
-   public final int sliceLength;
-
-
-   public static Shape empty() {
-      Shape s = new Shape();
-      s.shape[2] = 0;
-      s.shape[3] = 0;
-      return s;
-   }
-
-   public static Shape shape(int... dims) {
-      return new Shape(dims);
-   }
-
-
-   public int toSliceIndex(long index) {
-      return (int) (index % sliceLength);
-   }
-
-   public int toMatrixIndex(long index) {
-      return (int) (index / sliceLength);
-   }
-
-
-   public int toKernel(int sliceIndex) {
-      return sliceIndex % shape[0];
-   }
-
-   public int toChannel(int sliceIndex) {
-      return sliceIndex / shape[0];
-   }
-
-   public int sliceIndex(int kernel, int channel) {
-      return kernel + (shape[0] * channel);
-   }
-
-   public int matrixIndex(int row, int column) {
-      return row + (shape[2] * column);
-   }
 
 
    /**
@@ -95,8 +63,8 @@ public class Shape implements Serializable, Copyable<Shape> {
          System.arraycopy(dimensions, 0, shape, shape.length - dimensions.length, dimensions.length);
          this.shape[2] = Math.max(1, this.shape[2]);
          this.shape[3] = Math.max(1, this.shape[3]);
-         this.sliceLength = Math.max(1, shape[0] * shape[1]);
-         this.matrixLength = Math.max(1, shape[2] * shape[3]);
+         this.sliceLength = Math.max(1, shape[0]) * Math.max(1, shape[1]);
+         this.matrixLength = shape[2] * shape[3];
       } else {
          this.shape[2] = 1;
          this.shape[3] = 1;
@@ -110,18 +78,40 @@ public class Shape implements Serializable, Copyable<Shape> {
    }
 
    /**
-    * Channels int.
+    * Creates a shape for an empty NDArray
     *
-    * @return the int
+    * @return the shape
+    */
+   public static Shape empty() {
+      Shape s = new Shape();
+      s.shape[2] = 0;
+      s.shape[3] = 0;
+      return s;
+   }
+
+   /**
+    * Static constructor for shapes from a variable list of dimensions
+    *
+    * @param dims the dimensions
+    * @return the shape
+    */
+   public static Shape shape(int... dims) {
+      return new Shape(dims);
+   }
+
+   /**
+    * Gets the number of channels
+    *
+    * @return the number of channels
     */
    public int channels() {
       return shape[1];
    }
 
    /**
-    * Columns int.
+    * Gets the number of columns
     *
-    * @return the int
+    * @return the number of columns
     */
    public int columns() {
       return shape[3];
@@ -130,19 +120,6 @@ public class Shape implements Serializable, Copyable<Shape> {
    @Override
    public Shape copy() {
       return new Shape(this.shape);
-   }
-
-   /**
-    * Dim int.
-    *
-    * @param index the index
-    * @return the int
-    */
-   public int dim(int index) {
-      if (index > shape.length || index < 0) {
-         return 0;
-      }
-      return shape[index];
    }
 
    @Override
@@ -159,81 +136,98 @@ public class Shape implements Serializable, Copyable<Shape> {
    }
 
    /**
-    * Is matrix boolean.
+    * Checks if the shape represents a column vector
     *
-    * @return the boolean
+    * @return True if a column vector
     */
-   public boolean isMatrix() {
+   public boolean isColumnVector() {
       return (shape[0] == 0 && shape[1] == 0)
-                && (shape[2] > 0 && shape[3] > 0);
+                && (shape[2] > 1 && shape[3] == 1);
+   }
+
+
+   /**
+    * Checks if the shape represents a row vector
+    *
+    * @return True if a row vector
+    */
+   public boolean isRowVector() {
+      return (shape[0] == 0 && shape[1] == 0)
+                && (shape[2] == 1 && shape[3] > 1);
    }
 
    /**
-    * Is scalar boolean.
+    * Checks if the shape represents a scalar
     *
-    * @return the boolean
+    * @return True if a scalar
     */
    public boolean isScalar() {
       return shape[0] == 0 && shape[1] == 0 && shape[2] == 1 && shape[3] == 1;
    }
 
    /**
-    * Is tensor boolean.
+    * Checks if the shape represents a square matrix
     *
-    * @return the boolean
+    * @return True if a square matrix
+    */
+   public boolean isSquare() {
+      return shape[0] == 0 && shape[1] == 0 && shape[2] == shape[3];
+   }
+
+   /**
+    * Checks if the shape represents a tensor
+    *
+    * @return True if a tensor
     */
    public boolean isTensor() {
       return shape[0] > 0 || shape[1] > 0;
    }
 
    /**
-    * Is vector boolean.
+    * Checks if the shape represents a vector
     *
-    * @return the boolean
+    * @return True if a vector
     */
    public boolean isVector() {
       return (shape[0] == 0 && shape[1] == 0)
                 && (shape[2] > 0 ^ shape[3] > 0);
    }
 
-   public boolean isRowVector() {
-      return (shape[0] == 0 && shape[1] == 0)
-                && (shape[2] == 1 && shape[3] > 1);
-   }
-
-   public boolean isColumnVector() {
-      return (shape[0] == 0 && shape[1] == 0)
-                && (shape[2] > 1 && shape[3] == 1);
-   }
-
-   public boolean isSquare() {
-      return shape[0] == 0 && shape[1] == 0 && shape[2] == shape[3];
-   }
-
    /**
-    * Kernels int.
+    * Gets the number of kernels
     *
-    * @return the int
+    * @return the number of kernels
     */
    public int kernels() {
       return shape[0];
    }
 
    /**
-    * Order int.
+    * Encodes the row and column into a column-major index
     *
-    * @return the int
+    * @param row    the row index
+    * @param column the column index
+    * @return the column major index
+    */
+   public int matrixIndex(int row, int column) {
+      return row + (shape[2] * column);
+   }
+
+   /**
+    * The order of the NDArray (number of dimensions with size > 1)
+    *
+    * @return the order
     */
    public int order() {
       int order = 0;
       for (int i1 : shape) {
-         order += i1 > 1 ? 1 : 0;
+         order += i1 >= 1 ? 1 : 0;
       }
       return order;
    }
 
    /**
-    * Reshape.
+    * Adjusts the shape to the new dimensions.
     *
     * @param dimensions the dimensions
     */
@@ -249,12 +243,63 @@ public class Shape implements Serializable, Copyable<Shape> {
    }
 
    /**
-    * Rows int.
+    * Gets the number of rows
     *
-    * @return the int
+    * @return the number of rows.
     */
    public int rows() {
       return shape[2];
+   }
+
+   /**
+    * Encodes the kernel and channel into a channel-major index
+    *
+    * @param kernel  the kernel index
+    * @param channel the channel index
+    * @return the channel major index
+    */
+   public int sliceIndex(int kernel, int channel) {
+      return kernel + (shape[0] * channel);
+   }
+
+   /**
+    * Decodes the channel index from  channel-major index
+    *
+    * @param sliceIndex the slice index
+    * @return the channel index
+    */
+   public int toChannel(int sliceIndex) {
+      return sliceIndex / shape[0];
+   }
+
+   /**
+    * Decodes the kernel index from  channel-major index
+    *
+    * @param sliceIndex the slice index
+    * @return the kernel index
+    */
+   public int toKernel(int sliceIndex) {
+      return sliceIndex % shape[0];
+   }
+
+   /**
+    * To matrix index int.
+    *
+    * @param index the index
+    * @return the int
+    */
+   public int toMatrixIndex(long index) {
+      return (int) (index / sliceLength);
+   }
+
+   /**
+    * To slice index int.
+    *
+    * @param index the index
+    * @return the int
+    */
+   public int toSliceIndex(long index) {
+      return (int) (index % sliceLength);
    }
 
    @Override

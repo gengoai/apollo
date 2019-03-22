@@ -159,7 +159,7 @@ public class KMeans extends FlatCentroidClusterer {
 
          //Calculate the new centroid, randomly generating a new vector when the custer has 0 members
          if (cluster.size() == 0) {
-            centroid = NDArrayFactory.ND.uniform(-1, 1, Shape.shape((int) instances.get(0).length()));
+            centroid = NDArrayFactory.ND.uniform(Shape.shape((int) instances.get(0).length()), -1, 1);
          } else {
             centroid = NDArrayFactory.ND.array(getNumberOfFeatures());
             for (NDArray point : cluster.getPoints()) {

@@ -283,20 +283,20 @@ public class Shape implements Serializable, Copyable<Shape> {
    }
 
    /**
-    * To matrix index int.
+    * Decodes a slice/matrix combined index into a matrix index
     *
     * @param index the index
-    * @return the int
+    * @return the matrix index
     */
    public int toMatrixIndex(long index) {
       return (int) (index / sliceLength);
    }
 
    /**
-    * To slice index int.
+    * Decodes a slice/matrix combined index into a slice index
     *
     * @param index the index
-    * @return the int
+    * @return the slice index
     */
    public int toSliceIndex(long index) {
       return (int) (index % sliceLength);

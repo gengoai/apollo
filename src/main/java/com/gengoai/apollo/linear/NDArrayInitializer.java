@@ -55,19 +55,28 @@ public interface NDArrayInitializer extends SerializableConsumer<NDArray> {
     * Initializes the values in an NDArray to random values with on average <code>sparsity</code> percentage zero
     * entries.
     *
-    * @param sparsity the sparsity factor
+    * @param sparsity the sparsity factor (the desired percentage of elements that should have a zero value).
     * @param rnd      the Random number generator
     * @return the NDArrayInitializer
     */
    static NDArrayInitializer sparseRandom(double sparsity, Random rnd) {
-      return n -> {
-         n.mapi(v -> {
-            if (rnd.nextDouble() >= sparsity) {
-               return rnd.nextDouble();
-            }
-            return 0;
-         });
-      };
+      return n -> n.mapi(v -> {
+         if (rnd.nextDouble() >= sparsity) {
+            return rnd.nextDouble();
+         }
+         return 0;
+      });
+   }
+
+   /**
+    * Initializes the values in an NDArray to random values with on average <code>sparsity</code> percentage zero
+    * entries.
+    *
+    * @param sparsity the sparsity factor (the desired percentage of elements that should have a zero value).
+    * @return the NDArrayInitializer
+    */
+   static NDArrayInitializer sparseRandom(double sparsity) {
+      return sparseRandom(sparsity, rnd);
    }
 
    /**

@@ -283,6 +283,27 @@ public class Shape implements Serializable, Copyable<Shape> {
    }
 
    /**
+    * Decodes the row index from  column-major index
+    *
+    * @param matrixIndex the matrix index
+    * @return the row index
+    */
+   public int toRow(int matrixIndex) {
+      return matrixIndex % shape[2];
+   }
+
+   /**
+    * Decodes the column index from  column-major index
+    *
+    * @param matrixIndex the matrix index
+    * @return the column index
+    */
+   public int toColumn(int matrixIndex) {
+      return matrixIndex / shape[2];
+   }
+
+
+   /**
     * Decodes a slice/matrix combined index into a matrix index
     *
     * @param index the index

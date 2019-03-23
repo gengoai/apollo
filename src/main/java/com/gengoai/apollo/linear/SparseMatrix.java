@@ -79,9 +79,7 @@ public class SparseMatrix extends Matrix {
       } else {
          t = new SparseMatrix(shape.columns(), shape.rows());
          map.forEachPair((i, v) -> {
-            int row = i % shape.rows();
-            int col = i / shape.rows();
-            t.set(col, row, v);
+            t.set(shape.toColumn(i), shape.toRow(i), v);
             return true;
          });
       }
@@ -169,8 +167,8 @@ public class SparseMatrix extends Matrix {
    public NDArray getSubMatrix(int fromRow, int toRow, int fromCol, int toCol) {
       SparseMatrix sm = new SparseMatrix((toRow - fromRow), (toCol - fromCol));
       map.forEachPair((i, v) -> {
-         int row = i % shape.rows();
-         int col = i / shape.rows();
+         int row = shape.toRow(i);
+         int col = shape.toColumn(i);
          if (row >= fromRow && row < toRow
                 && col >= fromCol && col < toCol) {
             sm.set(row - fromRow, col - fromCol, v);
@@ -352,5 +350,24 @@ public class SparseMatrix extends Matrix {
    @Override
    public NDArray zeroLike() {
       return new SparseMatrix(shape);
+   }
+
+
+   @Override
+   public NDArray mmul(NDArray rhs) {
+      if (rhs.isDense() || (sparsity() < 0.5 && length() > 10_000)) {
+         return super.mmul(rhs);
+      }
+      SparseMatrix product = new SparseMatrix(rows(), rhs.columns());
+      map.forEachPair((i, v) -> {
+         int row = shape.toRow(i);
+         int colLHS = shape.toColumn(i);
+         for (int colRHS = 0; colRHS < rhs.columns(); colRHS++) {
+            double prod = v * rhs.get(colLHS, colRHS);
+            product.map.adjustOrPutValue(product.shape.matrixIndex(row, colRHS), prod, prod);
+         }
+         return true;
+      });
+      return product;
    }
 }//END OF SparseMatrix

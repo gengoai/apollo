@@ -90,6 +90,16 @@ public abstract class NDArray implements Serializable, Copyable<NDArray>, JsonSe
       return array;
    }
 
+
+   /**
+    * Calculates the sparsity (Percentage of elements with a zero value) of the NDArray
+    *
+    * @return the sparsity (will equal to 1 if dense)
+    */
+   public double sparsity() {
+      return 1.0 - ((double) size()) / ((double) length());
+   }
+
    /**
     * Flips the matrix on its diagonal switching the rows and columns. (This is done per slice)
     *

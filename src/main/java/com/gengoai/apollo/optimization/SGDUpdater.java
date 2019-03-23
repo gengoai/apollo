@@ -158,6 +158,7 @@ public class SGDUpdater implements WeightUpdate, Serializable {
 
    @Override
    public double update(LinearModelParameters weights, GradientParameter gradient, int iteration) {
+
       if (momentum > 0 && v == null) {
          v = ND.array(weights.getWeights().rows(), weights.getWeights().columns());
       }

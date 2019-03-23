@@ -97,7 +97,7 @@ public class LinearModel extends Classifier implements Loggable {
       this.weightParameters.update(parameters);
       optimizer.optimize(weightParameters,
                          dataSupplier,
-                         new GradientDescentCostFunction(parameters.lossFunction.value(), -1),
+                         new GradientDescentCostFunction(parameters.lossFunction.value()),
                          StoppingCriteria.create()
                                          .maxIterations(parameters.maxIterations.value())
                                          .historySize(parameters.historySize.value())

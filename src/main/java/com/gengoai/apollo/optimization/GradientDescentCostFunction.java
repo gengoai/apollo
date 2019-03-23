@@ -14,7 +14,7 @@ public class GradientDescentCostFunction implements CostFunction<LinearModelPara
    int trueLabel;
 
    public GradientDescentCostFunction(LossFunction lossFunction) {
-      this(lossFunction, -1);
+      this(lossFunction, 1);
    }
 
    public GradientDescentCostFunction(LossFunction lossFunction, int trueLabel) {

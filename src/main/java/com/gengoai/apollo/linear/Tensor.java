@@ -23,7 +23,6 @@
 package com.gengoai.apollo.linear;
 
 import com.gengoai.Validation;
-import com.gengoai.string.Strings;
 import org.jblas.DoubleMatrix;
 
 import java.util.function.BiFunction;
@@ -542,42 +541,6 @@ public class Tensor extends NDArray {
    @Override
    public String toString() {
       return toString(10, 10, 10);
-   }
-
-   /**
-    * Creates string representation of the NDArray with the given number of max slices, rows, and columns
-    *
-    * @param maxSlices  the max slices
-    * @param maxRows    the max rows
-    * @param maxColumns the max columns
-    * @return the string
-    */
-   public String toString(int maxSlices, int maxRows, int maxColumns) {
-      StringBuilder builder = new StringBuilder("[");
-      builder.append(slice(0).toString(1, maxRows, maxColumns));
-      int half = maxSlices / 2;
-      boolean firstHalf = true;
-      for (int i = 1; i < shape.sliceLength; i++) {
-         builder.append(",");
-         if (i > half && firstHalf) {
-            firstHalf = false;
-            int ni = Math.max(shape.sliceLength - half, i + 1);
-            if (ni > i + 1) {
-               String outDot = Strings.repeat(Strings.padStart(".", 8, ' '), Math.min(columns(), maxColumns + 2));
-               builder.append(System.lineSeparator())
-                      .append(System.lineSeparator()).append(outDot)
-                      .append(System.lineSeparator()).append(outDot)
-                      .append(System.lineSeparator()).append(outDot)
-                      .append(System.lineSeparator())
-                      .append(System.lineSeparator());
-            }
-            i = ni;
-         }
-         builder.append(System.lineSeparator())
-                .append(" ")
-                .append(slice(i).toString(1, maxRows, maxColumns));
-      }
-      return builder.append("]").toString();
    }
 
 

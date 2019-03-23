@@ -18,6 +18,9 @@ import static com.gengoai.apollo.linear.NDArrayFactory.ND;
 public class LUDecomposition extends Decomposition {
    private static final long serialVersionUID = 1L;
 
+   /**
+    * Instantiates a new Lu decomposition.
+    */
    public LUDecomposition() {
       super(3);
    }

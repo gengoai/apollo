@@ -28,6 +28,7 @@ import com.gengoai.conversion.Cast;
 import com.gengoai.json.JsonEntry;
 import com.gengoai.json.JsonSerializable;
 import com.gengoai.math.Operator;
+import com.gengoai.string.Strings;
 import org.jblas.DoubleMatrix;
 
 import java.io.Serializable;
@@ -45,7 +46,13 @@ import java.util.function.DoubleUnaryOperator;
  * @author David B. Bracewell
  */
 public abstract class NDArray implements Serializable, Copyable<NDArray>, JsonSerializable {
+   /**
+    * The constant decimalFormatter.
+    */
    protected static final NumberFormat decimalFormatter = new DecimalFormat(" 0.000000;-0");
+   /**
+    * The Shape.
+    */
    protected final Shape shape;
    private Object label = null;
    private Object predicted = null;
@@ -871,6 +878,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray>, JsonSe
    /**
     * Creates a new NDArray with values from this NDArray evaluated by the given binary operation with the given value.
     *
+    * @param value    the value
     * @param operator the operation to perform on the values of this NDArray and the given value
     * @return the transformed NDArray
     */
@@ -880,6 +888,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray>, JsonSe
     * Creates a new NDArray with values from this NDArray and the given NDArray evaluated using the given  binary
     * operation.
     *
+    * @param rhs      the rhs
     * @param operator the operation to perform on the values of this NDArray and the given NDArray
     * @return the transformed NDArray
     */
@@ -889,6 +898,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray>, JsonSe
     * Creates a new NDArray with values from this NDArray and the given NDArray evaluated using the given  binary
     * operation per column.
     *
+    * @param rhs      the rhs
     * @param operator the operation to perform on the values of this NDArray and the given NDArray
     * @return the transformed NDArray
     */
@@ -898,6 +908,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray>, JsonSe
     * Creates a new NDArray with values from this NDArray and the given NDArray evaluated using the given  binary
     * operation per row.
     *
+    * @param rhs      the rhs
     * @param operator the operation to perform on the values of this NDArray and the given NDArray
     * @return the transformed NDArray
     */
@@ -914,6 +925,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray>, JsonSe
    /**
     * Updates the values in this NDArray by performing he given binary operation with the given value.
     *
+    * @param value    the value
     * @param operator the operation to perform on the values of this NDArray and the given value
     * @return the transformed NDArray
     */
@@ -923,6 +935,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray>, JsonSe
     * Updates the values int this NDArray by performing the given binary operation with the values in the given
     * NDArray.
     *
+    * @param rhs      the rhs
     * @param operator the operation to perform on the values of this NDArray and the given NDArray
     * @return the transformed NDArray
     */
@@ -932,6 +945,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray>, JsonSe
     * Updates the values int this NDArray by performing the given binary operation with the values in the given NDArray
     * per column.
     *
+    * @param rhs      the rhs
     * @param operator the operation to perform on the values of this NDArray and the given NDArray
     * @return the transformed NDArray
     */
@@ -941,6 +955,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray>, JsonSe
     * Updates the values int this NDArray by performing the given binary operation with the values in the given NDArray
     * per row.
     *
+    * @param rhs      the rhs
     * @param operator the operation to perform on the values of this NDArray and the given NDArray
     * @return the transformed NDArray
     */
@@ -1125,6 +1140,24 @@ public abstract class NDArray implements Serializable, Copyable<NDArray>, JsonSe
     */
    public abstract NDArray pivot();
 
+   private void printSlice(NDArray slice, int maxR, int maxC, StringBuilder builder) {
+      builder.append("[");
+      builder.append(rowToString(slice, 0, maxC));
+      int breakPoint = maxR / 2;
+      for (int i = 1; i < slice.rows(); i++) {
+         builder.append(",");
+         if (i == breakPoint) {
+            int nj = Math.max(slice.rows() - breakPoint, i + 1);
+            if (nj > i + 1) {
+               builder.append(System.lineSeparator()).append("     ...").append(System.lineSeparator());
+            }
+            i = nj;
+         }
+         builder.append(System.lineSeparator()).append("  ").append(rowToString(slice, i, maxC));
+      }
+      builder.append("]");
+   }
+
    /**
     * Divides the values in the this NDArray from the other NDArray.
     *
@@ -1260,6 +1293,23 @@ public abstract class NDArray implements Serializable, Copyable<NDArray>, JsonSe
     * @return the NDArray of sum per row.
     */
    public abstract NDArray rowSums();
+
+   private String rowToString(NDArray slice, int i, int maxC) {
+      StringBuilder builder = new StringBuilder("[");
+      builder.append(decimalFormatter.format(slice.get(i, 0)));
+      int breakPoint = maxC / 2;
+      for (int j = 1; j < slice.columns(); j++) {
+         if (j == breakPoint) {
+            int nj = Math.max(slice.columns() - breakPoint, j + 1);
+            if (nj > j + 1) {
+               builder.append(", ...");
+            }
+            j = nj;
+         }
+         builder.append(", ").append(decimalFormatter.format(slice.get(i, j)));
+      }
+      return builder.append("]").toString();
+   }
 
    /**
     * Number of rows in the NDArray
@@ -1742,7 +1792,6 @@ public abstract class NDArray implements Serializable, Copyable<NDArray>, JsonSe
       });
    }
 
-
    /**
     * Converts the NDArray to double array
     *
@@ -1771,6 +1820,55 @@ public abstract class NDArray implements Serializable, Copyable<NDArray>, JsonSe
       return entry.addProperty("data", data);
    }
 
+   @Override
+   public String toString() {
+      return toString(4, 10, 10);
+   }
+
+   /**
+    * Generates a string form of the NDArray with a maximum number of slices, rows, and columns
+    *
+    * @param maxSlices  the max slices
+    * @param maxRows    the max rows
+    * @param maxColumns the max columns
+    * @return the string
+    */
+   public String toString(int maxSlices, int maxRows, int maxColumns) {
+      StringBuilder builder = new StringBuilder("[");
+
+      if (shape.isVector()) {
+         for (long i = 0; i < length(); i++) {
+            if (i > 0) {
+               builder.append(", ");
+            }
+            builder.append(get((int) i));
+         }
+         return builder.append("]").toString();
+      }
+      String outDot = Strings.repeat(Strings.padStart(".", 8, ' '), Math.min(columns(), maxColumns + 2));
+      printSlice(slice(0), maxRows, maxColumns, builder);
+      int breakPoint = maxSlices / 2;
+      for (int i = 1; i < shape.sliceLength; i++) {
+         builder.append(",");
+         if (i == breakPoint) {
+            int nj = Math.max(shape.sliceLength - breakPoint, i + 1);
+            if (nj > i + 1) {
+               builder.append(System.lineSeparator())
+                      .append(System.lineSeparator()).append(outDot)
+                      .append(System.lineSeparator()).append(outDot)
+                      .append(System.lineSeparator()).append(outDot)
+                      .append(System.lineSeparator())
+                      .append(System.lineSeparator());
+
+            }
+            i = nj;
+         }
+         builder.append(System.lineSeparator()).append(" ");
+         printSlice(slice(i), maxRows, maxColumns, builder);
+      }
+      return builder.toString();
+   }
+
    /**
     * Unitizes the NDArray by dividing the values by L2 Norm (per slice)
     *
@@ -1793,7 +1891,6 @@ public abstract class NDArray implements Serializable, Copyable<NDArray>, JsonSe
     * @return the new zero valued NDArray
     */
    public abstract NDArray zeroLike();
-
 
    /**
     * Interface for testing two double values
@@ -1827,6 +1924,5 @@ public abstract class NDArray implements Serializable, Copyable<NDArray>, JsonSe
 
    }
 
-   public abstract String toString(int maxSlices, int maxRows, int maxColumns);
 
 }//END OF NDArray

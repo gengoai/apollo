@@ -2,7 +2,6 @@ package com.gengoai.apollo.linear.decompose;
 
 import com.gengoai.apollo.linear.DenseMatrix;
 import com.gengoai.apollo.linear.NDArray;
-import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.linear.RealMatrixWrapper;
 import org.jblas.ComplexDoubleMatrix;
 import org.jblas.DoubleMatrix;
@@ -40,13 +39,6 @@ public class EigenDecomposition extends Decomposition {
             ND.array(decomposition.getD().getData())
          };
       }
-   }
-
-   public static void main(String[] args) throws Exception {
-      NDArray nd = NDArrayFactory.DENSE.rand(2, 2, 100, 100);
-      System.out.println(nd);
-//      EigenDecomposition decomposition = new EigenDecomposition();
-//      System.out.println(decomposition.decompose(nd)[0]);
    }
 
 }// END OF EigenDecomposition

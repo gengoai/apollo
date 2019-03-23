@@ -36,6 +36,7 @@ import java.util.function.DoubleUnaryOperator;
  * @author David B. Bracewell
  */
 public class DenseMatrix extends Matrix {
+   private static final long serialVersionUID = 1L;
    private final DoubleMatrix matrix;
 
    /**
@@ -66,29 +67,6 @@ public class DenseMatrix extends Matrix {
    public DenseMatrix(DoubleMatrix doubleMatrix) {
       super(new Shape(doubleMatrix.rows, doubleMatrix.columns));
       this.matrix = doubleMatrix;
-   }
-
-   @Override
-   public NDArray getSubMatrix(int fromRow, int toRow, int fromCol, int toCol) {
-      return new DenseMatrix(matrix.get(new IntervalRange(fromRow, toRow),
-                                        new IntervalRange(fromCol, toCol)));
-   }
-
-   @Override
-   public double dot(NDArray rhs) {
-      if (rhs.isDense()) {
-         checkLength(rhs.shape());
-         return matrix.dot(rhs.toDoubleMatrix()[0]);
-      } else {
-         return rhs.dot(this);
-      }
-   }
-
-   @Override
-   public NDArray mmul(NDArray rhs) {
-      Validation.checkArgument(rhs.shape.sliceLength == 1,
-                               () -> "Invalid Slice Length: " + rhs.shape.sliceLength + " != 1");
-      return new DenseMatrix(matrix.mmul(rhs.toDoubleMatrix()[0]));
    }
 
    @Override
@@ -125,24 +103,35 @@ public class DenseMatrix extends Matrix {
    }
 
    @Override
-   public double[] toDoubleArray() {
-      return matrix.toArray();
-   }
-
-   @Override
-   public void forEachSparse(EntryConsumer consumer) {
-      for (int i = 0; i < matrix.length; i++) {
-         consumer.apply(i, matrix.data[i]);
-      }
-   }
-
-   @Override
    public NDArray addiRowVector(NDArray rhs) {
       if (rhs.isDense()) {
          matrix.addiRowVector(rhs.toDoubleMatrix()[0]);
          return this;
       }
       return super.addiRowVector(rhs);
+   }
+
+   @Override
+   public long argmax() {
+      if (matrix.argmax() < 0) {
+         System.out.println(matrix);
+      }
+      return matrix.argmax();
+   }
+
+   @Override
+   public long argmin() {
+      return matrix.argmin();
+   }
+
+   @Override
+   public NDArray columnSums() {
+      return new DenseMatrix(matrix.columnSums());
+   }
+
+   @Override
+   public NDArray compact() {
+      return this;
    }
 
    @Override
@@ -181,9 +170,26 @@ public class DenseMatrix extends Matrix {
    }
 
    @Override
+   public double dot(NDArray rhs) {
+      if (rhs.isDense()) {
+         checkLength(rhs.shape());
+         return matrix.dot(rhs.toDoubleMatrix()[0]);
+      } else {
+         return rhs.dot(this);
+      }
+   }
+
+   @Override
    public NDArray fill(double value) {
       matrix.fill(value);
       return this;
+   }
+
+   @Override
+   public void forEachSparse(EntryConsumer consumer) {
+      for (int i = 0; i < matrix.length; i++) {
+         consumer.apply(i, matrix.data[i]);
+      }
    }
 
    @Override
@@ -194,6 +200,22 @@ public class DenseMatrix extends Matrix {
    @Override
    public double get(int row, int col) {
       return matrix.get(row, col);
+   }
+
+   @Override
+   public NDArray getColumn(int column) {
+      return new DenseMatrix(matrix.getColumn(column));
+   }
+
+   @Override
+   public NDArray getRow(int row) {
+      return new DenseMatrix(matrix.getRow(row));
+   }
+
+   @Override
+   public NDArray getSubMatrix(int fromRow, int toRow, int fromCol, int toCol) {
+      return new DenseMatrix(matrix.get(new IntervalRange(fromRow, toRow),
+                                        new IntervalRange(fromCol, toCol)));
    }
 
    @Override
@@ -211,12 +233,46 @@ public class DenseMatrix extends Matrix {
    }
 
    @Override
+   public NDArray map(DoubleUnaryOperator operator) {
+      DenseMatrix dm = new DenseMatrix(matrix.rows, matrix.columns);
+      for (int i = 0; i < matrix.length; i++) {
+         dm.matrix.data[i] = operator.applyAsDouble(matrix.data[i]);
+      }
+      return dm;
+   }
+
+   @Override
    public NDArray mapi(NDArray rhs, DoubleBinaryOperator operator) {
       checkLength(rhs.shape());
       for (int i = 0; i < shape.matrixLength; i++) {
          matrix.data[i] = operator.applyAsDouble(matrix.data[i], rhs.get(i));
       }
       return this;
+   }
+
+   @Override
+   public NDArray mapi(DoubleUnaryOperator operator) {
+      for (int i = 0; i < matrix.length; i++) {
+         matrix.data[i] = operator.applyAsDouble(matrix.data[i]);
+      }
+      return this;
+   }
+
+   @Override
+   public double max() {
+      return matrix.max();
+   }
+
+   @Override
+   public double min() {
+      return matrix.min();
+   }
+
+   @Override
+   public NDArray mmul(NDArray rhs) {
+      Validation.checkArgument(rhs.shape.sliceLength == 1,
+                               () -> "Invalid Slice Length: " + rhs.shape.sliceLength + " != 1");
+      return new DenseMatrix(matrix.mmul(rhs.toDoubleMatrix()[0]));
    }
 
    @Override
@@ -278,6 +334,18 @@ public class DenseMatrix extends Matrix {
    }
 
    @Override
+   public NDArray reshape(int... dims) {
+      shape.reshape(dims);
+      matrix.reshape(shape.rows(), shape.columns());
+      return this;
+   }
+
+   @Override
+   public NDArray rowSums() {
+      return new DenseMatrix(matrix.rowSums());
+   }
+
+   @Override
    public NDArray rsub(NDArray rhs) {
       checkLength(rhs.shape());
       if (rhs.isDense()) {
@@ -297,28 +365,6 @@ public class DenseMatrix extends Matrix {
    }
 
    @Override
-   public NDArray map(DoubleUnaryOperator operator) {
-      DenseMatrix dm = new DenseMatrix(matrix.rows, matrix.columns);
-      for (int i = 0; i < matrix.length; i++) {
-         dm.matrix.data[i] = operator.applyAsDouble(matrix.data[i]);
-      }
-      return dm;
-   }
-
-   @Override
-   public NDArray mapi(DoubleUnaryOperator operator) {
-      for (int i = 0; i < matrix.length; i++) {
-         matrix.data[i] = operator.applyAsDouble(matrix.data[i]);
-      }
-      return this;
-   }
-
-   @Override
-   public NDArray compact() {
-      return this;
-   }
-
-   @Override
    public NDArray set(long i, double value) {
       matrix.put((int) i, value);
       return this;
@@ -327,6 +373,20 @@ public class DenseMatrix extends Matrix {
    @Override
    public NDArray set(int row, int col, double value) {
       matrix.put(row, col, value);
+      return this;
+   }
+
+   @Override
+   public NDArray setColumn(int column, NDArray array) {
+      checkLength(shape.rows(), array.shape());
+      matrix.putColumn(column, array.toDoubleMatrix()[0]);
+      return this;
+   }
+
+   @Override
+   public NDArray setRow(int row, NDArray array) {
+      checkLength(shape.columns(), array.shape());
+      matrix.putRow(row, array.toDoubleMatrix()[0]);
       return this;
    }
 
@@ -368,6 +428,16 @@ public class DenseMatrix extends Matrix {
    }
 
    @Override
+   public double sum() {
+      return matrix.sum();
+   }
+
+   @Override
+   public double[] toDoubleArray() {
+      return matrix.toArray();
+   }
+
+   @Override
    public DoubleMatrix[] toDoubleMatrix() {
       return new DoubleMatrix[]{matrix};
    }
@@ -375,74 +445,5 @@ public class DenseMatrix extends Matrix {
    @Override
    public NDArray zeroLike() {
       return new DenseMatrix(shape);
-   }
-
-   @Override
-   public double sum() {
-      return matrix.sum();
-   }
-
-   @Override
-   public NDArray rowSums() {
-      return new DenseMatrix(matrix.rowSums());
-   }
-
-   @Override
-   public NDArray columnSums() {
-      return new DenseMatrix(matrix.columnSums());
-   }
-
-   @Override
-   public double min() {
-      return matrix.min();
-   }
-
-   @Override
-   public double max() {
-      return matrix.max();
-   }
-
-   @Override
-   public long argmin() {
-      return matrix.argmin();
-   }
-
-   @Override
-   public long argmax() {
-      if (matrix.argmax() < 0) {
-         System.out.println(matrix);
-      }
-      return matrix.argmax();
-   }
-
-   @Override
-   public NDArray getRow(int row) {
-      return new DenseMatrix(matrix.getRow(row));
-   }
-
-   @Override
-   public NDArray getColumn(int column) {
-      return new DenseMatrix(matrix.getColumn(column));
-   }
-
-   @Override
-   public NDArray setColumn(int column, NDArray array) {
-      checkLength(shape.rows(), array.shape());
-      matrix.putColumn(column, array.toDoubleMatrix()[0]);
-      return this;
-   }
-
-   @Override
-   public NDArray setRow(int row, NDArray array) {
-      checkLength(shape.columns(), array.shape());
-      matrix.putRow(row, array.toDoubleMatrix()[0]);
-      return this;
-   }
-
-   @Override
-   public NDArray reshape(int... dims) {
-      shape.reshape(dims);
-      matrix.reshape(shape.rows(), shape.columns());
-      return this;
    }
 }//END OF DenseTwoDArray

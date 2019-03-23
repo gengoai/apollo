@@ -12,18 +12,16 @@ import java.io.Serializable;
  */
 public abstract class Decomposition implements Serializable {
    private static final long serialVersionUID = 1L;
-   final int components;
+   private final int components;
 
+   /**
+    * Instantiates a new Decomposition.
+    *
+    * @param components the components
+    */
    protected Decomposition(int components) {
       this.components = components;
    }
-
-
-   public int getNumberOfComponents() {
-      return components;
-   }
-
-   protected abstract NDArray[] onMatrix(NDArray matrix);
 
    /**
     * Decompose the given input NDArray into a product of one or more other NDArrays
@@ -48,5 +46,22 @@ public abstract class Decomposition implements Serializable {
       }
       return out;
    }
+
+   /**
+    * Gets number of components.
+    *
+    * @return the number of components
+    */
+   public int getNumberOfComponents() {
+      return components;
+   }
+
+   /**
+    * Performs the operation on a single matrix
+    *
+    * @param matrix the matrix
+    * @return the components of the decomposition
+    */
+   protected abstract NDArray[] onMatrix(NDArray matrix);
 
 }//END OF Decomposition

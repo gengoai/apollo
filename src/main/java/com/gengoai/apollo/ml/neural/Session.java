@@ -23,11 +23,15 @@
 package com.gengoai.apollo.ml.neural;
 
 import com.gengoai.apollo.linear.NDArray;
+import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.conversion.Cast;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import static com.gengoai.collection.Maps.hashMapOf;
+import static com.gengoai.tuple.Tuples.$;
 
 /**
  * @author David B. Bracewell
@@ -73,6 +77,20 @@ public class Session {
          }
       }
       postOrder.add(node);
+   }
+
+   public static void main(String[] args) throws Exception {
+      Graph g = new Graph();
+      Placeholder x = new Placeholder(g);
+      Variable y = new Variable(g, NDArrayFactory.DENSE.rand(10, 2));
+      Operation add = new Add(g, x, y);
+      Variable z = new Variable(g, NDArrayFactory.DENSE.rand(2, 3));
+      Operation mul = new MatMul(g, add, z);
+
+      Session session = new Session();
+      System.out.println(session.run(mul, hashMapOf($(x, NDArrayFactory.DENSE.rand(10, 2)))));
+
+
    }
 
 

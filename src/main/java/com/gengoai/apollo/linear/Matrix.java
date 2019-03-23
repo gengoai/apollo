@@ -42,20 +42,6 @@ public abstract class Matrix extends NDArray {
    }
 
    /**
-    * Checks that the two shapes have the same length.
-    *
-    * @param s2 the second shape
-    */
-   protected void checkLength(Shape s2) {
-      if (s2.sliceLength > 1) {
-         throw new IllegalArgumentException("Slice Mismatch: " + s2.sliceLength + " != 1");
-      }
-      if (shape().matrixLength != s2.matrixLength) {
-         throw new IllegalArgumentException("Length Mismatch: " + shape().matrixLength + " != " + s2.matrixLength);
-      }
-   }
-
-   /**
     * Checks that the length of the second shape is equal to the given dimension.
     *
     * @param dim the dimension to check
@@ -96,6 +82,20 @@ public abstract class Matrix extends NDArray {
          }
       }
       return index;
+   }
+
+   /**
+    * Checks that the two shapes have the same length.
+    *
+    * @param s2 the second shape
+    */
+   protected void checkLength(Shape s2) {
+      if (s2.sliceLength > 1) {
+         throw new IllegalArgumentException("Slice Mismatch: " + s2.sliceLength + " != 1");
+      }
+      if (shape().matrixLength != s2.matrixLength) {
+         throw new IllegalArgumentException("Length Mismatch: " + shape().matrixLength + " != " + s2.matrixLength);
+      }
    }
 
    @Override
@@ -392,6 +392,8 @@ public abstract class Matrix extends NDArray {
 
    @Override
    public NDArray mmul(NDArray rhs) {
+      Validation.checkArgument(rhs.shape.sliceLength == 1, () -> "Invalid Slice Length: " +
+                                                                    rhs.shape.sliceLength + " != 1");
       return new DenseMatrix(toDoubleMatrix()[0].mmul(rhs.toDoubleMatrix()[0]));
    }
 
@@ -602,12 +604,7 @@ public abstract class Matrix extends NDArray {
    }
 
 
-   @Override
-   public String toString() {
-      return toString(Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE);
-   }
-
-   @Override
+    @Override
    public NDArray unitize() {
       return div(norm2());
    }
@@ -627,59 +624,5 @@ public abstract class Matrix extends NDArray {
    }
 
 
-   @Override
-   public String toString(int maxSlices, int maxRows, int maxColumns) {
-      StringBuilder builder = new StringBuilder("[");
-
-      if (shape.isVector()) {
-         for (long i = 0; i < length(); i++) {
-            if (i > 0) {
-               builder.append(", ");
-            }
-            builder.append(get((int) i));
-         }
-         return builder.append("]").toString();
-      }
-
-      builder.append(rowToString(0, maxColumns));
-      int half = maxRows / 2;
-      boolean firstHalf = true;
-      for (int i = 1; i < rows(); i++) {
-         builder.append(",");
-         if (i > half && firstHalf) {
-            firstHalf = false;
-            int ni = Math.max(rows() - half, i + 1);
-            if (ni > i + 1) {
-               builder.append(System.lineSeparator())
-                      .append("     ...")
-                      .append(System.lineSeparator());
-            }
-            i = ni;
-         }
-         builder.append(System.lineSeparator())
-                .append("  ")
-                .append(rowToString(i, maxColumns));
-      }
-      return builder.append("]").toString();
-   }
-
-   private String rowToString(int i, int maxC) {
-      StringBuilder builder = new StringBuilder("[");
-      builder.append(decimalFormatter.format(get(i, 0)));
-      int half = maxC / 2;
-      boolean firstHalf = true;
-      for (int j = 1; j < columns(); j++) {
-         if (j > half && firstHalf) {
-            firstHalf = false;
-            int nj = Math.max(columns() - half, j + 1);
-            if (nj > j + 1) {
-               builder.append(", ...");
-            }
-            j = nj;
-         }
-         builder.append(", ").append(decimalFormatter.format(get(i, j)));
-      }
-      return builder.append("]").toString();
-   }
 
 }//END OF NDArray

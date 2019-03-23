@@ -33,194 +33,41 @@ import org.jblas.DoubleMatrix;
 import java.util.function.DoubleUnaryOperator;
 
 /**
+ * Sparse Matrix implementation using a single hashmap.
+ *
  * @author David B. Bracewell
  */
 public class SparseMatrix extends Matrix {
+   private static final long serialVersionUID = 1L;
    private final OpenIntDoubleHashMap map;
 
+   /**
+    * Instantiates a new Sparse matrix.
+    *
+    * @param dims the dims
+    */
    public SparseMatrix(int... dims) {
       this(new Shape(dims));
    }
 
+   /**
+    * Instantiates a new Sparse matrix.
+    *
+    * @param shape the shape
+    */
    public SparseMatrix(Shape shape) {
       super(shape);
       this.map = new OpenIntDoubleHashMap();
    }
 
+   /**
+    * Instantiates a new Sparse matrix.
+    *
+    * @param toCopy the to copy
+    */
    protected SparseMatrix(SparseMatrix toCopy) {
       super(toCopy.shape);
       this.map = Copyable.deepCopy(toCopy.map);
-   }
-
-   @Override
-   public NDArray getSubMatrix(int fromRow, int toRow, int fromCol, int toCol) {
-      SparseMatrix sm = new SparseMatrix((toRow - fromRow), (toCol - fromCol));
-      map.forEachPair((i, v) -> {
-         int row = i % shape.rows();
-         int col = i / shape.rows();
-         if (row >= fromRow && row < toRow
-                && col >= fromCol && col < toCol) {
-            sm.set(row - fromRow, col - fromCol, v);
-         }
-         return true;
-      });
-      return sm;
-   }
-
-   @Override
-   public NDArray map(DoubleUnaryOperator operator) {
-      NDArray out = zeroLike();
-      for (int i = 0; i < shape.matrixLength; i++) {
-         out.set(i, operator.applyAsDouble(get(i)));
-      }
-      return out;
-   }
-
-   @Override
-   public NDArray mapi(DoubleUnaryOperator operator) {
-      for (int i = 0; i < shape.matrixLength; i++) {
-         set(i, operator.applyAsDouble(get(i)));
-      }
-      return this;
-   }
-
-   @Override
-   public NDArray add(NDArray rhs) {
-      return copy().addi(rhs);
-   }
-
-   @Override
-   public NDArray div(NDArray rhs) {
-      return copy().divi(rhs);
-   }
-
-   @Override
-   public NDArray mul(NDArray rhs) {
-      return copy().muli(rhs);
-   }
-
-   @Override
-   public NDArray sub(NDArray rhs) {
-      return copy().subi(rhs);
-   }
-
-   @Override
-   public NDArray addi(NDArray rhs) {
-      if (!rhs.isDense()) {
-         checkLength(rhs.shape);
-         SparseMatrix sm = Cast.as(rhs);
-         sm.map.forEachPair((i, v) -> {
-            map.adjustOrPutValue(i, v, v);
-            return true;
-         });
-         return this;
-      }
-      return super.addi(rhs);
-   }
-
-   @Override
-   public NDArray subi(NDArray rhs) {
-      if (!rhs.isDense()) {
-         checkLength(rhs.shape());
-         SparseMatrix sm = Cast.as(rhs);
-         sm.map.forEachPair((i, v) -> {
-            map.adjustOrPutValue(i, -v, -v);
-            return true;
-         });
-         return this;
-      }
-      return super.addi(rhs);
-   }
-
-   @Override
-   public NDArray muli(NDArray rhs) {
-      checkLength(rhs.shape());
-      map.forEachPair((i, v) -> {
-         map.put(i, v * rhs.get(i));
-         return true;
-      });
-      return this;
-   }
-
-   @Override
-   public double get(long i) {
-      return map.get((int) i);
-   }
-
-   public int index(int rowIndex, int columnIndex) {
-      return rowIndex + shape.rows() * columnIndex;
-   }
-
-   @Override
-   public double get(int row, int col) {
-      return map.get(index(row, col));
-   }
-
-   @Override
-   public boolean isDense() {
-      return false;
-   }
-
-   @Override
-   public NDArray zero() {
-      map.clear();
-      map.trimToSize();
-      return this;
-   }
-
-   @Override
-   public NDArray set(long i, double value) {
-      if (value == 0) {
-         map.removeKey((int) i);
-      } else {
-         map.put((int) i, value);
-      }
-      return this;
-   }
-
-   @Override
-   public NDArray set(int row, int col, double value) {
-      map.put(index(row, col), value);
-      return this;
-   }
-
-   @Override
-   public DoubleMatrix[] toDoubleMatrix() {
-      DoubleMatrix m = new DoubleMatrix(shape.rows(), shape.columns());
-      map.forEachPair((i, v) -> {
-         m.data[i] = v;
-         return true;
-      });
-      return new DoubleMatrix[]{m};
-   }
-
-   @Override
-   public NDArray compact() {
-      map.trimToSize();
-      return this;
-   }
-
-   @Override
-   public NDArray zeroLike() {
-      return new SparseMatrix(shape);
-   }
-
-   @Override
-   public double[] toDoubleArray() {
-      double[] array = new double[(int) length()];
-      map.forEachPair((i, v) -> {
-         array[i] = v;
-         return true;
-      });
-      return array;
-   }
-
-   @Override
-   public void forEachSparse(EntryConsumer consumer) {
-      map.forEachPair((i, v) -> {
-         consumer.apply(i, v);
-         return true;
-      });
    }
 
    @Override
@@ -242,44 +89,33 @@ public class SparseMatrix extends Matrix {
    }
 
    @Override
-   public double sum() {
-      return Math2.sum(map.values().elements());
+   public NDArray add(NDArray rhs) {
+      return copy().addi(rhs);
    }
 
    @Override
-   public double min() {
-      double min = Optimum.MINIMUM.optimumValue(map.values().elements());
-      if (map.size() == shape.matrixLength) {
-         return min;
+   public NDArray addi(NDArray rhs) {
+      if (!rhs.isDense()) {
+         checkLength(rhs.shape);
+         SparseMatrix sm = Cast.as(rhs);
+         sm.map.forEachPair((i, v) -> {
+            map.adjustOrPutValue(i, v, v);
+            return true;
+         });
+         return this;
       }
-      return Math.min(0, min);
+      return super.addi(rhs);
    }
 
    @Override
-   public double max() {
-      double max = Optimum.MAXIMUM.optimumValue(map.values().elements());
-      if (map.size() == shape.matrixLength) {
-         return max;
-      }
-      return Math.max(0, max);
+   public NDArray compact() {
+      map.trimToSize();
+      return this;
    }
 
    @Override
-   public double norm1() {
-      double sum = 0;
-      for (double element : map.values().elements()) {
-         sum += Math.abs(element);
-      }
-      return sum;
-   }
-
-   @Override
-   public double sumOfSquares() {
-      double sum = 0;
-      for (double element : map.values().elements()) {
-         sum += element * element;
-      }
-      return sum;
+   public NDArray div(NDArray rhs) {
+      return copy().divi(rhs);
    }
 
    @Override
@@ -294,8 +130,30 @@ public class SparseMatrix extends Matrix {
    }
 
    @Override
-   public long size() {
-      return map.size();
+   public void forEachSparse(EntryConsumer consumer) {
+      map.forEachPair((i, v) -> {
+         consumer.apply(i, v);
+         return true;
+      });
+   }
+
+   @Override
+   public double get(long i) {
+      return map.get((int) i);
+   }
+
+   @Override
+   public double get(int row, int col) {
+      return map.get(shape.matrixIndex(row, col));
+   }
+
+   @Override
+   public NDArray getColumn(int column) {
+      SparseMatrix sm = new SparseMatrix(shape.rows(), 1);
+      for (int i = 0; i < shape.rows(); i++) {
+         sm.set(i, get(i, column));
+      }
+      return sm;
    }
 
    @Override
@@ -308,12 +166,104 @@ public class SparseMatrix extends Matrix {
    }
 
    @Override
-   public NDArray getColumn(int column) {
-      SparseMatrix sm = new SparseMatrix(shape.rows(), 1);
-      for (int i = 0; i < shape.rows(); i++) {
-         sm.set(i, get(i, column));
-      }
+   public NDArray getSubMatrix(int fromRow, int toRow, int fromCol, int toCol) {
+      SparseMatrix sm = new SparseMatrix((toRow - fromRow), (toCol - fromCol));
+      map.forEachPair((i, v) -> {
+         int row = i % shape.rows();
+         int col = i / shape.rows();
+         if (row >= fromRow && row < toRow
+                && col >= fromCol && col < toCol) {
+            sm.set(row - fromRow, col - fromCol, v);
+         }
+         return true;
+      });
       return sm;
+   }
+
+   @Override
+   public boolean isDense() {
+      return false;
+   }
+
+   @Override
+   public NDArray map(DoubleUnaryOperator operator) {
+      NDArray out = zeroLike();
+      for (int i = 0; i < shape.matrixLength; i++) {
+         out.set(i, operator.applyAsDouble(get(i)));
+      }
+      return out;
+   }
+
+   @Override
+   public NDArray mapi(DoubleUnaryOperator operator) {
+      for (int i = 0; i < shape.matrixLength; i++) {
+         set(i, operator.applyAsDouble(get(i)));
+      }
+      return this;
+   }
+
+   @Override
+   public double max() {
+      double max = Optimum.MAXIMUM.optimumValue(map.values().elements());
+      if (map.size() == shape.matrixLength) {
+         return max;
+      }
+      return Math.max(0, max);
+   }
+
+   @Override
+   public double min() {
+      double min = Optimum.MINIMUM.optimumValue(map.values().elements());
+      if (map.size() == shape.matrixLength) {
+         return min;
+      }
+      return Math.min(0, min);
+   }
+
+   @Override
+   public NDArray mul(NDArray rhs) {
+      return copy().muli(rhs);
+   }
+
+   @Override
+   public NDArray muli(NDArray rhs) {
+      checkLength(rhs.shape());
+      map.forEachPair((i, v) -> {
+         map.put(i, v * rhs.get(i));
+         return true;
+      });
+      return this;
+   }
+
+   @Override
+   public double norm1() {
+      double sum = 0;
+      for (double element : map.values().elements()) {
+         sum += Math.abs(element);
+      }
+      return sum;
+   }
+
+   @Override
+   public NDArray reshape(int... dims) {
+      shape.reshape(dims);
+      return this;
+   }
+
+   @Override
+   public NDArray set(long i, double value) {
+      if (value == 0) {
+         map.removeKey((int) i);
+      } else {
+         map.put((int) i, value);
+      }
+      return this;
+   }
+
+   @Override
+   public NDArray set(int row, int col, double value) {
+      map.put(shape.matrixIndex(row, col), value);
+      return this;
    }
 
    @Override
@@ -335,8 +285,72 @@ public class SparseMatrix extends Matrix {
    }
 
    @Override
-   public NDArray reshape(int... dims) {
-      shape.reshape(dims);
+   public long size() {
+      return map.size();
+   }
+
+   @Override
+   public NDArray sub(NDArray rhs) {
+      return copy().subi(rhs);
+   }
+
+   @Override
+   public NDArray subi(NDArray rhs) {
+      if (!rhs.isDense()) {
+         checkLength(rhs.shape());
+         SparseMatrix sm = Cast.as(rhs);
+         sm.map.forEachPair((i, v) -> {
+            map.adjustOrPutValue(i, -v, -v);
+            return true;
+         });
+         return this;
+      }
+      return super.addi(rhs);
+   }
+
+   @Override
+   public double sum() {
+      return Math2.sum(map.values().elements());
+   }
+
+   @Override
+   public double sumOfSquares() {
+      double sum = 0;
+      for (double element : map.values().elements()) {
+         sum += element * element;
+      }
+      return sum;
+   }
+
+   @Override
+   public double[] toDoubleArray() {
+      double[] array = new double[(int) length()];
+      map.forEachPair((i, v) -> {
+         array[i] = v;
+         return true;
+      });
+      return array;
+   }
+
+   @Override
+   public DoubleMatrix[] toDoubleMatrix() {
+      DoubleMatrix m = new DoubleMatrix(shape.rows(), shape.columns());
+      map.forEachPair((i, v) -> {
+         m.data[i] = v;
+         return true;
+      });
+      return new DoubleMatrix[]{m};
+   }
+
+   @Override
+   public NDArray zero() {
+      map.clear();
+      map.trimToSize();
       return this;
+   }
+
+   @Override
+   public NDArray zeroLike() {
+      return new SparseMatrix(shape);
    }
 }//END OF SparseMatrix

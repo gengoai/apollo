@@ -14,6 +14,9 @@ import org.jblas.DoubleMatrix;
 public class QRDecomposition extends Decomposition {
    private static final long serialVersionUID = 1L;
 
+   /**
+    * Instantiates a new Qr decomposition.
+    */
    public QRDecomposition() {
       super(2);
    }

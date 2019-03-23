@@ -33,6 +33,8 @@ import java.util.Collections;
 import java.util.Set;
 
 /**
+ * Uses the hashing trick to reduce the feature space by hashing feature names into a given number of buckets.
+ *
  * @author David B. Bracewell
  */
 public class HashingEncoder implements DiscreteVectorizer {
@@ -40,6 +42,12 @@ public class HashingEncoder implements DiscreteVectorizer {
    private final boolean isBinary;
    private final int numberOfFeatures;
 
+   /**
+    * Instantiates a new HashingEncoder.
+    *
+    * @param numberOfFeatures the number of features to represent
+    * @param isBinary         True - treat all features binary, False treat them as accumulated real values.
+    */
    public HashingEncoder(int numberOfFeatures, boolean isBinary) {
       this.numberOfFeatures = numberOfFeatures;
       this.isBinary = isBinary;
@@ -56,6 +64,11 @@ public class HashingEncoder implements DiscreteVectorizer {
    }
 
    @Override
+   public void fit(Dataset dataset) {
+
+   }
+
+   @Override
    public String getString(double value) {
       throw new UnsupportedOperationException();
    }
@@ -66,8 +79,8 @@ public class HashingEncoder implements DiscreteVectorizer {
    }
 
    @Override
-   public void fit(Dataset dataset) {
-
+   public int size() {
+      return numberOfFeatures;
    }
 
    @Override
@@ -82,11 +95,6 @@ public class HashingEncoder implements DiscreteVectorizer {
          }
       }
       return ndArray;
-   }
-
-   @Override
-   public int size() {
-      return numberOfFeatures;
    }
 
 }//END OF HashingEncoder

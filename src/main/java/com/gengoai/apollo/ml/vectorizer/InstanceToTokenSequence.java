@@ -32,6 +32,8 @@ import com.gengoai.conversion.Cast;
 import java.io.Serializable;
 
 /**
+ * Converts an Instance which has an Apollo Example as the data into a TokenSequence
+ *
  * @author David B. Bracewell
  */
 public class InstanceToTokenSequence extends Pipe implements Serializable {

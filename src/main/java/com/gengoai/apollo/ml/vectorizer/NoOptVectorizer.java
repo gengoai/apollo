@@ -32,16 +32,16 @@ import java.util.Collections;
 import java.util.Set;
 
 /**
- * The type No opt vectorizer.
+ * No Operation Vectorizer for models that do not require vectorization.
  *
  * @author David B. Bracewell
  */
 public class NoOptVectorizer implements DiscreteVectorizer {
-   private static final long serialVersionUID = 1L;
    /**
     * The constant INSTANCE.
     */
    public static final DiscreteVectorizer INSTANCE = new NoOptVectorizer();
+   private static final long serialVersionUID = 1L;
 
 
    private NoOptVectorizer() {
@@ -59,6 +59,11 @@ public class NoOptVectorizer implements DiscreteVectorizer {
    }
 
    @Override
+   public void fit(Dataset dataset) {
+
+   }
+
+   @Override
    public String getString(double value) {
       throw null;
    }
@@ -71,11 +76,6 @@ public class NoOptVectorizer implements DiscreteVectorizer {
    @Override
    public int size() {
       return 0;
-   }
-
-   @Override
-   public void fit(Dataset dataset) {
-
    }
 
    @Override

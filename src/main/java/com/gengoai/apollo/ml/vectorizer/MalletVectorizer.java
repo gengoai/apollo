@@ -34,21 +34,20 @@ import java.util.Arrays;
 import java.util.Set;
 
 /**
+ * Specialized Vectorizer for Mallet models
+ *
  * @author David B. Bracewell
  */
 public class MalletVectorizer implements DiscreteVectorizer {
    private static final long serialVersionUID = 1L;
-   protected Alphabet alphabet;
+   private Alphabet alphabet;
 
+   /**
+    * Instantiates a new MalletVectorizer.
+    *
+    * @param alphabet the alphabet
+    */
    public MalletVectorizer(Alphabet alphabet) {
-      this.alphabet = alphabet;
-   }
-
-   public Alphabet getAlphabet() {
-      return alphabet;
-   }
-
-   public void setAlphabet(Alphabet alphabet) {
       this.alphabet = alphabet;
    }
 
@@ -63,6 +62,29 @@ public class MalletVectorizer implements DiscreteVectorizer {
    }
 
    @Override
+   public void fit(Dataset dataset) {
+
+   }
+
+   /**
+    * Gets the underlying Mallet alphabet.
+    *
+    * @return the alphabet
+    */
+   public Alphabet getAlphabet() {
+      return alphabet;
+   }
+
+   /**
+    * Sets the underlying MAllet Alphabet.
+    *
+    * @param alphabet the alphabet
+    */
+   public void setAlphabet(Alphabet alphabet) {
+      this.alphabet = alphabet;
+   }
+
+   @Override
    public String getString(double value) {
       return alphabet.lookupObject((int) value).toString();
    }
@@ -73,18 +95,13 @@ public class MalletVectorizer implements DiscreteVectorizer {
    }
 
    @Override
-   public void fit(Dataset dataset) {
-
+   public int size() {
+      return alphabet.size();
    }
 
    @Override
    public NDArray transform(Example example) {
       return null;
-   }
-
-   @Override
-   public int size() {
-      return alphabet.size();
    }
 
 }// END OF MalletFeatureEncoder

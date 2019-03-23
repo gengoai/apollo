@@ -38,8 +38,8 @@ import java.util.Set;
  * @author David B. Bracewell
  */
 public class BinaryLabelVectorizer implements DiscreteVectorizer {
-   private static final long serialVersionUID = 1L;
    public static final DiscreteVectorizer INSTANCE = new BinaryLabelVectorizer();
+   private static final long serialVersionUID = 1L;
 
    @Override
    public Set<String> alphabet() {
@@ -51,6 +51,10 @@ public class BinaryLabelVectorizer implements DiscreteVectorizer {
       return Indexes.indexOf(Boolean.FALSE.toString(), Boolean.TRUE.toString());
    }
 
+   @Override
+   public void fit(Dataset dataset) {
+
+   }
 
    @Override
    public String getString(double value) {
@@ -65,8 +69,8 @@ public class BinaryLabelVectorizer implements DiscreteVectorizer {
    }
 
    @Override
-   public void fit(Dataset dataset) {
-
+   public int size() {
+      return 2;
    }
 
    @Override
@@ -75,11 +79,6 @@ public class BinaryLabelVectorizer implements DiscreteVectorizer {
          return NDArrayFactory.ND.array(2, 1).set(indexOf(example.getLabel()), 1.0);
       }
       return NDArrayFactory.ND.scalar(Double.NaN);
-   }
-
-   @Override
-   public int size() {
-      return 2;
    }
 
 }//END OF BinaryLabelVectorizer

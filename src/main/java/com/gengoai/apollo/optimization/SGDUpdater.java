@@ -144,37 +144,46 @@ public class SGDUpdater implements WeightUpdate, Serializable {
       addedCost += l2Update(dw, l2);
 
       if (momentum > 0) {
-         v = v.muli(momentum).subi(dw.muli(lr));
+         v = v.muli(momentum);
          weights.getWeights().addi(v);
-      } else {
-         weights.getWeights().subi(dw.muli(lr));
       }
 
-      weights.getBias().subi(db.muli(lr));
+      weights.getWeights()
+             .subi(dw.muli(lr));
+      weights.getBias()
+             .subi(db.muli(lr));
 
       addedCost += l1Update(weights.getWeights(), lr, l1, iteration);
       return $(dzOut, addedCost);
    }
 
    @Override
-   public double update(LinearModelParameters weights, GradientParameter gradient, int iteration) {
+   public double update(LinearModelParameters weights,
+                        GradientParameter gradient,
+                        int iteration
+                       ) {
 
       if (momentum > 0 && v == null) {
-         v = ND.array(weights.getWeights().rows(), weights.getWeights().columns());
+         v = ND.array(weights.getWeights().rows(),
+                      weights.getWeights().columns());
       }
+
       double lr = learningRate / (1.0 + decayRate * iteration);
+
       double addedCost = 0;
+
       addedCost += l2Update(gradient.getWeightGradient(), l2);
 
       if (momentum > 0) {
-         v = v.muli(momentum).subi(gradient.getWeightGradient().muli(lr));
-         weights.getWeights().addi(v);
-      } else {
-         weights.getWeights().subi(gradient.getWeightGradient().muli(lr));
+         v = v.muli(momentum);
+         weights.getWeights().addi(v.muli(momentum));
       }
 
+      weights.getWeights()
+             .subi(gradient.getWeightGradient().mul(lr));
+      weights.getBias()
+             .subi(gradient.getBiasGradient().rowSums().muli(lr));
 
-      weights.getBias().subi(gradient.getBiasGradient().rowSums().muli(lr));
       addedCost += l1Update(weights.getWeights(), lr, l1, iteration);
       return addedCost;
    }

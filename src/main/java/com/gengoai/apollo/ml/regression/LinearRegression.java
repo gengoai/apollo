@@ -77,23 +77,34 @@ public class LinearRegression extends Regression {
    protected void fitPreprocessed(Dataset preprocessed, FitParameters fitParameters) {
       Parameters p = notNull(Cast.as(fitParameters, Parameters.class));
       weightParameters.update(getNumberOfLabels(), getNumberOfFeatures());
-      GradientDescentOptimizer optimizer = GradientDescentOptimizer.builder()
-                                                                   .batchSize(p.batchSize.value())
-                                                                   .build();
+      GradientDescentOptimizer optimizer = new GradientDescentOptimizer(p.batchSize.value());
 
       optimizer.optimize(weightParameters,
-                         () -> preprocessed.stream()
-                                           .map(e -> e.transform(getPipeline())),
+                         preprocessed.asVectorStream(getPipeline()).cache(),
                          new GradientDescentCostFunction(new SquaredLoss(), -1),
                          StoppingCriteria.create("loss", p)
                                          .logger(Logger.getLogger(LinearRegression.class)),
-                         p.weightUpdater.value(),
-                         p.verbose.value() ? p.reportInterval.value() : -1);
+                         p.weightUpdater.value());
    }
 
    @Override
    public LinearRegression.Parameters getFitParameters() {
       return new Parameters();
+   }
+
+   /**
+    * The type Parameters.
+    */
+   public static class Parameters extends FitParameters<Parameters> {
+      private static final long serialVersionUID = 1L;
+      public final Parameter<Integer> batchSize = parameter(Params.Optimizable.batchSize, 20);
+      public final Parameter<Integer> historySize = parameter(Params.Optimizable.historySize, 3);
+      public final Parameter<Integer> maxIterations = parameter(Params.Optimizable.maxIterations, 100);
+      public final Parameter<Integer> reportInterval = parameter(Params.Optimizable.reportInterval, 100);
+      public final Parameter<Double> tolerance = parameter(Params.Optimizable.tolerance, 1e-9);
+      public final Parameter<WeightUpdate> weightUpdater = parameter(Params.Optimizable.weightUpdate,
+                                                                     SGDUpdater.builder().build());
+
    }
 
    private static class WeightParameters implements LinearModelParameters, Serializable, Copyable<WeightParameters> {
@@ -148,22 +159,6 @@ public class LinearRegression extends Regression {
          this.weights = ND.rand(numL, numFeatures);
          this.bias = ND.array(numL);
       }
-   }
-
-
-   /**
-    * The type Parameters.
-    */
-   public static class Parameters extends FitParameters<Parameters> {
-      private static final long serialVersionUID = 1L;
-      public final Parameter<Integer> batchSize = parameter(Params.Optimizable.batchSize, 20);
-      public final Parameter<Integer> historySize = parameter(Params.Optimizable.historySize, 3);
-      public final Parameter<Integer> maxIterations = parameter(Params.Optimizable.maxIterations, 100);
-      public final Parameter<Integer> reportInterval = parameter(Params.Optimizable.reportInterval, 100);
-      public final Parameter<Double> tolerance = parameter(Params.Optimizable.tolerance, 1e-9);
-      public final Parameter<WeightUpdate> weightUpdater = parameter(Params.Optimizable.weightUpdate,
-                                                                     SGDUpdater.builder().build());
-
    }
 
 }//END OF LinearRegression

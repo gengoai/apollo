@@ -16,7 +16,7 @@ public class ReLuActivation implements Activation {
 
    @Override
    public NDArray valueGradient(NDArray activated) {
-      return activated.test(d -> d > 0);
+      return activated.select(d -> d > 0);
    }
 
    @Override

@@ -35,9 +35,8 @@ import com.gengoai.apollo.optimization.activation.Activation;
 import com.gengoai.apollo.optimization.loss.LogLoss;
 import com.gengoai.apollo.optimization.loss.LossFunction;
 import com.gengoai.conversion.Cast;
-import com.gengoai.function.SerializableSupplier;
 import com.gengoai.logging.Loggable;
-import com.gengoai.stream.MStream;
+import com.gengoai.logging.Logger;
 
 import java.io.Serializable;
 
@@ -81,30 +80,14 @@ public class LinearModel extends Classifier implements Loggable {
       Parameters parameters = Cast.as(fitParameters);
       this.weightParameters.numFeatures = getNumberOfFeatures();
       this.weightParameters.numLabels = getNumberOfLabels();
-      GradientDescentOptimizer optimizer = GradientDescentOptimizer.builder()
-                                                                   .batchSize(parameters.batchSize.value()).build();
-
-      final SerializableSupplier<MStream<NDArray>> dataSupplier;
-      if (parameters.cacheData.value()) {
-         if (parameters.verbose.value()) {
-            logInfo("Caching dataset...");
-         }
-         final MStream<NDArray> cached = preprocessed.asVectorStream(getPipeline()).cache();
-         dataSupplier = () -> cached;
-      } else {
-         dataSupplier = () -> preprocessed.asVectorStream(getPipeline());
-      }
+      GradientDescentOptimizer optimizer = new GradientDescentOptimizer(parameters.batchSize.value());
       this.weightParameters.update(parameters);
       optimizer.optimize(weightParameters,
-                         dataSupplier,
+                         preprocessed.asVectorStream(getPipeline()).cache(),
                          new GradientDescentCostFunction(parameters.lossFunction.value()),
-                         StoppingCriteria.create()
-                                         .maxIterations(parameters.maxIterations.value())
-                                         .historySize(parameters.historySize.value())
-                                         .tolerance(parameters.tolerance.value()),
-                         parameters.weightUpdater.value(),
-                         parameters.verbose.value() ? parameters.reportInterval.value()
-                                                    : -1);
+                         StoppingCriteria.create("loss", parameters)
+                                         .logger(Logger.getLogger(getClass())),
+                         parameters.weightUpdater.value());
    }
 
    @Override
@@ -130,7 +113,6 @@ public class LinearModel extends Classifier implements Loggable {
       public final Parameter<Integer> reportInterval = parameter(Params.Optimizable.reportInterval, 100);
       public final Parameter<Double> tolerance = parameter(Params.Optimizable.tolerance, 1e-9);
       public final Parameter<LossFunction> lossFunction = parameter(Params.Optimizable.lossFunction, new LogLoss());
-      public final Parameter<Boolean> cacheData = parameter(Params.Optimizable.cacheData, true);
       public final Parameter<WeightUpdate> weightUpdater = parameter(Params.Optimizable.weightUpdate,
                                                                      SGDUpdater.builder().build());
 

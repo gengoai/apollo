@@ -128,7 +128,7 @@ public class BinaryEvaluation extends ClassifierEvaluation {
 
    @Override
    public void evaluate(Classifier model, MStream<Example> dataset) {
-      dataset.forEach(instance -> entry(instance.getLabel(), model.predict(instance)));
+      dataset.forEach(instance -> entry(instance.getDiscreteLabel(), model.predict(instance)));
    }
 
    @Override

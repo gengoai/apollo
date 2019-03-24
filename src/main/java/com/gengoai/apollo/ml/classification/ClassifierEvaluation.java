@@ -54,9 +54,8 @@ public abstract class ClassifierEvaluation implements Serializable {
     */
    public static ClassifierEvaluation crossValidation(Dataset dataset,
                                                       Classifier classifier,
-                                                      FitParameters fitParameters,
-                                                      int nFolds,
-                                                      boolean printFoldStats
+                                                      FitParameters<?> fitParameters,
+                                                      int nFolds
                                                      ) {
       IndexVectorizer tmp = new MultiLabelBinarizer();
       tmp.fit(dataset);
@@ -65,13 +64,13 @@ public abstract class ClassifierEvaluation implements Serializable {
                                         : new MultiClassEvaluation();
       int foldId = 0;
       for (Split split : dataset.shuffle().fold(nFolds)) {
-         if (printFoldStats) {
+         if (fitParameters.verbose.value()) {
             foldId++;
             log.info("Running fold {0}", foldId);
          }
          classifier.fit(split.train, fitParameters);
          evaluation.evaluate(classifier, split.test);
-         if (printFoldStats) {
+         if (fitParameters.verbose.value()) {
             log.info("Fold {0}: Cumulative Metrics(accuracy={1})", foldId, evaluation.accuracy());
          }
       }

@@ -76,7 +76,7 @@ public class BinaryLabelVectorizer implements DiscreteVectorizer {
    @Override
    public NDArray transform(Example example) {
       if (example.hasLabel()) {
-         return NDArrayFactory.ND.array(2, 1).set(indexOf(example.getLabel()), 1.0);
+         return NDArrayFactory.ND.array(2, 1).set(indexOf(example.getDiscreteLabel()), 1.0);
       }
       return NDArrayFactory.ND.scalar(Double.NaN);
    }

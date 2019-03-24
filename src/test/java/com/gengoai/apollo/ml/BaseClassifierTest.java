@@ -35,7 +35,7 @@ public abstract class BaseClassifierTest<T extends FitParameters> {
       assertTrue(passes(ClassifierEvaluation.crossValidation(irisDataset(),
                                                              classifier,
                                                              fitParameters,
-                                                             10, false)));
+                                                             10)));
    }
 
 

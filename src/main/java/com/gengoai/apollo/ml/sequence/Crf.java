@@ -148,7 +148,7 @@ public class Crf extends SequenceLabeler implements Serializable {
    /**
     * Specialized Fit Parameters for use with CRFSuite.
     */
-   public static class Parameters extends FitParameters {
+   public static class Parameters extends FitParameters<Parameters> {
       private static final long serialVersionUID = 1L;
       /**
        * The coefficient for L1 regularization (default 0.0 - not used)

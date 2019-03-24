@@ -103,6 +103,17 @@ public enum NDArrayFactory {
          return new DenseMatrix(new DoubleMatrix(data));
       }
 
+      @Override
+      public NDArray columnVector(double[] data) {
+         return new DenseMatrix(new DoubleMatrix(data));
+      }
+
+      @Override
+      public NDArray rowVector(double[] data) {
+         return new DenseMatrix(new DoubleMatrix(1, data.length, data));
+      }
+
+
    },
    /**
     * Sparse NDArrays (expect them to be 3-10x slower, but more space efficient).

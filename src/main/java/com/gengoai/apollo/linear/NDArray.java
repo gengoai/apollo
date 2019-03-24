@@ -411,7 +411,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray>, JsonSe
     * @return the NDArray
     */
    public NDArray eq(double value) {
-      return testi(v -> v == value);
+      return test(v -> v == value);
    }
 
    /**
@@ -422,7 +422,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray>, JsonSe
     * @return the NDArray
     */
    public NDArray eq(NDArray rhs) {
-      return testi(rhs, (v, value) -> v == value);
+      return test(rhs, (v, value) -> v == value);
    }
 
    /**

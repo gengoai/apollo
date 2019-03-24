@@ -52,14 +52,7 @@ public enum Similarity implements SimilarityMeasure {
    Dice {
       @Override
       public double calculate(NDArray v1, NDArray v2) {
-         if (v1.size() == 0 && v2.size() == 0) {
-            return 1.0;
-         }
-         double norm = v1.add(v2).sum();
-         if (norm == 0) {
-            return v1.sumOfSquares() == 0 && v2.sumOfSquares() == 0 ? 1.0 : 0.0;
-         }
-         return 2 * v1.map(v2, Math::min).sum() / norm;
+         return (2 * v1.dot(v2)) / (v1.sum() + v2.sum());
       }
 
       @Override

@@ -29,21 +29,23 @@ import com.gengoai.apollo.ml.Example;
 import java.util.stream.Stream;
 
 /**
+ * Label vectorizer for multi-class/multi-label problems.
+ *
  * @author David B. Bracewell
  */
 public class MultiLabelBinarizer extends IndexVectorizer {
    private static final long serialVersionUID = 1L;
 
    @Override
+   protected Stream<String> getAlphabetSpace(Example example) {
+      return example.getLabelSpace();
+   }
+
+   @Override
    public String toString() {
       return "MultiLabelBinarizer{" +
                 "index=" + index +
                 '}';
-   }
-
-   @Override
-   protected Stream<String> getAlphabetSpace(Example example) {
-      return example.getLabelSpace();
    }
 
    @Override

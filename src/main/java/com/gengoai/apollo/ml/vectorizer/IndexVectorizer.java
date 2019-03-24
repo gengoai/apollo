@@ -34,28 +34,37 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 /**
- * The type Index vectorizer.
+ * Base class for indexing vectorizers.
  *
  * @author David B. Bracewell
  */
 public abstract class IndexVectorizer implements DiscreteVectorizer {
    private static final long serialVersionUID = 1L;
-   protected final Index<String> index = new HashMapIndex<>();
-   protected final String unknown;
+   /**
+    * The Fixed.
+    */
    protected final boolean fixed;
+   /**
+    * The Index.
+    */
+   protected final Index<String> index = new HashMapIndex<>();
+   /**
+    * The Unknown.
+    */
+   protected final String unknown;
 
 
    /**
-    * Instantiates a new Index vectorizer.
+    * Instantiates a new IndexVectorizer.
     */
    public IndexVectorizer() {
       this(null);
    }
 
    /**
-    * Instantiates a new Index vectorizer.
+    * Instantiates a new IndexVectorizer.
     *
-    * @param unknown the unknown
+    * @param unknown the unknown feature/label
     */
    public IndexVectorizer(String unknown) {
       this.unknown = unknown;
@@ -65,11 +74,12 @@ public abstract class IndexVectorizer implements DiscreteVectorizer {
       this.fixed = false;
    }
 
-   @Override
-   public Index<String> asIndex() {
-      return index;
-   }
-
+   /**
+    * Instantiates a new IndexVectorizer with a fixed alphabet.
+    *
+    * @param alphabet the fixed alphabet
+    * @param unknown  the unknown feature/label
+    */
    public IndexVectorizer(List<String> alphabet, String unknown) {
       this.unknown = unknown;
       index.addAll(alphabet);
@@ -79,6 +89,11 @@ public abstract class IndexVectorizer implements DiscreteVectorizer {
    @Override
    public Set<String> alphabet() {
       return Sets.asHashSet(index);
+   }
+
+   @Override
+   public Index<String> asIndex() {
+      return index;
    }
 
    @Override
@@ -94,7 +109,7 @@ public abstract class IndexVectorizer implements DiscreteVectorizer {
    }
 
    /**
-    * Gets alphabet space.
+    * Gets the strings for the alphabet space from an example
     *
     * @param example the example
     * @return the alphabet space

@@ -33,12 +33,19 @@ import java.io.Serializable;
 import java.util.List;
 
 /**
+ * Specialized Mallet pipe to create feature vectors from examples.
+ *
  * @author David B. Bracewell
  */
 public class VectorToTokensPipe extends Pipe implements Serializable {
    private static final long serialVersionUID = 1L;
    private final MalletVectorizer encoder;
 
+   /**
+    * Instantiates a new VectorToTokensPipe.
+    *
+    * @param encoder the encoder
+    */
    public VectorToTokensPipe(MalletVectorizer encoder) {
       this.encoder = encoder;
    }
@@ -54,7 +61,7 @@ public class VectorToTokensPipe extends Pipe implements Serializable {
          names[i] = f.getName();
          values[i] = f.getValue();
       }
-      inst.setData(new FeatureVector(encoder.alphabet, names, values));
+      inst.setData(new FeatureVector(encoder.getAlphabet(), names, values));
       return inst;
    }
 

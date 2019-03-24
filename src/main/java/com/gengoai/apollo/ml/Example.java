@@ -69,7 +69,7 @@ public abstract class Example implements Copyable<Example>, Iterable<Example>, S
     * @throws UnsupportedOperationException If the example does not allow direct access to the label
     */
    public String getDiscreteLabel() {
-      return getLabel();
+      return hasLabel() ? getLabel().toString() : null;
    }
 
    /**
@@ -149,10 +149,6 @@ public abstract class Example implements Copyable<Example>, Iterable<Example>, S
    public Example setLabel(Object label) {
       if (label == null) {
          this.label = null;
-      } else if (label instanceof Number) {
-         this.label = Cast.<Number>as(label).doubleValue();
-      } else if (label instanceof CharSequence) {
-         this.label = label.toString();
       } else if (label instanceof Iterator || label instanceof Iterable ||
                     label instanceof Stream || label.getClass().isArray()
       ) {
@@ -161,8 +157,10 @@ public abstract class Example implements Copyable<Example>, Iterable<Example>, S
          } catch (TypeConversionException e) {
             throw new IllegalArgumentException("Unable to set (" + label + ") as the Instance's label");
          }
+      } else if (label instanceof Number) {
+         this.label = Cast.<Number>as(label).doubleValue();
       } else {
-         throw new IllegalArgumentException("Unable to set (" + label + ") as the Instance's label");
+         this.label = label;
       }
       return this;
    }

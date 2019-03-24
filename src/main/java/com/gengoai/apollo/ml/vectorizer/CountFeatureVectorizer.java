@@ -31,20 +31,34 @@ import java.util.List;
 import java.util.stream.Stream;
 
 /**
- * The type Count feature vectorizer.
+ * Feature vectorizer that provides a count of each feature.
  *
  * @author David B. Bracewell
  */
 public class CountFeatureVectorizer extends IndexVectorizer {
    private static final long serialVersionUID = 1L;
 
+   /**
+    * Instantiates a new CountFeatureVectorizer.
+    */
    public CountFeatureVectorizer() {
    }
 
+   /**
+    * Instantiates a new CountFeatureVectorizer.
+    *
+    * @param unknown the unknown token
+    */
    public CountFeatureVectorizer(String unknown) {
       super(unknown);
    }
 
+   /**
+    * Instantiates a new CountFeatureVectorizer with a fixed alphabet.
+    *
+    * @param alphabet the alphabet (will not be retrained)
+    * @param unknown  the unknown token
+    */
    public CountFeatureVectorizer(List<String> alphabet, String unknown) {
       super(alphabet, unknown);
    }

@@ -35,35 +35,39 @@ import java.util.Set;
 public interface DiscreteVectorizer extends Vectorizer, Copyable<DiscreteVectorizer> {
 
    /**
-    * Alphabet set.
+    * The discrete set of strings representing the alphabet
     *
-    * @return the set
+    * @return the alphabet
     */
    Set<String> alphabet();
 
    /**
-    * As index index.
+    * Provides an Index view of the alphabet.
     *
-    * @return the index
+    * @return the index view over the alphabet
     */
    Index<String> asIndex();
 
+   @Override
+   default DiscreteVectorizer copy() {
+      return Copyable.deepCopy(this);
+   }
+
    /**
-    * Decode t.
+    * Decodes the given index returning the associated string feature.
     *
     * @param value the value
-    * @return the t
+    * @return the String feature or null if the value is invalid
     */
    String getString(double value);
 
    /**
-    * Encode double.
+    * Encodes a feature name into an index
     *
-    * @param value the value
-    * @return the double
+    * @param value the feature name
+    * @return the encoded index
     */
    int indexOf(String value);
-
 
    /**
     * The unique number of features or labels known by the vectorizer.
@@ -71,10 +75,5 @@ public interface DiscreteVectorizer extends Vectorizer, Copyable<DiscreteVectori
     * @return the number of features / labels in the vectorizer.
     */
    int size();
-
-   @Override
-   default DiscreteVectorizer copy() {
-      return Copyable.deepCopy(this);
-   }
 
 }//END OF DiscreteVectorizer

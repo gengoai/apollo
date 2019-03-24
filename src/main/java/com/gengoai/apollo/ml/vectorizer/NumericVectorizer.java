@@ -28,9 +28,14 @@ import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.data.Dataset;
 
 /**
+ * Vectorizer for numeric values (e.g. regression labels)
+ *
  * @author David B. Bracewell
  */
 public class NumericVectorizer implements Vectorizer {
+   /**
+    * The constant INSTANCE.
+    */
    public static final NumericVectorizer INSTANCE = new NumericVectorizer();
 
 

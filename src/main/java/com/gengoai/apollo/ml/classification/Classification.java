@@ -23,6 +23,7 @@
 package com.gengoai.apollo.ml.classification;
 
 import com.gengoai.apollo.linear.NDArray;
+import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.ml.vectorizer.DiscreteVectorizer;
 import com.gengoai.collection.counter.Counter;
 import com.gengoai.collection.counter.Counters;
@@ -47,7 +48,13 @@ public class Classification implements Serializable {
     * @param vectorizer   the vectorizer
     */
    public Classification(NDArray distribution, DiscreteVectorizer vectorizer) {
-      this.distribution = distribution.shape().isColumnVector() ? distribution.T() : distribution.copy();
+      if (distribution.shape().isScalar()) {
+         this.distribution = NDArrayFactory.DENSE.array(1, 2);
+         this.distribution.set(0, 1d - distribution.scalar());
+         this.distribution.set(1, distribution.scalar());
+      } else {
+         this.distribution = distribution.shape().isColumnVector() ? distribution.T() : distribution.copy();
+      }
       this.argMax = vectorizer.getString(this.distribution.argmax());
       this.vectorizer = vectorizer;
    }

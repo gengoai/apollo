@@ -32,17 +32,31 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 /**
+ * Three and Four dimensional NDArrays.
+ *
  * @author David B. Bracewell
  */
 public class Tensor extends NDArray {
    private static final long serialVersionUID = 1L;
    final NDArray[] slices;
 
+   /**
+    * Instantiates a new Tensor.
+    *
+    * @param kernels  the kernels
+    * @param channels the channels
+    * @param slices   the slices
+    */
    public Tensor(int kernels, int channels, NDArray[] slices) {
       super(Shape.shape(kernels, channels, slices[0].rows(), slices[0].columns()));
       this.slices = slices;
    }
 
+   /**
+    * Instantiates a new Tensor.
+    *
+    * @param shape the shape
+    */
    public Tensor(Shape shape) {
       super(shape);
       this.slices = new NDArray[shape.sliceLength];

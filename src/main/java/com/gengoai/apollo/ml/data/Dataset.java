@@ -22,6 +22,7 @@
 
 package com.gengoai.apollo.ml.data;
 
+import com.gengoai.annotation.JsonAdapter;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.Pipeline;
@@ -30,6 +31,7 @@ import com.gengoai.collection.counter.Counter;
 import com.gengoai.function.SerializableFunction;
 import com.gengoai.io.resource.Resource;
 import com.gengoai.json.Json;
+import com.gengoai.json.JsonEntry;
 import com.gengoai.stream.MStream;
 import com.gengoai.stream.StreamingContext;
 import com.gengoai.stream.accumulator.MCounterAccumulator;
@@ -37,6 +39,7 @@ import com.gengoai.stream.accumulator.MCounterAccumulator;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.Serializable;
+import java.lang.reflect.Type;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
@@ -49,9 +52,26 @@ import static com.gengoai.Validation.notNull;
  *
  * @author David B. Bracewell
  */
+@JsonAdapter(Dataset.JsonMarshaller.class)
 public abstract class Dataset implements Iterable<Example>, Serializable, AutoCloseable {
    private static final long serialVersionUID = 1L;
 
+
+   public static class JsonMarshaller extends com.gengoai.json.JsonMarshaller<Dataset> {
+      @Override
+      protected Dataset deserialize(JsonEntry entry, Type type) {
+         return Dataset.builder()
+                       .type(entry.getProperty("type").getAs(DatasetType.class))
+                       .source(StreamingContext.local().stream(entry.getProperty("examples").getAsArray(Example.class)));
+      }
+
+      @Override
+      protected JsonEntry serialize(Dataset examples, Type type) {
+         return JsonEntry.object()
+                         .addProperty("type", examples.getType())
+                         .addProperty("examples", JsonEntry.array(examples));
+      }
+   }
 
    /**
     * Gets a {@link DatasetBuilder} so that a new {@link Dataset} can be created.

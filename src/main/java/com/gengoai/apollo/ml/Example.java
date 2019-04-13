@@ -23,14 +23,17 @@
 package com.gengoai.apollo.ml;
 
 import com.gengoai.Copyable;
+import com.gengoai.annotation.JsonAdapter;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.collection.Streams;
 import com.gengoai.conversion.Cast;
 import com.gengoai.conversion.Converter;
 import com.gengoai.conversion.TypeConversionException;
+import com.gengoai.json.JsonEntry;
 import com.gengoai.reflection.Types;
 
 import java.io.Serializable;
+import java.lang.reflect.Type;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -47,10 +50,46 @@ import static com.gengoai.apollo.ml.Feature.booleanFeature;
  * {@link Sequence}s are containers that are made up of one or more other examples and do not themselves have labels or
  * features associated.</p>
  */
+@JsonAdapter(value = Example.JsonMarshaller.class)
 public abstract class Example implements Copyable<Example>, Iterable<Example>, Serializable {
    private static final long serialVersionUID = 1L;
    private double weight = 1.0;
    private Object label = null;
+
+   public static class JsonMarshaller extends com.gengoai.json.JsonMarshaller<Example> {
+
+      @Override
+      protected Example deserialize(JsonEntry entry, Type type) {
+         Object label = entry.getProperty("label", Object.class, null);
+         double weight = entry.getDoubleProperty("weight");
+
+         Example example;
+         if (entry.hasProperty("features")) {
+            example = new Instance(label, entry.getProperty("features").getAsArray(Feature.class));
+         } else {
+            example = new Sequence(entry.getProperty("sequence").getAsArray(Example.class));
+            example.setLabel(label);
+         }
+         example.setWeight(weight);
+
+         return example;
+      }
+
+      @Override
+      protected JsonEntry serialize(Example example, Type type) {
+         JsonEntry entry = JsonEntry.object();
+         if (example.label != null) {
+            entry.addProperty("label", example.label);
+         }
+         entry.addProperty("weight", example.weight);
+         if (example.isInstance()) {
+            entry.addProperty("features", example.getFeatures());
+         } else {
+            entry.addProperty("sequence", JsonEntry.array(example));
+         }
+         return entry;
+      }
+   }
 
    /**
     * Adds an example. Will throw an <code>UnsupportedOperationException</code> if this is a not a multi-example.

@@ -30,7 +30,7 @@ import com.gengoai.conversion.Cast;
 import com.gengoai.conversion.Converter;
 import com.gengoai.conversion.TypeConversionException;
 import com.gengoai.json.JsonEntry;
-import com.gengoai.reflection.Types;
+import com.gengoai.reflection.TypeUtils;
 
 import java.io.Serializable;
 import java.lang.reflect.Type;
@@ -192,7 +192,7 @@ public abstract class Example implements Copyable<Example>, Iterable<Example>, S
                     label instanceof Stream || label.getClass().isArray()
       ) {
          try {
-            this.label = Converter.convert(label, Types.parameterizedType(Set.class, String.class));
+            this.label = Converter.convert(label, TypeUtils.parameterizedType(Set.class, String.class));
          } catch (TypeConversionException e) {
             throw new IllegalArgumentException("Unable to set (" + label + ") as the Instance's label");
          }

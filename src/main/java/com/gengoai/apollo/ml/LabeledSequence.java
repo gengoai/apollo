@@ -22,11 +22,14 @@
 
 package com.gengoai.apollo.ml;
 
+import com.gengoai.function.SerializableFunction;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * A sequence of {@link LabeledDatum} used to extract {@link Sequence} for classified sequence labeling.
@@ -65,6 +68,15 @@ public class LabeledSequence<T> implements Serializable, Iterable<LabeledDatum<T
    @SafeVarargs
    public LabeledSequence(LabeledDatum<T>... instances) {
       Collections.addAll(sequence, instances);
+   }
+
+
+   public LabeledSequence(Stream<T> stream, SerializableFunction<T, Object> labelFunction) {
+      stream.forEach(i -> sequence.add(LabeledDatum.of(labelFunction.apply(i), i)));
+   }
+
+   public LabeledSequence(List<T> list, SerializableFunction<T, Object> labelFunction) {
+      list.forEach(i -> sequence.add(LabeledDatum.of(labelFunction.apply(i), i)));
    }
 
    /**

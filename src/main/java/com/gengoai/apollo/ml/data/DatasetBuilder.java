@@ -105,7 +105,7 @@ public class DatasetBuilder {
     * @param extractor the feature extractor to transform input objects to examples
     * @return the dataset
     */
-   public <I> Dataset sequences(MStream<List<I>> instances, FeatureExtractor<? super I> extractor) {
+   public <I> Dataset sequences(MStream<List<? extends I>> instances, FeatureExtractor<? super I> extractor) {
       return type.create(instances.map(extractor::extract));
    }
 

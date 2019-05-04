@@ -76,4 +76,8 @@ public interface DiscreteVectorizer extends Vectorizer, Copyable<DiscreteVectori
     */
    int size();
 
+   default String unknown() {
+      return null;
+   }
+
 }//END OF DiscreteVectorizer

@@ -227,7 +227,7 @@ public abstract class Example implements Copyable<Example>, Iterable<Example>, S
    public Set<String> getMultiLabel() {
       Object lbl = getLabel();
       if (lbl == null) {
-         return null;
+         return Collections.emptySet();
       }
       if (lbl instanceof Set) {
          return Cast.as(lbl);

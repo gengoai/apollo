@@ -28,12 +28,15 @@ import com.gengoai.apollo.ml.FitParameters;
 import com.gengoai.apollo.ml.Params;
 import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
+import com.gengoai.apollo.ml.vectorizer.CountFeatureVectorizer;
 import com.gengoai.conversion.Cast;
 import org.apache.spark.mllib.feature.Word2VecModel;
 import org.jblas.FloatMatrix;
 import org.jblas.MatrixFunctions;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import static com.gengoai.Validation.notNull;
 import static scala.collection.JavaConversions.mapAsJavaMap;
@@ -66,6 +69,20 @@ public class Word2Vec extends Embedding {
       w2v.setWindowSize(p.windowSize.value());
       w2v.setSeed(new Date().getTime());
       w2v.setMinCount(1);
+
+      List<String> suffix = new ArrayList<>();
+      for (int i = 0; i < getPipeline().featureVectorizer.size(); i++) {
+         String feature = getPipeline().featureVectorizer.getString(i);
+         int index = feature.indexOf('=');
+         if (index > 0) {
+            suffix.add(feature.substring(index + 1));
+         } else {
+            suffix.add(feature);
+         }
+      }
+      this.getPipeline().featureVectorizer = new CountFeatureVectorizer(suffix, getPipeline()
+                                                                                   .featureVectorizer.unknown());
+
       Word2VecModel model = w2v.fit(preprocessed.stream()
                                                 .toDistributedStream()
                                                 .map(e -> exampleToList(e, false))
@@ -73,8 +90,12 @@ public class Word2Vec extends Embedding {
       NDArray[] vectors = new NDArray[model.getVectors().size()];
       mapAsJavaMap(model.getVectors()).forEach((k, v) -> {
          int index = getPipeline().featureVectorizer.indexOf(k);
-         vectors[index] = new DenseMatrix(MatrixFunctions.floatToDouble(new FloatMatrix(1, v.length, v)));
-         vectors[index].setLabel(k);
+         if (index >= 0) {
+            vectors[index] = new DenseMatrix(MatrixFunctions.floatToDouble(new FloatMatrix(1, v.length, v)));
+            vectors[index].setLabel(k);
+         } else {
+            System.out.println("-1: " + k);
+         }
       });
       this.vectorIndex = new DefaultVectorIndex(vectors);
    }

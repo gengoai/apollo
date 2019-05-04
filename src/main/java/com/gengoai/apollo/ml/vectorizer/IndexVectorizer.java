@@ -122,6 +122,11 @@ public abstract class IndexVectorizer implements DiscreteVectorizer {
    }
 
    @Override
+   public String unknown() {
+      return unknown;
+   }
+
+   @Override
    public int indexOf(String value) {
       int i = index.getId(value);
       if (i < 0 && unknown != null) {

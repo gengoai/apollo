@@ -126,6 +126,11 @@ public abstract class Featurizer<I> implements FeatureExtractor<I>, Serializable
       return new ChainFeaturizer<>(Arrays.asList(featurizers));
    }
 
+   public static <I> Featurizer<I> chain(List<Featurizer<? super I>> featurizers) {
+      return new ChainFeaturizer<>(featurizers);
+   }
+
+
    /**
     * Applies the featurizer to the given input producing a list of {@link Feature}
     *

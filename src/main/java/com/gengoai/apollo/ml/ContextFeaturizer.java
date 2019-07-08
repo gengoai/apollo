@@ -85,6 +85,13 @@ public abstract class ContextFeaturizer<I> implements FeatureExtractor<I>, Seria
                                                   .collect(Collectors.toList()));
    }
 
+   public static <I> ContextFeaturizer<I> chain(List<String> patterns) {
+      return new ChainedContextFeaturizer<>(patterns.stream()
+                                                    .map(SingleContextFeaturizer::new)
+                                                    .collect(Collectors.toList()));
+   }
+
+
    /**
     * Convenience method for creating a ContextFeaturizer from a given pattern. Will use beginning and end of sequence
     * markers as needed.

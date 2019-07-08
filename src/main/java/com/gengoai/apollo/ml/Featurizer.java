@@ -152,10 +152,14 @@ public abstract class Featurizer<I> implements FeatureExtractor<I>, Serializable
     * @return the feature extractor
     */
    public final FeatureExtractor<I> withContext(String... patterns) {
-      if (patterns == null || patterns.length == 0) {
+      return withContext(Arrays.asList(patterns));
+   }
+
+   public final FeatureExtractor<I> withContext(List<String> patterns) {
+      if (patterns == null || patterns.size() == 0) {
          return this;
-      } else if (patterns.length == 1) {
-         return new FeatureExtractorImpl<>(this, ContextFeaturizer.contextFeaturizer(patterns[0]));
+      } else if (patterns.size() == 1) {
+         return new FeatureExtractorImpl<>(this, ContextFeaturizer.contextFeaturizer(patterns.get(0)));
       }
       return new FeatureExtractorImpl<>(this, ContextFeaturizer.chain(patterns));
    }

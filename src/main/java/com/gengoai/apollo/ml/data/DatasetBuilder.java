@@ -78,7 +78,7 @@ public class DatasetBuilder {
     * @return the dataset
     */
    public <I> Dataset instances(MStream<I> instances, FeatureExtractor<? super I> extractor) {
-      return type.create(instances.map(extractor::extract));
+      return type.create(instances.map(extractor::extractExample));
    }
 
    /**
@@ -92,7 +92,7 @@ public class DatasetBuilder {
     * @return the dataset
     */
    public <I> Dataset labeledInstances(MStream<LabeledDatum<I>> instances, FeatureExtractor<? super I> extractor) {
-      return type.create(instances.map(extractor::extract));
+      return type.create(instances.map(extractor::extractExample));
    }
 
    /**
@@ -106,7 +106,7 @@ public class DatasetBuilder {
     * @return the dataset
     */
    public <I> Dataset sequences(MStream<List<? extends I>> instances, FeatureExtractor<? super I> extractor) {
-      return type.create(instances.map(extractor::extract));
+      return type.create(instances.map(extractor::extractExample));
    }
 
    /**
@@ -120,7 +120,7 @@ public class DatasetBuilder {
     * @return the dataset
     */
    public <I> Dataset sequences(Collection<List<I>> instances, FeatureExtractor<I> extractor) {
-      return type.create(StreamingContext.local().stream(instances.stream().map(extractor::extract)));
+      return type.create(StreamingContext.local().stream(instances.stream().map(extractor::extractExample)));
    }
 
    /**
@@ -134,7 +134,7 @@ public class DatasetBuilder {
     * @return the dataset
     */
    public <I> Dataset labeledSequences(MStream<LabeledSequence<I>> instances, FeatureExtractor<? super I> extractor) {
-      return type.create(instances.map(extractor::extract));
+      return type.create(instances.map(extractor::extractExample));
    }
 
    /**

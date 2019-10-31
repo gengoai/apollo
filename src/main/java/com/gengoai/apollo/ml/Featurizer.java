@@ -137,12 +137,12 @@ public abstract class Featurizer<I> implements FeatureExtractor<I>, Serializable
     * @param input the input object to extract for features from
     * @return the list of extracted {@link Feature}
     */
-   public abstract List<Feature> apply(I input);
+   public abstract List<Feature> applyAsFeatures(I input);
 
 
    @Override
-   public Example extract(I input) {
-      return new Instance(null, apply(input));
+   public Example extractExample(I input) {
+      return new Instance(null, applyAsFeatures(input));
    }
 
    /**
@@ -173,10 +173,10 @@ public abstract class Featurizer<I> implements FeatureExtractor<I>, Serializable
       }
 
       @Override
-      public List<Feature> apply(I input) {
+      public List<Feature> applyAsFeatures(I input) {
          List<Feature> features = new ArrayList<>();
          for (Featurizer<? super I> featurizer : featurizers) {
-            features.addAll(featurizer.apply(input));
+            features.addAll(featurizer.applyAsFeatures(input));
          }
          return features;
       }
@@ -191,7 +191,7 @@ public abstract class Featurizer<I> implements FeatureExtractor<I>, Serializable
       }
 
       @Override
-      public List<Feature> apply(I input) {
+      public List<Feature> applyAsFeatures(I input) {
          return function.apply(input)
                         .stream()
                         .map(Feature::booleanFeature)
@@ -210,7 +210,7 @@ public abstract class Featurizer<I> implements FeatureExtractor<I>, Serializable
       }
 
       @Override
-      public List<Feature> apply(I input) {
+      public List<Feature> applyAsFeatures(I input) {
          if (predicate.test(input)) {
             return Collections.singletonList(feature);
          }
@@ -227,7 +227,7 @@ public abstract class Featurizer<I> implements FeatureExtractor<I>, Serializable
       }
 
       @Override
-      public List<Feature> apply(I input) {
+      public List<Feature> applyAsFeatures(I input) {
          Counter<String> counter = function.apply(input);
          List<Feature> features = new ArrayList<>();
          counter.forEach((k, v) -> features.add(Feature.realFeature(k, v)));
@@ -246,7 +246,7 @@ public abstract class Featurizer<I> implements FeatureExtractor<I>, Serializable
       }
 
       @Override
-      public List<Feature> apply(I input) {
+      public List<Feature> applyAsFeatures(I input) {
          String value = function.apply(input);
          if (value == null) {
             return Collections.emptyList();

@@ -52,7 +52,7 @@ public interface FeatureExtractor<I> {
     * @param input the datum to extract from
     * @return the example
     */
-   Example extract(I input);
+   Example extractExample(I input);
 
    /**
     * Extracts a {@link Sequence} example from the given labeled sequence
@@ -60,9 +60,9 @@ public interface FeatureExtractor<I> {
     * @param sequence the sequence of labeled items to extractor from
     * @return the example
     */
-   default Example extract(LabeledSequence<? extends I> sequence) {
+   default Example extractExample(LabeledSequence<? extends I> sequence) {
       Sequence out = new Sequence();
-      sequence.forEach(i -> out.add(extract(i)));
+      sequence.forEach(i -> out.add(extractExample(i)));
       return contextualize(out);
    }
 
@@ -72,8 +72,8 @@ public interface FeatureExtractor<I> {
     * @param datum the datum to extract from
     * @return the example
     */
-   default Example extract(LabeledDatum<? extends I> datum) {
-      Example ii = extract(datum.data);
+   default Example extractExample(LabeledDatum<? extends I> datum) {
+      Example ii = extractExample(datum.data);
       ii.setLabel(datum.label);
       return ii;
    }
@@ -84,10 +84,10 @@ public interface FeatureExtractor<I> {
     * @param sequence the sequence of labeled items to extractor from
     * @return the example
     */
-   default Example extract(List<? extends I> sequence) {
+   default Example extractExample(List<? extends I> sequence) {
       Sequence out = new Sequence();
       for (I i : sequence) {
-         out.add(extract(i));
+         out.add(extractExample(i));
       }
       return contextualize(out);
    }

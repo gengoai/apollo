@@ -54,7 +54,7 @@ class FeatureExtractorImpl<I> implements FeatureExtractor<I>, Serializable {
    }
 
    @Override
-   public Example extract(I input) {
-      return featurizer.extract(input);
+   public Example extractExample(I input) {
+      return featurizer.extractExample(input);
    }
 }//END OF FeatureExtractorImpl

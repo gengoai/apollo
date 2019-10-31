@@ -22,7 +22,7 @@ public class SGDUpdater implements WeightUpdate, Serializable {
    private double momentum;
    private double l1;
    private double l2;
-   private transient NDArray v;
+   private NDArray v;
 
    /**
     * Instantiates a new Sgd updater.

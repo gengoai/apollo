@@ -44,7 +44,7 @@ public enum NDArrayFactory {
     * use <code>DENSE</code>.
     */
    ND {
-      private NDArrayFactory factory;
+      private volatile NDArrayFactory factory;
 
       private NDArrayFactory getFactory() {
          if (factory == null) {

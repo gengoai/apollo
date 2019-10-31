@@ -105,7 +105,7 @@ public abstract class ContextFeaturizer<I> implements FeatureExtractor<I>, Seria
    }
 
    @Override
-   public final Example extract(I input) {
+   public final Example extractExample(I input) {
       throw new UnsupportedOperationException();
    }
 

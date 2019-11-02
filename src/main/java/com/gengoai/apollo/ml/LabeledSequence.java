@@ -22,6 +22,7 @@
 
 package com.gengoai.apollo.ml;
 
+import com.gengoai.Validation;
 import com.gengoai.function.SerializableFunction;
 
 import java.io.Serializable;
@@ -70,8 +71,17 @@ public class LabeledSequence<T> implements Serializable, Iterable<LabeledDatum<T
       Collections.addAll(sequence, instances);
    }
 
+   public LabeledSequence(List<T> words, List<Object> labels) {
+      Validation.checkArgument(words.size() == labels.size(),
+                               String.format("Size mismatch words size (%d) != labels size (%d)",
+                                             words.size(),
+                                             labels.size()));
+      for (int i = 0; i < words.size(); i++) {
+         sequence.add(LabeledDatum.of(labels.get(i), words.get(i)));
+      }
+   }
 
-   public LabeledSequence(Stream<T> stream, SerializableFunction<T, Object> labelFunction) {
+   public LabeledSequence(Stream<T> stream, SerializableFunction<? super T, Object> labelFunction) {
       stream.forEach(i -> sequence.add(LabeledDatum.of(labelFunction.apply(i), i)));
    }
 

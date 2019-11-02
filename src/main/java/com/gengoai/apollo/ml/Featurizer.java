@@ -155,6 +155,12 @@ public abstract class Featurizer<I> implements FeatureExtractor<I>, Serializable
       return withContext(Arrays.asList(patterns));
    }
 
+   /**
+    * Creates a new feature extractor that includes contextual features.
+    *
+    * @param patterns the contextual feature patterns
+    * @return the feature extractor
+    */
    public final FeatureExtractor<I> withContext(List<String> patterns) {
       if (patterns == null || patterns.size() == 0) {
          return this;

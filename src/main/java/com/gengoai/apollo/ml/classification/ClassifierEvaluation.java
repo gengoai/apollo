@@ -60,7 +60,7 @@ public abstract class ClassifierEvaluation implements Serializable {
       IndexVectorizer tmp = new MultiLabelBinarizer();
       tmp.fit(dataset);
       ClassifierEvaluation evaluation = tmp.size() <= 2
-                                        ? new BinaryEvaluation(classifier.getPipeline().labelVectorizer)
+                                        ? new BinaryEvaluation(tmp)
                                         : new MultiClassEvaluation();
       int foldId = 0;
       for (Split split : dataset.shuffle().fold(nFolds)) {

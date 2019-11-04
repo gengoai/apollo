@@ -124,8 +124,9 @@ public class MalletLDA extends TopicModel {
       if (inferencer == null) {
          synchronized (this) {
             if (inferencer == null) {
-               inferencer = topicModel.getInferencer();
-               inferencer.setRandomSeed(1234);
+               TopicInferencer ti = topicModel.getInferencer();
+               ti.setRandomSeed(1234);
+               inferencer = ti;
             }
          }
       }

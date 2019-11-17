@@ -22,7 +22,7 @@
 
 package com.gengoai.apollo.ml.classification;
 
-import com.gengoai.Param;
+import com.gengoai.ParameterDef;
 import com.gengoai.apollo.ml.*;
 import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
@@ -42,10 +42,10 @@ import static com.gengoai.Validation.notNull;
  * @author David B. Bracewell
  */
 public class LibLinearModel extends Classifier implements Loggable {
-   public static final Param<Double> C = Param.doubleParam("C");
-   public static final Param<Boolean> bias = Param.boolParam("bias");
-   public static final Param<Double> eps = Param.doubleParam("eps");
-   public static final Param<SolverType> solver = new Param<>("solver", SolverType.class);
+   public static final ParameterDef<Double> C = ParameterDef.doubleParam("C");
+   public static final ParameterDef<Boolean> bias = ParameterDef.boolParam("bias");
+   public static final ParameterDef<Double> eps = ParameterDef.doubleParam("eps");
+   public static final ParameterDef<SolverType> solver = new ParameterDef<>("solver", SolverType.class);
    private static final long serialVersionUID = 1L;
    private int biasIndex = -1;
    private Model model;

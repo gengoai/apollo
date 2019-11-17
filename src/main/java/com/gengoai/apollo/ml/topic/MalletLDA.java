@@ -31,7 +31,7 @@ import cc.mallet.types.Alphabet;
 import cc.mallet.types.IDSorter;
 import cc.mallet.types.Instance;
 import cc.mallet.types.InstanceList;
-import com.gengoai.Param;
+import com.gengoai.ParameterDef;
 import com.gengoai.SystemInfo;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
@@ -165,9 +165,9 @@ public class MalletLDA extends TopicModel {
    }
 
 
-   public static final Param<Integer> burnIn = Param.intParam("burnIn");
-   public static final Param<Integer> optimizationInterval = Param.intParam("optimizationInterval");
-   public static final Param<Boolean> symmetricAlpha = Param.boolParam("symmetricAlpha");
+   public static final ParameterDef<Integer> burnIn = ParameterDef.intParam("burnIn");
+   public static final ParameterDef<Integer> optimizationInterval = ParameterDef.intParam("optimizationInterval");
+   public static final ParameterDef<Boolean> symmetricAlpha = ParameterDef.boolParam("symmetricAlpha");
 
    /**
     * The type Parameters.

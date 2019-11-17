@@ -22,15 +22,18 @@
 
 package com.gengoai.apollo.ml;
 
-import com.gengoai.Parameters;
+import com.gengoai.Copyable;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.ml.data.Dataset;
 import com.gengoai.apollo.ml.preprocess.PreprocessorList;
 import com.gengoai.apollo.ml.vectorizer.CountFeatureVectorizer;
 import com.gengoai.apollo.ml.vectorizer.DiscreteVectorizer;
 import com.gengoai.apollo.ml.vectorizer.Vectorizer;
+import com.gengoai.conversion.Cast;
+import lombok.NonNull;
 
 import java.io.Serializable;
+import java.util.function.Consumer;
 
 /**
  * <p>A pipeline defines the preprocessing steps to be applied to {@link Example}s and the {@link Vectorizer}s
@@ -42,7 +45,7 @@ import java.io.Serializable;
  * @author David B. Bracewell
  */
 public abstract class Pipeline<LV extends Vectorizer,
-                                 T extends Pipeline<LV, ?>> implements Parameters<T>, Serializable {
+   T extends Pipeline<LV, ?>> implements Copyable<T>, Serializable {
    private static final long serialVersionUID = 1L;
 
    /**
@@ -83,5 +86,20 @@ public abstract class Pipeline<LV extends Vectorizer,
       return preprocessed;
    }
 
+   @Override
+   public T copy() {
+      return Cast.as(Copyable.deepCopy(this));
+   }
+
+   /**
+    * Updates the pipeline using the given consumer
+    *
+    * @param updater the updater
+    * @return this pipeline updated
+    */
+   public T update(@NonNull Consumer<? extends T> updater) {
+      updater.accept(Cast.as(this));
+      return Cast.as(this);
+   }
 
 }//END OF ModelParameters

@@ -22,7 +22,7 @@
 
 package com.gengoai.apollo.ml.clustering;
 
-import com.gengoai.Param;
+import com.gengoai.ParameterDef;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.ml.DiscretePipeline;
 import com.gengoai.apollo.ml.FitParameters;
@@ -105,8 +105,8 @@ public class DBSCAN extends FlatCentroidClusterer {
       return new Parameters();
    }
 
-   public static final Param<Double> eps = Param.doubleParam("eps");
-   public static final Param<Integer> minPts = Param.intParam("minPts");
+   public static final ParameterDef<Double> eps = ParameterDef.doubleParam("eps");
+   public static final ParameterDef<Integer> minPts = ParameterDef.intParam("minPts");
 
    /**
     * FitParameters for DBSCAN

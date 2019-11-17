@@ -22,7 +22,7 @@
 
 package com.gengoai.apollo.ml;
 
-import com.gengoai.Param;
+import com.gengoai.ParameterDef;
 import com.gengoai.apollo.ml.clustering.Linkage;
 import com.gengoai.apollo.optimization.WeightUpdate;
 import com.gengoai.apollo.optimization.activation.Activation;
@@ -39,7 +39,7 @@ public final class Params {
    /**
     * True - Verbose output during training
     */
-   public static final Param<Boolean> verbose = Param.boolParam("verbose");
+   public static final ParameterDef<Boolean> verbose = ParameterDef.boolParam("verbose");
 
    /**
     * Common parameters for machine learning algorithms that use the Optimization package
@@ -48,43 +48,43 @@ public final class Params {
       /**
        * Maximum number of iterations to optimize for
        */
-      public static final Param<Integer> maxIterations = Param.intParam("maxIterations");
+      public static final ParameterDef<Integer> maxIterations = ParameterDef.intParam("maxIterations");
       /**
        * The number iterations to report progress
        */
-      public static final Param<Integer> reportInterval = Param.intParam("reportInterval");
+      public static final ParameterDef<Integer> reportInterval = ParameterDef.intParam("reportInterval");
       /**
        * The number of iterations to record metrics to determine convergence.
        */
-      public static final Param<Integer> historySize = Param.intParam("historySize");
+      public static final ParameterDef<Integer> historySize = ParameterDef.intParam("historySize");
       /**
        * The number of examples to use in the batch for mini-batch optimization
        */
-      public static final Param<Integer> batchSize = Param.intParam("batchSize");
+      public static final ParameterDef<Integer> batchSize = ParameterDef.intParam("batchSize");
       /**
        * The tolerance in change of metric from last iteration to this iteration for determining convergence.
        */
-      public static final Param<Double> tolerance = Param.doubleParam("tolerance");
+      public static final ParameterDef<Double> tolerance = ParameterDef.doubleParam("tolerance");
       /**
        * The learning rate
        */
-      public static final Param<Double> learningRate = Param.doubleParam("learningRate");
+      public static final ParameterDef<Double> learningRate = ParameterDef.doubleParam("learningRate");
       /**
        * The activation function here.
        */
-      public static final Param<Activation> activation = new Param<>("activation", Activation.class);
+      public static final ParameterDef<Activation> activation = new ParameterDef<>("activation", Activation.class);
       /**
        * The loss function to use
        */
-      public static final Param<LossFunction> lossFunction = new Param<>("lossFunction", LossFunction.class);
+      public static final ParameterDef<LossFunction> lossFunction = new ParameterDef<>("lossFunction", LossFunction.class);
       /**
        * True - cache data
        */
-      public static final Param<Boolean> cacheData = Param.boolParam("cacheData");
+      public static final ParameterDef<Boolean> cacheData = ParameterDef.boolParam("cacheData");
       /**
        * Weight update methodology
        */
-      public static final Param<WeightUpdate> weightUpdate = new Param<>("weightUpdate", WeightUpdate.class);
+      public static final ParameterDef<WeightUpdate> weightUpdate = new ParameterDef<>("weightUpdate", WeightUpdate.class);
    }
 
    /**
@@ -94,19 +94,19 @@ public final class Params {
       /**
        * The constant depthLimited.
        */
-      public static final Param<Boolean> depthLimited = Param.boolParam("depthLimited");
+      public static final ParameterDef<Boolean> depthLimited = ParameterDef.boolParam("depthLimited");
       /**
        * The constant prune.
        */
-      public static final Param<Boolean> prune = Param.boolParam("prune");
+      public static final ParameterDef<Boolean> prune = ParameterDef.boolParam("prune");
       /**
        * The constant maxDepth.
        */
-      public static final Param<Integer> maxDepth = Param.intParam("maxDepth");
+      public static final ParameterDef<Integer> maxDepth = ParameterDef.intParam("maxDepth");
       /**
        * The constant minInstances.
        */
-      public static final Param<Integer> minInstances = Param.intParam("minInstances");
+      public static final ParameterDef<Integer> minInstances = ParameterDef.intParam("minInstances");
    }
 
    /**
@@ -116,15 +116,15 @@ public final class Params {
       /**
        * The constant K.
        */
-      public static final Param<Integer> K = Param.intParam("K");
+      public static final ParameterDef<Integer> K = ParameterDef.intParam("K");
       /**
        * The constant measure.
        */
-      public static final Param<Measure> measure = new Param<>("measure", Measure.class);
+      public static final ParameterDef<Measure> measure = new ParameterDef<>("measure", Measure.class);
       /**
        * The constant linkage.
        */
-      public static final Param<Linkage> linkage = new Param<>("linkage", Linkage.class);
+      public static final ParameterDef<Linkage> linkage = new ParameterDef<>("linkage", Linkage.class);
    }
 
    /**
@@ -134,11 +134,11 @@ public final class Params {
       /**
        * The constant dimension.
        */
-      public static final Param<Integer> dimension = Param.intParam("dimension");
+      public static final ParameterDef<Integer> dimension = ParameterDef.intParam("dimension");
       /**
        * The constant windowSize.
        */
-      public static final Param<Integer> windowSize = Param.intParam("windowSize");
+      public static final ParameterDef<Integer> windowSize = ParameterDef.intParam("windowSize");
    }
 
 

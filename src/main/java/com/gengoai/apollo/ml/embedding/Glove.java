@@ -22,7 +22,7 @@
 
 package com.gengoai.apollo.ml.embedding;
 
-import com.gengoai.Param;
+import com.gengoai.ParameterDef;
 import com.gengoai.Stopwatch;
 import com.gengoai.apollo.linear.DenseMatrix;
 import com.gengoai.apollo.linear.NDArray;
@@ -263,8 +263,8 @@ public class Glove extends Embedding {
       }
    }
 
-   public static final Param<Double> alpha = Param.doubleParam("alpha");
-   public static final Param<Integer> xMax = Param.intParam("xMax");
+   public static final ParameterDef<Double> alpha = ParameterDef.doubleParam("alpha");
+   public static final ParameterDef<Integer> xMax = ParameterDef.intParam("xMax");
 
    /**
     * The type Parameters.

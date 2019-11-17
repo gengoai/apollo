@@ -29,7 +29,7 @@ import cc.mallet.pipe.SerialPipes;
 import cc.mallet.pipe.TokenSequence2FeatureVectorSequence;
 import cc.mallet.types.*;
 import cc.mallet.util.MalletLogger;
-import com.gengoai.Param;
+import com.gengoai.ParameterDef;
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.FitParameters;
 import com.gengoai.apollo.ml.Params;
@@ -46,8 +46,8 @@ import java.util.logging.Level;
  * @author David B. Bracewell
  */
 public class MalletCRF extends SequenceLabeler {
-   public static final Param<Integer> THREADS = Param.intParam("numThreads");
-   public static final Param<Order> ORDER = new Param<>("order", Order.class);
+   public static final ParameterDef<Integer> THREADS = ParameterDef.intParam("numThreads");
+   public static final ParameterDef<Order> ORDER = new ParameterDef<>("order", Order.class);
    private SerialPipes pipes;
    private CRF model;
 

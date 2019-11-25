@@ -41,6 +41,7 @@ import com.gengoai.conversion.Cast;
 
 import java.util.Arrays;
 import java.util.logging.Level;
+import java.util.regex.Pattern;
 
 /**
  * @author David B. Bracewell
@@ -100,7 +101,7 @@ public class MalletCRF extends SequenceLabeler {
       Parameters params = Cast.as(fitParameters);
 
 
-      if( params.verbose.value()) {
+      if (params.verbose.value()) {
          MalletLogger.getLogger(ThreadedOptimizable.class.getName())
                      .setLevel(Level.INFO);
          MalletLogger.getLogger(CRFTrainerByValueGradients.class.getName())
@@ -143,19 +144,26 @@ public class MalletCRF extends SequenceLabeler {
 
 
       model = new CRF(pipes, null);
-      switch (params.order.value()) {
-         case ZERO:
-            break;
-         case FIRST:
-            model.addFullyConnectedStatesForLabels();
-            break;
-         case SECOND:
-            model.addFullyConnectedStatesForBiLabels();
-            break;
-         case THIRD:
-            model.addFullyConnectedStatesForTriLabels();
-            break;
-      }
+      model.addOrderNStates(trainingData,
+                            new int[]{1},
+                            null,
+                            "O",
+                            Pattern.compile("O,I-.*"),
+                            null,
+                            true);
+//      switch (params.order.value()) {
+//         case ZERO:
+//            break;
+//         case FIRST:
+//            model.addFullyConnectedStatesForLabels();
+//            break;
+//         case SECOND:
+//            model.addFullyConnectedStatesForBiLabels();
+//            break;
+//         case THIRD:
+//            model.addFullyConnectedStatesForTriLabels();
+//            break;
+//      }
 
       model.setWeightsDimensionAsIn(trainingData, false);
 
@@ -170,7 +178,6 @@ public class MalletCRF extends SequenceLabeler {
       Optimizable.ByGradientValue[] opts = {optLabel};
       CRFTrainerByValueGradients crfTrainer = new CRFTrainerByValueGradients(model, opts);
       crfTrainer.setMaxResets(0);
-
 
 
       crfTrainer.train(trainingData, params.maxIterations.value());

@@ -33,6 +33,7 @@ import com.gengoai.conversion.Cast;
  * @author David B. Bracewell
  */
 public class SequencePipeline extends Pipeline<DiscreteVectorizer, SequencePipeline> {
+   private static final long serialVersionUID = 1L;
    /**
     * The Sequence validator.
     */

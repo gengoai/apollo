@@ -30,6 +30,7 @@ import com.gengoai.apollo.ml.vectorizer.NumericVectorizer;
  * @author David B. Bracewell
  */
 public class NumericPipeline extends Pipeline<NumericVectorizer, NumericPipeline> {
+   private static final long serialVersionUID = 1L;
 
    /**
     * Instantiates a new NumericPipeline.

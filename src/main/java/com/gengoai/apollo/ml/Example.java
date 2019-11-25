@@ -129,7 +129,7 @@ public abstract class Example implements Copyable<Example>, Iterable<Example>, S
     * UNKNOWN.
     */
    public Feature getFeatureByPrefix(String prefix) {
-      return getFeatureByPrefix(prefix, booleanFeature(prefix + "UNKNOWN"));
+      return getFeatureByPrefix(prefix, booleanFeature(prefix + "=UNKNOWN"));
    }
 
    /**

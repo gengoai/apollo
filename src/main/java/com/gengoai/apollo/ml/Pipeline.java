@@ -44,8 +44,7 @@ import java.util.function.Consumer;
  * @param <T>  the subclass type parameter
  * @author David B. Bracewell
  */
-public abstract class Pipeline<LV extends Vectorizer,
-   T extends Pipeline<LV, ?>> implements Copyable<T>, Serializable {
+public abstract class Pipeline<LV extends Vectorizer, T extends Pipeline<LV, ?>> implements Copyable<T>, Serializable {
    private static final long serialVersionUID = 1L;
 
    /**

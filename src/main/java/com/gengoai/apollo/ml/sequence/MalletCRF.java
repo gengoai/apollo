@@ -48,7 +48,7 @@ import java.util.regex.Pattern;
  */
 public class MalletCRF extends SequenceLabeler {
    public static final ParameterDef<Integer> THREADS = ParameterDef.intParam("numThreads");
-   public static final ParameterDef<Order> ORDER = new ParameterDef<>("order", Order.class);
+   public static final ParameterDef<Order> ORDER = ParameterDef.param("order", Order.class);
    private SerialPipes pipes;
    private CRF model;
 

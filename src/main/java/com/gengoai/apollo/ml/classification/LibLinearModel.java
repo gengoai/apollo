@@ -45,7 +45,7 @@ public class LibLinearModel extends Classifier implements Loggable {
    public static final ParameterDef<Double> C = ParameterDef.doubleParam("C");
    public static final ParameterDef<Boolean> bias = ParameterDef.boolParam("bias");
    public static final ParameterDef<Double> eps = ParameterDef.doubleParam("eps");
-   public static final ParameterDef<SolverType> solver = new ParameterDef<>("solver", SolverType.class);
+   public static final ParameterDef<SolverType> solver = ParameterDef.param("solver", SolverType.class);
    private static final long serialVersionUID = 1L;
    private int biasIndex = -1;
    private Model model;

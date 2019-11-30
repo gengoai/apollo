@@ -72,11 +72,11 @@ public final class Params {
       /**
        * The activation function here.
        */
-      public static final ParameterDef<Activation> activation = new ParameterDef<>("activation", Activation.class);
+      public static final ParameterDef<Activation> activation = ParameterDef.param("activation", Activation.class);
       /**
        * The loss function to use
        */
-      public static final ParameterDef<LossFunction> lossFunction = new ParameterDef<>("lossFunction", LossFunction.class);
+      public static final ParameterDef<LossFunction> lossFunction = ParameterDef.param("lossFunction", LossFunction.class);
       /**
        * True - cache data
        */
@@ -84,7 +84,7 @@ public final class Params {
       /**
        * Weight update methodology
        */
-      public static final ParameterDef<WeightUpdate> weightUpdate = new ParameterDef<>("weightUpdate", WeightUpdate.class);
+      public static final ParameterDef<WeightUpdate> weightUpdate = ParameterDef.param("weightUpdate", WeightUpdate.class);
    }
 
    /**
@@ -120,11 +120,11 @@ public final class Params {
       /**
        * The constant measure.
        */
-      public static final ParameterDef<Measure> measure = new ParameterDef<>("measure", Measure.class);
+      public static final ParameterDef<Measure> measure = ParameterDef.param("measure", Measure.class);
       /**
        * The constant linkage.
        */
-      public static final ParameterDef<Linkage> linkage = new ParameterDef<>("linkage", Linkage.class);
+      public static final ParameterDef<Linkage> linkage = ParameterDef.param("linkage", Linkage.class);
    }
 
    /**

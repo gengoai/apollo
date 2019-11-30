@@ -230,7 +230,7 @@ public class NaiveBayes extends Classifier {
 
    }
 
-   public static final ParameterDef<ModelType> modelTypeParam = new ParameterDef<>("modelType", ModelType.class);
+   public static final ParameterDef<ModelType> modelTypeParam = ParameterDef.param("modelType", ModelType.class);
 
    /**
     * Custom {@link FitParameters} for Naive Bayes.

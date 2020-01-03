@@ -132,7 +132,7 @@ public class Embedding extends DiscreteModel {
       List<String> keys = new ArrayList<>();
 
       try (BufferedReader reader = new BufferedReader(resource.reader())) {
-         String line;
+         String line = reader.readLine();
          while ((line = reader.readLine()) != null) {
             if (Strings.isNotNullOrBlank(line) && !line.startsWith("#")) {
                NDArray v = VSTextUtils.convertLineToVector(line, dimension);

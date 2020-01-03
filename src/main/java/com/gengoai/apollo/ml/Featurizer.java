@@ -22,6 +22,7 @@
 
 package com.gengoai.apollo.ml;
 
+import com.gengoai.collection.Streams;
 import com.gengoai.collection.counter.Counter;
 import com.gengoai.collection.counter.Counters;
 import com.gengoai.function.SerializableFunction;
@@ -53,6 +54,65 @@ public abstract class Featurizer<I> implements FeatureExtractor<I>, Serializable
     */
    public static <I> Featurizer<I> booleanFeaturizer(SerializableFunction<? super I, ? extends Collection<String>> function) {
       return new BooleanExtractor<>(function);
+   }
+
+   /**
+    * Chains multiple featurizers together into a single featurizer.
+    *
+    * @param <I>         the type parameter
+    * @param featurizers the featurizers
+    * @return the featurizer
+    */
+   @SafeVarargs
+   public static <I> Featurizer<I> chain(Featurizer<? super I>... featurizers) {
+      return new ChainFeaturizer<I>(Arrays.asList(featurizers));
+   }
+
+   public static <I> Featurizer<I> chain(List<Featurizer<? super I>> featurizers) {
+      return new ChainFeaturizer<>(featurizers);
+   }
+
+   /**
+    * Featurizer that counts the strings in an Iterable prepending the given feature prefix to the string.
+    *
+    * @param featurePrefix the feature prefix
+    * @param normalize     True - normalize the counts by dividing by the sum.
+    * @return the featurizer
+    */
+   public static Featurizer<Iterable<String>> countFeaturizer(String featurePrefix, boolean normalize) {
+      return new RealExtractor<>(itreable -> {
+         Counter<String> cntr = Counters.newCounter();
+         for (String s : itreable) {
+            cntr.increment(Feature.booleanFeature(featurePrefix, s).getName());
+         }
+         if (normalize) {
+            return cntr.divideBySum();
+         }
+         return cntr;
+      });
+   }
+
+
+   /**
+    * Creates a feature extractor that returns multiple features . If the function returns a null value no feature is
+    * generated.
+    *
+    * @param <I>           the type parameter
+    * @param featurePrefix the feature prefix
+    * @param function      the function
+    * @return the featurizer
+    */
+   public static <I> Featurizer<I> multiValueFeaturizer(String featurePrefix,
+                                                        SerializableFunction<? super I, Iterable<String>> function) {
+      return new Featurizer<I>() {
+         @Override
+         public List<Feature> applyAsFeatures(I input) {
+            Iterable<String> iterable = function.apply(input);
+            return iterable == null
+                   ? Collections.emptyList()
+                   : Streams.asStream(iterable).map(s -> Feature.booleanFeature(featurePrefix, s)).collect(Collectors.toList());
+         }
+      };
    }
 
    /**
@@ -89,47 +149,10 @@ public abstract class Featurizer<I> implements FeatureExtractor<I>, Serializable
     * @param function      the function
     * @return the featurizer
     */
-   public static <I> Featurizer<I> valueFeaturizer(String featurePrefix, SerializableFunction<? super I, String> function) {
+   public static <I> Featurizer<I> valueFeaturizer(String featurePrefix,
+                                                   SerializableFunction<? super I, String> function) {
       return new ValueExtractor<>(featurePrefix, function);
    }
-
-
-   /**
-    * Featurizer that counts the strings in an Iterable prepending the given feature prefix to the string.
-    *
-    * @param featurePrefix the feature prefix
-    * @param normalize     True - normalize the counts by dividing by the sum.
-    * @return the featurizer
-    */
-   public static Featurizer<Iterable<String>> countFeaturizer(String featurePrefix, boolean normalize) {
-      return new RealExtractor<>(itreable -> {
-         Counter<String> cntr = Counters.newCounter();
-         for (String s : itreable) {
-            cntr.increment(Feature.booleanFeature(featurePrefix, s).getName());
-         }
-         if (normalize) {
-            return cntr.divideBySum();
-         }
-         return cntr;
-      });
-   }
-
-   /**
-    * Chains multiple featurizers together into a single featurizer.
-    *
-    * @param <I>         the type parameter
-    * @param featurizers the featurizers
-    * @return the featurizer
-    */
-   @SafeVarargs
-   public static <I> Featurizer<I> chain(Featurizer<? super I>... featurizers) {
-      return new ChainFeaturizer<>(Arrays.asList(featurizers));
-   }
-
-   public static <I> Featurizer<I> chain(List<Featurizer<? super I>> featurizers) {
-      return new ChainFeaturizer<>(featurizers);
-   }
-
 
    /**
     * Applies the featurizer to the given input producing a list of {@link Feature}
@@ -170,6 +193,23 @@ public abstract class Featurizer<I> implements FeatureExtractor<I>, Serializable
       return new FeatureExtractorImpl<>(this, ContextFeaturizer.chain(patterns));
    }
 
+   private static class BooleanExtractor<I> extends Featurizer<I> {
+      private static final long serialVersionUID = 1L;
+      private final SerializableFunction<? super I, ? extends Collection<String>> function;
+
+      private BooleanExtractor(SerializableFunction<? super I, ? extends Collection<String>> function) {
+         this.function = function;
+      }
+
+      @Override
+      public List<Feature> applyAsFeatures(I input) {
+         return function.apply(input)
+                        .stream()
+                        .map(Feature::booleanFeature)
+                        .collect(Collectors.toList());
+      }
+   }
+
    private static class ChainFeaturizer<I> extends Featurizer<I> {
       private static final long serialVersionUID = 1L;
       private final List<Featurizer<? super I>> featurizers;
@@ -185,23 +225,6 @@ public abstract class Featurizer<I> implements FeatureExtractor<I>, Serializable
             features.addAll(featurizer.applyAsFeatures(input));
          }
          return features;
-      }
-   }
-
-   private static class BooleanExtractor<I> extends Featurizer<I> {
-      private static final long serialVersionUID = 1L;
-      private final SerializableFunction<? super I, ? extends Collection<String>> function;
-
-      private BooleanExtractor(SerializableFunction<? super I, ? extends Collection<String>> function) {
-         this.function = function;
-      }
-
-      @Override
-      public List<Feature> applyAsFeatures(I input) {
-         return function.apply(input)
-                        .stream()
-                        .map(Feature::booleanFeature)
-                        .collect(Collectors.toList());
       }
    }
 

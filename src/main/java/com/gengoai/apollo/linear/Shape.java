@@ -233,7 +233,7 @@ public class Shape implements Serializable, Copyable<Shape> {
    }
 
    /**
-    * The order of the NDArray (number of dimensions with size > 1)
+    * The order of the NDArray (number of dimensions with size &gt; 1)
     *
     * @return the order
     */

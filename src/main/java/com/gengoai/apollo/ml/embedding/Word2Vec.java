@@ -97,7 +97,7 @@ public class Word2Vec extends Embedding {
             System.out.println("-1: " + k);
          }
       });
-      this.vectorIndex = new DefaultVectorIndex(vectors);
+      this.vectorIndex = new InMemoryVectorIndex(vectors);
    }
 
    @Override

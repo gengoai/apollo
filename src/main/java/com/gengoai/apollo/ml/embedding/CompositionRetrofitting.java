@@ -85,7 +85,7 @@ public class CompositionRetrofitting implements Retrofitting {
          }
          vectors[index] = tv;
       }
-      out.vectorIndex = new DefaultVectorIndex(vectors);
+      out.vectorIndex = new InMemoryVectorIndex(vectors);
       return out;
    }
 

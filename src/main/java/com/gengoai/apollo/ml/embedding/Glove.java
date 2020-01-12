@@ -183,7 +183,7 @@ public class Glove extends Embedding {
          vectors[i] = new DenseMatrix(W[i]);
          vectors[i].setLabel(k);
       }
-      this.vectorIndex = new DefaultVectorIndex(vectors);
+      this.vectorIndex = new InMemoryVectorIndex(vectors);
    }
 
    @Override

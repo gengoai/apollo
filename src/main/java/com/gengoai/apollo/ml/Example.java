@@ -23,7 +23,7 @@
 package com.gengoai.apollo.ml;
 
 import com.gengoai.Copyable;
-import com.gengoai.annotation.JsonAdapter;
+import com.gengoai.annotation.JsonHandler;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.collection.Streams;
 import com.gengoai.conversion.Cast;
@@ -50,7 +50,7 @@ import static com.gengoai.apollo.ml.Feature.booleanFeature;
  * {@link Sequence}s are containers that are made up of one or more other examples and do not themselves have labels or
  * features associated.</p>
  */
-@JsonAdapter(value = Example.JsonMarshaller.class)
+@JsonHandler(value = Example.JsonMarshaller.class)
 public abstract class Example implements Copyable<Example>, Iterable<Example>, Serializable {
    private static final long serialVersionUID = 1L;
    private double weight = 1.0;

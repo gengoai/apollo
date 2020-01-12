@@ -53,8 +53,7 @@ class StreamBasedDataset extends Dataset {
     * @param stream      the stream
     */
    public StreamBasedDataset(DatasetType datasetType,
-                             MStream<Example> stream
-                            ) {
+                             MStream<Example> stream) {
       this.datasetType = datasetType;
       this.stream = stream == null
                     ? datasetType.getStreamingContext().empty()

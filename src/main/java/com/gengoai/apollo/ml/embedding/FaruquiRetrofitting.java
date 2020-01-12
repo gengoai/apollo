@@ -106,7 +106,7 @@ public class FaruquiRetrofitting implements Retrofitting {
             vectors[i] = origVectors.lookup(key).unitize();
          }
       }
-      out.vectorIndex = new DefaultVectorIndex(vectors);
+      out.vectorIndex = new InMemoryVectorIndex(vectors);
       return out;
    }
 

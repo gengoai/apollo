@@ -79,7 +79,7 @@ public class Embedding extends DiscreteModel {
 
    public Embedding(int dim) {
       super(DiscretePipeline.unsupervised(NoOptVectorizer.INSTANCE));
-      this.vectorIndex = new DefaultVectorIndex(dim);
+      this.vectorIndex = new InMemoryVectorIndex(dim);
    }
 
    /**
@@ -147,7 +147,7 @@ public class Embedding extends DiscreteModel {
       Embedding e = new Embedding(DiscretePipeline.unsupervised()
                                                   .update(p -> p.featureVectorizer = new CountFeatureVectorizer(keys,
                                                                                                                 unknownWord)));
-      e.vectorIndex = new DefaultVectorIndex(ndArrays.toArray(new NDArray[0]));
+      e.vectorIndex = new InMemoryVectorIndex(ndArrays.toArray(new NDArray[0]));
       return e;
    }
 

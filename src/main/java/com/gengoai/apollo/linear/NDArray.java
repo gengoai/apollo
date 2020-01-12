@@ -24,7 +24,7 @@ package com.gengoai.apollo.linear;
 
 import com.gengoai.Copyable;
 import com.gengoai.Validation;
-import com.gengoai.annotation.JsonAdapter;
+import com.gengoai.annotation.JsonHandler;
 import com.gengoai.conversion.Cast;
 import com.gengoai.json.JsonEntry;
 import com.gengoai.json.JsonMarshaller;
@@ -46,7 +46,7 @@ import java.util.function.DoubleUnaryOperator;
  *
  * @author David B. Bracewell
  */
-@JsonAdapter(NDArray.NDArrayMarshaller.class)
+@JsonHandler(NDArray.NDArrayMarshaller.class)
 public abstract class NDArray implements Serializable, Copyable<NDArray> {
    /**
     * The constant decimalFormatter.
@@ -61,49 +61,6 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
    private double weight = 1d;
 
 
-   public static class NDArrayMarshaller extends JsonMarshaller<NDArray> {
-
-      @Override
-      protected NDArray deserialize(JsonEntry entry, Type type) {
-         NDArrayFactory ND = entry.getBooleanProperty("dense", true) ? NDArrayFactory.DENSE : NDArrayFactory.SPARSE;
-         NDArray array = ND.array(entry.getProperty("shape").getAsIntArray());
-         array.setWeight(entry.getDoubleProperty("weight", 1.0));
-         if (entry.getProperty("label").isObject()) {
-            Class<?> clazz = entry.getProperty("label").getProperty("type").getAs(Class.class);
-            array.setLabel(entry.getProperty("label").getProperty("value").getAs(clazz));
-         }
-         Iterator<JsonEntry> dataItr = entry.getProperty("data").elementIterator();
-         for (int i = 0; i < array.shape.sliceLength; i++) {
-            array.setSlice(i, ND.array(array.shape.rows(),
-                                       array.shape.columns(),
-                                       dataItr.next().getAsDoubleArray()));
-         }
-         return array;
-      }
-
-      @Override
-      protected JsonEntry serialize(NDArray ndArray, Type type) {
-         JsonEntry entry = JsonEntry.object()
-                                    .addProperty("shape", ndArray.shape)
-                                    .addProperty("dense", ndArray.isDense())
-                                    .addProperty("weight", ndArray.getWeight());
-         if (ndArray.getLabel() == null) {
-            entry.addProperty("label", null);
-         } else {
-            entry.addProperty("label", JsonEntry.object()
-                                                .addProperty("type", ndArray.getLabel().getClass())
-                                                .addProperty("value", ndArray.getLabel())
-                             );
-         }
-
-         JsonEntry data = JsonEntry.array();
-         for (int i = 0; i < ndArray.shape.sliceLength; i++) {
-            data.addValue(ndArray.slice(i).toDoubleArray());
-         }
-         return entry.addProperty("data", data);
-      }
-   }
-
    /**
     * Instantiates a new NDArray.
     *
@@ -112,16 +69,6 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
    protected NDArray(Shape shape) {
       Validation.notNull(shape);
       this.shape = shape.copy();
-   }
-
-
-   /**
-    * Calculates the sparsity (Percentage of elements with a zero value) of the NDArray
-    *
-    * @return the sparsity (will equal to 1 if dense)
-    */
-   public double sparsity() {
-      return 1.0 - ((double) size()) / ((double) length());
    }
 
    /**
@@ -1068,7 +1015,6 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
       return mapRow(rhs, Operator::multiply);
    }
 
-
    /**
     * Multiplies the values in the other NDArray to this one element by element in-place.
     *
@@ -1667,6 +1613,15 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
    public abstract NDArray sliceSums();
 
    /**
+    * Calculates the sparsity (Percentage of elements with a zero value) of the NDArray
+    *
+    * @return the sparsity (will equal to 1 if dense)
+    */
+   public double sparsity() {
+      return 1.0 - ((double) size()) / ((double) length());
+   }
+
+   /**
     * Subtracts the values in the other NDArray to this one.
     *
     * @param rhs the other NDArray whose values will be subtracted
@@ -1840,7 +1795,6 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     */
    public abstract DoubleMatrix[] toDoubleMatrix();
 
-
    @Override
    public String toString() {
       return toString(4, 10, 10);
@@ -1943,6 +1897,49 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
        */
       void apply(long index, double value);
 
+   }
+
+   public static class NDArrayMarshaller extends JsonMarshaller<NDArray> {
+
+      @Override
+      protected NDArray deserialize(JsonEntry entry, Type type) {
+         NDArrayFactory ND = entry.getBooleanProperty("dense", true) ? NDArrayFactory.DENSE : NDArrayFactory.SPARSE;
+         NDArray array = ND.array(entry.getProperty("shape").getAsIntArray());
+         array.setWeight(entry.getDoubleProperty("weight", 1.0));
+         if (entry.getProperty("label").isObject()) {
+            Class<?> clazz = entry.getProperty("label").getProperty("type").getAs(Class.class);
+            array.setLabel(entry.getProperty("label").getProperty("value").getAs(clazz));
+         }
+         Iterator<JsonEntry> dataItr = entry.getProperty("data").elementIterator();
+         for (int i = 0; i < array.shape.sliceLength; i++) {
+            array.setSlice(i, ND.array(array.shape.rows(),
+                                       array.shape.columns(),
+                                       dataItr.next().getAsDoubleArray()));
+         }
+         return array;
+      }
+
+      @Override
+      protected JsonEntry serialize(NDArray ndArray, Type type) {
+         JsonEntry entry = JsonEntry.object()
+                                    .addProperty("shape", ndArray.shape)
+                                    .addProperty("dense", ndArray.isDense())
+                                    .addProperty("weight", ndArray.getWeight());
+         if (ndArray.getLabel() == null) {
+            entry.addProperty("label", null);
+         } else {
+            entry.addProperty("label", JsonEntry.object()
+                                                .addProperty("type", ndArray.getLabel().getClass())
+                                                .addProperty("value", ndArray.getLabel())
+                             );
+         }
+
+         JsonEntry data = JsonEntry.array();
+         for (int i = 0; i < ndArray.shape.sliceLength; i++) {
+            data.addValue(ndArray.slice(i).toDoubleArray());
+         }
+         return entry.addProperty("data", data);
+      }
    }
 
 

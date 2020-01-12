@@ -32,35 +32,24 @@ import java.util.stream.Stream;
  *
  * @author David B. Bracewell
  */
-public class DefaultVectorIndex implements VectorIndex, Serializable {
+public class InMemoryVectorIndex implements VectorIndex, Serializable {
    private static final long serialVersionUID = 1L;
-   private final NDArray[] vectors;
    private final int dimension;
+   private final NDArray[] vectors;
 
    /**
     * Instantiates a new Default vector index.
     *
     * @param vectors the vectors
     */
-   public DefaultVectorIndex(NDArray[] vectors) {
+   public InMemoryVectorIndex(NDArray[] vectors) {
       this.vectors = vectors;
       this.dimension = (int) vectors[0].length();
    }
 
-   public DefaultVectorIndex(int dimension) {
+   public InMemoryVectorIndex(int dimension) {
       this.dimension = dimension;
       this.vectors = new NDArray[0];
-   }
-
-
-   @Override
-   public NDArray lookup(int index) {
-      return vectors[index].copy();
-   }
-
-   @Override
-   public Stream<NDArray> stream() {
-      return Stream.of(vectors);
    }
 
    @Override
@@ -69,7 +58,17 @@ public class DefaultVectorIndex implements VectorIndex, Serializable {
    }
 
    @Override
+   public NDArray lookup(int index) {
+      return vectors[index].copy();
+   }
+
+   @Override
    public int size() {
       return vectors.length;
    }
-}//END OF DefaultVectorIndex
+
+   @Override
+   public Stream<NDArray> stream() {
+      return Stream.of(vectors);
+   }
+}//END OF InMemoryVectorIndex

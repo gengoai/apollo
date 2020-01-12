@@ -24,9 +24,8 @@ package com.gengoai.apollo.linear;
 
 import com.gengoai.Copyable;
 import com.gengoai.Validation;
-import com.gengoai.annotation.JsonAdapter;
+import com.gengoai.annotation.JsonHandler;
 import com.gengoai.json.JsonEntry;
-import com.gengoai.json.JsonMarshaller;
 
 import java.io.Serializable;
 import java.lang.reflect.Type;
@@ -40,7 +39,7 @@ import java.util.stream.IntStream;
  *
  * @author David B. Bracewell
  */
-@JsonAdapter(Shape.ShapeMarshaller.class)
+@JsonHandler(Shape.ShapeMarshaller.class)
 public class Shape implements Serializable, Copyable<Shape> {
    private static final long serialVersionUID = 1L;
    /**
@@ -57,7 +56,7 @@ public class Shape implements Serializable, Copyable<Shape> {
    final int[] shape;
 
 
-   protected static class ShapeMarshaller extends JsonMarshaller<Shape> {
+   protected static class ShapeMarshaller extends com.gengoai.json.JsonMarshaller<Shape> {
 
       @Override
       protected Shape deserialize(JsonEntry entry, Type type) {

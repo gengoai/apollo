@@ -29,14 +29,16 @@ import com.gengoai.apollo.ml.DiscreteModel;
 import com.gengoai.apollo.ml.DiscretePipeline;
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.FitParameters;
-import com.gengoai.apollo.ml.data.Dataset;
+import com.gengoai.apollo.ml.data.ExampleDataset;
+import com.gengoai.apollo.ml.data.VectorizedDataset;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
 import com.gengoai.apollo.ml.vectorizer.CountFeatureVectorizer;
 import com.gengoai.apollo.ml.vectorizer.NoOptVectorizer;
-import com.gengoai.collection.Streams;
 import com.gengoai.conversion.Cast;
 import com.gengoai.io.resource.Resource;
+import com.gengoai.stream.Streams;
 import com.gengoai.string.Strings;
+import lombok.NonNull;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -92,7 +94,7 @@ public class Embedding extends DiscreteModel {
    public static Embedding readApolloBinaryFormat(Resource resource) throws IOException {
       try {
          return Cast.as(resource.readObject(), Embedding.class);
-      } catch (Exception e) {
+      } catch(Exception e) {
          throw new IOException(e);
       }
    }
@@ -109,16 +111,6 @@ public class Embedding extends DiscreteModel {
    }
 
    /**
-    * Checks if the feature / word / key has an embedding
-    *
-    * @param feature the feature to check
-    * @return True if an embedding exists (or an unknown word is set), False otherwise
-    */
-   public boolean contains(String feature) {
-      return getPipeline().featureVectorizer.indexOf(feature) != -1;
-   }
-
-   /**
     * Read embedding.
     *
     * @param resource    the resource
@@ -131,13 +123,13 @@ public class Embedding extends DiscreteModel {
       List<NDArray> ndArrays = new ArrayList<>();
       List<String> keys = new ArrayList<>();
 
-      try (BufferedReader reader = new BufferedReader(resource.reader())) {
+      try(BufferedReader reader = new BufferedReader(resource.reader())) {
          String line = reader.readLine();
-         while ((line = reader.readLine()) != null) {
-            if (Strings.isNotNullOrBlank(line) && !line.startsWith("#")) {
+         while((line = reader.readLine()) != null) {
+            if(Strings.isNotNullOrBlank(line) && !line.startsWith("#")) {
                NDArray v = VSTextUtils.convertLineToVector(line, dimension);
                ndArrays.add(v);
-               if (v.norm2() == 0) {
+               if(v.norm2() == 0) {
                   System.out.println(line);
                }
                keys.add(v.getLabel());
@@ -159,14 +151,24 @@ public class Embedding extends DiscreteModel {
     * @return a composite vector consisting of the given words and calculated using the given vector composition
     */
    public NDArray compose(VectorComposition composition, String... words) {
-      if (words == null) {
+      if(words == null) {
          return NDArrayFactory.ND.array(dimension());
-      } else if (words.length == 1) {
+      } else if(words.length == 1) {
          return lookup(words[0]);
       }
       return composition.compose(Arrays.stream(words)
                                        .map(this::lookup)
                                        .collect(Collectors.toList()));
+   }
+
+   /**
+    * Checks if the feature / word / key has an embedding
+    *
+    * @param feature the feature to check
+    * @return True if an embedding exists (or an unknown word is set), False otherwise
+    */
+   public boolean contains(String feature) {
+      return getPipeline().featureVectorizer.indexOf(feature) != -1;
    }
 
    /**
@@ -186,11 +188,11 @@ public class Embedding extends DiscreteModel {
     * @return the list of string representing the features in the example
     */
    protected List<String> exampleToList(Example example, boolean fullFeatureName) {
-      if (example.isInstance()) {
+      if(example.isInstance()) {
          return example.getFeatures()
                        .stream()
                        .map(f -> {
-                          if (fullFeatureName) {
+                          if(fullFeatureName) {
                              return f.getName();
                           } else {
                              return f.getSuffix();
@@ -202,7 +204,7 @@ public class Embedding extends DiscreteModel {
       return Streams.asStream(example)
                     .flatMap(e -> e.getFeatures().stream()
                                    .map(f -> {
-                                      if (fullFeatureName) {
+                                      if(fullFeatureName) {
                                          return f.getName();
                                       } else {
                                          return f.getSuffix();
@@ -213,7 +215,12 @@ public class Embedding extends DiscreteModel {
    }
 
    @Override
-   protected void fitPreprocessed(Dataset preprocessed, FitParameters fitParameters) {
+   public void fit(VectorizedDataset dataset, FitParameters<?> fitParameters) {
+      throw new UnsupportedOperationException("Embedding Models do not support fitting over Vectorized Datasets");
+   }
+
+   @Override
+   protected void fitPreprocessed(ExampleDataset preprocessed, FitParameters fitParameters) {
       throw new UnsupportedOperationException();
    }
 
@@ -239,7 +246,7 @@ public class Embedding extends DiscreteModel {
     */
    public NDArray lookup(String feature) {
       int index = getPipeline().featureVectorizer.indexOf(feature);
-      if (index < 0) {
+      if(index < 0) {
          return NDArrayFactory.ND.array(dimension());
       }
       return vectorIndex.lookup(index);
@@ -265,6 +272,13 @@ public class Embedding extends DiscreteModel {
     */
    public int size() {
       return getPipeline().featureVectorizer.size();
+   }
+
+   @Override
+   public void write(@NonNull Resource resource) throws Exception {
+      Embedding plain = new Embedding(this.getPipeline());
+      plain.vectorIndex = this.vectorIndex;
+      resource.setIsCompressed(true).writeObject(plain);
    }
 
 }//END OF Embedding

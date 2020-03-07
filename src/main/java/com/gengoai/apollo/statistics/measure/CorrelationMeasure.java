@@ -50,7 +50,7 @@ public interface CorrelationMeasure extends SimilarityMeasure {
 
 
    /**
-    * Calculates the p-value for the correlation coefficient when N >= 6 using a one-tailed t-Test.
+    * Calculates the p-value for the correlation coefficient when N &gt;= 6 using a one-tailed t-Test.
     *
     * @param r the correlation coefficient.
     * @param N the number of items

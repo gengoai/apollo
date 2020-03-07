@@ -22,6 +22,7 @@
 
 package com.gengoai.apollo.ml.classification;
 
+import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.ml.DiscreteModel;
 import com.gengoai.apollo.ml.DiscretePipeline;
 import com.gengoai.apollo.ml.Example;
@@ -79,4 +80,12 @@ public abstract class Classifier extends DiscreteModel implements SerializableFu
     */
    public abstract Classification predict(Example example);
 
+
+   /**
+    * <p>Predicts the label(s) for a given example encoding and preprocessing the example as needed.</p>
+    *
+    * @param example the example
+    * @return the classification result
+    */
+   public abstract Classification predict(NDArray example);
 }//END OF Classifier

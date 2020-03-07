@@ -24,7 +24,7 @@ package com.gengoai.apollo.ml.preprocess;
 
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.Feature;
-import com.gengoai.apollo.ml.data.Dataset;
+import com.gengoai.apollo.ml.data.ExampleDataset;
 import com.gengoai.stream.MStream;
 import com.gengoai.string.Strings;
 
@@ -55,7 +55,7 @@ public abstract class RestrictedFeaturePreprocessor implements InstancePreproces
 
 
    @Override
-   public final Dataset fitAndTransform(Dataset dataset) {
+   public final ExampleDataset fitAndTransform(ExampleDataset dataset) {
       reset();
       fitInstances(dataset.stream().flatMap(Example::stream));
       return dataset.map(this::apply);

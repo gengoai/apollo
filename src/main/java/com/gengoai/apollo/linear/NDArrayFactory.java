@@ -178,6 +178,16 @@ public enum NDArrayFactory {
    }
 
    /**
+    * Creates a 1-d column vector NDArray of the given data.
+    *
+    * @param data the data
+    * @return the NDArray
+    */
+   public NDArray array(float[] data) {
+      return columnVector(data);
+   }
+
+   /**
     * Creates a 2-d NDArray with the given number of rows and columns using the given data.
     *
     * @param rows    the number of rows
@@ -240,6 +250,20 @@ public enum NDArrayFactory {
     * @return the NDArray
     */
    public NDArray columnVector(double[] data) {
+      NDArray vector = array(data.length, 1);
+      for (int i = 0; i < data.length; i++) {
+         vector.set(i, data[i]);
+      }
+      return vector;
+   }
+
+   /**
+    * Creates a 1-d column vector NDArray from the given data.
+    *
+    * @param data the data
+    * @return the NDArray
+    */
+   public NDArray columnVector(float[] data) {
       NDArray vector = array(data.length, 1);
       for (int i = 0; i < data.length; i++) {
          vector.set(i, data[i]);

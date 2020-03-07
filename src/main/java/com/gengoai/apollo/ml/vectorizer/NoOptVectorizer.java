@@ -24,7 +24,7 @@ package com.gengoai.apollo.ml.vectorizer;
 
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.ml.Example;
-import com.gengoai.apollo.ml.data.Dataset;
+import com.gengoai.apollo.ml.data.ExampleDataset;
 import com.gengoai.collection.Index;
 import com.gengoai.collection.Indexes;
 
@@ -59,7 +59,7 @@ public class NoOptVectorizer implements DiscreteVectorizer {
    }
 
    @Override
-   public void fit(Dataset dataset) {
+   public void fit(ExampleDataset dataset) {
 
    }
 

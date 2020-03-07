@@ -28,7 +28,8 @@ import com.gengoai.apollo.ml.DiscretePipeline;
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.FitParameters;
 import com.gengoai.apollo.ml.Params;
-import com.gengoai.apollo.ml.data.Dataset;
+import com.gengoai.apollo.ml.data.ExampleDataset;
+import com.gengoai.apollo.ml.data.VectorizedDataset;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
 import com.gengoai.apollo.optimization.*;
 import com.gengoai.apollo.optimization.activation.Activation;
@@ -37,6 +38,7 @@ import com.gengoai.apollo.optimization.loss.LossFunction;
 import com.gengoai.conversion.Cast;
 import com.gengoai.logging.Loggable;
 import com.gengoai.logging.Logger;
+import lombok.NonNull;
 
 import java.io.Serializable;
 
@@ -74,20 +76,24 @@ public class LinearModel extends Classifier implements Loggable {
       this.weightParameters = new WeightParameters();
    }
 
-
    @Override
-   protected void fitPreprocessed(Dataset preprocessed, FitParameters fitParameters) {
+   public void fit(@NonNull VectorizedDataset dataset, @NonNull FitParameters<?> fitParameters) {
       Parameters parameters = Cast.as(fitParameters);
       this.weightParameters.numFeatures = getNumberOfFeatures();
       this.weightParameters.numLabels = getNumberOfLabels();
       GradientDescentOptimizer optimizer = new GradientDescentOptimizer(parameters.batchSize.value());
       this.weightParameters.update(parameters);
       optimizer.optimize(weightParameters,
-                         preprocessed.asVectorStream(getPipeline()).cache(),
+                         dataset.stream(),
                          new GradientDescentCostFunction(parameters.lossFunction.value()),
                          StoppingCriteria.create("loss", parameters)
                                          .logger(Logger.getLogger(getClass())),
                          parameters.weightUpdater.value());
+   }
+
+   @Override
+   protected void fitPreprocessed(@NonNull ExampleDataset preprocessed, @NonNull FitParameters fitParameters) {
+      fit(preprocessed.toVectorizedDataset(getPipeline()), fitParameters);
    }
 
    @Override
@@ -96,9 +102,14 @@ public class LinearModel extends Classifier implements Loggable {
    }
 
    @Override
-   public Classification predict(Example example) {
-      return new Classification(weightParameters.activate(example.preprocessAndTransform(getPipeline())),
+   public Classification predict(@NonNull NDArray example) {
+      return new Classification(weightParameters.activate(example),
                                 getPipeline().labelVectorizer);
+   }
+
+   @Override
+   public Classification predict(@NonNull Example example) {
+      return predict(example.preprocessAndTransform(getPipeline()));
    }
 
    /**
@@ -162,7 +173,9 @@ public class LinearModel extends Classifier implements Loggable {
        * @param parameters the fit parameters
        */
       public void update(Parameters parameters) {
-         int numL = numLabels <= 2 ? 1 : numLabels;
+         int numL = numLabels <= 2
+                    ? 1
+                    : numLabels;
          this.activation = parameters.activation.value();
          this.weights = ND.rand(numL, numFeatures);
          this.bias = ND.array(numL);

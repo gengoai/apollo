@@ -41,7 +41,7 @@ public class RealToBinaryTransform extends RestrictedFeaturePreprocessor impleme
    /**
     * Instantiates a new Real to binary transform with no feature restriction.
     *
-    * @param threshold the threshold with which a feature value must be <codE>>=</codE> to become a binary "true"
+    * @param threshold the threshold with which a feature value must be <codE>&gt;=</codE> to become a binary "true"
     */
    public RealToBinaryTransform(double threshold) {
       this(null, threshold);

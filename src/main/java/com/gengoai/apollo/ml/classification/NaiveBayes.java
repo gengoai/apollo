@@ -28,7 +28,8 @@ import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.ml.DiscretePipeline;
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.FitParameters;
-import com.gengoai.apollo.ml.data.Dataset;
+import com.gengoai.apollo.ml.data.ExampleDataset;
+import com.gengoai.apollo.ml.data.VectorizedDataset;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
 import com.gengoai.conversion.Cast;
 import com.gengoai.math.Math2;
@@ -72,7 +73,7 @@ public class NaiveBayes extends Classifier {
    }
 
    @Override
-   protected void fitPreprocessed(Dataset preprocessed, FitParameters fitParameters) {
+   protected void fitPreprocessed(ExampleDataset preprocessed, FitParameters fitParameters) {
       Parameters parameters = Cast.as(fitParameters);
       conditionals = new double[getNumberOfFeatures()][getNumberOfLabels()];
       priors = new double[getNumberOfLabels()];
@@ -125,6 +126,11 @@ public class NaiveBayes extends Classifier {
    }
 
    @Override
+   public void fit(VectorizedDataset dataset, FitParameters<?> fitParameters) {
+      throw new UnsupportedOperationException();
+   }
+
+   @Override
    public Parameters getFitParameters() {
       return new Parameters();
    }
@@ -137,6 +143,10 @@ public class NaiveBayes extends Classifier {
                                 getPipeline().labelVectorizer);
    }
 
+   @Override
+   public Classification predict(NDArray example) {
+      throw new UnsupportedOperationException();
+   }
 
    /**
     * Three types of Naive Bayes  are supported each of which have their own potential pros and cons and may work better

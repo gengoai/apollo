@@ -120,11 +120,11 @@ public class Instance extends Example {
 
    @Override
    public boolean equals(Object o) {
-      if (this == o) return true;
-      if (!(o instanceof Instance)) return false;
+      if(this == o) return true;
+      if(!(o instanceof Instance)) return false;
       Instance instance = (Instance) o;
       return Objects.equals(features, instance.features) &&
-                Objects.equals(getLabel(), instance.getLabel());
+            Objects.equals(getLabel(), instance.getLabel());
    }
 
    @Override
@@ -181,16 +181,16 @@ public class Instance extends Example {
    @Override
    public String toString() {
       return "Instance{" +
-                "features=" + features +
-                ", label=" + getLabel() +
-                ", weight=" + getWeight() +
-                '}';
+            "features=" + features +
+            ", label=" + getLabel() +
+            ", weight=" + getWeight() +
+            '}';
    }
 
    @Override
    public NDArray transform(Pipeline pipeline) {
       NDArray array = pipeline.featureVectorizer.transform(this);
-      if (hasLabel()) {
+      if(hasLabel()) {
          array.setLabel(pipeline.labelVectorizer.transform(this));
       }
       return array.setWeight(getWeight()).compact();

@@ -26,7 +26,7 @@ import com.gengoai.apollo.linear.DenseMatrix;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.ml.FitParameters;
 import com.gengoai.apollo.ml.Params;
-import com.gengoai.apollo.ml.data.Dataset;
+import com.gengoai.apollo.ml.data.ExampleDataset;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
 import com.gengoai.apollo.ml.vectorizer.CountFeatureVectorizer;
 import com.gengoai.conversion.Cast;
@@ -59,7 +59,7 @@ public class Word2Vec extends Embedding {
    }
 
    @Override
-   protected void fitPreprocessed(Dataset preprocessed, FitParameters fitParameters) {
+   protected void fitPreprocessed(ExampleDataset preprocessed, FitParameters fitParameters) {
       Parameters p = notNull(Cast.as(fitParameters, Parameters.class));
       org.apache.spark.mllib.feature.Word2Vec w2v = new org.apache.spark.mllib.feature.Word2Vec();
       w2v.setMinCount(1);
@@ -71,17 +71,17 @@ public class Word2Vec extends Embedding {
       w2v.setMinCount(1);
 
       List<String> suffix = new ArrayList<>();
-      for (int i = 0; i < getPipeline().featureVectorizer.size(); i++) {
+      for(int i = 0; i < getPipeline().featureVectorizer.size(); i++) {
          String feature = getPipeline().featureVectorizer.getString(i);
          int index = feature.indexOf('=');
-         if (index > 0) {
+         if(index > 0) {
             suffix.add(feature.substring(index + 1));
          } else {
             suffix.add(feature);
          }
       }
       this.getPipeline().featureVectorizer = new CountFeatureVectorizer(suffix, getPipeline()
-                                                                                   .featureVectorizer.unknown());
+            .featureVectorizer.unknown());
 
       Word2VecModel model = w2v.fit(preprocessed.stream()
                                                 .toDistributedStream()
@@ -90,7 +90,7 @@ public class Word2Vec extends Embedding {
       NDArray[] vectors = new NDArray[model.getVectors().size()];
       mapAsJavaMap(model.getVectors()).forEach((k, v) -> {
          int index = getPipeline().featureVectorizer.indexOf(k);
-         if (index >= 0) {
+         if(index >= 0) {
             vectors[index] = new DenseMatrix(MatrixFunctions.floatToDouble(new FloatMatrix(1, v.length, v)));
             vectors[index].setLabel(k);
          } else {

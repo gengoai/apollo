@@ -22,7 +22,7 @@
 
 package com.gengoai.apollo.ml;
 
-import com.gengoai.collection.Streams;
+import com.gengoai.stream.Streams;
 import com.gengoai.collection.counter.Counter;
 import com.gengoai.collection.counter.Counters;
 import com.gengoai.function.SerializableFunction;

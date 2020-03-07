@@ -25,6 +25,7 @@ package com.gengoai.apollo.ml.data.format;
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.Feature;
 import com.gengoai.apollo.ml.Instance;
+import com.gengoai.apollo.ml.data.ExampleDataset;
 import com.gengoai.io.resource.Resource;
 import com.gengoai.stream.MStream;
 import com.gengoai.stream.StreamingContext;
@@ -35,7 +36,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * <p>Reads in {@link com.gengoai.apollo.ml.data.Dataset} in LibSVM format.</p>
+ * <p>Reads in {@link ExampleDataset} in LibSVM format.</p>
  *
  * @author David B. Bracewell
  */

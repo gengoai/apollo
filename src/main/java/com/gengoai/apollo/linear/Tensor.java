@@ -71,10 +71,10 @@ public class Tensor extends NDArray {
    public long argmax() {
       long index = 0;
       double max = Double.NEGATIVE_INFINITY;
-      for (int i = 0; i < slices.length; i++) {
+      for(int i = 0; i < slices.length; i++) {
          long im = slices[i].argmax();
          double v = slices[i].get(im);
-         if (v > max) {
+         if(v > max) {
             index = im * i;
             max = v;
          }
@@ -86,10 +86,10 @@ public class Tensor extends NDArray {
    public long argmin() {
       long index = 0;
       double min = Double.POSITIVE_INFINITY;
-      for (int i = 0; i < slices.length; i++) {
+      for(int i = 0; i < slices.length; i++) {
          long im = slices[i].argmin();
          double v = slices[i].get(im);
-         if (v < min) {
+         if(v < min) {
             index = im * i;
             min = v;
          }
@@ -98,24 +98,24 @@ public class Tensor extends NDArray {
    }
 
    private void check(Shape shape) {
-      if (shape.sliceLength > 1 && shape.sliceLength != shape().sliceLength) {
+      if(shape.sliceLength > 1 && shape.sliceLength != shape().sliceLength) {
          throw new IllegalArgumentException(
-            "Invalid Slice Length: " + shape.sliceLength + " != " + shape().sliceLength);
+               "Invalid Slice Length: " + shape.sliceLength + " != " + shape().sliceLength);
       }
-      if (shape.matrixLength != shape().matrixLength) {
+      if(shape.matrixLength != shape().matrixLength) {
          throw new IllegalArgumentException(
-            "Invalid Matrix Length: " + shape.matrixLength + " != " + shape().matrixLength);
+               "Invalid Matrix Length: " + shape.matrixLength + " != " + shape().matrixLength);
       }
    }
 
    private void check(int target, Shape shape) {
-      if (shape.sliceLength > 1 && shape.sliceLength != shape().sliceLength) {
+      if(shape.sliceLength > 1 && shape.sliceLength != shape().sliceLength) {
          throw new IllegalArgumentException(
-            "Invalid Slice Length: " + shape.sliceLength + " != " + shape().sliceLength);
+               "Invalid Slice Length: " + shape.sliceLength + " != " + shape().sliceLength);
       }
-      if (shape.matrixLength != target) {
+      if(shape.matrixLength != target) {
          throw new IllegalArgumentException(
-            "Invalid Matrix Length: " + shape.matrixLength + " != " + target);
+               "Invalid Matrix Length: " + shape.matrixLength + " != " + target);
       }
    }
 
@@ -146,7 +146,7 @@ public class Tensor extends NDArray {
 
    @Override
    public NDArray compact() {
-      for (NDArray slice : slices) {
+      for(NDArray slice : slices) {
          slice.compact();
       }
       return this;
@@ -162,7 +162,7 @@ public class Tensor extends NDArray {
    public double dot(NDArray rhs) {
       check(columns(), rhs.shape);
       double dot = 0;
-      for (int i = 0; i < slices.length; i++) {
+      for(int i = 0; i < slices.length; i++) {
          dot += slices[i].dot(rhs.slice(i));
       }
       return dot;
@@ -175,7 +175,7 @@ public class Tensor extends NDArray {
 
    @Override
    public void forEachSparse(EntryConsumer consumer) {
-      for (int i = 0; i < slices.length; i++) {
+      for(int i = 0; i < slices.length; i++) {
          int slice = i;
          slices[i].forEachSparse((mi, v) -> consumer.apply(mi * slice, v));
       }
@@ -244,7 +244,7 @@ public class Tensor extends NDArray {
    @Override
    public NDArray map(DoubleUnaryOperator operator) {
       NDArray[] out = new NDArray[shape.sliceLength];
-      for (int i = 0; i < slices.length; i++) {
+      for(int i = 0; i < slices.length; i++) {
          out[i] = slices[i].map(operator);
       }
       return new Tensor(kernels(), channels(), out);
@@ -253,7 +253,7 @@ public class Tensor extends NDArray {
    @Override
    public NDArray map(double value, DoubleBinaryOperator operator) {
       NDArray[] out = new NDArray[shape.sliceLength];
-      for (int i = 0; i < slices.length; i++) {
+      for(int i = 0; i < slices.length; i++) {
          out[i] = slices[i].map(value, operator);
       }
       return new Tensor(kernels(), channels(), out);
@@ -263,7 +263,7 @@ public class Tensor extends NDArray {
    public NDArray map(NDArray rhs, DoubleBinaryOperator operator) {
       check(rhs.shape);
       NDArray[] out = new NDArray[shape.sliceLength];
-      for (int i = 0; i < slices.length; i++) {
+      for(int i = 0; i < slices.length; i++) {
          out[i] = slices[i].map(rhs.slice(i), operator);
       }
       return new Tensor(kernels(), channels(), out);
@@ -273,7 +273,7 @@ public class Tensor extends NDArray {
    public NDArray mapColumn(NDArray rhs, DoubleBinaryOperator operator) {
       check(rows(), rhs.shape);
       NDArray[] out = new NDArray[shape.sliceLength];
-      for (int i = 0; i < slices.length; i++) {
+      for(int i = 0; i < slices.length; i++) {
          out[i] = slices[i].mapColumn(rhs.slice(i), operator);
       }
       return new Tensor(kernels(), channels(), out);
@@ -283,7 +283,7 @@ public class Tensor extends NDArray {
    public NDArray mapRow(NDArray rhs, DoubleBinaryOperator operator) {
       check(columns(), rhs.shape);
       NDArray[] out = new NDArray[shape.sliceLength];
-      for (int i = 0; i < slices.length; i++) {
+      for(int i = 0; i < slices.length; i++) {
          out[i] = slices[i].mapRow(rhs.slice(i), operator);
       }
       return new Tensor(kernels(), channels(), out);
@@ -291,7 +291,7 @@ public class Tensor extends NDArray {
 
    private NDArray mapSlices(Function<NDArray, NDArray> operator) {
       NDArray[] out = new NDArray[shape.sliceLength];
-      for (int i = 0; i < slices.length; i++) {
+      for(int i = 0; i < slices.length; i++) {
          out[i] = operator.apply(slices[i]);
       }
       return new Tensor(kernels(), channels(), out);
@@ -300,7 +300,7 @@ public class Tensor extends NDArray {
    private NDArray mapSlices(NDArray o, BiFunction<NDArray, NDArray, NDArray> operator) {
       check(o.shape);
       NDArray[] out = new NDArray[shape.sliceLength];
-      for (int i = 0; i < slices.length; i++) {
+      for(int i = 0; i < slices.length; i++) {
          out[i] = operator.apply(slices[i], o.slice(i));
       }
       return new Tensor(kernels(), channels(), out);
@@ -308,7 +308,7 @@ public class Tensor extends NDArray {
 
    @Override
    public NDArray mapi(DoubleUnaryOperator operator) {
-      for (NDArray slice : slices) {
+      for(NDArray slice : slices) {
          slice.mapi(operator);
       }
       return this;
@@ -316,7 +316,7 @@ public class Tensor extends NDArray {
 
    @Override
    public NDArray mapi(double value, DoubleBinaryOperator operator) {
-      for (NDArray slice : slices) {
+      for(NDArray slice : slices) {
          slice.mapi(value, operator);
       }
       return this;
@@ -325,7 +325,7 @@ public class Tensor extends NDArray {
    @Override
    public NDArray mapi(NDArray rhs, DoubleBinaryOperator operator) {
       check(rhs.shape);
-      for (int i = 0; i < slices.length; i++) {
+      for(int i = 0; i < slices.length; i++) {
          slices[i].mapi(rhs.slice(i), operator);
       }
       return this;
@@ -334,7 +334,7 @@ public class Tensor extends NDArray {
    @Override
    public NDArray mapiColumn(NDArray rhs, DoubleBinaryOperator operator) {
       check(rows(), rhs.shape);
-      for (int i = 0; i < slices.length; i++) {
+      for(int i = 0; i < slices.length; i++) {
          slices[i].mapiColumn(rhs.slice(i), operator);
       }
       return this;
@@ -343,14 +343,14 @@ public class Tensor extends NDArray {
    @Override
    public NDArray mapiRow(NDArray rhs, DoubleBinaryOperator operator) {
       check(columns(), rhs.shape);
-      for (int i = 0; i < slices.length; i++) {
+      for(int i = 0; i < slices.length; i++) {
          slices[i].mapiRow(rhs.slice(i), operator);
       }
       return this;
    }
 
    private NDArray mapiSlices(Function<NDArray, NDArray> operator) {
-      for (NDArray slice : slices) {
+      for(NDArray slice : slices) {
          operator.apply(slice);
       }
       return this;
@@ -439,7 +439,7 @@ public class Tensor extends NDArray {
    @Override
    public NDArray setColumn(int i, NDArray array) {
       check(rows(), array.shape);
-      for (int j = 0; j < slices.length; j++) {
+      for(int j = 0; j < slices.length; j++) {
          slices[j].setColumn(i, array.slice(j));
       }
       return this;
@@ -448,7 +448,7 @@ public class Tensor extends NDArray {
    @Override
    public NDArray setRow(int i, NDArray array) {
       check(columns(), array.shape);
-      for (int j = 0; j < slices.length; j++) {
+      for(int j = 0; j < slices.length; j++) {
          slices[j].setRow(i, array.slice(j));
       }
       return this;
@@ -475,6 +475,16 @@ public class Tensor extends NDArray {
    @Override
    public NDArray sliceArgmins() {
       return mapSlices(NDArray::sliceArgmins);
+   }
+
+   @Override
+   public NDArray selectColumns(int... indices) {
+      return mapSlices(n -> n.selectColumns(indices));
+   }
+
+   @Override
+   public NDArray selectRows(int... indices) {
+      return mapSlices(n -> n.selectRows(indices));
    }
 
    @Override
@@ -535,7 +545,7 @@ public class Tensor extends NDArray {
    @Override
    public DoubleMatrix[] toDoubleMatrix() {
       DoubleMatrix[] out = new DoubleMatrix[shape.sliceLength];
-      for (int i = 0; i < slices.length; i++) {
+      for(int i = 0; i < slices.length; i++) {
          out[i] = slices[i].toDoubleMatrix()[0];
       }
       return out;
@@ -548,9 +558,40 @@ public class Tensor extends NDArray {
 
    @Override
    public NDArray zeroLike() {
-      return isDense() ? NDArrayFactory.DENSE.array(shape) : NDArrayFactory.SPARSE.array(shape);
+      return isDense()
+             ? NDArrayFactory.DENSE.array(shape)
+             : NDArrayFactory.SPARSE.array(shape);
    }
 
+   @Override
+   public NDArray incrementiColumn(int c, NDArray vector) {
+      return mapiSlices(n -> n.incrementiColumn(c, vector));
+   }
+
+   @Override
+   public NDArray mapiColumn(int column, NDArray rhs, DoubleBinaryOperator operator) {
+      return mapiSlices(s -> s.mapiColumn(column, rhs, operator));
+   }
+
+   @Override
+   public NDArray mapColumn(int column, NDArray rhs, DoubleBinaryOperator operator) {
+      return mapSlices(s -> s.mapColumn(column, rhs, operator));
+   }
+
+   @Override
+   public NDArray mapiRow(int row, NDArray rhs, DoubleBinaryOperator operator) {
+      return mapiSlices(s -> s.mapiRow(row, rhs, operator));
+   }
+
+   @Override
+   public NDArray mapRow(int row, NDArray rhs, DoubleBinaryOperator operator) {
+      return mapSlices(s -> s.mapRow(row, rhs, operator));
+   }
+
+   @Override
+   public int[] sparseIndices() {
+      throw new UnsupportedOperationException();
+   }
 
    @Override
    public String toString() {

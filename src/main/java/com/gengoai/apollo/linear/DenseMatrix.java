@@ -76,7 +76,7 @@ public class DenseMatrix extends Matrix {
 
    @Override
    public NDArray add(NDArray rhs) {
-      if (rhs.isDense()) {
+      if(rhs.isDense()) {
          checkLength(rhs.shape);
          return new DenseMatrix(matrix.add(rhs.toDoubleMatrix()[0]));
       }
@@ -85,7 +85,7 @@ public class DenseMatrix extends Matrix {
 
    @Override
    public NDArray addi(NDArray rhs) {
-      if (rhs.isDense()) {
+      if(rhs.isDense()) {
          checkLength(rhs.shape);
          matrix.addi(rhs.toDoubleMatrix()[0]);
          return this;
@@ -95,7 +95,7 @@ public class DenseMatrix extends Matrix {
 
    @Override
    public NDArray addiColumnVector(NDArray rhs) {
-      if (rhs.isDense()) {
+      if(rhs.isDense()) {
          matrix.addiColumnVector(rhs.toDoubleMatrix()[0]);
          return this;
       }
@@ -104,7 +104,7 @@ public class DenseMatrix extends Matrix {
 
    @Override
    public NDArray addiRowVector(NDArray rhs) {
-      if (rhs.isDense()) {
+      if(rhs.isDense()) {
          matrix.addiRowVector(rhs.toDoubleMatrix()[0]);
          return this;
       }
@@ -113,7 +113,7 @@ public class DenseMatrix extends Matrix {
 
    @Override
    public long argmax() {
-      if (matrix.argmax() < 0) {
+      if(matrix.argmax() < 0) {
          System.out.println(matrix);
       }
       return matrix.argmax();
@@ -136,7 +136,7 @@ public class DenseMatrix extends Matrix {
 
    @Override
    public NDArray div(NDArray rhs) {
-      if (rhs.isDense()) {
+      if(rhs.isDense()) {
          return new DenseMatrix(matrix.div(rhs.toDoubleMatrix()[0]));
       }
       return super.div(rhs);
@@ -144,7 +144,7 @@ public class DenseMatrix extends Matrix {
 
    @Override
    public NDArray divi(NDArray rhs) {
-      if (rhs.isDense()) {
+      if(rhs.isDense()) {
          matrix.divi(rhs.toDoubleMatrix()[0]);
          return this;
       }
@@ -153,7 +153,7 @@ public class DenseMatrix extends Matrix {
 
    @Override
    public NDArray diviColumnVector(NDArray rhs) {
-      if (rhs.isDense()) {
+      if(rhs.isDense()) {
          matrix.diviColumnVector(rhs.toDoubleMatrix()[0]);
          return this;
       }
@@ -162,7 +162,7 @@ public class DenseMatrix extends Matrix {
 
    @Override
    public NDArray diviRowVector(NDArray rhs) {
-      if (rhs.isDense()) {
+      if(rhs.isDense()) {
          matrix.diviRowVector(rhs.toDoubleMatrix()[0]);
          return this;
       }
@@ -171,10 +171,11 @@ public class DenseMatrix extends Matrix {
 
    @Override
    public double dot(NDArray rhs) {
-      if (rhs.isDense()) {
+      if(rhs.isDense()) {
          checkLength(rhs.shape());
          return matrix.dot(rhs.toDoubleMatrix()[0]);
-      } else {
+      }
+      else {
          return rhs.dot(this);
       }
    }
@@ -187,7 +188,7 @@ public class DenseMatrix extends Matrix {
 
    @Override
    public void forEachSparse(EntryConsumer consumer) {
-      for (int i = 0; i < matrix.length; i++) {
+      for(int i = 0; i < matrix.length; i++) {
          consumer.apply(i, matrix.data[i]);
       }
    }
@@ -226,7 +227,7 @@ public class DenseMatrix extends Matrix {
    @Override
    public NDArray map(NDArray rhs, DoubleBinaryOperator operator) {
       DenseMatrix out = Cast.as(zeroLike());
-      for (int i = 0; i < shape.matrixLength; i++) {
+      for(int i = 0; i < shape.matrixLength; i++) {
          out.matrix.data[i] = operator.applyAsDouble(matrix.data[i], rhs.get(i));
       }
       return out;
@@ -235,7 +236,7 @@ public class DenseMatrix extends Matrix {
    @Override
    public NDArray map(DoubleUnaryOperator operator) {
       DenseMatrix dm = new DenseMatrix(matrix.rows, matrix.columns);
-      for (int i = 0; i < matrix.length; i++) {
+      for(int i = 0; i < matrix.length; i++) {
          dm.matrix.data[i] = operator.applyAsDouble(matrix.data[i]);
       }
       return dm;
@@ -244,7 +245,7 @@ public class DenseMatrix extends Matrix {
    @Override
    public NDArray mapi(NDArray rhs, DoubleBinaryOperator operator) {
       checkLength(rhs.shape());
-      for (int i = 0; i < shape.matrixLength; i++) {
+      for(int i = 0; i < shape.matrixLength; i++) {
          matrix.data[i] = operator.applyAsDouble(matrix.data[i], rhs.get(i));
       }
       return this;
@@ -252,7 +253,7 @@ public class DenseMatrix extends Matrix {
 
    @Override
    public NDArray mapi(DoubleUnaryOperator operator) {
-      for (int i = 0; i < matrix.length; i++) {
+      for(int i = 0; i < matrix.length; i++) {
          matrix.data[i] = operator.applyAsDouble(matrix.data[i]);
       }
       return this;
@@ -272,12 +273,15 @@ public class DenseMatrix extends Matrix {
    public NDArray mmul(NDArray rhs) {
       Validation.checkArgument(rhs.shape.sliceLength == 1,
                                () -> "Invalid Slice Length: " + rhs.shape.sliceLength + " != 1");
+      if(shape.isVector()) {
+         super.mmul(rhs);
+      }
       return new DenseMatrix(matrix.mmul(rhs.toDoubleMatrix()[0]));
    }
 
    @Override
    public NDArray mul(NDArray rhs) {
-      if (rhs.isDense()) {
+      if(rhs.isDense()) {
          checkLength(rhs.shape());
          return new DenseMatrix(matrix.mul(rhs.toDoubleMatrix()[0]));
       }
@@ -286,7 +290,7 @@ public class DenseMatrix extends Matrix {
 
    @Override
    public NDArray muli(NDArray rhs) {
-      if (rhs.isDense()) {
+      if(rhs.isDense()) {
          checkLength(rhs.shape());
          matrix.muli(rhs.toDoubleMatrix()[0]);
          return this;
@@ -296,7 +300,7 @@ public class DenseMatrix extends Matrix {
 
    @Override
    public NDArray muliColumnVector(NDArray rhs) {
-      if (rhs.isDense()) {
+      if(rhs.isDense()) {
          checkLength(rows(), rhs.shape());
          matrix.muliColumnVector(rhs.toDoubleMatrix()[0]);
          return this;
@@ -305,8 +309,18 @@ public class DenseMatrix extends Matrix {
    }
 
    @Override
+   public NDArray selectColumns(int... indices) {
+      return new DenseMatrix(matrix.getColumns(indices));
+   }
+
+   @Override
+   public NDArray selectRows(int... indices) {
+      return new DenseMatrix(matrix.getRows(indices));
+   }
+
+   @Override
    public NDArray muliRowVector(NDArray rhs) {
-      if (rhs.isDense()) {
+      if(rhs.isDense()) {
          checkLength(columns(), rhs.shape());
          matrix.muliRowVector(rhs.toDoubleMatrix()[0]);
          return this;
@@ -317,7 +331,7 @@ public class DenseMatrix extends Matrix {
    @Override
    public NDArray rdiv(NDArray rhs) {
       checkLength(rhs.shape());
-      if (rhs.isDense()) {
+      if(rhs.isDense()) {
          return new DenseMatrix(matrix.rdiv(rhs.toDoubleMatrix()[0]));
       }
       return super.rdiv(rhs);
@@ -326,7 +340,7 @@ public class DenseMatrix extends Matrix {
    @Override
    public NDArray rdivi(NDArray rhs) {
       checkLength(rhs.shape());
-      if (rhs.isDense()) {
+      if(rhs.isDense()) {
          matrix.rdivi(rhs.toDoubleMatrix()[0]);
          return this;
       }
@@ -348,7 +362,7 @@ public class DenseMatrix extends Matrix {
    @Override
    public NDArray rsub(NDArray rhs) {
       checkLength(rhs.shape());
-      if (rhs.isDense()) {
+      if(rhs.isDense()) {
          return new DenseMatrix(matrix.rsub(rhs.toDoubleMatrix()[0]));
       }
       return super.rsub(rhs);
@@ -357,7 +371,7 @@ public class DenseMatrix extends Matrix {
    @Override
    public NDArray rsubi(NDArray rhs) {
       checkLength(rhs.shape());
-      if (rhs.isDense()) {
+      if(rhs.isDense()) {
          matrix.rsubi(rhs.toDoubleMatrix()[0]);
          return this;
       }
@@ -393,7 +407,7 @@ public class DenseMatrix extends Matrix {
    @Override
    public NDArray sub(NDArray rhs) {
       checkLength(rhs.shape());
-      if (rhs.isDense()) {
+      if(rhs.isDense()) {
          return new DenseMatrix(matrix.sub(rhs.toDoubleMatrix()[0]));
       }
       return super.sub(rhs);
@@ -402,7 +416,7 @@ public class DenseMatrix extends Matrix {
    @Override
    public NDArray subi(NDArray rhs) {
       checkLength(rhs.shape());
-      if (rhs.isDense()) {
+      if(rhs.isDense()) {
          matrix.subi(rhs.toDoubleMatrix()[0]);
          return this;
       }
@@ -411,7 +425,7 @@ public class DenseMatrix extends Matrix {
 
    @Override
    public NDArray subiColumnVector(NDArray rhs) {
-      if (rhs.isDense()) {
+      if(rhs.isDense()) {
          matrix.subiColumnVector(rhs.toDoubleMatrix()[0]);
          return this;
       }
@@ -420,7 +434,7 @@ public class DenseMatrix extends Matrix {
 
    @Override
    public NDArray subiRowVector(NDArray rhs) {
-      if (rhs.isDense()) {
+      if(rhs.isDense()) {
          matrix.subiRowVector(rhs.toDoubleMatrix()[0]);
          return this;
       }

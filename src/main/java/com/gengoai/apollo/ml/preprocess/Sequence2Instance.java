@@ -25,7 +25,7 @@ package com.gengoai.apollo.ml.preprocess;
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.Feature;
 import com.gengoai.apollo.ml.Instance;
-import com.gengoai.apollo.ml.data.Dataset;
+import com.gengoai.apollo.ml.data.ExampleDataset;
 import com.gengoai.collection.multimap.ArrayListMultimap;
 import com.gengoai.collection.multimap.Multimap;
 import com.gengoai.math.Math2;
@@ -136,7 +136,7 @@ public class Sequence2Instance implements Preprocessor, Serializable {
    }
 
    @Override
-   public Dataset fitAndTransform(Dataset dataset) {
+   public ExampleDataset fitAndTransform(ExampleDataset dataset) {
       return dataset.map(this::apply);
    }
 

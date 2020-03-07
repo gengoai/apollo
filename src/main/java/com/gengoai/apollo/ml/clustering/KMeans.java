@@ -28,14 +28,14 @@ import com.gengoai.apollo.linear.Shape;
 import com.gengoai.apollo.ml.DiscretePipeline;
 import com.gengoai.apollo.ml.FitParameters;
 import com.gengoai.apollo.ml.Params;
+import com.gengoai.apollo.ml.data.VectorizedDataset;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
 import com.gengoai.apollo.optimization.StoppingCriteria;
 import com.gengoai.apollo.statistics.measure.Measure;
 import com.gengoai.conversion.Cast;
 import com.gengoai.logging.Logger;
-import com.gengoai.stream.MStream;
+import lombok.NonNull;
 
-import java.util.List;
 import java.util.Objects;
 import java.util.Random;
 import java.util.stream.IntStream;
@@ -71,12 +71,11 @@ public class KMeans extends FlatCentroidClusterer {
    }
 
    @Override
-   public void fit(MStream<NDArray> vectors, FitParameters parameters) {
+   public void fit(@NonNull VectorizedDataset vectors, @NonNull FitParameters<?> parameters) {
       Parameters fitParameters = Cast.as(parameters);
       setMeasure(fitParameters.measure.value());
 
-      List<NDArray> instances = vectors.collect();
-      for (NDArray centroid : initCentroids(fitParameters.K.value(), instances)) {
+      for(NDArray centroid : initCentroids(fitParameters.K.value(), vectors)) {
          Cluster c = new Cluster();
          c.setCentroid(centroid);
          add(c);
@@ -89,12 +88,12 @@ public class KMeans extends FlatCentroidClusterer {
                       .tolerance(fitParameters.tolerance.value())
                       .reportInterval(1)
                       .logger(log)
-                      .untilTermination(itr -> this.iteration(instances));
+                      .untilTermination(itr -> this.iteration(vectors));
 
-      for (int i = 0; i < size(); i++) {
+      for(int i = 0; i < size(); i++) {
          Cluster cluster = get(i);
          cluster.setId(i);
-         if (cluster.size() > 0) {
+         if(cluster.size() > 0) {
             cluster.getPoints().removeIf(Objects::isNull);
             double average = cluster.getPoints()
                                     .parallelStream()
@@ -105,7 +104,8 @@ public class KMeans extends FlatCentroidClusterer {
                                     .summaryStatistics()
                                     .getAverage();
             cluster.setScore(average);
-         } else {
+         }
+         else {
             cluster.setScore(Double.MAX_VALUE);
          }
       }
@@ -116,53 +116,56 @@ public class KMeans extends FlatCentroidClusterer {
       return new Parameters();
    }
 
-   private NDArray[] initCentroids(int K, List<NDArray> instances) {
+   private NDArray[] initCentroids(int K, VectorizedDataset instances) {
+      final int dim = instances.stream().first().map(NDArray::length).orElse(0L).intValue();
       NDArray[] clusters = IntStream.range(0, K)
-                                    .mapToObj(i -> NDArrayFactory.ND.array((int) instances.get(0).length()))
+                                    .mapToObj(i -> NDArrayFactory.ND.array(dim))
                                     .toArray(NDArray[]::new);
 
       double[] cnts = new double[K];
       Random rnd = new Random();
-      for (NDArray ii : instances) {
+      for(NDArray ii : instances) {
          int ci = rnd.nextInt(K);
          clusters[ci].addi(ii);
          cnts[ci]++;
       }
-      for (int i = 0; i < K; i++) {
-         if (cnts[i] > 0) {
+      for(int i = 0; i < K; i++) {
+         if(cnts[i] > 0) {
             clusters[i].divi((float) cnts[i]);
          }
       }
       return clusters;
    }
 
-   private double iteration(List<NDArray> instances) {
+   private double iteration(VectorizedDataset instances) {
+      final int dim = instances.stream().first().map(NDArray::length).orElse(0L).intValue();
       //Clear the points
       keepOnlyCentroids();
 
       final Object[] locks = new Object[size()];
-      for (int i = 0; i < size(); i++) {
+      for(int i = 0; i < size(); i++) {
          locks[i] = new Object();
       }
       //Assign points
       instances.parallelStream().forEach(v -> {
          Cluster c = estimate(v);
-         synchronized (locks[c.getId()]) {
+         synchronized(locks[c.getId()]) {
             c.addPoint(v);
          }
       });
 
 
       double numChanged = 0;
-      for (Cluster cluster : this) {
+      for(Cluster cluster : this) {
          NDArray centroid;
 
          //Calculate the new centroid, randomly generating a new vector when the custer has 0 members
-         if (cluster.size() == 0) {
-            centroid = NDArrayFactory.ND.uniform(Shape.shape((int) instances.get(0).length()), -1, 1);
-         } else {
+         if(cluster.size() == 0) {
+            centroid = NDArrayFactory.ND.uniform(Shape.shape(dim), -1, 1);
+         }
+         else {
             centroid = NDArrayFactory.ND.array(getNumberOfFeatures());
-            for (NDArray point : cluster.getPoints()) {
+            for(NDArray point : cluster.getPoints()) {
                centroid.addi(point);
             }
             centroid.divi(cluster.size());
@@ -173,11 +176,13 @@ public class KMeans extends FlatCentroidClusterer {
          numChanged += cluster.getPoints()
                               .parallelStream()
                               .mapToDouble(n -> {
-                                 if (n.getPredicted() == null) {
+                                 if(n.getPredicted() == null) {
                                     n.setPredicted((double) cluster.getId());
                                     return 1.0;
                                  }
-                                 double c = n.getPredictedAsDouble() == cluster.getId() ? 0 : 1;
+                                 double c = n.getPredictedAsDouble() == cluster.getId()
+                                            ? 0
+                                            : 1;
                                  n.setPredicted((double) cluster.getId());
                                  return c;
                               }).sum();

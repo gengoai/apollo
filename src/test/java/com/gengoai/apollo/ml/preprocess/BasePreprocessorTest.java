@@ -1,7 +1,7 @@
 package com.gengoai.apollo.ml.preprocess;
 
 import com.gengoai.apollo.ml.Example;
-import com.gengoai.apollo.ml.data.Dataset;
+import com.gengoai.apollo.ml.data.ExampleDataset;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -18,7 +18,7 @@ public abstract class BasePreprocessorTest {
    }
 
 
-   public Dataset loadDataset() {
+   public ExampleDataset loadDataset() {
       return null;
    }
 

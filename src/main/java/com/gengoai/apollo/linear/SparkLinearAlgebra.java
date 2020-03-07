@@ -2,7 +2,7 @@ package com.gengoai.apollo.linear;
 
 import com.gengoai.Validation;
 import com.gengoai.stream.MStream;
-import com.gengoai.stream.SparkStream;
+import com.gengoai.stream.spark.SparkStream;
 import com.gengoai.stream.StreamingContext;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.mllib.linalg.Vector;

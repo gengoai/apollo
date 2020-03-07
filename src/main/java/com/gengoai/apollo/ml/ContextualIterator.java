@@ -49,7 +49,7 @@ public class ContextualIterator implements Iterator<Example>, Serializable {
 
    /**
     * Gets the example a given relative position before or after the current example. When going beyond the boundaries
-    * of the parent example (i.e. the relative position would be an actual <code>index < 0</code> or <code>index >=
+    * of the parent example (i.e. the relative position would be an actual <code>index &lt; 0</code> or <code>index >=
     * parent.size()</code> a special begin of sequence or end of sequence example is returned.
     *
     * @param relativePosition the relative position (e.g. -2, -1, 1, 2)

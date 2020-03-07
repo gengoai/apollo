@@ -39,7 +39,7 @@ import com.gengoai.apollo.ml.DiscretePipeline;
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.FitParameters;
 import com.gengoai.apollo.ml.Params;
-import com.gengoai.apollo.ml.data.Dataset;
+import com.gengoai.apollo.ml.data.ExampleDataset;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
 import com.gengoai.apollo.ml.vectorizer.InstanceToTokenSequence;
 import com.gengoai.apollo.ml.vectorizer.MalletVectorizer;
@@ -85,7 +85,7 @@ public class MalletLDA extends TopicModel {
    }
 
    @Override
-   protected void fitPreprocessed(Dataset preprocessed, FitParameters fitParameters) {
+   protected void fitPreprocessed(ExampleDataset preprocessed, FitParameters fitParameters) {
       Parameters p = Cast.as(fitParameters);
       if (p.verbose.value()) {
          ParallelTopicModel.logger.setLevel(Level.INFO);

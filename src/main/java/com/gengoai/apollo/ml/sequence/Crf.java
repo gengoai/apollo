@@ -22,18 +22,20 @@
 
 package com.gengoai.apollo.ml.sequence;
 
+import com.gengoai.ParameterDef;
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.Feature;
 import com.gengoai.apollo.ml.FitParameters;
-import com.gengoai.apollo.ml.data.Dataset;
+import com.gengoai.apollo.ml.Params;
+import com.gengoai.apollo.ml.data.ExampleDataset;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
 import com.gengoai.apollo.ml.preprocess.PreprocessorList;
 import com.gengoai.apollo.ml.vectorizer.NoOptVectorizer;
 import com.gengoai.conversion.Cast;
 import com.gengoai.io.Resources;
 import com.gengoai.io.resource.Resource;
+import com.gengoai.jcrfsuite.CrfTagger;
 import com.gengoai.tuple.Tuple2;
-import com.github.jcrfsuite.CrfTagger;
 import third_party.org.chokkan.crfsuite.*;
 
 import java.io.IOException;
@@ -49,6 +51,11 @@ import static com.gengoai.tuple.Tuples.$;
  */
 public class Crf extends SequenceLabeler implements Serializable {
    private static final long serialVersionUID = 1L;
+   public static final ParameterDef<Double> C2 = ParameterDef.doubleParam("c2");
+   public static final ParameterDef<Double> C1 = ParameterDef.doubleParam("c1");
+   public static final ParameterDef<Double> EPS = ParameterDef.doubleParam("eps");
+   public static final ParameterDef<Integer> MIN_FEATURE_FREQ = ParameterDef.intParam("minFeatureFreq");
+   public static final ParameterDef<CrfSolver> SOLVER = ParameterDef.param("solver", CrfSolver.class);
    private String modelFile;
    private volatile CrfTagger tagger;
 
@@ -76,7 +83,7 @@ public class Crf extends SequenceLabeler implements Serializable {
    }
 
    @Override
-   protected void fitPreprocessed(Dataset dataset, FitParameters parameters) {
+   protected void fitPreprocessed(ExampleDataset dataset, FitParameters parameters) {
       Parameters fitParameters = Cast.as(parameters);
       CrfSuiteLoader.INSTANCE.load();
       Trainer trainer = new Trainer();
@@ -84,12 +91,12 @@ public class Crf extends SequenceLabeler implements Serializable {
          Tuple2<ItemSequence, StringList> instance = toItemSequence(sequence);
          trainer.append(instance.v1, instance.v2, 0);
       });
-      trainer.select(fitParameters.crfSolver.parameterSetting, "crf1d");
-      trainer.set("max_iterations", Integer.toString(fitParameters.maxIterations));
-      trainer.set("c2", Double.toString(fitParameters.c2));
-      trainer.set("c1", Double.toString(fitParameters.c1));
-      trainer.set("epsilon", Double.toString(fitParameters.eps));
-      trainer.set("feature.minfreq", Integer.toString(fitParameters.minFeatureFreq));
+      trainer.select(fitParameters.crfSolver.value().parameterSetting, "crf1d");
+      trainer.set("max_iterations", Integer.toString(fitParameters.maxIterations.value()));
+      trainer.set("c2", Double.toString(fitParameters.c2.value()));
+      trainer.set("c1", Double.toString(fitParameters.c1.value()));
+      trainer.set("epsilon", Double.toString(fitParameters.eps.value()));
+      trainer.set("feature.minfreq", Integer.toString(fitParameters.minFeatureFreq.value()));
       modelFile = Resources.temporaryFile().asFile().orElseThrow(IllegalArgumentException::new).getAbsolutePath();
       trainer.train(modelFile, -1);
       trainer.clear();
@@ -109,7 +116,17 @@ public class Crf extends SequenceLabeler implements Serializable {
    @Override
    public Labeling label(Example sequence) {
       CrfSuiteLoader.INSTANCE.load();
-      return new Labeling(tagger.tag(toItemSequence(getPipeline().preprocessorList.apply(sequence)).v1));
+      ItemSequence itemSequence = toItemSequence(getPipeline().preprocessorList.apply(sequence)).v1;
+      Labeling labeling = new Labeling(tagger.tag(itemSequence));
+      deleteItemSequence(itemSequence);
+      return labeling;
+   }
+
+   private void deleteItemSequence(ItemSequence itemSequence) {
+      for(int i = 0; i < itemSequence.size(); i++) {
+         itemSequence.get(i).delete();
+      }
+      itemSequence.delete();
    }
 
    private void readObject(java.io.ObjectInputStream stream) throws Exception {
@@ -126,12 +143,12 @@ public class Crf extends SequenceLabeler implements Serializable {
    private Tuple2<ItemSequence, StringList> toItemSequence(Example sequence) {
       ItemSequence seq = new ItemSequence();
       StringList labels = new StringList();
-      for (Example instance : sequence) {
+      for(Example instance : sequence) {
          Item item = new Item();
-         for (Feature feature : instance.getFeatures()) {
+         for(Feature feature : instance.getFeatures()) {
             item.add(new Attribute(feature.getName(), feature.getValue()));
          }
-         if (instance.hasLabel()) {
+         if(instance.hasLabel()) {
             labels.add(instance.getDiscreteLabel());
          }
          seq.add(item);
@@ -151,29 +168,29 @@ public class Crf extends SequenceLabeler implements Serializable {
    public static class Parameters extends FitParameters<Parameters> {
       private static final long serialVersionUID = 1L;
       /**
-       * The coefficient for L1 regularization (default 0.0 - not used)
+       * The maximum number of iterations (defaults to 200)
        */
-      public double c1 = 0;
-      /**
-       * The coefficient for L2 regularization (default 1.0)
-       */
-      public double c2 = 1.0;
+      public final Parameter<Integer> maxIterations = parameter(Params.Optimizable.maxIterations, 250);
       /**
        * The type of solver to use (defaults to LBFGS)
        */
-      public CrfSolver crfSolver = CrfSolver.LBFGS;
+      public final Parameter<CrfSolver> crfSolver = parameter(SOLVER, CrfSolver.LBFGS);
+      /**
+       * The coefficient for L1 regularization (default 0.0 - not used)
+       */
+      public final Parameter<Double> c1 = parameter(C1, 0d);
+      /**
+       * The coefficient for L2 regularization (default 1.0)
+       */
+      public final Parameter<Double> c2 = parameter(C2, 1d);
       /**
        * The epsilon parameter to determine convergence (default is 1e-5)
        */
-      public double eps = 1e-5;
-      /**
-       * The maximum number of iterations (defaults to 200)
-       */
-      public int maxIterations = 200;
+      public final Parameter<Double> eps = parameter(EPS, 1e-5);
       /**
        * The minimumn number of times a feature must appear to be kept (default 0 - keep all)
        */
-      public int minFeatureFreq = 0;
+      public final Parameter<Integer> minFeatureFreq = parameter(MIN_FEATURE_FREQ, 0);
 
 
    }

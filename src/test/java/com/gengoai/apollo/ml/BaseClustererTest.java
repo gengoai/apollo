@@ -3,7 +3,7 @@ package com.gengoai.apollo.ml;
 import com.gengoai.apollo.ml.clustering.ClusterParameters;
 import com.gengoai.apollo.ml.clustering.Clusterer;
 import com.gengoai.apollo.ml.clustering.SilhouetteEvaluation;
-import com.gengoai.apollo.ml.data.Dataset;
+import com.gengoai.apollo.ml.data.ExampleDataset;
 import com.gengoai.apollo.ml.data.DatasetType;
 import com.gengoai.apollo.ml.data.format.CSVDataFormat;
 import com.gengoai.apollo.ml.data.format.DataFormat;
@@ -40,7 +40,7 @@ public abstract class BaseClustererTest<T extends ClusterParameters<T>> {
       assertTrue(passes(evaluation));
    }
 
-   protected Dataset loadWaterData() {
+   protected ExampleDataset loadWaterData() {
       DataFormat csv = new CSVDataFormat(CSV.builder(), -1);
       try {
          return DatasetType.InMemory.read(Resources.fromClasspath("com/gengoai/apollo/ml/water-treatment.data"),

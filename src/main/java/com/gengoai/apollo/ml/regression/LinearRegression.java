@@ -28,13 +28,15 @@ import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.FitParameters;
 import com.gengoai.apollo.ml.NumericPipeline;
 import com.gengoai.apollo.ml.Params;
-import com.gengoai.apollo.ml.data.Dataset;
+import com.gengoai.apollo.ml.data.ExampleDataset;
+import com.gengoai.apollo.ml.data.VectorizedDataset;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
 import com.gengoai.apollo.optimization.*;
 import com.gengoai.apollo.optimization.activation.Activation;
 import com.gengoai.apollo.optimization.loss.SquaredLoss;
 import com.gengoai.conversion.Cast;
 import com.gengoai.logging.Logger;
+import lombok.NonNull;
 
 import java.io.Serializable;
 
@@ -69,22 +71,28 @@ public class LinearRegression extends Regression {
    }
 
    @Override
+   public void fit(@NonNull VectorizedDataset dataset, @NonNull FitParameters<?> fitParameters) {
+      Parameters p = notNull(Cast.as(fitParameters, Parameters.class));
+      weightParameters.update(getNumberOfLabels(), getNumberOfFeatures());
+      GradientDescentOptimizer optimizer = new GradientDescentOptimizer(p.batchSize.value());
+      optimizer.optimize(weightParameters,
+                         dataset.stream(),
+                         new GradientDescentCostFunction(new SquaredLoss(), -1),
+                         StoppingCriteria.create("loss", p)
+                                         .historySize(p.historySize.value())
+                                         .reportInterval(p.reportInterval.value())
+                                         .logger(Logger.getLogger(LinearRegression.class)),
+                         p.weightUpdater.value());
+   }
+
+   @Override
    public double estimate(Example vector) {
       return weightParameters.activate(vector.preprocessAndTransform(getPipeline())).scalar();
    }
 
    @Override
-   protected void fitPreprocessed(Dataset preprocessed, FitParameters fitParameters) {
-      Parameters p = notNull(Cast.as(fitParameters, Parameters.class));
-      weightParameters.update(getNumberOfLabels(), getNumberOfFeatures());
-      GradientDescentOptimizer optimizer = new GradientDescentOptimizer(p.batchSize.value());
-
-      optimizer.optimize(weightParameters,
-                         preprocessed.asVectorStream(getPipeline()).cache(),
-                         new GradientDescentCostFunction(new SquaredLoss(), -1),
-                         StoppingCriteria.create("loss", p)
-                                         .logger(Logger.getLogger(LinearRegression.class)),
-                         p.weightUpdater.value());
+   protected void fitPreprocessed(@NonNull ExampleDataset preprocessed, @NonNull FitParameters<?> fitParameters) {
+      fit(preprocessed.toVectorizedDataset(getPipeline()), fitParameters);
    }
 
    @Override
@@ -154,7 +162,9 @@ public class LinearRegression extends Regression {
       public void update(int numLabels, int numFeatures) {
          this.numLabels = numLabels;
          this.numFeatures = numFeatures;
-         int numL = numLabels <= 2 ? 1 : numLabels;
+         int numL = numLabels <= 2
+                    ? 1
+                    : numLabels;
          this.activation = Activation.LINEAR;
          this.weights = ND.rand(numL, numFeatures);
          this.bias = ND.array(numL);

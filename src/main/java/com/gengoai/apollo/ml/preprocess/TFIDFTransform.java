@@ -28,7 +28,7 @@ import com.gengoai.apollo.ml.Instance;
 import com.gengoai.collection.counter.Counter;
 import com.gengoai.collection.counter.Counters;
 import com.gengoai.stream.MStream;
-import com.gengoai.stream.accumulator.MDoubleAccumulator;
+import com.gengoai.stream.MDoubleAccumulator;
 
 import java.util.Optional;
 

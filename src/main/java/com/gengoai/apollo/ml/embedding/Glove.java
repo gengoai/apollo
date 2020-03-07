@@ -30,7 +30,7 @@ import com.gengoai.apollo.ml.DiscretePipeline;
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.FitParameters;
 import com.gengoai.apollo.ml.Params;
-import com.gengoai.apollo.ml.data.Dataset;
+import com.gengoai.apollo.ml.data.ExampleDataset;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
 import com.gengoai.collection.counter.Counter;
 import com.gengoai.collection.counter.Counters;
@@ -73,7 +73,7 @@ public class Glove extends Embedding {
    }
 
    @Override
-   protected void fitPreprocessed(Dataset preprocessed, FitParameters fitParameters) {
+   protected void fitPreprocessed(ExampleDataset preprocessed, FitParameters fitParameters) {
       Parameters p = Cast.as(fitParameters);
       Stopwatch sw = Stopwatch.createStarted();
 

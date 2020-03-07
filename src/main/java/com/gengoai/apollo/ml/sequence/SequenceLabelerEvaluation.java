@@ -23,7 +23,7 @@
 package com.gengoai.apollo.ml.sequence;
 
 import com.gengoai.apollo.ml.Example;
-import com.gengoai.apollo.ml.data.Dataset;
+import com.gengoai.apollo.ml.data.ExampleDataset;
 import com.gengoai.stream.MStream;
 
 import java.io.PrintStream;
@@ -40,7 +40,7 @@ public interface SequenceLabelerEvaluation {
     * @param model   the model to evaluate
     * @param dataset the dataset to evaluate over
     */
-   default void evaluate(SequenceLabeler model, Dataset dataset) {
+   default void evaluate(SequenceLabeler model, ExampleDataset dataset) {
       evaluate(model, dataset.stream());
    }
 

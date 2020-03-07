@@ -25,7 +25,9 @@ package com.gengoai.apollo.ml;
 import com.gengoai.Copyable;
 import com.gengoai.annotation.JsonHandler;
 import com.gengoai.apollo.linear.NDArray;
-import com.gengoai.collection.Streams;
+import com.gengoai.stream.Streams;
+import com.gengoai.collection.counter.Counter;
+import com.gengoai.collection.counter.HashMapCounter;
 import com.gengoai.conversion.Cast;
 import com.gengoai.conversion.Converter;
 import com.gengoai.conversion.TypeConversionException;
@@ -56,41 +58,6 @@ public abstract class Example implements Copyable<Example>, Iterable<Example>, S
    private double weight = 1.0;
    private Object label = null;
 
-   public static class JsonMarshaller extends com.gengoai.json.JsonMarshaller<Example> {
-
-      @Override
-      protected Example deserialize(JsonEntry entry, Type type) {
-         Object label = entry.getProperty("label", Object.class, null);
-         double weight = entry.getDoubleProperty("weight");
-
-         Example example;
-         if (entry.hasProperty("features")) {
-            example = new Instance(label, entry.getProperty("features").getAsArray(Feature.class));
-         } else {
-            example = new Sequence(entry.getProperty("sequence").getAsArray(Example.class));
-            example.setLabel(label);
-         }
-         example.setWeight(weight);
-
-         return example;
-      }
-
-      @Override
-      protected JsonEntry serialize(Example example, Type type) {
-         JsonEntry entry = JsonEntry.object();
-         if (example.label != null) {
-            entry.addProperty("label", example.label);
-         }
-         entry.addProperty("weight", example.weight);
-         if (example.isInstance()) {
-            entry.addProperty("features", example.getFeatures());
-         } else {
-            entry.addProperty("sequence", JsonEntry.array(example));
-         }
-         return entry;
-      }
-   }
-
    /**
     * Adds an example. Will throw an <code>UnsupportedOperationException</code> if this is a not a multi-example.
     *
@@ -108,7 +75,9 @@ public abstract class Example implements Copyable<Example>, Iterable<Example>, S
     * @throws UnsupportedOperationException If the example does not allow direct access to the label
     */
    public String getDiscreteLabel() {
-      return hasLabel() ? getLabel().toString() : null;
+      return hasLabel()
+             ? getLabel().toString()
+             : null;
    }
 
    /**
@@ -118,6 +87,16 @@ public abstract class Example implements Copyable<Example>, Iterable<Example>, S
     * @return the example at the given index.
     */
    public abstract Example getExample(int index);
+
+   public Counter<String> asCounter() {
+      Counter<String> counter = new HashMapCounter<>();
+      for(int i = 0; i < size(); i++) {
+         for(Feature feature : getExample(i).getFeatures()) {
+            counter.increment(feature.getName(), feature.getValue());
+         }
+      }
+      return counter;
+   }
 
    /**
     * Gets a feature from this example starting with the given prefix. If a feature is not found, a default true-valued
@@ -186,19 +165,22 @@ public abstract class Example implements Copyable<Example>, Iterable<Example>, S
     * @throws UnsupportedOperationException If the example does not allow direct access to the label
     */
    public Example setLabel(Object label) {
-      if (label == null) {
+      if(label == null) {
          this.label = null;
-      } else if (label instanceof Iterator || label instanceof Iterable ||
-                    label instanceof Stream || label.getClass().isArray()
+      }
+      else if(label instanceof Iterator || label instanceof Iterable ||
+            label instanceof Stream || label.getClass().isArray()
       ) {
          try {
             this.label = Converter.convert(label, TypeUtils.parameterizedType(Set.class, String.class));
-         } catch (TypeConversionException e) {
+         } catch(TypeConversionException e) {
             throw new IllegalArgumentException("Unable to set (" + label + ") as the Instance's label");
          }
-      } else if (label instanceof Number) {
+      }
+      else if(label instanceof Number) {
          this.label = Cast.<Number>as(label).doubleValue();
-      } else {
+      }
+      else {
          this.label = label;
       }
       return this;
@@ -212,7 +194,7 @@ public abstract class Example implements Copyable<Example>, Iterable<Example>, S
     * @return the label space
     */
    public Stream<String> getLabelSpace() {
-      if (hasLabel()) {
+      if(hasLabel()) {
          return getMultiLabel().stream();
       }
       return stream().flatMap(e -> e.getMultiLabel().stream()).distinct();
@@ -226,10 +208,10 @@ public abstract class Example implements Copyable<Example>, Iterable<Example>, S
     */
    public Set<String> getMultiLabel() {
       Object lbl = getLabel();
-      if (lbl == null) {
+      if(lbl == null) {
          return Collections.emptySet();
       }
-      if (lbl instanceof Set) {
+      if(lbl instanceof Set) {
          return Cast.as(lbl);
       }
       return Collections.singleton(lbl.toString());
@@ -242,7 +224,7 @@ public abstract class Example implements Copyable<Example>, Iterable<Example>, S
     * @throws UnsupportedOperationException If the example does not allow direct access to the label
     */
    public double getNumericLabel() {
-      if (getLabel() instanceof CharSequence) {
+      if(getLabel() instanceof CharSequence) {
          return Double.parseDouble(getDiscreteLabel());
       }
       return getLabel();
@@ -283,7 +265,6 @@ public abstract class Example implements Copyable<Example>, Iterable<Example>, S
    public boolean isInstance() {
       return false;
    }
-
 
    @Override
    public ContextualIterator iterator() {
@@ -344,6 +325,43 @@ public abstract class Example implements Copyable<Example>, Iterable<Example>, S
     * @return the NDArray
     */
    public abstract NDArray transform(Pipeline pipeline);
+
+   public static class JsonMarshaller extends com.gengoai.json.JsonMarshaller<Example> {
+
+      @Override
+      protected Example deserialize(JsonEntry entry, Type type) {
+         Object label = entry.getProperty("label", Object.class, null);
+         double weight = entry.getDoubleProperty("weight");
+
+         Example example;
+         if(entry.hasProperty("features")) {
+            example = new Instance(label, entry.getProperty("features").getAsArray(Feature.class));
+         }
+         else {
+            example = new Sequence(entry.getProperty("sequence").getAsArray(Example.class));
+            example.setLabel(label);
+         }
+         example.setWeight(weight);
+
+         return example;
+      }
+
+      @Override
+      protected JsonEntry serialize(Example example, Type type) {
+         JsonEntry entry = JsonEntry.object();
+         if(example.label != null) {
+            entry.addProperty("label", example.label);
+         }
+         entry.addProperty("weight", example.weight);
+         if(example.isInstance()) {
+            entry.addProperty("features", example.getFeatures());
+         }
+         else {
+            entry.addProperty("sequence", JsonEntry.array(example));
+         }
+         return entry;
+      }
+   }
 
 
 }//END OF Example

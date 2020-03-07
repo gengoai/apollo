@@ -24,7 +24,7 @@ package com.gengoai.apollo.ml.preprocess;
 
 import com.gengoai.Copyable;
 import com.gengoai.apollo.ml.Example;
-import com.gengoai.apollo.ml.data.Dataset;
+import com.gengoai.apollo.ml.data.ExampleDataset;
 import com.gengoai.function.SerializableFunction;
 
 import java.util.ArrayList;
@@ -78,7 +78,7 @@ public class PreprocessorList extends ArrayList<Preprocessor> implements Seriali
     *
     * @param dataset the dataset to fit the preprocessors over
     */
-   public Dataset fitAndTransform(Dataset dataset) {
+   public ExampleDataset fitAndTransform(ExampleDataset dataset) {
       for (Preprocessor preprocessor : this) {
          preprocessor.reset();
          dataset = preprocessor.fitAndTransform(dataset).cache();

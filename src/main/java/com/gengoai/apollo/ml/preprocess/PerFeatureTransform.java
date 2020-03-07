@@ -24,7 +24,7 @@ package com.gengoai.apollo.ml.preprocess;
 
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.Feature;
-import com.gengoai.apollo.ml.data.Dataset;
+import com.gengoai.apollo.ml.data.ExampleDataset;
 import com.gengoai.apollo.ml.vectorizer.CountFeatureVectorizer;
 import com.gengoai.apollo.ml.vectorizer.IndexVectorizer;
 import com.gengoai.function.SerializableFunction;
@@ -57,7 +57,7 @@ public class PerFeatureTransform implements Preprocessor, Serializable {
    }
 
    @Override
-   public Dataset fitAndTransform(Dataset dataset) {
+   public ExampleDataset fitAndTransform(ExampleDataset dataset) {
       IndexVectorizer features = new CountFeatureVectorizer();
       features.fit(dataset);
       features.alphabet()

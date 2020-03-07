@@ -22,7 +22,7 @@
 
 package com.gengoai.apollo.ml.sequence;
 
-import com.github.jcrfsuite.util.Pair;
+import com.gengoai.jcrfsuite.util.Pair;
 
 import java.io.Serializable;
 import java.util.List;

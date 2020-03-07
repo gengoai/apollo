@@ -28,7 +28,7 @@ import com.gengoai.apollo.ml.Instance;
 import com.gengoai.io.CSV;
 import com.gengoai.io.resource.Resource;
 import com.gengoai.stream.MStream;
-import com.gengoai.stream.SparkStream;
+import com.gengoai.stream.spark.SparkStream;
 import com.gengoai.stream.StreamingContext;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SQLContext;

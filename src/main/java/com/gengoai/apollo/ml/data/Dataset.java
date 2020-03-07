@@ -1,6 +1,4 @@
 /*
- * (c) 2005 David B. Bracewell
- *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -17,81 +15,19 @@
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
- *
  */
 
 package com.gengoai.apollo.ml.data;
 
-import com.gengoai.annotation.JsonHandler;
-import com.gengoai.apollo.linear.NDArray;
-import com.gengoai.apollo.ml.Example;
-import com.gengoai.apollo.ml.Pipeline;
-import com.gengoai.apollo.ml.Split;
-import com.gengoai.collection.counter.Counter;
-import com.gengoai.function.SerializableFunction;
-import com.gengoai.io.resource.Resource;
-import com.gengoai.json.Json;
-import com.gengoai.json.JsonEntry;
 import com.gengoai.stream.MStream;
 import com.gengoai.stream.StreamingContext;
-import com.gengoai.stream.accumulator.MCounterAccumulator;
 
-import java.io.BufferedWriter;
-import java.io.IOException;
 import java.io.Serializable;
-import java.lang.reflect.Type;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 
-import static com.gengoai.Validation.notNull;
-
-/**
- * <p>A dataset is a collection of examples which can be used for training and evaluating models. Implementations of
- * dataset may store examples in memory, off heap, or distributed using Spark.</p>
- *
- * @author David B. Bracewell
- */
-@JsonHandler(Dataset.JsonMarshaller.class)
-public abstract class Dataset implements Iterable<Example>, Serializable, AutoCloseable {
-   private static final long serialVersionUID = 1L;
-
-
-   public static class JsonMarshaller extends com.gengoai.json.JsonMarshaller<Dataset> {
-      @Override
-      protected Dataset deserialize(JsonEntry entry, Type type) {
-         return Dataset.builder()
-                       .type(entry.getProperty("type").getAs(DatasetType.class))
-                       .source(StreamingContext.local().stream(entry.getProperty("examples").getAsArray(Example.class)));
-      }
-
-      @Override
-      protected JsonEntry serialize(Dataset examples, Type type) {
-         return JsonEntry.object()
-                         .addProperty("type", examples.getType())
-                         .addProperty("examples", JsonEntry.array(examples));
-      }
-   }
-
-   /**
-    * Gets a {@link DatasetBuilder} so that a new {@link Dataset} can be created.
-    *
-    * @return the dataset builder
-    */
-   public static DatasetBuilder builder() {
-      return new DatasetBuilder();
-   }
-
-   /**
-    * Uses the given pipeline to create a stream of {@link NDArray} from the dataset
-    *
-    * @param pipeline the pipeline
-    * @return the stream of NDArray
-    */
-   public MStream<NDArray> asVectorStream(final Pipeline pipeline) {
-      notNull(pipeline, "Pipeline must not be null");
-      return stream().map(e -> e.transform(pipeline));
-   }
+public interface Dataset<T, E extends Dataset<T, ?>> extends Iterable<T>, Serializable, AutoCloseable {
 
    /**
     * <p>Iterator that provides a batch of examples per iteration.</p>
@@ -99,124 +35,37 @@ public abstract class Dataset implements Iterable<Example>, Serializable, AutoCl
     * @param batchSize the batch size
     * @return the iterator
     */
-   public abstract Iterator<Dataset> batchIterator(final int batchSize);
+   Iterator<E> batchIterator(int batchSize);
 
    /**
     * Caches the examples in dataset.
     *
     * @return the cached dataset
     */
-   public abstract Dataset cache();
+   E cache();
 
    /**
-    * Calculates the distribution of classes in the data set
+    * Takes the first n elements from the dataset
     *
-    * @return A counter containing the classes (labels) and their counts in the dataset
+    * @param n the number of items to take
+    * @return the list of items
     */
-   public Counter<String> calculateClassDistribution() {
-      MCounterAccumulator<String> accumulator = getStreamingContext().counterAccumulator();
-      stream().flatMap(Example::getLabelSpace).forEach(accumulator::add);
-      return accumulator.value();
-   }
+   List<T> take(int n);
 
    /**
-    * Generates <code>numberOfFolds</code> {@link Split}s for cross-validation. Each split will have
-    * <code>dataset.size() / numberOfFolds</code> testing data and the remaining data as training data.
+    * Creates an MStream of examples from this Dataset.
     *
-    * @param numberOfFolds the number of folds
-    * @return An array of {@link Split} for each fold of the dataset
+    * @return the MStream of examples
     */
-   public abstract Split[] fold(int numberOfFolds);
+   MStream<T> stream();
 
    /**
-    * Gets a streaming context compatible with this dataset
+    * Creates an MStream of examples from this Dataset.
     *
-    * @return the streaming context
+    * @return the MStream of examples
     */
-   public StreamingContext getStreamingContext() {
-      return getType().getStreamingContext();
-   }
+   MStream<T> parallelStream();
 
-   /**
-    * Gets the type of this dataset
-    *
-    * @return the {@link DatasetType}
-    */
-   public abstract DatasetType getType();
-
-   /**
-    * Maps the examples in this dataset using the given function and creating a new dataset in the process.
-    *
-    * @param function the function to transform the examples
-    * @return the dataset with the transformed examples
-    */
-   public abstract Dataset map(SerializableFunction<? super Example, ? extends Example> function);
-
-   /**
-    * Creates a balanced dataset by oversampling the items
-    *
-    * @return the balanced dataset
-    */
-   public Dataset oversample() {
-//      Counter<String> fCount = calculateClassDistribution();
-//      int targetCount = (int) fCount.maximumCount();
-//
-//      Dataset dataset = newDataset(getStreamingContext().empty());
-//
-//      for (Object label : fCount.items()) {
-//         MStream<Example> fStream = stream()
-//                                       .filter(e -> e.getLabelSpace().anyMatch(label::equals))
-//                                       .cache();
-//         int count = (int) fStream.count();
-//         int curCount = 0;
-//         while (curCount + count < targetCount) {
-////            dataset.addAll(fStream);
-//            curCount += count;
-//         }
-//         if (curCount < targetCount) {
-////            dataset.addAll(fStream.sample(false, targetCount - curCount));
-//         } else if (count == targetCount) {
-////            dataset.addAll(fStream);
-//         }
-//      }
-//      return dataset;
-      return this;
-   }
-
-   /**
-    * Samples the dataset creating a new dataset of the given sample size.
-    *
-    * @param withReplacement the with replacement
-    * @param sampleSize      the sample size
-    * @return the dataset
-    */
-   public abstract Dataset sample(boolean withReplacement, int sampleSize);
-
-   /**
-    * Shuffles the dataset creating a new dataset.
-    *
-    * @return the dataset
-    */
-   public final Dataset shuffle() {
-      return shuffle(new Random(0));
-   }
-
-   /**
-    * Shuffles the dataset creating a new one with the given random number generator.
-    *
-    * @param random the random number generator
-    * @return the dataset
-    */
-   public abstract Dataset shuffle(Random random);
-
-   /**
-    * The number of examples in the dataset
-    *
-    * @return the number of examples
-    */
-   public long size() {
-      return stream().count();
-   }
 
    /**
     * Creates a new dataset containing instances from the given <code>start</code> index upto the given <code>end</code>
@@ -226,63 +75,46 @@ public abstract class Dataset implements Iterable<Example>, Serializable, AutoCl
     * @param end   the ending item index (Exclusive)
     * @return the dataset
     */
-   public abstract Dataset slice(long start, long end);
+   E slice(long start, long end);
 
    /**
-    * Split the dataset into a train and test split.
+    * The number of examples in the dataset
     *
-    * @param pctTrain the percentage of the dataset to use for training
-    * @return A TestTrainSet of one TestTrain item
+    * @return the number of examples
     */
-   public abstract Split split(double pctTrain);
+   long size();
 
    /**
-    * Creates an MStream of examples from this Dataset.
+    * Shuffles the dataset creating a new dataset.
     *
-    * @return the MStream of examples
+    * @return the dataset
     */
-   public abstract MStream<Example> stream();
-
-   /**
-    * Takes the first n elements from the dataset
-    *
-    * @param n the number of items to take
-    * @return the list of items
-    */
-   public List<Example> take(int n) {
-      return stream().take(n);
+   default E shuffle() {
+      return shuffle(new Random(0));
    }
 
    /**
-    * Creates a balanced dataset by undersampling the items
+    * Shuffles the dataset creating a new one with the given random number generator.
     *
-    * @return the balanced dataset
+    * @param random the random number generator
+    * @return the dataset
     */
-   public Dataset undersample() {
-//      Counter<String> fCount = calculateClassDistribution();
-//      int targetCount = (int) fCount.minimumCount();
-//      Dataset dataset = newDataset(getStreamingContext().empty());
-//      for (Object label : fCount.items()) {
-////         dataset.addAll(stream().filter(e -> e.getLabelSpace().anyMatch(label::equals))
-////                                .sample(false, targetCount));
-//      }
-//      return dataset;
-      return this;
-   }
+   E shuffle(Random random);
 
    /**
-    * Writes the dataset to the given location using one json per line.
+    * Gets the type of this dataset
     *
-    * @param location the location to write the dataset
-    * @throws IOException Something went wrong writing
+    * @return the {@link DatasetType}
     */
-   public void write(Resource location) throws IOException {
-      try (BufferedWriter writer = new BufferedWriter(location.writer())) {
-         for (Example example : this) {
-            writer.write(Json.dumps(example));
-            writer.write("\n");
-         }
-      }
+   DatasetType getType();
+
+   /**
+    * Gets a streaming context compatible with this dataset
+    *
+    * @return the streaming context
+    */
+   default StreamingContext getStreamingContext() {
+      return getType().getStreamingContext();
    }
 
 }//END OF Dataset

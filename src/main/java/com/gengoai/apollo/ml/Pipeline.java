@@ -24,13 +24,12 @@ package com.gengoai.apollo.ml;
 
 import com.gengoai.Copyable;
 import com.gengoai.apollo.linear.NDArray;
-import com.gengoai.apollo.ml.data.Dataset;
+import com.gengoai.apollo.ml.data.ExampleDataset;
 import com.gengoai.apollo.ml.preprocess.PreprocessorList;
 import com.gengoai.apollo.ml.vectorizer.CountFeatureVectorizer;
 import com.gengoai.apollo.ml.vectorizer.DiscreteVectorizer;
 import com.gengoai.apollo.ml.vectorizer.Vectorizer;
 import com.gengoai.conversion.Cast;
-import lombok.NonNull;
 
 import java.io.Serializable;
 import java.util.function.Consumer;
@@ -77,8 +76,8 @@ public abstract class Pipeline<LV extends Vectorizer, T extends Pipeline<LV, ?>>
     * @param dataset the dataset to use for fitting the preprocessors and vectorizers
     * @return the dataset with preprocessing applied
     */
-   public Dataset fitAndPreprocess(Dataset dataset) {
-      Dataset preprocessed = preprocessorList.fitAndTransform(dataset);
+   public ExampleDataset fitAndPreprocess(ExampleDataset dataset) {
+      ExampleDataset preprocessed = preprocessorList.fitAndTransform(dataset);
       labelVectorizer.fit(preprocessed);
       featureVectorizer.fit(preprocessed);
 
@@ -96,7 +95,7 @@ public abstract class Pipeline<LV extends Vectorizer, T extends Pipeline<LV, ?>>
     * @param updater the updater
     * @return this pipeline updated
     */
-   public T update(@NonNull Consumer<? extends T> updater) {
+   public T update(Consumer<? extends T> updater) {
       updater.accept(Cast.as(this));
       return Cast.as(this);
    }

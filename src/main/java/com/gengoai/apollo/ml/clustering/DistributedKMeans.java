@@ -22,15 +22,15 @@
 
 package com.gengoai.apollo.ml.clustering;
 
-import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.ml.DiscretePipeline;
 import com.gengoai.apollo.ml.FitParameters;
 import com.gengoai.apollo.ml.Params;
+import com.gengoai.apollo.ml.data.VectorizedDataset;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
 import com.gengoai.apollo.statistics.measure.Distance;
 import com.gengoai.conversion.Cast;
-import com.gengoai.stream.MStream;
+import lombok.NonNull;
 import org.apache.spark.mllib.clustering.KMeansModel;
 import org.apache.spark.mllib.linalg.DenseVector;
 import org.apache.spark.mllib.linalg.Vector;
@@ -64,7 +64,7 @@ public class DistributedKMeans extends FlatCentroidClusterer {
    }
 
    @Override
-   public void fit(MStream<NDArray> dataSupplier, FitParameters parameters) {
+   public void fit(@NonNull VectorizedDataset dataSupplier, @NonNull FitParameters<?> parameters) {
       Parameters fitParameters = Cast.as(parameters);
       org.apache.spark.mllib.clustering.KMeans kMeans = new org.apache.spark.mllib.clustering.KMeans();
       kMeans.setK(fitParameters.K.value());
@@ -72,23 +72,25 @@ public class DistributedKMeans extends FlatCentroidClusterer {
       kMeans.setEpsilon(fitParameters.tolerance.value());
       setMeasure(Distance.Euclidean);
       KMeansModel model = kMeans.run(dataSupplier
-                                        .toDistributedStream()
-                                        .getRDD()
-                                        .map(n -> (Vector) new DenseVector(n.toDoubleArray()))
-                                        .cache()
-                                        .rdd());
+                                           .stream()
+                                           .toDistributedStream()
+                                           .getRDD()
+                                           .map(n -> (Vector) new DenseVector(n.toDoubleArray()))
+                                           .cache()
+                                           .rdd());
 
-      for (int i = 0; i < model.clusterCenters().length; i++) {
+      for(int i = 0; i < model.clusterCenters().length; i++) {
          Cluster cluster = new Cluster();
          cluster.setId(i);
          cluster.setCentroid(NDArrayFactory.ND.rowVector(model.clusterCenters()[i].toArray()));
          add(cluster);
       }
 
-      dataSupplier.map(n -> $(model.predict(new DenseVector(n.toDoubleArray())), n))
+      dataSupplier.stream()
+                  .map(n -> $(model.predict(new DenseVector(n.toDoubleArray())), n))
                   .forEachLocal(t -> get(t.v1).addPoint(t.v2));
 
-      for (Cluster cluster : this) {
+      for(Cluster cluster : this) {
          cluster.setScore(cluster.getScore() / cluster.size());
       }
    }

@@ -27,7 +27,7 @@ import com.gengoai.apollo.ml.Feature;
 import com.gengoai.apollo.ml.Instance;
 import com.gengoai.math.EnhancedDoubleStatistics;
 import com.gengoai.stream.MStream;
-import com.gengoai.stream.accumulator.MStatisticsAccumulator;
+import com.gengoai.stream.MStatisticsAccumulator;
 
 import java.util.Arrays;
 import java.util.Optional;

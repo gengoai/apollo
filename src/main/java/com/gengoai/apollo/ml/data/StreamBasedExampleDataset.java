@@ -24,6 +24,7 @@ package com.gengoai.apollo.ml.data;
 
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.Split;
+import com.gengoai.collection.counter.Counter;
 import com.gengoai.conversion.Cast;
 import com.gengoai.function.SerializableFunction;
 import com.gengoai.stream.MStream;
@@ -36,12 +37,12 @@ import static com.gengoai.Validation.checkArgument;
 
 /**
  * <p>
- * Abstract base {@link Dataset} backed by an <code>MStream</code>.
+ * Abstract base {@link ExampleDataset} backed by an <code>MStream</code>.
  * </p>
  *
  * @author David B. Bracewell
  */
-class StreamBasedDataset extends Dataset {
+class StreamBasedExampleDataset extends ExampleDataset {
    private static final long serialVersionUID = 1L;
    private final DatasetType datasetType;
    private MStream<Example> stream;
@@ -52,8 +53,8 @@ class StreamBasedDataset extends Dataset {
     * @param datasetType the dataset type
     * @param stream      the stream
     */
-   public StreamBasedDataset(DatasetType datasetType,
-                             MStream<Example> stream) {
+   public StreamBasedExampleDataset(DatasetType datasetType,
+                                    MStream<Example> stream) {
       this.datasetType = datasetType;
       this.stream = stream == null
                     ? datasetType.getStreamingContext().empty()
@@ -61,15 +62,16 @@ class StreamBasedDataset extends Dataset {
    }
 
    @Override
-   public Iterator<Dataset> batchIterator(int batchSize) {
+   public Iterator<ExampleDataset> batchIterator(int batchSize) {
       return stream.partition(batchSize)
-                   .map(batch -> datasetOf(toMStream(batch).map(Example::copy)))
+                   .map(batch -> (ExampleDataset) datasetOf(toMStream(batch).map(Example::copy)))
                    .iterator();
    }
 
    @Override
-   public Dataset cache() {
-      return datasetType.cache(this);
+   public ExampleDataset cache() {
+      stream.cache();
+      return this;
    }
 
    @Override
@@ -77,8 +79,8 @@ class StreamBasedDataset extends Dataset {
       stream.close();
    }
 
-   protected Dataset datasetOf(MStream<Example> examples) {
-      return new StreamBasedDataset(datasetType, examples);
+   protected StreamBasedExampleDataset datasetOf(MStream<Example> examples) {
+      return new StreamBasedExampleDataset(datasetType, examples);
    }
 
    @Override
@@ -87,15 +89,15 @@ class StreamBasedDataset extends Dataset {
       checkArgument(size() >= numberOfFolds, "Number of folds must be <= number of examples");
       Split[] folds = new Split[numberOfFolds];
       long foldSize = size() / numberOfFolds;
-      for (int i = 0; i < numberOfFolds; i++) {
+      for(int i = 0; i < numberOfFolds; i++) {
          long testStart = i * foldSize;
          long testEnd = testStart + foldSize;
          MStream<Example> testStream = slice(testStart, testEnd).stream();
          MStream<Example> trainStream = getStreamingContext().empty();
-         if (testStart > 0) {
+         if(testStart > 0) {
             trainStream = trainStream.union(slice(0, testStart).stream());
          }
-         if (testEnd < size()) {
+         if(testEnd < size()) {
             trainStream = trainStream.union(slice(testEnd, size()).stream());
          }
          folds[i] = new Split(datasetOf(trainStream), datasetOf(testStream));
@@ -114,23 +116,23 @@ class StreamBasedDataset extends Dataset {
    }
 
    @Override
-   public Dataset map(SerializableFunction<? super Example, ? extends Example> function) {
+   public ExampleDataset map(SerializableFunction<? super Example, ? extends Example> function) {
       return datasetOf(stream.map(function));
    }
 
    @Override
-   public Dataset sample(boolean withReplacement, int sampleSize) {
+   public ExampleDataset sample(boolean withReplacement, int sampleSize) {
       checkArgument(sampleSize > 0, "Sample size must be > 0");
       return datasetOf(stream().sample(withReplacement, sampleSize).map(e -> Cast.as(e.copy())));
    }
 
    @Override
-   public Dataset shuffle(Random random) {
+   public ExampleDataset shuffle(Random random) {
       return datasetOf(stream.shuffle(random));
    }
 
    @Override
-   public Dataset slice(long start, long end) {
+   public ExampleDataset slice(long start, long end) {
       return datasetOf(stream().skip(start).limit(end - start));
    }
 
@@ -148,6 +150,51 @@ class StreamBasedDataset extends Dataset {
 
    protected MStream<Example> toMStream(Stream<Example> stream) {
       return datasetType.getStreamingContext().stream(stream);
+   }
+
+   @Override
+   public MStream<Example> parallelStream() {
+      return stream.parallel();
+   }
+
+
+   @Override
+   public ExampleDataset oversample() {
+      Counter<String> fCount = calculateClassDistribution();
+      int targetCount = (int) fCount.maximumCount();
+
+      StreamBasedExampleDataset dataset = datasetOf(getStreamingContext().empty());
+
+      for(Object label : fCount.items()) {
+         MStream<Example> fStream = stream()
+               .filter(e -> e.getLabelSpace().anyMatch(label::equals))
+               .cache();
+         int count = (int) fStream.count();
+         int curCount = 0;
+         while(curCount + count < targetCount) {
+            dataset.stream.union(fStream);
+            curCount += count;
+         }
+         if(curCount < targetCount) {
+            dataset.stream.union(fStream.sample(false, targetCount - curCount));
+         }
+         else if(count == targetCount) {
+            dataset.stream.union(fStream);
+         }
+      }
+      return dataset;
+   }
+
+   @Override
+   public ExampleDataset undersample() {
+      Counter<String> fCount = calculateClassDistribution();
+      int targetCount = (int) fCount.minimumCount();
+      StreamBasedExampleDataset dataset = datasetOf(getStreamingContext().empty());
+      for(Object label : fCount.items()) {
+         dataset.stream.union(stream().filter(e -> e.getLabelSpace().anyMatch(label::equals))
+                                      .sample(false, targetCount));
+      }
+      return dataset;
    }
 
 }//END OF BaseStreamDataset

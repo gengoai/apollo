@@ -22,6 +22,7 @@
 
 package com.gengoai.apollo.ml.data;
 
+import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.data.format.DataFormat;
 import com.gengoai.apollo.ml.data.format.JsonDataFormat;
@@ -49,8 +50,13 @@ public enum DatasetType {
 
 
       @Override
-      public Dataset create(MStream<Example> examples) {
-         return new StreamBasedDataset(Distributed, examples.toDistributedStream());
+      public ExampleDataset createExampleDataset(MStream<Example> examples) {
+         return new StreamBasedExampleDataset(Distributed, examples.toDistributedStream());
+      }
+
+      @Override
+      public VectorizedDataset createVectorizedDataset(MStream<NDArray> examples) {
+         return new StreamBasedVectorizedDataset(Distributed, examples.toDistributedStream());
       }
 
    },
@@ -59,8 +65,14 @@ public enum DatasetType {
     */
    InMemory {
       @Override
-      public Dataset create(MStream<Example> examples) {
-         return new StreamBasedDataset(InMemory, examples.persist(StorageLevel.InMemory));
+      public ExampleDataset createExampleDataset(MStream<Example> examples) {
+         return new InMemoryExampleDataset(examples);
+               //new StreamBasedExampleDataset(InMemory, examples.persist(StorageLevel.InMemory));
+      }
+
+      @Override
+      public VectorizedDataset createVectorizedDataset(MStream<NDArray> examples) {
+         return new StreamBasedVectorizedDataset(InMemory, examples.persist(StorageLevel.InMemory));
       }
 
    },
@@ -69,22 +81,16 @@ public enum DatasetType {
     */
    OnDisk {
       @Override
-      public Dataset create(MStream<Example> examples) {
-         return new StreamBasedDataset(OnDisk, examples.persist(StorageLevel.OnDisk));
+      public ExampleDataset createExampleDataset(MStream<Example> examples) {
+         return new StreamBasedExampleDataset(OnDisk, examples.persist(StorageLevel.OnDisk));
+      }
+
+      @Override
+      public VectorizedDataset createVectorizedDataset(MStream<NDArray> examples) {
+         return new StreamBasedVectorizedDataset(OnDisk, examples.persist(StorageLevel.OnDisk));
       }
 
    };
-
-
-   /**
-    * Cache dataset.
-    *
-    * @param dataset the dataset
-    * @return the dataset
-    */
-   public Dataset cache(Dataset dataset) {
-      return create(dataset.stream());
-   }
 
    /**
     * Of dataset.
@@ -92,7 +98,15 @@ public enum DatasetType {
     * @param examples the examples
     * @return the dataset
     */
-   public abstract Dataset create(MStream<Example> examples);
+   public abstract ExampleDataset createExampleDataset(MStream<Example> examples);
+
+   /**
+    * Of dataset.
+    *
+    * @param examples the examples
+    * @return the dataset
+    */
+   public abstract VectorizedDataset createVectorizedDataset(MStream<NDArray> examples);
 
    /**
     * Gets the streaming context.
@@ -111,8 +125,8 @@ public enum DatasetType {
     * @return the dataset
     * @throws IOException the io exception
     */
-   public Dataset read(Resource location, DataFormat dataFormat) throws IOException {
-      return create(dataFormat.read(location));
+   public ExampleDataset read(Resource location, DataFormat dataFormat) throws IOException {
+      return createExampleDataset(dataFormat.read(location));
    }
 
    /**
@@ -122,7 +136,7 @@ public enum DatasetType {
     * @return the dataset
     * @throws IOException the io exception
     */
-   public final Dataset read(Resource location) throws IOException {
+   public final ExampleDataset read(Resource location) throws IOException {
       return read(location, new JsonDataFormat(getStreamingContext().isDistributed()));
    }
 

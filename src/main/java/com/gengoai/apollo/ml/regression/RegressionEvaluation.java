@@ -25,7 +25,7 @@ package com.gengoai.apollo.ml.regression;
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.FitParameters;
 import com.gengoai.apollo.ml.Split;
-import com.gengoai.apollo.ml.data.Dataset;
+import com.gengoai.apollo.ml.data.ExampleDataset;
 import com.gengoai.logging.Logger;
 import com.gengoai.stream.MStream;
 import com.gengoai.string.TableFormatter;
@@ -58,7 +58,7 @@ public class RegressionEvaluation implements Serializable {
     * @param nFolds        the n folds
     * @return the multi class evaluation
     */
-   public static RegressionEvaluation crossValidation(Dataset dataset,
+   public static RegressionEvaluation crossValidation(ExampleDataset dataset,
                                                       Regression regression,
                                                       FitParameters fitParameters,
                                                       int nFolds,
@@ -117,7 +117,7 @@ public class RegressionEvaluation implements Serializable {
     * @param model   the model to evaluate
     * @param dataset the dataset to evaluate over
     */
-   public void evaluate(Regression model, Dataset dataset) {
+   public void evaluate(Regression model, ExampleDataset dataset) {
       evaluate(model, dataset.stream());
    }
 

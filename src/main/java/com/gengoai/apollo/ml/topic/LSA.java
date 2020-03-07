@@ -28,10 +28,10 @@ import com.gengoai.apollo.ml.DiscretePipeline;
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.FitParameters;
 import com.gengoai.apollo.ml.Params;
-import com.gengoai.apollo.ml.data.Dataset;
+import com.gengoai.apollo.ml.data.ExampleDataset;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
 import com.gengoai.conversion.Cast;
-import com.gengoai.stream.SparkStream;
+import com.gengoai.stream.spark.SparkStream;
 import org.apache.spark.mllib.linalg.DenseVector;
 import org.apache.spark.mllib.linalg.Vector;
 import org.apache.spark.mllib.linalg.distributed.RowMatrix;
@@ -71,7 +71,7 @@ public class LSA extends TopicModel {
    public double[] estimate(Example example) {
       double[] scores = new double[topics.size()];
       NDArray vector = example.preprocessAndTransform(getPipeline());
-      for (int i = 0; i < topics.size(); i++) {
+      for(int i = 0; i < topics.size(); i++) {
          double score = vector.dot(topicVectors.get(i));
          scores[i] = score;
       }
@@ -79,12 +79,13 @@ public class LSA extends TopicModel {
    }
 
    @Override
-   protected void fitPreprocessed(Dataset preprocessed, FitParameters fitParameters) {
+   protected void fitPreprocessed(ExampleDataset preprocessed, FitParameters fitParameters) {
       Parameters parameters = Cast.as(fitParameters);
       //Create document x word matrix
-      SparkStream<Vector> stream = new SparkStream<Vector>(preprocessed.asVectorStream(getPipeline())
-                                                                       .map(n -> new DenseVector(n.toDoubleArray())))
-                                      .cache();
+
+      SparkStream<Vector> stream = new SparkStream<Vector>(preprocessed.toVectorizedDataset(getPipeline())
+                                                                       .stream()
+                                                                       .map(n -> new DenseVector(n.toDoubleArray()))).cache();
       RowMatrix mat = new RowMatrix(stream.getRDD().rdd());
       //since we have document x word, V is the word x component matrix
       // U = document x component, E = singular components, V = word x component
@@ -105,6 +106,19 @@ public class LSA extends TopicModel {
       return new Parameters();
    }
 
+   @Override
+   public NDArray getTopicDistribution(String feature) {
+      int i = getPipeline().featureVectorizer.indexOf(feature);
+      if(i == -1) {
+         return NDArrayFactory.ND.rowVector(new double[topics.size()]);
+      }
+      double[] dist = new double[topics.size()];
+      for(int i1 = 0; i1 < topics.size(); i1++) {
+         dist[i1] = topicVectors.get(i1).get(i);
+      }
+      return NDArrayFactory.ND.rowVector(dist);
+   }
+
    /**
     * The type Parameters.
     */
@@ -113,19 +127,6 @@ public class LSA extends TopicModel {
        * The K.
        */
       public final Parameter<Integer> K = parameter(Params.Clustering.K, 100);
-   }
-
-   @Override
-   public NDArray getTopicDistribution(String feature) {
-      int i = getPipeline().featureVectorizer.indexOf(feature);
-      if (i == -1) {
-         return NDArrayFactory.ND.rowVector(new double[topics.size()]);
-      }
-      double[] dist = new double[topics.size()];
-      for (int i1 = 0; i1 < topics.size(); i1++) {
-         dist[i1] = topicVectors.get(i1).get(i);
-      }
-      return NDArrayFactory.ND.rowVector(dist);
    }
 
 

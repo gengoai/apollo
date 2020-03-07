@@ -23,12 +23,9 @@
 package com.gengoai.apollo.ml.data.format;
 
 import com.gengoai.apollo.ml.Example;
-import com.gengoai.apollo.ml.Instance;
-import com.gengoai.apollo.ml.Sequence;
 import com.gengoai.function.Unchecked;
 import com.gengoai.io.resource.Resource;
 import com.gengoai.json.Json;
-import com.gengoai.json.JsonEntry;
 import com.gengoai.stream.MStream;
 import com.gengoai.stream.StreamingContext;
 
@@ -55,13 +52,7 @@ public class JsonDataFormat implements DataFormat {
    public MStream<Example> read(Resource location) {
       return StreamingContext.get(distributed)
                              .textFile(location)
-                             .map(Unchecked.function(json -> {
-                                JsonEntry entry = Json.parse(json);
-                                if (entry.hasProperty("sequence")) {
-                                   return entry.getAs(Sequence.class);
-                                }
-                                return entry.getAs(Instance.class);
-                             }));
+                             .map(Unchecked.function(json -> Json.parse(json, Example.class)));
    }
 
 

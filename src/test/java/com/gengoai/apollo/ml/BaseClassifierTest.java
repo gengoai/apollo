@@ -2,7 +2,7 @@ package com.gengoai.apollo.ml;
 
 import com.gengoai.apollo.ml.classification.Classifier;
 import com.gengoai.apollo.ml.classification.ClassifierEvaluation;
-import com.gengoai.apollo.ml.data.Dataset;
+import com.gengoai.apollo.ml.data.ExampleDataset;
 import com.gengoai.apollo.ml.data.DatasetType;
 import com.gengoai.apollo.ml.data.format.CSVDataFormat;
 import com.gengoai.apollo.ml.data.format.DataFormat;
@@ -41,7 +41,7 @@ public abstract class BaseClassifierTest<T extends FitParameters> {
 
    public abstract boolean passes(ClassifierEvaluation mce);
 
-   public Dataset irisDataset() {
+   public ExampleDataset irisDataset() {
       DataFormat csv = new CSVDataFormat(CSV.builder().hasHeader(true), "class");
       try {
          return DatasetType.InMemory.read(Resources.fromClasspath("com/gengoai/apollo/ml/iris.csv"), csv);

@@ -23,14 +23,17 @@
 package com.gengoai.apollo.ml.classification;
 
 import com.gengoai.ParameterDef;
+import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.ml.*;
-import com.gengoai.apollo.ml.data.Dataset;
+import com.gengoai.apollo.ml.data.ExampleDataset;
+import com.gengoai.apollo.ml.data.VectorizedDataset;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
 import com.gengoai.conversion.Cast;
 import com.gengoai.logging.Loggable;
 import de.bwaldvogel.liblinear.Model;
 import de.bwaldvogel.liblinear.Parameter;
 import de.bwaldvogel.liblinear.SolverType;
+import lombok.NonNull;
 
 import static com.gengoai.Validation.notNull;
 
@@ -42,11 +45,11 @@ import static com.gengoai.Validation.notNull;
  * @author David B. Bracewell
  */
 public class LibLinearModel extends Classifier implements Loggable {
+   private static final long serialVersionUID = 1L;
    public static final ParameterDef<Double> C = ParameterDef.doubleParam("C");
    public static final ParameterDef<Boolean> bias = ParameterDef.boolParam("bias");
    public static final ParameterDef<Double> eps = ParameterDef.doubleParam("eps");
    public static final ParameterDef<SolverType> solver = ParameterDef.param("solver", SolverType.class);
-   private static final long serialVersionUID = 1L;
    private int biasIndex = -1;
    private Model model;
 
@@ -70,10 +73,17 @@ public class LibLinearModel extends Classifier implements Loggable {
    }
 
    @Override
-   protected void fitPreprocessed(Dataset preprocessed, FitParameters parameters) {
+   protected void fitPreprocessed(@NonNull ExampleDataset preprocessed, @NonNull FitParameters<?> parameters) {
+      fit(preprocessed.toVectorizedDataset(getPipeline()), parameters);
+   }
+
+   @Override
+   public void fit(@NonNull VectorizedDataset dataset, @NonNull FitParameters<?> parameters) {
       Parameters fitParameters = notNull(Cast.as(parameters, Parameters.class));
-      biasIndex = (fitParameters.bias.value() ? getNumberOfFeatures() + 1 : -1);
-      model = LibLinear.fit(() -> preprocessed.asVectorStream(getPipeline()),
+      biasIndex = (fitParameters.bias.value()
+                   ? getNumberOfFeatures() + 1
+                   : -1);
+      model = LibLinear.fit(dataset,
                             new Parameter(fitParameters.solver.value(),
                                           fitParameters.C.value(),
                                           fitParameters.tolerance.value(),
@@ -91,11 +101,16 @@ public class LibLinearModel extends Classifier implements Loggable {
    }
 
    @Override
-   public Classification predict(Example example) {
+   public Classification predict(NDArray example) {
       return new Classification(LibLinear.estimate(model,
-                                                   example.preprocessAndTransform(getPipeline()),
+                                                   example,
                                                    biasIndex),
                                 getPipeline().labelVectorizer);
+   }
+
+   @Override
+   public Classification predict(Example example) {
+      return predict(example.preprocessAndTransform(getPipeline()));
    }
 
    /**

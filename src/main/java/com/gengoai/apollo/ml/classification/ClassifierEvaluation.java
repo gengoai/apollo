@@ -25,7 +25,7 @@ package com.gengoai.apollo.ml.classification;
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.FitParameters;
 import com.gengoai.apollo.ml.Split;
-import com.gengoai.apollo.ml.data.Dataset;
+import com.gengoai.apollo.ml.data.ExampleDataset;
 import com.gengoai.apollo.ml.vectorizer.IndexVectorizer;
 import com.gengoai.apollo.ml.vectorizer.MultiLabelBinarizer;
 import com.gengoai.logging.Logger;
@@ -52,7 +52,7 @@ public abstract class ClassifierEvaluation implements Serializable {
     * @param nFolds        the number of folds to perform
     * @return the classifier evaluation
     */
-   public static ClassifierEvaluation crossValidation(Dataset dataset,
+   public static ClassifierEvaluation crossValidation(ExampleDataset dataset,
                                                       Classifier classifier,
                                                       FitParameters<?> fitParameters,
                                                       int nFolds
@@ -85,7 +85,7 @@ public abstract class ClassifierEvaluation implements Serializable {
     * @param dataset    the dataset to evaluate on
     * @return the classifier evaluation
     */
-   public static ClassifierEvaluation evaluateClassifier(Classifier classifier, Dataset dataset) {
+   public static ClassifierEvaluation evaluateClassifier(Classifier classifier, ExampleDataset dataset) {
       ClassifierEvaluation evaluation = classifier.getNumberOfLabels() <= 2
                                         ? new BinaryEvaluation(classifier.getPipeline().labelVectorizer)
                                         : new MultiClassEvaluation();
@@ -126,7 +126,7 @@ public abstract class ClassifierEvaluation implements Serializable {
     * @param model   the model to evaluate
     * @param dataset the dataset to evaluate over
     */
-   public final void evaluate(Classifier model, Dataset dataset) {
+   public final void evaluate(Classifier model, ExampleDataset dataset) {
       evaluate(model, dataset.stream());
    }
 

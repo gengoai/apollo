@@ -21,9 +21,9 @@ package com.gengoai.apollo.ml.embedding;
 
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.collection.disk.NavigableDiskMap;
+import com.gengoai.io.resource.Resource;
 import lombok.NonNull;
 
-import java.io.File;
 import java.io.Serializable;
 import java.util.stream.Stream;
 
@@ -33,25 +33,25 @@ public class DiskVectorIndex implements VectorIndex, Serializable {
    private final int size;
    private final NavigableDiskMap<Integer, NDArray> store;
 
-   public DiskVectorIndex(@NonNull File file, String namespace) {
+   public DiskVectorIndex(@NonNull Resource file, String namespace) {
       this.store = NavigableDiskMap.<Integer, NDArray>builder()
-         .compressed(true)
-         .readOnly(true)
-         .namespace(namespace)
-         .file(file)
-         .build();
+            .compressed(true)
+            .readOnly(true)
+            .namespace(namespace)
+            .file(file)
+            .build();
       this.size = this.store.size();
       this.dimension = store.getHandle().getInteger("dimension").intValue();
    }
 
-   public static DiskVectorIndex create(@NonNull NDArray[] vectors, @NonNull File file, String namespace) {
+   public static DiskVectorIndex create(@NonNull NDArray[] vectors, @NonNull Resource file, String namespace) {
       NavigableDiskMap<Integer, NDArray> store = NavigableDiskMap.<Integer, NDArray>builder()
-         .compressed(true)
-         .namespace(namespace)
-         .file(file)
-         .build();
+            .compressed(true)
+            .namespace(namespace)
+            .file(file)
+            .build();
       store.getHandle().getInteger("dimension").set((int) vectors[0].length());
-      for (int i = 0; i < vectors.length; i++) {
+      for(int i = 0; i < vectors.length; i++) {
          store.put(i, vectors[i]);
       }
       store.commit();

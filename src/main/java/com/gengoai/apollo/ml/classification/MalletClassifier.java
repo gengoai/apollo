@@ -29,11 +29,13 @@ import cc.mallet.pipe.Target2Label;
 import cc.mallet.types.Alphabet;
 import cc.mallet.types.InstanceList;
 import cc.mallet.types.Labeling;
+import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.ml.DiscretePipeline;
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.FitParameters;
-import com.gengoai.apollo.ml.data.Dataset;
+import com.gengoai.apollo.ml.data.ExampleDataset;
+import com.gengoai.apollo.ml.data.VectorizedDataset;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
 import com.gengoai.apollo.ml.vectorizer.MalletVectorizer;
 import com.gengoai.apollo.ml.vectorizer.VectorToTokensPipe;
@@ -83,17 +85,27 @@ public abstract class MalletClassifier extends Classifier {
    }
 
    @Override
-   protected void fitPreprocessed(Dataset preprocessed, FitParameters fitParameters) {
+   public Classification predict(NDArray example) {
+      throw new UnsupportedOperationException();
+   }
+
+   @Override
+   protected void fitPreprocessed(ExampleDataset preprocessed, FitParameters fitParameters) {
       Pipe pipe = createPipe();
       pipe.setDataAlphabet(Cast.<MalletVectorizer>as(getPipeline().featureVectorizer).getAlphabet());
       InstanceList trainingData = new InstanceList(pipe);
       preprocessed.forEach(
-         example -> trainingData.addThruPipe(new cc.mallet.types.Instance(example, example.getLabel(), null, null)));
+            example -> trainingData.addThruPipe(new cc.mallet.types.Instance(example, example.getLabel(), null, null)));
 
       ClassifierTrainer<?> trainer = getTrainer(fitParameters);
       model = trainer.train(trainingData);
       MalletVectorizer labelVectorizer = Cast.as(getPipeline().labelVectorizer);
       labelVectorizer.setAlphabet(model.getInstancePipe().getTargetAlphabet());
+   }
+
+   @Override
+   public void fit(VectorizedDataset dataset, FitParameters<?> fitParameters) {
+      throw new UnsupportedOperationException();
    }
 
    /**
@@ -110,7 +122,7 @@ public abstract class MalletClassifier extends Classifier {
                                               .instanceFrom(new cc.mallet.types.Instance(example, "", null, null)))
                                .getLabeling();
       double[] result = new double[getNumberOfLabels()];
-      for (int i = 0; i < getNumberOfLabels(); i++) {
+      for(int i = 0; i < getNumberOfLabels(); i++) {
          result[i] = labeling.value(i);
       }
       return new Classification(NDArrayFactory.ND.rowVector(result), getPipeline().labelVectorizer);

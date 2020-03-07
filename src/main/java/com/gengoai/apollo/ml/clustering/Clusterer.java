@@ -27,11 +27,10 @@ import com.gengoai.apollo.ml.DiscreteModel;
 import com.gengoai.apollo.ml.DiscretePipeline;
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.FitParameters;
-import com.gengoai.apollo.ml.data.Dataset;
+import com.gengoai.apollo.ml.data.ExampleDataset;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
 import com.gengoai.apollo.statistics.measure.Measure;
-import com.gengoai.collection.Streams;
-import com.gengoai.stream.MStream;
+import com.gengoai.stream.Streams;
 import org.apache.commons.math3.stat.descriptive.moment.Variance;
 
 import java.util.stream.Stream;
@@ -105,17 +104,10 @@ public abstract class Clusterer extends DiscreteModel implements Iterable<Cluste
       return get((int) measure(example).argmax());
    }
 
-   /**
-    * Clusters the points in the given stream of vectors.
-    *
-    * @param vectors       the stream of vectors (points) to cluster
-    * @param fitParameters the fit parameters for clustering
-    */
-   public abstract void fit(MStream<NDArray> vectors, FitParameters fitParameters);
 
    @Override
-   protected void fitPreprocessed(Dataset preprocessed, FitParameters fitParameters) {
-      fit(preprocessed.asVectorStream(getPipeline()), fitParameters);
+   protected void fitPreprocessed(ExampleDataset preprocessed, FitParameters fitParameters) {
+      fit(preprocessed.toVectorizedDataset(getPipeline()), fitParameters);
    }
 
    /**

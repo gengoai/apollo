@@ -27,9 +27,10 @@ import com.gengoai.apollo.linear.NDArrayFactory;
 import com.gengoai.apollo.ml.DiscretePipeline;
 import com.gengoai.apollo.ml.FitParameters;
 import com.gengoai.apollo.ml.Params;
+import com.gengoai.apollo.ml.data.VectorizedDataset;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
 import com.gengoai.conversion.Cast;
-import com.gengoai.stream.MStream;
+import lombok.NonNull;
 import org.apache.commons.math3.distribution.MultivariateNormalDistribution;
 import org.apache.commons.math3.distribution.fitting.MultivariateNormalMixtureExpectationMaximization;
 import org.apache.commons.math3.util.Pair;
@@ -65,24 +66,25 @@ public class GaussianMixtureModel extends FlatCentroidClusterer {
 
 
    @Override
-   public void fit(MStream<NDArray> vectors, FitParameters fp) {
+   public void fit(@NonNull VectorizedDataset vectors, @NonNull FitParameters<?> fp) {
       Parameters p = Cast.as(fp);
-      List<NDArray> vectorList = vectors.collect();
       int numberOfFeatures = getNumberOfFeatures();
-      int numberOfDataPoints = vectorList.size();
+      int numberOfDataPoints = (int) vectors.size();
       double[][] data = new double[numberOfDataPoints][numberOfFeatures];
-      for (int i = 0; i < numberOfDataPoints; i++) {
-         data[i] = vectorList.get(i).toDoubleArray();
+      int i = 0;
+      for(NDArray vector : vectors) {
+         data[i] = vector.toDoubleArray();
+         i++;
       }
 
       List<MultivariateNormalDistribution> components =
-         MultivariateNormalMixtureExpectationMaximization.estimate(data, p.K.value())
-                                                         .getComponents()
-                                                         .stream()
-                                                         .map(Pair::getSecond)
-                                                         .collect(Collectors.toList());
+            MultivariateNormalMixtureExpectationMaximization.estimate(data, p.K.value())
+                                                            .getComponents()
+                                                            .stream()
+                                                            .map(Pair::getSecond)
+                                                            .collect(Collectors.toList());
 
-      for (int i = 0; i < components.size(); i++) {
+      for(i = 0; i < components.size(); i++) {
          Cluster cluster = new Cluster();
          cluster.setId(i);
          cluster.setCentroid(NDArrayFactory.ND.columnVector(components.get(i).sample()));

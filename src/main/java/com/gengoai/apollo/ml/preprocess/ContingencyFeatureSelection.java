@@ -23,14 +23,14 @@
 package com.gengoai.apollo.ml.preprocess;
 
 import com.gengoai.apollo.ml.Instance;
-import com.gengoai.apollo.ml.data.Dataset;
+import com.gengoai.apollo.ml.data.ExampleDataset;
 import com.gengoai.apollo.statistics.measure.Association;
 import com.gengoai.apollo.statistics.measure.ContingencyTable;
 import com.gengoai.apollo.statistics.measure.ContingencyTableCalculator;
 import com.gengoai.collection.counter.HashMapMultiCounter;
 import com.gengoai.collection.counter.MultiCounter;
-import com.gengoai.stream.accumulator.MCounterAccumulator;
-import com.gengoai.stream.accumulator.MMultiCounterAccumulator;
+import com.gengoai.stream.MCounterAccumulator;
+import com.gengoai.stream.MMultiCounterAccumulator;
 
 import java.io.Serializable;
 import java.util.*;
@@ -102,7 +102,7 @@ public class ContingencyFeatureSelection implements InstancePreprocessor, Serial
    }
 
    @Override
-   public Dataset fitAndTransform(Dataset dataset) {
+   public ExampleDataset fitAndTransform(ExampleDataset dataset) {
       final Set<String> finalFeatures = new HashSet<>();
 
       MCounterAccumulator<Object> labelCounts = dataset.getType().getStreamingContext().counterAccumulator();

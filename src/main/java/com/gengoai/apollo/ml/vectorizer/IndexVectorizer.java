@@ -23,11 +23,11 @@
 package com.gengoai.apollo.ml.vectorizer;
 
 import com.gengoai.apollo.ml.Example;
-import com.gengoai.apollo.ml.data.Dataset;
+import com.gengoai.apollo.ml.data.ExampleDataset;
 import com.gengoai.collection.HashMapIndex;
 import com.gengoai.collection.Index;
 import com.gengoai.collection.Sets;
-import com.gengoai.collection.Streams;
+import com.gengoai.stream.Streams;
 
 import java.util.List;
 import java.util.Set;
@@ -97,7 +97,7 @@ public abstract class IndexVectorizer implements DiscreteVectorizer {
    }
 
    @Override
-   public void fit(Dataset dataset) {
+   public void fit(ExampleDataset dataset) {
       if (!fixed) {
          index.clear();
          index.addAll(dataset.stream()

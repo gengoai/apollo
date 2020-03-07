@@ -60,7 +60,6 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
    private Object predicted = null;
    private double weight = 1d;
 
-
    /**
     * Instantiates a new NDArray.
     *
@@ -70,6 +69,10 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
       Validation.notNull(shape);
       this.shape = shape.copy();
    }
+
+   public abstract NDArray selectColumns(int... indices);
+
+   public abstract NDArray selectRows(int... indices);
 
    /**
     * Flips the matrix on its diagonal switching the rows and columns. (This is done per slice)
@@ -85,7 +88,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return the new NDArray with the scalar value added
     */
    public NDArray add(double value) {
-      if (value == 0) {
+      if(value == 0) {
          return copy();
       }
       return map(value, Operator::add);
@@ -100,6 +103,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
    public NDArray add(NDArray rhs) {
       return map(rhs, Operator::add);
    }
+
 
    /**
     * Adds the values in the other NDArray to each column in this one.
@@ -128,7 +132,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return this NDArray with the scalar value added
     */
    public NDArray addi(double value) {
-      if (value != 0) {
+      if(value != 0) {
          return mapi(value, Operator::add);
       }
       return this;
@@ -179,11 +183,12 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
    public abstract long argmin();
 
    private double asDouble(Object object) {
-      if (object == null) {
+      if(object == null) {
          return Double.NaN;
-      } else if (object instanceof NDArray) {
+      }
+      else if(object instanceof NDArray) {
          NDArray array = Cast.as(object);
-         if (array.shape.isScalar()) {
+         if(array.shape.isScalar()) {
             return array.scalar();
          }
          return array.argmax();
@@ -192,11 +197,12 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
    }
 
    private NDArray asNDArray(Object o, int dimension) {
-      if (o == null) {
+      if(o == null) {
          return com.gengoai.apollo.linear.NDArrayFactory.ND.empty();
-      } else if (o instanceof Number) {
+      }
+      else if(o instanceof Number) {
          Number numLabel = Cast.as(o);
-         if (dimension == 1) {
+         if(dimension == 1) {
             return com.gengoai.apollo.linear.NDArrayFactory.ND.scalar(numLabel.floatValue());
          }
          return com.gengoai.apollo.linear.NDArrayFactory.ND.array(dimension).set(numLabel.intValue(), 1f);
@@ -933,6 +939,50 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
    public abstract NDArray mapiColumn(NDArray rhs, final DoubleBinaryOperator operator);
 
    /**
+    * Updates the values in the given column of  this NDArray by performing the given binary operation with the values
+    * in the given NDArray.
+    *
+    * @param column   the column whose values we want to manipulate
+    * @param rhs      the rhs
+    * @param operator the operation to perform on the values of this NDArray and the given NDArray
+    * @return the transformed NDArray
+    */
+   public abstract NDArray mapiColumn(int column, NDArray rhs, final DoubleBinaryOperator operator);
+
+   /**
+    * Updates the values in the given column of  this NDArray by performing the given binary operation with the values
+    * in the given NDArray.
+    *
+    * @param column   the column whose values we want to manipulate
+    * @param rhs      the rhs
+    * @param operator the operation to perform on the values of this NDArray and the given NDArray
+    * @return the transformed NDArray
+    */
+   public abstract NDArray mapColumn(int column, NDArray rhs, final DoubleBinaryOperator operator);
+
+   /**
+    * Updates the values in the given row of  this NDArray by performing the given binary operation with the values
+    * in the given NDArray.
+    *
+    * @param row      the row whose values we want to manipulate
+    * @param rhs      the rhs
+    * @param operator the operation to perform on the values of this NDArray and the given NDArray
+    * @return the transformed NDArray
+    */
+   public abstract NDArray mapiRow(int row, NDArray rhs, final DoubleBinaryOperator operator);
+
+   /**
+    * Updates the values in the given row of  this NDArray by performing the given binary operation with the values
+    * in the given NDArray.
+    *
+    * @param row      the row whose values we want to manipulate
+    * @param rhs      the rhs
+    * @param operator the operation to perform on the values of this NDArray and the given NDArray
+    * @return the transformed NDArray
+    */
+   public abstract NDArray mapRow(int row, NDArray rhs, final DoubleBinaryOperator operator);
+
+   /**
     * Updates the values int this NDArray by performing the given binary operation with the values in the given NDArray
     * per row.
     *
@@ -1124,11 +1174,11 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
       builder.append("[");
       builder.append(rowToString(slice, 0, maxC));
       int breakPoint = maxR / 2;
-      for (int i = 1; i < slice.rows(); i++) {
+      for(int i = 1; i < slice.rows(); i++) {
          builder.append(",");
-         if (i == breakPoint) {
+         if(i == breakPoint) {
             int nj = Math.max(slice.rows() - breakPoint, i + 1);
-            if (nj > i + 1) {
+            if(nj > i + 1) {
                builder.append(System.lineSeparator()).append("     ...").append(System.lineSeparator());
             }
             i = nj;
@@ -1278,10 +1328,10 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
       StringBuilder builder = new StringBuilder("[");
       builder.append(decimalFormatter.format(slice.get(i, 0)));
       int breakPoint = maxC / 2;
-      for (int j = 1; j < slice.columns(); j++) {
-         if (j == breakPoint) {
+      for(int j = 1; j < slice.columns(); j++) {
+         if(j == breakPoint) {
             int nj = Math.max(slice.columns() - breakPoint, j + 1);
-            if (nj > j + 1) {
+            if(nj > j + 1) {
                builder.append(", ...");
             }
             j = nj;
@@ -1400,7 +1450,9 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return new NDArray with values passing the given predicate and zeros elsewhere
     */
    public NDArray select(DoublePredicate predicate) {
-      return map(v -> predicate.test(v) ? v : 0.0);
+      return map(v -> predicate.test(v)
+                      ? v
+                      : 0.0);
    }
 
    /**
@@ -1410,7 +1462,10 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return the selected NDArray
     */
    public NDArray select(NDArray rhs) {
-      return map(rhs, (v1, v2) -> v2 == 1.0 ? 1.0 : 0.0);
+      return map(rhs,
+                 (v1, v2) -> v2 == 1.0
+                             ? 1.0
+                             : 0.0);
    }
 
    /**
@@ -1420,7 +1475,9 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return this NDArray with values passing the given predicate and zeros elsewhere
     */
    public NDArray selecti(DoublePredicate predicate) {
-      return mapi(v -> predicate.test(v) ? v : 0.0);
+      return mapi(v -> predicate.test(v)
+                       ? v
+                       : 0.0);
    }
 
    /**
@@ -1431,7 +1488,10 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     * @return the selected NDArray
     */
    public NDArray selecti(NDArray rhs) {
-      return mapi(rhs, (v1, v2) -> v2 == 1.0 ? 1.0 : 0.0);
+      return mapi(rhs,
+                  (v1, v2) -> v2 == 1.0
+                              ? 1.0
+                              : 0.0);
    }
 
    /**
@@ -1725,7 +1785,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     */
    public NDArray test(DoublePredicate predicate) {
       return map(v -> {
-         if (predicate.test(v)) {
+         if(predicate.test(v)) {
             return 1.0;
          }
          return 0d;
@@ -1742,7 +1802,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     */
    public NDArray test(NDArray rhs, DoubleBinaryPredicate predicate) {
       return map(rhs, (v1, v2) -> {
-         if (predicate.test(v1, v2)) {
+         if(predicate.test(v1, v2)) {
             return 1.0;
          }
          return 0d;
@@ -1757,7 +1817,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     */
    public NDArray testi(DoublePredicate predicate) {
       return mapi(v -> {
-         if (predicate.test(v)) {
+         if(predicate.test(v)) {
             return 1.0;
          }
          return 0d;
@@ -1774,7 +1834,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     */
    public NDArray testi(NDArray rhs, DoubleBinaryPredicate predicate) {
       return mapi(rhs, (v1, v2) -> {
-         if (predicate.test(v1, v2)) {
+         if(predicate.test(v1, v2)) {
             return 1.0;
          }
          return 0d;
@@ -1811,9 +1871,9 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
    public String toString(int maxSlices, int maxRows, int maxColumns) {
       StringBuilder builder = new StringBuilder("[");
 
-      if (shape.isVector()) {
-         for (long i = 0; i < length(); i++) {
-            if (i > 0) {
+      if(shape.isVector()) {
+         for(long i = 0; i < length(); i++) {
+            if(i > 0) {
                builder.append(", ");
             }
             builder.append(get((int) i));
@@ -1823,11 +1883,11 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
       String outDot = Strings.repeat(Strings.padStart(".", 8, ' '), Math.min(columns(), maxColumns + 2));
       printSlice(slice(0), maxRows, maxColumns, builder);
       int breakPoint = maxSlices / 2;
-      for (int i = 1; i < shape.sliceLength; i++) {
+      for(int i = 1; i < shape.sliceLength; i++) {
          builder.append(",");
-         if (i == breakPoint) {
+         if(i == breakPoint) {
             int nj = Math.max(shape.sliceLength - breakPoint, i + 1);
-            if (nj > i + 1) {
+            if(nj > i + 1) {
                builder.append(System.lineSeparator())
                       .append(System.lineSeparator()).append(outDot)
                       .append(System.lineSeparator()).append(outDot)
@@ -1867,6 +1927,11 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
     */
    public abstract NDArray zeroLike();
 
+
+   public abstract int[] sparseIndices();
+
+   public abstract NDArray incrementiColumn(int c, NDArray vector);
+
    /**
     * Interface for testing two double values
     */
@@ -1903,15 +1968,17 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
 
       @Override
       protected NDArray deserialize(JsonEntry entry, Type type) {
-         NDArrayFactory ND = entry.getBooleanProperty("dense", true) ? NDArrayFactory.DENSE : NDArrayFactory.SPARSE;
+         NDArrayFactory ND = entry.getBooleanProperty("dense", true)
+                             ? NDArrayFactory.DENSE
+                             : NDArrayFactory.SPARSE;
          NDArray array = ND.array(entry.getProperty("shape").getAsIntArray());
          array.setWeight(entry.getDoubleProperty("weight", 1.0));
-         if (entry.getProperty("label").isObject()) {
+         if(entry.getProperty("label").isObject()) {
             Class<?> clazz = entry.getProperty("label").getProperty("type").getAs(Class.class);
             array.setLabel(entry.getProperty("label").getProperty("value").getAs(clazz));
          }
          Iterator<JsonEntry> dataItr = entry.getProperty("data").elementIterator();
-         for (int i = 0; i < array.shape.sliceLength; i++) {
+         for(int i = 0; i < array.shape.sliceLength; i++) {
             array.setSlice(i, ND.array(array.shape.rows(),
                                        array.shape.columns(),
                                        dataItr.next().getAsDoubleArray()));
@@ -1925,9 +1992,10 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
                                     .addProperty("shape", ndArray.shape)
                                     .addProperty("dense", ndArray.isDense())
                                     .addProperty("weight", ndArray.getWeight());
-         if (ndArray.getLabel() == null) {
+         if(ndArray.getLabel() == null) {
             entry.addProperty("label", null);
-         } else {
+         }
+         else {
             entry.addProperty("label", JsonEntry.object()
                                                 .addProperty("type", ndArray.getLabel().getClass())
                                                 .addProperty("value", ndArray.getLabel())
@@ -1935,7 +2003,7 @@ public abstract class NDArray implements Serializable, Copyable<NDArray> {
          }
 
          JsonEntry data = JsonEntry.array();
-         for (int i = 0; i < ndArray.shape.sliceLength; i++) {
+         for(int i = 0; i < ndArray.shape.sliceLength; i++) {
             data.addValue(ndArray.slice(i).toDoubleArray());
          }
          return entry.addProperty("data", data);

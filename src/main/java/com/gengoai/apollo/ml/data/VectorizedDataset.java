@@ -1,6 +1,4 @@
 /*
- * (c) 2005 David B. Bracewell
- *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -17,39 +15,14 @@
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
- *
  */
 
-package com.gengoai.apollo.ml.sequence;
+package com.gengoai.apollo.ml.data;
 
-import java.util.concurrent.atomic.AtomicBoolean;
+import com.gengoai.apollo.linear.NDArray;
 
-/**
- * <p>Utility class for making suring the CRFSuite library is loaded</p>
- *
- * @author David B. Bracewell
- */
-public enum CrfSuiteLoader {
-   INSTANCE;
+public interface VectorizedDataset extends Dataset<NDArray, VectorizedDataset> {
 
-   private AtomicBoolean loaded = new AtomicBoolean(false);
+   NDArray get(long index);
 
-   /**
-    * Loads the library if not already loaded.
-    */
-   public void load() {
-      if (!loaded.get()) {
-         synchronized (this) {
-            if (!loaded.get()) {
-               loaded.set(true);
-               try {
-                  com.gengoai.jcrfsuite.util.CrfSuiteLoader.load();
-               } catch (Exception e) {
-                  throw new RuntimeException(e);
-               }
-            }
-         }
-      }
-   }
-
-}//END OF CrfSuiteLoader
+}//END OF VectorizedDataset

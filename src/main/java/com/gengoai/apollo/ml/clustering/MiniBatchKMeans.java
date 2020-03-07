@@ -26,14 +26,15 @@ import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.ml.DiscretePipeline;
 import com.gengoai.apollo.ml.FitParameters;
 import com.gengoai.apollo.ml.Params;
+import com.gengoai.apollo.ml.data.VectorizedDataset;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
 import com.gengoai.apollo.optimization.StoppingCriteria;
 import com.gengoai.apollo.statistics.Sampling;
 import com.gengoai.conversion.Cast;
 import com.gengoai.logging.Logger;
-import com.gengoai.stream.MStream;
 import com.gengoai.tuple.Tuple2;
 import com.gengoai.tuple.Tuple3;
+import lombok.NonNull;
 
 import java.util.List;
 import java.util.PrimitiveIterator;
@@ -70,17 +71,17 @@ public class MiniBatchKMeans extends FlatCentroidClusterer {
    }
 
 
-   private double iteration(List<NDArray> stream, int[] counts, int batchSize) {
+   private double iteration(VectorizedDataset stream, int[] counts, int batchSize) {
       //Select batch and compute the best cluster for each item
       List<Tuple3<NDArray, Integer, Double>> batch =
-         Sampling.uniformInts(batchSize, 0, stream.size(), true)
-                 .parallel()
-                 .mapToObj(i -> best(stream.get(i)).appendLeft(stream.get(i)))
-                 .collect(Collectors.toList());
+            Sampling.uniformInts(batchSize, 0, (int) stream.size(), true)
+                    .parallel()
+                    .mapToObj(i -> best(stream.get(i)).appendLeft(stream.get(i)))
+                    .collect(Collectors.toList());
 
       //Update the centroids based on the assignments
       double diff = 0d;
-      for (Tuple3<NDArray, Integer, Double> assignment : batch) {
+      for(Tuple3<NDArray, Integer, Double> assignment : batch) {
          NDArray target = assignment.v1;
          int cid = assignment.v2;
          counts[cid]++;
@@ -94,43 +95,41 @@ public class MiniBatchKMeans extends FlatCentroidClusterer {
    }
 
    @Override
-   public void fit(MStream<NDArray> vectors, FitParameters fitParameters) {
+   public void fit(@NonNull VectorizedDataset vectors, @NonNull FitParameters<?> fitParameters) {
       Parameters p = notNull(Cast.as(fitParameters, Parameters.class));
       setMeasure(p.measure.value());
 
-      List<NDArray> stream = vectors.collect();
-
-      PrimitiveIterator.OfInt itr = Sampling.uniformInts(p.K.value(), 0, stream.size(), false).iterator();
-      for (int i = 0; i < p.K.value(); i++) {
+      PrimitiveIterator.OfInt itr = Sampling.uniformInts(p.K.value(), 0, (int) vectors.size(), false).iterator();
+      for(int i = 0; i < p.K.value(); i++) {
          Cluster c = new Cluster();
          c.setId(i);
-         c.setCentroid(stream.get(itr.nextInt()).copy());
+         c.setCentroid(vectors.get(itr.nextInt()).copy());
          add(c);
       }
 
       final int[] counts = new int[p.K.value()];
       StoppingCriteria.create("avg_distance", fitParameters)
                       .logger(log)
-                      .untilTermination(iteration -> iteration(stream, counts, p.batchSize.value()));
+                      .untilTermination(iteration -> iteration(vectors, counts, p.batchSize.value()));
 
       //Assign examples to clusters
       final Integer[] locks = IntStream.range(0, p.K.value()).boxed().toArray(Integer[]::new);
-      stream.parallelStream()
-            .forEach(v -> {
-               Tuple2<Integer, Double> best = best(v);
-               final Cluster c = get(best.v1);
-               synchronized (locks[c.getId()]) {
-                  c.addPoint(v);
-               }
-            });
+      vectors.parallelStream()
+             .forEach(v -> {
+                Tuple2<Integer, Double> best = best(v);
+                final Cluster c = get(best.v1);
+                synchronized(locks[c.getId()]) {
+                   c.addPoint(v);
+                }
+             });
    }
 
    private Tuple2<Integer, Double> best(NDArray v) {
       int bestId = 0;
       double bestMeasure = getMeasure().calculate(v, get(0).getCentroid());
-      for (int j = 1; j < size(); j++) {
+      for(int j = 1; j < size(); j++) {
          double measure = getMeasure().calculate(v, get(j).getCentroid());
-         if (getMeasure().getOptimum().test(measure, bestMeasure)) {
+         if(getMeasure().getOptimum().test(measure, bestMeasure)) {
             bestId = j;
             bestMeasure = measure;
          }

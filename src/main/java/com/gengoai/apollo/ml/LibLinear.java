@@ -23,8 +23,7 @@
 package com.gengoai.apollo.ml;
 
 import com.gengoai.apollo.linear.NDArray;
-import com.gengoai.function.SerializableSupplier;
-import com.gengoai.stream.MStream;
+import com.gengoai.apollo.ml.data.VectorizedDataset;
 import de.bwaldvogel.liblinear.Feature;
 import de.bwaldvogel.liblinear.Model;
 import de.bwaldvogel.liblinear.*;
@@ -49,18 +48,20 @@ public final class LibLinear {
     * Converts an Apollo vector into an array of LibLinear feature nodes
     *
     * @param vector    the vector to convert
-    * @param biasIndex the index of the bias variable (<0 for no bias)
+    * @param biasIndex the index of the bias variable (&lt; 0 for no bias)
     * @return the feature node array
     */
    public static Feature[] toFeature(NDArray vector, int biasIndex) {
-      int size = (int) vector.size() + (biasIndex > 0 ? 1 : 0);
+      int size = (int) vector.size() + (biasIndex > 0
+                                        ? 1
+                                        : 0);
       final Feature[] feature = new Feature[size];
       AtomicInteger ai = new AtomicInteger(0);
       vector.forEachSparse((index, value) -> {
          feature[ai.getAndIncrement()] = new FeatureNode((int) index + 1, value);
 
       });
-      if (biasIndex > 0) {
+      if(biasIndex > 0) {
          feature[size - 1] = new FeatureNode(biasIndex, 1.0);
       }
       return feature;
@@ -77,15 +78,16 @@ public final class LibLinear {
     */
    public static NDArray estimate(Model model, NDArray data, int biasIndex) {
       double[] p = new double[model.getNrClass()];
-      if (model.isProbabilityModel()) {
+      if(model.isProbabilityModel()) {
          Linear.predictProbability(model, LibLinear.toFeature(data, biasIndex), p);
-      } else {
+      }
+      else {
          Linear.predictValues(model, LibLinear.toFeature(data, biasIndex), p);
       }
       //re-arrange the probabilities to match the target feature
       double[] prime = new double[model.getNrClass()];
       int[] labels = model.getLabels();
-      for (int i = 0; i < labels.length; i++) {
+      for(int i = 0; i < labels.length; i++) {
          prime[labels[i]] = p[i];
       }
       return ND.rowVector(prime);
@@ -113,27 +115,30 @@ public final class LibLinear {
     * @param biasIndex    the bias index (-1 if no bias)
     * @return the model
     */
-   public static Model fit(SerializableSupplier<MStream<NDArray>> dataSupplier,
+   public static Model fit(VectorizedDataset dataSupplier,
                            Parameter parameter,
                            boolean verbose,
                            int numFeatures,
                            int biasIndex
                           ) {
       Problem problem = new Problem();
-      problem.l = (int) dataSupplier.get().count();
+      problem.l = (int) dataSupplier.size();
       problem.x = new Feature[problem.l][];
       problem.y = new double[problem.l];
       problem.n = numFeatures + 1;
-      problem.bias = biasIndex >= 0 ? 0 : -1;
-      dataSupplier.get().zipWithIndex()
+      problem.bias = biasIndex >= 0
+                     ? 0
+                     : -1;
+      dataSupplier.stream().zipWithIndex()
                   .forEach((datum, index) -> {
                      problem.x[index.intValue()] = toFeature(datum, biasIndex);
                      problem.y[index.intValue()] = datum.getLabelAsDouble();
                   });
 
-      if (verbose) {
+      if(verbose) {
          Linear.enableDebugOutput();
-      } else {
+      }
+      else {
          Linear.disableDebugOutput();
       }
 

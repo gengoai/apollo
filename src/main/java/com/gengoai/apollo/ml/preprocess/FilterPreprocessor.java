@@ -23,7 +23,7 @@
 package com.gengoai.apollo.ml.preprocess;
 
 import com.gengoai.apollo.ml.Instance;
-import com.gengoai.apollo.ml.data.Dataset;
+import com.gengoai.apollo.ml.data.ExampleDataset;
 
 import java.io.Serializable;
 import java.util.Collection;
@@ -70,7 +70,7 @@ public class FilterPreprocessor implements InstancePreprocessor, Serializable {
    }
 
    @Override
-   public Dataset fitAndTransform(Dataset dataset) {
+   public ExampleDataset fitAndTransform(ExampleDataset dataset) {
       return dataset.map(this::apply);
    }
 

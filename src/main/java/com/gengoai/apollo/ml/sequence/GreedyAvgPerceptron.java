@@ -27,7 +27,7 @@ import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.Feature;
 import com.gengoai.apollo.ml.FitParameters;
 import com.gengoai.apollo.ml.Params;
-import com.gengoai.apollo.ml.data.Dataset;
+import com.gengoai.apollo.ml.data.ExampleDataset;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
 import com.gengoai.apollo.ml.preprocess.PreprocessorList;
 import com.gengoai.apollo.ml.vectorizer.IndexVectorizer;
@@ -119,13 +119,11 @@ public class GreedyAvgPerceptron extends SequenceLabeler implements Loggable {
    }
 
    @Override
-   protected void fitPreprocessed(Dataset preprocessed, FitParameters fitParameters) {
+   protected void fitPreprocessed(ExampleDataset preprocessed, FitParameters fitParameters) {
       Parameters parameters = Cast.as(fitParameters);
       IndexVectorizer vectorizer = new MultiLabelBinarizer();
       vectorizer.fit(preprocessed);
       this.labelSet = new HashSet<>(vectorizer.alphabet());
-
-
       this.featureWeights = MultiCounters.newMultiCounter();
       this.transitionWeights = MultiCounters.newMultiCounter();
       final MultiCounter<String, String> fTotals = MultiCounters.newMultiCounter();

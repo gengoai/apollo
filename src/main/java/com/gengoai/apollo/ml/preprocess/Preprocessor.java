@@ -24,7 +24,7 @@ package com.gengoai.apollo.ml.preprocess;
 
 
 import com.gengoai.apollo.ml.Example;
-import com.gengoai.apollo.ml.data.Dataset;
+import com.gengoai.apollo.ml.data.ExampleDataset;
 
 /**
  * <p>Preprocessors represent filters and transforms to apply to a dataset before building a model. This allows such
@@ -49,7 +49,7 @@ public interface Preprocessor {
     *
     * @param dataset the dataset to fit this preprocessors parameters to
     */
-   Dataset fitAndTransform(Dataset dataset);
+   ExampleDataset fitAndTransform(ExampleDataset dataset);
 
 
    /**

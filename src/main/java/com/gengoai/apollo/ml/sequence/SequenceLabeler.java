@@ -23,7 +23,9 @@
 package com.gengoai.apollo.ml.sequence;
 
 import com.gengoai.apollo.ml.Example;
+import com.gengoai.apollo.ml.FitParameters;
 import com.gengoai.apollo.ml.Model;
+import com.gengoai.apollo.ml.data.VectorizedDataset;
 
 /**
  * <p>Labels each example in a sequence of examples, which may represent points in time, tokens in a sentence, etc.
@@ -107,5 +109,10 @@ public abstract class SequenceLabeler extends Model {
    @Override
    public SequencePipeline getPipeline() {
       return modelParameters;
+   }
+
+   @Override
+   public void fit(VectorizedDataset dataset, FitParameters<?> fitParameters) {
+      throw new UnsupportedOperationException("Sequence Labelers do not support fitting over Vectorized Datasets");
    }
 }//END OF SequenceLabeler

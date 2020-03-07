@@ -26,6 +26,8 @@ import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.ml.DiscreteModel;
 import com.gengoai.apollo.ml.DiscretePipeline;
 import com.gengoai.apollo.ml.Example;
+import com.gengoai.apollo.ml.FitParameters;
+import com.gengoai.apollo.ml.data.VectorizedDataset;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
 
 import java.util.ArrayList;
@@ -113,4 +115,9 @@ public abstract class TopicModel extends DiscreteModel {
       return topics.size();
    }
 
+
+   @Override
+   public void fit(VectorizedDataset dataset, FitParameters<?> fitParameters) {
+      throw new UnsupportedOperationException("Topic Models do not support fitting over Vectorized Datasets");
+   }
 }//END OF TopicModel

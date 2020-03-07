@@ -1,6 +1,4 @@
 /*
- * (c) 2005 David B. Bracewell
- *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -17,34 +15,33 @@
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
- *
  */
 
-package com.gengoai.apollo.ml.clustering;
+package com.gengoai.apollo.ml.sequence;
 
-import com.gengoai.apollo.ml.DiscretePipeline;
-import com.gengoai.apollo.ml.FitParameters;
-import com.gengoai.apollo.ml.data.VectorizedDataset;
-import com.gengoai.apollo.statistics.measure.Measure;
+import com.gengoai.apollo.ml.Example;
+import lombok.Value;
 
-class DummyFlatClusterer extends FlatCentroidClusterer {
-   private static final long serialVersionUID = 1L;
+import java.util.regex.Pattern;
 
+@Value
+public class MalletSequenceValidator implements SequenceValidator {
+   private final Pattern allowed;
+   private final Pattern forbidden;
 
-   public DummyFlatClusterer(DiscretePipeline modelParameters, Measure measure) {
-      super(modelParameters);
-      setMeasure(measure);
+   public MalletSequenceValidator(Pattern allowed, Pattern forbidden) {
+      this.allowed = allowed;
+      this.forbidden = forbidden;
    }
 
+   public MalletSequenceValidator(String allowed, String forbidden) {
+      this(Pattern.compile(allowed, Pattern.CASE_INSENSITIVE),
+           Pattern.compile(forbidden, Pattern.CASE_INSENSITIVE));
+   }
 
    @Override
-   public void fit(VectorizedDataset vectors, FitParameters fitParameters) {
+   public boolean isValid(String currentLabel, String previousLabel, Example instance) {
       throw new UnsupportedOperationException();
    }
 
-   @Override
-   public FitParameters getFitParameters() {
-      throw new UnsupportedOperationException();
-   }
-
-}//END OF DummyFlatClusterer
+}//END OF MalletSequenceValidator

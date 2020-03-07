@@ -26,11 +26,12 @@ import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.ml.DiscretePipeline;
 import com.gengoai.apollo.ml.FitParameters;
 import com.gengoai.apollo.ml.Params;
+import com.gengoai.apollo.ml.data.VectorizedDataset;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
 import com.gengoai.collection.Iterables;
 import com.gengoai.conversion.Cast;
-import com.gengoai.stream.MStream;
 import com.gengoai.tuple.Tuple3;
+import lombok.NonNull;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -76,11 +77,11 @@ public class AgglomerativeClusterer extends HierarchicalClusterer {
                        Parameters parameters
                       ) {
       Tuple3<Cluster, Cluster, Double> minC = priorityQueue.remove();
-      if (minC != null) {
+      if(minC != null) {
          priorityQueue.removeIf(triple -> triple.v2.getId() == minC.v2.getId()
-                                             || triple.v1.getId() == minC.v1.getId()
-                                             || triple.v2.getId() == minC.v1.getId()
-                                             || triple.v1.getId() == minC.v2.getId()
+                                      || triple.v1.getId() == minC.v1.getId()
+                                      || triple.v2.getId() == minC.v1.getId()
+                                      || triple.v1.getId() == minC.v2.getId()
                                );
          Cluster cprime = new Cluster();
          cprime.setId(idGenerator.getAndIncrement());
@@ -89,7 +90,7 @@ public class AgglomerativeClusterer extends HierarchicalClusterer {
          minC.getV1().setParent(cprime);
          minC.getV2().setParent(cprime);
          cprime.setScore(minC.v3);
-         for (NDArray point : Iterables.concat(minC.getV1().getPoints(), minC.getV2().getPoints())) {
+         for(NDArray point : Iterables.concat(minC.getV1().getPoints(), minC.getV2().getPoints())) {
             cprime.addPoint(point);
          }
          clusters.remove(minC.getV1());
@@ -108,14 +109,13 @@ public class AgglomerativeClusterer extends HierarchicalClusterer {
    }
 
    @Override
-   public void fit(MStream<NDArray> stream, FitParameters fitParameters) {
+   public void fit(@NonNull VectorizedDataset stream, @NonNull FitParameters<?> fitParameters) {
       Parameters parameters = Cast.as(fitParameters);
       idGenerator.set(0);
-      List<NDArray> instances = stream.collect();
       PriorityQueue<Tuple3<Cluster, Cluster, Double>> priorityQueue = new PriorityQueue<>(
-         Comparator.comparingDouble(Tuple3::getV3));
-      List<Cluster> clusters = initDistanceMatrix(instances, priorityQueue, parameters);
-      while (clusters.size() > 1) {
+            Comparator.comparingDouble(Tuple3::getV3));
+      List<Cluster> clusters = initDistanceMatrix(stream, priorityQueue, parameters);
+      while(clusters.size() > 1) {
          doTurn(priorityQueue, clusters, parameters);
       }
       root = clusters.get(0);
@@ -126,12 +126,12 @@ public class AgglomerativeClusterer extends HierarchicalClusterer {
       return new Parameters();
    }
 
-   private List<Cluster> initDistanceMatrix(List<NDArray> instances,
+   private List<Cluster> initDistanceMatrix(VectorizedDataset instances,
                                             PriorityQueue<Tuple3<Cluster, Cluster, Double>> priorityQueue,
                                             Parameters parameters
                                            ) {
       List<Cluster> clusters = new ArrayList<>();
-      for (NDArray item : instances) {
+      for(NDArray item : instances) {
          Cluster c = new Cluster();
          c.addPoint(item);
          c.setId(idGenerator.getAndIncrement());
@@ -139,16 +139,17 @@ public class AgglomerativeClusterer extends HierarchicalClusterer {
       }
 
 
-      priorityQueue.addAll(IntStream.range(0, instances.size() - 2)
+      final int size = (int) instances.size();
+      priorityQueue.addAll(IntStream.range(0, size - 2)
                                     .boxed()
-                                    .flatMap(i -> IntStream.range(i + 1, instances.size())
+                                    .flatMap(i -> IntStream.range(i + 1, size)
                                                            .boxed()
                                                            .map(j -> $(clusters.get(i), clusters.get(j))))
                                     .parallel()
                                     .map(
-                                       t -> $(t.v1, t.v2,
-                                              parameters.linkage.value()
-                                                                .calculate(t.v1, t.v2, parameters.measure.value())))
+                                          t -> $(t.v1, t.v2,
+                                                 parameters.linkage.value()
+                                                                   .calculate(t.v1, t.v2, parameters.measure.value())))
                                     .collect(Collectors.toList()));
       return clusters;
    }

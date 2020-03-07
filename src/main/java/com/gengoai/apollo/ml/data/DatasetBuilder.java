@@ -37,7 +37,7 @@ import java.util.List;
 
 /**
  * <p>
- * Builder pattern for creating {@link Dataset} based on given {@link DatasetType}.
+ * Builder pattern for creating {@link ExampleDataset} based on given {@link DatasetType}.
  * </p>
  *
  * @author David B. Bracewell
@@ -77,8 +77,8 @@ public class DatasetBuilder {
     * @param extractor the feature extractor to transform input objects to examples
     * @return the dataset
     */
-   public <I> Dataset instances(MStream<I> instances, FeatureExtractor<? super I> extractor) {
-      return type.create(instances.map(extractor::extractExample));
+   public <I> ExampleDataset instances(MStream<I> instances, FeatureExtractor<? super I> extractor) {
+      return type.createExampleDataset(instances.map(extractor::extractExample));
    }
 
    /**
@@ -91,8 +91,8 @@ public class DatasetBuilder {
     * @param extractor the extractor
     * @return the dataset
     */
-   public <I> Dataset labeledInstances(MStream<LabeledDatum<I>> instances, FeatureExtractor<? super I> extractor) {
-      return type.create(instances.map(extractor::extractExample));
+   public <I> ExampleDataset labeledInstances(MStream<LabeledDatum<I>> instances, FeatureExtractor<? super I> extractor) {
+      return type.createExampleDataset(instances.map(extractor::extractExample));
    }
 
    /**
@@ -105,8 +105,8 @@ public class DatasetBuilder {
     * @param extractor the feature extractor to transform input objects to examples
     * @return the dataset
     */
-   public <I> Dataset sequences(MStream<List<? extends I>> instances, FeatureExtractor<? super I> extractor) {
-      return type.create(instances.map(extractor::extractExample));
+   public <I> ExampleDataset sequences(MStream<List<? extends I>> instances, FeatureExtractor<? super I> extractor) {
+      return type.createExampleDataset(instances.map(extractor::extractExample));
    }
 
    /**
@@ -119,8 +119,8 @@ public class DatasetBuilder {
     * @param extractor the feature extractor to transform input objects to examples
     * @return the dataset
     */
-   public <I> Dataset sequences(Collection<List<I>> instances, FeatureExtractor<I> extractor) {
-      return type.create(StreamingContext.local().stream(instances.stream().map(extractor::extractExample)));
+   public <I> ExampleDataset sequences(Collection<List<I>> instances, FeatureExtractor<I> extractor) {
+      return type.createExampleDataset(StreamingContext.local().stream(instances.stream().map(extractor::extractExample)));
    }
 
    /**
@@ -133,8 +133,8 @@ public class DatasetBuilder {
     * @param extractor the feature extractor to transform input objects to examples
     * @return the dataset
     */
-   public <I> Dataset labeledSequences(MStream<LabeledSequence<I>> instances, FeatureExtractor<? super I> extractor) {
-      return type.create(instances.map(extractor::extractExample));
+   public <I> ExampleDataset labeledSequences(MStream<LabeledSequence<I>> instances, FeatureExtractor<? super I> extractor) {
+      return type.createExampleDataset(instances.map(extractor::extractExample));
    }
 
    /**
@@ -143,8 +143,8 @@ public class DatasetBuilder {
     * @param stream the stream of examples
     * @return the dataset
     */
-   public Dataset source(MStream<Example> stream) {
-      return type.create(stream);
+   public ExampleDataset source(MStream<Example> stream) {
+      return type.createExampleDataset(stream);
    }
 
    /**
@@ -155,7 +155,7 @@ public class DatasetBuilder {
     * @return the dataset
     * @throws IOException Something went wrong reading the data
     */
-   public Dataset source(Resource location) throws IOException {
+   public ExampleDataset source(Resource location) throws IOException {
       if (dataFormat == null) {
          return type.read(location);
       }

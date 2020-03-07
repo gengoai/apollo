@@ -23,6 +23,7 @@
 package com.gengoai.apollo.ml;
 
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
+import lombok.NonNull;
 
 /**
  * <p>A model whose labels are discrete requiring a {@link com.gengoai.apollo.ml.vectorizer.DiscreteVectorizer} and
@@ -39,7 +40,7 @@ public abstract class DiscreteModel extends Model {
     *
     * @param preprocessors the preprocessors
     */
-   public DiscreteModel(Preprocessor... preprocessors) {
+   public DiscreteModel(@NonNull Preprocessor... preprocessors) {
       this(DiscretePipeline.multiClass().update(p -> p.preprocessorList.addAll(preprocessors)));
    }
 
@@ -48,7 +49,7 @@ public abstract class DiscreteModel extends Model {
     *
     * @param modelParameters the model parameters
     */
-   public DiscreteModel(DiscretePipeline modelParameters) {
+   public DiscreteModel(@NonNull DiscretePipeline modelParameters) {
       this.modelParameters = modelParameters.copy();
    }
 

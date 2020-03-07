@@ -23,7 +23,8 @@
 package com.gengoai.apollo.ml;
 
 import com.gengoai.Stopwatch;
-import com.gengoai.apollo.ml.data.Dataset;
+import com.gengoai.apollo.ml.data.ExampleDataset;
+import com.gengoai.apollo.ml.data.VectorizedDataset;
 import com.gengoai.conversion.Cast;
 import com.gengoai.io.resource.Resource;
 import com.gengoai.logging.Logger;
@@ -68,46 +69,46 @@ public abstract class Model implements Serializable {
 
 
    /**
-    * Fits the model on the given {@link Dataset} using the model's default {@link FitParameters}.
+    * Fits the model on the given {@link ExampleDataset} using the model's default {@link FitParameters}.
     *
     * @param dataset the dataset to fit the model on
     */
-   public final void fit(Dataset dataset) {
+   public final void fit(ExampleDataset dataset) {
       notNull(dataset);
       fit(dataset, getFitParameters());
    }
 
    /**
-    * Fits the model on the given {@link Dataset} using the given consumer to modify the model's default {@link
+    * Fits the model on the given {@link ExampleDataset} using the given consumer to modify the model's default {@link
     * FitParameters}.
     *
     * @param dataset          the dataset
     * @param parameterUpdater the consumer to use to update the fit parameters
     */
-   public final void fit(Dataset dataset, Consumer<? extends FitParameters> parameterUpdater) {
+   public final void fit(ExampleDataset dataset, Consumer<? extends FitParameters<?>> parameterUpdater) {
       notNull(dataset);
       notNull(parameterUpdater);
-      FitParameters parameters = getFitParameters();
+      FitParameters<?> parameters = getFitParameters();
       parameterUpdater.accept(Cast.as(parameters));
       fit(dataset, parameters);
    }
 
    /**
-    * Fits the model on the given {@link Dataset} using the given {@link FitParameters}.
+    * Fits the model on the given {@link ExampleDataset} using the given {@link FitParameters}.
     *
     * @param dataset       the dataset
     * @param fitParameters the fit parameters
     */
-   public final void fit(Dataset dataset, FitParameters<?> fitParameters) {
+   public final void fit(ExampleDataset dataset, FitParameters<?> fitParameters) {
       notNull(dataset);
       notNull(fitParameters);
       Stopwatch sw = Stopwatch.createStarted();
-      if (fitParameters.verbose.value()) {
+      if(fitParameters.verbose.value()) {
          log.info("Preprocessing...");
       }
-      Dataset preprocessed = getPipeline().fitAndPreprocess(dataset).cache();
+      ExampleDataset preprocessed = getPipeline().fitAndPreprocess(dataset).cache();
       sw.stop();
-      if (fitParameters.verbose.value()) {
+      if(fitParameters.verbose.value()) {
          log.info("Preprocessing completed. ({0})", sw);
       }
       fitPreprocessed(preprocessed, fitParameters);
@@ -119,7 +120,40 @@ public abstract class Model implements Serializable {
     * @param preprocessed  the preprocessed dataset
     * @param fitParameters the fit parameters
     */
-   protected abstract void fitPreprocessed(Dataset preprocessed, FitParameters fitParameters);
+   protected abstract void fitPreprocessed(ExampleDataset preprocessed, FitParameters<?> fitParameters);
+
+   /**
+    * Fits the model on the given {@link VectorizedDataset} using the given consumer to modify the model's default
+    * {@link FitParameters}.
+    *
+    * @param dataset the dataset
+    */
+   public final void fit(VectorizedDataset dataset) {
+      fit(dataset, getFitParameters());
+   }
+
+   /**
+    * Fits the model on the given {@link VectorizedDataset} using the given consumer to modify the model's default
+    * {@link FitParameters}.
+    *
+    * @param dataset          the dataset
+    * @param parameterUpdater the consumer to use to update the fit parameters
+    */
+   public final void fit(VectorizedDataset dataset, Consumer<? extends FitParameters<?>> parameterUpdater) {
+      notNull(dataset);
+      notNull(parameterUpdater);
+      FitParameters<?> parameters = getFitParameters();
+      parameterUpdater.accept(Cast.as(parameters));
+      fit(dataset, parameters);
+   }
+
+   /**
+    * Fits the model on the given {@link VectorizedDataset} using the given {@link FitParameters}.
+    *
+    * @param dataset       the dataset
+    * @param fitParameters the fit parameters
+    */
+   public abstract void fit(VectorizedDataset dataset, FitParameters<?> fitParameters);
 
    /**
     * Gets default fit parameters for the model.
@@ -134,7 +168,7 @@ public abstract class Model implements Serializable {
     *
     * @return shapeless.the model parameters
     */
-   public abstract Pipeline getPipeline();
+   public abstract Pipeline<?, ?> getPipeline();
 
    /**
     * Gets the number of features in the model.

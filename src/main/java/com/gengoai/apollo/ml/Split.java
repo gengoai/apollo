@@ -22,10 +22,10 @@
 
 package com.gengoai.apollo.ml;
 
-import com.gengoai.apollo.ml.data.Dataset;
+import com.gengoai.apollo.ml.data.ExampleDataset;
 
 /**
- * Representation of a split (e.g. fold, 80/20, etc.) of a {@link Dataset} into a train and test {@link Dataset}.
+ * Representation of a split (e.g. fold, 80/20, etc.) of a {@link ExampleDataset} into a train and test {@link ExampleDataset}.
  *
  * @author David B. Bracewell
  */
@@ -33,11 +33,11 @@ public class Split {
    /**
     * The training dataset
     */
-   public final Dataset train;
+   public final ExampleDataset train;
    /**
     * The testing dataset.
     */
-   public final Dataset test;
+   public final ExampleDataset test;
 
    /**
     * Instantiates a new Split.
@@ -45,7 +45,7 @@ public class Split {
     * @param train the training dataset
     * @param test  the testing dataset.
     */
-   public Split(Dataset train, Dataset test) {
+   public Split(ExampleDataset train, ExampleDataset test) {
       this.train = train;
       this.test = test;
    }

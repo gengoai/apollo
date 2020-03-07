@@ -25,7 +25,7 @@ package com.gengoai.apollo.ml.vectorizer;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.Pipeline;
-import com.gengoai.apollo.ml.data.Dataset;
+import com.gengoai.apollo.ml.data.ExampleDataset;
 
 import java.io.Serializable;
 
@@ -39,11 +39,11 @@ import java.io.Serializable;
 public interface Vectorizer extends Serializable {
 
    /**
-    * Fits the vectorizer to the given {@link Dataset}.
+    * Fits the vectorizer to the given {@link ExampleDataset}.
     *
     * @param dataset the dataset to fit the vectorizer on
     */
-   void fit(Dataset dataset);
+   void fit(ExampleDataset dataset);
 
    /**
     * Transforms an {@link com.gengoai.apollo.ml.Instance} into an {@link NDArray}.

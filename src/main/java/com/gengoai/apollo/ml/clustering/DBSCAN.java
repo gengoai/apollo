@@ -26,9 +26,10 @@ import com.gengoai.ParameterDef;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.ml.DiscretePipeline;
 import com.gengoai.apollo.ml.FitParameters;
+import com.gengoai.apollo.ml.data.VectorizedDataset;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
 import com.gengoai.conversion.Cast;
-import com.gengoai.stream.MStream;
+import lombok.NonNull;
 import org.apache.commons.math3.ml.clustering.DBSCANClusterer;
 
 import java.util.List;
@@ -43,6 +44,8 @@ import java.util.List;
  */
 public class DBSCAN extends FlatCentroidClusterer {
    private static final long serialVersionUID = 1L;
+   public static final ParameterDef<Double> eps = ParameterDef.doubleParam("eps");
+   public static final ParameterDef<Integer> minPts = ParameterDef.intParam("minPts");
 
    /**
     * Instantiates a new Dbscan.
@@ -52,6 +55,7 @@ public class DBSCAN extends FlatCentroidClusterer {
    public DBSCAN(Preprocessor... preprocessors) {
       super(preprocessors);
    }
+
 
    /**
     * Instantiates a new Dbscan.
@@ -63,20 +67,20 @@ public class DBSCAN extends FlatCentroidClusterer {
    }
 
    @Override
-   public void fit(MStream<NDArray> vectorStream, FitParameters parameters) {
+   public void fit(@NonNull VectorizedDataset vectorStream, @NonNull FitParameters<?> parameters) {
       Parameters fitParameters = Cast.as(parameters);
       setMeasure(fitParameters.measure.value());
       DBSCANClusterer<ApacheClusterable> clusterer = new DBSCANClusterer<>(fitParameters.eps.value(),
                                                                            fitParameters.minPts.value(),
                                                                            new ApacheDistanceMeasure(
-                                                                              fitParameters.measure.value()));
-      List<ApacheClusterable> apacheClusterables = vectorStream.parallel()
+                                                                                 fitParameters.measure.value()));
+      List<ApacheClusterable> apacheClusterables = vectorStream.parallelStream()
                                                                .map(ApacheClusterable::new)
                                                                .collect();
 
       List<org.apache.commons.math3.ml.clustering.Cluster<ApacheClusterable>> result = clusterer.cluster(
-         apacheClusterables);
-      for (int i = 0; i < result.size(); i++) {
+            apacheClusterables);
+      for(int i = 0; i < result.size(); i++) {
          Cluster cp = new Cluster();
          cp.setId(i);
          cp.setCentroid(result.get(i).getPoints().get(0).getVector());
@@ -87,10 +91,10 @@ public class DBSCAN extends FlatCentroidClusterer {
          NDArray n = a.getVector();
          int index = -1;
          double score = fitParameters.measure.value().getOptimum().startingValue();
-         for (int i = 0; i < size(); i++) {
+         for(int i = 0; i < size(); i++) {
             Cluster c = get(i);
             double s = fitParameters.measure.value().calculate(n, c.getCentroid());
-            if (fitParameters.measure.value().getOptimum().test(s, score)) {
+            if(fitParameters.measure.value().getOptimum().test(s, score)) {
                index = i;
                score = s;
             }
@@ -99,14 +103,10 @@ public class DBSCAN extends FlatCentroidClusterer {
       });
    }
 
-
    @Override
    public Parameters getFitParameters() {
       return new Parameters();
    }
-
-   public static final ParameterDef<Double> eps = ParameterDef.doubleParam("eps");
-   public static final ParameterDef<Integer> minPts = ParameterDef.intParam("minPts");
 
    /**
     * FitParameters for DBSCAN

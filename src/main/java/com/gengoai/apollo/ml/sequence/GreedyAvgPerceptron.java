@@ -42,11 +42,13 @@ import com.gengoai.collection.counter.Counters;
 import com.gengoai.collection.counter.MultiCounter;
 import com.gengoai.collection.counter.MultiCounters;
 import com.gengoai.conversion.Cast;
-import com.gengoai.logging.Loggable;
+import lombok.extern.java.Log;
 
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+
+import static com.gengoai.LogUtils.logInfo;
 
 /**
  * <p>A greedy sequence labeler that uses an Averaged Perceptron for classification. First-ordered transitions are
@@ -54,7 +56,8 @@ import java.util.Set;
  *
  * @author David B. Bracewell
  */
-public class GreedyAvgPerceptron extends SequenceLabeler implements Loggable {
+@Log
+public class GreedyAvgPerceptron extends SequenceLabeler {
    private static final long serialVersionUID = 1L;
    private static final Feature BIAS_FEATURE = Feature.booleanFeature("******BIAS******");
    private Set<String> labelSet;
@@ -105,17 +108,36 @@ public class GreedyAvgPerceptron extends SequenceLabeler implements Loggable {
                             }));
    }
 
-
-   private Iterable<Feature> expandFeatures(Example example) {
-      return Iterables.concat(example.getFeatures(), Collections.singleton(BIAS_FEATURE));
+   private void average(int finalIteration,
+                        MultiCounter<String, String> weights,
+                        Table<String, String, Integer> timeStamp,
+                        MultiCounter<String, String> totals
+                       ) {
+      for(String feature : new HashSet<>(weights.firstKeys())) {
+         Counter<String> newWeights = Counters.newCounter();
+         weights.get(feature)
+                .forEach((cls, value) -> {
+                   double total = totals.get(feature, cls);
+                   total += (finalIteration - timeStamp.getOrDefault(feature, cls, 0)) * value;
+                   double v = total / finalIteration;
+                   if(Math.abs(v) >= 0.001) {
+                      newWeights.set(cls, v);
+                   }
+                });
+         weights.set(feature, newWeights);
+      }
    }
 
    private Counter<String> distribution(Example example, String pLabel) {
       Counter<String> scores = Counters.newCounter(transitionWeights.get(pLabel));
-      for (Feature feature : expandFeatures(example)) {
+      for(Feature feature : expandFeatures(example)) {
          scores.merge(featureWeights.get(feature.getName()).adjustValues(v -> v * feature.getValue()));
       }
       return scores;
+   }
+
+   private Iterable<Feature> expandFeatures(Example example) {
+      return Iterables.concat(example.getFeatures(), Collections.singleton(BIAS_FEATURE));
    }
 
    @Override
@@ -133,26 +155,25 @@ public class GreedyAvgPerceptron extends SequenceLabeler implements Loggable {
 
       int instances = 0;
       StoppingCriteria stoppingCriteria = StoppingCriteria.create("pct_error", parameters);
-      for (int i = 0; i < stoppingCriteria.maxIterations(); i++) {
+      for(int i = 0; i < stoppingCriteria.maxIterations(); i++) {
          Stopwatch sw = Stopwatch.createStarted();
          double total = 0;
          double correct = 0;
 
-         for (Example sequence : preprocessed.shuffle().stream()) {
+         for(Example sequence : preprocessed.shuffle().stream()) {
             String pLabel = "<BOS>";
-            for (int j = 0; j < sequence.size(); j++) {
+            for(int j = 0; j < sequence.size(); j++) {
                total++;
                instances++;
                Example instance = sequence.getExample(j);
                String y = instance.getDiscreteLabel();
                String predicted = distribution(instance, pLabel).max();
 
-               if (predicted == null) {
+               if(predicted == null) {
                   predicted = vectorizer.getString(0);
                }
-
-               if (!y.equals(predicted)) {
-                  for (Feature feature : expandFeatures(instance)) {
+               if(!y.equals(predicted)) {
+                  for(Feature feature : expandFeatures(instance)) {
                      update(y, feature.getName(), 1.0, instances, featureWeights, fTimestamps, fTotals);
                      update(predicted, feature.getName(), -1.0, instances, featureWeights, fTimestamps, fTotals);
                   }
@@ -167,11 +188,11 @@ public class GreedyAvgPerceptron extends SequenceLabeler implements Loggable {
          double error = 1d - (correct / total);
 
          sw.stop();
-         if (parameters.verbose.value()) {
-            logInfo("Iteration {0}: Accuracy={1,number,#.####}, time to complete={2}", i + 1, (1d - error), sw);
+         if(parameters.verbose.value()) {
+            logInfo(log, "Iteration {0}: Accuracy={1,number,#.####}, time to complete={2}", i + 1, (1d - error), sw);
          }
 
-         if (stoppingCriteria.check(error)) {
+         if(stoppingCriteria.check(error)) {
             break;
          }
       }
@@ -200,13 +221,13 @@ public class GreedyAvgPerceptron extends SequenceLabeler implements Loggable {
       String[] labels = new String[example.size()];
       double[] scores = new double[example.size()];
       String pLabel = "<BOS>";
-      for (int i = 0; i < example.size(); i++) {
+      for(int i = 0; i < example.size(); i++) {
          Example instance = getPipeline().preprocessorList.apply(example.getExample(i));
          Counter<String> distribution = distribution(instance, pLabel);
          String cLabel = distribution.max();
          scores[i] = distribution.get(cLabel);
          distribution.remove(cLabel);
-         while (!isValidTransition(cLabel, pLabel, instance)) {
+         while(!isValidTransition(cLabel, pLabel, instance)) {
             cLabel = distribution.max();
             scores[i] = distribution.get(cLabel);
             distribution.remove(cLabel);
@@ -227,27 +248,6 @@ public class GreedyAvgPerceptron extends SequenceLabeler implements Loggable {
       weights.increment(feature, cls, value);
       timeStamp.put(feature, cls, iteration);
    }
-
-   private void average(int finalIteration,
-                        MultiCounter<String, String> weights,
-                        Table<String, String, Integer> timeStamp,
-                        MultiCounter<String, String> totals
-                       ) {
-      for (String feature : new HashSet<>(weights.firstKeys())) {
-         Counter<String> newWeights = Counters.newCounter();
-         weights.get(feature)
-                .forEach((cls, value) -> {
-                   double total = totals.get(feature, cls);
-                   total += (finalIteration - timeStamp.getOrDefault(feature, cls, 0)) * value;
-                   double v = total / finalIteration;
-                   if (Math.abs(v) >= 0.001) {
-                      newWeights.set(cls, v);
-                   }
-                });
-         weights.set(feature, newWeights);
-      }
-   }
-
 
    /**
     * Custom fit parameters for the GreedyAveragePerceptron

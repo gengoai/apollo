@@ -64,7 +64,7 @@ public class C45Classifier extends MalletClassifier {
    protected ClassifierTrainer<?> getTrainer(FitParameters<?> parameters) {
       C45Trainer trainer = new C45Trainer();
       Parameters fitParameters = Cast.as(parameters);
-      if (fitParameters.verbose.value()) {
+      if(fitParameters.verbose.value()) {
          MalletLogger.getLogger(C45Trainer.class.getName()).setLevel(Level.INFO);
          MalletLogger.getLogger(GainRatio.class.getName()).setLevel(Level.INFO);
          MalletLogger.getLogger(C45.class.getName()).setLevel(Level.INFO);
@@ -79,7 +79,6 @@ public class C45Classifier extends MalletClassifier {
       trainer.setMinNumInsts(fitParameters.minInstances.value());
       return trainer;
    }
-
 
    /**
     * Fit parameters for C45

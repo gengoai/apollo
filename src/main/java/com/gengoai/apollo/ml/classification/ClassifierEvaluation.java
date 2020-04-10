@@ -28,19 +28,21 @@ import com.gengoai.apollo.ml.Split;
 import com.gengoai.apollo.ml.data.ExampleDataset;
 import com.gengoai.apollo.ml.vectorizer.IndexVectorizer;
 import com.gengoai.apollo.ml.vectorizer.MultiLabelBinarizer;
-import com.gengoai.logging.Logger;
 import com.gengoai.stream.MStream;
+import lombok.extern.java.Log;
 
 import java.io.PrintStream;
 import java.io.Serializable;
+
+import static com.gengoai.LogUtils.logInfo;
 
 /**
  * <p>Defines common methods and metrics when evaluating classification models.</p>
  *
  * @author David B. Bracewell
  */
+@Log
 public abstract class ClassifierEvaluation implements Serializable {
-   private static final Logger log = Logger.getLogger(ClassifierEvaluation.class);
    private static final long serialVersionUID = 1L;
 
    /**
@@ -63,15 +65,15 @@ public abstract class ClassifierEvaluation implements Serializable {
                                         ? new BinaryEvaluation(tmp)
                                         : new MultiClassEvaluation();
       int foldId = 0;
-      for (Split split : dataset.shuffle().fold(nFolds)) {
-         if (fitParameters.verbose.value()) {
+      for(Split split : dataset.shuffle().fold(nFolds)) {
+         if(fitParameters.verbose.value()) {
             foldId++;
-            log.info("Running fold {0}", foldId);
+            logInfo(log, "Running fold {0}", foldId);
          }
          classifier.fit(split.train, fitParameters);
          evaluation.evaluate(classifier, split.test);
-         if (fitParameters.verbose.value()) {
-            log.info("Fold {0}: Cumulative Metrics(accuracy={1})", foldId, evaluation.accuracy());
+         if(fitParameters.verbose.value()) {
+            logInfo(log, "Fold {0}: Cumulative Metrics(accuracy={1})", foldId, evaluation.accuracy());
          }
       }
       return evaluation;
@@ -147,7 +149,7 @@ public abstract class ClassifierEvaluation implements Serializable {
    public double falseNegativeRate() {
       double fn = falseNegatives();
       double tp = truePositives();
-      if (tp + fn == 0) {
+      if(tp + fn == 0) {
          return 0.0;
       }
       return fn / (fn + tp);
@@ -169,7 +171,7 @@ public abstract class ClassifierEvaluation implements Serializable {
    public double falseOmissionRate() {
       double fn = falseNegatives();
       double tn = trueNegatives();
-      if (tn + fn == 0) {
+      if(tn + fn == 0) {
          return 0.0;
       }
       return fn / (fn + tn);
@@ -184,7 +186,7 @@ public abstract class ClassifierEvaluation implements Serializable {
    public double falsePositiveRate() {
       double tn = trueNegatives();
       double fp = falsePositives();
-      if (tn + fp == 0) {
+      if(tn + fp == 0) {
          return 0.0;
       }
       return fp / (tn + fp);
@@ -221,7 +223,7 @@ public abstract class ClassifierEvaluation implements Serializable {
    public double negativePredictiveValue() {
       double tn = trueNegatives();
       double fn = falseNegatives();
-      if (tn + fn == 0) {
+      if(tn + fn == 0) {
          return 0;
       }
       return tn / (tn + fn);
@@ -268,7 +270,7 @@ public abstract class ClassifierEvaluation implements Serializable {
    public double sensitivity() {
       double tp = truePositives();
       double fn = falseNegatives();
-      if (tp + fn == 0) {
+      if(tp + fn == 0) {
          return 0.0;
       }
       return tp / (tp + fn);
@@ -282,7 +284,7 @@ public abstract class ClassifierEvaluation implements Serializable {
    public double specificity() {
       double tn = trueNegatives();
       double fp = falsePositives();
-      if (tn + fp == 0) {
+      if(tn + fp == 0) {
          return 1.0;
       }
       return tn / (tn + fp);

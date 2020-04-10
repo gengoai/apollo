@@ -29,7 +29,6 @@ import com.gengoai.apollo.ml.data.ExampleDataset;
 import com.gengoai.apollo.ml.data.VectorizedDataset;
 import com.gengoai.apollo.ml.preprocess.Preprocessor;
 import com.gengoai.conversion.Cast;
-import com.gengoai.logging.Loggable;
 import de.bwaldvogel.liblinear.Model;
 import de.bwaldvogel.liblinear.Parameter;
 import de.bwaldvogel.liblinear.SolverType;
@@ -44,7 +43,7 @@ import static com.gengoai.Validation.notNull;
  *
  * @author David B. Bracewell
  */
-public class LibLinearModel extends Classifier implements Loggable {
+public class LibLinearModel extends Classifier {
    private static final long serialVersionUID = 1L;
    public static final ParameterDef<Double> C = ParameterDef.doubleParam("C");
    public static final ParameterDef<Boolean> bias = ParameterDef.boolParam("bias");
@@ -62,7 +61,6 @@ public class LibLinearModel extends Classifier implements Loggable {
       super(preprocessors);
    }
 
-
    /**
     * Instantiates a new Lib linear model.
     *
@@ -70,11 +68,6 @@ public class LibLinearModel extends Classifier implements Loggable {
     */
    public LibLinearModel(DiscretePipeline modelParameters) {
       super(modelParameters);
-   }
-
-   @Override
-   protected void fitPreprocessed(@NonNull ExampleDataset preprocessed, @NonNull FitParameters<?> parameters) {
-      fit(preprocessed.toVectorizedDataset(getPipeline()), parameters);
    }
 
    @Override
@@ -93,6 +86,11 @@ public class LibLinearModel extends Classifier implements Loggable {
                             getNumberOfFeatures(),
                             biasIndex
                            );
+   }
+
+   @Override
+   protected void fitPreprocessed(@NonNull ExampleDataset preprocessed, @NonNull FitParameters<?> parameters) {
+      fit(preprocessed.toVectorizedDataset(getPipeline()), parameters);
    }
 
    @Override

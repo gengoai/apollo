@@ -23,6 +23,7 @@
 package com.gengoai.apollo.ml.classification;
 
 import com.gengoai.Copyable;
+import com.gengoai.LogUtils;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.ml.DiscretePipeline;
 import com.gengoai.apollo.ml.Example;
@@ -36,8 +37,6 @@ import com.gengoai.apollo.optimization.activation.Activation;
 import com.gengoai.apollo.optimization.loss.LogLoss;
 import com.gengoai.apollo.optimization.loss.LossFunction;
 import com.gengoai.conversion.Cast;
-import com.gengoai.logging.Loggable;
-import com.gengoai.logging.Logger;
 import lombok.NonNull;
 
 import java.io.Serializable;
@@ -52,7 +51,7 @@ import static com.gengoai.apollo.linear.NDArrayFactory.ND;
  *
  * @author David B. Bracewell
  */
-public class LinearModel extends Classifier implements Loggable {
+public class LinearModel extends Classifier {
    private static final long serialVersionUID = 1L;
    private final WeightParameters weightParameters;
 
@@ -87,7 +86,7 @@ public class LinearModel extends Classifier implements Loggable {
                          dataset.stream(),
                          new GradientDescentCostFunction(parameters.lossFunction.value()),
                          StoppingCriteria.create("loss", parameters)
-                                         .logger(Logger.getLogger(getClass())),
+                                         .logger(LogUtils.getLogger(getClass())),
                          parameters.weightUpdater.value());
    }
 

@@ -51,8 +51,8 @@ import static com.gengoai.tuple.Tuples.$;
  */
 public class Crf extends SequenceLabeler implements Serializable {
    private static final long serialVersionUID = 1L;
-   public static final ParameterDef<Double> C2 = ParameterDef.doubleParam("c2");
    public static final ParameterDef<Double> C1 = ParameterDef.doubleParam("c1");
+   public static final ParameterDef<Double> C2 = ParameterDef.doubleParam("c2");
    public static final ParameterDef<Double> EPS = ParameterDef.doubleParam("eps");
    public static final ParameterDef<Integer> MIN_FEATURE_FREQ = ParameterDef.intParam("minFeatureFreq");
    public static final ParameterDef<CrfSolver> SOLVER = ParameterDef.param("solver", CrfSolver.class);
@@ -82,8 +82,15 @@ public class Crf extends SequenceLabeler implements Serializable {
                             }));
    }
 
+   private void deleteItemSequence(ItemSequence itemSequence) {
+      for(int i = 0; i < itemSequence.size(); i++) {
+         itemSequence.get(i).delete();
+      }
+      itemSequence.delete();
+   }
+
    @Override
-   protected void fitPreprocessed(ExampleDataset dataset, FitParameters parameters) {
+   protected void fitPreprocessed(ExampleDataset dataset, FitParameters<?> parameters) {
       Parameters fitParameters = Cast.as(parameters);
       CrfSuiteLoader.INSTANCE.load();
       Trainer trainer = new Trainer();
@@ -120,13 +127,6 @@ public class Crf extends SequenceLabeler implements Serializable {
       Labeling labeling = new Labeling(tagger.tag(itemSequence));
       deleteItemSequence(itemSequence);
       return labeling;
-   }
-
-   private void deleteItemSequence(ItemSequence itemSequence) {
-      for(int i = 0; i < itemSequence.size(); i++) {
-         itemSequence.get(i).delete();
-      }
-      itemSequence.delete();
    }
 
    private void readObject(java.io.ObjectInputStream stream) throws Exception {
@@ -191,7 +191,6 @@ public class Crf extends SequenceLabeler implements Serializable {
        * The minimumn number of times a feature must appear to be kept (default 0 - keep all)
        */
       public final Parameter<Integer> minFeatureFreq = parameter(MIN_FEATURE_FREQ, 0);
-
 
    }
 

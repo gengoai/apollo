@@ -33,8 +33,8 @@ import com.gengoai.apollo.ml.preprocess.Preprocessor;
 import com.gengoai.apollo.optimization.StoppingCriteria;
 import com.gengoai.apollo.statistics.measure.Measure;
 import com.gengoai.conversion.Cast;
-import com.gengoai.logging.Logger;
 import lombok.NonNull;
+import lombok.extern.java.Log;
 
 import java.util.Objects;
 import java.util.Random;
@@ -48,8 +48,8 @@ import java.util.stream.IntStream;
  *
  * @author David B. Bracewell
  */
+@Log
 public class KMeans extends FlatCentroidClusterer {
-   private static final Logger log = Logger.getLogger(KMeans.class);
    private static final long serialVersionUID = 1L;
 
    /**

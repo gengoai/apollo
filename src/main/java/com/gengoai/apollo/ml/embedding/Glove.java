@@ -35,7 +35,7 @@ import com.gengoai.apollo.ml.preprocess.Preprocessor;
 import com.gengoai.collection.counter.Counter;
 import com.gengoai.collection.counter.Counters;
 import com.gengoai.conversion.Cast;
-import com.gengoai.logging.Logger;
+import lombok.extern.java.Log;
 import org.jblas.DoubleMatrix;
 import org.jblas.MatrixFunctions;
 
@@ -45,14 +45,18 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
+import static com.gengoai.LogUtils.logInfo;
+
 /**
  * <p>Implementation of Glove.</p>
  *
  * @author David B. Bracewell
  */
+@Log
 public class Glove extends Embedding {
-   private static final Logger log = Logger.getLogger(Glove.class);
    private static final long serialVersionUID = 1L;
+   public static final ParameterDef<Double> alpha = ParameterDef.doubleParam("alpha");
+   public static final ParameterDef<Integer> xMax = ParameterDef.intParam("xMax");
 
    /**
     * Instantiates a new Glove.
@@ -80,11 +84,11 @@ public class Glove extends Embedding {
       double size = preprocessed.size();
       double processed = 0;
       Counter<IntIntPair> counts = Counters.newCounter();
-      for (Example example : preprocessed) {
+      for(Example example : preprocessed) {
          List<Integer> ids = toIndices(example);
-         for (int i = 1; i < ids.size(); i++) {
+         for(int i = 1; i < ids.size(); i++) {
             int iW = ids.get(i);
-            for (int j = Math.max(0, i - p.windowSize.value()); j < i; j++) {
+            for(int j = Math.max(0, i - p.windowSize.value()); j < i; j++) {
                int jW = ids.get(j);
                double incrementBy = 1.0 / (i - j);
                counts.increment(new IntIntPair(iW, jW), incrementBy);
@@ -92,19 +96,19 @@ public class Glove extends Embedding {
             }
          }
          processed++;
-         if (processed % 1000 == 0) {
+         if(processed % 1000 == 0) {
             System.out.println("processed " + (100 * processed / size));
          }
       }
 
       sw.stop();
-      if (p.verbose.value()) {
-         log.info("Cooccurrence Matrix computed in {0}", sw);
+      if(p.verbose.value()) {
+         logInfo(log, "Cooccurrence Matrix computed in {0}", sw);
       }
 
       List<Cooccurrence> cooccurrences = new ArrayList<>();
       counts.forEach((e, v) -> {
-         if (getPipeline().featureVectorizer.getString(e.i).equals("the")) {
+         if(getPipeline().featureVectorizer.getString(e.i).equals("the")) {
             System.out.println(getPipeline().featureVectorizer.getString(e.j) + "\t" + v);
          }
          cooccurrences.add(new Cooccurrence(e.i, e.j, v));
@@ -114,7 +118,7 @@ public class Glove extends Embedding {
 
       DoubleMatrix[] W = new DoubleMatrix[getNumberOfFeatures() * 2];
       DoubleMatrix[] gradSq = new DoubleMatrix[getNumberOfFeatures() * 2];
-      for (int i = 0; i < getNumberOfFeatures() * 2; i++) {
+      for(int i = 0; i < getNumberOfFeatures() * 2; i++) {
          W[i] = DoubleMatrix.rand(p.dimension.value()).sub(0.5f).divi(p.dimension.value());
          gradSq[i] = DoubleMatrix.ones(p.dimension.value());
       }
@@ -125,11 +129,11 @@ public class Glove extends Embedding {
 
       int vocabLength = getNumberOfFeatures();
 
-      for (int itr = 0; itr < p.maxIterations.value(); itr++) {
+      for(int itr = 0; itr < p.maxIterations.value(); itr++) {
          double globalCost = 0d;
          Collections.shuffle(cooccurrences);
 
-         for (Cooccurrence cooccurrence : cooccurrences) {
+         for(Cooccurrence cooccurrence : cooccurrences) {
             int iWord = cooccurrence.word1;
             int iContext = cooccurrence.word2 + vocabLength;
             double count = cooccurrence.count;
@@ -170,14 +174,14 @@ public class Glove extends Embedding {
             gradSqBiases.put(iContext, gradSqBiases.get(iContext) + fdiff);
          }
 
-         if (p.verbose.value()) {
-            log.info("Iteration: {0},  cost:{1}", (itr + 1), globalCost / cooccurrences.size());
+         if(p.verbose.value()) {
+            logInfo(log, "Iteration: {0},  cost:{1}", (itr + 1), globalCost / cooccurrences.size());
          }
 
       }
 
       NDArray[] vectors = new NDArray[getNumberOfFeatures()];
-      for (int i = 0; i < vocabLength; i++) {
+      for(int i = 0; i < vocabLength; i++) {
          W[i].addi(W[i + vocabLength]);
          String k = getPipeline().featureVectorizer.getString(i);
          vectors[i] = new DenseMatrix(W[i]);
@@ -193,8 +197,8 @@ public class Glove extends Embedding {
 
    private List<Integer> toIndices(Example sequence) {
       List<Integer> out = new ArrayList<>();
-      for (Example example : sequence) {
-         if (example.getFeatures().size() > 0) {
+      for(Example example : sequence) {
+         if(example.getFeatures().size() > 0) {
             out.add(getPipeline().featureVectorizer.indexOf(example.getFeatures().get(0).getName()));
          }
       }
@@ -250,11 +254,15 @@ public class Glove extends Embedding {
 
       @Override
       public boolean equals(Object obj) {
-         if (this == obj) {return true;}
-         if (obj == null || getClass() != obj.getClass()) {return false;}
+         if(this == obj) {
+            return true;
+         }
+         if(obj == null || getClass() != obj.getClass()) {
+            return false;
+         }
          final IntIntPair other = (IntIntPair) obj;
          return Objects.equals(this.i, other.i)
-                   && Objects.equals(this.j, other.j);
+               && Objects.equals(this.j, other.j);
       }
 
       @Override
@@ -262,9 +270,6 @@ public class Glove extends Embedding {
          return 31 * Integer.hashCode(i) + 37 * Integer.hashCode(j);
       }
    }
-
-   public static final ParameterDef<Double> alpha = ParameterDef.doubleParam("alpha");
-   public static final ParameterDef<Integer> xMax = ParameterDef.intParam("xMax");
 
    /**
     * The type Parameters.

@@ -27,11 +27,12 @@ import com.gengoai.apollo.ml.data.ExampleDataset;
 import com.gengoai.apollo.ml.data.VectorizedDataset;
 import com.gengoai.conversion.Cast;
 import com.gengoai.io.resource.Resource;
-import com.gengoai.logging.Logger;
+import lombok.extern.java.Log;
 
 import java.io.Serializable;
 import java.util.function.Consumer;
 
+import static com.gengoai.LogUtils.logInfo;
 import static com.gengoai.Validation.notNull;
 
 /**
@@ -51,8 +52,8 @@ import static com.gengoai.Validation.notNull;
  *
  * @author David B. Bracewell
  */
+@Log
 public abstract class Model implements Serializable {
-   private static final Logger log = Logger.getLogger(Model.class);
    private static final long serialVersionUID = 1L;
 
    /**
@@ -109,18 +110,10 @@ public abstract class Model implements Serializable {
       ExampleDataset preprocessed = getPipeline().fitAndPreprocess(dataset).cache();
       sw.stop();
       if(fitParameters.verbose.value()) {
-         log.info("Preprocessing completed. ({0})", sw);
+         logInfo(log, "Preprocessing completed. ({0})", sw);
       }
       fitPreprocessed(preprocessed, fitParameters);
    }
-
-   /**
-    * Training implementation over preprocessed dataset
-    *
-    * @param preprocessed  the preprocessed dataset
-    * @param fitParameters the fit parameters
-    */
-   protected abstract void fitPreprocessed(ExampleDataset preprocessed, FitParameters<?> fitParameters);
 
    /**
     * Fits the model on the given {@link VectorizedDataset} using the given consumer to modify the model's default
@@ -156,19 +149,19 @@ public abstract class Model implements Serializable {
    public abstract void fit(VectorizedDataset dataset, FitParameters<?> fitParameters);
 
    /**
+    * Training implementation over preprocessed dataset
+    *
+    * @param preprocessed  the preprocessed dataset
+    * @param fitParameters the fit parameters
+    */
+   protected abstract void fitPreprocessed(ExampleDataset preprocessed, FitParameters<?> fitParameters);
+
+   /**
     * Gets default fit parameters for the model.
     *
     * @return the default fit parameters
     */
    public abstract FitParameters<?> getFitParameters();
-
-   /**
-    * Gets the pipeline associated with the model. Subclasses should override the return type to match the requirements
-    * of the model.
-    *
-    * @return shapeless.the model parameters
-    */
-   public abstract Pipeline<?, ?> getPipeline();
 
    /**
     * Gets the number of features in the model.
@@ -185,6 +178,14 @@ public abstract class Model implements Serializable {
     * @return the number of labels
     */
    public abstract int getNumberOfLabels();
+
+   /**
+    * Gets the pipeline associated with the model. Subclasses should override the return type to match the requirements
+    * of the model.
+    *
+    * @return shapeless.the model parameters
+    */
+   public abstract Pipeline<?, ?> getPipeline();
 
    /**
     * Writes the model to the given resource.

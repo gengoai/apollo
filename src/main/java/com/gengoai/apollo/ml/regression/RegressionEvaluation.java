@@ -26,9 +26,9 @@ import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.FitParameters;
 import com.gengoai.apollo.ml.Split;
 import com.gengoai.apollo.ml.data.ExampleDataset;
-import com.gengoai.logging.Logger;
 import com.gengoai.stream.MStream;
 import com.gengoai.string.TableFormatter;
+import lombok.extern.java.Log;
 import org.apache.mahout.math.list.DoubleArrayList;
 
 import java.io.PrintStream;
@@ -36,13 +36,15 @@ import java.io.Serializable;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static com.gengoai.LogUtils.logInfo;
+
 /**
  * <p>Evaluation for regression models.</p>
  *
  * @author David B. Bracewell
  */
+@Log
 public class RegressionEvaluation implements Serializable {
-   private static final Logger log = Logger.getLogger(RegressionEvaluation.class);
    private static final long serialVersionUID = 1L;
    private DoubleArrayList gold = new DoubleArrayList();
    private double p = 0;
@@ -66,14 +68,14 @@ public class RegressionEvaluation implements Serializable {
                                                      ) {
       RegressionEvaluation evaluation = new RegressionEvaluation();
       AtomicInteger foldId = new AtomicInteger(0);
-      for (Split split : dataset.shuffle().fold(nFolds)) {
-         if (printFoldStats) {
-            log.info("Running fold {0}", foldId.incrementAndGet());
+      for(Split split : dataset.shuffle().fold(nFolds)) {
+         if(printFoldStats) {
+            logInfo(log, "Running fold {0}", foldId.incrementAndGet());
          }
          regression.fit(split.train, fitParameters);
          evaluation.evaluate(regression, split.test);
-         if (printFoldStats) {
-            log.info("Fold {0}: Cumulative Metrics(r2={1})", foldId.get(), evaluation.r2());
+         if(printFoldStats) {
+            logInfo(log, "Fold {0}: Cumulative Metrics(r2={1})", foldId.get(), evaluation.r2());
          }
       }
       return evaluation;
@@ -101,16 +103,6 @@ public class RegressionEvaluation implements Serializable {
       this.predicted.add(predicted);
    }
 
-
-   /**
-    * Calculates the mean squared error
-    *
-    * @return the mean squared error
-    */
-   public double meanSquaredError() {
-      return squaredError() / gold.size();
-   }
-
    /**
     * Evaluate the given model using the given dataset
     *
@@ -122,11 +114,20 @@ public class RegressionEvaluation implements Serializable {
    }
 
    public void evaluate(Regression model, MStream<Example> dataset) {
-      for (Example ii : dataset) {
+      for(Example ii : dataset) {
          gold.add(ii.getNumericLabel());
          predicted.add(model.estimate(ii));
       }
       p = Math.max(p, model.getNumberOfFeatures());
+   }
+
+   /**
+    * Calculates the mean squared error
+    *
+    * @return the mean squared error
+    */
+   public double meanSquaredError() {
+      return squaredError() / gold.size();
    }
 
    /**
@@ -202,7 +203,7 @@ public class RegressionEvaluation implements Serializable {
     */
    public double squaredError() {
       double error = 0;
-      for (int i = 0; i < gold.size(); i++) {
+      for(int i = 0; i < gold.size(); i++) {
          error += Math.pow(predicted.get(i) - gold.get(i), 2);
       }
       return error;

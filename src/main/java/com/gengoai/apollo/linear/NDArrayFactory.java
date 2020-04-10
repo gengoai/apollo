@@ -206,6 +206,24 @@ public enum NDArrayFactory {
    }
 
    /**
+    * Creates a 2-d NDArray with the given number of rows and columns using the given data.
+    *
+    * @param rows    the number of rows
+    * @param columns the number of columns
+    * @param data    the data
+    * @return the NDArray
+    */
+   public NDArray array(int rows, int columns, float[] data) {
+      Validation.checkArgument(rows * columns == data.length,
+                               () -> "Invalid Length: " + (rows * columns) + " != " + data.length);
+      NDArray out = array(rows, columns);
+      for (int i = 0; i < data.length; i++) {
+         out.set(i, data[i]);
+      }
+      return out;
+   }
+
+   /**
     * Creates a 2-d NDArray from the given data.
     *
     * @param data the data

@@ -23,6 +23,7 @@
 package com.gengoai.apollo.ml.regression;
 
 import com.gengoai.Copyable;
+import com.gengoai.LogUtils;
 import com.gengoai.apollo.linear.NDArray;
 import com.gengoai.apollo.ml.Example;
 import com.gengoai.apollo.ml.FitParameters;
@@ -35,7 +36,6 @@ import com.gengoai.apollo.optimization.*;
 import com.gengoai.apollo.optimization.activation.Activation;
 import com.gengoai.apollo.optimization.loss.SquaredLoss;
 import com.gengoai.conversion.Cast;
-import com.gengoai.logging.Logger;
 import lombok.NonNull;
 
 import java.io.Serializable;
@@ -71,6 +71,11 @@ public class LinearRegression extends Regression {
    }
 
    @Override
+   public double estimate(Example vector) {
+      return weightParameters.activate(vector.preprocessAndTransform(getPipeline())).scalar();
+   }
+
+   @Override
    public void fit(@NonNull VectorizedDataset dataset, @NonNull FitParameters<?> fitParameters) {
       Parameters p = notNull(Cast.as(fitParameters, Parameters.class));
       weightParameters.update(getNumberOfLabels(), getNumberOfFeatures());
@@ -81,13 +86,8 @@ public class LinearRegression extends Regression {
                          StoppingCriteria.create("loss", p)
                                          .historySize(p.historySize.value())
                                          .reportInterval(p.reportInterval.value())
-                                         .logger(Logger.getLogger(LinearRegression.class)),
+                                         .logger(LogUtils.getLogger(LinearRegression.class)),
                          p.weightUpdater.value());
-   }
-
-   @Override
-   public double estimate(Example vector) {
-      return weightParameters.activate(vector.preprocessAndTransform(getPipeline())).scalar();
    }
 
    @Override

@@ -31,10 +31,10 @@ import com.gengoai.apollo.ml.preprocess.Preprocessor;
 import com.gengoai.apollo.optimization.StoppingCriteria;
 import com.gengoai.apollo.statistics.Sampling;
 import com.gengoai.conversion.Cast;
-import com.gengoai.logging.Logger;
 import com.gengoai.tuple.Tuple2;
 import com.gengoai.tuple.Tuple3;
 import lombok.NonNull;
+import lombok.extern.java.Log;
 
 import java.util.List;
 import java.util.PrimitiveIterator;
@@ -49,8 +49,9 @@ import static com.gengoai.tuple.Tuples.$;
  *
  * @author David B. Bracewell
  */
+@Log
 public class MiniBatchKMeans extends FlatCentroidClusterer {
-   private static final Logger log = Logger.getLogger(MiniBatchKMeans.class);
+   private static final long serialVersionUID = 1L;
 
    /**
     * Instantiates a new Mini batch k means.
@@ -70,28 +71,17 @@ public class MiniBatchKMeans extends FlatCentroidClusterer {
       super(modelParameters);
    }
 
-
-   private double iteration(VectorizedDataset stream, int[] counts, int batchSize) {
-      //Select batch and compute the best cluster for each item
-      List<Tuple3<NDArray, Integer, Double>> batch =
-            Sampling.uniformInts(batchSize, 0, (int) stream.size(), true)
-                    .parallel()
-                    .mapToObj(i -> best(stream.get(i)).appendLeft(stream.get(i)))
-                    .collect(Collectors.toList());
-
-      //Update the centroids based on the assignments
-      double diff = 0d;
-      for(Tuple3<NDArray, Integer, Double> assignment : batch) {
-         NDArray target = assignment.v1;
-         int cid = assignment.v2;
-         counts[cid]++;
-         double eta = 1.0 / counts[cid];
-         NDArray centroid = get(cid).getCentroid();
-         centroid.muli(1.0 - eta).addi(target.mul(eta));
-         diff += assignment.v3;
+   private Tuple2<Integer, Double> best(NDArray v) {
+      int bestId = 0;
+      double bestMeasure = getMeasure().calculate(v, get(0).getCentroid());
+      for(int j = 1; j < size(); j++) {
+         double measure = getMeasure().calculate(v, get(j).getCentroid());
+         if(getMeasure().getOptimum().test(measure, bestMeasure)) {
+            bestId = j;
+            bestMeasure = measure;
+         }
       }
-      diff /= batch.size();
-      return diff;
+      return $(bestId, bestMeasure);
    }
 
    @Override
@@ -124,22 +114,32 @@ public class MiniBatchKMeans extends FlatCentroidClusterer {
              });
    }
 
-   private Tuple2<Integer, Double> best(NDArray v) {
-      int bestId = 0;
-      double bestMeasure = getMeasure().calculate(v, get(0).getCentroid());
-      for(int j = 1; j < size(); j++) {
-         double measure = getMeasure().calculate(v, get(j).getCentroid());
-         if(getMeasure().getOptimum().test(measure, bestMeasure)) {
-            bestId = j;
-            bestMeasure = measure;
-         }
-      }
-      return $(bestId, bestMeasure);
-   }
-
    @Override
    public MiniBatchKMeans.Parameters getFitParameters() {
       return new Parameters();
+   }
+
+   private double iteration(VectorizedDataset stream, int[] counts, int batchSize) {
+      //Select batch and compute the best cluster for each item
+      List<Tuple3<NDArray, Integer, Double>> batch =
+            Sampling.uniformInts(batchSize, 0, (int) stream.size(), true)
+                    .parallel()
+                    .mapToObj(i -> best(stream.get(i)).appendLeft(stream.get(i)))
+                    .collect(Collectors.toList());
+
+      //Update the centroids based on the assignments
+      double diff = 0d;
+      for(Tuple3<NDArray, Integer, Double> assignment : batch) {
+         NDArray target = assignment.v1;
+         int cid = assignment.v2;
+         counts[cid]++;
+         double eta = 1.0 / counts[cid];
+         NDArray centroid = get(cid).getCentroid();
+         centroid.muli(1.0 - eta).addi(target.mul(eta));
+         diff += assignment.v3;
+      }
+      diff /= batch.size();
+      return diff;
    }
 
    /**

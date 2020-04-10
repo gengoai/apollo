@@ -1,7 +1,6 @@
 package com.gengoai.apollo.optimization;
 
 import com.gengoai.apollo.linear.NDArray;
-import com.gengoai.logging.Loggable;
 import com.gengoai.stream.MStream;
 
 /**
@@ -10,7 +9,7 @@ import com.gengoai.stream.MStream;
  * @param <THETA> the type parameter
  * @author David B. Bracewell
  */
-public interface Optimizer<THETA> extends Loggable {
+public interface Optimizer<THETA> {
 
    /**
     * Gets final cost.

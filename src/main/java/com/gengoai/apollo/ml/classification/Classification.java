@@ -48,17 +48,18 @@ public class Classification implements Serializable {
     * @param vectorizer   the vectorizer
     */
    public Classification(NDArray distribution, DiscreteVectorizer vectorizer) {
-      if (distribution.shape().isScalar()) {
+      if(distribution.shape().isScalar()) {
          this.distribution = NDArrayFactory.DENSE.array(1, 2);
          this.distribution.set(0, 1d - distribution.scalar());
          this.distribution.set(1, distribution.scalar());
       } else {
-         this.distribution = distribution.shape().isColumnVector() ? distribution.T() : distribution.copy();
+         this.distribution = distribution.shape().isColumnVector()
+                             ? distribution.T()
+                             : distribution.copy();
       }
       this.argMax = vectorizer.getString(this.distribution.argmax());
       this.vectorizer = vectorizer;
    }
-
 
    /**
     * Gets the classification object as a Counter. Will convert to label ids to names if a vectorizer is present,
@@ -68,7 +69,7 @@ public class Classification implements Serializable {
     */
    public Counter<String> asCounter() {
       Counter<String> counter = Counters.newCounter();
-      for (long i = 0; i < distribution.length(); i++) {
+      for(long i = 0; i < distribution.length(); i++) {
          counter.set(vectorizer.getString(i), distribution.get((int) i));
       }
       return counter;
@@ -83,6 +84,15 @@ public class Classification implements Serializable {
       return distribution;
    }
 
+   /**
+    * Gets the argMax as a string either converting the id using the supplied vectorizer or using
+    * <code>Integer.toString</code>
+    *
+    * @return the result
+    */
+   public String getResult() {
+      return argMax;
+   }
 
    /**
     * Gets the score for a label.
@@ -92,16 +102,6 @@ public class Classification implements Serializable {
     */
    public double getScore(String label) {
       return distribution.get(vectorizer.indexOf(label));
-   }
-
-   /**
-    * Gets the argMax as a string either converting the id using the supplied vectorizer or using
-    * <code>Integer.toString</code>
-    *
-    * @return the result
-    */
-   public String getResult() {
-      return argMax;
    }
 
    @Override

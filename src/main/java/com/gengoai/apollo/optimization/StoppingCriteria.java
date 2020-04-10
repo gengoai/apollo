@@ -1,14 +1,17 @@
 package com.gengoai.apollo.optimization;
 
+import com.gengoai.LogUtils;
 import com.gengoai.Stopwatch;
 import com.gengoai.apollo.ml.FitParameters;
 import com.gengoai.apollo.ml.Params;
-import com.gengoai.logging.Logger;
 
 import java.io.Serializable;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.function.IntToDoubleFunction;
+import java.util.logging.Logger;
+
+import static com.gengoai.LogUtils.logInfo;
 
 /**
  * The type Termination criteria.
@@ -18,8 +21,8 @@ import java.util.function.IntToDoubleFunction;
 public final class StoppingCriteria implements Serializable {
    private final String criteriaName;
    private final LinkedList<Double> history = new LinkedList<>();
+   private Logger logger = LogUtils.getGlobalLogger();
    private int historySize = 5;
-   private Logger logger = Logger.getGlobalLogger();
    private int maxIterations = 100;
    private int reportInterval = -1;
    private double tolerance = 1e-6;
@@ -73,17 +76,17 @@ public final class StoppingCriteria implements Serializable {
     */
    public boolean check(double sumLoss) {
       boolean converged = false;
-      if (!Double.isFinite(sumLoss)) {
+      if(!Double.isFinite(sumLoss)) {
          System.err.println("Non Finite loss, aborting");
          return true;
       }
-      if (history.size() >= historySize) {
+      if(history.size() >= historySize) {
          converged = Math.abs(sumLoss - history.removeLast()) <= tolerance;
          Iterator<Double> itr = history.iterator();
-         while (converged && itr.hasNext()) {
+         while(converged && itr.hasNext()) {
             double n = itr.next();
             converged = Math.abs(sumLoss - n) <= tolerance //loss in tolerance
-                           || sumLoss > n; //or we got worse
+                  || sumLoss > n; //or we got worse
          }
       }
       history.addFirst(sumLoss);
@@ -144,7 +147,9 @@ public final class StoppingCriteria implements Serializable {
     * @return the stopping criteria
     */
    public StoppingCriteria logger(Logger logger) {
-      this.logger = logger == null ? Logger.getGlobalLogger() : logger;
+      this.logger = logger == null
+                    ? LogUtils.getGlobalLogger()
+                    : logger;
       return this;
    }
 
@@ -217,22 +222,22 @@ public final class StoppingCriteria implements Serializable {
    public int untilTermination(IntToDoubleFunction iteration) {
       Stopwatch sw = Stopwatch.createStopped();
       double loss = 0;
-      for (int i = 0; i < maxIterations; i++) {
+      for(int i = 0; i < maxIterations; i++) {
          sw.reset();
          sw.start();
          loss = iteration.applyAsDouble(i);
          sw.stop();
-         if (check(loss)) {
-            logger.info("iteration {0}: {1}={2}, time={3}, Converged", (i + 1), criteriaName, loss, sw);
+         if(check(loss)) {
+            logInfo(logger, "iteration {0}: {1}={2}, time={3}, Converged", (i + 1), criteriaName, loss, sw);
             return i;
          }
-         if (reportInterval > 0 && (i + 1) % reportInterval == 0) {
-            logger.info("iteration {0}: {1}={2}, time={3}", (i + 1), criteriaName, loss, sw);
+         if(reportInterval > 0 && (i + 1) % reportInterval == 0) {
+            logInfo(logger, "iteration {0}: {1}={2}, time={3}", (i + 1), criteriaName, loss, sw);
          }
       }
-      if (reportInterval > 0 && (maxIterations + 1) % reportInterval != 0) {
-         logger.info("iteration {0}: {1}={2}, time={3}, Max. Iterations Reached", maxIterations, criteriaName, loss,
-                     sw);
+      if(reportInterval > 0 && (maxIterations + 1) % reportInterval != 0) {
+         logInfo(logger, "iteration {0}: {1}={2}, time={3}, Max. Iterations Reached", maxIterations, criteriaName, loss,
+                 sw);
       }
       return maxIterations;
    }

@@ -30,7 +30,7 @@ import com.gengoai.apollo.ml.Params;
  *
  * @author David B. Bracewell
  */
-public class EmbeddingFitParameters<T extends EmbeddingFitParameters> extends FitParameters<T> {
+public class EmbeddingFitParameters<T extends EmbeddingFitParameters<T>> extends FitParameters<T> {
    private static final long serialVersionUID = 1L;
 
    public final Parameter<Integer> dimension = parameter(Params.Embedding.dimension, 100);

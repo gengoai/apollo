@@ -20,39 +20,36 @@
  *
  */
 
-package com.gengoai.apollo.ml;
+package com.gengoai.apollo.math.statistics.measure;
 
-import lombok.NonNull;
+import com.gengoai.apollo.math.linalg.NDArray;
 
 /**
- * Representation of a split (e.g. fold, 80/20, etc.) of a {@link DataSet} into a train and test {@link DataSet}.
+ * <p>Distance measure implementation that is the one minus the value of a similarity measure</p>
  *
  * @author David B. Bracewell
  */
-public class Split {
-   /**
-    * The training dataset
-    */
-   public final DataSet train;
-   /**
-    * The testing dataset.
-    */
-   public final DataSet test;
+class OneMinusSimilarityDistance implements DistanceMeasure {
+   private static final long serialVersionUID = 1L;
+   private final SimilarityMeasure similarityMeasure;
 
    /**
-    * Instantiates a new Split.
+    * Instantiates a new One minus similarity distance.
     *
-    * @param train the training dataset
-    * @param test  the testing dataset.
+    * @param similarityMeasure the similarity measure
     */
-   public Split(@NonNull DataSet train, @NonNull DataSet test) {
-      this.train = train;
-      this.test = test;
+   public OneMinusSimilarityDistance(SimilarityMeasure similarityMeasure) {
+      this.similarityMeasure = similarityMeasure;
    }
 
    @Override
-   public String toString() {
-      return "Split{train=" + train.size() + ", test=" + test.size() + "}";
+   public SimilarityMeasure asSimilarityMeasure() {
+      return similarityMeasure;
    }
 
-}//END OF TrainTest
+   @Override
+   public double calculate(NDArray v1, NDArray v2) {
+      return 1d - similarityMeasure.calculate(v1,v2);
+   }
+
+}//END OF OneMinusSimilarityDistance

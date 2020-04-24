@@ -20,39 +20,28 @@
  *
  */
 
-package com.gengoai.apollo.ml;
+package com.gengoai.apollo.math.statistics.measure;
 
-import lombok.NonNull;
+import com.gengoai.Validation;
 
 /**
- * Representation of a split (e.g. fold, 80/20, etc.) of a {@link DataSet} into a train and test {@link DataSet}.
- *
  * @author David B. Bracewell
  */
-public class Split {
-   /**
-    * The training dataset
-    */
-   public final DataSet train;
-   /**
-    * The testing dataset.
-    */
-   public final DataSet test;
-
-   /**
-    * Instantiates a new Split.
-    *
-    * @param train the training dataset
-    * @param test  the testing dataset.
-    */
-   public Split(@NonNull DataSet train, @NonNull DataSet test) {
-      this.train = train;
-      this.test = test;
+public enum Agreement implements ContingencyTableCalculator {
+   Cohen_Kappa {
+      @Override
+      public double calculate(ContingencyTable table) {
+         Validation.checkArgument(table.columnCount() == 2
+                                     && table.rowCount() == 2,
+                                  "Only 2x2 tables supported");
+         double sum = table.getSum();
+         double sumSq = sum * sum;
+         double Po = (table.get(0, 0) + table.get(1, 1)) / sum;
+         double Pe = ((table.columnSum(0) * table.rowSum(0)) / sumSq)
+                        + ((table.columnSum(1) * table.rowSum(1)) / sumSq);
+         return (Po - Pe) / (1.0 - Pe);
+      }
    }
 
-   @Override
-   public String toString() {
-      return "Split{train=" + train.size() + ", test=" + test.size() + "}";
-   }
 
-}//END OF TrainTest
+}// END OF Agreement

@@ -1,6 +1,4 @@
 /*
- * (c) 2005 David B. Bracewell
- *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -17,42 +15,40 @@
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
- *
  */
 
 package com.gengoai.apollo.ml;
 
-import lombok.NonNull;
+import com.gengoai.Copyable;
+import com.gengoai.apollo.ml.encoder.Encoder;
+import com.gengoai.apollo.ml.observation.Observation;
+import lombok.Data;
+
+import java.io.Serializable;
 
 /**
- * Representation of a split (e.g. fold, 80/20, etc.) of a {@link DataSet} into a train and test {@link DataSet}.
+ * <p>Metadata about an {@link Observation} source detailing the type (Class information for the Observation), encoder
+ * (if the Observation has been encoded), and a dimension (number of values).</p>
  *
  * @author David B. Bracewell
  */
-public class Split {
+@Data
+public class ObservationMetadata implements Serializable, Copyable<ObservationMetadata> {
    /**
-    * The training dataset
+    * The Dimension.
     */
-   public final DataSet train;
+   long dimension;
    /**
-    * The testing dataset.
+    * The Type.
     */
-   public final DataSet test;
-
+   Class<? extends Observation> type;
    /**
-    * Instantiates a new Split.
-    *
-    * @param train the training dataset
-    * @param test  the testing dataset.
+    * The Encoder.
     */
-   public Split(@NonNull DataSet train, @NonNull DataSet test) {
-      this.train = train;
-      this.test = test;
-   }
+   Encoder encoder;
 
    @Override
-   public String toString() {
-      return "Split{train=" + train.size() + ", test=" + test.size() + "}";
+   public ObservationMetadata copy() {
+      return Copyable.deepCopy(this);
    }
-
-}//END OF TrainTest
+}//END OF ObservationMetadata

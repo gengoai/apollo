@@ -20,39 +20,42 @@
  *
  */
 
-package com.gengoai.apollo.ml;
+package com.gengoai.apollo.ml.evaluation;
 
+import com.gengoai.apollo.ml.model.clustering.Clusterer;
+import com.gengoai.apollo.ml.model.clustering.Clustering;
 import lombok.NonNull;
 
+import java.io.PrintStream;
+
 /**
- * Representation of a split (e.g. fold, 80/20, etc.) of a {@link DataSet} into a train and test {@link DataSet}.
+ * <p>
+ * Specialized evaluation for evaluating the result of {@link Clusterer}s.
+ * </p>
  *
  * @author David B. Bracewell
  */
-public class Split {
-   /**
-    * The training dataset
-    */
-   public final DataSet train;
-   /**
-    * The testing dataset.
-    */
-   public final DataSet test;
+public interface ClusteringEvaluation {
 
    /**
-    * Instantiates a new Split.
+    * Evaluates the given clustering.
     *
-    * @param train the training dataset
-    * @param test  the testing dataset.
+    * @param clustering the clustering to evaluate.
     */
-   public Split(@NonNull DataSet train, @NonNull DataSet test) {
-      this.train = train;
-      this.test = test;
+   void evaluate(@NonNull Clustering clustering);
+
+   /**
+    * Outputs the evaluation results to the given print stream.
+    *
+    * @param printStream the print stream to write to
+    */
+   void output(@NonNull PrintStream printStream);
+
+   /**
+    * Outputs the evaluation results to standard out.
+    */
+   default void output() {
+      output(System.out);
    }
 
-   @Override
-   public String toString() {
-      return "Split{train=" + train.size() + ", test=" + test.size() + "}";
-   }
-
-}//END OF TrainTest
+}//END OF ClusteringEvaluation

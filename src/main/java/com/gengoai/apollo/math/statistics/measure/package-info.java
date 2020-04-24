@@ -20,39 +20,7 @@
  *
  */
 
-package com.gengoai.apollo.ml;
-
-import lombok.NonNull;
-
 /**
- * Representation of a split (e.g. fold, 80/20, etc.) of a {@link DataSet} into a train and test {@link DataSet}.
- *
- * @author David B. Bracewell
+ * Ways of determining the affinity (i.e. similarity, distance, correlation, and association) between two objects
  */
-public class Split {
-   /**
-    * The training dataset
-    */
-   public final DataSet train;
-   /**
-    * The testing dataset.
-    */
-   public final DataSet test;
-
-   /**
-    * Instantiates a new Split.
-    *
-    * @param train the training dataset
-    * @param test  the testing dataset.
-    */
-   public Split(@NonNull DataSet train, @NonNull DataSet test) {
-      this.train = train;
-      this.test = test;
-   }
-
-   @Override
-   public String toString() {
-      return "Split{train=" + train.size() + ", test=" + test.size() + "}";
-   }
-
-}//END OF TrainTest
+package com.gengoai.apollo.math.statistics.measure;

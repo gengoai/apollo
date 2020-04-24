@@ -20,39 +20,35 @@
  *
  */
 
-package com.gengoai.apollo.ml;
+package com.gengoai.apollo.math.statistics.measure;
 
-import lombok.NonNull;
 
 /**
- * Representation of a split (e.g. fold, 80/20, etc.) of a {@link DataSet} into a train and test {@link DataSet}.
+ * <p>Calculates a value based on a contingency table. Examples include, affinity measures like mutual information.</p>
  *
  * @author David B. Bracewell
  */
-public class Split {
-   /**
-    * The training dataset
-    */
-   public final DataSet train;
-   /**
-    * The testing dataset.
-    */
-   public final DataSet test;
+@FunctionalInterface
+public interface ContingencyTableCalculator {
+
 
    /**
-    * Instantiates a new Split.
+    * Calculates the value of this metric.
     *
-    * @param train the training dataset
-    * @param test  the testing dataset.
+    * @param table the table to calculate on
+    * @return the metric value
     */
-   public Split(@NonNull DataSet train, @NonNull DataSet test) {
-      this.train = train;
-      this.test = test;
+   double calculate(ContingencyTable table);
+
+   /**
+    * If possible, calculates a p-value for the metric to determine the significance of the measure.
+    *
+    * @param table the table to calculate on
+    * @return the p-values
+    */
+   default double pValue(ContingencyTable table) {
+      throw new UnsupportedOperationException();
    }
 
-   @Override
-   public String toString() {
-      return "Split{train=" + train.size() + ", test=" + test.size() + "}";
-   }
 
-}//END OF TrainTest
+}//END OF ContingencyTableCalculator

@@ -1,6 +1,4 @@
 /*
- * (c) 2005 David B. Bracewell
- *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -17,42 +15,45 @@
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
- *
  */
 
-package com.gengoai.apollo.ml;
+package com.gengoai.apollo.ml.model.clustering;
 
+import com.gengoai.apollo.ml.observation.Observation;
 import lombok.NonNull;
 
 /**
- * Representation of a split (e.g. fold, 80/20, etc.) of a {@link DataSet} into a train and test {@link DataSet}.
+ * <p>Base class for clustering algorithms that produce hierarchical clusterings where the clusters are represented in
+ * a tree structure.</p>
  *
  * @author David B. Bracewell
  */
-public class Split {
-   /**
-    * The training dataset
-    */
-   public final DataSet train;
-   /**
-    * The testing dataset.
-    */
-   public final DataSet test;
+public abstract class HierarchicalClusterer extends Clusterer {
+   protected HierarchicalClustering clustering;
 
    /**
-    * Instantiates a new Split.
+    * Instantiates a new HierarchicalClusterer.
     *
-    * @param train the training dataset
-    * @param test  the testing dataset.
+    * @param parameters the parameters
     */
-   public Split(@NonNull DataSet train, @NonNull DataSet test) {
-      this.train = train;
-      this.test = test;
+   protected HierarchicalClusterer(@NonNull ClusterFitParameters parameters) {
+      super(parameters);
    }
 
    @Override
-   public String toString() {
-      return "Split{train=" + train.size() + ", test=" + test.size() + "}";
+   public HierarchicalClustering getClustering() {
+      return clustering;
    }
 
-}//END OF TrainTest
+   @Override
+   public int getNumberOfClusters() {
+      return clustering == null
+             ? 0
+             : clustering.size();
+   }
+
+   @Override
+   protected Observation transform(@NonNull Observation observation) {
+      return observation;
+   }
+}//END OF HierarchicalClusterer

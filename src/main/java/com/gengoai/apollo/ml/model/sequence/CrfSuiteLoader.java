@@ -1,6 +1,4 @@
 /*
- * (c) 2005 David B. Bracewell
- *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -17,42 +15,38 @@
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
- *
  */
 
-package com.gengoai.apollo.ml;
+package com.gengoai.apollo.ml.model.sequence;
 
-import lombok.NonNull;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * Representation of a split (e.g. fold, 80/20, etc.) of a {@link DataSet} into a train and test {@link DataSet}.
+ * <p>Utility class for making suring the CRFSuite library is loaded</p>
  *
  * @author David B. Bracewell
  */
-public class Split {
-   /**
-    * The training dataset
-    */
-   public final DataSet train;
-   /**
-    * The testing dataset.
-    */
-   public final DataSet test;
+public enum CrfSuiteLoader {
+   INSTANCE;
+
+   private AtomicBoolean loaded = new AtomicBoolean(false);
 
    /**
-    * Instantiates a new Split.
-    *
-    * @param train the training dataset
-    * @param test  the testing dataset.
+    * Loads the library if not already loaded.
     */
-   public Split(@NonNull DataSet train, @NonNull DataSet test) {
-      this.train = train;
-      this.test = test;
+   public void load() {
+      if(!loaded.get()) {
+         synchronized(this) {
+            if(!loaded.get()) {
+               loaded.set(true);
+               try {
+                  com.gengoai.jcrfsuite.util.CrfSuiteLoader.load();
+               } catch(Exception e) {
+                  throw new RuntimeException(e);
+               }
+            }
+         }
+      }
    }
 
-   @Override
-   public String toString() {
-      return "Split{train=" + train.size() + ", test=" + test.size() + "}";
-   }
-
-}//END OF TrainTest
+}//END OF CrfSuiteLoader

@@ -20,39 +20,30 @@
  *
  */
 
-package com.gengoai.apollo.ml;
+package com.gengoai.apollo.math.statistics.measure;
 
-import lombok.NonNull;
+
+import com.gengoai.math.Optimum;
 
 /**
- * Representation of a split (e.g. fold, 80/20, etc.) of a {@link DataSet} into a train and test {@link DataSet}.
+ * <p>A measure that determines how far apart two items are.</p>
  *
  * @author David B. Bracewell
  */
-public class Split {
-   /**
-    * The training dataset
-    */
-   public final DataSet train;
-   /**
-    * The testing dataset.
-    */
-   public final DataSet test;
+public interface DistanceMeasure extends Measure {
 
    /**
-    * Instantiates a new Split.
+    * Converts the distance measure to a similarity measure.
     *
-    * @param train the training dataset
-    * @param test  the testing dataset.
+    * @return the similarity measure
     */
-   public Split(@NonNull DataSet train, @NonNull DataSet test) {
-      this.train = train;
-      this.test = test;
+   default SimilarityMeasure asSimilarityMeasure() {
+      return new NegativeDistanceSimilarity(this);
    }
 
    @Override
-   public String toString() {
-      return "Split{train=" + train.size() + ", test=" + test.size() + "}";
+   default Optimum getOptimum() {
+      return Optimum.MINIMUM;
    }
 
-}//END OF TrainTest
+}//END OF DistanceMeasure

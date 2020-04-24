@@ -1,6 +1,4 @@
 /*
- * (c) 2005 David B. Bracewell
- *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -17,42 +15,25 @@
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
- *
  */
 
-package com.gengoai.apollo.ml;
+package com.gengoai.apollo.ml.model;
 
-import lombok.NonNull;
+import com.gengoai.ParamMap;
 
 /**
- * Representation of a split (e.g. fold, 80/20, etc.) of a {@link DataSet} into a train and test {@link DataSet}.
+ * <p>
+ * Fit parameters define the parameters used when fitting a model to a dataset. Each model will have its own
+ * implementation that defines the unique parameters it needs to build a model.
+ * </p>
  *
  * @author David B. Bracewell
  */
-public class Split {
+public class FitParameters<T extends FitParameters<T>> extends ParamMap<T> {
+   private static final long serialVersionUID = 1L;
    /**
-    * The training dataset
+    * Whether or not to be verbose when fitting and transforming with the model
     */
-   public final DataSet train;
-   /**
-    * The testing dataset.
-    */
-   public final DataSet test;
+   public final Parameter<Boolean> verbose = parameter(Params.verbose, true);
 
-   /**
-    * Instantiates a new Split.
-    *
-    * @param train the training dataset
-    * @param test  the testing dataset.
-    */
-   public Split(@NonNull DataSet train, @NonNull DataSet test) {
-      this.train = train;
-      this.test = test;
-   }
-
-   @Override
-   public String toString() {
-      return "Split{train=" + train.size() + ", test=" + test.size() + "}";
-   }
-
-}//END OF TrainTest
+}//END OF FitParameters

@@ -1,6 +1,4 @@
 /*
- * (c) 2005 David B. Bracewell
- *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -17,42 +15,41 @@
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
- *
  */
 
-package com.gengoai.apollo.ml;
+package com.gengoai.apollo.ml.model.topic;
 
+import com.gengoai.collection.counter.Counter;
+import com.gengoai.string.Strings;
+import lombok.Data;
 import lombok.NonNull;
 
+import java.io.Serializable;
+
 /**
- * Representation of a split (e.g. fold, 80/20, etc.) of a {@link DataSet} into a train and test {@link DataSet}.
+ * <p>
+ * A topic is defined as distribution over features and is associated with an id. Optionally, a name can be specified
+ * for each topic to make it more human understandable.
+ * </p>
  *
  * @author David B. Bracewell
  */
-public class Split {
-   /**
-    * The training dataset
-    */
-   public final DataSet train;
-   /**
-    * The testing dataset.
-    */
-   public final DataSet test;
+@Data
+public class Topic implements Serializable {
+   private static final long serialVersionUID = 1L;
+   private final int id;
+   private final Counter<String> featureDistribution;
+   private String name = Strings.EMPTY;
 
    /**
-    * Instantiates a new Split.
+    * Instantiates a new Topic.
     *
-    * @param train the training dataset
-    * @param test  the testing dataset.
+    * @param id                  the id
+    * @param featureDistribution the feature distribution
     */
-   public Split(@NonNull DataSet train, @NonNull DataSet test) {
-      this.train = train;
-      this.test = test;
+   public Topic(int id, @NonNull Counter<String> featureDistribution) {
+      this.id = id;
+      this.featureDistribution = featureDistribution;
    }
 
-   @Override
-   public String toString() {
-      return "Split{train=" + train.size() + ", test=" + test.size() + "}";
-   }
-
-}//END OF TrainTest
+}//END OF Topic

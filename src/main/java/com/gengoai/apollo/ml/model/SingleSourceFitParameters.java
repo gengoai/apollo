@@ -1,6 +1,4 @@
 /*
- * (c) 2005 David B. Bracewell
- *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -17,42 +15,28 @@
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
- *
  */
 
-package com.gengoai.apollo.ml;
+package com.gengoai.apollo.ml.model;
 
-import lombok.NonNull;
+import com.gengoai.apollo.ml.Datum;
 
 /**
- * Representation of a split (e.g. fold, 80/20, etc.) of a {@link DataSet} into a train and test {@link DataSet}.
+ * <p>
+ * Base class defining an <code>input</code> and <code>output</code> parameter for {@link Model}s with a a single input
+ * and output source.
+ * </p>
  *
+ * @param <T> the type parameter
  * @author David B. Bracewell
  */
-public class Split {
+public abstract class SingleSourceFitParameters<T extends SingleSourceFitParameters<T>> extends FitParameters<T> {
    /**
-    * The training dataset
+    * The name of the input source
     */
-   public final DataSet train;
+   public final Parameter<String> input = parameter(Params.input, Datum.DEFAULT_INPUT);
    /**
-    * The testing dataset.
+    * The name of the output source
     */
-   public final DataSet test;
-
-   /**
-    * Instantiates a new Split.
-    *
-    * @param train the training dataset
-    * @param test  the testing dataset.
-    */
-   public Split(@NonNull DataSet train, @NonNull DataSet test) {
-      this.train = train;
-      this.test = test;
-   }
-
-   @Override
-   public String toString() {
-      return "Split{train=" + train.size() + ", test=" + test.size() + "}";
-   }
-
-}//END OF TrainTest
+   public final Parameter<String> output = parameter(Params.output, Datum.DEFAULT_OUTPUT);
+}//END OF SingleSourceFitParameters

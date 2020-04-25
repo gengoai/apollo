@@ -23,13 +23,10 @@ import com.gengoai.apollo.math.linalg.NDArray;
 import com.gengoai.apollo.math.linalg.NDArrayFactory;
 import com.gengoai.apollo.ml.DataSet;
 import com.gengoai.apollo.ml.Datum;
-import com.gengoai.apollo.ml.encoder.EncodeUtils;
-import com.gengoai.apollo.ml.encoder.IndexEncoder;
 import com.gengoai.apollo.ml.model.Params;
 import com.gengoai.collection.counter.Counter;
 import com.gengoai.collection.counter.Counters;
 import com.gengoai.stream.spark.SparkStream;
-import com.gengoai.string.Strings;
 import lombok.NonNull;
 import org.apache.spark.mllib.linalg.DenseVector;
 import org.apache.spark.mllib.linalg.Vector;
@@ -42,7 +39,6 @@ import java.util.stream.Stream;
 
 import static com.gengoai.apollo.math.linalg.SparkLinearAlgebra.sparkSVD;
 import static com.gengoai.apollo.math.linalg.SparkLinearAlgebra.toMatrix;
-import static com.gengoai.apollo.ml.encoder.EncodeUtils.toCountVector;
 import static com.gengoai.apollo.ml.observation.VariableCollection.mergeVariableSpace;
 import static com.gengoai.function.Functional.with;
 
@@ -52,9 +48,8 @@ import static com.gengoai.function.Functional.with;
  *
  * @author David B. Bracewell
  */
-public class LSA extends TopicModel {
+public class LSA extends BaseVectorTopicModel {
    private static final long serialVersionUID = 1L;
-   private final IndexEncoder encoder = new IndexEncoder();
    private final Parameters parameters;
    private List<NDArray> topicVectors = new ArrayList<>();
 
@@ -87,15 +82,15 @@ public class LSA extends TopicModel {
       if(parameters.combineInputs.value()) {
          return mergeVariableSpace(d.stream(getInputs()))
                .getVariableSpace()
-               .map(o -> toCountVector(o, encoder, parameters.namingPattern.value()));
+               .map(o -> toCountVector(o, parameters.namingPattern.value()));
       }
       return d.stream(getInputs())
-              .map(o -> toCountVector(o, encoder, parameters.namingPattern.value()));
+              .map(o -> toCountVector(o, parameters.namingPattern.value()));
    }
 
    @Override
    public void estimate(@NonNull DataSet dataset) {
-      EncodeUtils.fit(encoder, dataset, getInputs(), parameters.namingPattern.value());
+      encoderFit(dataset, getInputs(), parameters.namingPattern.value());
       SparkStream<Vector> stream = new SparkStream<Vector>(dataset.parallelStream().toDistributedStream()
                                                                   .flatMap(this::encode)
                                                                   .map(o -> new DenseVector(o.toDoubleArray())))
@@ -132,31 +127,14 @@ public class LSA extends TopicModel {
       return NDArrayFactory.ND.rowVector(dist);
    }
 
-   private NDArray inference(NDArray vector) {
+   @Override
+   protected NDArray inference(NDArray vector) {
       double[] scores = new double[topics.size()];
       for(int i = 0; i < topics.size(); i++) {
          double score = vector.dot(topicVectors.get(i));
          scores[i] = score;
       }
       return NDArrayFactory.ND.rowVector(scores);
-   }
-
-   @Override
-   public Datum transform(@NonNull Datum datum) {
-      if(parameters.combineOutputs.value()) {
-         datum.put(parameters.output.value(),
-                   inference(toCountVector(mergeVariableSpace(datum.stream(parameters.inputs.value())),
-                                           encoder,
-                                           parameters.namingPattern.value())));
-      } else {
-         for(String input : parameters.inputs.value()) {
-            datum.put(input + Strings.nullToEmpty(parameters.outputSuffix.value()),
-                      inference(toCountVector(datum.get(input),
-                                              encoder,
-                                              parameters.namingPattern.value())));
-         }
-      }
-      return datum;
    }
 
    /**

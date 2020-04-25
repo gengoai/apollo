@@ -80,7 +80,7 @@ public class NaiveBayes extends SingleSourceModel<NaiveBayes.Parameters, NaiveBa
     * @param parameters the model parameters
     */
    public NaiveBayes(@NonNull Parameters parameters) {
-      super(new Parameters());
+      super(parameters);
    }
 
    /**
@@ -121,8 +121,8 @@ public class NaiveBayes extends SingleSourceModel<NaiveBayes.Parameters, NaiveBa
       double N = 0;
       for(Datum instance : dataset) {
          N++;
-         NDArray vector = instance.get(parameters.input.value(), NDArray.class);
-         NDArray label = instance.get(parameters.output.value(), NDArray.class);
+         NDArray vector = instance.get(parameters.input.value()).asNDArray();
+         NDArray label = instance.get(parameters.output.value()).asNDArray();
          int ci;
          if(label.shape().isScalar()) {
             ci = (int) label.get(0);

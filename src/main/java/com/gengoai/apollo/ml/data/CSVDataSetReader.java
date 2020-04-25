@@ -26,21 +26,19 @@ import com.gengoai.apollo.ml.observation.Variable;
 import com.gengoai.io.CSV;
 import com.gengoai.io.CSVReader;
 import com.gengoai.io.resource.Resource;
+import com.gengoai.math.Math2;
 import lombok.NonNull;
 
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * <p>
  * A {@link DataSetReader} for delimiter separated files. Rows in the file represents {@link Datum} and columns {@link
  * com.gengoai.apollo.ml.observation.Observation}s. Generated {@link Datum} have an observation per column in the file
- * with the source names equalling the column names. The header must be specified in the file or through the CSV object
- * passed into the constructor. Additionally, a schema must be specified via Map of source (column) names to {@link
- * ColumnConverter}.
+ * with the source names equalling the column names.
  * </p>
  *
  * @author David B. Bracewell
@@ -48,21 +46,39 @@ import java.util.Map;
 public class CSVDataSetReader implements DataSetReader, Serializable {
    private static final long serialVersionUID = 1L;
    private final CSV csv;
-   private final Map<String, ColumnConverter> columnToVariable;
+   private final Schema schema;
+
+   /**
+    * Instantiates a new CSVDataSetReader that will infer the types of each cell
+    *
+    * @param csv the definition of the csv file
+    */
+   public CSVDataSetReader(@NonNull CSV csv) {
+      this.csv = csv;
+      this.schema = null;
+   }
 
    /**
     * Instantiates a new CSVDataSetReader.
     *
-    * @param csv              the definition of the csv file
-    * @param columnToVariable the schema
+    * @param csv    the definition of the csv file
+    * @param schema the schema
     */
    public CSVDataSetReader(@NonNull CSV csv,
-                           @NonNull Map<String, ColumnConverter> columnToVariable) {
+                           @NonNull Schema schema) {
       this.csv = csv;
-      this.columnToVariable = columnToVariable;
+      this.schema = schema;
       if(!csv.getHasHeader() && csv.getHeader().isEmpty()) {
          throw new IllegalArgumentException("Either the CSV must have a header or one must be defined.");
       }
+   }
+
+   private Variable guess(String column, String value) {
+      Double d = Math2.tryParseDouble(value);
+      if(d == null) {
+         return Variable.binary(column, value);
+      }
+      return Variable.real(column, d);
    }
 
    @Override
@@ -70,13 +86,25 @@ public class CSVDataSetReader implements DataSetReader, Serializable {
       List<Datum> data = new ArrayList<>();
       List<String> header;
       try(CSVReader reader = csv.reader(dataResource)) {
-         header = reader.getHeader();
+         header = new ArrayList<>(reader.getHeader());
          List<String> row;
          while((row = reader.nextRow()) != null) {
+            if(row.isEmpty()) {
+               continue;
+            }
             Datum datum = new Datum();
-            for(int i = 0; i < header.size(); i++) {
+            if(header.size() < row.size()) {
+               for(int i = header.size(); i < row.size(); i++) {
+                  header.add("AutoColumn-" + i);
+               }
+            }
+            for(int i = 0; i < row.size(); i++) {
                String column = header.get(i);
-               datum.put(column, columnToVariable.get(column).convert(column, row.get(i)));
+               if(schema != null) {
+                  datum.put(column, schema.convert(column, row.get(i)));
+               } else {
+                  datum.put(column, guess(column, row.get(i)));
+               }
             }
             data.add(datum);
          }

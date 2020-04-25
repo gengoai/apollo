@@ -97,7 +97,7 @@ public class MultiClassEvaluation extends ClassifierEvaluation {
       for(Datum d : dataset) {
          String gold = getLabelFor(d.get(outputName), dataset);
          Classification predicted = model.transform(d)
-                                         .get(outputName, Classification.class);
+                                         .get(outputName).asClassification();
          entry(gold, predicted);
       }
    }

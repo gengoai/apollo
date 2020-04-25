@@ -134,7 +134,7 @@ public class BinaryEvaluation extends ClassifierEvaluation {
       dataset.forEach(d -> {
          String gold = getLabelFor(d.get(outputName), dataset);
          Classification predicted = model.transform(d)
-                                         .get(outputName, Classification.class);
+                                         .get(outputName).asClassification();
          entry(gold, predicted);
       });
    }

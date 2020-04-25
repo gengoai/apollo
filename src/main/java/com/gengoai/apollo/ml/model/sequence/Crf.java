@@ -121,7 +121,7 @@ public class Crf extends SingleSourceModel<Crf.Parameters, Crf> {
       for(Datum datum : dataset) {
          Observation input = Validation.notNull(datum.get(parameters.input.value()),
                                                 "Null Input Observation");
-         Sequence<?> output = Validation.notNull(datum.get(parameters.output.value(), Sequence.class),
+         Sequence<?> output = Validation.notNull(datum.get(parameters.output.value()).asSequence(),
                                                  "Null Output Observation");
          Tuple2<ItemSequence, StringList> instance = toItemSequence(input, output);
          trainer.append(instance.v1, instance.v2, 0);

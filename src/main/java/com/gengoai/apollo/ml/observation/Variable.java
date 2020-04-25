@@ -20,6 +20,8 @@
 package com.gengoai.apollo.ml.observation;
 
 import com.gengoai.Validation;
+import com.gengoai.apollo.math.linalg.NDArray;
+import com.gengoai.apollo.math.linalg.NDArrayFactory;
 import com.gengoai.string.StringMatcher;
 import com.gengoai.string.Strings;
 import lombok.Data;
@@ -170,6 +172,16 @@ public class Variable implements Observation, Serializable {
       this.value = value;
    }
 
+   @Override
+   public NDArray asNDArray() {
+      return NDArrayFactory.ND.scalar(value);
+   }
+
+   /**
+    * Prepends the give source name to the front of the Variable's prefix.
+    *
+    * @param sourceName the source name
+    */
    public void addSourceName(@NonNull String sourceName) {
       this.prefix = "<" + sourceName + ">" + prefix;
    }

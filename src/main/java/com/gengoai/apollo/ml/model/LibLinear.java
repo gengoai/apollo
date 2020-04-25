@@ -141,8 +141,8 @@ public class LibLinear extends SingleSourceModel<LibLinear.Parameters, LibLinear
       dataset.stream()
              .zipWithIndex()
              .forEach((datum, index) -> {
-                problem.x[index.intValue()] = toFeature(datum.get(parameters.input.value(), NDArray.class), 0);
-                problem.y[index.intValue()] = getLabel(datum.get(parameters.output.value(), NDArray.class));
+                problem.x[index.intValue()] = toFeature(datum.get(parameters.input.value()).asNDArray(), 0);
+                problem.y[index.intValue()] = getLabel(datum.get(parameters.output.value()).asNDArray());
              });
 
       if(parameters.verbose.value()) {
@@ -182,6 +182,11 @@ public class LibLinear extends SingleSourceModel<LibLinear.Parameters, LibLinear
       } else {
          Linear.predictValues(model, toFeature(observation.asNDArray(), biasIndex), p);
       }
+
+      if(parameters.solver.value().isSupportVectorRegression()) {
+         return NDArrayFactory.ND.scalar(p[0]);
+      }
+
       //re-arrange the probabilities to match the target feature
       double[] prime = new double[model.getNrClass()];
       int[] labels = model.getLabels();

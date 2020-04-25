@@ -17,37 +17,42 @@
  * under the License.
  */
 
-package com.gengoai.apollo.ml.encoder;
+package com.gengoai.apollo.ml.model.topic;
 
 import com.gengoai.apollo.math.linalg.NDArray;
 import com.gengoai.apollo.math.linalg.NDArrayFactory;
 import com.gengoai.apollo.ml.DataSet;
+import com.gengoai.apollo.ml.Datum;
+import com.gengoai.apollo.ml.encoder.Encoder;
+import com.gengoai.apollo.ml.encoder.IndexEncoder;
 import com.gengoai.apollo.ml.observation.Observation;
 import com.gengoai.apollo.ml.observation.Variable;
 import com.gengoai.apollo.ml.observation.VariableNameSpace;
+import com.gengoai.string.Strings;
 import lombok.NonNull;
 
 import java.util.Collection;
 
+import static com.gengoai.apollo.ml.observation.VariableCollection.mergeVariableSpace;
+
 /**
- * <p>Commonly used methods when working {@link Encoder}s</p>
+ * <p>Abstract base class for {@link TopicModel}s backed by {@link NDArray}</p>
  *
  * @author David B. Bracewell
  */
-public final class EncodeUtils {
+public abstract class BaseVectorTopicModel extends TopicModel {
+   protected final IndexEncoder encoder = new IndexEncoder();
 
    /**
     * Fits the given {@link Encoder} to the given {@link DataSet} for the given sources.
     *
-    * @param encoder   the encoder
     * @param dataset   the dataset
     * @param sources   the sources
     * @param nameSpace the {@link VariableNameSpace} to use when fitting the dataset
     */
-   public static void fit(@NonNull Encoder encoder,
-                          @NonNull DataSet dataset,
-                          @NonNull Collection<String> sources,
-                          @NonNull VariableNameSpace nameSpace) {
+   protected void encoderFit(@NonNull DataSet dataset,
+                             @NonNull Collection<String> sources,
+                             @NonNull VariableNameSpace nameSpace) {
       encoder.fit(dataset.stream()
                          .flatMap(d -> d.stream(sources))
                          .flatMap(Observation::getVariableSpace)
@@ -55,42 +60,24 @@ public final class EncodeUtils {
    }
 
    /**
-    * Encodes the variable space of the given {@link Observation} into an {@link NDArray} using the given encoder where
-    * the value of an index in the array is <code>1</code> when that {@link Variable} occurred at least once. The
-    * resulting array has a shape of <code>1 x Encoder.size()</code>
+    * perform inference on the given document represented as an {@link NDArray}
     *
-    * @param observation the observation
-    * @param encoder     the encoder
-    * @param nameSpace   the {@link VariableNameSpace} to use when encoding.
-    * @return the NDArray
+    * @param n the document
+    * @return the topic distribution
     */
-   public static NDArray toBinaryVector(@NonNull Observation observation,
-                                        @NonNull Encoder encoder,
-                                        @NonNull VariableNameSpace nameSpace) {
-      NDArray n = NDArrayFactory.ND.array(encoder.size());
-      observation.getVariableSpace()
-                 .forEach(v -> {
-                    int index = encoder.encode(nameSpace.getName(v));
-                    if(index >= 0) {
-                       n.set(index, 1);
-                    }
-                 });
-      return n;
-   }
+   protected abstract NDArray inference(NDArray n);
 
    /**
     * Encodes the variable space of the given {@link Observation} into an {@link NDArray} using the given encoder where
     * the value an index in the array is equal to the sum of the values of all occurrences of the associated {@link
-    * Variable}. The resulting array has a shape of <code>1 x Encoder.size()</code>
+    * Variable}*. The resulting array has a shape of <code>1 x Encoder.size()</code>
     *
     * @param observation the observation
-    * @param encoder     the encoder
     * @param nameSpace   the {@link VariableNameSpace} to use when encoding.
     * @return the NDArray
     */
-   public static NDArray toCountVector(@NonNull Observation observation,
-                                       @NonNull Encoder encoder,
-                                       @NonNull VariableNameSpace nameSpace) {
+   protected NDArray toCountVector(@NonNull Observation observation,
+                                   @NonNull VariableNameSpace nameSpace) {
       NDArray n = NDArrayFactory.ND.array(encoder.size());
       observation.getVariableSpace()
                  .forEach(v -> {
@@ -102,8 +89,20 @@ public final class EncodeUtils {
       return n;
    }
 
-   private EncodeUtils() {
-      throw new IllegalAccessError();
+   @Override
+   public Datum transform(@NonNull Datum datum) {
+      if(getFitParameters().combineOutputs.value()) {
+         datum.put(getFitParameters().output.value(),
+                   inference(toCountVector(mergeVariableSpace(datum.stream(getFitParameters().inputs.value())),
+                                           getFitParameters().namingPattern.value())));
+      } else {
+         for(String input : getFitParameters().inputs.value()) {
+            datum.put(input + Strings.nullToEmpty(getFitParameters().outputSuffix.value()),
+                      inference(toCountVector(datum.get(input),
+                                              getFitParameters().namingPattern.value())));
+         }
+      }
+      return datum;
    }
 
-}//END OF EncodeUtils
+}//END OF BaseVectorTopicModel

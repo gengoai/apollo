@@ -25,11 +25,21 @@ import com.gengoai.string.Strings;
 import lombok.NonNull;
 
 /**
+ *<p>
+ *    Defines a methodology for converting a column (field, feature) and its colu
+ *</p>
+ *
  * @author David B. Bracewell
  */
 @FunctionalInterface
 public interface ColumnConverter {
 
+   /**
+    * Binary valued variable column converter.
+    *
+    * @param includeColumnName the include column name
+    * @return the column converter
+    */
    static ColumnConverter binaryValuedVariable(boolean includeColumnName) {
       return (c, v) -> {
          if(includeColumnName) {
@@ -39,6 +49,12 @@ public interface ColumnConverter {
       };
    }
 
+   /**
+    * Real valued variable column converter.
+    *
+    * @param nameSpace the name space
+    * @return the column converter
+    */
    static ColumnConverter realValuedVariable(@NonNull VariableNameSpace nameSpace) {
       return (c, v) -> {
          if(nameSpace == VariableNameSpace.Prefix) {
@@ -48,6 +64,13 @@ public interface ColumnConverter {
       };
    }
 
+   /**
+    * Convert variable.
+    *
+    * @param columnName  the column name
+    * @param columnValue the column value
+    * @return the variable
+    */
    Variable convert(@NonNull String columnName, @NonNull String columnValue);
 
 }//END OF ColumnConverter

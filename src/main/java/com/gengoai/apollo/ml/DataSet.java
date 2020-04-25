@@ -294,8 +294,10 @@ public abstract class DataSet implements Iterable<Datum>, Serializable {
       return this;
    }
 
+   /**
+    * Marshaller for DataSet
+    */
    public static class Marshaller extends JsonMarshaller<DataSet> {
-      private static final long serialVersionUID = 1L;
 
       @Override
       protected DataSet deserialize(JsonEntry entry, Type type) {
@@ -307,7 +309,7 @@ public abstract class DataSet implements Iterable<Datum>, Serializable {
                  data.add(e.getAs(Datum.class));
               });
          DataSet dataSet = new InMemoryDataSet(data);
-//         dataSet.putAllMetadata(entry.getProperty("metadata").getAsMap(ObservationMetadata.class));
+         dataSet.putAllMetadata(entry.getProperty("metadata").getAsMap(ObservationMetadata.class));
          return dataSet;
       }
 
@@ -322,6 +324,6 @@ public abstract class DataSet implements Iterable<Datum>, Serializable {
          obj.addProperty("data", array);
          return obj;
       }
-   }
+   }//END OF Marshaller
 
 }//END OF DataSet

@@ -50,7 +50,7 @@ public class HashingEncoder implements Encoder {
    @Override
    public String decode(double index) {
       if(index >= 0 && index < numberOfFeatures) {
-         return "Hash(" + Integer.toString((int) index) + ")";
+         return "Hash(" + (int) index + ")";
       }
       return null;
    }

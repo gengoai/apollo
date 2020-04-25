@@ -24,13 +24,10 @@ import com.gengoai.apollo.math.linalg.NDArray;
 import com.gengoai.apollo.math.linalg.NDArrayFactory;
 import com.gengoai.apollo.ml.DataSet;
 import com.gengoai.apollo.ml.Datum;
-import com.gengoai.apollo.ml.encoder.EncodeUtils;
-import com.gengoai.apollo.ml.encoder.IndexEncoder;
 import com.gengoai.apollo.ml.model.Params;
 import com.gengoai.collection.Iterables;
 import com.gengoai.collection.counter.Counter;
 import com.gengoai.collection.counter.Counters;
-import com.gengoai.string.Strings;
 import lombok.NonNull;
 import org.apache.commons.math3.distribution.GammaDistribution;
 import org.apache.commons.math3.special.Gamma;
@@ -40,7 +37,6 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
-import static com.gengoai.apollo.ml.encoder.EncodeUtils.toCountVector;
 import static com.gengoai.apollo.ml.observation.VariableCollection.mergeVariableSpace;
 import static com.gengoai.function.Functional.with;
 
@@ -51,7 +47,7 @@ import static com.gengoai.function.Functional.with;
  *
  * @author David B. Bracewell
  */
-public class OnlineLDA extends TopicModel {
+public class OnlineLDA extends BaseVectorTopicModel {
    private static final GammaDistribution GAMMA_DISTRIBUTION = new GammaDistribution(100d, 0.01d);
    private static final long serialVersionUID = 1L;
    public static final ParameterDef<Double> alpha = ParameterDef.doubleParam("alpha");
@@ -60,7 +56,6 @@ public class OnlineLDA extends TopicModel {
    public static final ParameterDef<Double> kappa = ParameterDef.doubleParam("kappa");
    public static final ParameterDef<Double> tau0 = ParameterDef.doubleParam("tau0");
    private final OnlineLDAFitParameters parameters;
-   private final IndexEncoder encoder = new IndexEncoder();
    private NDArray lambda;
 
    /**
@@ -140,15 +135,15 @@ public class OnlineLDA extends TopicModel {
       if(parameters.combineInputs.value()) {
          return mergeVariableSpace(d.stream(getInputs()))
                .getVariableSpace()
-               .map(o -> toCountVector(o, encoder, parameters.namingPattern.value()));
+               .map(o -> toCountVector(o, parameters.namingPattern.value()));
       }
       return d.stream(getInputs())
-              .map(o -> toCountVector(o, encoder, parameters.namingPattern.value()));
+              .map(o -> toCountVector(o, parameters.namingPattern.value()));
    }
 
    @Override
    public void estimate(@NonNull DataSet dataset) {
-      EncodeUtils.fit(encoder, dataset, getInputs(), parameters.namingPattern.value());
+      encoderFit(dataset, getInputs(), parameters.namingPattern.value());
       final ModelP model = new ModelP();
       final double D = dataset.size();
       int batchSize = parameters.batchSize.value();
@@ -191,7 +186,8 @@ public class OnlineLDA extends TopicModel {
       return n;
    }
 
-   private NDArray inference(NDArray n) {
+   @Override
+   protected NDArray inference(NDArray n) {
       final ModelP model = new ModelP(lambda);
       eStep(model, Collections.singletonList(n));
       return model.gamma.divi(model.gamma.sum());
@@ -214,24 +210,6 @@ public class OnlineLDA extends TopicModel {
          }
       }
       return out;
-   }
-
-   @Override
-   public Datum transform(@NonNull Datum datum) {
-      if(parameters.combineOutputs.value()) {
-         datum.put(parameters.output.value(),
-                   inference(toCountVector(mergeVariableSpace(datum.stream(parameters.inputs.value())),
-                                           encoder,
-                                           parameters.namingPattern.value())));
-      } else {
-         for(String input : parameters.inputs.value()) {
-            datum.put(input + Strings.nullToEmpty(parameters.outputSuffix.value()),
-                      inference(toCountVector(datum.get(input),
-                                              encoder,
-                                              parameters.namingPattern.value())));
-         }
-      }
-      return datum;
    }
 
    public static class OnlineLDAFitParameters extends TopicModelFitParameters {

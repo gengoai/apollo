@@ -20,9 +20,7 @@
 package com.gengoai.apollo.ml;
 
 import com.gengoai.Copyable;
-import com.gengoai.Validation;
 import com.gengoai.apollo.ml.observation.Observation;
-import com.gengoai.conversion.Cast;
 import com.gengoai.string.Strings;
 import com.gengoai.tuple.Tuple2;
 import lombok.EqualsAndHashCode;
@@ -104,50 +102,12 @@ public final class Datum extends HashMap<String, Observation> implements Seriali
    }
 
    /**
-    * Gets the {@link Observation} for the given name ensuring that it is of the given Observation class.
-    *
-    * @param <T>              the Observation type parameter
-    * @param name             the name of the observation
-    * @param observationClass the observation class we expect
-    * @return the Observation
-    */
-   public <T extends Observation> T get(@NonNull String name, @NonNull Class<T> observationClass) {
-      Observation o = get(name);
-      Validation.checkArgumentIsInstanceOf(o, observationClass);
-      return Cast.as(o, observationClass);
-   }
-
-   /**
     * Gets the Observation associated with <code>DEFAULT_INPUT</code>.
     *
     * @return the Observation
     */
    public Observation getDefaultInput() {
       return get(DEFAULT_INPUT);
-   }
-
-   /**
-    * Gets the Observation associated with <code>DEFAULT_INPUT</code> ensuring that it is of the given Observation
-    * class.
-    *
-    * @param <T>              the Observation type parameter
-    * @param observationClass the observation class we expect
-    * @return the Observation
-    */
-   public <T extends Observation> T getDefaultInput(@NonNull Class<T> observationClass) {
-      return get(DEFAULT_INPUT, observationClass);
-   }
-
-   /**
-    * Gets the Observation associated with <code>DEFAULT_OUTPUT</code> ensuring that it is of the given Observation
-    * class.
-    *
-    * @param <T>              the Observation type parameter
-    * @param observationClass the observation class we expect
-    * @return the Observation
-    */
-   public <T extends Observation> T getDefaultOutput(@NonNull Class<T> observationClass) {
-      return get(DEFAULT_OUTPUT, observationClass);
    }
 
    /**

@@ -144,15 +144,11 @@ public class DataSetGenerator<T> implements SerializableFunction<T, Datum> {
       }
 
       /**
-       * Clears the sources in the builder
+       * Sets the {@link DataSetType} of the generated {@link DataSet}
        *
+       * @param dataSetType the data set type
        * @return this builder
        */
-      public Builder<T> clear() {
-         generators.clear();
-         return this;
-      }
-
       public Builder<T> dataSetType(DataSetType dataSetType) {
          this.dataSetType = dataSetType;
          return this;
@@ -234,6 +230,6 @@ public class DataSetGenerator<T> implements SerializableFunction<T, Datum> {
          return this;
       }
 
-   }
+   }//END OF Builder
 
-}//END OF ObservationGenerator
+}//END OF DataSetGenerator

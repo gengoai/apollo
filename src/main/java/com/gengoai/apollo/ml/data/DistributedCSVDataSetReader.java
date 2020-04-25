@@ -34,15 +34,12 @@ import org.apache.spark.sql.SQLContext;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 /**
  * <p>
  * A {@link DataSetReader} for delimiter separated files that generates a distributed {@link DataSet}. Rows in the file
  * represents {@link Datum} and columns {@link com.gengoai.apollo.ml.observation.Observation}s. Generated {@link Datum}
- * have an observation per column in the file  with the source names equalling the column names. The header must be
- * specified in the file or through the CSV object passed into the constructor. Additionally, a schema must be specified
- * via Map of source (column) names to {@link ColumnConverter}.
+ * have an observation per column in the file  with the source names equalling the column names.
  * </p>
  *
  * @author David B. Bracewell
@@ -50,18 +47,28 @@ import java.util.Map;
 public class DistributedCSVDataSetReader implements DataSetReader {
    private static final long serialVersionUID = 1L;
    private final CSV csv;
-   private final Map<String, ColumnConverter> columnToVariable;
+   private final Schema schema;
+
+   /**
+    * Instantiates a new CSVDataSetReader that will infer the types of each cell
+    *
+    * @param csv the definition of the csv file
+    */
+   public DistributedCSVDataSetReader(@NonNull CSV csv) {
+      this.csv = csv;
+      this.schema = null;
+   }
 
    /**
     * Instantiates a new DistributedCSVDataSetReader
     *
-    * @param csv              the definition of the csv file
-    * @param columnToVariable the schema
+    * @param csv    the definition of the csv file
+    * @param schema the schema
     */
    public DistributedCSVDataSetReader(@NonNull CSV csv,
-                                      @NonNull Map<String, ColumnConverter> columnToVariable) {
+                                      @NonNull Schema schema) {
       this.csv = csv;
-      this.columnToVariable = columnToVariable;
+      this.schema = schema;
       if(!csv.getHasHeader() && csv.getHeader().isEmpty()) {
          throw new IllegalArgumentException("Either the CSV must have a header or one must be defined.");
       }
@@ -90,11 +97,16 @@ public class DistributedCSVDataSetReader implements DataSetReader {
       Datum datum = new Datum();
       for(int i = 0; i < headers.size(); i++) {
          String column = headers.get(i);
-         datum.put(column,
-                   columnToVariable.get(column)
-                                   .convert(column,
-                                            row.getString(
-                                                  i)));
+         Object o = row.get(i);
+         if(schema != null) {
+            datum.put(column, schema.convert(column, o.toString()));
+         } else {
+            if(o instanceof Number) {
+               datum.put(column, Variable.real(column, ((Number) o).doubleValue()));
+            } else {
+               datum.put(column, Variable.binary(column, o.toString()));
+            }
+         }
       }
       return datum;
    }

@@ -20,8 +20,10 @@
 package com.gengoai.apollo.ml.transform.vectorizer;
 
 import com.gengoai.apollo.math.linalg.NDArray;
-import com.gengoai.apollo.ml.observation.Variable;
+import com.gengoai.apollo.ml.encoder.Encoder;
 import com.gengoai.apollo.ml.encoder.IndexEncoder;
+import com.gengoai.apollo.ml.observation.Variable;
+import lombok.NonNull;
 
 /**
  * <p>
@@ -32,18 +34,29 @@ import com.gengoai.apollo.ml.encoder.IndexEncoder;
  *
  * @author David B. Bracewell
  */
-public class CountVectorizer extends AbstractVariableVectorizer {
+public class CountVectorizer extends AbstractVariableVectorizer<CountVectorizer> {
    private static final long serialVersionUID = 1L;
 
    /**
-    * Instantiates a new CountVectorizer.
+    * Instantiates a new CountVectorizer with a specified {@link Encoder}
+    *
+    * @param encoder the encoder
+    */
+   public CountVectorizer(@NonNull Encoder encoder) {
+      super(encoder);
+   }
+
+   /**
+    * Instantiates a new CountVectorizer with an {@link IndexEncoder}.
     */
    public CountVectorizer() {
       super(new IndexEncoder());
    }
 
    /**
-    * Instantiates a new CountVectorizer.
+    * Instantiates a new CountVectorizer with an {@link IndexEncoder} with the unknown name set to the given value.
+    *
+    * @param unknownName the unknown name
     */
    public CountVectorizer(String unknownName) {
       super(new IndexEncoder(unknownName));

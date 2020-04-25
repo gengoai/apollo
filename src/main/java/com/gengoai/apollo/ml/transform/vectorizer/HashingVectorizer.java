@@ -20,8 +20,8 @@
 package com.gengoai.apollo.ml.transform.vectorizer;
 
 import com.gengoai.apollo.math.linalg.NDArray;
-import com.gengoai.apollo.ml.observation.Variable;
 import com.gengoai.apollo.ml.encoder.HashingEncoder;
+import com.gengoai.apollo.ml.observation.Variable;
 
 /**
  * <p>
@@ -31,7 +31,7 @@ import com.gengoai.apollo.ml.encoder.HashingEncoder;
  *
  * @author David B. Bracewell
  */
-public class HashingVectorizer extends AbstractVariableVectorizer {
+public class HashingVectorizer extends AbstractVariableVectorizer<HashingVectorizer> {
    private static final long serialVersionUID = 1L;
    private final boolean isBinary;
 

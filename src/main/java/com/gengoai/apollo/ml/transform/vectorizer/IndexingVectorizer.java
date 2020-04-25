@@ -21,12 +21,14 @@ package com.gengoai.apollo.ml.transform.vectorizer;
 
 import com.gengoai.apollo.math.linalg.NDArray;
 import com.gengoai.apollo.math.linalg.NDArrayFactory;
+import com.gengoai.apollo.ml.encoder.Encoder;
 import com.gengoai.apollo.ml.encoder.IndexEncoder;
 import com.gengoai.apollo.ml.observation.Observation;
 import com.gengoai.apollo.ml.observation.Sequence;
 import com.gengoai.apollo.ml.observation.Variable;
 import com.gengoai.apollo.ml.observation.VariableCollection;
 import com.gengoai.conversion.Cast;
+import lombok.NonNull;
 import org.apache.mahout.math.list.DoubleArrayList;
 
 /**
@@ -43,18 +45,29 @@ import org.apache.mahout.math.list.DoubleArrayList;
  *
  * @author David B. Bracewell
  */
-public class IndexingVectorizer extends Vectorizer {
+public class IndexingVectorizer extends Vectorizer<IndexingVectorizer> {
    private static final long serialVersionUID = 1L;
 
    /**
-    * Instantiates a new Indexing vectorizer.
+    * Instantiates a new IndexingVectorizer with a specified {@link Encoder}
+    *
+    * @param encoder the encoder
+    */
+   public IndexingVectorizer(@NonNull Encoder encoder) {
+      super(encoder);
+   }
+
+   /**
+    * Instantiates a new IndexingVectorizer with an {@link IndexEncoder}.
     */
    public IndexingVectorizer() {
       super(new IndexEncoder());
    }
 
    /**
-    * Instantiates a new Indexing vectorizer.
+    * Instantiates a new IndexingVectorizer with an {@link IndexEncoder} with the unknown name set to the given value.
+    *
+    * @param unknownName the unknown name
     */
    public IndexingVectorizer(String unknownName) {
       super(new IndexEncoder(unknownName));

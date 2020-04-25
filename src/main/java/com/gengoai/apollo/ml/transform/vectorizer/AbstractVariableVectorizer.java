@@ -42,7 +42,7 @@ import java.util.List;
  *
  * @author David B. Bracewell
  */
-public abstract class AbstractVariableVectorizer extends Vectorizer {
+public abstract class AbstractVariableVectorizer<T extends AbstractVariableVectorizer<T>> extends Vectorizer<T> {
 
    protected AbstractVariableVectorizer(@NonNull Encoder encoder) {
       super(encoder);

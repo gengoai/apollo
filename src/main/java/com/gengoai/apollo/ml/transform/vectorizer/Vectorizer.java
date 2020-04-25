@@ -19,17 +19,15 @@
 
 package com.gengoai.apollo.ml.transform.vectorizer;
 
-import com.gengoai.Validation;
 import com.gengoai.apollo.math.linalg.NDArray;
 import com.gengoai.apollo.ml.DataSet;
-import com.gengoai.apollo.ml.Datum;
 import com.gengoai.apollo.ml.encoder.Encoder;
 import com.gengoai.apollo.ml.observation.Observation;
+import com.gengoai.apollo.ml.transform.AbstractSingleSourceTransform;
 import com.gengoai.apollo.ml.transform.Transform;
+import com.gengoai.stream.MStream;
 import lombok.Getter;
 import lombok.NonNull;
-
-import java.util.*;
 
 /**
  * <p>
@@ -39,66 +37,29 @@ import java.util.*;
  *
  * @author David B. Bracewell
  */
-public abstract class Vectorizer implements Transform {
+public abstract class Vectorizer<T extends Vectorizer<T>> extends AbstractSingleSourceTransform<T> {
    private static final long serialVersionUID = 1L;
    @Getter
    protected final Encoder encoder;
-   protected final Set<String> sources = new HashSet<>();
 
    protected Vectorizer(@NonNull Encoder encoder) {
       this.encoder = encoder;
    }
 
    @Override
-   public final DataSet fitAndTransform(DataSet dataset) {
+   protected void fit(@NonNull MStream<Observation> observations) {
       if(!encoder.isFixed()) {
-         encoder.fit(dataset.stream().flatMap(d -> d.stream(sources)));
+         encoder.fit(observations);
       }
-      return this.transform(dataset);
    }
 
    @Override
-   public Set<String> getInputs() {
-      return Collections.unmodifiableSet(sources);
+   protected void updateMetadata(@NonNull DataSet dataset) {
+      dataset.updateMetadata(output, m -> {
+         m.setDimension(encoder.size());
+         m.setType(NDArray.class);
+         m.setEncoder(encoder);
+      });
    }
-
-   @Override
-   public Set<String> getOutputs() {
-      return Collections.unmodifiableSet(sources);
-   }
-
-   public Transform sources(@NonNull String... sources) {
-      return sources(Arrays.asList(sources));
-   }
-
-   public Transform sources(@NonNull Collection<String> sources) {
-      Validation.checkArgument(sources.size() > 0, "No sources specified");
-      this.sources.clear();
-      this.sources.addAll(sources);
-      return this;
-   }
-
-   @Override
-   public DataSet transform(@NonNull DataSet dataset) {
-      dataset = dataset.map(this::transform);
-      for(String output : sources) {
-         dataset.updateMetadata(output, m -> {
-            m.setDimension(encoder.size());
-            m.setType(NDArray.class);
-            m.setEncoder(encoder);
-         });
-      }
-      return dataset;
-   }
-
-   @Override
-   public final Datum transform(@NonNull Datum datum) {
-      for(String output : sources) {
-         datum.update(output, this::transform);
-      }
-      return datum;
-   }
-
-   protected abstract NDArray transform(Observation observation);
 
 }//END OF Vectorizer

@@ -19,10 +19,6 @@
 
 package com.gengoai.apollo.ml.evaluation;
 
-import com.gengoai.apollo.ml.DataSet;
-import com.gengoai.apollo.ml.Datum;
-import com.gengoai.apollo.ml.model.Model;
-import com.gengoai.stream.MStream;
 import lombok.NonNull;
 
 import java.io.PrintStream;
@@ -30,24 +26,7 @@ import java.io.PrintStream;
 /**
  * @author David B. Bracewell
  */
-public interface SequenceLabelerEvaluation {
-   /**
-    * Evaluate the given model using the given dataset
-    *
-    * @param model   the model to evaluate
-    * @param dataset the dataset to evaluate over
-    */
-   default void evaluate(@NonNull Model model, @NonNull DataSet dataset) {
-      evaluate(model, dataset.stream());
-   }
-
-   /**
-    * Evaluate the given model using the given set of examples
-    *
-    * @param model   the model to evaluate
-    * @param dataset the dataset to evaluate over
-    */
-   void evaluate(@NonNull Model model, @NonNull MStream<Datum> dataset);
+public interface SequenceLabelerEvaluation extends Evaluation {
 
    /**
     * Merge this evaluation with another combining the results.
@@ -55,6 +34,11 @@ public interface SequenceLabelerEvaluation {
     * @param evaluation the other evaluation to combine
     */
    void merge(@NonNull SequenceLabelerEvaluation evaluation);
+
+   @Override
+   default void output(@NonNull PrintStream printStream) {
+      output(printStream, true);
+   }
 
    /**
     * Outputs the results of the classification to the given <code>PrintStream</code>
@@ -71,13 +55,6 @@ public interface SequenceLabelerEvaluation {
     */
    default void output(boolean printConfusionMatrix) {
       output(System.out, printConfusionMatrix);
-   }
-
-   /**
-    * Outputs the evaluation results to standard out.
-    */
-   default void output() {
-      output(System.out, false);
    }
 
 }//END OF SequenceLabelerEvaluation

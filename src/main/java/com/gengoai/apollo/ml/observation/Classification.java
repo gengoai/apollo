@@ -93,6 +93,11 @@ public final class Classification implements Serializable, Observation {
    }
 
    @Override
+   public NDArray asNDArray() {
+      return distribution;
+   }
+
+   @Override
    public Classification copy() {
       return Copyable.deepCopy(this);
    }

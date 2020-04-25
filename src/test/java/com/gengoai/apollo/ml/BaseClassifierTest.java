@@ -42,10 +42,10 @@ public abstract class BaseClassifierTest {
 
    @Test
    public void fitAndEvaluate() {
-      assertTrue(passes(ClassifierEvaluation.multiClassCrossValidation(irisDataset(),
-                                                                       classifier,
-                                                                       10,
-                                                                       "class")));
+      assertTrue(passes(ClassifierEvaluation.crossvalidation(irisDataset(),
+                                                             classifier,
+                                                             10,
+                                                             "class")));
    }
 
    public DataSet irisDataset() {

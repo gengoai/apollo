@@ -22,11 +22,11 @@
 
 package com.gengoai.apollo.ml.evaluation;
 
+import com.gengoai.apollo.math.linalg.NDArray;
 import com.gengoai.apollo.ml.DataSet;
 import com.gengoai.apollo.ml.Datum;
 import com.gengoai.apollo.ml.Split;
 import com.gengoai.apollo.ml.model.Model;
-import com.gengoai.stream.MStream;
 import com.gengoai.string.TableFormatter;
 import lombok.NonNull;
 import lombok.extern.java.Log;
@@ -43,7 +43,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author David B. Bracewell
  */
 @Log
-public class RegressionEvaluation implements Serializable {
+public class RegressionEvaluation implements Evaluation, Serializable {
    private static final long serialVersionUID = 1L;
    private final String inputSource;
    private final String predictedSource;
@@ -52,12 +52,14 @@ public class RegressionEvaluation implements Serializable {
    private DoubleArrayList predicted = new DoubleArrayList();
 
    /**
-    * Cross validation multi class evaluation.
+    * Performs an n-fold cross-validation of the given {@link Model} on the given {@link DataSet}
     *
-    * @param dataset    the dataset
-    * @param regression the classifier
-    * @param nFolds     the n folds
-    * @return the multi class evaluation
+    * @param dataset         the dataset to evaluate over
+    * @param regression      the regression model to evaluate
+    * @param inputSource     the input source to calculate p-values
+    * @param predictedSource the predicted source to for outcomes
+    * @param nFolds          the number of folds
+    * @return the regression evaluation
     */
    public static RegressionEvaluation crossValidation(@NonNull DataSet dataset,
                                                       @NonNull Model regression,
@@ -74,6 +76,30 @@ public class RegressionEvaluation implements Serializable {
       return evaluation;
    }
 
+   /**
+    * Evaluates the given Model with the given testing data.
+    *
+    * @param model           the model
+    * @param testingData     the testing data
+    * @param inputSource     the input source to calculate p-values
+    * @param predictedSource the predicted source to for outcomes
+    * @return the RegressionEvaluation
+    */
+   public static RegressionEvaluation evaluate(@NonNull Model model,
+                                               @NonNull DataSet testingData,
+                                               @NonNull String inputSource,
+                                               @NonNull String predictedSource) {
+      RegressionEvaluation evaluation = new RegressionEvaluation(inputSource, predictedSource);
+      evaluation.evaluate(model, testingData);
+      return evaluation;
+   }
+
+   /**
+    * Instantiates a new Regression evaluation.
+    *
+    * @param inputSource     the input source
+    * @param predictedSource the predicted source
+    */
    public RegressionEvaluation(String inputSource, @NonNull String predictedSource) {
       this.inputSource = inputSource;
       this.predictedSource = predictedSource;
@@ -90,14 +116,14 @@ public class RegressionEvaluation implements Serializable {
    }
 
    /**
-    * Adds an entry to the evaluation
+    * Adds an evaluation entry.
     *
     * @param gold      the gold value
     * @param predicted the predicted value
     */
-   public void entry(double gold, double predicted) {
+   public void entry(double gold, @NonNull NDArray predicted) {
       this.gold.add(gold);
-      this.predicted.add(predicted);
+      this.predicted.add(predicted.scalar());
    }
 
    /**
@@ -106,11 +132,7 @@ public class RegressionEvaluation implements Serializable {
     * @param model   the model to evaluate
     * @param dataset the dataset to evaluate over
     */
-   public void evaluate(Model model, DataSet dataset) {
-      evaluate(model, dataset.stream());
-   }
-
-   public void evaluate(Model model, MStream<Datum> dataset) {
+   public void evaluate(@NonNull Model model, @NonNull DataSet dataset) {
       for(Datum ii : dataset) {
          p = Math.max(p, ii.get(inputSource).asNDArray().length());
          gold.add(ii.get(predictedSource).asNDArray().scalar());
@@ -137,12 +159,8 @@ public class RegressionEvaluation implements Serializable {
       predicted.addAllOf(evaluation.predicted);
    }
 
-   /**
-    * Outputs the evaluation results to the given print stream.
-    *
-    * @param printStream the print stream to write to
-    */
-   public void output(PrintStream printStream) {
+   @Override
+   public void output(@NonNull PrintStream printStream) {
       TableFormatter formatter = new TableFormatter();
       formatter.title("Regression Metrics");
       formatter.header(Arrays.asList("Metric", "Value"));
@@ -150,13 +168,6 @@ public class RegressionEvaluation implements Serializable {
       formatter.content(Arrays.asList("R^2", r2()));
       formatter.content(Arrays.asList("Adj. R^2", adjustedR2()));
       formatter.print(printStream);
-   }
-
-   /**
-    * Outputs the evaluation results to standard out.
-    */
-   public final void output() {
-      output(System.out);
    }
 
    /**

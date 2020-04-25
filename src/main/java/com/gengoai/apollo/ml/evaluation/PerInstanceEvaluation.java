@@ -21,13 +21,12 @@ package com.gengoai.apollo.ml.evaluation;
 
 import com.gengoai.Validation;
 import com.gengoai.apollo.math.linalg.NDArray;
-import com.gengoai.apollo.ml.Datum;
+import com.gengoai.apollo.ml.DataSet;
 import com.gengoai.apollo.ml.model.Model;
 import com.gengoai.apollo.ml.observation.Observation;
 import com.gengoai.apollo.ml.observation.Variable;
 import com.gengoai.apollo.ml.observation.VariableSequence;
 import com.gengoai.conversion.Cast;
-import com.gengoai.stream.MStream;
 import lombok.NonNull;
 
 import java.io.PrintStream;
@@ -54,7 +53,7 @@ public class PerInstanceEvaluation implements SequenceLabelerEvaluation, Seriali
    }
 
    @Override
-   public void evaluate(@NonNull Model model, @NonNull MStream<Datum> dataset) {
+   public void evaluate(@NonNull Model model, @NonNull DataSet dataset) {
       dataset.forEach(sequence -> {
          VariableSequence gold = toVariableSequence(sequence.get(outputName));
          VariableSequence pred = toVariableSequence(model.transform(sequence).get(outputName));

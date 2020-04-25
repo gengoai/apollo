@@ -19,18 +19,20 @@
 
 package com.gengoai.apollo.ml.evaluation;
 
+import com.gengoai.LogUtils;
 import com.gengoai.apollo.math.linalg.NDArray;
 import com.gengoai.apollo.ml.DataSet;
-import com.gengoai.apollo.ml.Split;
-import com.gengoai.apollo.ml.model.Model;
-import com.gengoai.apollo.ml.observation.Classification;
 import com.gengoai.apollo.ml.observation.Observation;
-import com.gengoai.apollo.ml.observation.Variable;
-import com.gengoai.conversion.Cast;
+import com.gengoai.io.resource.Resource;
+import com.gengoai.io.resource.StringResource;
+import lombok.NonNull;
 import lombok.extern.java.Log;
 
+import java.io.IOException;
 import java.io.PrintStream;
 import java.io.Serializable;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * <p>Defines common methods and metrics when evaluating classification models.</p>
@@ -38,50 +40,9 @@ import java.io.Serializable;
  * @author David B. Bracewell
  */
 @Log
-public abstract class ClassifierEvaluation implements Serializable {
+public abstract class ClassifierEvaluation implements Evaluation, Serializable {
    private static final long serialVersionUID = 1L;
    protected final String outputName;
-
-   /**
-    * Performs a cross-validation of the given classifier using the given dataset
-    *
-    * @param dataset the dataset to perform cross-validation on
-    * @param model   the classifier to train and test
-    * @param nFolds  the number of folds to perform
-    * @return the classifier evaluation
-    */
-   public static ClassifierEvaluation binaryClassCrossValidation(DataSet dataset,
-                                                                 Model model,
-                                                                 int nFolds,
-                                                                 String outputName,
-                                                                 String trueLabel) {
-      ClassifierEvaluation evaluation = new BinaryEvaluation(outputName, trueLabel);
-      for(Split split : dataset.shuffle().fold(nFolds)) {
-         model.estimate(split.train);
-         evaluation.evaluate(model, split.test);
-      }
-      return evaluation;
-   }
-
-   /**
-    * Performs a cross-validation of the given classifier using the given dataset
-    *
-    * @param dataset the dataset to perform cross-validation on
-    * @param model   the classifier to train and test
-    * @param nFolds  the number of folds to perform
-    * @return the classifier evaluation
-    */
-   public static ClassifierEvaluation multiClassCrossValidation(DataSet dataset,
-                                                                Model model,
-                                                                int nFolds,
-                                                                String outputName) {
-      MultiClassEvaluation evaluation = new MultiClassEvaluation(outputName);
-      for(Split split : dataset.shuffle().fold(nFolds)) {
-         model.estimate(split.train);
-         evaluation.evaluate(model, split.test);
-      }
-      return evaluation;
-   }
 
    protected ClassifierEvaluation(String outputName) {
       this.outputName = outputName;
@@ -107,20 +68,12 @@ public abstract class ClassifierEvaluation implements Serializable {
    }
 
    /**
-    * Adds a prediction entry to the evaluation.
+    * Adds an evaluation entry.
     *
-    * @param gold      the gold, or actual, label
-    * @param predicted the model predicted label
+    * @param gold      the gold value
+    * @param predicted the predicted value
     */
-   public abstract void entry(String gold, Classification predicted);
-
-   /**
-    * Evaluate the given model using the given dataset
-    *
-    * @param model   the model to evaluate
-    * @param dataset the dataset to evaluate over
-    */
-   public abstract void evaluate(Model model, DataSet dataset);
+   public abstract void entry(double gold, @NonNull NDArray predicted);
 
    /**
     * Calculates the false negative rate, which is calculated as <code>False Positives / (True Positives + False
@@ -181,23 +134,19 @@ public abstract class ClassifierEvaluation implements Serializable {
     */
    public abstract double falsePositives();
 
-   protected String getLabelFor(Observation output, DataSet dataset) {
-      if(output instanceof Classification) {
-         return Cast.<Classification>as(output).getResult();
-      } else if(output instanceof Variable) {
-         return Cast.<Variable>as(output).getName();
-      } else if(output instanceof NDArray) {
-         NDArray y = Cast.as(output);
-         int yV;
+   protected int getIntegerLabelFor(Observation output, DataSet dataset) {
+      if(output.isNDArray() || output.isClassification()) {
+         NDArray y = output.asNDArray();
          if(y.shape().isScalar()) {
-            yV = (int) y.get(0);
+            return (int) y.get(0);
          } else {
-            yV = (int) y.argmax();
+            return (int) y.argmax();
          }
-         return dataset.getMetadata(outputName).getEncoder().decode(yV);
-      } else {
-         throw new IllegalArgumentException("Unable to process output of type: " + output.getClass());
       }
+      if(output.isVariable()) {
+         return dataset.getMetadata(outputName).getEncoder().encode(output.asVariable().getName());
+      }
+      throw new IllegalArgumentException("Unable to process output of type: " + output.getClass());
    }
 
    /**
@@ -230,13 +179,18 @@ public abstract class ClassifierEvaluation implements Serializable {
       return tn / (tn + fn);
    }
 
+   @Override
+   public void output(@NonNull PrintStream printStream) {
+      output(printStream, false);
+   }
+
    /**
     * Outputs the results of the classification to the given <code>PrintStream</code>
     *
     * @param printStream          the print stream to write to
     * @param printConfusionMatrix True print the confusion matrix, False do not print the confusion matrix.
     */
-   public abstract void output(PrintStream printStream, boolean printConfusionMatrix);
+   public abstract void output(@NonNull PrintStream printStream, boolean printConfusionMatrix);
 
    /**
     * Outputs the evaluation results to standard out.
@@ -261,6 +215,27 @@ public abstract class ClassifierEvaluation implements Serializable {
     */
    public double positiveLikelihoodRatio() {
       return truePositiveRate() / falsePositiveRate();
+   }
+
+   /**
+    * Outputs the results of the classification to the given logger.
+    *
+    * @param logger               the logger to use for logging
+    * @param logLevel             The level to log at
+    * @param printConfusionMatrix True print the confusion matrix, False do not print the confusion matrix.
+    */
+   public void report(@NonNull Logger logger, @NonNull Level logLevel, boolean printConfusionMatrix) {
+      Resource r = new StringResource();
+      try(PrintStream ps = new PrintStream(r.outputStream())) {
+         output(ps, printConfusionMatrix);
+      } catch(IOException e) {
+         throw new RuntimeException(e);
+      }
+      try {
+         LogUtils.log(logger, logLevel, r.readToString());
+      } catch(IOException e) {
+         throw new RuntimeException(e);
+      }
    }
 
    /**

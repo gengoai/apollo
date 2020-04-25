@@ -22,10 +22,15 @@
 
 package com.gengoai.apollo.ml.evaluation;
 
+import com.gengoai.Validation;
 import com.gengoai.apollo.math.linalg.NDArray;
 import com.gengoai.apollo.math.statistics.measure.Measure;
+import com.gengoai.apollo.ml.DataSet;
+import com.gengoai.apollo.ml.model.Model;
 import com.gengoai.apollo.ml.model.clustering.Cluster;
+import com.gengoai.apollo.ml.model.clustering.Clusterer;
 import com.gengoai.apollo.ml.model.clustering.Clustering;
+import com.gengoai.conversion.Cast;
 import com.gengoai.math.Math2;
 import com.gengoai.stream.StreamingContext;
 import com.gengoai.string.TableFormatter;
@@ -54,12 +59,32 @@ public class SilhouetteEvaluation implements ClusteringEvaluation, Serializable 
    private Map<Integer, Double> silhouette;
 
    /**
+    * Evaluates the given Model with the given testing data.
+    *
+    * @param clusters the clustering to evaluate
+    * @param measure  the measure to use to judge the clustering
+    * @return the SilhouetteEvaluation
+    */
+   public static SilhouetteEvaluation evaluate(@NonNull Clustering clusters, @NonNull Measure measure) {
+      SilhouetteEvaluation evaluation = new SilhouetteEvaluation(measure);
+      evaluation.evaluate(clusters);
+      return evaluation;
+   }
+
+   /**
     * Instantiates a new Silhouette evaluation.
     *
     * @param measure the measure
     */
    public SilhouetteEvaluation(Measure measure) {
       this.measure = measure;
+   }
+
+   @Override
+   public void evaluate(@NonNull Model model, @NonNull DataSet dataset) {
+      Validation.checkArgumentIsInstanceOf(Clusterer.class);
+      model.estimate(dataset);
+      evaluate(Cast.<Clusterer>as(model).getClustering());
    }
 
    @Override

@@ -20,10 +20,13 @@
 package com.gengoai.apollo.ml.evaluation;
 
 import com.gengoai.Validation;
+import com.gengoai.apollo.math.linalg.NDArray;
 import com.gengoai.apollo.ml.DataSet;
 import com.gengoai.apollo.ml.Datum;
+import com.gengoai.apollo.ml.Split;
+import com.gengoai.apollo.ml.encoder.Encoder;
 import com.gengoai.apollo.ml.model.Model;
-import com.gengoai.apollo.ml.observation.Classification;
+import com.gengoai.apollo.ml.observation.Observation;
 import com.gengoai.collection.counter.Counter;
 import com.gengoai.collection.counter.Counters;
 import com.gengoai.collection.counter.MultiCounter;
@@ -46,7 +49,44 @@ import java.util.stream.Stream;
 public class MultiClassEvaluation extends ClassifierEvaluation {
    private static final long serialVersionUID = 1L;
    private final MultiCounter<String, String> confusionMatrix = MultiCounters.newMultiCounter();
+   private Encoder encoder;
    private double total = 0;
+
+   /**
+    * Performs a cross-validation of the given classifier using the given dataset
+    *
+    * @param dataset the dataset to perform cross-validation on
+    * @param model   the classifier to train and test
+    * @param nFolds  the number of folds to perform
+    * @return the classifier evaluation
+    */
+   public static MultiClassEvaluation crossvalidation(DataSet dataset,
+                                                      Model model,
+                                                      int nFolds,
+                                                      String outputName) {
+      MultiClassEvaluation evaluation = new MultiClassEvaluation(outputName);
+      for(Split split : dataset.shuffle().fold(nFolds)) {
+         model.estimate(split.train);
+         evaluation.evaluate(model, split.test);
+      }
+      return evaluation;
+   }
+
+   /**
+    * Evaluates the given Model with the given testing data.
+    *
+    * @param model            the model
+    * @param testingData      the testing data
+    * @param outputSourceName the output source name
+    * @return the multi class evaluation
+    */
+   public static MultiClassEvaluation evaluate(@NonNull Model model,
+                                               @NonNull DataSet testingData,
+                                               @NonNull String outputSourceName) {
+      MultiClassEvaluation evaluation = new MultiClassEvaluation(outputSourceName);
+      evaluation.evaluate(model, testingData);
+      return evaluation;
+   }
 
    /**
     * Instantiates a new MultiClassEvaluation.
@@ -55,6 +95,17 @@ public class MultiClassEvaluation extends ClassifierEvaluation {
     */
    public MultiClassEvaluation(@NonNull String outputName) {
       super(outputName);
+      this.encoder = null;
+   }
+
+   /**
+    * Instantiates a new MultiClassEvaluation.
+    *
+    * @param outputName the name of the output source we will evaluate
+    */
+   public MultiClassEvaluation(@NonNull String outputName, @NonNull Encoder encoder) {
+      super(outputName);
+      this.encoder = encoder;
    }
 
    @Override
@@ -76,9 +127,17 @@ public class MultiClassEvaluation extends ClassifierEvaluation {
    }
 
    @Override
-   public void entry(String gold, Classification predicted) {
-      confusionMatrix.increment(gold, predicted.getResult());
-      total++;
+   public void entry(double gold, @NonNull NDArray predicted) {
+      String goldStr;
+      String predictedStr;
+      if(encoder == null) {
+         goldStr = Integer.toString((int) gold);
+         predictedStr = Long.toString(predicted.argmax());
+      } else {
+         goldStr = encoder.decode(gold);
+         predictedStr = encoder.decode(predicted.argmax());
+      }
+      confusionMatrix.increment(goldStr, predictedStr);
    }
 
    /**
@@ -95,10 +154,13 @@ public class MultiClassEvaluation extends ClassifierEvaluation {
    @Override
    public void evaluate(@NonNull Model model, @NonNull DataSet dataset) {
       for(Datum d : dataset) {
-         String gold = getLabelFor(d.get(outputName), dataset);
-         Classification predicted = model.transform(d)
-                                         .get(outputName).asClassification();
-         entry(gold, predicted);
+         Observation gold = d.get(outputName);
+         Observation predicted = model.transform(d).get(outputName);
+         if(predicted.isClassification()) {
+            entry(gold.asVariable().getName(), predicted.asClassification().getResult());
+         } else {
+            entry(getIntegerLabelFor(gold, dataset), predicted.asNDArray());
+         }
       }
    }
 

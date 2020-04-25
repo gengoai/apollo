@@ -26,8 +26,6 @@ import com.gengoai.apollo.ml.model.clustering.Clusterer;
 import com.gengoai.apollo.ml.model.clustering.Clustering;
 import lombok.NonNull;
 
-import java.io.PrintStream;
-
 /**
  * <p>
  * Specialized evaluation for evaluating the result of {@link Clusterer}s.
@@ -35,7 +33,7 @@ import java.io.PrintStream;
  *
  * @author David B. Bracewell
  */
-public interface ClusteringEvaluation {
+public interface ClusteringEvaluation extends Evaluation {
 
    /**
     * Evaluates the given clustering.
@@ -44,18 +42,5 @@ public interface ClusteringEvaluation {
     */
    void evaluate(@NonNull Clustering clustering);
 
-   /**
-    * Outputs the evaluation results to the given print stream.
-    *
-    * @param printStream the print stream to write to
-    */
-   void output(@NonNull PrintStream printStream);
-
-   /**
-    * Outputs the evaluation results to standard out.
-    */
-   default void output() {
-      output(System.out);
-   }
 
 }//END OF ClusteringEvaluation

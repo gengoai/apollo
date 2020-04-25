@@ -19,10 +19,10 @@
 
 package com.gengoai.apollo.ml.evaluation;
 
+import com.gengoai.apollo.math.linalg.NDArray;
 import com.gengoai.apollo.ml.DataSet;
-import com.gengoai.apollo.ml.Datum;
+import com.gengoai.apollo.ml.Split;
 import com.gengoai.apollo.ml.model.Model;
-import com.gengoai.apollo.ml.observation.Classification;
 import com.gengoai.conversion.Cast;
 import com.gengoai.math.Math2;
 import com.gengoai.string.TableFormatter;
@@ -51,7 +51,6 @@ import static java.util.Arrays.asList;
 public class BinaryEvaluation extends ClassifierEvaluation {
    private static final long serialVersionUID = 1L;
    private final DoubleArrayList[] prob = {new DoubleArrayList(), new DoubleArrayList()};
-   private String trueLabel;
    private double fn = 0;
    private double fp = 0;
    private double negative = 0d;
@@ -60,23 +59,48 @@ public class BinaryEvaluation extends ClassifierEvaluation {
    private double tp = 0;
 
    /**
-    * Instantiates a new BinaryEvaluation  the default output source.
+    * Performs a cross-validation of the given classifier using the given dataset
     *
-    * @param trueValue the value associated with true
+    * @param dataset the dataset to perform cross-validation on
+    * @param model   the classifier to train and test
+    * @param nFolds  the number of folds to perform
+    * @return the classifier evaluation
     */
-   public BinaryEvaluation(@NonNull String trueValue) {
-      this(Datum.DEFAULT_OUTPUT, trueValue);
+   public static BinaryEvaluation crossvalidation(DataSet dataset,
+                                                  Model model,
+                                                  int nFolds,
+                                                  String outputName) {
+      BinaryEvaluation evaluation = new BinaryEvaluation(outputName);
+      for(Split split : dataset.shuffle().fold(nFolds)) {
+         model.estimate(split.train);
+         evaluation.evaluate(model, split.test);
+      }
+      return evaluation;
+   }
+
+   /**
+    * Evaluates the given Model with the given testing data.
+    *
+    * @param model            the model
+    * @param testingData      the testing data
+    * @param outputSourceName the output source name
+    * @return the binary evaluation
+    */
+   public static BinaryEvaluation evaluate(@NonNull Model model,
+                                           @NonNull DataSet testingData,
+                                           @NonNull String outputSourceName) {
+      BinaryEvaluation evaluation = new BinaryEvaluation(outputSourceName);
+      evaluation.evaluate(model, testingData);
+      return evaluation;
    }
 
    /**
     * Instantiates a new BinaryEvaluation.
     *
     * @param outputName the name of the output source we will evaluate
-    * @param trueValue  the value associated with true
     */
-   public BinaryEvaluation(@NonNull String outputName, @NonNull String trueValue) {
+   public BinaryEvaluation(@NonNull String outputName) {
       super(outputName);
-      this.trueLabel = trueValue;
    }
 
    @Override
@@ -104,14 +128,10 @@ public class BinaryEvaluation extends ClassifierEvaluation {
    }
 
    @Override
-   public void entry(String gold, Classification predicted) {
-      int predictedClass = predicted.getResult().equals(trueLabel)
-                           ? 1
-                           : 0;
-      int goldClass = gold.equals(trueLabel)
-                      ? 1
-                      : 0;
-      prob[goldClass].add(predicted.getScore(trueLabel));
+   public void entry(double gold, @NonNull NDArray predicted) {
+      int goldClass = (int) gold;
+      int predictedClass = (int) predicted.argmax();
+      prob[goldClass].add(predicted.get(1));
       if(goldClass == 1) {
          positive++;
          if(predictedClass == 1) {
@@ -131,12 +151,8 @@ public class BinaryEvaluation extends ClassifierEvaluation {
 
    @Override
    public void evaluate(@NonNull Model model, @NonNull DataSet dataset) {
-      dataset.forEach(d -> {
-         String gold = getLabelFor(d.get(outputName), dataset);
-         Classification predicted = model.transform(d)
-                                         .get(outputName).asClassification();
-         entry(gold, predicted);
-      });
+      dataset.forEach(d -> entry(getIntegerLabelFor(d.get(outputName), dataset),
+                                 model.transform(d).get(outputName).asNDArray()));
    }
 
    @Override
@@ -185,12 +201,6 @@ public class BinaryEvaluation extends ClassifierEvaluation {
       tableFormatter.content(asList("TN Rate", trueNegativeRate()));
       tableFormatter.content(asList("FN Rate", falseNegativeRate()));
       tableFormatter.print(printStream);
-   }
-
-   private double toDouble(String string) {
-      return string.equals(trueLabel)
-             ? 1.0
-             : 0.0;
    }
 
    @Override

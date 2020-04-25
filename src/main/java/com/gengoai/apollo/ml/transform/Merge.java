@@ -115,7 +115,6 @@ public class Merge implements Transform {
                                                               .map(s -> dataset.getMetadata(s).getType())
                                                               .filter(Objects::nonNull)
                                                               .findFirst()
-                                                              .map(Object::getClass)
                                                               .orElse(null));
       if(!keepInputs) {
          for(String source : inputs) {
@@ -125,7 +124,11 @@ public class Merge implements Transform {
       data.updateMetadata(output, m -> {
          m.setEncoder(null);
          m.setDimension(-1);
-         m.setType(type);
+         if(!Sequence.class.isAssignableFrom(type) && !NDArray.class.isAssignableFrom(type)) {
+            m.setType(VariableCollection.class);
+         } else {
+            m.setType(type);
+         }
       });
       return data;
    }

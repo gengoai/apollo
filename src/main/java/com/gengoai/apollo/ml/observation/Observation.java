@@ -21,6 +21,7 @@ package com.gengoai.apollo.ml.observation;
 
 import com.gengoai.Copyable;
 import com.gengoai.apollo.math.linalg.NDArray;
+import com.gengoai.json.TypeInfo;
 import lombok.NonNull;
 
 import java.io.Serializable;
@@ -44,6 +45,7 @@ import java.util.stream.Stream;
  *
  * @author David B. Bracewell
  */
+@TypeInfo
 public interface Observation extends Copyable<Observation>, Serializable {
 
    /**

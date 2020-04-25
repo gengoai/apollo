@@ -19,6 +19,7 @@
 
 package com.gengoai.apollo.ml.observation;
 
+import com.gengoai.annotation.JsonHandler;
 import lombok.NonNull;
 
 import java.util.ArrayList;
@@ -30,6 +31,7 @@ import java.util.stream.Stream;
 /**
  * <p>A {@link VariableCollection} backed by an ArrayList.</p>
  */
+@JsonHandler(VariableCollectionMarshaller.class)
 public class VariableList extends ArrayList<Variable> implements VariableCollection {
    private static final long serialVersionUID = 1L;
 

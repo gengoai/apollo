@@ -20,7 +20,6 @@
 package com.gengoai.apollo.ml.transform.vectorizer;
 
 import com.gengoai.apollo.math.linalg.NDArray;
-import com.gengoai.apollo.math.linalg.NDArrayFactory;
 import com.gengoai.apollo.ml.encoder.Encoder;
 import com.gengoai.apollo.ml.encoder.IndexEncoder;
 import com.gengoai.apollo.ml.observation.Observation;
@@ -79,9 +78,9 @@ public class IndexingVectorizer extends Vectorizer<IndexingVectorizer> {
 
          int index = encoder.encode(((Variable) observation).getName());
          if(index >= 0) {
-            return NDArrayFactory.ND.scalar(index);
+            return ndArrayFactory.scalar(index);
          }
-         return NDArrayFactory.ND.scalar(0);
+         return ndArrayFactory.scalar(0);
 
       } else if(observation instanceof VariableCollection) {
 
@@ -94,7 +93,7 @@ public class IndexingVectorizer extends Vectorizer<IndexingVectorizer> {
             }
          });
          list.sort();
-         NDArray n = NDArrayFactory.ND.array(list.size());
+         NDArray n = ndArrayFactory.array(list.size());
          for(int i = 0; i < list.size(); i++) {
             n.set(i, list.get(i));
          }
@@ -102,7 +101,7 @@ public class IndexingVectorizer extends Vectorizer<IndexingVectorizer> {
 
       } else if(observation instanceof Sequence) {
          Sequence<? extends Observation> sequence = Cast.as(observation);
-         NDArray n = NDArrayFactory.ND.array(sequence.size());
+         NDArray n = ndArrayFactory.array(sequence.size());
          for(int i = 0; i < sequence.size(); i++) {
             NDArray o = transform(sequence.get(i));
             n.set(i, o.get(0));

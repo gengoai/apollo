@@ -24,6 +24,7 @@ package com.gengoai.apollo.math.linalg;
 
 import com.gengoai.Validation;
 import com.gengoai.config.Config;
+import lombok.NonNull;
 import org.jblas.DoubleMatrix;
 
 import java.util.Arrays;
@@ -47,9 +48,9 @@ public enum NDArrayFactory {
       private volatile NDArrayFactory factory;
 
       private NDArrayFactory getFactory() {
-         if (factory == null) {
-            synchronized (ND) {
-               if (factory == null) {
+         if(factory == null) {
+            synchronized(ND) {
+               if(factory == null) {
                   factory = Config.get("NDArrayFactory.default").as(NDArrayFactory.class, DENSE);
                }
             }
@@ -78,9 +79,9 @@ public enum NDArrayFactory {
    DENSE {
       @Override
       public NDArray array(Shape shape) {
-         if (shape.isTensor()) {
+         if(shape.isTensor()) {
             Tensor tensor = new Tensor(shape);
-            for (int i = 0; i < shape.sliceLength; i++) {
+            for(int i = 0; i < shape.sliceLength; i++) {
                tensor.slices[i] = new DenseMatrix(shape.rows(), shape.columns());
             }
             return tensor;
@@ -113,7 +114,6 @@ public enum NDArrayFactory {
          return new DenseMatrix(new DoubleMatrix(1, data.length, data));
       }
 
-
    },
    /**
     * Sparse NDArrays (expect them to be 3-10x slower, but more space efficient).
@@ -121,9 +121,9 @@ public enum NDArrayFactory {
    SPARSE {
       @Override
       public NDArray array(Shape shape) {
-         if (shape.isTensor()) {
+         if(shape.isTensor()) {
             Tensor tensor = new Tensor(shape);
-            for (int i = 0; i < shape.sliceLength; i++) {
+            for(int i = 0; i < shape.sliceLength; i++) {
                tensor.slices[i] = new SparseMatrix(shape.rows(), shape.columns());
             }
             return tensor;
@@ -199,7 +199,7 @@ public enum NDArrayFactory {
       Validation.checkArgument(rows * columns == data.length,
                                () -> "Invalid Length: " + (rows * columns) + " != " + data.length);
       NDArray out = array(rows, columns);
-      for (int i = 0; i < data.length; i++) {
+      for(int i = 0; i < data.length; i++) {
          out.set(i, data[i]);
       }
       return out;
@@ -217,7 +217,7 @@ public enum NDArrayFactory {
       Validation.checkArgument(rows * columns == data.length,
                                () -> "Invalid Length: " + (rows * columns) + " != " + data.length);
       NDArray out = array(rows, columns);
-      for (int i = 0; i < data.length; i++) {
+      for(int i = 0; i < data.length; i++) {
          out.set(i, data[i]);
       }
       return out;
@@ -230,11 +230,11 @@ public enum NDArrayFactory {
     * @return the NDArray
     */
    public NDArray array(double[][] data) {
-      if (data.length == 0) {
+      if(data.length == 0) {
          return empty();
       }
       NDArray array = array(data.length, data[0].length);
-      for (int i = 0; i < data.length; i++) {
+      for(int i = 0; i < data.length; i++) {
          array.setRow(i, rowVector(data[i]));
       }
       return array;
@@ -269,7 +269,7 @@ public enum NDArrayFactory {
     */
    public NDArray columnVector(double[] data) {
       NDArray vector = array(data.length, 1);
-      for (int i = 0; i < data.length; i++) {
+      for(int i = 0; i < data.length; i++) {
          vector.set(i, data[i]);
       }
       return vector;
@@ -283,7 +283,7 @@ public enum NDArrayFactory {
     */
    public NDArray columnVector(float[] data) {
       NDArray vector = array(data.length, 1);
-      for (int i = 0; i < data.length; i++) {
+      for(int i = 0; i < data.length; i++) {
          vector.set(i, data[i]);
       }
       return vector;
@@ -317,12 +317,11 @@ public enum NDArrayFactory {
     */
    public NDArray eye(int size) {
       NDArray ndArray = array(size, size);
-      for (int i = 0; i < size; i++) {
+      for(int i = 0; i < size; i++) {
          ndArray.set(i, i, 1);
       }
       return ndArray;
    }
-
 
    /**
     * Stacks the given NDArray horizontal, i.e. concatenates on the column axis.
@@ -334,23 +333,39 @@ public enum NDArrayFactory {
       return hstack(Arrays.asList(arrays));
    }
 
-
    /**
     * Stacks the given NDArray horizontal, i.e. concatenates on the column axis.
     *
     * @param arrays the NDArrays
     * @return the NDArray
     */
-   public NDArray hstack(Collection<NDArray> arrays) {
-      if (arrays.size() == 0) {
+   public NDArray hstack(@NonNull Collection<NDArray> arrays) {
+      if(arrays.size() == 0) {
          return empty();
       }
+      long rows = arrays.stream()
+                        .mapToLong(NDArray::rows)
+                        .distinct()
+                        .count();
+      if(rows > 1) {
+         throw new IllegalArgumentException("Row mismatch: " + Arrays.toString(arrays.stream()
+                                                                                     .mapToLong(NDArray::rows)
+                                                                                     .toArray()));
+      }
+      long columns = arrays.stream()
+                           .mapToLong(NDArray::columns)
+                           .sum();
       Shape shape = arrays.iterator().next().shape();
-      NDArray toReturn = array(shape.matrixLength, arrays.size());
+      NDArray toReturn = array(shape.rows(), (int) columns);
       int globalAxisIndex = 0;
-      for (NDArray array : arrays) {
-         toReturn.setColumn(globalAxisIndex, array);
-         globalAxisIndex++;
+      for(NDArray array : arrays) {
+         final int offset = globalAxisIndex;
+         array.forEachSparse((i, v) -> {
+            int r = array.shape.toRow((int) i);
+            int c = array.shape.toColumn((int) i);
+            toReturn.set(r, c + offset, v);
+         });
+         globalAxisIndex += array.columns();
       }
       return toReturn;
    }
@@ -374,7 +389,6 @@ public enum NDArrayFactory {
    public NDArray ones(Shape shape) {
       return constant(shape, 1);
    }
-
 
    /**
     * Creates an NDArray with given shape with all values set randomly
@@ -424,7 +438,7 @@ public enum NDArrayFactory {
     */
    public NDArray rowVector(double[] data) {
       NDArray vector = array(1, data.length);
-      for (int i = 0; i < data.length; i++) {
+      for(int i = 0; i < data.length; i++) {
          vector.set(i, data[i]);
       }
       return vector;
@@ -471,16 +485,28 @@ public enum NDArrayFactory {
     * @param arrays the NDArrays
     * @return the NDArray
     */
-   public NDArray vstack(Collection<NDArray> arrays) {
-      if (arrays.size() == 0) {
+   public NDArray vstack(@NonNull Collection<NDArray> arrays) {
+      if(arrays.size() == 0) {
          return empty();
       }
+      if(arrays.stream()
+               .mapToLong(NDArray::columns)
+               .distinct()
+               .count() > 1) {
+         throw new IllegalArgumentException("Column mismatch");
+      }
+      int rows = arrays.stream().mapToInt(NDArray::rows).sum();
       Shape shape = arrays.iterator().next().shape();
-      NDArray toReturn = array(arrays.size(), shape.matrixLength);
+      NDArray toReturn = array(rows, shape.columns());
       int globalAxisIndex = 0;
-      for (NDArray array : arrays) {
-         toReturn.setRow(globalAxisIndex, array);
-         globalAxisIndex++;
+      for(NDArray array : arrays) {
+         final int offset = globalAxisIndex;
+         array.forEachSparse((i, v) -> {
+            int r = array.shape.toRow((int) i);
+            int c = array.shape.toColumn((int) i);
+            toReturn.set(r + offset, c, v);
+         });
+         globalAxisIndex += array.rows();
       }
       return toReturn;
    }

@@ -2,6 +2,7 @@ package com.gengoai.apollo.ml;
 
 import com.gengoai.apollo.ml.data.CSVDataSetReader;
 import com.gengoai.apollo.ml.evaluation.ClassifierEvaluation;
+import com.gengoai.apollo.ml.evaluation.MultiClassEvaluation;
 import com.gengoai.apollo.ml.model.Model;
 import com.gengoai.apollo.ml.model.PipelineModel;
 import com.gengoai.apollo.ml.transform.Merge;
@@ -34,7 +35,7 @@ public abstract class BaseClassifierTest {
          this.classifier = classifier;
       } else {
          this.classifier = PipelineModel.builder()
-                                        .transform(new IndexingVectorizer().sources("class"))
+                                        .source("class", new IndexingVectorizer())
                                         .build(classifier);
       }
       this.merge = merge;
@@ -42,7 +43,7 @@ public abstract class BaseClassifierTest {
 
    @Test
    public void fitAndEvaluate() {
-      assertTrue(passes(ClassifierEvaluation.crossvalidation(irisDataset(),
+      assertTrue(passes(MultiClassEvaluation.crossvalidation(irisDataset(),
                                                              classifier,
                                                              10,
                                                              "class")));

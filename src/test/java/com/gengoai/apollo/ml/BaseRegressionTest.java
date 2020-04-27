@@ -37,8 +37,8 @@ public abstract class BaseRegressionTest {
                                                                      "Suction"))
                                                      .output(Datum.DEFAULT_INPUT)
                                                      .build())
-                                     .defaultInput(new StandardScalar(VariableNameSpace.Prefix))
-                                     .transform(new CountVectorizer().sources(Datum.DEFAULT_INPUT))
+                                     .defaultInput(new StandardScalar(VariableNameSpace.Prefix),
+                                                   new CountVectorizer())
                                      .build(regression);
    }
 

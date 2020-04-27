@@ -20,7 +20,6 @@
 package com.gengoai.apollo.ml.transform.vectorizer;
 
 import com.gengoai.apollo.math.linalg.NDArray;
-import com.gengoai.apollo.math.linalg.NDArrayFactory;
 import com.gengoai.apollo.ml.encoder.Encoder;
 import com.gengoai.apollo.ml.observation.Observation;
 import com.gengoai.apollo.ml.observation.Sequence;
@@ -59,18 +58,18 @@ public abstract class AbstractVariableVectorizer<T extends AbstractVariableVecto
    @Override
    protected final NDArray transform(Observation observation) {
       if(observation instanceof Variable) {
-         NDArray n = NDArrayFactory.ND.array(1, encoder.size());
+         NDArray n = ndArrayFactory.array(1, encoder.size());
          encodeVariableInto(Cast.as(observation), n);
          return n;
       } else if(observation instanceof VariableCollection) {
-         NDArray n = NDArrayFactory.ND.array(1, encoder.size());
+         NDArray n = ndArrayFactory.array(1, encoder.size());
          observation.asVariableCollection().forEach(v -> encodeVariableInto(v, n));
          return n;
       } else if(observation instanceof Sequence) {
          Sequence<? extends Observation> sequence = Cast.as(observation);
          List<NDArray> rows = new ArrayList<>();
          sequence.forEach(o -> rows.add(transform(o)));
-         return NDArrayFactory.ND.vstack(rows);
+         return ndArrayFactory.vstack(rows);
       }
       throw new IllegalArgumentException("Unsupported Observation: " + observation.getClass());
    }

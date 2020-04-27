@@ -19,11 +19,12 @@
 
 package com.gengoai.apollo.ml;
 
+import com.gengoai.io.Resources;
+import com.gengoai.io.resource.Resource;
 import com.gengoai.stream.MStream;
 import com.gengoai.stream.StreamingContext;
 import lombok.NonNull;
 
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -45,11 +46,6 @@ public enum DataSetType {
       protected DataSet create(@NonNull MStream<Datum> stream) {
          return new StreamingDataSet(stream.toDistributedStream());
       }
-
-      @Override
-      protected DataSet create(@NonNull Stream<Datum> stream) {
-         return new StreamingDataSet(StreamingContext.distributed().stream(stream));
-      }
    },
    /**
     * All data is stored in-memory on local machine.
@@ -60,10 +56,6 @@ public enum DataSetType {
          return new InMemoryDataSet(stream.collect());
       }
 
-      @Override
-      protected DataSet create(@NonNull Stream<Datum> stream) {
-         return new InMemoryDataSet(stream.collect(Collectors.toList()));
-      }
    },
    /**
     * Local Streaming-based dataset
@@ -77,16 +69,21 @@ public enum DataSetType {
          }
          return new StreamingDataSet(stream);
       }
-
+   },
+   OnDisk {
       @Override
-      protected DataSet create(@NonNull Stream<Datum> stream) {
-         return new StreamingDataSet(StreamingContext.local().stream(stream));
+      protected DataSet create(@NonNull MStream<Datum> stream) {
+         Resource r = Resources.temporaryFile();
+         return new DiskBackedDataSet(r, stream);
       }
+
    };
 
    protected abstract DataSet create(@NonNull MStream<Datum> stream);
 
-   protected abstract DataSet create(@NonNull Stream<Datum> stream);
+   protected DataSet create(@NonNull Stream<Datum> stream) {
+      return create(getStreamingContext().stream(stream));
+   }
 
    /**
     * Gets the streaming context.

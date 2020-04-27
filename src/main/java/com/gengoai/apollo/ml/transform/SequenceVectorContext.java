@@ -19,18 +19,24 @@
 
 package com.gengoai.apollo.ml.transform;
 
+import com.gengoai.apollo.math.linalg.NDArray;
+import com.gengoai.apollo.math.linalg.NDArrayFactory;
 import com.gengoai.apollo.ml.DataSet;
 import com.gengoai.apollo.ml.observation.Observation;
-import com.gengoai.apollo.ml.observation.VariableCollection;
-import com.gengoai.apollo.ml.observation.VariableList;
 import com.gengoai.stream.MStream;
 import lombok.NonNull;
 
 /**
  * @author David B. Bracewell
  */
-public class Sequence2Instance extends AbstractSingleSourceTransform<Sequence2Instance> {
-   private static final long serialVersionUID = 1L;
+public class SequenceVectorContext extends AbstractSingleSourceTransform<SequenceVectorContext> {
+   private final int left;
+   private final int right;
+
+   public SequenceVectorContext(int left, int right) {
+      this.left = Math.abs(left);
+      this.right = Math.abs(right);
+   }
 
    @Override
    protected void fit(@NonNull MStream<Observation> observations) {
@@ -39,15 +45,32 @@ public class Sequence2Instance extends AbstractSingleSourceTransform<Sequence2In
 
    @Override
    protected Observation transform(@NonNull Observation observation) {
-      return new VariableList(observation.getVariableSpace());
+      NDArray sequence = observation.asNDArray();
+      long outColumns = sequence.columns() + (left * sequence.columns()) + (right * sequence.columns());
+      NDArray out = NDArrayFactory.ND.array(sequence.rows(), (int) outColumns);
+      for(int r = 0; r < sequence.rows(); r++) {
+         int offset = 0;
+         final int row = r;
+         for(int rj = r - left; rj < r + right; rj++) {
+            if(rj >= 0 && rj < sequence.rows()) {
+               final int o = offset;
+               sequence.getRow(rj)
+                       .forEachSparse((i, v) -> out.set(row, (int) i + o, v));
+            }
+            offset += sequence.columns();
+         }
+      }
+      return out;
    }
 
    @Override
    protected void updateMetadata(@NonNull DataSet data) {
+      long dimension = data.getMetadata(input).getDimension();
+      final long outdimension = dimension + (left * dimension) + (right * dimension);
       data.updateMetadata(output, m -> {
-         m.setDimension(-1);
+         m.setDimension(outdimension);
+         m.setType(NDArray.class);
          m.setEncoder(null);
-         m.setType(VariableCollection.class);
       });
    }
-}//END OF Sequence2Instance
+}//END OF SequenceVectorContext

@@ -34,6 +34,7 @@ import java.util.*;
  */
 public class VectorAssembler implements Transform {
    private final List<String> inputs = new ArrayList<>(Collections.singleton(Datum.DEFAULT_INPUT));
+   protected NDArrayFactory ndArrayFactory;
    private String output = Datum.DEFAULT_OUTPUT;
 
    public VectorAssembler() {
@@ -73,7 +74,7 @@ public class VectorAssembler implements Transform {
 
    @Override
    public Datum transform(@NonNull Datum datum) {
-      NDArray out = NDArrayFactory.ND.array(inputs.size());
+      NDArray out = ndArrayFactory.array(inputs.size());
       for(int i = 0; i < inputs.size(); i++) {
          Observation o = datum.get(inputs.get(i));
          if(o.isVariable()) {
@@ -88,6 +89,7 @@ public class VectorAssembler implements Transform {
 
    @Override
    public DataSet transform(@NonNull DataSet dataset) {
+      ndArrayFactory = dataset.getNDArrayFactory();
       dataset = dataset.map(this::transform);
       dataset.updateMetadata(output, m -> {
          m.setDimension(inputs.size());

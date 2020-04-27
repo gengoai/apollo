@@ -17,12 +17,11 @@
  * under the License.
  */
 
-package com.gengoai.apollo.ml.transform;
+package com.gengoai.apollo.ml.transform.vectorizer;
 
 import com.gengoai.apollo.math.linalg.NDArray;
 import com.gengoai.apollo.ml.encoder.IndexEncoder;
 import com.gengoai.apollo.ml.observation.Variable;
-import com.gengoai.apollo.ml.transform.vectorizer.AbstractVariableVectorizer;
 
 /**
  * <p>
@@ -32,7 +31,7 @@ import com.gengoai.apollo.ml.transform.vectorizer.AbstractVariableVectorizer;
  *
  * @author David B. Bracewell
  */
-public class OneHotVectorizer extends AbstractVariableVectorizer {
+public class OneHotVectorizer extends AbstractVariableVectorizer<OneHotVectorizer> {
 
    /**
     * Instantiates a new OneHotVectorizer.

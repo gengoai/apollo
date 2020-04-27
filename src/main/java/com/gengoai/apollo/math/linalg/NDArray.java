@@ -50,35 +50,18 @@ import java.util.stream.Stream;
  */
 @JsonHandler(NDArray.NDArrayMarshaller.class)
 public abstract class NDArray implements Serializable, Observation {
-   /**
-    * The constant decimalFormatter.
-    */
    protected static final NumberFormat decimalFormatter = new DecimalFormat(" 0.000000;-0");
-   /**
-    * The Shape.
-    */
    protected final Shape shape;
    private Object label = null;
    private Object predicted = null;
    private double weight = 1d;
-
-   @Override
-   public NDArray asNDArray() {
-      return this;
-   }
-
-   @Override
-   public boolean isNDArray() {
-      return true;
-   }
 
    /**
     * Instantiates a new NDArray.
     *
     * @param shape The shape of the new NDArray
     */
-   protected NDArray(Shape shape) {
-      Validation.notNull(shape);
+   protected NDArray(@NonNull Shape shape) {
       this.shape = shape.copy();
    }
 
@@ -108,7 +91,7 @@ public abstract class NDArray implements Serializable, Observation {
     * @param rhs the other NDArray whose values will be added
     * @return the new NDArray with the result of this + other
     */
-   public NDArray add(NDArray rhs) {
+   public NDArray add(@NonNull NDArray rhs) {
       return map(rhs, Operator::add);
    }
 
@@ -118,7 +101,7 @@ public abstract class NDArray implements Serializable, Observation {
     * @param rhs the other NDArray whose values will be added
     * @return the new NDArray
     */
-   public NDArray addColumnVector(NDArray rhs) {
+   public NDArray addColumnVector(@NonNull NDArray rhs) {
       return mapColumn(rhs, Operator::add);
    }
 
@@ -128,7 +111,7 @@ public abstract class NDArray implements Serializable, Observation {
     * @param rhs the other NDArray whose values will be added
     * @return the new NDArray
     */
-   public NDArray addRowVector(NDArray rhs) {
+   public NDArray addRowVector(@NonNull NDArray rhs) {
       return mapRow(rhs, Operator::add);
    }
 
@@ -151,7 +134,7 @@ public abstract class NDArray implements Serializable, Observation {
     * @param rhs the other NDArray whose values will be added
     * @return this NDArray with the result of this + other
     */
-   public NDArray addi(NDArray rhs) {
+   public NDArray addi(@NonNull NDArray rhs) {
       return mapi(rhs, Operator::add);
    }
 
@@ -161,7 +144,7 @@ public abstract class NDArray implements Serializable, Observation {
     * @param rhs the other NDArray whose values will be added
     * @return this NDArray with the result of this + other
     */
-   public NDArray addiColumnVector(NDArray rhs) {
+   public NDArray addiColumnVector(@NonNull NDArray rhs) {
       return mapiColumn(rhs, Operator::add);
    }
 
@@ -171,7 +154,7 @@ public abstract class NDArray implements Serializable, Observation {
     * @param rhs the other NDArray whose values will be added
     * @return this NDArray with the result of this + other
     */
-   public NDArray addiRowVector(NDArray rhs) {
+   public NDArray addiRowVector(@NonNull NDArray rhs) {
       return mapiRow(rhs, Operator::add);
    }
 
@@ -200,6 +183,11 @@ public abstract class NDArray implements Serializable, Observation {
          return array.argmax();
       }
       return Cast.<Number>as(object).doubleValue();
+   }
+
+   @Override
+   public NDArray asNDArray() {
+      return this;
    }
 
    private NDArray asNDArray(Object o, int dimension) {
@@ -304,7 +292,7 @@ public abstract class NDArray implements Serializable, Observation {
     * @param rhs the other NDArray whose values will be divided
     * @return the new NDArray with the result of this / other
     */
-   public NDArray div(NDArray rhs) {
+   public NDArray div(@NonNull NDArray rhs) {
       return map(rhs, Operator::divide);
    }
 
@@ -324,7 +312,7 @@ public abstract class NDArray implements Serializable, Observation {
     * @param rhs the other NDArray whose values will be divided
     * @return the new NDArray with the result of this / other
     */
-   public NDArray divColumnVector(NDArray rhs) {
+   public NDArray divColumnVector(@NonNull NDArray rhs) {
       return mapColumn(rhs, Operator::divide);
    }
 
@@ -334,7 +322,7 @@ public abstract class NDArray implements Serializable, Observation {
     * @param rhs the other NDArray whose values will be divided
     * @return the new NDArray with the result of this / other
     */
-   public NDArray divRowVector(NDArray rhs) {
+   public NDArray divRowVector(@NonNull NDArray rhs) {
       return mapRow(rhs, Operator::divide);
    }
 
@@ -344,7 +332,7 @@ public abstract class NDArray implements Serializable, Observation {
     * @param rhs the value to divide
     * @return this NDArray with the scalar value divided
     */
-   public NDArray divi(NDArray rhs) {
+   public NDArray divi(@NonNull NDArray rhs) {
       return mapi(rhs, Operator::divide);
    }
 
@@ -364,7 +352,7 @@ public abstract class NDArray implements Serializable, Observation {
     * @param rhs the other NDArray whose values will be divided
     * @return this NDArray with the result of this / other
     */
-   public NDArray diviColumnVector(NDArray rhs) {
+   public NDArray diviColumnVector(@NonNull NDArray rhs) {
       return mapiColumn(rhs, Operator::divide);
    }
 
@@ -374,7 +362,7 @@ public abstract class NDArray implements Serializable, Observation {
     * @param rhs the other NDArray whose values will be divided
     * @return this NDArray with the result of this / other
     */
-   public NDArray diviRowVector(NDArray rhs) {
+   public NDArray diviRowVector(@NonNull NDArray rhs) {
       return mapiRow(rhs, Operator::divide);
    }
 
@@ -384,7 +372,7 @@ public abstract class NDArray implements Serializable, Observation {
     * @param rhs the NDArray to calculate the dot product with
     * @return NDArray of dot products
     */
-   public abstract double dot(NDArray rhs);
+   public abstract double dot(@NonNull NDArray rhs);
 
    /**
     * Creates a new NDArray with elements equal to <code>1.0</code> if its value is equal to the given value.
@@ -403,7 +391,7 @@ public abstract class NDArray implements Serializable, Observation {
     * @param rhs the NDArray whose values to test equality for
     * @return the NDArray
     */
-   public NDArray eq(NDArray rhs) {
+   public NDArray eq(@NonNull NDArray rhs) {
       return test(rhs, (v, value) -> v == value);
    }
 
@@ -435,17 +423,12 @@ public abstract class NDArray implements Serializable, Observation {
     */
    public abstract NDArray fill(double value);
 
-   @Override
-   public void removeVariables(@NonNull Predicate<Variable> filter) {
-      throw new UnsupportedOperationException("NDArray does not support filtering.");
-   }
-
    /**
     * Processes the sparse entries in this NDArray
     *
     * @param consumer the consumer
     */
-   public abstract void forEachSparse(EntryConsumer consumer);
+   public abstract void forEachSparse(@NonNull EntryConsumer consumer);
 
    /**
     * Creates a new NDArray with elements equal to <code>1.0</code> if its value is greater than or equal to the given
@@ -465,7 +448,7 @@ public abstract class NDArray implements Serializable, Observation {
     * @param rhs the NDArray whose values to test
     * @return the NDArray
     */
-   public NDArray ge(NDArray rhs) {
+   public NDArray ge(@NonNull NDArray rhs) {
       return test(rhs, (v, value) -> v >= value);
    }
 
@@ -487,7 +470,7 @@ public abstract class NDArray implements Serializable, Observation {
     * @param rhs the NDArray whose values to test
     * @return this NDArray
     */
-   public NDArray gei(NDArray rhs) {
+   public NDArray gei(@NonNull NDArray rhs) {
       return testi(rhs, (v, value) -> v >= value);
    }
 
@@ -701,7 +684,7 @@ public abstract class NDArray implements Serializable, Observation {
     * @param rhs the NDArray whose values to test
     * @return the NDArray
     */
-   public NDArray gt(NDArray rhs) {
+   public NDArray gt(@NonNull NDArray rhs) {
       return test(rhs, (v, value) -> v > value);
    }
 
@@ -722,7 +705,7 @@ public abstract class NDArray implements Serializable, Observation {
     * @param rhs the NDArray whose values to test
     * @return this NDArray
     */
-   public NDArray gti(NDArray rhs) {
+   public NDArray gti(@NonNull NDArray rhs) {
       return testi(rhs, (v, value) -> v > value);
    }
 
@@ -734,6 +717,11 @@ public abstract class NDArray implements Serializable, Observation {
     * @return True if the NDArray is made up of dense slices, False otherwise
     */
    public abstract boolean isDense();
+
+   @Override
+   public boolean isNDArray() {
+      return true;
+   }
 
    /**
     * Number of kernels in the NDArray
@@ -762,7 +750,7 @@ public abstract class NDArray implements Serializable, Observation {
     * @param rhs the NDArray whose values to test
     * @return the NDArray
     */
-   public NDArray le(NDArray rhs) {
+   public NDArray le(@NonNull NDArray rhs) {
       return test(rhs, (v, value) -> v <= value);
    }
 
@@ -783,7 +771,7 @@ public abstract class NDArray implements Serializable, Observation {
     * @param rhs the NDArray whose values to test
     * @return this NDArray
     */
-   public NDArray lei(NDArray rhs) {
+   public NDArray lei(@NonNull NDArray rhs) {
       return testi(rhs, (v, value) -> v <= value);
    }
 
@@ -813,7 +801,7 @@ public abstract class NDArray implements Serializable, Observation {
     * @param rhs the NDArray whose values to test
     * @return the NDArray
     */
-   public NDArray lt(NDArray rhs) {
+   public NDArray lt(@NonNull NDArray rhs) {
       return test(rhs, (v, value) -> v < value);
    }
 
@@ -834,7 +822,7 @@ public abstract class NDArray implements Serializable, Observation {
     * @param rhs the NDArray whose values to test
     * @return this NDArray
     */
-   public NDArray lti(NDArray rhs) {
+   public NDArray lti(@NonNull NDArray rhs) {
       return testi(rhs, (v, value) -> v < value);
    }
 
@@ -844,7 +832,7 @@ public abstract class NDArray implements Serializable, Observation {
     * @param operator the operation to perform on the values of this NDArray
     * @return the transformed NDArray
     */
-   public abstract NDArray map(DoubleUnaryOperator operator);
+   public abstract NDArray map(@NonNull DoubleUnaryOperator operator);
 
    /**
     * Creates a new NDArray with values from this NDArray evaluated by the given binary operation with the given value.
@@ -853,7 +841,7 @@ public abstract class NDArray implements Serializable, Observation {
     * @param operator the operation to perform on the values of this NDArray and the given value
     * @return the transformed NDArray
     */
-   public abstract NDArray map(double value, DoubleBinaryOperator operator);
+   public abstract NDArray map(double value, @NonNull DoubleBinaryOperator operator);
 
    /**
     * Creates a new NDArray with values from this NDArray and the given NDArray evaluated using the given  binary
@@ -863,7 +851,7 @@ public abstract class NDArray implements Serializable, Observation {
     * @param operator the operation to perform on the values of this NDArray and the given NDArray
     * @return the transformed NDArray
     */
-   public abstract NDArray map(NDArray rhs, DoubleBinaryOperator operator);
+   public abstract NDArray map(@NonNull NDArray rhs, @NonNull DoubleBinaryOperator operator);
 
    /**
     * Creates a new NDArray with values from this NDArray and the given NDArray evaluated using the given  binary
@@ -873,7 +861,7 @@ public abstract class NDArray implements Serializable, Observation {
     * @param operator the operation to perform on the values of this NDArray and the given NDArray
     * @return the transformed NDArray
     */
-   public abstract NDArray mapColumn(NDArray rhs, final DoubleBinaryOperator operator);
+   public abstract NDArray mapColumn(@NonNull NDArray rhs, @NonNull  DoubleBinaryOperator operator);
 
    /**
     * Updates the values in the given column of  this NDArray by performing the given binary operation with the values
@@ -884,7 +872,7 @@ public abstract class NDArray implements Serializable, Observation {
     * @param operator the operation to perform on the values of this NDArray and the given NDArray
     * @return the transformed NDArray
     */
-   public abstract NDArray mapColumn(int column, NDArray rhs, final DoubleBinaryOperator operator);
+   public abstract NDArray mapColumn(int column, @NonNull NDArray rhs, @NonNull  DoubleBinaryOperator operator);
 
    /**
     * Creates a new NDArray with values from this NDArray and the given NDArray evaluated using the given  binary
@@ -894,7 +882,7 @@ public abstract class NDArray implements Serializable, Observation {
     * @param operator the operation to perform on the values of this NDArray and the given NDArray
     * @return the transformed NDArray
     */
-   public abstract NDArray mapRow(NDArray rhs, final DoubleBinaryOperator operator);
+   public abstract NDArray mapRow(@NonNull NDArray rhs, @NonNull  DoubleBinaryOperator operator);
 
    /**
     * Updates the values in the given row of  this NDArray by performing the given binary operation with the values in
@@ -905,7 +893,7 @@ public abstract class NDArray implements Serializable, Observation {
     * @param operator the operation to perform on the values of this NDArray and the given NDArray
     * @return the transformed NDArray
     */
-   public abstract NDArray mapRow(int row, NDArray rhs, final DoubleBinaryOperator operator);
+   public abstract NDArray mapRow(int row, @NonNull NDArray rhs, @NonNull  DoubleBinaryOperator operator);
 
    @Override
    public void mapVariables(@NonNull Function<Variable, Variable> mapper) {
@@ -918,7 +906,7 @@ public abstract class NDArray implements Serializable, Observation {
     * @param operator the operation to perform on the values of this NDArray
     * @return the transformed NDArray
     */
-   public abstract NDArray mapi(DoubleUnaryOperator operator);
+   public abstract NDArray mapi(@NonNull DoubleUnaryOperator operator);
 
    /**
     * Updates the values in this NDArray by performing he given binary operation with the given value.
@@ -927,7 +915,7 @@ public abstract class NDArray implements Serializable, Observation {
     * @param operator the operation to perform on the values of this NDArray and the given value
     * @return the transformed NDArray
     */
-   public abstract NDArray mapi(double value, DoubleBinaryOperator operator);
+   public abstract NDArray mapi(double value, @NonNull DoubleBinaryOperator operator);
 
    /**
     * Updates the values int this NDArray by performing the given binary operation with the values in the given
@@ -937,7 +925,7 @@ public abstract class NDArray implements Serializable, Observation {
     * @param operator the operation to perform on the values of this NDArray and the given NDArray
     * @return the transformed NDArray
     */
-   public abstract NDArray mapi(NDArray rhs, DoubleBinaryOperator operator);
+   public abstract NDArray mapi(@NonNull NDArray rhs, @NonNull DoubleBinaryOperator operator);
 
    /**
     * Updates the values int this NDArray by performing the given binary operation with the values in the given NDArray
@@ -947,7 +935,7 @@ public abstract class NDArray implements Serializable, Observation {
     * @param operator the operation to perform on the values of this NDArray and the given NDArray
     * @return the transformed NDArray
     */
-   public abstract NDArray mapiColumn(NDArray rhs, final DoubleBinaryOperator operator);
+   public abstract NDArray mapiColumn(@NonNull NDArray rhs, @NonNull  DoubleBinaryOperator operator);
 
    /**
     * Updates the values in the given column of  this NDArray by performing the given binary operation with the values
@@ -958,7 +946,7 @@ public abstract class NDArray implements Serializable, Observation {
     * @param operator the operation to perform on the values of this NDArray and the given NDArray
     * @return the transformed NDArray
     */
-   public abstract NDArray mapiColumn(int column, NDArray rhs, final DoubleBinaryOperator operator);
+   public abstract NDArray mapiColumn(int column, @NonNull NDArray rhs, @NonNull  DoubleBinaryOperator operator);
 
    /**
     * Updates the values in the given row of  this NDArray by performing the given binary operation with the values in
@@ -969,7 +957,7 @@ public abstract class NDArray implements Serializable, Observation {
     * @param operator the operation to perform on the values of this NDArray and the given NDArray
     * @return the transformed NDArray
     */
-   public abstract NDArray mapiRow(int row, NDArray rhs, final DoubleBinaryOperator operator);
+   public abstract NDArray mapiRow(int row, @NonNull NDArray rhs, @NonNull  DoubleBinaryOperator operator);
 
    /**
     * Updates the values int this NDArray by performing the given binary operation with the values in the given NDArray
@@ -979,7 +967,7 @@ public abstract class NDArray implements Serializable, Observation {
     * @param operator the operation to perform on the values of this NDArray and the given NDArray
     * @return the transformed NDArray
     */
-   public abstract NDArray mapiRow(NDArray rhs, final DoubleBinaryOperator operator);
+   public abstract NDArray mapiRow(@NonNull NDArray rhs, @NonNull  DoubleBinaryOperator operator);
 
    /**
     * Calculates the maximum value in the NDArray.
@@ -1010,7 +998,7 @@ public abstract class NDArray implements Serializable, Observation {
     * @param rhs the NDArray to multiply
     * @return the resulting NDArray
     */
-   public abstract NDArray mmul(NDArray rhs);
+   public abstract NDArray mmul(@NonNull NDArray rhs);
 
    /**
     * Multiplies the values in the other NDArray to this one element by element.
@@ -1018,7 +1006,7 @@ public abstract class NDArray implements Serializable, Observation {
     * @param rhs the other NDArray whose values will be multiplied
     * @return the new NDArray with the result of this * other
     */
-   public NDArray mul(NDArray rhs) {
+   public NDArray mul(@NonNull NDArray rhs) {
       return map(rhs, Operator::multiply);
    }
 
@@ -1039,7 +1027,7 @@ public abstract class NDArray implements Serializable, Observation {
     * @param rhs the other NDArray whose values will be multiplied
     * @return the new NDArray with the result of this * other
     */
-   public NDArray mulColumnVector(NDArray rhs) {
+   public NDArray mulColumnVector(@NonNull NDArray rhs) {
       return mapColumn(rhs, Operator::multiply);
    }
 
@@ -1050,7 +1038,7 @@ public abstract class NDArray implements Serializable, Observation {
     * @param rhs the other NDArray whose values will be multiplied
     * @return the new NDArray with the result of this * other
     */
-   public NDArray mulRowVector(NDArray rhs) {
+   public NDArray mulRowVector(@NonNull NDArray rhs) {
       return mapRow(rhs, Operator::multiply);
    }
 
@@ -1060,7 +1048,7 @@ public abstract class NDArray implements Serializable, Observation {
     * @param rhs the other NDArray whose values will be multiplied
     * @return this NDArray with the result of this * other
     */
-   public NDArray muli(NDArray rhs) {
+   public NDArray muli(@NonNull NDArray rhs) {
       return mapi(rhs, Operator::multiply);
    }
 
@@ -1081,7 +1069,7 @@ public abstract class NDArray implements Serializable, Observation {
     * @param rhs the other NDArray whose values will be multiplied
     * @return the new NDArray with the result of this * other
     */
-   public NDArray muliColumnVector(NDArray rhs) {
+   public NDArray muliColumnVector(@NonNull NDArray rhs) {
       return mapiColumn(rhs, Operator::multiply);
    }
 
@@ -1092,7 +1080,7 @@ public abstract class NDArray implements Serializable, Observation {
     * @param rhs the other NDArray whose values will be multiplied
     * @return the new NDArray with the result of this * other
     */
-   public NDArray muliRowVector(NDArray rhs) {
+   public NDArray muliRowVector(@NonNull NDArray rhs) {
       return mapiRow(rhs, Operator::multiply);
    }
 
@@ -1113,7 +1101,7 @@ public abstract class NDArray implements Serializable, Observation {
     * @param rhs the NDArray whose values to test equality for
     * @return the NDArray
     */
-   public NDArray neq(NDArray rhs) {
+   public NDArray neq(@NonNull NDArray rhs) {
       return testi(rhs, (v, value) -> v != value);
    }
 
@@ -1134,7 +1122,7 @@ public abstract class NDArray implements Serializable, Observation {
     * @param rhs the NDArray whose values to test equality for
     * @return this NDArray
     */
-   public NDArray neqi(NDArray rhs) {
+   public NDArray neqi(@NonNull NDArray rhs) {
       return testi(rhs, (v, value) -> v != value);
    }
 
@@ -1183,7 +1171,7 @@ public abstract class NDArray implements Serializable, Observation {
     * @param lhs the other NDArray whose values will be divided from
     * @return the new NDArray with the result of other / this
     */
-   public NDArray rdiv(NDArray lhs) {
+   public NDArray rdiv(@NonNull NDArray lhs) {
       return map(lhs, (v1, v2) -> v2 / v1);
    }
 
@@ -1204,7 +1192,7 @@ public abstract class NDArray implements Serializable, Observation {
     * @param lhs the other NDArray whose values will be divided
     * @return the new NDArray with the result of this / other
     */
-   public NDArray rdivColumnVector(NDArray lhs) {
+   public NDArray rdivColumnVector(@NonNull NDArray lhs) {
       return mapColumn(lhs, (v1, v2) -> v2 / v1);
    }
 
@@ -1215,7 +1203,7 @@ public abstract class NDArray implements Serializable, Observation {
     * @param lhs the other NDArray whose values will be divided
     * @return the new NDArray with the result of this / other
     */
-   public NDArray rdivRowVector(NDArray lhs) {
+   public NDArray rdivRowVector(@NonNull NDArray lhs) {
       return mapRow(lhs, (v1, v2) -> v2 / v1);
    }
 
@@ -1225,7 +1213,7 @@ public abstract class NDArray implements Serializable, Observation {
     * @param lhs the other NDArray whose values will be divided from
     * @return the new NDArray with the result of other / this
     */
-   public NDArray rdivi(NDArray lhs) {
+   public NDArray rdivi(@NonNull NDArray lhs) {
       return mapi(lhs, (v1, v2) -> v2 / v1);
    }
 
@@ -1246,7 +1234,7 @@ public abstract class NDArray implements Serializable, Observation {
     * @param lhs the other NDArray whose values will be divided
     * @return the new NDArray with the result of this / other
     */
-   public NDArray rdiviColumnVector(NDArray lhs) {
+   public NDArray rdiviColumnVector(@NonNull NDArray lhs) {
       return mapiColumn(lhs, (v1, v2) -> v2 / v1);
    }
 
@@ -1257,8 +1245,13 @@ public abstract class NDArray implements Serializable, Observation {
     * @param lhs the other NDArray whose values will be divided
     * @return the new NDArray with the result of this / other
     */
-   public NDArray rdiviRowVector(NDArray lhs) {
+   public NDArray rdiviRowVector(@NonNull NDArray lhs) {
       return mapiRow(lhs, (v1, v2) -> v2 / v1);
+   }
+
+   @Override
+   public void removeVariables(@NonNull Predicate<Variable> filter) {
+      throw new UnsupportedOperationException("NDArray does not support filtering.");
    }
 
    /**
@@ -1345,7 +1338,7 @@ public abstract class NDArray implements Serializable, Observation {
     * @param lhs the other NDArray whose values will be subtracted from
     * @return the new NDArray with the result of other - this
     */
-   public NDArray rsub(NDArray lhs) {
+   public NDArray rsub(@NonNull NDArray lhs) {
       return map(lhs, (v1, v2) -> v2 - v1);
    }
 
@@ -1366,7 +1359,7 @@ public abstract class NDArray implements Serializable, Observation {
     * @param lhs the other NDArray whose values will be subtracted
     * @return the new NDArray with the result of this - other
     */
-   public NDArray rsubColumnVector(NDArray lhs) {
+   public NDArray rsubColumnVector(@NonNull NDArray lhs) {
       return mapColumn(lhs, (v1, v2) -> v2 - v1);
    }
 
@@ -1377,7 +1370,7 @@ public abstract class NDArray implements Serializable, Observation {
     * @param lhs the other NDArray whose values will be subtracted
     * @return the new NDArray with the result of this - other
     */
-   public NDArray rsubRowVector(NDArray lhs) {
+   public NDArray rsubRowVector(@NonNull NDArray lhs) {
       return mapRow(lhs, (v1, v2) -> v2 - v1);
    }
 
@@ -1387,7 +1380,7 @@ public abstract class NDArray implements Serializable, Observation {
     * @param lhs the other NDArray whose values will be subtracted from
     * @return the new NDArray with the result of other - this
     */
-   public NDArray rsubi(NDArray lhs) {
+   public NDArray rsubi(@NonNull NDArray lhs) {
       return mapi(lhs, (v1, v2) -> v2 - v1);
    }
 
@@ -1408,7 +1401,7 @@ public abstract class NDArray implements Serializable, Observation {
     * @param lhs the other NDArray whose values will be subtracted
     * @return the new NDArray with the result of this - other
     */
-   public NDArray rsubiColumnVector(NDArray lhs) {
+   public NDArray rsubiColumnVector(@NonNull NDArray lhs) {
       return mapiColumn(lhs, (v1, v2) -> v2 - v1);
    }
 
@@ -1419,7 +1412,7 @@ public abstract class NDArray implements Serializable, Observation {
     * @param lhs the other NDArray whose values will be subtracted
     * @return the new NDArray with the result of this - other
     */
-   public NDArray rsubiRowVector(NDArray lhs) {
+   public NDArray rsubiRowVector(@NonNull NDArray lhs) {
       return mapiRow(lhs, (v1, v2) -> v2 - v1);
    }
 
@@ -1438,7 +1431,7 @@ public abstract class NDArray implements Serializable, Observation {
     * @param predicate the predicate to test
     * @return new NDArray with values passing the given predicate and zeros elsewhere
     */
-   public NDArray select(DoublePredicate predicate) {
+   public NDArray select(@NonNull DoublePredicate predicate) {
       return map(v -> predicate.test(v)
                       ? v
                       : 0.0);
@@ -1450,16 +1443,12 @@ public abstract class NDArray implements Serializable, Observation {
     * @param rhs the NDArray used to determine which values are selected
     * @return the selected NDArray
     */
-   public NDArray select(NDArray rhs) {
+   public NDArray select(@NonNull NDArray rhs) {
       return map(rhs,
                  (v1, v2) -> v2 == 1.0
                              ? 1.0
                              : 0.0);
    }
-
-   public abstract NDArray selectColumns(int... indices);
-
-   public abstract NDArray selectRows(int... indices);
 
    /**
     * Selects all values matching the given predicate in-place.
@@ -1467,7 +1456,7 @@ public abstract class NDArray implements Serializable, Observation {
     * @param predicate the predicate to test
     * @return this NDArray with values passing the given predicate and zeros elsewhere
     */
-   public NDArray selecti(DoublePredicate predicate) {
+   public NDArray selecti(@NonNull DoublePredicate predicate) {
       return mapi(v -> predicate.test(v)
                        ? v
                        : 0.0);
@@ -1480,7 +1469,7 @@ public abstract class NDArray implements Serializable, Observation {
     * @param rhs the NDArray used to determine which values are selected
     * @return the selected NDArray
     */
-   public NDArray selecti(NDArray rhs) {
+   public NDArray selecti(@NonNull NDArray rhs) {
       return mapi(rhs,
                   (v1, v2) -> v2 == 1.0
                               ? 1.0
@@ -1536,7 +1525,7 @@ public abstract class NDArray implements Serializable, Observation {
     * @param array the array of new column values
     * @return this NDArray
     */
-   public abstract NDArray setColumn(int i, NDArray array);
+   public abstract NDArray setColumn(int i, @NonNull NDArray array);
 
    /**
     * Sets the label associated with the NDArray
@@ -1557,7 +1546,7 @@ public abstract class NDArray implements Serializable, Observation {
     * @param array   the matrix
     * @return this NDArray
     */
-   public NDArray setMatrix(int kernel, int channel, NDArray array) {
+   public NDArray setMatrix(int kernel, int channel, @NonNull NDArray array) {
       return setSlice(shape.sliceIndex(kernel, channel), array);
    }
 
@@ -1579,7 +1568,7 @@ public abstract class NDArray implements Serializable, Observation {
     * @param array the array of new row values
     * @return this NDArray
     */
-   public abstract NDArray setRow(int i, NDArray array);
+   public abstract NDArray setRow(int i, @NonNull NDArray array);
 
    /**
     * Sets the slice at the given index.
@@ -1588,7 +1577,7 @@ public abstract class NDArray implements Serializable, Observation {
     * @param array the NDArray of values for the new slice
     * @return this NDArray
     */
-   public abstract NDArray setSlice(int slice, NDArray array);
+   public abstract NDArray setSlice(int slice, @NonNull NDArray array);
 
    /**
     * Sets the weight associated with the NDArray.
@@ -1698,6 +1687,11 @@ public abstract class NDArray implements Serializable, Observation {
     */
    public abstract NDArray sliceSums();
 
+   /**
+    * Gets the indices of the sparse entries
+    *
+    * @return the index array
+    */
    public abstract int[] sparseIndices();
 
    /**
@@ -1715,7 +1709,7 @@ public abstract class NDArray implements Serializable, Observation {
     * @param rhs the other NDArray whose values will be subtracted
     * @return the new NDArray with the result of this - other
     */
-   public NDArray sub(NDArray rhs) {
+   public NDArray sub(@NonNull NDArray rhs) {
       return map(rhs, Operator::subtract);
    }
 
@@ -1735,7 +1729,7 @@ public abstract class NDArray implements Serializable, Observation {
     * @param rhs the other NDArray whose values will be subtracted
     * @return the new NDArray with the result of this - other
     */
-   public NDArray subColumnVector(NDArray rhs) {
+   public NDArray subColumnVector(@NonNull NDArray rhs) {
       return mapColumn(rhs, Operator::subtract);
    }
 
@@ -1745,7 +1739,7 @@ public abstract class NDArray implements Serializable, Observation {
     * @param rhs the other NDArray whose values will be subtracted
     * @return the new NDArray with the result of this - other
     */
-   public NDArray subRowVector(NDArray rhs) {
+   public NDArray subRowVector(@NonNull NDArray rhs) {
       return mapRow(rhs, Operator::subtract);
    }
 
@@ -1755,7 +1749,7 @@ public abstract class NDArray implements Serializable, Observation {
     * @param rhs the other NDArray whose values will be subtracted
     * @return the new NDArray with the result of this - other
     */
-   public NDArray subi(NDArray rhs) {
+   public NDArray subi(@NonNull NDArray rhs) {
       return mapi(rhs, Operator::subtract);
    }
 
@@ -1776,7 +1770,7 @@ public abstract class NDArray implements Serializable, Observation {
     * @param rhs the other NDArray whose values will be subtracted
     * @return the new NDArray with the result of this - other
     */
-   public NDArray subiColumnVector(NDArray rhs) {
+   public NDArray subiColumnVector(@NonNull NDArray rhs) {
       return mapiColumn(rhs, Operator::subtract);
    }
 
@@ -1787,7 +1781,7 @@ public abstract class NDArray implements Serializable, Observation {
     * @param rhs the other NDArray whose values will be subtracted
     * @return the new NDArray with the result of this - other
     */
-   public NDArray subiRowVector(NDArray rhs) {
+   public NDArray subiRowVector(@NonNull NDArray rhs) {
       return mapiRow(rhs, Operator::subtract);
    }
 
@@ -1811,7 +1805,7 @@ public abstract class NDArray implements Serializable, Observation {
     * @param predicate the predicate to test
     * @return new NDArray with test results
     */
-   public NDArray test(DoublePredicate predicate) {
+   public NDArray test(@NonNull DoublePredicate predicate) {
       return map(v -> {
          if(predicate.test(v)) {
             return 1.0;
@@ -1828,7 +1822,7 @@ public abstract class NDArray implements Serializable, Observation {
     * @param predicate the predicate
     * @return the NDArray with test results
     */
-   public NDArray test(NDArray rhs, DoubleBinaryPredicate predicate) {
+   public NDArray test(@NonNull NDArray rhs, @NonNull DoubleBinaryPredicate predicate) {
       return map(rhs, (v1, v2) -> {
          if(predicate.test(v1, v2)) {
             return 1.0;
@@ -1843,7 +1837,7 @@ public abstract class NDArray implements Serializable, Observation {
     * @param predicate the predicate to test
     * @return new NDArray with test results
     */
-   public NDArray testi(DoublePredicate predicate) {
+   public NDArray testi(@NonNull DoublePredicate predicate) {
       return mapi(v -> {
          if(predicate.test(v)) {
             return 1.0;
@@ -1860,7 +1854,7 @@ public abstract class NDArray implements Serializable, Observation {
     * @param predicate the predicate
     * @return the NDArray with test results
     */
-   public NDArray testi(NDArray rhs, DoubleBinaryPredicate predicate) {
+   public NDArray testi(@NonNull NDArray rhs, @NonNull DoubleBinaryPredicate predicate) {
       return mapi(rhs, (v1, v2) -> {
          if(predicate.test(v1, v2)) {
             return 1.0;

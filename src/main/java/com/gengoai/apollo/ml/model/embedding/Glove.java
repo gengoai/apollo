@@ -190,7 +190,7 @@ public class Glove extends TrainableWordEmbedding<Glove.Parameters, Glove> {
       for(int i = 0; i < vocabLength; i++) {
          W[i].addi(W[i + vocabLength]);
          String k = vectorStore.decode(i);
-         vectorStore.updateVector(i, new DenseMatrix(W[i]).setLabel(k));
+         vectorStore.updateVector(i, new DenseMatrix(W[i]).setLabel(k).T());
       }
 
    }
@@ -199,8 +199,7 @@ public class Glove extends TrainableWordEmbedding<Glove.Parameters, Glove> {
       List<Integer> out = new ArrayList<>();
       for(Observation example : sequence) {
          example.getVariableSpace()
-                .findFirst()
-                .ifPresent(v -> out.add(vectorStore.addOrGetIndex(parameters.nameSpace.value().getName(v))));
+                .forEach(v -> out.add(vectorStore.addOrGetIndex(parameters.nameSpace.value().getName(v))));
       }
       return out;
    }

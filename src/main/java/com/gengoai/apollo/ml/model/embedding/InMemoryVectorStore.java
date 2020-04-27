@@ -110,7 +110,7 @@ public class InMemoryVectorStore implements KeyedVectorStore {
       int index = alphabet.getId(key);
       return index >= 0
              ? vectors.get(index)
-             : NDArrayFactory.ND.array(dimension);
+             : NDArrayFactory.ND.array(1, dimension);
    }
 
    @Override

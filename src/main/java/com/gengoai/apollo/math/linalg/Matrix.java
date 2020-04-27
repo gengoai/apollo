@@ -39,10 +39,6 @@ import java.util.stream.IntStream;
 public abstract class Matrix extends NDArray {
    private static final long serialVersionUID = 1L;
 
-   protected Matrix(Shape shape) {
-      super(shape);
-   }
-
    /**
     * Checks that the length of the second shape is equal to the given dimension.
     *
@@ -56,6 +52,10 @@ public abstract class Matrix extends NDArray {
       if(dim != s2.matrixLength) {
          throw new IllegalArgumentException("Length Mismatch: " + s2.matrixLength + " != " + dim);
       }
+   }
+
+   protected Matrix(@NonNull Shape shape) {
+      super(shape);
    }
 
    @Override
@@ -288,12 +288,23 @@ public abstract class Matrix extends NDArray {
    }
 
    @Override
+   public NDArray incrementiColumn(int c, @NonNull NDArray inc) {
+      Validation.checkArgument(rows() == inc.length(), "Invalid Row size");
+      for(int r = 0; r < rows(); r++) {
+         for(long i = 0; i < inc.length(); i++) {
+            set(r, c, get(r, c) + inc.get(r));
+         }
+      }
+      return this;
+   }
+
+   @Override
    public long length() {
       return shape.matrixLength;
    }
 
    @Override
-   public NDArray map(double value, DoubleBinaryOperator operator) {
+   public NDArray map(double value, @NonNull DoubleBinaryOperator operator) {
       NDArray out = zeroLike();
       for(int i = 0; i < shape.matrixLength; i++) {
          out.set(i, operator.applyAsDouble(get(i), value));
@@ -302,7 +313,7 @@ public abstract class Matrix extends NDArray {
    }
 
    @Override
-   public NDArray map(NDArray rhs, DoubleBinaryOperator operator) {
+   public NDArray map(@NonNull NDArray rhs, @NonNull DoubleBinaryOperator operator) {
       if(rhs.shape().isScalar()) {
          return map(rhs.scalar(), operator);
       }
@@ -315,7 +326,7 @@ public abstract class Matrix extends NDArray {
    }
 
    @Override
-   public NDArray mapColumn(NDArray rhs, final DoubleBinaryOperator operator) {
+   public NDArray mapColumn(@NonNull NDArray rhs, @NonNull DoubleBinaryOperator operator) {
       if(rhs.shape().isScalar()) {
          return map(rhs.scalar(), operator);
       }
@@ -330,7 +341,13 @@ public abstract class Matrix extends NDArray {
    }
 
    @Override
-   public NDArray mapRow(NDArray rhs, DoubleBinaryOperator operator) {
+   public NDArray mapColumn(int column, @NonNull NDArray rhs, @NonNull DoubleBinaryOperator operator) {
+      NDArray out = copy();
+      return out.mapiColumn(column, rhs, operator);
+   }
+
+   @Override
+   public NDArray mapRow(@NonNull NDArray rhs, @NonNull DoubleBinaryOperator operator) {
       if(rhs.shape().isScalar()) {
          return map(rhs.scalar(), operator);
       }
@@ -345,7 +362,13 @@ public abstract class Matrix extends NDArray {
    }
 
    @Override
-   public NDArray mapi(double value, DoubleBinaryOperator operator) {
+   public NDArray mapRow(int row, @NonNull NDArray rhs, @NonNull DoubleBinaryOperator operator) {
+      NDArray out = copy();
+      return out.mapiRow(row, rhs, operator);
+   }
+
+   @Override
+   public NDArray mapi(double value, @NonNull DoubleBinaryOperator operator) {
       for(int i = 0; i < shape.matrixLength; i++) {
          set(i, operator.applyAsDouble(get(i), value));
       }
@@ -353,7 +376,7 @@ public abstract class Matrix extends NDArray {
    }
 
    @Override
-   public NDArray mapi(NDArray rhs, DoubleBinaryOperator operator) {
+   public NDArray mapi(@NonNull NDArray rhs, @NonNull DoubleBinaryOperator operator) {
       if(rhs.shape().isScalar()) {
          return mapi(rhs.scalar(), operator);
       }
@@ -365,7 +388,7 @@ public abstract class Matrix extends NDArray {
    }
 
    @Override
-   public NDArray mapiColumn(NDArray rhs, final DoubleBinaryOperator operator) {
+   public NDArray mapiColumn(@NonNull NDArray rhs, @NonNull DoubleBinaryOperator operator) {
       if(rhs.shape().isScalar()) {
          return mapi(rhs.scalar(), operator);
       }
@@ -379,7 +402,17 @@ public abstract class Matrix extends NDArray {
    }
 
    @Override
-   public NDArray mapiRow(NDArray rhs, DoubleBinaryOperator operator) {
+   public NDArray mapiColumn(int column, @NonNull NDArray rhs, @NonNull DoubleBinaryOperator operator) {
+      Validation.checkArgument(column >= 0 && column < columns(), "Invalid column value" + column);
+      Validation.checkArgument(rhs.length() == rows(), "Length mismatch");
+      for(int r = 0; r < rows(); r++) {
+         set(r, column, operator.applyAsDouble(get(r, column), rhs.get(r)));
+      }
+      return this;
+   }
+
+   @Override
+   public NDArray mapiRow(@NonNull NDArray rhs, @NonNull DoubleBinaryOperator operator) {
       if(rhs.shape().isScalar()) {
          return mapi(rhs.scalar(), operator);
       }
@@ -393,34 +426,7 @@ public abstract class Matrix extends NDArray {
    }
 
    @Override
-   public NDArray incrementiColumn(int c, NDArray inc) {
-      Validation.checkArgument(rows() == inc.length(), "Invalid Row size");
-      for(int r = 0; r < rows(); r++) {
-         for(long i = 0; i < inc.length(); i++) {
-            set(r, c, get(r, c) + inc.get(r));
-         }
-      }
-      return this;
-   }
-
-   @Override
-   public NDArray mapiColumn(int column, NDArray rhs, @NonNull DoubleBinaryOperator operator) {
-      Validation.checkArgument(column >= 0 && column < columns(), "Invalid column value" + column);
-      Validation.checkArgument(rhs.length() == rows(), "Length mismatch");
-      for(int r = 0; r < rows(); r++) {
-         set(r, column, operator.applyAsDouble(get(r, column), rhs.get(r)));
-      }
-      return this;
-   }
-
-   @Override
-   public NDArray mapColumn(int column, NDArray rhs, @NonNull DoubleBinaryOperator operator) {
-      NDArray out = copy();
-      return out.mapiColumn(column, rhs, operator);
-   }
-
-   @Override
-   public NDArray mapiRow(int row, NDArray rhs, DoubleBinaryOperator operator) {
+   public NDArray mapiRow(int row, @NonNull NDArray rhs, @NonNull DoubleBinaryOperator operator) {
       Validation.checkArgument(row >= 0 && row < rows(), "Invalid row value" + row);
       Validation.checkArgument(rhs.length() == columns(), "Length mismatch");
       for(int c = 0; c < columns(); c++) {
@@ -430,24 +436,7 @@ public abstract class Matrix extends NDArray {
    }
 
    @Override
-   public NDArray mapRow(int row, NDArray rhs, DoubleBinaryOperator operator) {
-      NDArray out = copy();
-      return out.mapiRow(row, rhs, operator);
-   }
-
-   @Override
-   public int[] sparseIndices() {
-      IntArrayList list = new IntArrayList();
-      for(long i = 0; i < length(); i++) {
-         if(get(i) != 0) {
-            list.add((int) i);
-         }
-      }
-      return list.toArray(new int[0]);
-   }
-
-   @Override
-   public NDArray mmul(NDArray rhs) {
+   public NDArray mmul(@NonNull NDArray rhs) {
       Validation.checkArgument(rhs.shape.sliceLength == 1, () -> "Invalid Slice Length: " +
             rhs.shape.sliceLength + " != 1");
       if(shape.isVector()) {
@@ -577,7 +566,6 @@ public abstract class Matrix extends NDArray {
       return array;
    }
 
-
    @Override
    public NDArray set(int channel, int row, int col, double value) {
       if(channel == 0) {
@@ -595,7 +583,7 @@ public abstract class Matrix extends NDArray {
    }
 
    @Override
-   public NDArray setSlice(int slice, NDArray array) {
+   public NDArray setSlice(int slice, @NonNull NDArray array) {
       Validation.checkArgument(slice == 0, "Invalid Slice: " + slice);
       checkLength(array.shape);
       for(int i = 0; i < array.shape.matrixLength; i++) {
@@ -603,7 +591,6 @@ public abstract class Matrix extends NDArray {
       }
       return this;
    }
-
 
    @Override
    public NDArray slice(int slice) {
@@ -661,6 +648,17 @@ public abstract class Matrix extends NDArray {
    }
 
    @Override
+   public int[] sparseIndices() {
+      IntArrayList list = new IntArrayList();
+      for(long i = 0; i < length(); i++) {
+         if(get(i) != 0) {
+            list.add((int) i);
+         }
+      }
+      return list.toArray(new int[0]);
+   }
+
+   @Override
    public double sumOfSquares() {
       double sum = 0;
       for(int i = 0; i < shape.matrixLength; i++) {
@@ -668,7 +666,6 @@ public abstract class Matrix extends NDArray {
       }
       return sum;
    }
-
 
    @Override
    public NDArray unitize() {
@@ -688,6 +685,5 @@ public abstract class Matrix extends NDArray {
       }
       return true;
    }
-
 
 }//END OF NDArray

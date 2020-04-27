@@ -20,6 +20,7 @@
 package com.gengoai.apollo.ml.transform;
 
 import com.gengoai.Copyable;
+import com.gengoai.apollo.math.linalg.NDArrayFactory;
 import com.gengoai.apollo.ml.DataSet;
 import com.gengoai.apollo.ml.Datum;
 import com.gengoai.apollo.ml.ObservationMetadata;
@@ -59,6 +60,7 @@ public abstract class AbstractSingleSourceTransform<T extends AbstractSingleSour
     */
    @NonNull
    protected String output = Datum.DEFAULT_INPUT;
+   protected NDArrayFactory ndArrayFactory;
 
    @Override
    public T copy() {
@@ -74,6 +76,7 @@ public abstract class AbstractSingleSourceTransform<T extends AbstractSingleSour
 
    @Override
    public DataSet fitAndTransform(DataSet dataset) {
+      ndArrayFactory = dataset.getNDArrayFactory();
       fit(dataset.stream().map(d -> d.get(input)));
       return transform(dataset);
    }

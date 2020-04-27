@@ -107,7 +107,7 @@ public class OnlineLDA extends BaseVectorTopicModel {
          }
          var gammaD = m.gamma.getRow(i);
          var expELogThetaD = expELogTheta.getRow(i);
-         var expELogBetaD = m.expELogBeta.selectColumns(ids);
+         var expELogBetaD = m.expELogBeta.getColumns(ids);
          var phiNorm = expELogThetaD.mmul(expELogBetaD).addi(1E-100);
 
          NDArray lastGamma;

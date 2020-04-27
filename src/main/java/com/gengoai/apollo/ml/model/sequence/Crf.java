@@ -24,7 +24,10 @@ import com.gengoai.Validation;
 import com.gengoai.apollo.math.linalg.NDArray;
 import com.gengoai.apollo.ml.DataSet;
 import com.gengoai.apollo.ml.Datum;
-import com.gengoai.apollo.ml.model.*;
+import com.gengoai.apollo.ml.model.LabelType;
+import com.gengoai.apollo.ml.model.Params;
+import com.gengoai.apollo.ml.model.SingleSourceFitParameters;
+import com.gengoai.apollo.ml.model.SingleSourceModel;
 import com.gengoai.apollo.ml.observation.*;
 import com.gengoai.conversion.Cast;
 import com.gengoai.io.Resources;
@@ -109,7 +112,13 @@ public class Crf extends SingleSourceModel<Crf.Parameters, Crf> {
 
    private void deleteItemSequence(ItemSequence itemSequence) {
       for(int i = 0; i < itemSequence.size(); i++) {
-         itemSequence.get(i).delete();
+         for(int j = 0; j < itemSequence.size(); j++) {
+            Item item = itemSequence.get(j);
+            for(int l = 0; l < itemSequence.get(j).size(); l++) {
+               item.get(l).delete();
+            }
+            item.delete();
+         }
       }
       itemSequence.delete();
    }
@@ -192,13 +201,12 @@ public class Crf extends SingleSourceModel<Crf.Parameters, Crf> {
    @Override
    protected Observation transform(@NonNull Observation observation) {
       CrfSuiteLoader.INSTANCE.load();
-      Sequence<?> s = observation.asSequence();
-      ItemSequence itemSequence = toItemSequence(s, null).v1;
+      ItemSequence itemSequence = toItemSequence(observation, null).v1;
       VariableSequence labeling = new VariableSequence();
       for(Pair<String, Double> pair : tagger.tag(itemSequence)) {
          labeling.add(new Variable(pair.first, pair.second));
       }
-      deleteItemSequence(itemSequence);
+//      deleteItemSequence(itemSequence);
       return labeling;
    }
 

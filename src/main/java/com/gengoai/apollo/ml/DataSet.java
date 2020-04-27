@@ -20,6 +20,7 @@
 package com.gengoai.apollo.ml;
 
 import com.gengoai.annotation.JsonHandler;
+import com.gengoai.apollo.math.linalg.NDArrayFactory;
 import com.gengoai.apollo.ml.observation.Variable;
 import com.gengoai.apollo.ml.transform.Transform;
 import com.gengoai.collection.counter.Counter;
@@ -69,6 +70,7 @@ import java.util.function.Consumer;
 public abstract class DataSet implements Iterable<Datum>, Serializable {
    private static final long serialVersionUID = 1L;
    protected final Map<String, ObservationMetadata> metadata = new HashMap<>();
+   protected NDArrayFactory ndArrayFactory = NDArrayFactory.ND;
 
    /**
     * Generates an iterator of "batches" by partitioning the datum into groups of given batch size.
@@ -126,6 +128,15 @@ public abstract class DataSet implements Iterable<Datum>, Serializable {
     */
    public Map<String, ObservationMetadata> getMetadata() {
       return metadata;
+   }
+
+   /**
+    * Gets the NDArrayFactory to use when creating NDArray
+    *
+    * @return the NDArrayFactory
+    */
+   public NDArrayFactory getNDArrayFactory() {
+      return ndArrayFactory;
    }
 
    /**
@@ -213,6 +224,17 @@ public abstract class DataSet implements Iterable<Datum>, Serializable {
     * @return the dataset
     */
    public abstract DataSet sample(boolean withReplacement, int sampleSize);
+
+   /**
+    * Sets the {@link NDArrayFactory} to use when constructing NDArray.
+    *
+    * @param ndArrayFactory the NDArrayFactory
+    * @return this DataSet
+    */
+   public DataSet setNDArrayFactory(@NonNull NDArrayFactory ndArrayFactory) {
+      this.ndArrayFactory = ndArrayFactory;
+      return this;
+   }
 
    /**
     * Shuffles the data in the dataset.

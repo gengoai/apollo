@@ -149,6 +149,9 @@ public abstract class WordEmbedding implements Transform {
       if(o.isVariable()) {
          return embed(getVariableName(o.asVariable()));
       } else if(o.isVariableCollection()) {
+         if(o.getVariableSpace().count() == 0) {
+            return NDArrayFactory.ND.array(1, dimension());
+         }
          return VectorCompositions.Average.compose(o.asVariableCollection()
                                                     .getVariableSpace()
                                                     .map(v -> embed(getVariableName(v)))
@@ -157,6 +160,7 @@ public abstract class WordEmbedding implements Transform {
          Sequence<?> sequence = o.asSequence();
          List<NDArray> vectors = new ArrayList<>();
          for(Observation observation : sequence) {
+            //            System.out.println(observation + " : " + transform(observation));
             vectors.add(transform(observation));
          }
          return NDArrayFactory.ND.vstack(vectors);

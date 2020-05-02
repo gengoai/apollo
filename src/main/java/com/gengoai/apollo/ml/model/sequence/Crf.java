@@ -110,19 +110,6 @@ public class Crf extends SingleSourceModel<Crf.Parameters, Crf> {
       return item;
    }
 
-   private void deleteItemSequence(ItemSequence itemSequence) {
-      for(int i = 0; i < itemSequence.size(); i++) {
-         for(int j = 0; j < itemSequence.size(); j++) {
-            Item item = itemSequence.get(j);
-            for(int l = 0; l < itemSequence.get(j).size(); l++) {
-               item.get(l).delete();
-            }
-            item.delete();
-         }
-      }
-      itemSequence.delete();
-   }
-
    @Override
    public void estimate(@NonNull DataSet dataset) {
       CrfSuiteLoader.INSTANCE.load();
@@ -206,7 +193,7 @@ public class Crf extends SingleSourceModel<Crf.Parameters, Crf> {
       for(Pair<String, Double> pair : tagger.tag(itemSequence)) {
          labeling.add(new Variable(pair.first, pair.second));
       }
-//      deleteItemSequence(itemSequence);
+      //      deleteItemSequence(itemSequence);
       return labeling;
    }
 

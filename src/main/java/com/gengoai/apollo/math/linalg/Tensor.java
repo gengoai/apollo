@@ -22,9 +22,12 @@
 
 package com.gengoai.apollo.math.linalg;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.gengoai.Validation;
 import lombok.NonNull;
 import org.jblas.DoubleMatrix;
+import org.jblas.FloatMatrix;
 
 import java.util.function.BiFunction;
 import java.util.function.DoubleBinaryOperator;
@@ -39,6 +42,7 @@ import java.util.stream.Stream;
  */
 public class Tensor extends NDArray {
    private static final long serialVersionUID = 1L;
+   @JsonProperty("slices")
    final NDArray[] slices;
 
    /**
@@ -61,6 +65,18 @@ public class Tensor extends NDArray {
    public Tensor(@NonNull Shape shape) {
       super(shape);
       this.slices = new NDArray[shape.sliceLength];
+   }
+
+   @JsonCreator
+   protected Tensor(@JsonProperty("slices") NDArray[] slices,
+                    @JsonProperty("shape") Shape shape,
+                    @JsonProperty("label") Object label,
+                    @JsonProperty("predicted") Object predicted,
+                    @JsonProperty("weight") double weight) {
+      this(shape.kernels(), shape.channels(), slices);
+      setLabel(label);
+      setPredicted(predicted);
+      setWeight(weight);
    }
 
    @Override
@@ -567,6 +583,20 @@ public class Tensor extends NDArray {
       DoubleMatrix[] out = new DoubleMatrix[shape.sliceLength];
       for(int i = 0; i < slices.length; i++) {
          out[i] = slices[i].toDoubleMatrix()[0];
+      }
+      return out;
+   }
+
+   @Override
+   public float[] toFloatArray() {
+      throw new UnsupportedOperationException();
+   }
+
+   @Override
+   public FloatMatrix[] toFloatMatrix() {
+      FloatMatrix[] out = new FloatMatrix[shape.sliceLength];
+      for(int i = 0; i < slices.length; i++) {
+         out[i] = slices[i].toFloatMatrix()[0];
       }
       return out;
    }

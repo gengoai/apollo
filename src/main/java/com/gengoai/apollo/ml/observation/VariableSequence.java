@@ -19,10 +19,12 @@
 
 package com.gengoai.apollo.ml.observation;
 
+import com.fasterxml.jackson.annotation.*;
 import lombok.NonNull;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -37,8 +39,16 @@ import java.util.stream.Stream;
  *
  * @author David B. Bracewell
  */
+@JsonTypeName("vs")
+@JsonFormat(shape = JsonFormat.Shape.OBJECT)
+@JsonAutoDetect(
+      fieldVisibility = JsonAutoDetect.Visibility.NONE,
+      setterVisibility = JsonAutoDetect.Visibility.NONE,
+      getterVisibility = JsonAutoDetect.Visibility.NONE,
+      isGetterVisibility = JsonAutoDetect.Visibility.NONE,
+      creatorVisibility = JsonAutoDetect.Visibility.NONE
+)
 public class VariableSequence extends ArrayList<Variable> implements Sequence<Variable> {
-
    /**
     * Instantiates a new VariableSequence
     */
@@ -50,7 +60,8 @@ public class VariableSequence extends ArrayList<Variable> implements Sequence<Va
     *
     * @param collection the Collection of variables
     */
-   public VariableSequence(@NonNull Collection<? extends Variable> collection) {
+   @JsonCreator
+   public VariableSequence(@JsonProperty("seq") @NonNull Collection<? extends Variable> collection) {
       super(collection);
    }
 
@@ -66,6 +77,11 @@ public class VariableSequence extends ArrayList<Variable> implements Sequence<Va
    @Override
    public VariableSequence copy() {
       return new VariableSequence(stream().map(Variable::copy));
+   }
+
+   @JsonProperty("seq")
+   private List<Variable> getSequence() {
+      return this;
    }
 
    @Override

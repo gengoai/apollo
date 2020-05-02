@@ -22,24 +22,24 @@
 
 package com.gengoai.apollo.math.linalg;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.gengoai.Copyable;
 import com.gengoai.Validation;
-import com.gengoai.annotation.JsonHandler;
 import com.gengoai.apollo.ml.observation.Observation;
 import com.gengoai.apollo.ml.observation.Variable;
 import com.gengoai.conversion.Cast;
-import com.gengoai.json.JsonEntry;
-import com.gengoai.json.JsonMarshaller;
 import com.gengoai.math.Operator;
 import com.gengoai.string.Strings;
 import lombok.NonNull;
 import org.jblas.DoubleMatrix;
+import org.jblas.FloatMatrix;
 
 import java.io.Serializable;
-import java.lang.reflect.Type;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import java.util.Iterator;
 import java.util.function.*;
 import java.util.stream.Stream;
 
@@ -48,12 +48,30 @@ import java.util.stream.Stream;
  *
  * @author David B. Bracewell
  */
-@JsonHandler(NDArray.NDArrayMarshaller.class)
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME)
+@JsonSubTypes({
+      @JsonSubTypes.Type(value = Tensor.class, name = "tensor"),
+      @JsonSubTypes.Type(value = DenseMatrix.class, name = "dm"),
+      @JsonSubTypes.Type(value = SparseMatrix.class, name = "sm")
+})
+@JsonAutoDetect(
+      fieldVisibility = JsonAutoDetect.Visibility.NONE,
+      setterVisibility = JsonAutoDetect.Visibility.NONE,
+      getterVisibility = JsonAutoDetect.Visibility.NONE,
+      isGetterVisibility = JsonAutoDetect.Visibility.NONE,
+      creatorVisibility = JsonAutoDetect.Visibility.NONE
+)
 public abstract class NDArray implements Serializable, Observation {
    protected static final NumberFormat decimalFormatter = new DecimalFormat(" 0.000000;-0");
+   @JsonProperty("shape")
    protected final Shape shape;
+   @JsonProperty("label")
+   @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.WRAPPER_OBJECT)
    private Object label = null;
+   @JsonProperty("predicted")
+   @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.WRAPPER_OBJECT)
    private Object predicted = null;
+   @JsonProperty("weight")
    private double weight = 1d;
 
    /**
@@ -861,7 +879,7 @@ public abstract class NDArray implements Serializable, Observation {
     * @param operator the operation to perform on the values of this NDArray and the given NDArray
     * @return the transformed NDArray
     */
-   public abstract NDArray mapColumn(@NonNull NDArray rhs, @NonNull  DoubleBinaryOperator operator);
+   public abstract NDArray mapColumn(@NonNull NDArray rhs, @NonNull DoubleBinaryOperator operator);
 
    /**
     * Updates the values in the given column of  this NDArray by performing the given binary operation with the values
@@ -872,7 +890,7 @@ public abstract class NDArray implements Serializable, Observation {
     * @param operator the operation to perform on the values of this NDArray and the given NDArray
     * @return the transformed NDArray
     */
-   public abstract NDArray mapColumn(int column, @NonNull NDArray rhs, @NonNull  DoubleBinaryOperator operator);
+   public abstract NDArray mapColumn(int column, @NonNull NDArray rhs, @NonNull DoubleBinaryOperator operator);
 
    /**
     * Creates a new NDArray with values from this NDArray and the given NDArray evaluated using the given  binary
@@ -882,7 +900,7 @@ public abstract class NDArray implements Serializable, Observation {
     * @param operator the operation to perform on the values of this NDArray and the given NDArray
     * @return the transformed NDArray
     */
-   public abstract NDArray mapRow(@NonNull NDArray rhs, @NonNull  DoubleBinaryOperator operator);
+   public abstract NDArray mapRow(@NonNull NDArray rhs, @NonNull DoubleBinaryOperator operator);
 
    /**
     * Updates the values in the given row of  this NDArray by performing the given binary operation with the values in
@@ -893,7 +911,7 @@ public abstract class NDArray implements Serializable, Observation {
     * @param operator the operation to perform on the values of this NDArray and the given NDArray
     * @return the transformed NDArray
     */
-   public abstract NDArray mapRow(int row, @NonNull NDArray rhs, @NonNull  DoubleBinaryOperator operator);
+   public abstract NDArray mapRow(int row, @NonNull NDArray rhs, @NonNull DoubleBinaryOperator operator);
 
    @Override
    public void mapVariables(@NonNull Function<Variable, Variable> mapper) {
@@ -935,7 +953,7 @@ public abstract class NDArray implements Serializable, Observation {
     * @param operator the operation to perform on the values of this NDArray and the given NDArray
     * @return the transformed NDArray
     */
-   public abstract NDArray mapiColumn(@NonNull NDArray rhs, @NonNull  DoubleBinaryOperator operator);
+   public abstract NDArray mapiColumn(@NonNull NDArray rhs, @NonNull DoubleBinaryOperator operator);
 
    /**
     * Updates the values in the given column of  this NDArray by performing the given binary operation with the values
@@ -946,7 +964,7 @@ public abstract class NDArray implements Serializable, Observation {
     * @param operator the operation to perform on the values of this NDArray and the given NDArray
     * @return the transformed NDArray
     */
-   public abstract NDArray mapiColumn(int column, @NonNull NDArray rhs, @NonNull  DoubleBinaryOperator operator);
+   public abstract NDArray mapiColumn(int column, @NonNull NDArray rhs, @NonNull DoubleBinaryOperator operator);
 
    /**
     * Updates the values in the given row of  this NDArray by performing the given binary operation with the values in
@@ -957,7 +975,7 @@ public abstract class NDArray implements Serializable, Observation {
     * @param operator the operation to perform on the values of this NDArray and the given NDArray
     * @return the transformed NDArray
     */
-   public abstract NDArray mapiRow(int row, @NonNull NDArray rhs, @NonNull  DoubleBinaryOperator operator);
+   public abstract NDArray mapiRow(int row, @NonNull NDArray rhs, @NonNull DoubleBinaryOperator operator);
 
    /**
     * Updates the values int this NDArray by performing the given binary operation with the values in the given NDArray
@@ -967,7 +985,7 @@ public abstract class NDArray implements Serializable, Observation {
     * @param operator the operation to perform on the values of this NDArray and the given NDArray
     * @return the transformed NDArray
     */
-   public abstract NDArray mapiRow(@NonNull NDArray rhs, @NonNull  DoubleBinaryOperator operator);
+   public abstract NDArray mapiRow(@NonNull NDArray rhs, @NonNull DoubleBinaryOperator operator);
 
    /**
     * Calculates the maximum value in the NDArray.
@@ -1877,6 +1895,15 @@ public abstract class NDArray implements Serializable, Observation {
     */
    public abstract DoubleMatrix[] toDoubleMatrix();
 
+   /**
+    * Converts the NDArray to double array
+    *
+    * @return the double array
+    */
+   public abstract float[] toFloatArray();
+
+   public abstract FloatMatrix[] toFloatMatrix();
+
    @Override
    public String toString() {
       return toString(4, 10, 10);
@@ -1984,51 +2011,6 @@ public abstract class NDArray implements Serializable, Observation {
        */
       void apply(long index, double value);
 
-   }
-
-   public static class NDArrayMarshaller extends JsonMarshaller<NDArray> {
-
-      @Override
-      protected NDArray deserialize(JsonEntry entry, Type type) {
-         NDArrayFactory ND = entry.getBooleanProperty("dense", true)
-                             ? NDArrayFactory.DENSE
-                             : NDArrayFactory.SPARSE;
-         NDArray array = ND.array(entry.getProperty("shape").getAsIntArray());
-         array.setWeight(entry.getDoubleProperty("weight", 1.0));
-         if(entry.getProperty("label").isObject()) {
-            Class<?> clazz = entry.getProperty("label").getProperty("type").getAs(Class.class);
-            array.setLabel(entry.getProperty("label").getProperty("value").getAs(clazz));
-         }
-         Iterator<JsonEntry> dataItr = entry.getProperty("data").elementIterator();
-         for(int i = 0; i < array.shape.sliceLength; i++) {
-            array.setSlice(i, ND.array(array.shape.rows(),
-                                       array.shape.columns(),
-                                       dataItr.next().getAsDoubleArray()));
-         }
-         return array;
-      }
-
-      @Override
-      protected JsonEntry serialize(NDArray ndArray, Type type) {
-         JsonEntry entry = JsonEntry.object()
-                                    .addProperty("shape", ndArray.shape)
-                                    .addProperty("dense", ndArray.isDense())
-                                    .addProperty("weight", ndArray.getWeight());
-         if(ndArray.getLabel() == null) {
-            entry.addProperty("label", null);
-         } else {
-            entry.addProperty("label", JsonEntry.object()
-                                                .addProperty("type", ndArray.getLabel().getClass())
-                                                .addProperty("value", ndArray.getLabel())
-                             );
-         }
-
-         JsonEntry data = JsonEntry.array();
-         for(int i = 0; i < ndArray.shape.sliceLength; i++) {
-            data.addValue(ndArray.slice(i).toDoubleArray());
-         }
-         return entry.addProperty("data", data);
-      }
    }
 
 }//END OF NDArray

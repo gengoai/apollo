@@ -19,19 +19,28 @@
 
 package com.gengoai.apollo.ml.observation;
 
-import com.gengoai.annotation.JsonHandler;
+import com.fasterxml.jackson.annotation.*;
 import lombok.NonNull;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
 /**
  * <p>A {@link VariableCollection} backed by an ArrayList.</p>
  */
-@JsonHandler(VariableCollectionMarshaller.class)
+@JsonTypeName("vl")
+@JsonFormat(shape = JsonFormat.Shape.OBJECT)
+@JsonAutoDetect(
+      fieldVisibility = JsonAutoDetect.Visibility.NONE,
+      setterVisibility = JsonAutoDetect.Visibility.NONE,
+      getterVisibility = JsonAutoDetect.Visibility.NONE,
+      isGetterVisibility = JsonAutoDetect.Visibility.NONE,
+      creatorVisibility = JsonAutoDetect.Visibility.NONE
+)
 public class VariableList extends ArrayList<Variable> implements VariableCollection {
    private static final long serialVersionUID = 1L;
 
@@ -65,13 +74,19 @@ public class VariableList extends ArrayList<Variable> implements VariableCollect
     *
     * @param c the collection of features
     */
-   public VariableList(@NonNull Collection<? extends Variable> c) {
+   @JsonCreator
+   public VariableList(@JsonProperty("vars") @NonNull Collection<? extends Variable> c) {
       super(c);
    }
 
    @Override
    public VariableList copy() {
       return new VariableList(stream().map(Variable::copy));
+   }
+
+   @JsonProperty("vars")
+   private List<Variable> getVariables() {
+      return this;
    }
 
    @Override

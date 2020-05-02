@@ -21,9 +21,9 @@ package com.gengoai.apollo.ml.encoder;
 
 import com.gengoai.Validation;
 import com.gengoai.apollo.ml.observation.Observation;
+import com.gengoai.math.HashingFunctions;
 import com.gengoai.stream.MStream;
 import lombok.NonNull;
-import org.apache.commons.codec.digest.MurmurHash3;
 
 import java.util.Collections;
 import java.util.Set;
@@ -57,7 +57,7 @@ public class HashingEncoder implements Encoder {
 
    @Override
    public int encode(String variableName) {
-      int out = MurmurHash3.hash32x86(variableName.getBytes()) % numberOfFeatures;
+      int out = HashingFunctions.hash32x86(variableName.getBytes()) % numberOfFeatures;
       return out >= 0
              ? out
              : out + numberOfFeatures;

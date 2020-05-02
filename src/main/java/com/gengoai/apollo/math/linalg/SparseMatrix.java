@@ -22,15 +22,18 @@
 
 package com.gengoai.apollo.math.linalg;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.gengoai.Copyable;
 import com.gengoai.concurrent.AtomicDouble;
 import com.gengoai.conversion.Cast;
-import com.gengoai.math.Math2;
 import com.gengoai.math.Optimum;
 import lombok.NonNull;
+import org.apache.mahout.math.list.FloatArrayList;
 import org.apache.mahout.math.list.IntArrayList;
-import org.apache.mahout.math.map.OpenIntDoubleHashMap;
+import org.apache.mahout.math.map.OpenIntFloatHashMap;
 import org.jblas.DoubleMatrix;
+import org.jblas.FloatMatrix;
 
 import java.util.function.DoubleUnaryOperator;
 
@@ -41,7 +44,7 @@ import java.util.function.DoubleUnaryOperator;
  */
 public class SparseMatrix extends Matrix {
    private static final long serialVersionUID = 1L;
-   private final OpenIntDoubleHashMap map;
+   private final OpenIntFloatHashMap map;
 
    /**
     * Instantiates a new Sparse matrix.
@@ -59,7 +62,7 @@ public class SparseMatrix extends Matrix {
     */
    public SparseMatrix(@NonNull Shape shape) {
       super(shape);
-      this.map = new OpenIntDoubleHashMap();
+      this.map = new OpenIntFloatHashMap();
    }
 
    /**
@@ -70,6 +73,22 @@ public class SparseMatrix extends Matrix {
    protected SparseMatrix(@NonNull SparseMatrix toCopy) {
       super(toCopy.shape);
       this.map = Copyable.deepCopy(toCopy.map);
+   }
+
+   @JsonCreator
+   protected SparseMatrix(@JsonProperty("indices") int[] indices,
+                          @JsonProperty("values") float[] values,
+                          @JsonProperty("shape") Shape shape,
+                          @JsonProperty("label") Object label,
+                          @JsonProperty("predicted") Object predicted,
+                          @JsonProperty("weight") double weight) {
+      this(shape);
+      setLabel(label);
+      setPredicted(predicted);
+      setWeight(weight);
+      for(int i = 0; i < indices.length; i++) {
+         set(indices[i], values[i]);
+      }
    }
 
    @Override
@@ -231,7 +250,7 @@ public class SparseMatrix extends Matrix {
          int colLHS = shape.toColumn(i);
          for(int colRHS = 0; colRHS < rhs.columns(); colRHS++) {
             double prod = v * rhs.get(colLHS, colRHS);
-            product.map.adjustOrPutValue(product.shape.matrixIndex(row, colRHS), prod, prod);
+            product.map.adjustOrPutValue(product.shape.matrixIndex(row, colRHS), (float) prod, (float) prod);
          }
          return true;
       });
@@ -247,7 +266,7 @@ public class SparseMatrix extends Matrix {
    public NDArray muli(@NonNull NDArray rhs) {
       checkLength(rhs.shape());
       map.forEachPair((i, v) -> {
-         map.put(i, v * rhs.get(i));
+         map.put(i, v * (float) rhs.get(i));
          return true;
       });
       return this;
@@ -273,14 +292,14 @@ public class SparseMatrix extends Matrix {
       if(value == 0) {
          map.removeKey((int) i);
       } else {
-         map.put((int) i, value);
+         map.put((int) i, (float) value);
       }
       return this;
    }
 
    @Override
    public NDArray set(int row, int col, double value) {
-      map.put(shape.matrixIndex(row, col), value);
+      map.put(shape.matrixIndex(row, col), (float) value);
       return this;
    }
 
@@ -308,10 +327,19 @@ public class SparseMatrix extends Matrix {
    }
 
    @Override
+   @JsonProperty("indices")
    public int[] sparseIndices() {
       IntArrayList ial = map.keys();
       ial.sort();
       return ial.toArray(new int[0]);
+   }
+
+   @JsonProperty("values")
+   private float[] sparseValues() {
+      FloatArrayList fal = map.values();
+      fal.trimToSize();
+      ;
+      return fal.elements();
    }
 
    @Override
@@ -335,7 +363,11 @@ public class SparseMatrix extends Matrix {
 
    @Override
    public double sum() {
-      return Math2.sum(map.values().elements());
+      double sum = 0;
+      for(float element : map.values().elements()) {
+         sum += element;
+      }
+      return sum;
    }
 
    @Override
@@ -365,6 +397,26 @@ public class SparseMatrix extends Matrix {
          return true;
       });
       return new DoubleMatrix[]{m};
+   }
+
+   @Override
+   public float[] toFloatArray() {
+      float[] array = new float[(int) length()];
+      map.forEachPair((i, v) -> {
+         array[i] = v;
+         return true;
+      });
+      return array;
+   }
+
+   @Override
+   public FloatMatrix[] toFloatMatrix() {
+      FloatMatrix out = new FloatMatrix(shape.rows(), shape.columns());
+      map.forEachPair((i, v) -> {
+         out.data[i] = v;
+         return true;
+      });
+      return new FloatMatrix[]{out};
    }
 
    @Override

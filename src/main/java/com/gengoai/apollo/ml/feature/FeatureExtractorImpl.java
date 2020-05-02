@@ -57,4 +57,10 @@ class FeatureExtractorImpl<I> implements FeatureExtractor<I>, Serializable {
    public VariableList extractObservation(I input) {
       return featurizer.extractObservation(input);
    }
+
+   @Override
+   public String toString() {
+      return featurizer.toString() + contextFeaturizer.toString();
+   }
+
 }//END OF FeatureExtractorImpl

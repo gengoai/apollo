@@ -19,12 +19,16 @@
 
 package com.gengoai.apollo.ml.observation;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.gengoai.Validation;
 import com.gengoai.apollo.math.linalg.NDArray;
 import com.gengoai.apollo.math.linalg.NDArrayFactory;
 import com.gengoai.string.StringMatcher;
 import com.gengoai.string.Strings;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NonNull;
 
 import java.io.Serializable;
@@ -63,7 +67,14 @@ import java.util.stream.Stream;
  * "pos" with no prefix and suffix of "NN".
  * </p>
  */
-@Data
+@JsonAutoDetect(
+      fieldVisibility = JsonAutoDetect.Visibility.NONE,
+      setterVisibility = JsonAutoDetect.Visibility.NONE,
+      getterVisibility = JsonAutoDetect.Visibility.NONE,
+      isGetterVisibility = JsonAutoDetect.Visibility.NONE,
+      creatorVisibility = JsonAutoDetect.Visibility.NONE
+)
+@JsonTypeName("v")
 public class Variable implements Observation, Serializable {
    private static final Pattern POSITION_PATTERN = Pattern.compile("\\[([+-]?\\d+)]");
    private static final Pattern DATUM_SOURCE_PATTERN = Pattern.compile("<([^>]+)>");
@@ -73,9 +84,14 @@ public class Variable implements Observation, Serializable {
     * Constant defining the separator between the prefix and suffix in the Variable name.
     */
    public static final String PREFIX_SUFFIX_SEPARATOR = "=";
+   @Getter
+   @JsonProperty("p")
    private String prefix;
+   @Getter
+   @JsonProperty("s")
    private String suffix;
-   private double value;
+   @JsonProperty("v")
+   private float value;
 
    /**
     * Creates a binary {@link Variable} with the given feature prefix and suffix
@@ -166,15 +182,13 @@ public class Variable implements Observation, Serializable {
     * @param suffix the suffix
     * @param value  the value
     */
-   public Variable(String prefix, @NonNull String suffix, double value) {
+   @JsonCreator
+   public Variable(@JsonProperty("p") String prefix,
+                   @JsonProperty("s") @NonNull String suffix,
+                   @JsonProperty("v") double value) {
       setPrefix(prefix);
       setSuffix(suffix);
-      this.value = value;
-   }
-
-   @Override
-   public NDArray asNDArray() {
-      return NDArrayFactory.ND.scalar(value);
+      this.value = (float) value;
    }
 
    /**
@@ -184,6 +198,11 @@ public class Variable implements Observation, Serializable {
     */
    public void addSourceName(@NonNull String sourceName) {
       this.prefix = "<" + sourceName + ">" + prefix;
+   }
+
+   @Override
+   public NDArray asNDArray() {
+      return NDArrayFactory.ND.scalar(value);
    }
 
    @Override
@@ -232,6 +251,10 @@ public class Variable implements Observation, Serializable {
       return 0;
    }
 
+   public double getValue() {
+      return value;
+   }
+
    @Override
    public Stream<Variable> getVariableSpace() {
       return Stream.of(this);
@@ -270,6 +293,10 @@ public class Variable implements Observation, Serializable {
     */
    public void setSuffix(String newSuffix) {
       this.suffix = Strings.nullToEmpty(newSuffix);
+   }
+
+   public void setValue(double value) {
+      this.value = (float) value;
    }
 
    @Override

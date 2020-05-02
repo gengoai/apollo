@@ -121,6 +121,16 @@ public abstract class ContextFeaturizer<I> implements FeatureExtractor<I>, Seria
          }
          return sequence;
       }
+
+      @Override
+      public String toString() {
+         StringBuilder builder = new StringBuilder("ContextualFeatures\n");
+         for(ContextFeaturizer<? super I> contextFeaturizer : contextFeaturizers) {
+            builder.append("\t").append(contextFeaturizer).append("\n");
+         }
+         return builder.toString();
+      }
+
    }
 
    private static class SingleContextFeaturizer<I> extends ContextFeaturizer<I> {
@@ -130,8 +140,10 @@ public abstract class ContextFeaturizer<I> implements FeatureExtractor<I>, Seria
       private final boolean ignoreEmptyContext;
       private final int[] offsets;
       private final String[] prefix;
+      private final String pattern;
 
       private SingleContextFeaturizer(String pattern) {
+         this.pattern = pattern;
          this.ignoreEmptyContext = pattern.startsWith("~");
          String[] patterns = this.ignoreEmptyContext
                              ? pattern.substring(1).split("\\|")
@@ -175,6 +187,11 @@ public abstract class ContextFeaturizer<I> implements FeatureExtractor<I>, Seria
             }
          }
          return sequence;
+      }
+
+      @Override
+      public String toString() {
+         return pattern;
       }
    }
 

@@ -19,14 +19,13 @@
 
 package com.gengoai.apollo.ml;
 
-import com.gengoai.annotation.JsonHandler;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.gengoai.apollo.math.linalg.NDArrayFactory;
 import com.gengoai.apollo.ml.observation.Variable;
 import com.gengoai.apollo.ml.transform.Transform;
 import com.gengoai.collection.counter.Counter;
 import com.gengoai.function.SerializableFunction;
-import com.gengoai.json.JsonEntry;
-import com.gengoai.json.JsonMarshaller;
 import com.gengoai.stream.MCounterAccumulator;
 import com.gengoai.stream.MStream;
 import com.gengoai.stream.StreamingContext;
@@ -34,7 +33,6 @@ import com.gengoai.tuple.Tuples;
 import lombok.NonNull;
 
 import java.io.Serializable;
-import java.lang.reflect.Type;
 import java.util.*;
 import java.util.function.Consumer;
 
@@ -66,7 +64,7 @@ import java.util.function.Consumer;
  *
  * @author David B. Bracewell
  */
-@JsonHandler(DataSet.Marshaller.class)
+@JsonDeserialize(as = InMemoryDataSet.class)
 public abstract class DataSet implements Iterable<Datum>, Serializable {
    private static final long serialVersionUID = 1L;
    protected final Map<String, ObservationMetadata> metadata = new HashMap<>();
@@ -144,6 +142,7 @@ public abstract class DataSet implements Iterable<Datum>, Serializable {
     *
     * @return the streaming context
     */
+   @JsonIgnore
    public StreamingContext getStreamingContext() {
       return getType().getStreamingContext();
    }
@@ -153,6 +152,7 @@ public abstract class DataSet implements Iterable<Datum>, Serializable {
     *
     * @return the DataSetType
     */
+   @JsonIgnore
    public abstract DataSetType getType();
 
    /**
@@ -315,37 +315,5 @@ public abstract class DataSet implements Iterable<Datum>, Serializable {
       updater.accept(metadata.get(source));
       return this;
    }
-
-   /**
-    * Marshaller for DataSet
-    */
-   public static class Marshaller extends JsonMarshaller<DataSet> {
-
-      @Override
-      protected DataSet deserialize(JsonEntry entry, Type type) {
-         List<Datum> data = new ArrayList<>();
-         entry.getProperty("data")
-              .elementIterator()
-              .forEachRemaining(e -> {
-                 System.out.println(e);
-                 data.add(e.getAs(Datum.class));
-              });
-         DataSet dataSet = new InMemoryDataSet(data);
-         dataSet.putAllMetadata(entry.getProperty("metadata").getAsMap(ObservationMetadata.class));
-         return dataSet;
-      }
-
-      @Override
-      protected JsonEntry serialize(DataSet data, Type type) {
-         JsonEntry obj = JsonEntry.object();
-         obj.addProperty("metadata", data.getMetadata());
-         JsonEntry array = JsonEntry.array();
-         for(Datum datum : data) {
-            array.addValue(datum);
-         }
-         obj.addProperty("data", array);
-         return obj;
-      }
-   }//END OF Marshaller
 
 }//END OF DataSet

@@ -22,13 +22,15 @@
 
 package com.gengoai.apollo.math.linalg;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonValue;
 import com.gengoai.Copyable;
 import com.gengoai.Validation;
-import com.gengoai.annotation.JsonHandler;
-import com.gengoai.json.JsonEntry;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
-import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -39,7 +41,7 @@ import java.util.stream.IntStream;
  *
  * @author David B. Bracewell
  */
-@JsonHandler(Shape.ShapeMarshaller.class)
+@NoArgsConstructor(force = true, access = AccessLevel.PRIVATE)
 public class Shape implements Serializable, Copyable<Shape> {
    private static final long serialVersionUID = 1L;
    /**
@@ -53,47 +55,8 @@ public class Shape implements Serializable, Copyable<Shape> {
    /**
     * The Shape.
     */
+   @JsonValue
    final int[] shape;
-
-
-   protected static class ShapeMarshaller extends com.gengoai.json.JsonMarshaller<Shape> {
-
-      @Override
-      protected Shape deserialize(JsonEntry entry, Type type) {
-         return new Shape(entry.getAsIntArray());
-      }
-
-      @Override
-      protected JsonEntry serialize(Shape shape, Type type) {
-         return JsonEntry.from(shape.shape);
-      }
-   }
-
-
-   /**
-    * Instantiates a new Shape.
-    *
-    * @param dimensions the dimensions
-    */
-   public Shape(int... dimensions) {
-      this.shape = new int[4];
-      if (dimensions != null && dimensions.length > 0) {
-         System.arraycopy(dimensions, 0, shape, shape.length - dimensions.length, dimensions.length);
-         this.shape[2] = Math.max(1, this.shape[2]);
-         this.shape[3] = Math.max(1, this.shape[3]);
-         this.sliceLength = Math.max(1, shape[0]) * Math.max(1, shape[1]);
-         this.matrixLength = shape[2] * shape[3];
-      } else {
-         this.shape[2] = 1;
-         this.shape[3] = 1;
-         this.sliceLength = 1;
-         this.matrixLength = 1;
-      }
-      Validation.checkArgument(shape[0] >= 0, "Invalid Kernel: " + shape[0]);
-      Validation.checkArgument(shape[1] >= 0, "Invalid Channel: " + shape[1]);
-      Validation.checkArgument(shape[2] >= 0, "Invalid Row: " + shape[2]);
-      Validation.checkArgument(shape[3] >= 0, "Invalid Column: " + shape[3]);
-   }
 
    /**
     * Creates a shape for an empty NDArray
@@ -115,6 +78,32 @@ public class Shape implements Serializable, Copyable<Shape> {
     */
    public static Shape shape(int... dims) {
       return new Shape(dims);
+   }
+
+   /**
+    * Instantiates a new Shape.
+    *
+    * @param dimensions the dimensions
+    */
+   @JsonCreator
+   public Shape(@JsonProperty int... dimensions) {
+      this.shape = new int[4];
+      if(dimensions != null && dimensions.length > 0) {
+         System.arraycopy(dimensions, 0, shape, shape.length - dimensions.length, dimensions.length);
+         this.shape[2] = Math.max(1, this.shape[2]);
+         this.shape[3] = Math.max(1, this.shape[3]);
+         this.sliceLength = Math.max(1, shape[0]) * Math.max(1, shape[1]);
+         this.matrixLength = shape[2] * shape[3];
+      } else {
+         this.shape[2] = 1;
+         this.shape[3] = 1;
+         this.sliceLength = 1;
+         this.matrixLength = 1;
+      }
+      Validation.checkArgument(shape[0] >= 0, "Invalid Kernel: " + shape[0]);
+      Validation.checkArgument(shape[1] >= 0, "Invalid Channel: " + shape[1]);
+      Validation.checkArgument(shape[2] >= 0, "Invalid Row: " + shape[2]);
+      Validation.checkArgument(shape[3] >= 0, "Invalid Column: " + shape[3]);
    }
 
    /**
@@ -142,8 +131,12 @@ public class Shape implements Serializable, Copyable<Shape> {
 
    @Override
    public boolean equals(Object obj) {
-      if (this == obj) {return true;}
-      if (obj == null || getClass() != obj.getClass()) {return false;}
+      if(this == obj) {
+         return true;
+      }
+      if(obj == null || getClass() != obj.getClass()) {
+         return false;
+      }
       final Shape other = (Shape) obj;
       return Objects.deepEquals(this.shape, other.shape);
    }
@@ -160,9 +153,8 @@ public class Shape implements Serializable, Copyable<Shape> {
     */
    public boolean isColumnVector() {
       return (shape[0] == 0 && shape[1] == 0)
-                && (shape[2] > 1 && shape[3] == 1);
+            && (shape[2] > 1 && shape[3] == 1);
    }
-
 
    /**
     * Checks if the shape represents a row vector
@@ -171,7 +163,7 @@ public class Shape implements Serializable, Copyable<Shape> {
     */
    public boolean isRowVector() {
       return (shape[0] == 0 && shape[1] == 0)
-                && (shape[2] == 1 && shape[3] > 1);
+            && (shape[2] == 1 && shape[3] > 1);
    }
 
    /**
@@ -208,7 +200,7 @@ public class Shape implements Serializable, Copyable<Shape> {
     */
    public boolean isVector() {
       return (shape[0] == 0 && shape[1] == 0)
-                && (shape[2] > 0 ^ shape[3] > 0);
+            && (shape[2] > 0 ^ shape[3] > 0);
    }
 
    /**
@@ -238,8 +230,10 @@ public class Shape implements Serializable, Copyable<Shape> {
     */
    public int order() {
       int order = 0;
-      for (int i1 : shape) {
-         order += i1 >= 1 ? 1 : 0;
+      for(int i1 : shape) {
+         order += i1 >= 1
+                  ? 1
+                  : 0;
       }
       return order;
    }
@@ -251,10 +245,10 @@ public class Shape implements Serializable, Copyable<Shape> {
     */
    public void reshape(int... dimensions) {
       Shape out = new Shape(dimensions);
-      if (sliceLength != out.sliceLength) {
+      if(sliceLength != out.sliceLength) {
          throw new IllegalArgumentException("Invalid slice length: " + sliceLength + " != " + out.sliceLength);
       }
-      if (matrixLength != out.matrixLength) {
+      if(matrixLength != out.matrixLength) {
          throw new IllegalArgumentException("Invalid matrix length: " + matrixLength + " != " + out.matrixLength);
       }
       System.arraycopy(out.shape, 0, shape, 0, shape.length);
@@ -291,6 +285,16 @@ public class Shape implements Serializable, Copyable<Shape> {
    }
 
    /**
+    * Decodes the column index from  column-major index
+    *
+    * @param matrixIndex the matrix index
+    * @return the column index
+    */
+   public int toColumn(int matrixIndex) {
+      return matrixIndex / shape[2];
+   }
+
+   /**
     * Decodes the kernel index from  channel-major index
     *
     * @param sliceIndex the slice index
@@ -301,27 +305,6 @@ public class Shape implements Serializable, Copyable<Shape> {
    }
 
    /**
-    * Decodes the row index from  column-major index
-    *
-    * @param matrixIndex the matrix index
-    * @return the row index
-    */
-   public int toRow(int matrixIndex) {
-      return matrixIndex % shape[2];
-   }
-
-   /**
-    * Decodes the column index from  column-major index
-    *
-    * @param matrixIndex the matrix index
-    * @return the column index
-    */
-   public int toColumn(int matrixIndex) {
-      return matrixIndex / shape[2];
-   }
-
-
-   /**
     * Decodes a slice/matrix combined index into a matrix index
     *
     * @param index the index
@@ -329,6 +312,16 @@ public class Shape implements Serializable, Copyable<Shape> {
     */
    public int toMatrixIndex(long index) {
       return (int) (index / sliceLength);
+   }
+
+   /**
+    * Decodes the row index from  column-major index
+    *
+    * @param matrixIndex the matrix index
+    * @return the row index
+    */
+   public int toRow(int matrixIndex) {
+      return matrixIndex % shape[2];
    }
 
    /**
@@ -348,6 +341,5 @@ public class Shape implements Serializable, Copyable<Shape> {
                             .mapToObj(Integer::toString)
                             .collect(Collectors.joining(", ")) + ")";
    }
-
 
 }//END OF Shape

@@ -19,7 +19,10 @@
 
 package com.gengoai.apollo.ml;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.gengoai.Validation;
+import com.gengoai.apollo.math.linalg.NDArrayFactory;
 import com.gengoai.apollo.ml.observation.Variable;
 import com.gengoai.collection.counter.Counter;
 import com.gengoai.function.SerializableFunction;
@@ -40,6 +43,7 @@ import static com.gengoai.Validation.checkArgument;
  */
 public class InMemoryDataSet extends DataSet {
    private static final long serialVersionUID = 1L;
+   @JsonProperty("data")
    private final List<Datum> data = new ArrayList<>();
 
    /**
@@ -49,6 +53,16 @@ public class InMemoryDataSet extends DataSet {
     */
    public InMemoryDataSet(@NonNull Collection<? extends Datum> data) {
       this.data.addAll(data);
+   }
+
+   @JsonCreator
+   public InMemoryDataSet(@JsonProperty("data") @NonNull Collection<? extends Datum> data,
+                          @JsonProperty("metadata") @NonNull Map<String, ObservationMetadata> metadataMap,
+                          @JsonProperty("ndarrayFactory") @NonNull NDArrayFactory factory
+                         ) {
+      this.data.addAll(data);
+      this.metadata.putAll(metadataMap);
+      this.ndArrayFactory = factory;
    }
 
    @Override

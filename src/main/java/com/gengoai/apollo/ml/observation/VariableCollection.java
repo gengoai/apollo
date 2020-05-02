@@ -19,8 +19,8 @@
 
 package com.gengoai.apollo.ml.observation;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.gengoai.Copyable;
-import com.gengoai.annotation.JsonHandler;
 import com.gengoai.collection.counter.Counter;
 import com.gengoai.collection.counter.HashMapCounter;
 import com.gengoai.string.Strings;
@@ -42,7 +42,7 @@ import static com.gengoai.tuple.Tuples.$;
  *
  * @author David B. Bracewell
  */
-@JsonHandler(VariableCollectionMarshaller.class)
+@JsonDeserialize(as = VariableList.class)
 public interface VariableCollection extends Observation, Collection<Variable> {
 
    /**

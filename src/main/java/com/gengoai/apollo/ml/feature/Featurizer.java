@@ -36,8 +36,7 @@ import java.util.stream.Collectors;
 /**
  * <p>
  * Featurizers define a mapping from input objects to a list of {@link Variable}. Additionally, a featurizer acts as a
- * {@link FeatureExtractor} allowing input objects to be converted directly to {@link
- * Observation}s.
+ * {@link FeatureExtractor} allowing input objects to be converted directly to {@link Observation}s.
  * </p>
  *
  * @param <I> the type of the object extracting features from
@@ -231,6 +230,15 @@ public abstract class Featurizer<I> implements FeatureExtractor<I>, Serializable
             features.addAll(featurizer.applyAsFeatures(input));
          }
          return features;
+      }
+
+      @Override
+      public String toString() {
+         StringBuilder builder = new StringBuilder("Features\n");
+         for(Featurizer<? super I> featurizer : featurizers) {
+            builder.append("\t").append(featurizer).append("\n");
+         }
+         return builder.toString();
       }
    }
 

@@ -19,10 +19,12 @@
 
 package com.gengoai.apollo.ml.model;
 
-import com.gengoai.Validation;
 import com.gengoai.conversion.Cast;
-import com.gengoai.io.Compression;
+import com.gengoai.io.Resources;
+import com.gengoai.io.SaveMode;
 import com.gengoai.io.resource.Resource;
+import com.gengoai.reflection.Reflect;
+import com.gengoai.reflection.ReflectionException;
 import lombok.NonNull;
 
 import java.io.IOException;
@@ -43,10 +45,41 @@ public final class ModelIO {
     * @return the model
     * @throws IOException Something went wrong reading the resource
     */
-   public static Model load(@NonNull Resource resource) throws IOException {
-      Object o = resource.readObject();
-      Validation.checkArgumentIsInstanceOf(o, Model.class);
-      return Cast.as(o);
+   public static <T extends Model> T load(@NonNull String resource) throws IOException {
+      return load(Resources.from(resource));
+   }
+
+   /**
+    * Loads a model from the given resource
+    *
+    * @param resource the resource containing the model
+    * @return the model
+    * @throws IOException Something went wrong reading the resource
+    */
+   public static <T extends Model> T load(@NonNull Resource resource) throws IOException {
+      return load(Cast.as(Reflect.getClassForNameQuietly(resource.getChild("__class__").readToString().strip())),
+                  resource);
+   }
+
+   /**
+    * Loads a model from the given resource
+    *
+    * @param modelClass the class of the model to load
+    * @param resource   the resource containing the model
+    * @return the model
+    * @throws IOException Something went wrong reading the resource
+    */
+   public static <T extends Model> T load(@NonNull Class<? extends Model> modelClass,
+                                          @NonNull Resource resource) throws IOException {
+      try {
+         Reflect r = Reflect.onClass(modelClass);
+         if(r.containsMethod("load")) {
+            return r.getMethod("load").invoke(resource);
+         }
+      } catch(ReflectionException e) {
+         throw new IOException(e);
+      }
+      return Cast.as(Model.load(resource));
    }
 
    /**
@@ -54,10 +87,30 @@ public final class ModelIO {
     *
     * @param model    the model to save
     * @param resource the resource where to write the model
-    * @throws IOException Something went wrong writting the resource
+    * @param saveMode the save mode
+    * @throws IOException Something went wrong writing the resource
+    */
+   public static void save(@NonNull Model model,
+                           @NonNull Resource resource,
+                           @NonNull SaveMode saveMode) throws IOException {
+      if(saveMode.validate(resource)) {
+         resource.delete(true);
+         resource.mkdirs();
+         resource.getChild("__class__")
+                 .write(model.getClass().getName());
+         model.save(resource);
+      }
+   }
+
+   /**
+    * Saves a model to the given resource
+    *
+    * @param model    the model to save
+    * @param resource the resource where to write the model
+    * @throws IOException Something went wrong writing the resource
     */
    public static void save(@NonNull Model model, @NonNull Resource resource) throws IOException {
-      resource.setCompression(Compression.GZIP).writeObject(model);
+      save(model, resource, SaveMode.OVERWRITE);
    }
 
    private ModelIO() {

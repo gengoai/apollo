@@ -21,6 +21,7 @@ package com.gengoai.apollo.ml.feature;
 
 import com.gengoai.apollo.ml.observation.*;
 import com.gengoai.string.Strings;
+import lombok.NonNull;
 
 import java.io.Serializable;
 import java.util.List;
@@ -83,11 +84,15 @@ public abstract class ContextFeaturizer<I> implements FeatureExtractor<I>, Seria
                                                   .collect(Collectors.toList()));
    }
 
-   public static <I> ContextFeaturizer<I> chain(List<String> patterns) {
-      return new ChainedContextFeaturizer<>(patterns.stream()
-                                                    .map(SingleContextFeaturizer::new)
-                                                    .collect(Collectors.toList()));
+   public static <I> ContextFeaturizer<I> chain(@NonNull List<ContextFeaturizer<? super I>> featurizers) {
+      return new ChainedContextFeaturizer<>(featurizers);
    }
+
+   //   public static <I> ContextFeaturizer<I> chain(List<String> patterns) {
+   //      return new ChainedContextFeaturizer<>(patterns.stream()
+   //                                                    .map(SingleContextFeaturizer::new)
+   //                                                    .collect(Collectors.toList()));
+   //   }
 
    /**
     * Convenience method for creating a ContextFeaturizer from a given pattern. Will use beginning and end of sequence

@@ -3,7 +3,7 @@ package com.gengoai.apollo.math.linalg.decompose;
 import com.gengoai.apollo.math.linalg.DenseMatrix;
 import com.gengoai.apollo.math.linalg.NDArray;
 import org.jblas.Decompose;
-import org.jblas.DoubleMatrix;
+import org.jblas.FloatMatrix;
 
 /**
  * <p>Performs <a href="https://en.wikipedia.org/wiki/QR_decomposition">QR Decomposition</a> on the given input
@@ -23,7 +23,7 @@ public class QRDecomposition extends Decomposition {
 
    @Override
    protected NDArray[] onMatrix(NDArray m) {
-      Decompose.QRDecomposition<DoubleMatrix> r = Decompose.qr(m.toDoubleMatrix()[0]);
+      Decompose.QRDecomposition<FloatMatrix> r = Decompose.qr(m.toFloatMatrix()[0]);
       return new NDArray[]{new DenseMatrix(r.q), new DenseMatrix(r.r)};
    }
 

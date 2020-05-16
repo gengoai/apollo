@@ -467,6 +467,45 @@ public abstract class Matrix extends NDArray {
    }
 
    @Override
+   public NDArray padColumnPost(int maxLength) {
+      NDArray out = isDense()
+                    ? new DenseMatrix(rows(), maxLength)
+                    : new SparseMatrix(rows(), maxLength);
+      for(int r = 0; r < rows(); r++) {
+         for(int c = 0; c < Math.min(columns(), maxLength); c++) {
+            out.set(r, c, get(r, c));
+         }
+      }
+      return out;
+   }
+
+   @Override
+   public NDArray padPost(int maxRowLength, int maxColumnLength) {
+      NDArray out = isDense()
+                    ? new DenseMatrix(maxRowLength, maxColumnLength)
+                    : new SparseMatrix(maxRowLength, maxColumnLength);
+      for(int r = 0; r < Math.min(rows(), maxRowLength); r++) {
+         for(int c = 0; c < Math.min(columns(), maxColumnLength); c++) {
+            out.set(r, c, get(r, c));
+         }
+      }
+      return out;
+   }
+
+   @Override
+   public NDArray padRowPost(int maxLength) {
+      NDArray out = isDense()
+                    ? new DenseMatrix(maxLength, columns())
+                    : new SparseMatrix(maxLength, columns());
+      for(int r = 0; r < Math.min(rows(), maxLength); r++) {
+         for(int c = 0; c < columns(); c++) {
+            out.set(r, c, get(r, c));
+         }
+      }
+      return out;
+   }
+
+   @Override
    public NDArray pivot() {
       if(shape.isSquare()) {
          NDArray p = NDArrayFactory.ND.eye(shape.rows());

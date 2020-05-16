@@ -3,7 +3,7 @@ package com.gengoai.apollo.math.linalg.decompose;
 import com.gengoai.apollo.math.linalg.DenseMatrix;
 import com.gengoai.apollo.math.linalg.NDArray;
 import com.gengoai.apollo.math.linalg.SparkLinearAlgebra;
-import org.jblas.DoubleMatrix;
+import org.jblas.FloatMatrix;
 import org.jblas.Singular;
 
 /**
@@ -61,24 +61,27 @@ public class SingularValueDecomposition extends Decomposition {
 
    @Override
    protected NDArray[] onMatrix(NDArray input) {
-      if (distributed) {
-         return SparkLinearAlgebra.svd(input, K <= 0 ? input.columns() : K);
+      if(distributed) {
+         return SparkLinearAlgebra.svd(input,
+                                       K <= 0
+                                       ? input.columns()
+                                       : K);
       }
 
       NDArray[] result;
-      DoubleMatrix[] r;
-      if (sparse) {
-         r = Singular.sparseSVD(input.toDoubleMatrix()[0]);
+      FloatMatrix[] r;
+      if(sparse) {
+         r = Singular.sparseSVD(input.toFloatMatrix()[0]);
       } else {
-         r = Singular.fullSVD(input.toDoubleMatrix()[0]);
+         r = Singular.fullSVD(input.toFloatMatrix()[0]);
       }
       result = new NDArray[]{
-         new DenseMatrix(r[0]),
-         new DenseMatrix(DoubleMatrix.diag(r[1])),
-         new DenseMatrix(r[2]),
+            new DenseMatrix(r[0]),
+            new DenseMatrix(FloatMatrix.diag(r[1])),
+            new DenseMatrix(r[2]),
       };
 
-      if (K > 0) {
+      if(K > 0) {
          result[0] = result[0].getSubMatrix(0, result[0].rows(), 0, K);
          result[1] = result[1].getSubMatrix(0, K, 0, K);
          result[2] = result[2].getSubMatrix(0, result[2].rows(), 0, K);

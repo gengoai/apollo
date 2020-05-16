@@ -410,6 +410,25 @@ public class SparseMatrix extends Matrix {
    }
 
    @Override
+   public float[][] toFloatArray2() {
+      float[][] array = new float[rows()][columns()];
+      map.forEachPair((i, v) -> {
+         int r = shape.toRow(i);
+         int c = shape.toColumn(i);
+         array[r][c] = v;
+         return true;
+      });
+      return array;
+   }
+
+   @Override
+   public float[][][] toFloatArray3() {
+      float[][][] r = new float[1][][];
+      r[0] = toFloatArray2();
+      return r;
+   }
+
+   @Override
    public FloatMatrix[] toFloatMatrix() {
       FloatMatrix out = new FloatMatrix(shape.rows(), shape.columns());
       map.forEachPair((i, v) -> {

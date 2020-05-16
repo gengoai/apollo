@@ -19,13 +19,18 @@
 
 package com.gengoai.apollo.ml.encoder;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.gengoai.apollo.ml.observation.Observation;
 import com.gengoai.collection.HashMapIndex;
 import com.gengoai.collection.Index;
+import com.gengoai.collection.Iterables;
+import com.gengoai.io.resource.Resource;
 import com.gengoai.stream.MStream;
+import com.gengoai.string.Strings;
 import lombok.NonNull;
 
-import java.util.Collection;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.Set;
 
@@ -36,15 +41,35 @@ import java.util.Set;
  */
 public class FixedEncoder implements Encoder {
    private static final long serialVersionUID = 1L;
+   @JsonProperty("alphabet")
    private final Index<String> alphabet = new HashMapIndex<>();
+   @JsonProperty("unknown")
+   private final String unknown;
 
    /**
     * Instantiates a new FixedEncoder.
     *
     * @param alphabet the alphabet
     */
-   public FixedEncoder(@NonNull Collection<String> alphabet) {
+   @JsonCreator
+   public FixedEncoder(@JsonProperty("alphabet") @NonNull Iterable<String> alphabet,
+                       @JsonProperty("unknown") String unknown) {
       this.alphabet.addAll(alphabet);
+      this.unknown = Strings.emptyToNull(unknown);
+   }
+
+   public FixedEncoder(@NonNull Resource vocabFile, String unknown) {
+      try {
+         this.alphabet.addAll(Iterables.filter(Iterables.transform(vocabFile.readLines(), String::strip),
+                                               Strings::isNotNullOrBlank));
+         this.unknown = Strings.emptyToNull(unknown);
+      } catch(IOException e) {
+         throw new RuntimeException(e);
+      }
+   }
+
+   public FixedEncoder(@NonNull Iterable<String> alphabet) {
+      this(alphabet, null);
    }
 
    @Override
@@ -54,7 +79,11 @@ public class FixedEncoder implements Encoder {
 
    @Override
    public int encode(String variableName) {
-      return alphabet.getId(variableName);
+      int index = alphabet.getId(variableName);
+      if(index == -1 && unknown != null) {
+         index = alphabet.getId(unknown);
+      }
+      return index;
    }
 
    @Override

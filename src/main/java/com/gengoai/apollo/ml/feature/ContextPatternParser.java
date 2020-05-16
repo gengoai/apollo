@@ -19,6 +19,8 @@
 
 package com.gengoai.apollo.ml.feature;
 
+import com.gengoai.collection.Iterables;
+import com.gengoai.collection.Lists;
 import com.gengoai.conversion.Cast;
 import com.gengoai.parsing.Lexer;
 import com.gengoai.parsing.ParserToken;
@@ -40,7 +42,7 @@ import static com.gengoai.string.Re.*;
 public enum ContextPatternParser implements TokenDef {
    STRICT {
       @Override
-      public List<List<FeatureGetter>> generate(ParserToken token) {
+      public List<List<FeatureGetter>> generate(ParserToken token, TokenStream tokenStream) {
          return Collections.emptyList();
       }
 
@@ -51,7 +53,7 @@ public enum ContextPatternParser implements TokenDef {
    },
    PIPE {
       @Override
-      public List<List<FeatureGetter>> generate(ParserToken token) {
+      public List<List<FeatureGetter>> generate(ParserToken token, TokenStream tokenStream) {
          return Collections.emptyList();
       }
 
@@ -60,114 +62,87 @@ public enum ContextPatternParser implements TokenDef {
          return "\\|";
       }
    },
-   WINDOW {
+   NGRAM {
       @Override
-      public List<List<FeatureGetter>> generate(ParserToken token) {
-         List<FeatureGetter> getters = new ArrayList<>();
-         int low = Integer.parseInt(token.getVariable(0));
-         int high = Integer.parseInt(token.getVariable(1));
-         String[] prefixes = token.getVariable(2).split("\\s*,\\s*");
-         for(int i = low; i <= high; i++) {
-            final int offset = i;
-            getters.addAll(Stream.of(prefixes)
-                              .map(p -> new FeatureGetter(offset, p))
-                              .collect(Collectors.toList()));
-         }
-         return List.of(getters);
+      public String getPattern() {
+         return re(q("<"),
+                   namedGroup("", oneOrMore(DIGIT)), //0
+                   zeroOrOne("\\s*,\\s*",
+                             namedGroup("", oneOrMore(DIGIT)) //1
+                            ),
+                   q(">"));
       }
 
       @Override
-      public String getPattern() {
-         return re("WINDOW",
-                   q("["),
-                   namedGroup("", zeroOrOne(chars("-+")), oneOrMore(DIGIT)),
-                   q(".."),
-                   namedGroup("", zeroOrOne(chars("-+")), oneOrMore(DIGIT)),
-                   q("]"),
-                   q("("),
-                   namedGroup("",
-                              greedyOneOrMore(NON_WHITESPACE),
-                              zeroOrOne("\\s*,\\s*"),
-                              greedyOneOrMore(NON_WHITESPACE)),
-                   q(")"));
-      }
-   },
-   BIGRAM {
-      @Override
-      public String getPattern() {
-         return re("BIGRAM",
-                   q("["),
-                   namedGroup("", zeroOrOne(chars("-+")), oneOrMore(DIGIT)),
-                   q(".."),
-                   namedGroup("", zeroOrOne(chars("-+")), oneOrMore(DIGIT)),
-                   q("]"),
-                   q("("),
-                   namedGroup("",
-                              greedyOneOrMore(NON_WHITESPACE),
-                              zeroOrOne("\\s*,\\s*"),
-                              greedyOneOrMore(NON_WHITESPACE)),
-                   q(")"));
-      }
-
-      @Override
-      public List<List<FeatureGetter>> generate(ParserToken token) {
+      public List<List<FeatureGetter>> generate(ParserToken token, TokenStream tokenStream) {
          List<List<FeatureGetter>> getters = new ArrayList<>();
-         int low = Integer.parseInt(token.getVariable(0));
-         int high = Integer.parseInt(token.getVariable(1));
-         String[] prefixes = token.getVariable(2).split("\\s*,\\s*");
-         for(int i = low; i < high; i++) {
-            final int offset = i;
-            getters.add(Stream.of(prefixes)
-                              .flatMap(p -> Stream.of(new FeatureGetter(offset, p),
-                                                      new FeatureGetter(offset + 1, p)))
-                              .collect(Collectors.toList()));
-         }
-         return getters;
-      }
-   },
-   TRIGRAM {
-      @Override
-      public String getPattern() {
-         return re("TRIGRAM",
-                   q("["),
-                   namedGroup("", zeroOrOne(chars("-+")), oneOrMore(DIGIT)),
-                   q(".."),
-                   namedGroup("", zeroOrOne(chars("-+")), oneOrMore(DIGIT)),
-                   q("]"),
-                   q("("),
-                   namedGroup("", greedyOneOrMore(NON_WHITESPACE)),
-                   q(")"));
-      }
 
-      @Override
-      public List<List<FeatureGetter>> generate(ParserToken token) {
-         List<List<FeatureGetter>> getters = new ArrayList<>();
-         int low = Integer.parseInt(token.getVariable(0));
-         int high = Integer.parseInt(token.getVariable(1));
-         String[] prefixes = token.getVariable(2).split("\\s*,\\s*");
-         for(int i = low; i < high - 1; i++) {
-            final int offset = i;
-            getters.add(Stream.of(prefixes)
-                              .flatMap(p -> Stream.of(new FeatureGetter(offset, p),
-                                                      new FeatureGetter(offset + 1, p),
-                                                      new FeatureGetter(offset + 2, p)))
-                              .collect(Collectors.toList()));
+         int nMin = Integer.parseInt(token.getVariable(0));
+         int nMax = token.getVariable(1) != null
+                    ? Integer.parseInt(token.getVariable(1))
+                    : nMin;
+
+         ParserToken nt = tokenStream.consume();
+         List<List<FeatureGetter>> subFeatures = ((ContextPatternParser) nt.getType()).generate(nt, tokenStream);
+         for(int i = 0; i <= subFeatures.size(); i++) {
+            for(int j = i + nMin; j <= i + nMax && j <= subFeatures.size(); j++) {
+               getters.add(Lists.asArrayList(Iterables.flatten(subFeatures.subList(i, j))));
+            }
          }
          return getters;
       }
    },
    PREFIX {
       @Override
-      public List<List<FeatureGetter>> generate(ParserToken token) {
-         return List.of(List.of(new FeatureGetter(Integer.parseInt(token.getVariable(1)), token.getVariable(0))));
+      public List<List<FeatureGetter>> generate(ParserToken token, TokenStream tokenStream) {
+         String[] prefixes = (token.getVariable(0) != null
+                              ? token.getVariable(0)
+                              : token.getVariable(1))
+               .split("\\s*,\\s*");
+         int low = Integer.parseInt(token.getVariable(2));
+
+         if(token.getVariable(3) == null) {
+            return List.of(Stream.of(prefixes)
+                                 .map(p -> new FeatureGetter(low, p))
+                                 .collect(Collectors.toList()));
+         }
+
+         String op = token.getVariable(3);
+         int high = Integer.parseInt(token.getVariable(4));
+         final List<List<FeatureGetter>> getters = new ArrayList<>();
+         if(op.equals(",")) {
+            for(int i = low; i <= high; i++) {
+               final int offset = i;
+               getters.add(Stream.of(prefixes)
+                                 .map(p -> new FeatureGetter(offset, p))
+                                 .collect(Collectors.toList()));
+            }
+         } else {
+            List<FeatureGetter> l = new ArrayList<>();
+            for(int i = low; i <= high; i++) {
+               final int offset = i;
+               l.addAll(Stream.of(prefixes)
+                              .map(p -> new FeatureGetter(offset, p))
+                              .collect(Collectors.toList()));
+            }
+            getters.add(l);
+         }
+         return getters;
       }
 
       @Override
       public String getPattern() {
-         return re(namedGroup("", greedyOneOrMore(any())),
-                   q("["),
-                   namedGroup("", zeroOrOne(chars("-+")), oneOrMore(DIGIT)),
-                   q("]"));
+         return re(
+               or(namedGroup("", greedyOneOrMore("\\w")), //0
+                  re(q("("), namedGroup("", oneOrMore(notChars(q(")")))), q(")"))), //1
+               q("["),
+               namedGroup("", zeroOrOne(chars("-+")), oneOrMore(DIGIT)), //2
+               zeroOrOne("\\s*",
+                         namedGroup("", or(q(".."), ",")), //3
+                         "\\s*",
+                         namedGroup("", zeroOrOne(chars("-+")), oneOrMore(DIGIT)) //4
+                        ),
+               q("]"));
       }
    };
 
@@ -184,10 +159,11 @@ public enum ContextPatternParser implements TokenDef {
             isStrict.set(true);
             continue;
          }
-         List<List<FeatureGetter>> getters = ((ContextPatternParser) token.getType()).generate(token);
+         List<List<FeatureGetter>> getters = ((ContextPatternParser) token.getType()).generate(token, ts);
          if(ts.hasNext()) {
             ts.consume(PIPE);
          }
+
          if(extractors.isEmpty()) {
             extractors = getters;
          } else {
@@ -200,12 +176,13 @@ public enum ContextPatternParser implements TokenDef {
             }
             extractors = out;
          }
+
       }
       return Cast.cast(extractors.stream()
-                                 .map(l -> new ContextFeaturizerImpl<>( isStrict.get(), l))
+                                 .map(l -> new ContextFeaturizerImpl<>(isStrict.get(), l))
                                  .collect(Collectors.toList()));
    }
 
-   protected abstract List<List<FeatureGetter>> generate(ParserToken token);
+   protected abstract List<List<FeatureGetter>> generate(ParserToken token, TokenStream tokenStream);
 
 }

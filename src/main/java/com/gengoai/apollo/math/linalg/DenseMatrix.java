@@ -491,6 +491,18 @@ public class DenseMatrix extends Matrix {
    }
 
    @Override
+   public float[][] toFloatArray2() {
+      return matrix.toArray2();
+   }
+
+   @Override
+   public float[][][] toFloatArray3() {
+      float[][][] r = new float[1][][];
+      r[0] = matrix.toArray2();
+      return r;
+   }
+
+   @Override
    public FloatMatrix[] toFloatMatrix() {
       return new FloatMatrix[]{matrix};
    }

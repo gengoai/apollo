@@ -189,7 +189,7 @@ public class GreedyAvgPerceptron extends SingleSourceModel<GreedyAvgPerceptron.P
 
    @Override
    public Parameters getFitParameters() {
-      return new Parameters();
+      return parameters;
    }
 
    @Override

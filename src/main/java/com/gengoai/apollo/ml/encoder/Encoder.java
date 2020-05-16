@@ -19,9 +19,10 @@
 
 package com.gengoai.apollo.ml.encoder;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.gengoai.apollo.ml.observation.Observation;
 import com.gengoai.apollo.ml.transform.vectorizer.Vectorizer;
-import com.gengoai.json.TypeInfo;
 import com.gengoai.stream.MStream;
 import lombok.NonNull;
 
@@ -41,7 +42,7 @@ import java.util.Set;
  * like Glove and Word2Vec.
  * </p>
  */
-@TypeInfo
+@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS)
 public interface Encoder extends Serializable {
 
    /**
@@ -72,6 +73,7 @@ public interface Encoder extends Serializable {
     *
     * @return the alphabet
     */
+   @JsonIgnore
    Set<String> getAlphabet();
 
    /**
@@ -79,6 +81,7 @@ public interface Encoder extends Serializable {
     *
     * @return True if the encoder has a fixed vocabulary
     */
+   @JsonIgnore
    boolean isFixed();
 
    /**

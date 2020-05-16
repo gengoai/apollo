@@ -18,7 +18,8 @@
      ~ specific language governing permissions and limitations
      ~ under the License.
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.gengoai</groupId>
     <artifactId>apollo</artifactId>
@@ -30,6 +31,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>11</java.version>
+        <javacpp.platform.extension>-mkl-gpu</javacpp.platform.extension>
     </properties>
     <scm>
         <connection>scm:git:git@github.com:gengoai/apollo.git</connection>
@@ -54,11 +56,27 @@
         </license>
     </licenses>
     <dependencies>
-<!--        <dependency>-->
-<!--            <groupId>org.tensorflow</groupId>-->
-<!--            <artifactId>tensorflow</artifactId>-->
-<!--            <version>1.15.0</version>-->
-<!--        </dependency>-->
+        <dependency>
+            <groupId>org.tensorflow</groupId>
+            <artifactId>tensorflow</artifactId>
+            <version>1.15.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.tensorflow</groupId>
+            <artifactId>proto</artifactId>
+            <version>1.15.0</version>
+        </dependency>
+        <!--        <dependency>-->
+        <!--            <groupId>org.tensorflow</groupId>-->
+        <!--            <artifactId>tensorflow-core-api</artifactId>-->
+        <!--            <version>0.1.0-SNAPSHOT</version>-->
+        <!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>org.tensorflow</groupId>-->
+        <!--            <artifactId>tensorflow-core-api</artifactId>-->
+        <!--            <version>0.1.0-SNAPSHOT</version>-->
+        <!--            <classifier>linux-x86_64${javacpp.platform.extension}</classifier>-->
+        <!--        </dependency>-->
         <dependency>
             <groupId>com.gengoai</groupId>
             <artifactId>mango</artifactId>
@@ -260,4 +278,18 @@
             <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
         </repository>
     </distributionManagement>
+    <repositories>
+        <repository>
+            <id>sonatype</id>
+            <name>Sonatype</name>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </repository>
+        <repository>
+            <id>tensorflow-snapshots</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
 </project>

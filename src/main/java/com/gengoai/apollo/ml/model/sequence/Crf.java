@@ -114,6 +114,7 @@ public class Crf extends SingleSourceModel<Crf.Parameters, Crf> {
    public void estimate(@NonNull DataSet dataset) {
       CrfSuiteLoader.INSTANCE.load();
       Trainer trainer = new Trainer();
+
       for(Datum datum : dataset) {
          Observation input = Validation.notNull(datum.get(parameters.input.value()),
                                                 "Null Input Observation");

@@ -62,6 +62,7 @@ import java.util.stream.Stream;
       creatorVisibility = JsonAutoDetect.Visibility.NONE
 )
 public abstract class NDArray implements Serializable, Observation {
+   private static final long serialVersionUID = 1L;
    protected static final NumberFormat decimalFormatter = new DecimalFormat(" 0.000000;-0");
    @JsonProperty("shape")
    protected final Shape shape;
@@ -1158,6 +1159,12 @@ public abstract class NDArray implements Serializable, Observation {
     */
    public abstract double norm2();
 
+   public abstract NDArray padColumnPost(int maxLength);
+
+   public abstract NDArray padPost(int maxRowLength, int maxColumnLength);
+
+   public abstract NDArray padRowPost(int maxLength);
+
    /**
     * Calculates the pivot elements for this square matrix. Will calculate per slice.
     *
@@ -1331,10 +1338,14 @@ public abstract class NDArray implements Serializable, Observation {
       for(int j = 1; j < slice.columns(); j++) {
          if(j == breakPoint) {
             int nj = Math.max(slice.columns() - breakPoint, j + 1);
-            if(nj > j + 1) {
+            if(nj > j + 1 && nj < slice.columns()) {
                builder.append(", ...");
             }
-            j = nj;
+            if(nj < slice.columns()) {
+               j = nj;
+            } else {
+               continue;
+            }
          }
          builder.append(", ").append(decimalFormatter.format(slice.get(i, j)));
       }
@@ -1901,6 +1912,10 @@ public abstract class NDArray implements Serializable, Observation {
     * @return the double array
     */
    public abstract float[] toFloatArray();
+
+   public abstract float[][] toFloatArray2();
+
+   public abstract float[][][] toFloatArray3();
 
    public abstract FloatMatrix[] toFloatMatrix();
 

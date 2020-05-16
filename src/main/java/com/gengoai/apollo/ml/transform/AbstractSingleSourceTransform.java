@@ -62,6 +62,10 @@ public abstract class AbstractSingleSourceTransform<T extends AbstractSingleSour
    protected String output = Datum.DEFAULT_INPUT;
    protected NDArrayFactory ndArrayFactory;
 
+   public AbstractSingleSourceTransform() {
+      this.ndArrayFactory = NDArrayFactory.ND;
+   }
+
    @Override
    public T copy() {
       return Cast.as(Copyable.deepCopy(this));

@@ -192,10 +192,12 @@ public abstract class Featurizer<I> implements FeatureExtractor<I>, Serializable
    public final FeatureExtractor<I> withContext(List<String> patterns) {
       if(patterns == null || patterns.size() == 0) {
          return this;
-      } else if(patterns.size() == 1) {
-         return new FeatureExtractorImpl<>(this, ContextFeaturizer.contextFeaturizer(patterns.get(0)));
       }
-      return new FeatureExtractorImpl<>(this, ContextFeaturizer.chain(patterns));
+      List<ContextFeaturizer<? super I>> contextFeaturizers = new ArrayList<>();
+      for(String pattern : patterns) {
+         contextFeaturizers.addAll(ContextPatternParser.parse(pattern));
+      }
+      return new FeatureExtractorImpl<>(this, ContextFeaturizer.chain(contextFeaturizers));
    }
 
    private static class BooleanExtractor<I> extends Featurizer<I> {

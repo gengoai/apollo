@@ -29,6 +29,7 @@ import lombok.NonNull;
 import org.jblas.DoubleMatrix;
 import org.jblas.FloatMatrix;
 
+import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.DoubleBinaryOperator;
 import java.util.function.DoubleUnaryOperator;
@@ -65,6 +66,11 @@ public class Tensor extends NDArray {
    public Tensor(@NonNull Shape shape) {
       super(shape);
       this.slices = new NDArray[shape.sliceLength];
+   }
+
+   public Tensor(@NonNull List<NDArray> slices) {
+      super(Shape.shape(0, slices.size(), slices.get(0).rows(), slices.get(0).columns()));
+      this.slices = slices.toArray(NDArray[]::new);
    }
 
    @JsonCreator
@@ -423,6 +429,21 @@ public class Tensor extends NDArray {
    }
 
    @Override
+   public NDArray padColumnPost(int maxLength) {
+      return mapSlices(n -> n.padColumnPost(maxLength));
+   }
+
+   @Override
+   public NDArray padPost(int maxRowLength, int maxColumnLength) {
+      return mapSlices(n -> n.padPost(maxRowLength, maxColumnLength));
+   }
+
+   @Override
+   public NDArray padRowPost(int maxLength) {
+      return mapSlices(n -> n.padRowPost(maxLength));
+   }
+
+   @Override
    public NDArray pivot() {
       return mapSlices(NDArray::pivot);
    }
@@ -589,7 +610,30 @@ public class Tensor extends NDArray {
 
    @Override
    public float[] toFloatArray() {
+      if(slices.length == 1) {
+         return slices[0].toFloatArray();
+      }
       throw new UnsupportedOperationException();
+   }
+
+   @Override
+   public float[][] toFloatArray2() {
+      if(slices.length == 1) {
+         return slices[0].toFloatArray2();
+      }
+      throw new UnsupportedOperationException();
+   }
+
+   @Override
+   public float[][][] toFloatArray3() {
+      if(shape.channels() > 1 && shape.kernels() > 1) {
+         throw new UnsupportedOperationException();
+      }
+      float[][][] r = new float[slices.length][shape.rows()][shape.columns()];
+      for(int i = 0; i < slices.length; i++) {
+         r[i] = slices[i].toFloatArray2();
+      }
+      return r;
    }
 
    @Override

@@ -24,8 +24,11 @@ import com.gengoai.apollo.ml.DataSet;
 import com.gengoai.apollo.ml.Datum;
 import com.gengoai.apollo.ml.observation.Observation;
 import com.gengoai.apollo.ml.transform.Transform;
+import com.gengoai.io.Compression;
+import com.gengoai.io.resource.Resource;
 import lombok.NonNull;
 
+import java.io.IOException;
 import java.io.Serializable;
 
 /**
@@ -50,6 +53,17 @@ import java.io.Serializable;
  * @author David B. Bracewell
  */
 public interface Model extends Transform, Serializable {
+
+   /**
+    * Reads the model from the given resource
+    *
+    * @param resource the resource
+    * @return the model
+    * @throws IOException Something went wrong reading the model
+    */
+   static Model load(@NonNull Resource resource) throws IOException {
+      return resource.getChild("model.bin.gz").readObject();
+   }
 
    @Override
    default Model copy() {
@@ -91,5 +105,15 @@ public interface Model extends Transform, Serializable {
     * @return the LabelType
     */
    LabelType getLabelType(@NonNull String name);
+
+   /**
+    * Writes the model the given ZipWriter.
+    *
+    * @param writer the writer to write the model to
+    * @throws IOException Something went wrong writing the model
+    */
+   default void save(@NonNull Resource resource) throws IOException {
+      resource.getChild("model.bin.gz").setCompression(Compression.GZIP).writeObject(this);
+   }
 
 }//END OF Model

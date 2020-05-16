@@ -26,6 +26,7 @@ import com.gengoai.Validation;
 import com.gengoai.config.Config;
 import lombok.NonNull;
 import org.jblas.DoubleMatrix;
+import org.jblas.FloatMatrix;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -78,7 +79,7 @@ public enum NDArrayFactory {
     */
    DENSE {
       @Override
-      public NDArray array(Shape shape) {
+      public NDArray array(@NonNull Shape shape) {
          if(shape.isTensor()) {
             Tensor tensor = new Tensor(shape);
             for(int i = 0; i < shape.sliceLength; i++) {
@@ -95,13 +96,28 @@ public enum NDArrayFactory {
       }
 
       @Override
+      public NDArray array(float[] data) {
+         return new DenseMatrix(new FloatMatrix(data));
+      }
+
+      @Override
       public NDArray array(int rows, int columns, double[] data) {
          return new DenseMatrix(new DoubleMatrix(rows, columns, data));
       }
 
       @Override
+      public NDArray array(int rows, int columns, float[] data) {
+         return new DenseMatrix(new FloatMatrix(rows, columns, data));
+      }
+
+      @Override
       public NDArray array(double[][] data) {
          return new DenseMatrix(new DoubleMatrix(data));
+      }
+
+      @Override
+      public NDArray array(float[][] data) {
+         return new DenseMatrix(new FloatMatrix(data));
       }
 
       @Override
@@ -114,6 +130,15 @@ public enum NDArrayFactory {
          return new DenseMatrix(new DoubleMatrix(1, data.length, data));
       }
 
+      @Override
+      public NDArray columnVector(float[] data) {
+         return new DenseMatrix(new FloatMatrix(data));
+      }
+
+      @Override
+      public NDArray rowVector(float[] data) {
+         return new DenseMatrix(new FloatMatrix(1, data.length, data));
+      }
    },
    /**
     * Sparse NDArrays (expect them to be 3-10x slower, but more space efficient).
@@ -240,6 +265,39 @@ public enum NDArrayFactory {
       return array;
    }
 
+   public NDArray array(float[][] data) {
+      if(data.length == 0) {
+         return empty();
+      }
+      NDArray array = array(data.length, data[0].length);
+      for(int i = 0; i < data.length; i++) {
+         array.setRow(i, rowVector(data[i]));
+      }
+      return array;
+   }
+
+   public NDArray array(float[][][] data) {
+      if(data.length == 0) {
+         return empty();
+      }
+      NDArray[] slices = new NDArray[data.length];
+      for(int i = 0; i < data.length; i++) {
+         slices[i] = array(data[i]);
+      }
+      return new Tensor(0, slices.length, slices);
+   }
+
+   public NDArray array(double[][][] data) {
+      if(data.length == 0) {
+         return empty();
+      }
+      NDArray[] slices = new NDArray[data.length];
+      for(int i = 0; i < data.length; i++) {
+         slices[i] = array(data[i]);
+      }
+      return new Tensor(0, slices.length, slices);
+   }
+
    /**
     * Creates a zero-valued NDArray with the given shape.
     *
@@ -296,7 +354,7 @@ public enum NDArrayFactory {
     * @param shape the shape
     * @return the NDArray
     */
-   public NDArray constant(Shape shape, double value) {
+   public NDArray constant(@NonNull Shape shape, double value) {
       return array(shape).fill(value);
    }
 
@@ -323,13 +381,30 @@ public enum NDArrayFactory {
       return ndArray;
    }
 
+   public NDArray fromTensorFlowTensor(@NonNull org.tensorflow.Tensor<?> tensor) {
+      Validation.checkArgument(tensor.shape().length <= 3, "Only tensors of rank 3 or less are supported.");
+      long[] shape = tensor.shape();
+      if(shape.length == 3) {
+         Tensor ndArray = new Tensor(Shape.shape((int) shape[0], (int) shape[1], (int) shape[2]));
+         float[][][] floats = new float[(int) shape[0]][(int) shape[1]][(int) shape[2]];
+         tensor.copyTo(floats);
+         for(int i = 0; i < floats.length; i++) {
+            ndArray.setSlice(i, array(floats[i]));
+         }
+         return ndArray;
+      }
+      float[][] floats = new float[(int) shape[0]][(int) shape[1]];
+      tensor.copyTo(floats);
+      return array(floats);
+   }
+
    /**
     * Stacks the given NDArray horizontal, i.e. concatenates on the column axis.
     *
     * @param arrays the NDArrays
     * @return the NDArray
     */
-   public NDArray hstack(NDArray... arrays) {
+   public NDArray hstack(@NonNull NDArray... arrays) {
       return hstack(Arrays.asList(arrays));
    }
 
@@ -444,6 +519,14 @@ public enum NDArrayFactory {
       return vector;
    }
 
+   public NDArray rowVector(float[] data) {
+      NDArray vector = array(1, data.length);
+      for(int i = 0; i < data.length; i++) {
+         vector.set(i, data[i]);
+      }
+      return vector;
+   }
+
    /**
     * Creates a scalar-valued NDArray with the given value
     *
@@ -465,7 +548,7 @@ public enum NDArrayFactory {
     * @param shape the shape
     * @return the NDArray
     */
-   public NDArray uniform(Shape shape, int lower, int upper) {
+   public NDArray uniform(@NonNull Shape shape, int lower, int upper) {
       return array(shape, NDArrayInitializer.rand(lower, upper));
    }
 
@@ -475,7 +558,7 @@ public enum NDArrayFactory {
     * @param arrays the NDArrays
     * @return the NDArray
     */
-   public NDArray vstack(NDArray... arrays) {
+   public NDArray vstack(@NonNull NDArray... arrays) {
       return vstack(Arrays.asList(arrays));
    }
 

@@ -20,7 +20,10 @@
 package com.gengoai.apollo.ml.model.clustering;
 
 import com.gengoai.apollo.math.statistics.measure.Measure;
+import com.gengoai.apollo.ml.observation.Observation;
+import com.gengoai.math.Optimum;
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.Setter;
 
 import java.util.ArrayList;
@@ -76,6 +79,22 @@ public class FlatClustering implements Clustering {
    @Override
    public Iterator<Cluster> iterator() {
       return clusters.iterator();
+   }
+
+   @Override
+   public final int selectBestCluster(@NonNull Observation observation) {
+      int optimumIndex = -1;
+      double optimum = getMeasure().getOptimum().startingValue();
+      final Measure m = getMeasure();
+      final Optimum o = m.getOptimum();
+      for(int i = 0; i < clusters.size(); i++) {
+         double v = m.calculate(clusters.get(i).getCentroid(), observation.asNDArray());
+         if(o.test(v, optimum)) {
+            optimum = v;
+            optimumIndex = i;
+         }
+      }
+      return optimumIndex;
    }
 
    @Override

@@ -43,6 +43,7 @@ import java.util.stream.Collectors;
  */
 public class Transformer implements Serializable, Transform {
    private static final long serialVersionUID = 1L;
+   @Getter
    private final List<Transform> transforms;
    @Getter
    private final Map<String, ObservationMetadata> metadata = new HashMap<>();

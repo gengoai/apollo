@@ -21,6 +21,7 @@ package com.gengoai.apollo.ml.model.clustering;
 
 import com.gengoai.apollo.math.linalg.NDArray;
 import com.gengoai.apollo.math.statistics.measure.Measure;
+import com.gengoai.apollo.ml.observation.Observation;
 import com.gengoai.stream.Streams;
 import lombok.NonNull;
 import org.apache.commons.math3.stat.descriptive.moment.Variance;
@@ -112,6 +113,10 @@ public interface Clustering extends Iterable<Cluster>, Serializable {
     */
    default void keepOnlyCentroids() {
       forEach(Cluster::clear);
+   }
+
+   default int selectBestCluster(@NonNull Observation observation) {
+      throw new UnsupportedOperationException();
    }
 
    /**

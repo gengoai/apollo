@@ -5,7 +5,7 @@ import com.gengoai.apollo.math.linalg.DenseMatrix;
 import com.gengoai.apollo.math.linalg.NDArray;
 import com.gengoai.apollo.math.linalg.RealMatrixWrapper;
 import org.jblas.Decompose;
-import org.jblas.DoubleMatrix;
+import org.jblas.FloatMatrix;
 
 import static com.gengoai.apollo.math.linalg.NDArrayFactory.ND;
 
@@ -28,18 +28,18 @@ public class LUDecomposition extends Decomposition {
    @Override
    protected NDArray[] onMatrix(NDArray m) {
       Validation.checkArgument(m.shape().isSquare(), "Only square matrices are supported");
-      if (m instanceof DenseMatrix) {
-         Decompose.LUDecomposition<DoubleMatrix> r = Decompose.lu(m.toDoubleMatrix()[0]);
+      if(m instanceof DenseMatrix) {
+         Decompose.LUDecomposition<FloatMatrix> r = Decompose.lu(m.toFloatMatrix()[0]);
          return new NDArray[]{new DenseMatrix(r.l),
-            new DenseMatrix(r.u),
-            new DenseMatrix(r.p)};
+               new DenseMatrix(r.u),
+               new DenseMatrix(r.p)};
       }
       org.apache.commons.math3.linear.LUDecomposition luDecomposition =
-         new org.apache.commons.math3.linear.LUDecomposition(new RealMatrixWrapper(m));
+            new org.apache.commons.math3.linear.LUDecomposition(new RealMatrixWrapper(m));
       return new NDArray[]{
-         ND.array(luDecomposition.getL().getData()),
-         ND.array(luDecomposition.getU().getData()),
-         ND.array(luDecomposition.getP().getData()),
+            ND.array(luDecomposition.getL().getData()),
+            ND.array(luDecomposition.getU().getData()),
+            ND.array(luDecomposition.getP().getData()),
       };
    }
 

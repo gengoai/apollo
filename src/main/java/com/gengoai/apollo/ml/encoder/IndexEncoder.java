@@ -19,6 +19,8 @@
 
 package com.gengoai.apollo.ml.encoder;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.gengoai.apollo.ml.observation.Observation;
 import com.gengoai.apollo.ml.observation.Variable;
 import com.gengoai.collection.HashMapIndex;
@@ -38,7 +40,9 @@ import java.util.Set;
  */
 public class IndexEncoder implements Encoder {
    private static final long serialVersionUID = 1L;
+   @JsonProperty("alphabet")
    private final Index<String> alphabet = new HashMapIndex<>();
+   @JsonProperty("unknown")
    private String unknownName;
 
    /**
@@ -58,6 +62,13 @@ public class IndexEncoder implements Encoder {
       this.unknownName = Strings.isNullOrBlank(unknownName)
                          ? null
                          : unknownName;
+   }
+
+   @JsonCreator
+   private IndexEncoder(@JsonProperty("alphabet") Iterable<String> alphabet,
+                        @JsonProperty("unknown") String unknown) {
+      this.alphabet.addAll(alphabet);
+      this.unknownName = Strings.emptyToNull(unknown);
    }
 
    @Override

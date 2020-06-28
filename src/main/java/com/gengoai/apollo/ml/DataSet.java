@@ -22,16 +22,20 @@ package com.gengoai.apollo.ml;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.gengoai.apollo.math.linalg.NDArrayFactory;
-import com.gengoai.apollo.ml.observation.Variable;
 import com.gengoai.apollo.ml.transform.Transform;
-import com.gengoai.collection.counter.Counter;
 import com.gengoai.function.SerializableFunction;
-import com.gengoai.stream.MCounterAccumulator;
+import com.gengoai.function.Unchecked;
+import com.gengoai.io.MultiFileWriter;
+import com.gengoai.io.SaveMode;
+import com.gengoai.io.resource.Resource;
+import com.gengoai.json.Json;
 import com.gengoai.stream.MStream;
 import com.gengoai.stream.StreamingContext;
 import com.gengoai.tuple.Tuples;
 import lombok.NonNull;
+import lombok.experimental.Accessors;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.*;
 import java.util.function.Consumer;
@@ -65,9 +69,11 @@ import java.util.function.Consumer;
  * @author David B. Bracewell
  */
 @JsonDeserialize(as = InMemoryDataSet.class)
+@Accessors(fluent = true)
 public abstract class DataSet implements Iterable<Datum>, Serializable {
    private static final long serialVersionUID = 1L;
    protected final Map<String, ObservationMetadata> metadata = new HashMap<>();
+   @NonNull
    protected NDArrayFactory ndArrayFactory = NDArrayFactory.ND;
 
    /**
@@ -86,27 +92,13 @@ public abstract class DataSet implements Iterable<Datum>, Serializable {
    public abstract DataSet cache();
 
    /**
-    * Calculates the distribution of classes in the data set
+    * Collects all {@link Datum} in the data set into a list
     *
-    * @param observationName The name of the observation to calculate the distribution over
-    * @return A counter containing the classes (labels) and their counts in the dataset
+    * @return the list of datum
     */
-   public Counter<String> calculateClassDistribution(@NonNull String observationName) {
-      MCounterAccumulator<String> accumulator = getStreamingContext().counterAccumulator();
-      stream().flatMap(e -> e.get(observationName)
-                             .getVariableSpace()
-                             .map(Variable::getName)).forEach(accumulator::add);
-      return accumulator.value();
+   public List<Datum> collect() {
+      return stream().collect();
    }
-
-   /**
-    * Generates <code>numberOfFolds</code> {@link Split}s for cross-validation. Each split will have
-    * <code>dataset.size() / numberOfFolds</code> testing data and the remaining data as training data.
-    *
-    * @param numberOfFolds the number of folds
-    * @return An array of {@link Split} for each fold of the dataset
-    */
-   public abstract Split[] fold(int numberOfFolds);
 
    /**
     * Gets the metadata for the observation sources on the datum in this dataset describing the dimension, type, and any
@@ -162,15 +154,7 @@ public abstract class DataSet implements Iterable<Datum>, Serializable {
     * @param function the function to apply to  the datum in the dataset
     * @return this dataset
     */
-   public abstract DataSet map(SerializableFunction<? super Datum, ? extends Datum> function);
-
-   /**
-    * Creates a balanced dataset by oversampling the items
-    *
-    * @param observationName The name of the observation to oversample over
-    * @return the balanced dataset
-    */
-   public abstract DataSet oversample(@NonNull String observationName);
+   public abstract DataSet map(@NonNull SerializableFunction<? super Datum, ? extends Datum> function);
 
    /**
     * Generates a parallel MStream over the datum in this dataset
@@ -180,17 +164,29 @@ public abstract class DataSet implements Iterable<Datum>, Serializable {
    public abstract MStream<Datum> parallelStream();
 
    /**
+    * Persists the DataSet to disk
+    *
+    * @param resource the resource location to persist the dataset to
+    * @return the persisted version of the dataset
+    */
+   public DataSet persist(@NonNull Resource resource) {
+      DataSet ds = new SQLiteDataSet(resource, stream().javaStream());
+      ds.putAllMetadata(getMetadata());
+      ds.setNDArrayFactory(getNDArrayFactory());
+      return ds;
+   }
+
+   /**
     * Probes the data set to determine the types of its observations. This is only necessary if the metadata is needed
     * directly after constructing a dataset.
     *
     * @return this DataSet
     */
    public DataSet probe() {
-      parallelStream()
-            .flatMap(d -> d.entrySet().stream())
-            .map(e -> Tuples.$(e.getKey(), e.getValue().getClass()))
-            .distinct()
-            .forEach(e -> updateMetadata(e.getKey(), m -> m.setType(e.getValue())));
+      parallelStream().flatMap(d -> d.entrySet().stream())
+                      .map(e -> Tuples.$(e.getKey(), e.getValue().getClass()))
+                      .distinct()
+                      .forEach(e -> updateMetadata(e.getKey(), m -> m.setType(e.getValue())));
       return this;
    }
 
@@ -216,14 +212,19 @@ public abstract class DataSet implements Iterable<Datum>, Serializable {
       return this;
    }
 
-   /**
-    * Samples the dataset creating a new dataset of the given sample size.
-    *
-    * @param withReplacement the with replacement
-    * @param sampleSize      the sample size
-    * @return the dataset
-    */
-   public abstract DataSet sample(boolean withReplacement, int sampleSize);
+   public void save(@NonNull Resource resource,
+                    int partitions,
+                    @NonNull SaveMode saveMode) throws IOException {
+      if(saveMode.validate(resource)) {
+         resource.mkdirs();
+         try(MultiFileWriter mfw = new MultiFileWriter(resource, "part-", partitions)) {
+            parallelStream().forEach(Unchecked.consumer(d -> {
+               mfw.write(Json.dumps(d) + "\n");
+            }));
+         }
+         resource.getChild("metadata.json").write(Json.dumps(getMetadata()));
+      }
+   }
 
    /**
     * Sets the {@link NDArrayFactory} to use when constructing NDArray.
@@ -261,24 +262,6 @@ public abstract class DataSet implements Iterable<Datum>, Serializable {
    public abstract long size();
 
    /**
-    * Creates a new dataset containing instances from the given <code>start</code> index upto the given <code>end</code>
-    * index.
-    *
-    * @param start the starting item index (Inclusive)
-    * @param end   the ending item index (Exclusive)
-    * @return the dataset
-    */
-   public abstract DataSet slice(long start, long end);
-
-   /**
-    * Split the dataset into a train and test split.
-    *
-    * @param pctTrain the percentage of the dataset to use for training
-    * @return A TestTrainSet of one TestTrain item
-    */
-   public abstract Split split(double pctTrain);
-
-   /**
     * Generates an MStream over the datum in this dataset
     *
     * @return stream of data in the dataset
@@ -294,14 +277,6 @@ public abstract class DataSet implements Iterable<Datum>, Serializable {
    public List<Datum> take(int n) {
       return stream().take(n);
    }
-
-   /**
-    * Creates a balanced dataset by undersampling the items
-    *
-    * @param observationName The name of the observation to undersample over
-    * @return the balanced dataset
-    */
-   public abstract DataSet undersample(@NonNull String observationName);
 
    /**
     * Updates the metadata associated with a given observation source.

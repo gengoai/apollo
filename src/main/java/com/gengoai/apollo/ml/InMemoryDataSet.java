@@ -23,8 +23,6 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.gengoai.Validation;
 import com.gengoai.apollo.math.linalg.NDArrayFactory;
-import com.gengoai.apollo.ml.observation.Variable;
-import com.gengoai.collection.counter.Counter;
 import com.gengoai.function.SerializableFunction;
 import com.gengoai.stream.MStream;
 import com.gengoai.stream.StreamingContext;
@@ -32,8 +30,6 @@ import lombok.NonNull;
 
 import java.util.*;
 import java.util.stream.IntStream;
-
-import static com.gengoai.Validation.checkArgument;
 
 /**
  * <p>
@@ -78,7 +74,9 @@ public class InMemoryDataSet extends DataSet {
 
          @Override
          public DataSet next() {
-            DataSet next = slice(index, Math.min(index + batchSize, data.size()));
+            DataSet next = new InMemoryDataSet(data.subList(index, Math.min(index + batchSize, data.size())),
+                                               getMetadata(),
+                                               getNDArrayFactory());
             index = index + batchSize;
             return next;
          }
@@ -88,35 +86,6 @@ public class InMemoryDataSet extends DataSet {
    @Override
    public DataSet cache() {
       return this;
-   }
-
-   protected InMemoryDataSet emptyWithMetadata() {
-      InMemoryDataSet ds = new InMemoryDataSet(Collections.emptyList());
-      ds.putAllMetadata(getMetadata());
-      return ds;
-   }
-
-   @Override
-   public Split[] fold(int numberOfFolds) {
-      checkArgument(numberOfFolds > 0, "Number of folds must be >= 0");
-      checkArgument(size() >= numberOfFolds, "Number of folds must be <= number of examples");
-      Split[] folds = new Split[numberOfFolds];
-      long foldSize = size() / numberOfFolds;
-      for(int i = 0; i < numberOfFolds; i++) {
-         long testStart = i * foldSize;
-         long testEnd = testStart + foldSize;
-         InMemoryDataSet test = emptyWithMetadata();
-         subListCopy(testStart, testEnd, test);
-         InMemoryDataSet train = emptyWithMetadata();
-         if(testStart > 0) {
-            subListCopy(0, testStart, train);
-         }
-         if(testEnd < size()) {
-            subListCopy(testEnd, data.size(), train);
-         }
-         folds[i] = new Split(train, test);
-      }
-      return folds;
    }
 
    @Override
@@ -137,48 +106,8 @@ public class InMemoryDataSet extends DataSet {
    }
 
    @Override
-   public DataSet oversample(@NonNull String observationName) {
-      Counter<String> fCount = calculateClassDistribution(observationName);
-      int targetCount = (int) fCount.maximumCount();
-
-      InMemoryDataSet dataset = emptyWithMetadata();
-
-      for(Object label : fCount.items()) {
-         MStream<Datum> fStream = stream()
-               .filter(e -> e.get(observationName).getVariableSpace().map(Variable::getName).anyMatch(label::equals))
-               .map(Datum::copy)
-               .cache();
-
-         int count = (int) fStream.count();
-         int curCount = 0;
-
-         while(curCount + count < targetCount) {
-            fStream.forEach(dataset.data::add);
-            curCount += count;
-         }
-
-         if(curCount < targetCount) {
-            fStream.sample(false, targetCount - curCount)
-                   .forEach(dataset.data::add);
-         } else if(count == targetCount) {
-            fStream.forEach(dataset.data::add);
-         }
-      }
-      return dataset;
-   }
-
-   @Override
    public MStream<Datum> parallelStream() {
       return StreamingContext.local().stream(this).parallel();
-   }
-
-   @Override
-   public DataSet sample(boolean withReplacement, int sampleSize) {
-      InMemoryDataSet ds = emptyWithMetadata();
-      stream().sample(withReplacement, sampleSize)
-              .map(Datum::copy)
-              .forEach(ds.data::add);
-      return ds;
    }
 
    @Override
@@ -199,49 +128,8 @@ public class InMemoryDataSet extends DataSet {
    }
 
    @Override
-   public DataSet slice(long start, long end) {
-      InMemoryDataSet dataset = emptyWithMetadata();
-      subListCopy(start, end, dataset);
-      return dataset;
-   }
-
-   @Override
-   public Split split(double pctTrain) {
-      checkArgument(pctTrain > 0 && pctTrain < 1, "Percentage should be between 0 and 1");
-      int split = (int) Math.floor(pctTrain * size());
-      InMemoryDataSet train = emptyWithMetadata();
-      subListCopy(0, split, train);
-      InMemoryDataSet test = emptyWithMetadata();
-      subListCopy(split, data.size(), test);
-      return new Split(train, test);
-   }
-
-   @Override
    public MStream<Datum> stream() {
       return StreamingContext.local().stream(this);
-   }
-
-   private void subListCopy(long start, long end, InMemoryDataSet target) {
-      for(int i = (int) start; i < Math.min(end, data.size()); i++) {
-         target.data.add(data.get(i).copy());
-      }
-   }
-
-   @Override
-   public DataSet undersample(@NonNull String observationName) {
-      Counter<String> fCount = calculateClassDistribution(observationName);
-      int targetCount = (int) fCount.minimumCount();
-      InMemoryDataSet dataset = emptyWithMetadata();
-      for(Object label : fCount.items()) {
-         stream().filter(e -> e.get(observationName)
-                               .getVariableSpace()
-                               .map(Variable::getName)
-                               .anyMatch(label::equals))
-                 .sample(false, targetCount)
-                 .map(Datum::copy)
-                 .forEach(dataset.data::add);
-      }
-      return dataset;
    }
 
 }//END OF InMemoryDataset

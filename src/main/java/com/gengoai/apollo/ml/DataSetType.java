@@ -19,8 +19,6 @@
 
 package com.gengoai.apollo.ml;
 
-import com.gengoai.io.Resources;
-import com.gengoai.io.resource.Resource;
 import com.gengoai.stream.MStream;
 import com.gengoai.stream.StreamingContext;
 import lombok.NonNull;
@@ -73,8 +71,7 @@ public enum DataSetType {
    OnDisk {
       @Override
       protected DataSet create(@NonNull MStream<Datum> stream) {
-         Resource r = Resources.temporaryFile();
-         return new DiskBackedDataSet(r, stream);
+         return new SQLiteDataSet(stream.javaStream());
       }
 
    };

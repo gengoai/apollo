@@ -20,17 +20,16 @@
 package com.gengoai.apollo.ml;
 
 import com.gengoai.Copyable;
-import com.gengoai.apollo.ml.observation.Variable;
-import com.gengoai.collection.counter.Counter;
-import com.gengoai.conversion.Cast;
+import com.gengoai.apollo.math.linalg.NDArrayFactory;
 import com.gengoai.function.SerializableFunction;
+import com.gengoai.io.resource.Resource;
 import com.gengoai.stream.MStream;
+import com.gengoai.stream.StorageLevel;
 import lombok.NonNull;
 
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Random;
-
-import static com.gengoai.Validation.checkArgument;
 
 /**
  * <p>A {@link DataSet} backed by an MStream. </p>
@@ -49,6 +48,14 @@ public class StreamingDataSet extends DataSet {
       this.stream = stream;
    }
 
+   public StreamingDataSet(@NonNull MStream<Datum> stream,
+                           @NonNull Map<String, ObservationMetadata> metadataMap,
+                           @NonNull NDArrayFactory factory) {
+      this.stream = stream;
+      this.metadata.putAll(metadataMap);
+      this.ndArrayFactory = factory;
+   }
+
    @Override
    public Iterator<DataSet> batchIterator(int batchSize) {
       return stream.partition(batchSize)
@@ -64,31 +71,7 @@ public class StreamingDataSet extends DataSet {
    }
 
    protected StreamingDataSet datasetOf(MStream<Datum> examples) {
-      StreamingDataSet ds = new StreamingDataSet(examples.map(Datum::copy));
-      ds.putAllMetadata(getMetadata());
-      return ds;
-   }
-
-   @Override
-   public Split[] fold(int numberOfFolds) {
-      checkArgument(numberOfFolds > 0, "Number of folds must be >= 0");
-      checkArgument(size() >= numberOfFolds, "Number of folds must be <= number of examples");
-      Split[] folds = new Split[numberOfFolds];
-      long foldSize = size() / numberOfFolds;
-      for(int i = 0; i < numberOfFolds; i++) {
-         long testStart = i * foldSize;
-         long testEnd = testStart + foldSize;
-         MStream<Datum> testStream = slice(testStart, testEnd).stream();
-         MStream<Datum> trainStream = getStreamingContext().empty();
-         if(testStart > 0) {
-            trainStream = trainStream.union(slice(0, testStart).stream());
-         }
-         if(testEnd < size()) {
-            trainStream = trainStream.union(slice(testEnd, size()).stream());
-         }
-         folds[i] = new Split(datasetOf(trainStream), datasetOf(testStream));
-      }
-      return folds;
+      return new StreamingDataSet(examples, getMetadata(), getNDArrayFactory());
    }
 
    @Override
@@ -112,40 +95,17 @@ public class StreamingDataSet extends DataSet {
    }
 
    @Override
-   public DataSet oversample(@NonNull String observationName) {
-      Counter<String> fCount = calculateClassDistribution(observationName);
-      int targetCount = (int) fCount.maximumCount();
-
-      StreamingDataSet dataset = datasetOf(getStreamingContext().empty());
-
-      for(Object label : fCount.items()) {
-         MStream<Datum> fStream = stream()
-               .filter(e -> e.get(observationName).getVariableSpace().map(Variable::getName).anyMatch(label::equals))
-               .cache();
-         int count = (int) fStream.count();
-         int curCount = 0;
-         while(curCount + count < targetCount) {
-            dataset.stream.union(fStream);
-            curCount += count;
-         }
-         if(curCount < targetCount) {
-            dataset.stream.union(fStream.sample(false, targetCount - curCount));
-         } else if(count == targetCount) {
-            dataset.stream.union(fStream);
-         }
-      }
-      return dataset;
-   }
-
-   @Override
    public MStream<Datum> parallelStream() {
       return stream.parallel();
    }
 
    @Override
-   public DataSet sample(boolean withReplacement, int sampleSize) {
-      checkArgument(sampleSize > 0, "Sample size must be > 0");
-      return datasetOf(stream().sample(withReplacement, sampleSize).map(e -> Cast.as(e.copy())));
+   public DataSet persist(@NonNull Resource resource) {
+      if(stream.isDistributed()) {
+         stream.persist(StorageLevel.OnDisk);
+         return this;
+      }
+      return super.persist(resource);
    }
 
    @Override
@@ -160,35 +120,8 @@ public class StreamingDataSet extends DataSet {
    }
 
    @Override
-   public DataSet slice(long start, long end) {
-      return datasetOf(stream().skip(start).limit(end - start));
-   }
-
-   @Override
-   public Split split(double pctTrain) {
-      checkArgument(pctTrain > 0 && pctTrain < 1, "Percentage should be between 0 and 1");
-      int split = (int) Math.floor(pctTrain * size());
-      return new Split(slice(0, split), slice(split, size()));
-   }
-
-   @Override
    public MStream<Datum> stream() {
       return stream;
-   }
-
-   @Override
-   public DataSet undersample(@NonNull String observationName) {
-      Counter<String> fCount = calculateClassDistribution(observationName);
-      int targetCount = (int) fCount.minimumCount();
-      StreamingDataSet dataset = datasetOf(getStreamingContext().empty());
-      for(Object label : fCount.items()) {
-         dataset.stream.union(stream().filter(e -> e.get(observationName)
-                                                    .getVariableSpace()
-                                                    .map(Variable::getName)
-                                                    .anyMatch(label::equals))
-                                      .sample(false, targetCount));
-      }
-      return dataset;
    }
 
 }//END OF StreamingDataSet

@@ -24,6 +24,12 @@ package com.gengoai.apollo.ml;
 
 import lombok.NonNull;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static com.gengoai.Validation.checkArgument;
+
 /**
  * Representation of a split (e.g. fold, 80/20, etc.) of a {@link DataSet} into a train and test {@link DataSet}.
  *
@@ -40,6 +46,31 @@ public class Split {
    public final DataSet test;
 
    /**
+    * Split the dataset into a train and test split.
+    *
+    * @param pctTrain the percentage of the dataset to use for training
+    * @return A TestTrainSet of one TestTrain item
+    */
+   public static Split createTrainTestSplit(@NonNull DataSet data, double pctTrain) {
+      checkArgument(pctTrain > 0 && pctTrain < 1, "Percentage should be between 0 and 1");
+      int split = (int) Math.floor(pctTrain * data.size());
+      List<Datum> dataList = data.collect();
+      InMemoryDataSet train = new InMemoryDataSet(dataList.subList(0, split)
+                                                          .stream()
+                                                          .map(Datum::copy)
+                                                          .collect(Collectors.toList()),
+                                                  data.metadata,
+                                                  data.ndArrayFactory);
+      InMemoryDataSet test = new InMemoryDataSet(dataList.subList(split, dataList.size())
+                                                         .stream()
+                                                         .map(Datum::copy)
+                                                         .collect(Collectors.toList()),
+                                                 data.metadata,
+                                                 data.ndArrayFactory);
+      return new Split(train, test);
+   }
+
+   /**
     * Instantiates a new Split.
     *
     * @param train the training dataset
@@ -48,6 +79,44 @@ public class Split {
    public Split(@NonNull DataSet train, @NonNull DataSet test) {
       this.train = train;
       this.test = test;
+   }
+
+   /**
+    * Generates <code>numberOfFolds</code> {@link Split}s for cross-validation. Each split will have
+    * <code>dataset.size() / numberOfFolds</code> testing data and the remaining data as training data.
+    *
+    * @param numberOfFolds the number of folds
+    * @return An array of {@link Split} for each fold of the dataset
+    */
+   public static Split[] createFolds(@NonNull DataSet data, int numberOfFolds) {
+      checkArgument(numberOfFolds > 0, "Number of folds must be >= 0");
+      long size = data.size();
+      checkArgument(size >= numberOfFolds, "Number of folds must be <= number of examples");
+      Split[] folds = new Split[numberOfFolds];
+      long foldSize = size / numberOfFolds;
+      List<Datum> dataList = data.collect();
+      for(int i = 0; i < numberOfFolds; i++) {
+         int testStart = (int) (i * foldSize);
+         int testEnd = (int) (testStart + foldSize);
+         InMemoryDataSet test = new InMemoryDataSet(dataList.subList(testStart, testEnd)
+                                                            .stream()
+                                                            .map(Datum::copy)
+                                                            .collect(Collectors.toList()),
+                                                    data.metadata,
+                                                    data.ndArrayFactory);
+         List<Datum> trainData = new ArrayList<>();
+         if(testStart > 0) {
+            trainData.addAll(dataList.subList(0, testStart));
+         }
+         if(testEnd < size) {
+            trainData.addAll(dataList.subList(testEnd, dataList.size()));
+         }
+         InMemoryDataSet train = new InMemoryDataSet(trainData.stream().map(Datum::copy).collect(Collectors.toList()),
+                                                     data.metadata,
+                                                     data.ndArrayFactory);
+         folds[i] = new Split(train, test);
+      }
+      return folds;
    }
 
    @Override

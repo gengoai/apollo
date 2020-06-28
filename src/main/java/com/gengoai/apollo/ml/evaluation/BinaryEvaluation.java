@@ -71,7 +71,7 @@ public class BinaryEvaluation extends ClassifierEvaluation {
                                                   int nFolds,
                                                   String outputName) {
       BinaryEvaluation evaluation = new BinaryEvaluation(outputName);
-      for(Split split : dataset.shuffle().fold(nFolds)) {
+      for(Split split : Split.createFolds(dataset.shuffle(), nFolds)) {
          model.estimate(split.train);
          evaluation.evaluate(model, split.test);
       }

@@ -23,12 +23,12 @@ import com.gengoai.ParameterDef;
 import com.gengoai.Stopwatch;
 import com.gengoai.apollo.math.linalg.DenseMatrix;
 import com.gengoai.apollo.ml.DataSet;
-import com.gengoai.apollo.ml.Datum;
 import com.gengoai.apollo.ml.model.Params;
 import com.gengoai.apollo.ml.observation.Observation;
 import com.gengoai.apollo.ml.observation.Sequence;
-import com.gengoai.collection.counter.Counter;
-import com.gengoai.collection.counter.Counters;
+import com.gengoai.collection.disk.DiskMap;
+import com.gengoai.concurrent.AtomicDouble;
+import com.gengoai.io.Resources;
 import com.gengoai.tuple.IntPair;
 import lombok.NonNull;
 import lombok.extern.java.Log;
@@ -86,35 +86,60 @@ public class Glove extends TrainableWordEmbedding<Glove.Parameters, Glove> {
    @Override
    public void estimate(@NonNull DataSet dataset) {
       Stopwatch sw = Stopwatch.createStarted();
-      dataset = dataset.cache();
-      double size = dataset.size();
+      //      dataset = dataset.cache();
+      //      double size = dataset.size();
       final AtomicLong processed = new AtomicLong(0);
-      Counter<IntPair> counts = Counters.newCounter();
-
+      //      Counter<IntPair> counts = Counters.newCounter();
       vectorStore = new InMemoryVectorStore(parameters.dimension.value(),
                                             parameters.unknownWord.value(),
                                             parameters.specialWords.value());
-      for(Datum datum : dataset) {
-         datum.stream(parameters.inputs.value()).forEach(source -> {
-            Sequence<?> input = source.asSequence();
-            List<Integer> ids = toIndices(input);
-            for(int i = 1; i < ids.size(); i++) {
-               int iW = ids.get(i);
-               for(int j = Math.max(0, i - parameters.windowSize.value()); j < i; j++) {
-                  int jW = ids.get(j);
-                  double incrementBy = 1.0 / (i - j);
-                  counts.increment(IntPair.of(iW, jW), incrementBy);
-                  counts.increment(IntPair.of(jW, iW), incrementBy);
-               }
-            }
-            double cnt = processed.incrementAndGet();
-            if(cnt % 1000 == 0) {
-               if(parameters.verbose.value()) {
-                  logInfo(log, "processed {0}", (100 * cnt / size));
-               }
-            }
-         });
-      }
+
+      //scan the input for the vocabulary
+      AtomicDouble size = new AtomicDouble(0);
+      DiskMap<IntPair, Double> counts = DiskMap.<IntPair, Double>builder()
+            .file(Resources.temporaryFile())
+            .namespace("counts")
+            .build();
+      dataset.stream()
+             .forEach(datum -> {
+                size.addAndGet(1);
+                datum.stream(parameters.inputs.value()).forEach(source -> {
+                   Sequence<?> input = source.asSequence();
+                   List<Integer> ids = toIndices(input);
+                   for(int i = 1; i < ids.size(); i++) {
+                      int iW = ids.get(i);
+                      for(int j = Math.max(0, i - parameters.windowSize.value()); j < i; j++) {
+                         int jW = ids.get(j);
+                         double incrementBy = 1.0 / (i - j);
+                         double cnt = counts.getOrDefault(IntPair.of(iW, jW), 0d);
+                         counts.put(IntPair.of(iW, jW), cnt + incrementBy);
+                         counts.put(IntPair.of(jW, iW), cnt + incrementBy);
+                      }
+                   }
+                });
+             });
+
+      //      for(Datum datum : dataset) {
+      //         datum.stream(parameters.inputs.value()).forEach(source -> {
+      //            Sequence<?> input = source.asSequence();
+      //            List<Integer> ids = toIndices(input);
+      //            for(int i = 1; i < ids.size(); i++) {
+      //               int iW = ids.get(i);
+      //               for(int j = Math.max(0, i - parameters.windowSize.value()); j < i; j++) {
+      //                  int jW = ids.get(j);
+      //                  double incrementBy = 1.0 / (i - j);
+      //                  counts.increment(IntPair.of(iW, jW), incrementBy);
+      //                  counts.increment(IntPair.of(jW, iW), incrementBy);
+      //               }
+      //            }
+      //            double cnt = processed.incrementAndGet();
+      //            if(cnt % 1000 == 0) {
+      //               if(parameters.verbose.value()) {
+      //                  logInfo(log, "processed {0}", (100 * cnt / size.get()));
+      //               }
+      //            }
+      //         });
+      //      }
 
       sw.stop();
       if(parameters.verbose.value()) {
@@ -122,7 +147,11 @@ public class Glove extends TrainableWordEmbedding<Glove.Parameters, Glove> {
       }
 
       List<Cooccurrence> cooccurrences = new ArrayList<>();
-      counts.forEach((e, v) -> cooccurrences.add(new Cooccurrence(e.v1, e.v2, v)));
+      counts.forEach((e, v) -> {
+         if(v >= 5) {
+            cooccurrences.add(new Cooccurrence(e.v1, e.v2, v));
+         }
+      });
       counts.clear();
 
       DoubleMatrix[] W = new DoubleMatrix[vectorStore.size() * 2];
@@ -170,8 +199,12 @@ public class Glove extends TrainableWordEmbedding<Glove.Parameters, Glove> {
 
             v_main.subi(grad_main.divi(MatrixFunctions.sqrt(gradsq_W_main)));
             v_context.subi(grad_context.divi(MatrixFunctions.sqrt(gradsq_W_context)));
+
             gradsq_W_main.addi(MatrixFunctions.pow(grad_context, 2));
+            gradSq[iWord] = gradsq_W_main;
+
             gradsq_W_context.addi(MatrixFunctions.pow(grad_main, 2));
+            gradSq[iContext] = gradsq_W_context;
 
             biases.put(iWord, b_main - fdiff / Math.sqrt(gradsq_b_main));
             biases.put(iContext, b_context - fdiff / Math.sqrt(gradsq_b_contenxt));
@@ -190,7 +223,7 @@ public class Glove extends TrainableWordEmbedding<Glove.Parameters, Glove> {
       for(int i = 0; i < vocabLength; i++) {
          W[i].addi(W[i + vocabLength]);
          String k = vectorStore.decode(i);
-         vectorStore.updateVector(i, new DenseMatrix(W[i]).setLabel(k).T());
+         vectorStore.updateVector(i, new DenseMatrix(W[i]).T().setLabel(k));
       }
 
    }

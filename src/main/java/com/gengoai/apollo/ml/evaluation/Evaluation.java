@@ -69,6 +69,7 @@ public interface Evaluation {
    default void report(@NonNull Logger logger, @NonNull Level logLevel) {
       Resource r = new StringResource();
       try(PrintStream ps = new PrintStream(r.outputStream())) {
+         ps.println();
          output(ps);
       } catch(IOException e) {
          throw new RuntimeException(e);

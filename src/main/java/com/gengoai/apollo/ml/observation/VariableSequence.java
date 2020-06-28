@@ -74,6 +74,10 @@ public class VariableSequence extends ArrayList<Variable> implements Sequence<Va
       stream.forEach(this::add);
    }
 
+   public static VariableSequence from(@NonNull String... vars){
+      return new VariableSequence(Stream.of(vars).map(Variable::binary));
+   }
+
    @Override
    public VariableSequence copy() {
       return new VariableSequence(stream().map(Variable::copy));
@@ -93,11 +97,7 @@ public class VariableSequence extends ArrayList<Variable> implements Sequence<Va
 
    @Override
    public void removeVariables(@NonNull Predicate<Variable> filter) {
-      for(int i = 0; i < size(); i++) {
-         if(filter.test(get(i))) {
-            set(i, null);
-         }
-      }
+      removeIf(filter::test);
    }
 
    @Override

@@ -87,7 +87,7 @@ public abstract class TensorFlowModel implements Model {
              .forEach((k, v) -> encoders.put(k, v.getEncoder()));
       Resource tmp = Resources.temporaryFile();
       try {
-         Json.dump(dataset, tmp);
+         Json.dumpPretty(dataset, tmp);
       } catch(IOException e) {
          throw new RuntimeException(e);
       }

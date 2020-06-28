@@ -124,7 +124,8 @@ public abstract class WordEmbedding implements Transform {
     */
    public final Stream<NDArray> query(@NonNull VSQuery query) {
       NDArray queryVector = query.queryVector(this);
-      return query.applyFilters(vectorStore.stream().parallel()
+      return query.applyFilters(vectorStore.stream()
+                                           .parallel()
                                            .map(v -> v.copy().setWeight(query.measure().calculate(v, queryVector))));
    }
 

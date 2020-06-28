@@ -44,7 +44,8 @@ public class TopN extends AbstractSingleSourceTransform<TopN> {
 
    @Override
    protected void fit(@NonNull MStream<Observation> observations) {
-      selected = Sets.asHashSet(Counters.newCounter(observations.flatMap(Observation::getVariableSpace)
+      selected = Sets.asHashSet(Counters.newCounter(observations.parallel()
+                                                                .flatMap(Observation::getVariableSpace)
                                                                 .map(Variable::getName)
                                                                 .countByValue())
                                         .topN(topN)

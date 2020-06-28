@@ -293,6 +293,10 @@ public abstract class NDArray implements Serializable, Observation {
     */
    public abstract NDArray compact();
 
+   public boolean isEmpty(){
+      return shape.sliceLength == 0 && shape.matrixLength == 0;
+   }
+
    @Override
    public NDArray copy() {
       return Copyable.deepCopy(this);

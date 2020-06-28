@@ -26,7 +26,6 @@ import com.gengoai.apollo.math.linalg.DenseMatrix;
 import com.gengoai.apollo.math.linalg.NDArray;
 import com.gengoai.apollo.math.linalg.SparseMatrix;
 import com.gengoai.apollo.math.linalg.Tensor;
-import com.gengoai.json.TypeInfo;
 import lombok.NonNull;
 
 import java.io.Serializable;
@@ -50,7 +49,6 @@ import java.util.stream.Stream;
  *
  * @author David B. Bracewell
  */
-@TypeInfo
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME)
 @JsonSubTypes(
       {

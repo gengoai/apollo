@@ -27,8 +27,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonValue;
 import com.gengoai.Copyable;
 import com.gengoai.Validation;
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.util.Arrays;
@@ -41,7 +39,6 @@ import java.util.stream.IntStream;
  *
  * @author David B. Bracewell
  */
-@NoArgsConstructor(force = true, access = AccessLevel.PRIVATE)
 public class Shape implements Serializable, Copyable<Shape> {
    private static final long serialVersionUID = 1L;
    /**
@@ -64,10 +61,7 @@ public class Shape implements Serializable, Copyable<Shape> {
     * @return the shape
     */
    public static Shape empty() {
-      Shape s = new Shape();
-      s.shape[2] = 0;
-      s.shape[3] = 0;
-      return s;
+      return new Shape();
    }
 
    /**
@@ -78,6 +72,12 @@ public class Shape implements Serializable, Copyable<Shape> {
     */
    public static Shape shape(int... dims) {
       return new Shape(dims);
+   }
+
+   private Shape() {
+      this.shape = new int[4];
+      this.matrixLength = 0;
+      this.sliceLength = 0;
    }
 
    /**

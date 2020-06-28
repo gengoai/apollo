@@ -63,7 +63,6 @@ public class Word2Vec extends TrainableWordEmbedding<Word2Vec.Parameters, Word2V
       w2v.setNumIterations(parameters.maxIterations.value());
       w2v.setWindowSize(parameters.windowSize.value());
       w2v.setSeed(new Date().getTime());
-      w2v.setMinCount(1);
 
       Word2VecModel model = w2v.fit(dataset.stream()
                                            .toDistributedStream()

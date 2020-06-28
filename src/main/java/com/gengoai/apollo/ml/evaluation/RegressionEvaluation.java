@@ -69,7 +69,7 @@ public class RegressionEvaluation implements Evaluation, Serializable {
                                                      ) {
       RegressionEvaluation evaluation = new RegressionEvaluation(inputSource, predictedSource);
       AtomicInteger foldId = new AtomicInteger(0);
-      for(Split split : dataset.shuffle().fold(nFolds)) {
+      for(Split split : Split.createFolds(dataset.shuffle(), nFolds)) {
          regression.estimate(split.train);
          evaluation.evaluate(regression, split.test);
       }

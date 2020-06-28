@@ -65,7 +65,8 @@ public class MultiClassEvaluation extends ClassifierEvaluation {
                                                       int nFolds,
                                                       String outputName) {
       MultiClassEvaluation evaluation = new MultiClassEvaluation(outputName);
-      for(Split split : dataset.shuffle().fold(nFolds)) {
+
+      for(Split split : Split.createFolds(dataset.shuffle(), nFolds)) {
          model.estimate(split.train);
          evaluation.evaluate(model, split.test);
       }

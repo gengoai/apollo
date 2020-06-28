@@ -39,6 +39,23 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * <p>Abstract base class wrapping models trained in TensorFlow (Python) and exported using the TensorFlow Serving
+ * Model format. The organization of a TensorFlow model directory is as follows:</p>
+ * <ul>
+ *    <li>tfmodel - Folder containing the exported Python model (saved_model.pb, variables)</li>
+ *    <li>*.encoder.json.gz - One gzipped json dump per Observation</li>
+ *    <li>__class__ - Plain text file with the fully qualified class name of the model implementation.</li>
+ * </ul>
+ * <p>To train a TensorFlow model you must:</p>
+ * <ol>
+ *    <li>Create a subclass of TensorFlowModel - Define the <code>createTransformer</code> and <code>process</code> methods.</li>
+ *    <li>Generate a json dump of your training data by loading the DataSet and call estimate on your subclass. Note the location of where the dataset was saved.</li>
+ *    <li>Train your Python model off the dumped dataset</li>
+ *    <li>Copy exported serving model to a tfmodel directory where you saved your trained Java Model</li>
+ *    <li>Profit!</li>
+ * </ol>
+ */
 public abstract class TensorFlowModel implements Model {
    private static final long serialVersionUID = 1L;
    protected final Map<String, Encoder> encoders = new HashMap<>();
@@ -71,6 +88,12 @@ public abstract class TensorFlowModel implements Model {
       }
    }
 
+   /**
+    * Instantiates a new TensorFlowModel.
+    *
+    * @param outputs  the model outputs
+    * @param encoders the encoders
+    */
    protected TensorFlowModel(@NonNull Set<String> outputs,
                              @NonNull Map<String, Encoder> encoders) {
       this.encoders.putAll(encoders);
@@ -78,6 +101,11 @@ public abstract class TensorFlowModel implements Model {
       this.outputs = outputs;
    }
 
+   /**
+    * Creates the required transformer for preparing inputs / outputs to pass to TensorFlow.
+    *
+    * @return the transformer
+    */
    protected abstract Transformer createTransformer();
 
    @Override
@@ -109,7 +137,7 @@ public abstract class TensorFlowModel implements Model {
       return outputs;
    }
 
-   public SavedModelBundle getTensorFlowModel() {
+   protected final SavedModelBundle getTensorFlowModel() {
       if(model == null) {
          synchronized(this) {
             if(model == null) {
@@ -125,7 +153,13 @@ public abstract class TensorFlowModel implements Model {
       return model;
    }
 
-   protected abstract void process(Datum datum, SavedModelBundle model);
+   /**
+    * Processes the given datum with the model.
+    *
+    * @param datum the datum
+    * @param model the model
+    */
+   protected abstract void process(@NonNull Datum datum, @NonNull SavedModelBundle model);
 
    @Override
    public void save(@NonNull Resource resource) throws IOException {

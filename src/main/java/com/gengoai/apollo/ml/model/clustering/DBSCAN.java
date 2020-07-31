@@ -43,9 +43,9 @@ import static com.gengoai.function.Functional.with;
  * @author David B. Bracewell
  */
 public class DBSCAN extends FlatCentroidClusterer {
-   private static final long serialVersionUID = 1L;
    public static final ParameterDef<Double> eps = ParameterDef.doubleParam("eps");
    public static final ParameterDef<Integer> minPts = ParameterDef.intParam("minPts");
+   private static final long serialVersionUID = 1L;
 
    /**
     * Instantiates a new DBSCAN model with default parameters.
@@ -82,13 +82,12 @@ public class DBSCAN extends FlatCentroidClusterer {
                                                                            new ApacheDistanceMeasure(
                                                                                  fitParameters.measure.value()));
       List<ApacheClusterable> apacheClusterables = dataset.parallelStream()
-                                                          .map(d -> new ApacheClusterable(d.get(parameters.input.value())
-                                                                                           .asNDArray()))
+                                                          .map(d -> new ApacheClusterable(getNDArray(d)))
                                                           .collect();
 
       List<org.apache.commons.math3.ml.clustering.Cluster<ApacheClusterable>> result = clusterer.cluster(
             apacheClusterables);
-      for(int i = 0; i < result.size(); i++) {
+      for (int i = 0; i < result.size(); i++) {
          Cluster cp = new Cluster();
          cp.setId(i);
          cp.setCentroid(result.get(i).getPoints().get(0).getVector());
@@ -99,10 +98,10 @@ public class DBSCAN extends FlatCentroidClusterer {
          NDArray n = a.getVector();
          int index = -1;
          double score = fitParameters.measure.value().getOptimum().startingValue();
-         for(int i = 0; i < clustering.size(); i++) {
+         for (int i = 0; i < clustering.size(); i++) {
             Cluster c = clustering.get(i);
             double s = fitParameters.measure.value().calculate(n, c.getCentroid());
-            if(fitParameters.measure.value().getOptimum().test(s, score)) {
+            if (fitParameters.measure.value().getOptimum().test(s, score)) {
                index = i;
                score = s;
             }

@@ -79,7 +79,7 @@ public class GreedyAgglomerativeClusterer extends HierarchicalClusterer {
       clustering.setMeasure(parameters.measure.value());
 
       final Set<Cluster> active = dataset.parallelStream()
-                                         .map(datum -> datum.get(parameters.input.value()).asNDArray())
+                                         .map(this::getNDArray)
                                          .zipWithIndex()
                                          .map((n, i) -> {
                                             Cluster c = new Cluster();
@@ -91,7 +91,7 @@ public class GreedyAgglomerativeClusterer extends HierarchicalClusterer {
                                          })
                                          .collect(Collectors.toSet());
 
-      if(active.size() == 1) {
+      if (active.size() == 1) {
          clustering.root = Iterables.getFirst(active, null);
          return;
       }
@@ -100,13 +100,13 @@ public class GreedyAgglomerativeClusterer extends HierarchicalClusterer {
       Cluster B = findOptimal(A, active);
 
       final Measure measure = parameters.measure.value();
-      while(active.size() > 1) {
+      while (active.size() > 1) {
          double ab = measure.calculate(A.getCentroid(), B.getCentroid());
 
          Cluster C = findOptimal(B, active);
          double bc = measure.calculate(B.getCentroid(), C.getCentroid());
 
-         if(A.equals(C) || measure.getOptimum().test(ab, bc)) {
+         if (A.equals(C) || measure.getOptimum().test(ab, bc)) {
             active.remove(A);
             active.remove(B);
             NDArray centroid = A.getCentroid().add(B.getCentroid()).divi(2.0);
@@ -116,10 +116,10 @@ public class GreedyAgglomerativeClusterer extends HierarchicalClusterer {
             D.setScore(ab);
             D.setLeft(A);
             D.setRight(B);
-            for(NDArray point : A.getPoints()) {
+            for (NDArray point : A.getPoints()) {
                D.addPoint(point);
             }
-            for(NDArray point : B.getPoints()) {
+            for (NDArray point : B.getPoints()) {
                D.addPoint(point);
             }
             active.add(D);
@@ -137,9 +137,9 @@ public class GreedyAgglomerativeClusterer extends HierarchicalClusterer {
       int id = 0;
       Queue<Cluster> queue = new LinkedList<>();
       queue.add(clustering.root);
-      while(queue.size() > 0) {
+      while (queue.size() > 0) {
          Cluster c = queue.remove();
-         if(c != null) {
+         if (c != null) {
             c.setId(id);
             id++;
             queue.add(c.getLeft());
@@ -157,7 +157,7 @@ public class GreedyAgglomerativeClusterer extends HierarchicalClusterer {
                                                                  measure.calculate(a.getCentroid(), c.getCentroid())));
 
       Optional<Tuple2<Cluster, Double>> optimal;
-      if(measure.getOptimum() == Optimum.MAXIMUM) {
+      if (measure.getOptimum() == Optimum.MAXIMUM) {
          optimal = stream.max(java.util.Map.Entry.comparingByValue());
       } else {
          optimal = stream.min(java.util.Map.Entry.comparingByValue());

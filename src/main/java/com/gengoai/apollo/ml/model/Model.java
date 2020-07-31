@@ -109,7 +109,7 @@ public interface Model extends Transform, Serializable {
    /**
     * Writes the model the given ZipWriter.
     *
-    * @param writer the writer to write the model to
+    * @param resource the resource to write the model to
     * @throws IOException Something went wrong writing the model
     */
    default void save(@NonNull Resource resource) throws IOException {

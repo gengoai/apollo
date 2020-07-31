@@ -53,6 +53,7 @@ public abstract class BaseClassifierTest {
       CSVDataSetReader csv = new CSVDataSetReader(CSV.builder().hasHeader(true));
       try {
          DataSet ds = csv.read(Resources.fromClasspath("com/gengoai/apollo/ml/iris.csv"));
+         ds.probe();
          List<Transform> transforms = new ArrayList<>();
          if(merge) {
             transforms.add(Merge.builder()

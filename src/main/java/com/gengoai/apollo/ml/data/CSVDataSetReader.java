@@ -21,18 +21,16 @@ package com.gengoai.apollo.ml.data;
 
 import com.gengoai.apollo.ml.DataSet;
 import com.gengoai.apollo.ml.Datum;
-import com.gengoai.apollo.ml.InMemoryDataSet;
+import com.gengoai.apollo.ml.StreamingDataSet;
 import com.gengoai.apollo.ml.observation.Variable;
 import com.gengoai.io.CSV;
-import com.gengoai.io.CSVReader;
 import com.gengoai.io.resource.Resource;
 import com.gengoai.math.Math2;
+import com.gengoai.stream.StreamingContext;
 import lombok.NonNull;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * <p>
@@ -83,36 +81,54 @@ public class CSVDataSetReader implements DataSetReader, Serializable {
 
    @Override
    public DataSet read(@NonNull Resource dataResource) throws IOException {
-      List<Datum> data = new ArrayList<>();
-      List<String> header;
-      try(CSVReader reader = csv.reader(dataResource)) {
-         header = new ArrayList<>(reader.getHeader());
-         List<String> row;
-         while((row = reader.nextRow()) != null) {
-            if(row.isEmpty()) {
-               continue;
-            }
-            Datum datum = new Datum();
-            if(header.size() < row.size()) {
-               for(int i = header.size(); i < row.size(); i++) {
-                  header.add("AutoColumn-" + i);
-               }
-            }
-            for(int i = 0; i < row.size(); i++) {
-               String column = header.get(i);
-               if(schema != null) {
-                  datum.put(column, schema.convert(column, row.get(i)));
-               } else {
-                  datum.put(column, guess(column, row.get(i)));
-               }
-            }
-            data.add(datum);
-         }
-      }
-      DataSet dataSet = new InMemoryDataSet(data);
-      for(String column : header) {
-         dataSet.updateMetadata(column, m -> m.setType(Variable.class));
-      }
+      DataSet dataSet = new StreamingDataSet(StreamingContext.local()
+                                                             .stream(csv.rowMapStream(dataResource)
+                                                                        .map(m -> {
+                                                                           Datum datum = new Datum();
+                                                                           for(String column : m.keySet()) {
+                                                                              if(schema != null) {
+                                                                                 datum.put(column,
+                                                                                           schema.convert(column,
+                                                                                                          m.get(column)));
+                                                                              } else {
+                                                                                 datum.put(column,
+                                                                                           guess(column,
+                                                                                                 m.get(column)));
+                                                                              }
+                                                                           }
+                                                                           return datum;
+                                                                        })));
+      //
+      //      List<Datum> data = new ArrayList<>();
+      //      List<String> header;
+      //      try(CSVReader reader = csv.reader(dataResource)) {
+      //         header = new ArrayList<>(reader.getHeader());
+      //         List<String> row;
+      //         while((row = reader.nextRow()) != null) {
+      //            if(row.isEmpty()) {
+      //               continue;
+      //            }
+      //            Datum datum = new Datum();
+      //            if(header.size() < row.size()) {
+      //               for(int i = header.size(); i < row.size(); i++) {
+      //                  header.add("AutoColumn-" + i);
+      //               }
+      //            }
+      //            for(int i = 0; i < row.size(); i++) {
+      //               String column = header.get(i);
+      //               if(schema != null) {
+      //                  datum.put(column, schema.convert(column, row.get(i)));
+      //               } else {
+      //                  datum.put(column, guess(column, row.get(i)));
+      //               }
+      //            }
+      //            data.add(datum);
+      //         }
+      //      }
+      //      DataSet dataSet = new InMemoryDataSet(data);
+      //      for(String column : header) {
+      //         dataSet.updateMetadata(column, m -> m.setType(Variable.class));
+      //      }
       return dataSet;
    }
 

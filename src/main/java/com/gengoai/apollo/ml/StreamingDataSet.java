@@ -22,7 +22,6 @@ package com.gengoai.apollo.ml;
 import com.gengoai.Copyable;
 import com.gengoai.apollo.math.linalg.NDArrayFactory;
 import com.gengoai.function.SerializableFunction;
-import com.gengoai.io.resource.Resource;
 import com.gengoai.stream.MStream;
 import com.gengoai.stream.StorageLevel;
 import lombok.NonNull;
@@ -100,12 +99,12 @@ public class StreamingDataSet extends DataSet {
    }
 
    @Override
-   public DataSet persist(@NonNull Resource resource) {
+   public DataSet persist() {
       if(stream.isDistributed()) {
          stream.persist(StorageLevel.OnDisk);
          return this;
       }
-      return super.persist(resource);
+      return super.persist();
    }
 
    @Override

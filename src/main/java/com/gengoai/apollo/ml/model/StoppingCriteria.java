@@ -244,7 +244,7 @@ public final class StoppingCriteria implements Serializable {
          sw.start();
          loss = iteration.applyAsDouble(i);
          sw.stop();
-         if(check(loss)) {
+         if(check(loss) && reportInterval > 0) {
             logInfo(logger, "iteration {0}: {1}={2}, time={3}, Converged", (i + 1), criteriaName, loss, sw);
             return i;
          }

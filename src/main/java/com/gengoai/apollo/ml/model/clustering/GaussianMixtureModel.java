@@ -78,13 +78,13 @@ public class GaussianMixtureModel extends FlatCentroidClusterer {
       clustering.setMeasure(p.measure.value());
 
       final List<NDArray> vectors = dataset.parallelStream()
-                                           .map(datum -> datum.get(parameters.input.value()).asNDArray())
+                                           .map(this::getNDArray)
                                            .collect();
       int numberOfFeatures = (int) vectors.get(0).length();
       int numberOfDataPoints = (int) vectors.size();
       double[][] data = new double[numberOfDataPoints][numberOfFeatures];
       int i = 0;
-      for(NDArray vector : vectors) {
+      for (NDArray vector : vectors) {
          data[i] = vector.toDoubleArray();
          i++;
       }
@@ -94,7 +94,7 @@ public class GaussianMixtureModel extends FlatCentroidClusterer {
                                                             .stream()
                                                             .map(Pair::getSecond)
                                                             .collect(Collectors.toList());
-      for(i = 0; i < components.size(); i++) {
+      for (i = 0; i < components.size(); i++) {
          Cluster cluster = new Cluster();
          cluster.setId(i);
          cluster.setCentroid(NDArrayFactory.ND.columnVector(components.get(i).sample()));

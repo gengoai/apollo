@@ -42,7 +42,7 @@ public abstract class BaseClustererTest {
    protected DataSet loadWaterData() {
       CSVDataSetReader csv = new CSVDataSetReader(CSV.builder());
       try {
-         DataSet ds = csv.read(Resources.fromClasspath("com/gengoai/apollo/ml/water-treatment.data"));
+         DataSet ds = csv.read(Resources.fromClasspath("com/gengoai/apollo/ml/water-treatment.data")).probe();
          Transformer transformer = new Transformer(List.of(
                new VectorAssembler(Sets.difference(ds.getMetadata().keySet(), Collections.singleton("AutoColumn-0")),
                                    Datum.DEFAULT_INPUT)));

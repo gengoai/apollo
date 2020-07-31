@@ -24,8 +24,10 @@ package com.gengoai.apollo.ml.model.clustering;
 
 import com.gengoai.apollo.math.linalg.NDArray;
 import com.gengoai.apollo.ml.DataSet;
+import com.gengoai.apollo.ml.Datum;
 import com.gengoai.apollo.ml.model.LabelType;
 import com.gengoai.apollo.ml.model.SingleSourceModel;
+import com.gengoai.string.Strings;
 import lombok.NonNull;
 
 /**
@@ -58,10 +60,19 @@ public abstract class Clusterer extends SingleSourceModel<ClusterFitParameters, 
 
    @Override
    public LabelType getLabelType(@NonNull String name) {
-      if(name.equals(parameters.output.value())) {
+      if (name.equals(parameters.output.value())) {
          return LabelType.NDArray;
       }
       throw new IllegalArgumentException("'" + name + "' is not a valid output for this model.");
+   }
+
+   protected NDArray getNDArray(Datum datum) {
+      NDArray n = datum.get(parameters.input.value()).asNDArray();
+      if (Strings.isNotNullOrBlank(parameters.output.value()) &&
+            datum.containsKey(parameters.output.value())) {
+         n.setLabel(datum.get(parameters.output.value()));
+      }
+      return n;
    }
 
    /**

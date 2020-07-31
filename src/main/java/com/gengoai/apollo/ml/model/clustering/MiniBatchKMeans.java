@@ -23,11 +23,11 @@
 package com.gengoai.apollo.ml.model.clustering;
 
 import com.gengoai.apollo.math.linalg.NDArray;
-import com.gengoai.apollo.ml.model.StoppingCriteria;
 import com.gengoai.apollo.math.statistics.Sampling;
 import com.gengoai.apollo.math.statistics.measure.Measure;
 import com.gengoai.apollo.ml.DataSet;
 import com.gengoai.apollo.ml.model.Params;
+import com.gengoai.apollo.ml.model.StoppingCriteria;
 import com.gengoai.conversion.Cast;
 import com.gengoai.tuple.Tuple2;
 import com.gengoai.tuple.Tuple3;
@@ -81,9 +81,9 @@ public class MiniBatchKMeans extends FlatCentroidClusterer {
       int bestId = 0;
       final Measure measure = parameters.measure.value();
       double bestMeasure = measure.calculate(v, clustering.get(0).getCentroid());
-      for(int j = 1; j < clustering.size(); j++) {
+      for (int j = 1; j < clustering.size(); j++) {
          double score = measure.calculate(v, clustering.get(j).getCentroid());
-         if(parameters.measure.value().getOptimum().test(score, bestMeasure)) {
+         if (parameters.measure.value().getOptimum().test(score, bestMeasure)) {
             bestId = j;
             bestMeasure = score;
          }
@@ -97,12 +97,12 @@ public class MiniBatchKMeans extends FlatCentroidClusterer {
       clustering = new FlatClustering();
       clustering.setMeasure(parameters.measure.value());
       final List<NDArray> vectors = dataset.parallelStream()
-                                           .map(datum -> datum.get(parameters.input.value()).asNDArray())
+                                           .map(this::getNDArray)
                                            .collect();
       PrimitiveIterator.OfInt itr = Sampling.uniformInts(parameters.K.value(), 0, (int) vectors.size(), false)
                                             .iterator();
 
-      for(int i = 0; i < parameters.K.value(); i++) {
+      for (int i = 0; i < parameters.K.value(); i++) {
          Cluster c = new Cluster();
          c.setId(i);
          c.setCentroid(vectors.get(itr.nextInt()).copy());
@@ -120,7 +120,7 @@ public class MiniBatchKMeans extends FlatCentroidClusterer {
              .forEach(v -> {
                 Tuple2<Integer, Double> best = best(v);
                 final Cluster c = clustering.get(best.v1);
-                synchronized(locks[c.getId()]) {
+                synchronized (locks[c.getId()]) {
                    c.addPoint(v);
                 }
              });
@@ -141,7 +141,7 @@ public class MiniBatchKMeans extends FlatCentroidClusterer {
 
       //Update the centroids based on the assignments
       double diff = 0d;
-      for(Tuple3<NDArray, Integer, Double> assignment : batch) {
+      for (Tuple3<NDArray, Integer, Double> assignment : batch) {
          NDArray target = assignment.v1;
          int cid = assignment.v2;
          counts[cid]++;

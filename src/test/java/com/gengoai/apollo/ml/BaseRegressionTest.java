@@ -52,7 +52,7 @@ public abstract class BaseRegressionTest {
                                                              "Suction",
                                                              "Pressure"));
       try {
-         DataSet ds = csv.read(Resources.fromClasspath("com/gengoai/apollo/ml/airfoil_self_noise.data"));
+         DataSet ds = csv.read(Resources.fromClasspath("com/gengoai/apollo/ml/airfoil_self_noise.data")).probe();
          Transformer transformer = new Transformer(List.of(
                new VectorAssembler(Sets.difference(ds.getMetadata().keySet(), Collections.singleton("Pressure")),
                                    Datum.DEFAULT_INPUT)));

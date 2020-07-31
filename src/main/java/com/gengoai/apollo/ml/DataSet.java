@@ -37,7 +37,11 @@ import lombok.experimental.Accessors;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.*;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
 /**
@@ -72,7 +76,7 @@ import java.util.function.Consumer;
 @Accessors(fluent = true)
 public abstract class DataSet implements Iterable<Datum>, Serializable {
    private static final long serialVersionUID = 1L;
-   protected final Map<String, ObservationMetadata> metadata = new HashMap<>();
+   protected final Map<String, ObservationMetadata> metadata = new ConcurrentHashMap<>();
    @NonNull
    protected NDArrayFactory ndArrayFactory = NDArrayFactory.ND;
 
@@ -171,6 +175,18 @@ public abstract class DataSet implements Iterable<Datum>, Serializable {
     */
    public DataSet persist(@NonNull Resource resource) {
       DataSet ds = new SQLiteDataSet(resource, stream().javaStream());
+      ds.putAllMetadata(getMetadata());
+      ds.setNDArrayFactory(getNDArrayFactory());
+      return ds;
+   }
+
+   /**
+    * Persists the DataSet to disk
+    *
+    * @return the persisted version of the dataset
+    */
+   public DataSet persist() {
+      DataSet ds = new SQLiteDataSet(stream().javaStream());
       ds.putAllMetadata(getMetadata());
       ds.setNDArrayFactory(getNDArrayFactory());
       return ds;
@@ -286,8 +302,13 @@ public abstract class DataSet implements Iterable<Datum>, Serializable {
     * @return this DataSet
     */
    public DataSet updateMetadata(@NonNull String source, @NonNull Consumer<ObservationMetadata> updater) {
-      metadata.putIfAbsent(source, new ObservationMetadata());
-      updater.accept(metadata.get(source));
+      metadata.compute(source, (s, md) -> {
+         if(md == null) {
+            md = new ObservationMetadata();
+         }
+         updater.accept(md);
+         return md;
+      });
       return this;
    }
 

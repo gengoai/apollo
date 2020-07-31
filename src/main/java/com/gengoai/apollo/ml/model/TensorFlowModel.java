@@ -19,12 +19,17 @@
 
 package com.gengoai.apollo.ml.model;
 
+import com.gengoai.apollo.math.linalg.NDArray;
+import com.gengoai.apollo.math.linalg.NDArrayFactory;
 import com.gengoai.apollo.ml.DataSet;
+import com.gengoai.apollo.ml.DataSetType;
 import com.gengoai.apollo.ml.Datum;
 import com.gengoai.apollo.ml.encoder.Encoder;
 import com.gengoai.apollo.ml.transform.Transformer;
 import com.gengoai.collection.Sets;
 import com.gengoai.io.Compression;
+import com.gengoai.io.MonitoredObject;
+import com.gengoai.io.ResourceMonitor;
 import com.gengoai.io.Resources;
 import com.gengoai.io.resource.Resource;
 import com.gengoai.json.Json;
@@ -32,12 +37,12 @@ import com.gengoai.reflection.Reflect;
 import com.gengoai.reflection.ReflectionException;
 import lombok.NonNull;
 import org.tensorflow.SavedModelBundle;
+import org.tensorflow.Session;
+import org.tensorflow.Tensor;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Stream;
 
 /**
  * <p>Abstract base class wrapping models trained in TensorFlow (Python) and exported using the TensorFlow Serving
@@ -59,12 +64,27 @@ import java.util.Set;
 public abstract class TensorFlowModel implements Model {
    private static final long serialVersionUID = 1L;
    protected final Map<String, Encoder> encoders = new HashMap<>();
-   private final Set<String> inputs;
-   private final Set<String> outputs;
+   protected final Set<String> inputs;
+   protected final LinkedHashMap<String, String> outputs;
    private final FitParameters<?> fitParameters = new FitParameters<>();
    protected Resource modelFile;
    protected volatile transient Transformer transformer;
-   private volatile transient SavedModelBundle model;
+   private volatile transient MonitoredObject<SavedModelBundle> model;
+
+   /**
+    * Instantiates a new TensorFlowModel.
+    *
+    * @param outputs  the model outputs
+    * @param inputs   the model inputs
+    * @param encoders the encoders
+    */
+   protected TensorFlowModel(@NonNull Set<String> inputs,
+                             @NonNull LinkedHashMap<String, String> outputs,
+                             @NonNull Map<String, Encoder> encoders) {
+      this.encoders.putAll(encoders);
+      this.inputs = new HashSet<>(inputs);
+      this.outputs = new LinkedHashMap<>(outputs);
+   }
 
    /**
     * Reads the model from the given resource
@@ -77,29 +97,19 @@ public abstract class TensorFlowModel implements Model {
       Class<?> modelClass = Reflect.getClassForNameQuietly(resource.getChild("__class__").readToString().strip());
       try {
          TensorFlowModel m = Reflect.onClass(modelClass).allowPrivilegedAccess().create().get();
-         for(Resource child : resource.getChildren("*.encoder.json.gz")) {
+         for (Resource child : resource.getChildren("*.encoder.json.gz")) {
             String name = child.baseName().replace(".encoder.json.gz", "").strip();
             m.encoders.put(name, Json.parse(child, Encoder.class));
          }
+         m.transformer = m.createTransformer();
          m.modelFile = resource;
          return m;
-      } catch(ReflectionException e) {
+      } catch (ReflectionException e) {
          throw new IOException(e);
       }
    }
 
-   /**
-    * Instantiates a new TensorFlowModel.
-    *
-    * @param outputs  the model outputs
-    * @param encoders the encoders
-    */
-   protected TensorFlowModel(@NonNull Set<String> outputs,
-                             @NonNull Map<String, Encoder> encoders) {
-      this.encoders.putAll(encoders);
-      this.inputs = new HashSet<>(Sets.difference(encoders.keySet(), outputs));
-      this.outputs = outputs;
-   }
+   protected abstract Map<String, Tensor<?>> createTensors(DataSet batch);
 
    /**
     * Creates the required transformer for preparing inputs / outputs to pass to TensorFlow.
@@ -107,6 +117,20 @@ public abstract class TensorFlowModel implements Model {
     * @return the transformer
     */
    protected abstract Transformer createTransformer();
+
+   protected Datum decode(Datum datum, List<NDArray> yHat, long slice) {
+      int i = 0;
+      for (Map.Entry<String, String> e : outputs.entrySet()) {
+         NDArray ndArray = yHat.get(i);
+         if (ndArray.shape().order() > 2) {
+            datum.put(e.getKey(), yHat.get(i).slice((int) slice));
+         } else {
+            datum.put(e.getKey(), yHat.get(i).getRow((int) slice));
+         }
+         i++;
+      }
+      return datum;
+   }
 
    @Override
    public void estimate(@NonNull DataSet dataset) {
@@ -116,7 +140,7 @@ public abstract class TensorFlowModel implements Model {
       Resource tmp = Resources.temporaryFile();
       try {
          Json.dumpPretty(dataset, tmp);
-      } catch(IOException e) {
+      } catch (IOException e) {
          throw new RuntimeException(e);
       }
       System.out.println("DataSet saved to: " + tmp.descriptor());
@@ -128,44 +152,60 @@ public abstract class TensorFlowModel implements Model {
    }
 
    @Override
-   public Set<String> getInputs() {
-      return inputs;
+   public final Set<String> getInputs() {
+      return Collections.unmodifiableSet(inputs);
    }
 
    @Override
-   public Set<String> getOutputs() {
-      return outputs;
+   public final Set<String> getOutputs() {
+      return Collections.unmodifiableSet(outputs.keySet());
    }
 
    protected final SavedModelBundle getTensorFlowModel() {
-      if(model == null) {
-         synchronized(this) {
-            if(model == null) {
-               model = SavedModelBundle.load(modelFile.getChild("tfmodel")
-                                                      .asFile()
-                                                      .orElseThrow()
-                                                      .getAbsolutePath(),
-                                             "serve");
+      if (model == null) {
+         synchronized (this) {
+            if (model == null) {
+               model = ResourceMonitor.monitor(SavedModelBundle.load(modelFile.getChild("tfmodel")
+                                                                              .asFile()
+                                                                              .orElseThrow()
+                                                                              .getAbsolutePath(),
+                                                                     "serve"));
                transformer = createTransformer();
             }
          }
       }
-      return model;
+      return model.object;
    }
 
-   /**
-    * Processes the given datum with the model.
-    *
-    * @param datum the datum
-    * @param model the model
-    */
-   protected abstract void process(@NonNull Datum datum, @NonNull SavedModelBundle model);
+   protected List<Datum> processBatch(DataSet batch) {
+      batch = transformer.transform(batch);
+      Session.Runner runner = getTensorFlowModel().session().runner();
+      Map<String, Tensor<?>> tensors = createTensors(batch);
+      tensors.forEach(runner::feed);
+      outputs.forEach((mo, to) -> runner.fetch(to));
+
+      List<NDArray> results = new ArrayList<>();
+      for (Tensor<?> tensor : runner.run()) {
+         results.add(NDArrayFactory.ND.fromTensorFlowTensor(tensor));
+         tensor.close();
+      }
+
+      List<Datum> output = new ArrayList<>();
+      batch.stream()
+           .zipWithIndex()
+           .forEachLocal((d, i) -> output.add(decode(d, results, i)));
+
+
+      tensors.values().forEach(Tensor::close);
+
+      return output;
+   }
 
    @Override
    public void save(@NonNull Resource resource) throws IOException {
-      for(String name : Sets.union(getInputs(), getOutputs())) {
+      for (String name : Sets.union(getInputs(), getOutputs())) {
          Encoder encoder = encoders.get(name);
-         if(!encoder.isFixed()) {
+         if (!encoder.isFixed()) {
             Json.dumpPretty(encoder, resource.getChild(name + ".encoder.json.gz").setCompression(Compression.GZIP));
          }
       }
@@ -173,10 +213,12 @@ public abstract class TensorFlowModel implements Model {
 
    @Override
    public final Datum transform(@NonNull Datum datum) {
-      getTensorFlowModel();
-      datum = transformer.transform(datum);
-      process(datum, model);
-      return datum;
+      return processBatch(DataSetType.InMemory.create(Stream.of(datum))).get(0);
+   }
+
+   @Override
+   public DataSet transform(@NonNull DataSet dataset) {
+      return dataset.map(this::transform);
    }
 
 }//END OF TensorFlowModel

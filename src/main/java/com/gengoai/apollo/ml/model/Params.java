@@ -151,6 +151,10 @@ public final class Params {
       /**
        * The constant K.
        */
+      public static final ParameterDef<Integer> minPoints = ParameterDef.intParam("minPoints");
+      /**
+       * The constant K.
+       */
       public static final ParameterDef<Integer> K = ParameterDef.intParam("K");
       /**
        * The constant linkage.

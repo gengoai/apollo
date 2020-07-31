@@ -28,8 +28,12 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.gengoai.Copyable;
 import com.gengoai.Validation;
+import com.gengoai.apollo.ml.encoder.Encoder;
+import com.gengoai.apollo.ml.model.sequence.SequenceValidator;
 import com.gengoai.apollo.ml.observation.Observation;
+import com.gengoai.apollo.ml.observation.Sequence;
 import com.gengoai.apollo.ml.observation.Variable;
+import com.gengoai.apollo.ml.observation.VariableSequence;
 import com.gengoai.conversion.Cast;
 import com.gengoai.math.Operator;
 import com.gengoai.string.Strings;
@@ -2030,6 +2034,24 @@ public abstract class NDArray implements Serializable, Observation {
        */
       void apply(long index, double value);
 
+   }
+
+   public Sequence<?> decodeSequence(@NonNull Encoder encoder, @NonNull SequenceValidator validator) {
+      VariableSequence sequence = new VariableSequence();
+      String previous = "O";
+      for (int word = 0; word < rows(); word++) {
+         NDArray matrix = getRow(word);
+         int l = (int) matrix.argmax();
+         String tag = encoder.decode(l);
+         while (!validator.isValid(tag, previous, matrix)) {
+            matrix.set(l, Double.NEGATIVE_INFINITY);
+            l = (int) matrix.argmax();
+            tag = encoder.decode(l);
+         }
+         previous = tag;
+         sequence.add(Variable.real(tag, matrix.get(l)));
+      }
+      return sequence;
    }
 
 }//END OF NDArray

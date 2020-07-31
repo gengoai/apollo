@@ -41,7 +41,7 @@ public enum DataSetType {
       }
 
       @Override
-      protected DataSet create(@NonNull MStream<Datum> stream) {
+      public DataSet create(@NonNull MStream<Datum> stream) {
          return new StreamingDataSet(stream.toDistributedStream());
       }
    },
@@ -50,7 +50,7 @@ public enum DataSetType {
     */
    InMemory {
       @Override
-      protected DataSet create(@NonNull MStream<Datum> stream) {
+      public DataSet create(@NonNull MStream<Datum> stream) {
          return new InMemoryDataSet(stream.collect());
       }
 
@@ -70,7 +70,7 @@ public enum DataSetType {
    },
    OnDisk {
       @Override
-      protected DataSet create(@NonNull MStream<Datum> stream) {
+      public DataSet create(@NonNull MStream<Datum> stream) {
          return new SQLiteDataSet(stream.javaStream());
       }
 
@@ -78,7 +78,7 @@ public enum DataSetType {
 
    protected abstract DataSet create(@NonNull MStream<Datum> stream);
 
-   protected DataSet create(@NonNull Stream<Datum> stream) {
+   public DataSet create(@NonNull Stream<Datum> stream) {
       return create(getStreamingContext().stream(stream));
    }
 
